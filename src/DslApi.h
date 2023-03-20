@@ -605,24 +605,17 @@ THE SOFTWARE.
 #define DSL_RTSP_TEST_FOR_BUFFER_TIMEOUT_PERIOD_MS                  100
 
 /**
- * @brief the maximum time to wait for a RTSP Source to
- * complete first connection when the Pipeline is first played.
- * In units of seconds.
- */
-#define DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S                         20
-
-/**
  * @brief time to sleep after a failed reconnection before
  * starting a new re-connection cycle. In units of seconds
  */
-#define DSL_RTSP_RECONNECTION_SLEEP_S                               10
+#define DSL_RTSP_CONNECTION_SLEEP_S                                 10
 
 /**
  * @brief the maximum time to wait for a RTSP Source to
  * asynchronously transition to a final state of Playing.
- * In units of seconds
+ * In units of seconds. 
  */
-#define DSL_RTSP_RECONNECTION_TIMEOUT_S                             30
+#define DSL_RTSP_CONNECTION_TIMEOUT_S                               20
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -4844,29 +4837,31 @@ DslReturnType dsl_source_rtsp_timeout_get(const wchar_t* name, uint* timeout);
 DslReturnType dsl_source_rtsp_timeout_set(const wchar_t* name, uint timeout);
 
 /**
- * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
- * to DSL_RTSP_RECONNECT_SLEEP_TIME_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
+ * @brief Gets the current reconnection params in use by the named RTSP Source. 
+ * The parameters are set to DSL_RTSP_CONNECTION_SLEEP_TIME_MS and 
+ * DSL_RTSP_CONNECTION_TIMEOUT_MS on source creation.
  * @param[in] name name of the source object to query.
- * @param[out] sleep time, in unit of seconds, to sleep between successively checking the status of the asynchrounus reconnection
- * Also, the retry_sleep time is used after a state change failure
- * @param[out] timeout time, in units of seconds, to wait before terminating the current reconnection try and
- * restarting the reconnection cycle again.
+ * @param[out] sleep time, in unit of seconds, to sleep after a failed connection.
+ * @param[out] timeout time, in units of seconds, to wait before terminating the 
+ * current connection attempt and restarting the connection cycle again.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnection_params_get(const wchar_t* name, uint* sleep, uint* timeout);
+DslReturnType dsl_source_rtsp_connection_params_get(const wchar_t* name, 
+    uint* sleep, uint* timeout);
 
 /**
- * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
- * to DSL_RTSP_RECONNECT_SLEEP_TIME and DSL_RTSP_RECONNECT_TIMEOUT on source creation.
+ * @brief Sets the current reconnection params in use by the named RTSP Source. 
+ * The parameters are set to DSL_RTSP_CONNECTION_SLEEP_TIME_MS and 
+ * DSL_RTSP_CONNECTION_TIMEOUT_MS on source creation.
  * Note: calling this service while a reconnection cycle is in progess will terminate
  * the current cycle before restarting with the new parmeters.
- * @param[in] retry_sleep time, in unit of seconds, to sleep between successively checking the status of the asynchrounus reconnection
- * Also, the retry_sleep time is used after a state change failure
- * @param[in] retry_timeout time, in units of seconds, to wait before terminating the current reconnection try and
- * restarting the reconnection cycle again.
+ * @param[in] sleep time, in unit of seconds, to sleep after a failed connection.
+ * @param[in] timeout time, in units of seconds, to wait before terminating the 
+ * current connection attempt and restarting the connection cycle again.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_reconnection_params_set(const wchar_t* name, uint sleep, uint timeout);
+DslReturnType dsl_source_rtsp_connection_params_set(const wchar_t* name, 
+    uint sleep, uint timeout);
 
 /**
  * @brief Gets the current connection stats for the named RTSP Source

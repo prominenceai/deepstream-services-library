@@ -1513,25 +1513,27 @@ namespace DSL
         void SetBufferTimeout(uint timeout);
 
         /**
-         * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
-         * to DSL_RTSP_RECONNECT_SLEEP_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
-         * @param[out] sleep time to sleep between successively checking the status of the asynchrounus reconnection
-         * @param[out] timeout current time to wait before terminating the current reconnection try, and
-         * restarting the reconnection cycle again.
+         * @brief Gets the current reconnection params in use by the named RTSP Source. 
+         * The parameters are set to DSL_RTSP_CONNECTION_SLEEP_TIME_MS and 
+         * DSL_RTSP_CONNECTION_TIMEOUT_MS on source creation.
+         * @param[out] sleep time, in unit of seconds, to sleep after a failed connection.
+         * @param[out] timeout time, in units of seconds, to wait before terminating the 
+         * current connection attempt and restarting the connection cycle again.
          */
-        void GetReconnectionParams(uint* sleep, uint* timeout);
+        void GetConnectionParams(uint* sleep, uint* timeout);
         
         /**
-         * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
-         * to DSL_RTSP_RECONNECT_SLEEP_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation. Both must be > 10ms
-         * Note: calling this service while a reconnection cycle is in progess will terminate the current cycle 
-         * before restarting with the new parmeters.
-         * @param[in] sleep time to sleep between successively checking the status of the asynchrounus reconnection
-         * @param[in] timeout current time to wait before terminating the current reconnection try, and
-         * restarting the reconnection cycle again.
+         * @brief Sets the current reconnection params in use by the named RTSP Source. 
+         * The parameters are set to DSL_RTSP_CONNECTION_SLEEP_TIME_MS and 
+         * DSL_RTSP_CONNECTION_TIMEOUT_MS on source creation.
+         * Note: calling this service while a reconnection cycle is in progess will terminate
+         * the current cycle before restarting with the new parmeters.
+         * @param[in] sleep time, in unit of seconds, to sleep after a failed connection.
+         * @param[in] timeout time, in units of seconds, to wait before terminating the 
+         * current connection attempt and restarting the connection cycle again.
          * @return true is params have been set, false otherwise.
          */
-        bool SetReconnectionParams(uint sleep, uint timeout);
+        bool SetConnectionParams(uint sleep, uint timeout);
 
         /**
          * @brief Gets the Reconnect Statistics collected by the RTSP source 
@@ -1712,11 +1714,6 @@ namespace DSL
          */
         DSL_PPH_TIMESTAMP_PTR m_TimestampPph;
 
-        /**
-         * @brief maximum time to wait for the first connection to complete in ms.
-         */
-        uint m_firstConnectTimeout;
-        
         /**
          * @brief time incremented while waiting for first connection in ms.
          */

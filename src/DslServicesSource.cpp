@@ -2202,7 +2202,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceRtspReconnectionParamsGet(const char* name, uint* sleep, uint* timeout)
+    DslReturnType Services::SourceRtspConnectionParamsGet(const char* name, uint* sleep, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2215,7 +2215,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->GetReconnectionParams(sleep, timeout);
+            pSourceBintr->GetConnectionParams(sleep, timeout);
             
             LOG_INFO("RTSP Source '" << name << "' returned Sleep = " <<
                 *sleep << " and Timeout = " << *timeout << "' successfully");
@@ -2229,7 +2229,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectionParamsSet(const char* name, uint sleep, uint timeout)
+    DslReturnType Services::SourceRtspConnectionParamsSet(const char* name, uint sleep, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2242,7 +2242,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            if (!pSourceBintr->SetReconnectionParams(sleep, timeout))
+            if (!pSourceBintr->SetConnectionParams(sleep, timeout))
             {
                 LOG_ERROR("RTSP Source '" << name << "' failed to set reconnection params");
                 return DSL_RESULT_SOURCE_SET_FAILED;

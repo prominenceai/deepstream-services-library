@@ -815,9 +815,9 @@ namespace DSL {
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType SourceRtspReconnectionParamsGet(const char* name, uint* sleep, uint* timeout);
+        DslReturnType SourceRtspConnectionParamsGet(const char* name, uint* sleep, uint* timeout);
 
-        DslReturnType SourceRtspReconnectionParamsSet(const char* name, uint sleep, uint timeout);
+        DslReturnType SourceRtspConnectionParamsSet(const char* name, uint sleep, uint timeout);
         
         DslReturnType SourceRtspConnectionDataGet(const char* name, dsl_rtsp_connection_data* data);
         
