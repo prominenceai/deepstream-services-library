@@ -10,7 +10,7 @@
 A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
 
 ## Next Release
-### *The release date for [v0.26.alpha](https://github.com/prominenceai/deepstream-services-library/tree/v0.26.alpha) is set for March 15, 2023!*
+### *The release date for [v0.26.alpha](https://github.com/prominenceai/deepstream-services-library/tree/v0.26.alpha) is set for April, 2023!*
 - follow the link for early access.
 - there are breaking changes in this version so please read the [release notes](https://github.com/prominenceai/deepstream-services-library/blob/v0.26.alpha/Release%20Notes/v0.26.alpha.md) carefully.
 - and please report any issues if found.
