@@ -511,7 +511,7 @@ THE SOFTWARE.
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
 #define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
-#define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_I420
+#define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_NV12
 
 /**
  * @brief Constants defining the two crop_at positions.
