@@ -1797,12 +1797,17 @@ namespace DSL
             // If it's an MJPG file or Multi JPG files
             if (m_uri.find("mjpeg") != std::string::npos or
                 m_uri.find("mjpg") != std::string::npos or
+                m_uri.find("mp4") != std::string::npos or
                 type == DSL_IMAGE_TYPE_MULTI)
             {
-                LOG_INFO("Setting decoder 'mjpeg' attribute for ImageSourceBintr '" 
-                    << GetName() << "'");
-                m_mjpeg = TRUE;
-                m_pDecoder->SetAttribute("mjpeg", m_mjpeg);
+                // aarch64 (Jetson) only
+                if (m_cudaDeviceProp.integrated)
+                {
+                    LOG_INFO("Setting decoder 'mjpeg' attribute for ImageSourceBintr '" 
+                        << GetName() << "'");
+                    m_mjpeg = TRUE;
+                    m_pDecoder->SetAttribute("mjpeg", m_mjpeg);
+                }
             }
             
         }
@@ -2544,7 +2549,7 @@ namespace DSL
         {
             m_pDecoder->SetAttribute("skip-frames", m_skipFrames);
         }
-        // aarch64 only
+        // aarch64 (Jetson) only
         if (m_cudaDeviceProp.integrated)
         {
             m_pDecoder->SetAttribute("enable-max-performance", TRUE);
@@ -2955,6 +2960,14 @@ namespace DSL
             {
                 m_pDepay = DSL_ELEMENT_NEW("rtpjpegdepay", GetCStrName());
                 m_pParser = DSL_ELEMENT_NEW("jpegparse", GetCStrName());
+
+                // aarch64 (Jetson) only
+                if (m_cudaDeviceProp.integrated)
+                {
+                    LOG_INFO("Setting decoder 'mjpeg' attribute for RtspSourceBintr '" 
+                        << GetName() << "'");
+                    m_pDecoder->SetAttribute("mjpeg", TRUE);
+                }
             }
             else
             {
