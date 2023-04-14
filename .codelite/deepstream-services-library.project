@@ -3,6 +3,10 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <VirtualDirectory Name="opencv">
+      <File Name="../src/opencv/DslAvFile.h"/>
+      <File Name="../src/opencv/DslAvFile.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="ffmpeg">
       <File Name="../src/ffmpeg/DslAvFile.h"/>
       <File Name="../src/ffmpeg/DslAvFile.cpp"/>
@@ -122,6 +126,9 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
+    <VirtualDirectory Name="avfile">
+      <File Name="../test/avfile/DslAvFileUnitTest.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="api">
       <File Name="../test/api/DslBranchMgtApiTest.cpp"/>
       <File Name="../test/api/DslComponentMgt.cpp"/>

@@ -27,11 +27,8 @@ THE SOFTWARE.
 
 #include "DslSurfaceTransform.h"
 
-extern "C" { 
-#include <libavformat/avformat.h>
-#include <libavutil/imgutils.h>
-#include <libswscale/swscale.h>
-}
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 namespace DSL
 {
@@ -77,9 +74,9 @@ namespace DSL
     private:
     
         /**
-         * @brief pointer to a AV Format Context populated with avformat_open_input.
+         * @brief VideoCapture object to get frame rate and dimesnsions.
          */
-        AVFormatContext* m_pFormatCtx;
+        cv::VideoCapture m_vidCap;
         
     };
 
@@ -106,31 +103,11 @@ namespace DSL
         ~AvJpgOutputFile();
         
     private:
-    
-        /**
-         * @brief buffer for the packed RGBA Image.
-         */
-        uint8_t* m_rgbaImage;
-        
-        /**
-         * @brief Handle to opened output file.
-         */
-        FILE* m_outfile;
-        
-        /**
-         * @brief Packet to receive the converted MJPEG data.
-         */
-        AVPacket* m_pPkt;
-        
-        /**
-         * @brief MJPEG codec context pointer to provide context for all Codec calls.
-         */
-        AVCodecContext* m_pMjpegCodecContext;
         
         /**
          * @brief SW Scale utility context to provide context all Scale/format calls.
          */
-        SwsContext* m_pScaleContext;
+        cv::Mat* m_pBgrFrame;
     };
 }
 

@@ -50,7 +50,7 @@ JSON_GLIB_VERSION:=1.0
 # either the FFmpeg or OpenCV development libraries must be installed, and
 # - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
 BUILD_WITH_FFMPEG:=false
-BUILD_WITH_OPENCV:=false
+BUILD_WITH_OPENCV:=true
 
 # To enable the InterPipe Sink and Source components
 # - set BUILD_INTER_PIPE:=true
@@ -74,11 +74,13 @@ LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
 
 ifeq ($(BUILD_WITH_FFMPEG),true)
 SRCS+= $(wildcard ./src/ffmpeg/*.cpp)
+SRCS+= $(wildcard ./test/avfile/*.cpp)
 INCS+= $(wildcard ./src/ffmpeg/*.h)
 endif
 
 ifeq ($(BUILD_WITH_OPENCV),true)
 SRCS+= $(wildcard ./src/opencv/*.cpp)
+SRCS+= $(wildcard ./test/avfile/*.cpp)
 INCS+= $(wildcard ./src/opencv/*.h)
 endif
 
@@ -151,11 +153,13 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
     -fPIC 
 
 ifeq ($(BUILD_WITH_FFMPEG),true)
-CFLAGS+= -I./src/ffmpeg 
+CFLAGS+= -I./src/ffmpeg \
+	-I./test/avfile
 endif	
 
 ifeq ($(BUILD_WITH_OPENCV),true)
-CFLAGS+= -I./src/opencv
+CFLAGS+= -I./src/opencv \
+	-I./test/avfile
 endif	
 
 ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
@@ -227,6 +231,10 @@ endif
 CFLAGS+= `pkg-config --cflags $(PKGS)`
 
 LIBS+= `pkg-config --libs $(PKGS)`
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+PKGS+= opencv4
+endif
 
 all: $(APP)
 

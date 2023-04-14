@@ -585,55 +585,25 @@ namespace DSL
         // Get the dimensions and data size of the mono-surface
         uint bufferWidth = (&(*pBufferSurface))->surfaceList[0].width;
         uint bufferHeight = (&(*pBufferSurface))->surfaceList[0].height;
-        uint dataSize = (&(*pBufferSurface))->surfaceList[0].dataSize;
         
-        // Check to ensure that the buffer and pitch dimensions are the same
-        if (bufferWidth !=
-            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
-            bufferHeight !=
-            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
-        {
-            LOG_ERROR("Invalid dimensions found for surface plane[0]");
-            m_idleThreadFunctionId = 0;
-            return FALSE;
-        }
-
-        // There should only be one plane for RGBA
-        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
-        {
-            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
-            m_idleThreadFunctionId = 0;
-            return FALSE;
-        }
-
-        // Allocate and initialize a new array to create a compressed buffer 
-        // of raw RGBA image data - i.e. with the memory alignment padding removed.
-        uint8_t* rgbaImage = (uint8_t*)g_malloc0(dataSize);
-        
-        // Initialize the source pointer to the start of the mapped surface
-        uint8_t* pSrcIndex = 
-            (uint8_t*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0];
-            
-        // Initialize the destination pointer to the start of the RGBA Image buffer
-        uint8_t* pDstIndex = &rgbaImage[0];
-        
-        // Get the offset of the plane within the pitch
-        uint offset = 
-            (&(*pBufferSurface))->surfaceList[0].planeParams.offset[0];
-
-        // Size of each line to copy will be the plane width * the bytes/pixel
-        uint copySize = (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] *
-            (&(*pBufferSurface))->surfaceList[0].planeParams.bytesPerPix[0];
-
-        // For each line in the plane/buffer copy over the image data
-        // and advance the source and destination buffer pointers.
-        for (auto line=0; line < bufferHeight; line++)
-        {
-            memcpy(pDstIndex, pSrcIndex+offset, copySize);
-            pSrcIndex += 
-                (&(*pBufferSurface))->surfaceList[0].planeParams.pitch[0];
-            pDstIndex += copySize;
-        }
+//        // Check to ensure that the buffer and pitch dimensions are the same
+//        if (bufferWidth !=
+//            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
+//            bufferHeight !=
+//            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
+//        {
+//            LOG_ERROR("Invalid dimensions found for surface plane[0]");
+//            m_idleThreadFunctionId = 0;
+//            return FALSE;
+//        }
+//
+//        // There should only be one plane for RGBA
+//        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
+//        {
+//            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
+//            m_idleThreadFunctionId = 0;
+//            return FALSE;
+//        }
         
         // Generate the image file name from the date-time string
         std::ostringstream fileNameStream;
@@ -649,14 +619,12 @@ namespace DSL
         try
         {
 #if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
-            AvJpgOutputFile avJpgOutFile(rgbaImage, 
-                bufferWidth, bufferHeight, fileNameStream.str().c_str());
+            AvJpgOutputFile avJpgOutFile(pBufferSurface, 
+                fileNameStream.str().c_str());
 #endif                
-            g_free(rgbaImage);
         }
         catch(...)
         {
-            g_free(rgbaImage);
             m_idleThreadFunctionId = 0;
             return FALSE;
         }
@@ -709,7 +677,7 @@ namespace DSL
                
                 info.dirpath = wstrDirpath.c_str();
                 info.filename = wstrFilename.c_str();
-                info.width =bufferWidth;
+                info.width = bufferWidth;
                 info.height = bufferHeight;
                     
                 // iterate through the map of listeners calling each

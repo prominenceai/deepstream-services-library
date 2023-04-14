@@ -100,13 +100,51 @@ namespace DSL
         }
     }
 
-    AvJpgOutputFile::AvJpgOutputFile(uint8_t* pRgbaImage, 
-        uint width, uint height, const char* filepath)
-        : m_pMjpegCodecContext(NULL)
+    AvJpgOutputFile::AvJpgOutputFile(
+        std::shared_ptr<DslBufferSurface> pBufferSurface, 
+        const char* filepath)
+        : m_rgbaImage(NULL)
+        , m_outfile(NULL)
+        , m_pPkt(NULL)
+        , m_pMjpegCodecContext(NULL)
         , m_pScaleContext(NULL)
     {
         LOG_FUNC();
+
+        // Get the dimensions of the buffer-surface
+        uint width = (&(*pBufferSurface))->surfaceList[0].width;
+        uint height = (&(*pBufferSurface))->surfaceList[0].height;
+
+        // Allocate and initialize a new array to create a compressed buffer 
+        // of raw RGBA image data - i.e. with the memory alignment padding removed.
+        m_rgbaImage = (uint8_t*)g_malloc0(
+            (&(*pBufferSurface))->surfaceList[0].dataSize);
         
+        // Initialize the source pointer to the start of the mapped surface
+        uint8_t* pSrcIndex = 
+            (uint8_t*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0];
+            
+        // Initialize the destination pointer to the start of the RGBA Image buffer
+        uint8_t* pDstIndex = &m_rgbaImage[0];
+        
+        // Get the offset of the plane within the pitch
+        uint offset = 
+            (&(*pBufferSurface))->surfaceList[0].planeParams.offset[0];
+
+        // Size of each line to copy will be the plane width * the bytes/pixel
+        uint copySize = (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] *
+            (&(*pBufferSurface))->surfaceList[0].planeParams.bytesPerPix[0];
+
+        // For each line in the plane/buffer copy over the image data
+        // and advance the source and destination buffer pointers.
+        for (auto line=0; line < height; line++)
+        {
+            memcpy(pDstIndex, pSrcIndex+offset, copySize);
+            pSrcIndex += 
+                (&(*pBufferSurface))->surfaceList[0].planeParams.pitch[0];
+            pDstIndex += copySize;
+        }
+
         av_register_all();
         
         // Find the correct codec and 
@@ -152,7 +190,7 @@ namespace DSL
         pSrcFrame->height = height;
         pSrcFrame->pts = 1;
         pSrcFrame->linesize[0] = width*4;
-        pSrcFrame->data[0] = pRgbaImage;
+        pSrcFrame->data[0] = m_rgbaImage;
         
         pDstFrame->format = m_pMjpegCodecContext->pix_fmt;
         pDstFrame->width  = m_pMjpegCodecContext->width;
@@ -183,14 +221,6 @@ namespace DSL
 
         // --------- Start JPEG Encodeing
 
-        // Allocate a Packet to tranport the 
-        AVPacket* pPkt = av_packet_alloc();
-        if (!pPkt)
-        {
-            LOG_ERROR("Failed to allocate Packet");
-            throw std::system_error();
-        }
-        
         // Send the converted frame to the MJPEG codec for encoding
         int retval = avcodec_send_frame(m_pMjpegCodecContext, pDstFrame);
         if ( retval < 0)
@@ -199,11 +229,19 @@ namespace DSL
             throw std::system_error();
         }
 
+        // Allocate a Packet to receive the converted data
+        m_pPkt = av_packet_alloc();
+        if (!m_pPkt)
+        {
+            LOG_ERROR("Failed to allocate Packet");
+            throw std::system_error();
+        }
+        
         // Open the output file using the provided filepath
-        FILE* outfile = fopen(filepath, "wb");
+        m_outfile = fopen(filepath, "wb");
         while (retval >= 0)
         {
-            retval = avcodec_receive_packet(m_pMjpegCodecContext, pPkt);
+            retval = avcodec_receive_packet(m_pMjpegCodecContext, m_pPkt);
             if (retval == AVERROR(EAGAIN) || retval == AVERROR_EOF)
             {
                 break;
@@ -213,12 +251,9 @@ namespace DSL
                 LOG_ERROR("Failed to send frame to codec: AV_CODEC_ID_MJPEG");
                 throw std::system_error();
             }
-            fwrite(pPkt->data, 1, pPkt->size, outfile);
+            fwrite(m_pPkt->data, 1, m_pPkt->size, m_outfile);
         }
         
-        // close the output file and free all allocated data.        
-        fclose(outfile);
-        av_packet_free(&pPkt);
         av_freep(&pDstFrame->data[0]);
         av_frame_free(&pSrcFrame);
         av_frame_free(&pDstFrame);
@@ -227,7 +262,20 @@ namespace DSL
     AvJpgOutputFile::~AvJpgOutputFile()
     {
         LOG_FUNC();
-        
+
+        // close the output file and free all allocated data.   
+        if (m_outfile)
+        {
+            fclose(m_outfile);
+        }
+        if (m_rgbaImage)
+        {
+            g_free(m_rgbaImage);
+        }        
+        if (m_pPkt)
+        {
+            av_packet_free(&m_pPkt);
+        }
         if (m_pScaleContext)
         {
             sws_freeContext(m_pScaleContext);            
