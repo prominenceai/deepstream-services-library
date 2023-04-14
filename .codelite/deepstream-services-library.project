@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="deepstream-services-library" Version="10.0.0" InternalType="">
+<CodeLite_Project Name="deepstream-services-library" Version="11000" InternalType="">
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <VirtualDirectory Name="ffmpeg">
+      <File Name="../src/ffmpeg/DslAvFile.h"/>
+      <File Name="../src/ffmpeg/DslAvFile.cpp"/>
+    </VirtualDirectory>
     <File Name="../src/DslApi.cpp"/>
     <File Name="../src/DslBranchBintr.cpp"/>
     <File Name="../src/DslDewarperBintr.cpp"/>
@@ -109,8 +113,6 @@
     </VirtualDirectory>
     <File Name="../src/DslServicesOdeAction.cpp"/>
     <File Name="../src/DslSinkBintr.h"/>
-    <File Name="../src/DslAvFile.h"/>
-    <File Name="../src/DslAvFile.cpp"/>
     <VirtualDirectory Name="webrtc">
       <File Name="../src/webrtc/DslServicesSinkWebRtc.cpp"/>
       <File Name="../src/webrtc/DslSinkWebRtcBintr.cpp"/>
@@ -202,7 +204,6 @@
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
-      <File Name="../test/unit/DslAvFileUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
@@ -312,6 +313,10 @@
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
   </VirtualDirectory>
+  <VirtualDirectory Name="thirdparty">
+    <File Name="../src/thirdparty/randomcolor.cpp"/>
+    <File Name="../src/thirdparty/randomcolor.h"/>
+  </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -401,8 +406,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <VirtualDirectory Name="thirdparty">
-    <File Name="../src/thirdparty/randomcolor.cpp"/>
-    <File Name="../src/thirdparty/randomcolor.h"/>
-  </VirtualDirectory>
 </CodeLite_Project>

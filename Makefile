@@ -43,6 +43,15 @@ GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
+# To enable the extended Image Services
+#   1. Object & Frame Capture ODE Actions
+#   2. Frame-Capture Sink
+#   3. Streaming Image Source
+# either the FFmpeg or OpenCV development libraries must be installed, and
+# - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
+BUILD_WITH_FFMPEG:=false
+BUILD_WITH_OPENCV:=false
+
 # To enable the InterPipe Sink and Source components
 # - set BUILD_INTER_PIPE:=true
 BUILD_INTER_PIPE:=false
@@ -52,9 +61,26 @@ BUILD_INTER_PIPE:=false
 BUILD_NMP_PPH:=false
 NUM_CPP_PATH:=
 
+# Fail if both build flags are set
+ifeq ($(BUILD_WITH_FFMPEG),true)
+ifeq ($(BUILD_WITH_OPENCV),true)
+$(error BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV both set to true)
+endif
+endif
+
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
+
+ifeq ($(BUILD_WITH_FFMPEG),true)
+SRCS+= $(wildcard ./src/ffmpeg/*.cpp)
+INCS+= $(wildcard ./src/ffmpeg/*.h)
+endif
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+SRCS+= $(wildcard ./src/opencv/*.cpp)
+INCS+= $(wildcard ./src/opencv/*.h)
+endif
 
 ifeq ($(BUILD_INTER_PIPE),true)
 SRCS+= $(wildcard ./test/interpipe/*.cpp)
@@ -110,6 +136,8 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
 	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DBUILD_WITH_FFMPEG=$(BUILD_WITH_FFMPEG) \
+	-DBUILD_WITH_OPENCV=$(BUILD_WITH_OPENCV) \
 	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
 	-DBUILD_INTER_PIPE=$(BUILD_INTER_PIPE) \
 	-DBUILD_NMP_PPH=$(BUILD_NMP_PPH) \
@@ -121,6 +149,14 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DNVDS_KAFKA_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_kafka_proto.so"' \
 	-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_proto.so"' \
     -fPIC 
+
+ifeq ($(BUILD_WITH_FFMPEG),true)
+CFLAGS+= -I./src/ffmpeg 
+endif	
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+CFLAGS+= -I./src/opencv
+endif	
 
 ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
@@ -153,10 +189,6 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lnvbufsurftransform \
 	-lnvdsgst_smartrecord \
 	-lnvds_msgbroker \
-	-lavformat \
-	-lavcodec \
-	-lavutil \
-	-lswscale \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
@@ -164,6 +196,14 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lgstapp-1.0 \
 	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
+
+ifeq ($(BUILD_WITH_FFMPEG),true)
+LIBS+= -lavformat \
+	-lavcodec \
+	-lavutil \
+	-lswscale
+endif
+
 
 ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \

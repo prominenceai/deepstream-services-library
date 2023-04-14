@@ -573,6 +573,13 @@ DslReturnType dsl_ode_action_custom_new(const wchar_t* name,
 DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
     const wchar_t* outdir)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
 
@@ -583,11 +590,19 @@ DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionCaptureFrameNew(cstrName.c_str(), 
         cstrOutdir.c_str());
+#endif        
 }
 
 DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
     const wchar_t* outdir)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
 
@@ -598,11 +613,19 @@ DslReturnType dsl_ode_action_capture_object_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionCaptureObjectNew(cstrName.c_str(), 
         cstrOutdir.c_str());
+#endif
 }
 
 DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name, 
     dsl_capture_complete_listener_cb listener, void* client_data)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
 
@@ -611,11 +634,19 @@ DslReturnType dsl_ode_action_capture_complete_listener_add(const wchar_t* name,
 
     return DSL::Services::GetServices()->
         OdeActionCaptureCompleteListenerAdd(cstrName.c_str(), listener, client_data);
+#endif
 }
     
 DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* name, 
     dsl_capture_complete_listener_cb listener)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
 
@@ -624,11 +655,19 @@ DslReturnType dsl_ode_action_capture_complete_listener_remove(const wchar_t* nam
 
     return DSL::Services::GetServices()->
         OdeActionCaptureCompleteListenerRemove(cstrName.c_str(), listener);
+#endif
 }
     
 DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name, 
     const wchar_t* player)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(player);
 
@@ -639,11 +678,19 @@ DslReturnType dsl_ode_action_capture_image_player_add(const wchar_t* name,
 
     return DSL::Services::GetServices()->
         OdeActionCaptureImagePlayerAdd(cstrName.c_str(), cstrPlayer.c_str());
+#endif
 }
     
 DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name, 
     const wchar_t* player)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(player);
 
@@ -654,11 +701,19 @@ DslReturnType dsl_ode_action_capture_image_player_remove(const wchar_t* name,
 
     return DSL::Services::GetServices()->
         OdeActionCaptureImagePlayerRemove(cstrName.c_str(), cstrPlayer.c_str());
+#endif
 }
     
 DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name, 
     const wchar_t* mailer, const wchar_t* subject, boolean attach)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(mailer);
     RETURN_IF_PARAM_IS_NULL(subject);
@@ -672,11 +727,19 @@ DslReturnType dsl_ode_action_capture_mailer_add(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionCaptureMailerAdd(
         cstrName.c_str(), cstrMailer.c_str(), cstrSubject.c_str(), attach);
+#endif
 }
     
 DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name, 
     const wchar_t* mailer)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(mailer);
 
@@ -687,6 +750,7 @@ DslReturnType dsl_ode_action_capture_mailer_remove(const wchar_t* name,
 
     return DSL::Services::GetServices()->OdeActionCaptureMailerRemove(
         cstrName.c_str(), cstrMailer.c_str());
+#endif
 }
 
 DslReturnType dsl_ode_action_label_customize_new(const wchar_t* name,  
@@ -3844,6 +3908,13 @@ DslReturnType dsl_source_image_multi_indices_set(const wchar_t* name,
 DslReturnType dsl_source_image_stream_new(const wchar_t* name, 
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
 
@@ -3854,10 +3925,18 @@ DslReturnType dsl_source_image_stream_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->SourceImageStreamNew(cstrName.c_str(), 
         cstrFilePath.c_str(), is_live, fps_n, fps_d, timeout);
+#endif        
 }
 
 DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* timeout)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -3865,10 +3944,18 @@ DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* tim
 
     return DSL::Services::GetServices()->SourceImageStreamTimeoutGet(cstrName.c_str(),
         timeout);
+#endif        
 }
 
 DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint timeout)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -3876,6 +3963,7 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
 
     return DSL::Services::GetServices()->SourceImageStreamTimeoutSet(cstrName.c_str(),
         timeout);
+#endif
 }
 
 DslReturnType dsl_source_image_file_path_get(const wchar_t* name, 
@@ -6737,6 +6825,13 @@ DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name,
 DslReturnType dsl_sink_frame_capture_new(const wchar_t* name, 
     const wchar_t* frame_capture_action)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(frame_capture_action);
 
@@ -6747,10 +6842,18 @@ DslReturnType dsl_sink_frame_capture_new(const wchar_t* name,
 
     return DSL::Services::GetServices()->SinkFrameCaptureNew(
         cstrName.c_str(), cstrAction.c_str());
+#endif        
 }
     
 DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name)
 {
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -6758,6 +6861,7 @@ DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name)
 
     return DSL::Services::GetServices()->SinkFrameCaptureInitiate(
         cstrName.c_str());
+#endif        
 }
     
     

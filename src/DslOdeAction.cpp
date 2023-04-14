@@ -26,7 +26,10 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
+
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
 #include "DslAvFile.h"
+#endif
 
 #define DATE_BUFF_LENGTH 40
 
@@ -645,8 +648,10 @@ namespace DSL
         // Try to convert and save the image to a JPEG file. 
         try
         {
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
             AvJpgOutputFile avJpgOutFile(rgbaImage, 
                 bufferWidth, bufferHeight, fileNameStream.str().c_str());
+#endif                
             g_free(rgbaImage);
         }
         catch(...)
