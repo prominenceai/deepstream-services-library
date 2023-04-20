@@ -555,6 +555,16 @@ namespace DSL
     protected:
         
         /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+        
+        /**
+         * @brief Flag for one-time read of cuda-device-properties
+         */
+        bool m_cudaDevicePropRead;
+
+        /**
          * @brief static, unique capture id shared by all Capture actions
          */
         static uint64_t s_captureId;

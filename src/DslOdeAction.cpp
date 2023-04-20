@@ -256,6 +256,8 @@ namespace DSL
     CaptureOdeAction::CaptureOdeAction(const char* name, 
         uint captureType, const char* outdir)
         : OdeAction(name)
+        , m_cudaDeviceProp{0}
+        , m_cudaDevicePropRead(false)
         , m_captureType(captureType)
         , m_outdir(outdir)
         , m_idleThreadFunctionId(0)
@@ -444,9 +446,18 @@ namespace DSL
         // Map the current buffer
         std::unique_ptr<DslMappedBuffer> pMappedBuffer = 
             std::unique_ptr<DslMappedBuffer>(new DslMappedBuffer(pBuffer));
+            
+        // One time read of the Device properties
+        if (!m_cudaDevicePropRead)
+        {
+            cudaGetDeviceProperties(&m_cudaDeviceProp, pMappedBuffer->pSurface->gpuId);
+            m_cudaDevicePropRead = true;
+        }
 
-        NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
-
+        NvBufSurfaceMemType transformMemType = (m_cudaDeviceProp.integrated)
+            ? NVBUF_MEM_DEFAULT
+            : NVBUF_MEM_CUDA_PINNED;
+    
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono 
         // (non-batched) surface copied from the "batched frames" using the batch id 
@@ -531,16 +542,16 @@ namespace DSL
             return;
         }
 
-        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
-        {
-            // Sync the surface for CPU access
-            if (!pBufferSurface->SyncForCpu())
-            {
-                LOG_ERROR("Destination surface failed to Sync for '" 
-                    << GetName() << "'");
-                return;
-            }
-        }
+//        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
+//        {
+//            // Sync the surface for CPU access
+//            if (!pBufferSurface->SyncForCpu())
+//            {
+//                LOG_ERROR("Destination surface failed to Sync for '" 
+//                    << GetName() << "'");
+//                return;
+//            }
+//        }
         queueCapturedImage(pBufferSurface);
     }
 
