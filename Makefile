@@ -50,7 +50,7 @@ JSON_GLIB_VERSION:=1.0
 # either the FFmpeg or OpenCV development libraries must be installed, and
 # - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
 BUILD_WITH_FFMPEG:=false
-BUILD_WITH_OPENCV:=false
+BUILD_WITH_OPENCV:=true
 
 # To enable the InterPipe Sink and Source components
 # - set BUILD_INTER_PIPE:=true
