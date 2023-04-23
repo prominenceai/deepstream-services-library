@@ -40,7 +40,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        av_register_all();
         avformat_network_init();
         
         m_pFormatCtx = avformat_alloc_context();
@@ -145,10 +144,8 @@ namespace DSL
             pDstIndex += copySize;
         }
 
-        av_register_all();
-        
         // Find the correct codec and 
-        AVCodec* pMjpecCodec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
+        const AVCodec* pMjpecCodec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
         if(!pMjpecCodec)
         {
             LOG_ERROR("Unable to find codec: AV_CODEC_ID_MJPEG");
