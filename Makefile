@@ -49,13 +49,8 @@ JSON_GLIB_VERSION:=1.0
 #   3. Streaming Image Source
 # either the FFmpeg or OpenCV development libraries must be installed, and
 # - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
-<<<<<<< HEAD
-BUILD_WITH_FFMPEG:=true
-BUILD_WITH_OPENCV:=false
-=======
 BUILD_WITH_FFMPEG:=false
-BUILD_WITH_OPENCV:=true
->>>>>>> e53eff20bff145744ebab2c641566310072efdcf
+BUILD_WITH_OPENCV:=false
 
 # To enable the InterPipe Sink and Source components
 # - set BUILD_INTER_PIPE:=true
@@ -206,6 +201,13 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
+LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
+	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
+	-Llibsoup-$(LIBSOUP_VERSION) \
+	-Ljson-glib-$(JSON_GLIB_VERSION)	
+endif
+
 ifeq ($(BUILD_WITH_FFMPEG),true)
 LIBS+= -lavformat \
 	-lavcodec \
@@ -215,14 +217,6 @@ LIBS+= -lavformat \
 	-lpthread \
 	-llzma \
 	-lswresample
-endif
-
-
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
-LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
-	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
-	-Llibsoup-$(LIBSOUP_VERSION) \
-	-Ljson-glib-$(JSON_GLIB_VERSION)	
 endif
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
