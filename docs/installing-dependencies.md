@@ -4,9 +4,10 @@ The DeepStream Services Library (DSL) is built on the NVIDIA® [DeepStream SDK](
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
 ## Contents
-* [Single Command Install](#single-command-install)
-* [Alternative Step-by-Step Instructions](#alternative-step-by-step-instructions)
-* [Optional Documentation and Debug Dependencies](#optional-documentation-and-debug-dependencies)
+* [Minimal (Base) Install](#minimal-base-install)
+* [Enabling Extended Image Services (Optional)](#enabling-extended-image-services-optional)
+* [Enabling Interpipe Services (Optional)](#enabling-interpipe-services-optional)
+* [Documentation and Debug Dependencies (Optional)](#documentation-and-debug-dependencies-optional)
 
 ---
 
@@ -42,18 +43,18 @@ sudo apt update && sudo apt-get install \
 ```    
 
 ---
-## Enabling the Extended Image Services.
+## Enabling Extended Image Services (Optional)
 Additional installation steps are required to use DSL's extended image services, which include:
 * [Streaming Image Source](/docs/api-source.md#dsl_source_image_stream_new)
 * [Object](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) and [Frame](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) Capture [ODE Actions](/docs/api-ode-action.md).
 * [Frame Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new)
+
 DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https://opencv.org/). Note: that installing OpenCV when using a dGPU NVIDIA Docker Image can be problematic.  
 
 ### Building FFmpeg
-To use FFmpeg DSL requires that you clone, build and install the latest version of the FFmpeg development libraries. 
+To use FFmpeg, DSL requires that you clone, build and install the latest version of the FFmpeg development libraries. 
 Copy and execute each of the following commands, one at a time, to setup the required dependencies.
 ```bash
-$ sudo apt-get install yasm
 $ mkdir ~/ffmpeg; cd ~/ffmpeg
 $ git clone https://github.com/FFmpeg/FFmpeg.git
 $ cd FFmpeg
@@ -61,6 +62,11 @@ $ ./configure --enable-shared --disable-lzma
 $ make
 $ sudo make install
 ```
+**Important Notes:**
+* Building the FFmpeg libraries can take > 15 minutes, depending on the platform. 
+* If builing in an NVIDIA DeepStream container, you may need to install yasm first 
+  * `apt-get install yasm`
+
 ### Installing OpenCV
 Copy and execute the following command to install the OpenCV development library. 
 ```bash
@@ -77,7 +83,15 @@ BUILD_WITH_FFMPEG:=false
 BUILD_WITH_OPENCV:=false
 ```
 
-## Optional Documentation and Debug Dependencies
+## Enabling Interpipe Services (Optional)
+The Interpipe Sink and Source are optional/conditional DSL components.  To enable, you will need to [build and install](https://developer.ridgerun.com/wiki/index.php/GstInterpipe_-_Building_and_Installation_Guide) the RidgeRun plugins. Then update the DSL Makefile to include/build the DSL Sink and Source components. Search for the following section and set `BUILD_INTER_PIPE` to `true`,
+```
+# To enable the InterPipe Sink and Source components
+# - set BUILD_INTER_PIPE:=true
+BUILD_INTER_PIPE:=true
+```
+
+## Documentation and Debug Dependencies (Optional)
 
 ### Installing dot by graphviz
 Doxygen requires **dot** to convert calling graphs to .png files and Pipeline graphs can be generated using **dot** as well
