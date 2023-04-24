@@ -43,12 +43,9 @@ GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
-# To enable the extended Image Services
-#   1. Object & Frame Capture ODE Actions
-#   2. Frame-Capture Sink
-#   3. Streaming Image Source
-# either the FFmpeg or OpenCV development libraries must be installed, and
-# - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
+# To enable the extended Image Services, install either the FFmpeg or OpenCV 
+# development libraries (See /docs/installing-dependencies.md), and
+#  - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
 BUILD_WITH_FFMPEG:=false
 BUILD_WITH_OPENCV:=false
 
@@ -215,7 +212,6 @@ LIBS+= -lavformat \
 	-lswscale \
 	-lz \
 	-lpthread \
-	-llzma \
 	-lswresample
 endif
 
