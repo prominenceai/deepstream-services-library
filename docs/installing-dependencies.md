@@ -1,5 +1,5 @@
 # Installing DSL Dependencies
-The DeepStream Services Library (DSL) is built on the NVIDA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified.
+The DeepStream Services Library (DSL) is built on the NVIDIA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) and requires all SDK components to be installed and verified.
 
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
@@ -10,10 +10,10 @@ Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com
 
 ---
 
-## Single Command Install
-Copy and execute one of the following commands according to your installed version of GStreamer.
+## Minimal (Base) Install
+Copy and execute one of the following commands according to your Target Device, Jetson or dGPU.
 
-### Jetson Install - GStreamer 1.16
+### Jetson Base Install
 ```bash
 sudo apt update && sudo apt-get install \
     libgstrtspserver-1.0-dev \
@@ -23,14 +23,10 @@ sudo apt update && sudo apt-get install \
     libaprutil1 \
     libaprutil1-dev \
     libgeos-dev \
-    libavformat-dev \
-    libavcodec-dev \
-    libavutil-dev \
-    libswscale-dev \
     libcurl4-openssl-dev
 ```    
 
-### dGPU Install - GStreamer 1.18
+### dGPU Base Install
 ```bash
 sudo apt update && sudo apt-get install \
     libgstrtspserver-1.0-dev \
@@ -40,84 +36,46 @@ sudo apt update && sudo apt-get install \
     libaprutil1 \
     libaprutil1-dev \
     libgeos-dev \
-    libavformat-dev \
-    libavcodec-dev \
-    libavutil-dev \
-    libswscale-dev \
     libcurl4-openssl-dev \
     libjson-glib-1.0-0 \
     libsoup-gnome2.4-dev  
 ```    
 
 ---
-## Alternative Step-by-Step Instructions.
-**Note** These steps are an alternative to the [Single Command Install](#single_command_install) above.
-### GStreamer RTSP Server
-The RTSP Server lib is required by the RTSP Sink Component
+## Enabling the Extended Image Services.
+Additional installation steps are required to use DSL's extended image services, which include:
+* [Streaming Image Source](/docs/api-source.md#dsl_source_image_stream_new)
+* [Object](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) and [Frame](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) Capture [ODE Actions](/docs/api-ode-action.md).
+* [Frame Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new)
+DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https://opencv.org/). Note: that installing OpenCV when using a dGPU NVIDIA Docker Image can be problematic.  
+
+### Building FFmpeg
+To use FFmpeg DSL requires that you clone, build and install the latest version of the FFmpeg development libraries. 
+Copy and execute each of the following commands, one at a time, to setup the required dependencies.
+```bash
+$ sudo apt-get install yasm
+$ mkdir ~/ffmpeg; cd ~/ffmpeg
+$ git clone https://github.com/FFmpeg/FFmpeg.git
+$ cd FFmpeg
+$ ./configure --enable-shared --disable-lzma
+$ make
+$ sudo make install
 ```
-sudo apt update
-sudo apt-get install libgstrtspserver-1.0-dev gstreamer1.0-rtsp
+### Installing OpenCV
+Copy and execute the following command to install the OpenCV development library. 
+```bash
+sudo apt-get install -y opencv-dev
 ```
 
-### Apache Runtime
-The Apache Runtime is used by the GStreamer Window Sink requiring the following libraries to be installed
+### Updating the Makefile
+After installing FFmpeg or OpenCV, search for the following section in the Makefile and set the appropriate BUILD_WITH flag to true.
 ```
-sudo apt-get install libapr1 libapr1-dev libaprutil1 libaprutil1-dev
+# To enable the extended Image Services, install either the FFmpeg or OpenCV 
+# development libraries (See /docs/installing-dependencies.md), and
+#  - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
+BUILD_WITH_FFMPEG:=false
+BUILD_WITH_OPENCV:=false
 ```
-
-### Geometry Engine, Open Source (GEOS)
-DSL uses the [GEOS](https://trac.osgeo.org/geos) C Library `libgeos-dev` - specifically, a set of spatial predicate functions for determining if geometries - points, lines, polygons - touch, cross, overlap, etc.
-```
-sudo apt install libgeos-dev
-```
-
-### AV Format Lib
-[FFmpeg lib](https://ffmpeg.org/) used to read media file format information.
-
-```
-sudo apt-get install libavformat-dev
-```
-
-### AV Codec Lib
-[FFmpeg lib](https://ffmpeg.org/) used to encode jpeg images.
-
-```
-sudo apt-get install libavcodec-dev
-```
-
-### AV Utils Lib
-[FFmpeg lib](https://ffmpeg.org/) used to encode jpeg images.
-
-```
-sudo apt-get install libavutil-dev
-```
-
-### SW Image Scalling/Conversion Lib
-[FFmpeg lib](https://ffmpeg.org/) used to convert images for jpeg encoding.
-
-```
-sudo apt-get install libavutil-dev
-```
-
-### Lib cURL
-libcurl provides Secure Socket Layer (SSL) protocol services.  
-```
-sudo apt install libcurl4-openssl-dev
-```
-
-### GLib JSON - GStreamer 1.18
-libjson-glib is required if building with GStreamer 1.18 on Ubunto 20.24. The lib provides JSON serialization/deserialization services for the WebRTC Sink. **Note: the WebRTC requires GStream 1.18 or later - only available on Ubuntu 20.04**
-```
-sudo apt-get install libjson-glib-1.0-0
-```
-
-### Lib Soup - GStreamer 1.18
-libsoup is required if building with GStreamer 1.18 on Ubunto 20.24. The lib provides services required for the WebSocket Server and WebRTC Sink API. **Note: the WebRTC requires GStream 1.18 or later - only available on Ubuntu 20.04**
-```
-sudo apt install libsoup-gnome2.4-dev
-```
-
----
 
 ## Optional Documentation and Debug Dependencies
 
