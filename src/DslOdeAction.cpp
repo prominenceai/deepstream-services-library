@@ -26,7 +26,10 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
+
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
 #include "DslAvFile.h"
+#endif
 
 #define DATE_BUFF_LENGTH 40
 
@@ -253,6 +256,8 @@ namespace DSL
     CaptureOdeAction::CaptureOdeAction(const char* name, 
         uint captureType, const char* outdir)
         : OdeAction(name)
+        , m_cudaDeviceProp{0}
+        , m_cudaDevicePropRead(false)
         , m_captureType(captureType)
         , m_outdir(outdir)
         , m_idleThreadFunctionId(0)
@@ -441,9 +446,18 @@ namespace DSL
         // Map the current buffer
         std::unique_ptr<DslMappedBuffer> pMappedBuffer = 
             std::unique_ptr<DslMappedBuffer>(new DslMappedBuffer(pBuffer));
+            
+        // One time read of the Device properties
+        if (!m_cudaDevicePropRead)
+        {
+            cudaGetDeviceProperties(&m_cudaDeviceProp, pMappedBuffer->pSurface->gpuId);
+            m_cudaDevicePropRead = true;
+        }
 
-        NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
-
+        NvBufSurfaceMemType transformMemType = (m_cudaDeviceProp.integrated)
+            ? NVBUF_MEM_DEFAULT
+            : NVBUF_MEM_CUDA_PINNED;
+    
         // Transforming only one frame in the batch, so create a copy of the single 
         // surface ... becoming our new source surface. This creates a new mono 
         // (non-batched) surface copied from the "batched frames" using the batch id 
@@ -528,16 +542,16 @@ namespace DSL
             return;
         }
 
-        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
-        {
-            // Sync the surface for CPU access
-            if (!pBufferSurface->SyncForCpu())
-            {
-                LOG_ERROR("Destination surface failed to Sync for '" 
-                    << GetName() << "'");
-                return;
-            }
-        }
+//        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
+//        {
+//            // Sync the surface for CPU access
+//            if (!pBufferSurface->SyncForCpu())
+//            {
+//                LOG_ERROR("Destination surface failed to Sync for '" 
+//                    << GetName() << "'");
+//                return;
+//            }
+//        }
         queueCapturedImage(pBufferSurface);
     }
 
@@ -582,55 +596,25 @@ namespace DSL
         // Get the dimensions and data size of the mono-surface
         uint bufferWidth = (&(*pBufferSurface))->surfaceList[0].width;
         uint bufferHeight = (&(*pBufferSurface))->surfaceList[0].height;
-        uint dataSize = (&(*pBufferSurface))->surfaceList[0].dataSize;
         
-        // Check to ensure that the buffer and pitch dimensions are the same
-        if (bufferWidth !=
-            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
-            bufferHeight !=
-            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
-        {
-            LOG_ERROR("Invalid dimensions found for surface plane[0]");
-            m_idleThreadFunctionId = 0;
-            return FALSE;
-        }
-
-        // There should only be one plane for RGBA
-        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
-        {
-            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
-            m_idleThreadFunctionId = 0;
-            return FALSE;
-        }
-
-        // Allocate and initialize a new array to create a compressed buffer 
-        // of raw RGBA image data - i.e. with the memory alignment padding removed.
-        uint8_t* rgbaImage = (uint8_t*)g_malloc0(dataSize);
-        
-        // Initialize the source pointer to the start of the mapped surface
-        uint8_t* pSrcIndex = 
-            (uint8_t*)(&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0];
-            
-        // Initialize the destination pointer to the start of the RGBA Image buffer
-        uint8_t* pDstIndex = &rgbaImage[0];
-        
-        // Get the offset of the plane within the pitch
-        uint offset = 
-            (&(*pBufferSurface))->surfaceList[0].planeParams.offset[0];
-
-        // Size of each line to copy will be the plane width * the bytes/pixel
-        uint copySize = (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] *
-            (&(*pBufferSurface))->surfaceList[0].planeParams.bytesPerPix[0];
-
-        // For each line in the plane/buffer copy over the image data
-        // and advance the source and destination buffer pointers.
-        for (auto line=0; line < bufferHeight; line++)
-        {
-            memcpy(pDstIndex, pSrcIndex+offset, copySize);
-            pSrcIndex += 
-                (&(*pBufferSurface))->surfaceList[0].planeParams.pitch[0];
-            pDstIndex += copySize;
-        }
+//        // Check to ensure that the buffer and pitch dimensions are the same
+//        if (bufferWidth !=
+//            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
+//            bufferHeight !=
+//            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
+//        {
+//            LOG_ERROR("Invalid dimensions found for surface plane[0]");
+//            m_idleThreadFunctionId = 0;
+//            return FALSE;
+//        }
+//
+//        // There should only be one plane for RGBA
+//        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
+//        {
+//            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
+//            m_idleThreadFunctionId = 0;
+//            return FALSE;
+//        }
         
         // Generate the image file name from the date-time string
         std::ostringstream fileNameStream;
@@ -645,13 +629,13 @@ namespace DSL
         // Try to convert and save the image to a JPEG file. 
         try
         {
-            AvJpgOutputFile avJpgOutFile(rgbaImage, 
-                bufferWidth, bufferHeight, fileNameStream.str().c_str());
-            g_free(rgbaImage);
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
+            AvJpgOutputFile avJpgOutFile(pBufferSurface, 
+                fileNameStream.str().c_str());
+#endif                
         }
         catch(...)
         {
-            g_free(rgbaImage);
             m_idleThreadFunctionId = 0;
             return FALSE;
         }
@@ -704,7 +688,7 @@ namespace DSL
                
                 info.dirpath = wstrDirpath.c_str();
                 info.filename = wstrFilename.c_str();
-                info.width =bufferWidth;
+                info.width = bufferWidth;
                 info.height = bufferHeight;
                     
                 // iterate through the map of listeners calling each

@@ -30,7 +30,10 @@ THE SOFTWARE.
 #include "DslSurfaceTransform.h"
 #include <nvdsgstutils.h>
 #include <gst/app/gstappsrc.h>
+
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
 #include "DslAvFile.h"
+#endif
 
 namespace DSL
 {
@@ -1472,18 +1475,25 @@ namespace DSL
         LOG_INFO("File Path = " << m_uri);
         
         // Try to open the file and read the frame-rate and dimensions.
+
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
         try
         {
             AvInputFile avFile(uri);
             m_fpsN = avFile.fpsN;
             m_fpsD = avFile.fpsD;
-            m_width = avFile.videoWidth;
+            m_width = avFile.videoWidth; 
             m_height = avFile.videoHeight;
         }
         catch(...)
         {
             return false;
         }
+#else
+        LOG_WARN(
+            "Unable to determine video frame-rate and dimensions for URI Source = '"
+            << GetName() << "' Extended AV File Services are disabled in the Makefile");
+#endif        
 
         return true;
     }
@@ -1940,6 +1950,8 @@ namespace DSL
             LOG_ERROR("Image Source'" << uri << "' Not found");
             return false;
         }
+
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
         // Try to open the file and read the dimensions.
         try
         {
@@ -1951,6 +1963,11 @@ namespace DSL
         {
             return false;
         }
+#else
+        LOG_WARN(
+            "Unable to determine video frame-rate and dimensions for URI Source = '"
+            << GetName() << "' Extended AV File Services are disabled in the Makefile");
+#endif        
 
         char absolutePath[PATH_MAX+1];
         m_uri.assign(realpath(uri, absolutePath));
@@ -2243,6 +2260,7 @@ namespace DSL
             return false;
         }
         
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
         // Try to open the file and read the dimensions.
         try
         {
@@ -2254,6 +2272,11 @@ namespace DSL
         {
             return false;
         }
+#else
+        LOG_WARN(
+            "Unable to determine video frame-rate and dimensions for URI Source = '"
+            << GetName() << "' Extended AV File Services are disabled in the Makefile");
+#endif        
         
         // Set the full capabilities (format and framerate)
         if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), 

@@ -25,10 +25,13 @@ THE SOFTWARE.
 #ifndef _DSL_AV_FILE_H
 #define _DSL_AV_FILE_H
 
+#include "DslSurfaceTransform.h"
+
 extern "C" { 
 #include <libavformat/avformat.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
+#include <libavcodec/avcodec.h>
 }
 
 namespace DSL
@@ -92,13 +95,11 @@ namespace DSL
     
         /**
          * @brief ctor for the AvJpgOutputFile utility class.
-         * @param[in] pRgbaImage buffer of packed RGBA Image data.
-         * @param[in] width width of the image in pixels.
-         * @param[in] height height of the image in pixels.
+         * @param[in] pBufferSurface machine aligned surface buffer.
          * @param[in] filepath for the JPEG output file to save.
          */
-        AvJpgOutputFile(uint8_t* pRgbaImage, 
-            uint width, uint height, const char* filepath);
+        AvJpgOutputFile(std::shared_ptr<DslBufferSurface> pBufferSurface, 
+            const char* filepath);
         
         /**
          * @brief ctor for the AvJpgOutputFile utility class.
@@ -106,6 +107,21 @@ namespace DSL
         ~AvJpgOutputFile();
         
     private:
+    
+        /**
+         * @brief buffer for the packed RGBA Image.
+         */
+        uint8_t* m_rgbaImage;
+        
+        /**
+         * @brief Handle to opened output file.
+         */
+        FILE* m_outfile;
+        
+        /**
+         * @brief Packet to receive the converted MJPEG data.
+         */
+        AVPacket* m_pPkt;
         
         /**
          * @brief MJPEG codec context pointer to provide context for all Codec calls.
