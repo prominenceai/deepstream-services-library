@@ -828,6 +828,14 @@ namespace DSL
     bool AppSourceBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set dimensions for AppSourceBintr '" 
+
+                << GetName() << "' as it's currently in a linked state");
+            return false;
+        }
         
         m_width = width;
         m_height = height;
@@ -837,8 +845,9 @@ namespace DSL
         if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), 
             m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
-            throw;
+            return false;
         }
+        return true;
     }
 
     boolean AppSourceBintr::GetDoTimestamp()

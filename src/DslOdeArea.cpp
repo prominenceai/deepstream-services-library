@@ -159,6 +159,7 @@ namespace DSL
 
         GeosPoint testPoint(coordinate.x, coordinate.y);
 
+        // first test to see if the coordinate is touching one of the lines
         for (uint i = 0; i < m_pPolygon->num_coordinates-1; i++)
         {
             GeosLine lineSegment(
@@ -172,8 +173,8 @@ namespace DSL
             {
                 return false;
             }
-            return ((GeosPolygon)*m_pPolygon).Contains(testPoint);          
         }
+        return ((GeosPolygon)*m_pPolygon).Contains(testPoint);          
     }
     
     uint OdePolygonArea::GetPointLocation(const dsl_coordinate& coordinate)

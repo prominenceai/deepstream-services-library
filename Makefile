@@ -121,6 +121,7 @@ OBJS:= $(OBJS:.cpp=.o)
 
 CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-std=$(CXX_VERSION) \
+	-Wno-deprecated-declarations \
 	-I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
 	-I/opt/include \
 	-I/usr/include \
