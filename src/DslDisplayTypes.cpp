@@ -438,6 +438,7 @@ namespace DSL
         {
             LOG_ERROR("Shadow is already enabled for RgbaText '" << 
                 GetName() << "'");
+            return false;
         }
         m_shadowEnabled = true;
         m_shadowXOffset = xOffset;
@@ -446,6 +447,8 @@ namespace DSL
         
         m_pShadowFont = DSL_RGBA_FONT_NEW("", 
             m_pFont->m_fontName.c_str(), m_pFont->font_size, m_pShadowColor);
+            
+        return true;
     }
     
     void RgbaText::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 

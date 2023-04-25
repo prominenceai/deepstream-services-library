@@ -343,8 +343,8 @@ THE SOFTWARE.
 #define DSL_RESULT_DISPLAY_TYPE_IN_USE                              0x00200004
 #define DSL_RESULT_DISPLAY_TYPE_NOT_THE_CORRECT_TYPE                0x00200005
 #define DSL_RESULT_DISPLAY_TYPE_IS_BASE_TYPE                        0x00200006
+#define DSL_RESULT_DISPLAY_TYPE_SET_FAILED                          0x00200007
 #define DSL_RESULT_DISPLAY_PARAMETER_INVALID                        0x00200008
-
 
 /**
  * Tap API Return Values

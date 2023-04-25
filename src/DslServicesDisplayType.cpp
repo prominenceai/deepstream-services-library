@@ -1068,7 +1068,12 @@ namespace DSL
             DSL_RGBA_TEXT_PTR pText = 
                 std::dynamic_pointer_cast<RgbaText>(m_displayTypes[name]);
             
-            pText->AddShadow(xOffset, yOffset, pColor);
+            if (!pText->AddShadow(xOffset, yOffset, pColor))
+            {
+                LOG_INFO("RGBA Text '" << name 
+                    << "' failed to add shadow");
+                return DSL_RESULT_DISPLAY_TYPE_SET_FAILED;
+            }
             
             LOG_INFO("Shadow added to RGBA Text '" << name 
                 << "' successfully");
