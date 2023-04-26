@@ -1627,6 +1627,8 @@ namespace DSL
                 
                 m_bufferProbeId = gst_pad_add_probe(m_pDecoderStaticSinkpad, 
                     mask, StreamBufferRestartProbCB, this, NULL);
+                    
+                // Note - m_pDecoderStaticSinkpad unreferenced in DisableEosConsumer
             }
         }
     }
@@ -3087,6 +3089,7 @@ namespace DSL
                 LOG_ERROR("Failed to link source to de-payload");
                 return;
             }
+            gst_object_unref(pDepayStaicSinkPad);
             
             LOG_INFO("rtspsrc element linked for RtspSourceBintr '" 
                 << GetName() << "'");
