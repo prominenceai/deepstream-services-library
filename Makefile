@@ -46,7 +46,7 @@ JSON_GLIB_VERSION:=1.0
 # To enable the extended Image Services, install either the FFmpeg or OpenCV 
 # development libraries (See /docs/installing-dependencies.md), and
 #  - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
-BUILD_WITH_FFMPEG:=false
+BUILD_WITH_FFMPEG:=true
 BUILD_WITH_OPENCV:=false
 
 # To enable the InterPipe Sink and Source components
