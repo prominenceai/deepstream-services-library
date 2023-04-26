@@ -719,11 +719,6 @@ namespace DSL
         LOG_INFO("Unlinking and releasing requested Source Pad for SecondaryInferBintr " 
             << GetName());
         
-//        gst_element_release_request_pad(GetSource()->GetGstElement(), 
-//            m_pGstRequestedSourcePads["src"]);
-                
-        m_pGstRequestedSourcePads.erase("src");
-        
         return true;
     }
 

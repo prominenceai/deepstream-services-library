@@ -49,19 +49,19 @@ namespace DSL
          * @param pChildSource shared pointer to SourceBintr to add
          * @return true if the SourceBintr was added correctly, false otherwise
          */
-        bool AddChild(DSL_SOURCE_PTR pChildSource);
+        bool AddChild(DSL_VIDEO_SOURCE_PTR pChildSource);
         
         /**
          * @brief removes a child SourceBintr from this PipelineSourcesBintr
          * @param pChildElement a shared pointer to SourceBintr to remove
          * @return true if the SourceBintr was removed correctly, false otherwise
          */
-        bool RemoveChild(DSL_SOURCE_PTR pChildSource);
+        bool RemoveChild(DSL_VIDEO_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base method and checks in m_pChildSources only.
          */
-        bool IsChild(DSL_SOURCE_PTR pChildSource);
+        bool IsChild(DSL_VIDEO_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base Noder method to only return the number of 
@@ -200,7 +200,7 @@ namespace DSL
         /**
          * @brief container of all child sources mapped by their unique names
          */
-        std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
+        std::map<std::string, DSL_VIDEO_SOURCE_PTR> m_pChildSources;
 
         /**
          * @brief Each source is assigned a unique streamux pad id when linked

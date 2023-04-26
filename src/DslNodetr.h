@@ -285,8 +285,6 @@ namespace DSL
         GstNodetr(const char* name)
             : Nodetr(name)
             , m_pGstStaticSinkPad(NULL)
-            , m_pGstStaticSrcPad(NULL)
-            , m_pGstRequestedSinkPad(NULL)
             , m_pGstRequestedSrcPad(NULL)
             , m_pAsyncUnlinkMutex(NULL)
             , m_pAsyncUnlinkCond(NULL)
@@ -622,92 +620,6 @@ namespace DSL
                 g_mutex_unlock(m_pAsyncUnlinkMutex);
             }
         }
-
-        /**
-         * @brief links this Nodetr as Source to the Sink Pad of Muxert
-         * @param[in] pMuxer nodeter to link to
-         * @param[in] padName name to give the requested Sink Pad
-         * @return true if able to successfully link with Muxer Sink Pad
-         */
-        virtual bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName)
-        {
-            LOG_FUNC();
-            
-            m_pGstStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
-            if (!m_pGstStaticSrcPad)
-            {
-                LOG_ERROR("Failed to get Static Src Pad for Bintr '" << GetName() << "'");
-                return false;
-            }
-
-            m_pGstRequestedSinkPad = gst_element_get_request_pad(pMuxer->GetGstElement(), padName);
-                
-            if (!m_pGstRequestedSinkPad)
-            {
-                LOG_ERROR("Failed to get requested Tee Sink Pad for Bintr '" << GetName() <<"'");
-                return false;
-            }
-            
-            LOG_INFO("Linking requested Sink Pad'" << m_pGstRequestedSinkPad << "' for Bintr '" << GetName() << "'");
-            if (gst_pad_link(m_pGstStaticSrcPad, m_pGstRequestedSinkPad) != GST_PAD_LINK_OK)
-            {
-                LOG_ERROR("Bintr '" << GetName() << "' failed to link to Sink Muxer Tee");
-                return false;
-            }
-            return Nodetr::LinkToSink(pMuxer);
-        }
-        
-        /**
-         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
-         * @return true if able to successfully unlink from Muxer Sink Pad
-         */
-        virtual bool UnlinkFromSinkMuxer()
-        {
-            LOG_FUNC();
-            
-            if (!IsLinkedToSink())
-            {
-                return false;
-            }
-            LOG_INFO("Unlinking and releasing requested Sink Pad '" << m_pGstRequestedSinkPad << "' for Bintr '" << GetName() << "'");
-
-            GstStateChangeReturn changeResult = gst_element_set_state(GetGstElement(), GST_STATE_NULL);
-            switch (changeResult)
-            {
-            case GST_STATE_CHANGE_FAILURE:
-                LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
-                return false;
-
-            case GST_STATE_CHANGE_ASYNC:
-                LOG_INFO("Bintr '" << GetName() << "' changing state to NULL async");
-                // block on get state until change completes. 
-                if (gst_element_get_state(GetGstElement(), NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
-                {
-                    LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
-                    return false;
-                }
-                // drop through on success - DO NOT BREAK
-
-            case GST_STATE_CHANGE_SUCCESS:
-                LOG_INFO("Bintr '" << GetName() << "' changed state to NULL successfully");
-                gst_pad_send_event(m_pGstRequestedSinkPad, gst_event_new_flush_stop(FALSE));
-                if (!gst_pad_unlink(m_pGstStaticSrcPad, m_pGstRequestedSinkPad))
-                {
-                    LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Sink Muxer");
-                    Nodetr::UnlinkFromSink();
-                    return false;
-                }
-                gst_element_release_request_pad(GetSink()->GetGstElement(), m_pGstRequestedSinkPad);
-                gst_object_unref(m_pGstStaticSrcPad);
-                gst_object_unref(m_pGstRequestedSinkPad);
-                return Nodetr::UnlinkFromSink();
-            default:
-                break;
-            }
-            LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
-            return false;
-
-        }
         
         /**
          * @brief Returns the current State of this Bintr's Parent
@@ -825,19 +737,9 @@ namespace DSL
         GstPad* m_pGstStaticSinkPad;
 
         /**
-         * @brief Static Sink Pad for the Nodetr if used.
-         */
-        GstPad* m_pGstStaticSrcPad;
-
-        /**
          * @brief requested Src Pad when linking to Src Tee used.
          */
         GstPad* m_pGstRequestedSrcPad;
-
-        /**
-         * @brief requested Sink Pad when linking to Muxer used.
-         */
-        GstPad* m_pGstRequestedSinkPad;
 
         /**
          * @brief Mutex to syncronize the dynamic unlink process

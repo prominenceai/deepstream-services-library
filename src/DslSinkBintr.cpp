@@ -1331,14 +1331,20 @@ namespace DSL
         {
             return false;
         }
-        GstPad* srcPad = gst_element_get_static_pad(m_pParser->GetGstElement(), "src");
-        GstPad* sinkPad = gst_element_get_static_pad(m_pRecordBin->GetGstElement(), "sink");
+        GstPad* pGstStaticSourcePad = gst_element_get_static_pad(
+            m_pParser->GetGstElement(), "src");
+        GstPad* pGstStaticSinkPad = gst_element_get_static_pad(
+            m_pRecordBin->GetGstElement(), "sink");
         
-        if (gst_pad_link(srcPad, sinkPad) != GST_PAD_LINK_OK)
+        if (gst_pad_link(pGstStaticSourcePad, pGstStaticSinkPad) != GST_PAD_LINK_OK)
         {
-            LOG_ERROR("Failed to link parser to record-bin new RecordSinkBintr '" << GetName() << "'");
+            LOG_ERROR("Failed to link parser to record-bin new RecordSinkBintr '" 
+                << GetName() << "'");
             return false;
         }
+        gst_object_unref(pGstStaticSourcePad);
+        gst_object_unref(pGstStaticSinkPad);
+
         m_isLinked = true;
         return true;
     }
@@ -1352,10 +1358,14 @@ namespace DSL
             LOG_ERROR("RecordSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        GstPad* srcPad = gst_element_get_static_pad(m_pParser->GetGstElement(), "src");
-        GstPad* sinkPad = gst_element_get_static_pad(m_pRecordBin->GetGstElement(), "sink");
+        GstPad* pGstStaticSourcePad = gst_element_get_static_pad(
+            m_pParser->GetGstElement(), "src");
+        GstPad* pGstStaticSinkPad = gst_element_get_static_pad(
+            m_pRecordBin->GetGstElement(), "sink");
         
-        gst_pad_unlink(srcPad, sinkPad);
+        gst_pad_unlink(pGstStaticSourcePad, pGstStaticSinkPad);
+        gst_object_unref(pGstStaticSourcePad);
+        gst_object_unref(pGstStaticSinkPad);
 
         m_pEncoder->UnlinkFromSink();
         m_pCapsFilter->UnlinkFromSink();

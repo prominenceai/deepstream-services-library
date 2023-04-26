@@ -292,6 +292,96 @@ namespace DSL
         }
     }
 
+    bool VideoSourceBintr::LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName)
+    {
+        LOG_FUNC();
+        
+        m_pGstStaticSourceSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+        if (!m_pGstStaticSourceSrcPad)
+        {
+            LOG_ERROR("Failed to get Static Src Pad for Bintr '" << GetName() << "'");
+            return false;
+        }
+
+        m_pGstRequestedMuxerSinkPad = gst_element_get_request_pad(
+            pMuxer->GetGstElement(), padName);
+        if (!m_pGstRequestedMuxerSinkPad)
+        {
+            LOG_ERROR("Failed to get requested Tee Sink Pad for Bintr '" 
+                << GetName() <<"'");
+            return false;
+        }
+        
+        LOG_INFO("Linking requested Sink Pad'" << m_pGstRequestedMuxerSinkPad 
+            << "' for Bintr '" << GetName() << "'");
+            
+        if (gst_pad_link(m_pGstStaticSourceSrcPad, 
+            m_pGstRequestedMuxerSinkPad) != GST_PAD_LINK_OK)
+        {
+            LOG_ERROR("Bintr '" << GetName() << "' failed to link to Sink Muxer Tee");
+            return false;
+        }
+        return Nodetr::LinkToSink(pMuxer);
+    }
+    
+    /**
+     * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+     * @return true if able to successfully unlink from Muxer Sink Pad
+     */
+    bool VideoSourceBintr::UnlinkFromSinkMuxer()
+    {
+        LOG_FUNC();
+        
+        if (!IsLinkedToSink())
+        {
+            return false;
+        }
+        LOG_INFO("Unlinking and releasing requested Sink Pad '" 
+            << m_pGstRequestedMuxerSinkPad << "' for Bintr '" << GetName() << "'");
+
+        GstStateChangeReturn changeResult = gst_element_set_state(GetGstElement(), 
+            GST_STATE_NULL);
+        switch (changeResult)
+        {
+        case GST_STATE_CHANGE_FAILURE:
+            LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
+            return false;
+
+        case GST_STATE_CHANGE_ASYNC:
+            LOG_INFO("Bintr '" << GetName() << "' changing state to NULL async");
+            // block on get state until change completes. 
+            if (gst_element_get_state(GetGstElement(), NULL, NULL, GST_CLOCK_TIME_NONE) 
+                == GST_STATE_CHANGE_FAILURE)
+            {
+                LOG_ERROR("Bintr '" << GetName() << "' failed to set state to NULL");
+                return false;
+            }
+            // drop through on success - DO NOT BREAK
+
+        case GST_STATE_CHANGE_SUCCESS:
+            LOG_INFO("Bintr '" << GetName() 
+                << "' changed state to NULL successfully");
+                
+            gst_pad_send_event(m_pGstRequestedMuxerSinkPad, gst_event_new_flush_stop(FALSE));
+            if (!gst_pad_unlink(m_pGstStaticSourceSrcPad, m_pGstRequestedMuxerSinkPad))
+            {
+                LOG_ERROR("Bintr '" << GetName() << "' failed to unlink from Sink Muxer");
+                Nodetr::UnlinkFromSink();
+                return false;
+            }
+            gst_element_release_request_pad(GetSink()->GetGstElement(), 
+                m_pGstRequestedMuxerSinkPad);
+            gst_object_unref(m_pGstStaticSourceSrcPad);
+            gst_object_unref(m_pGstRequestedMuxerSinkPad);
+            return Nodetr::UnlinkFromSink();
+        default:
+            break;
+        }
+        LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
+        return false;
+
+    }
+
     void VideoSourceBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
@@ -2731,13 +2821,6 @@ namespace DSL
             m_pDepay->UnlinkFromSink();
             m_pDecoder->UnlinkFromSink();
             UnlinkCommon();
-
-            for (auto const& imap: m_pGstRequestedSourcePads)
-            {
-                gst_element_release_request_pad(m_pPreDecodeTee->GetGstElement(), 
-                    imap.second);
-                gst_object_unref(imap.second);
-            }
         }
         m_isLinked = false;
         m_isFullyLinked = false;

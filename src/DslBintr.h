@@ -57,8 +57,6 @@ namespace DSL
             , m_batchSize(0)
             , m_gpuId(0)
             , m_nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT)
-            , m_pGstStaticSinkPad(NULL)
-            , m_pGstStaticSourcePad(NULL)
         { 
             LOG_FUNC(); 
 
@@ -362,26 +360,6 @@ namespace DSL
          * @brief current Memory Type used by this Bintr
          */
         uint m_nvbufMemType;
-
-        /**
-         * @brief Static Pad object for the Sink Elementr within this Bintr
-         */
-        GstPad* m_pGstStaticSinkPad;
-            
-        /**
-         * @brief A dynamic collection of requested Sink Pads for this Bintr
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSinkPads;
-            
-        /**
-         * @brief Static Pad object for the Source Elementr within this Bintr
-         */
-        GstPad* m_pGstStaticSourcePad;
-            
-        /**
-         * @brief A dynamic collection of requested Souce Pads for this Bintr
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
 
         /**
          * @brief Sink PadProbetr for this Bintr

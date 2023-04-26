@@ -294,6 +294,20 @@ namespace DSL
         void UnlinkCommon();
 
         /**
+         * @brief links this VideoSource to the Sink Pad of StreamMuxer
+         * @param[in] pMuxer nodeter to link to
+         * @param[in] padName name to give the requested Sink Pad
+         * @return true if able to successfully link with Muxer Sink Pad
+         */
+        bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName);
+        
+        /**
+         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @return true if able to successfully unlink from Muxer Sink Pad
+         */
+        bool UnlinkFromSinkMuxer();
+        
+        /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
@@ -412,6 +426,16 @@ namespace DSL
         bool updateCaps();
     
     protected:
+
+        /**
+         * @brief Static Sink Pad for the VideoSource used to link to the Streammuxer tee.
+         */
+        GstPad* m_pGstStaticSourceSrcPad;
+
+        /**
+         * @brief requested Sink Pad for the Streammuxer Tee linked to the VideoSource.
+         */
+        GstPad* m_pGstRequestedMuxerSinkPad;
 
         /**
          * @brief current buffer-out-format. 
@@ -1056,11 +1080,6 @@ namespace DSL
          */
         guint m_bufferProbeId;
         
-        /**
-         * @brief A dynamic collection of requested Source Pads for the Tee 
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
-
         /**
          * @brief mutual exclusion of the repeat enabled setting.
          */

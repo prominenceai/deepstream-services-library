@@ -152,34 +152,37 @@ SCENARIO( "A AppSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
 
 SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A name for a new CsiSourceBintr" ) 
+    if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
     {
-        WHEN( "The CsiSourceBintr is created " )
+        GIVEN( "A name for a new CsiSourceBintr" ) 
         {
-        
-            DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
-                sourceName.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "All memeber variables are initialized correctly" )
+            WHEN( "The CsiSourceBintr is created " )
             {
-                REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
-                REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
-                REQUIRE( pSourceBintr->GetSensorId() == 0 );
-                REQUIRE( pSourceBintr->IsInUse() == false );
-                REQUIRE( pSourceBintr->IsLive() == true );
-                
-                uint retWidth, retHeight, retFpsN, retFpsD;
-                pSourceBintr->GetDimensions(&retWidth, &retHeight);
-                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
-                REQUIRE( width == retWidth );
-                REQUIRE( height == retHeight );
-                REQUIRE( fps_n == retFpsN );
-                REQUIRE( fps_d == retFpsD );
+            
+                DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+                    sourceName.c_str(), width, height, fps_n, fps_d);
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                THEN( "All memeber variables are initialized correctly" )
+                {
+                    REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                    REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                    REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                    REQUIRE( pSourceBintr->GetId() == 0 );
+                    REQUIRE( pSourceBintr->GetSensorId() == 0 );
+                    REQUIRE( pSourceBintr->IsInUse() == false );
+                    REQUIRE( pSourceBintr->IsLive() == true );
+                    
+                    uint retWidth, retHeight, retFpsN, retFpsD;
+                    pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                    pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+                    REQUIRE( width == retWidth );
+                    REQUIRE( height == retHeight );
+                    REQUIRE( fps_n == retFpsN );
+                    REQUIRE( fps_d == retFpsD );
+
+                    std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                    REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                }
             }
         }
     }
@@ -187,61 +190,64 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
 
 SCENARIO( "Unique sensor-ids are managed by CsiSourceBintrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A name for a new CsiSourceBintr" ) 
+    if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
     {
-        std::string sourceName1("test-source-1");
-        std::string sourceName2("test-source-2");
-        std::string sourceName3("test-source-3");
-        
-        WHEN( "Three CsiSourceBintrs are created " )
+        GIVEN( "A name for a new CsiSourceBintr" ) 
         {
-            DSL_CSI_SOURCE_PTR pSourceBintr1 = DSL_CSI_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
-
-            DSL_CSI_SOURCE_PTR pSourceBintr2 = DSL_CSI_SOURCE_NEW(
-                sourceName2.c_str(), width, height, fps_n, fps_d);
-
-            DSL_CSI_SOURCE_PTR pSourceBintr3 = DSL_CSI_SOURCE_NEW(
-                sourceName3.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "Their sensor-id values are assigned correctly" )
+            std::string sourceName1("test-source-1");
+            std::string sourceName2("test-source-2");
+            std::string sourceName3("test-source-3");
+            
+            WHEN( "Three CsiSourceBintrs are created " )
             {
-                REQUIRE( pSourceBintr1->GetSensorId() == 0 );
-                REQUIRE( pSourceBintr2->GetSensorId() == 1 );
-                REQUIRE( pSourceBintr3->GetSensorId() == 2 );
+                DSL_CSI_SOURCE_PTR pSourceBintr1 = DSL_CSI_SOURCE_NEW(
+                    sourceName1.c_str(), width, height, fps_n, fps_d);
+
+                DSL_CSI_SOURCE_PTR pSourceBintr2 = DSL_CSI_SOURCE_NEW(
+                    sourceName2.c_str(), width, height, fps_n, fps_d);
+
+                DSL_CSI_SOURCE_PTR pSourceBintr3 = DSL_CSI_SOURCE_NEW(
+                    sourceName3.c_str(), width, height, fps_n, fps_d);
+
+                THEN( "Their sensor-id values are assigned correctly" )
+                {
+                    REQUIRE( pSourceBintr1->GetSensorId() == 0 );
+                    REQUIRE( pSourceBintr2->GetSensorId() == 1 );
+                    REQUIRE( pSourceBintr3->GetSensorId() == 2 );
+                }
             }
-        }
-        WHEN( "Three CsiSourceBintrs are created with sernsor id updates" )
-        {
-            DSL_CSI_SOURCE_PTR pSourceBintr1 = DSL_CSI_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
+            WHEN( "Three CsiSourceBintrs are created with sernsor id updates" )
+            {
+                DSL_CSI_SOURCE_PTR pSourceBintr1 = DSL_CSI_SOURCE_NEW(
+                    sourceName1.c_str(), width, height, fps_n, fps_d);
+                    
+                REQUIRE( pSourceBintr1->SetSensorId(1) == true );
                 
-            REQUIRE( pSourceBintr1->SetSensorId(1) == true );
-            
-            DSL_CSI_SOURCE_PTR pSourceBintr2 = DSL_CSI_SOURCE_NEW(
-                sourceName2.c_str(), width, height, fps_n, fps_d);
+                DSL_CSI_SOURCE_PTR pSourceBintr2 = DSL_CSI_SOURCE_NEW(
+                    sourceName2.c_str(), width, height, fps_n, fps_d);
 
-            DSL_CSI_SOURCE_PTR pSourceBintr3 = DSL_CSI_SOURCE_NEW(
-                sourceName3.c_str(), width, height, fps_n, fps_d);
+                DSL_CSI_SOURCE_PTR pSourceBintr3 = DSL_CSI_SOURCE_NEW(
+                    sourceName3.c_str(), width, height, fps_n, fps_d);
 
-            THEN( "Their sensor-id values are assigned correctly" )
-            {
-                REQUIRE( pSourceBintr1->GetSensorId() == 1 );
-                REQUIRE( pSourceBintr2->GetSensorId() == 0 );
-                REQUIRE( pSourceBintr3->GetSensorId() == 2 );
+                THEN( "Their sensor-id values are assigned correctly" )
+                {
+                    REQUIRE( pSourceBintr1->GetSensorId() == 1 );
+                    REQUIRE( pSourceBintr2->GetSensorId() == 0 );
+                    REQUIRE( pSourceBintr3->GetSensorId() == 2 );
+                }
             }
-        }
-        WHEN( "A non unique sernsor id is used on set" )
-        {
-            DSL_CSI_SOURCE_PTR pSourceBintr1 = DSL_CSI_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
-            
-            DSL_CSI_SOURCE_PTR pSourceBintr2 = DSL_CSI_SOURCE_NEW(
-                sourceName2.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "The SetSensorId call fails" )
+            WHEN( "A non unique sernsor id is used on set" )
             {
-                REQUIRE( pSourceBintr1->SetSensorId(1) == false );
+                DSL_CSI_SOURCE_PTR pSourceBintr1 = DSL_CSI_SOURCE_NEW(
+                    sourceName1.c_str(), width, height, fps_n, fps_d);
+                
+                DSL_CSI_SOURCE_PTR pSourceBintr2 = DSL_CSI_SOURCE_NEW(
+                    sourceName2.c_str(), width, height, fps_n, fps_d);
+
+                THEN( "The SetSensorId call fails" )
+                {
+                    REQUIRE( pSourceBintr1->SetSensorId(1) == false );
+                }
             }
         }
     }
@@ -249,18 +255,21 @@ SCENARIO( "Unique sensor-ids are managed by CsiSourceBintrs correctly",  "[Sourc
 
 SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new CsiSourceBintr in memory" ) 
+    if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
-
-        WHEN( "The CsiSourceBintr is called to LinkAll" )
+        GIVEN( "A new CsiSourceBintr in memory" ) 
         {
-            REQUIRE( pSourceBintr->LinkAll() == true );
+            DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+                sourceName.c_str(), width, height, fps_n, fps_d);
 
-            THEN( "The CsiSourceBintr IsLinked state is updated correctly" )
+            WHEN( "The CsiSourceBintr is called to LinkAll" )
             {
-                REQUIRE( pSourceBintr->IsLinked() == true );
+                REQUIRE( pSourceBintr->LinkAll() == true );
+
+                THEN( "The CsiSourceBintr IsLinked state is updated correctly" )
+                {
+                    REQUIRE( pSourceBintr->IsLinked() == true );
+                }
             }
         }
     }
@@ -268,21 +277,24 @@ SCENARIO( "A CsiSourceBintr can LinkAll child Elementrs correctly",  "[SourceBin
 
 SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new, linked CsiSourceBintr " ) 
+    if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
-
-        pSourceBintr->LinkAll();
-        REQUIRE( pSourceBintr->IsLinked() == true );
-
-        WHEN( "The CsiSourceBintr is called to UnlinkAll" )
+        GIVEN( "A new, linked CsiSourceBintr " ) 
         {
-            pSourceBintr->UnlinkAll();
+            DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
+                sourceName.c_str(), width, height, fps_n, fps_d);
 
-            THEN( "The CsiSourceBintr IsLinked state is updated correctly" )
+            pSourceBintr->LinkAll();
+            REQUIRE( pSourceBintr->IsLinked() == true );
+
+            WHEN( "The CsiSourceBintr is called to UnlinkAll" )
             {
-                REQUIRE( pSourceBintr->IsLinked() == false );
+                pSourceBintr->UnlinkAll();
+
+                THEN( "The CsiSourceBintr IsLinked state is updated correctly" )
+                {
+                    REQUIRE( pSourceBintr->IsLinked() == false );
+                }
             }
         }
     }
@@ -954,7 +966,7 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
             
-        DSL_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<SourceBintr>(pRtspSourceBintr);
+        DSL_VIDEO_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<VideoSourceBintr>(pRtspSourceBintr);
             
         // Source needs a parent to test reconnect - required for source to call "gst_element_sync_state_with_parent"
         pPipelineSourcesBintr->AddChild(pSourceBintr);
