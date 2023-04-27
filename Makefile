@@ -37,7 +37,7 @@ CXX_VERSION:=c++17
 DSL_VERSION:='L"v0.26.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
-GSTREAMER_SUB_VERSION:=14
+GSTREAMER_SUB_VERSION:=16
 GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
@@ -46,7 +46,7 @@ JSON_GLIB_VERSION:=1.0
 # To enable the extended Image Services, install either the FFmpeg or OpenCV 
 # development libraries (See /docs/installing-dependencies.md), and
 #  - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
-BUILD_WITH_FFMPEG:=true
+BUILD_WITH_FFMPEG:=false
 BUILD_WITH_OPENCV:=false
 
 # To enable the InterPipe Sink and Source components
