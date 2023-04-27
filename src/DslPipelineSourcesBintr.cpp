@@ -108,7 +108,7 @@ namespace DSL
         return Bintr::AddChild(pChildElement);
     }
      
-    bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::AddChild(DSL_VIDEO_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -205,7 +205,7 @@ namespace DSL
         
     }
 
-    bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::IsChild(DSL_VIDEO_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -220,7 +220,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::RemoveChild(DSL_VIDEO_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
 

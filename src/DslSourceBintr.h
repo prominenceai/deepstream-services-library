@@ -1057,11 +1057,6 @@ namespace DSL
         guint m_bufferProbeId;
         
         /**
-         * @brief A dynamic collection of requested Source Pads for the Tee 
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
-
-        /**
          * @brief mutual exclusion of the repeat enabled setting.
          */
         GMutex m_repeatEnabledMutex;

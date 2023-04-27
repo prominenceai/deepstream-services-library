@@ -1627,6 +1627,8 @@ namespace DSL
                 
                 m_bufferProbeId = gst_pad_add_probe(m_pDecoderStaticSinkpad, 
                     mask, StreamBufferRestartProbCB, this, NULL);
+                    
+                // Note - m_pDecoderStaticSinkpad unreferenced in DisableEosConsumer
             }
         }
     }
@@ -2729,13 +2731,6 @@ namespace DSL
             m_pDepay->UnlinkFromSink();
             m_pDecoder->UnlinkFromSink();
             UnlinkCommon();
-
-            for (auto const& imap: m_pGstRequestedSourcePads)
-            {
-                gst_element_release_request_pad(m_pPreDecodeTee->GetGstElement(), 
-                    imap.second);
-                gst_object_unref(imap.second);
-            }
         }
         m_isLinked = false;
         m_isFullyLinked = false;
@@ -3087,6 +3082,7 @@ namespace DSL
                 LOG_ERROR("Failed to link source to de-payload");
                 return;
             }
+            gst_object_unref(pDepayStaicSinkPad);
             
             LOG_INFO("rtspsrc element linked for RtspSourceBintr '" 
                 << GetName() << "'");

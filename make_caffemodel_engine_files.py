@@ -41,7 +41,7 @@ uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
 
 # Config file for the Primary GIE
 inferConfigFile = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
     
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'

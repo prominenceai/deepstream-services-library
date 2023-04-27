@@ -63,7 +63,7 @@ namespace DSL
         LOG_FUNC();
 
         if (!m_pPipelineSourcesBintr->
-            AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
+            AddChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)))
         {
             return false;
         }
@@ -80,7 +80,7 @@ namespace DSL
             return false;
         }
         return (m_pPipelineSourcesBintr->
-            IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
+            IsChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)));
     }
 
     bool PipelineBintr::RemoveSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -89,7 +89,7 @@ namespace DSL
 
         // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
         return m_pPipelineSourcesBintr->
-            RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+            RemoveChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
     }
 
     uint PipelineBintr::GetStreamMuxNvbufMemType()

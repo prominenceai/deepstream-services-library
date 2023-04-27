@@ -134,11 +134,6 @@ namespace DSL
         std::vector<bool> m_usedStreamIds;
     
         /**
-         * @brief A dynamic collection of requested Source Pads for this Bintr
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
-
-        /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
          * @return a shared pointer to the Elementr if added correctly, nullptr otherwise

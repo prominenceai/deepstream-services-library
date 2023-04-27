@@ -70,7 +70,8 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
             
         WHEN( "The Source is added to the Pipeline Sources Bintr" )
         {
-            pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+            pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
             
             THEN( "The Pipeline Sources Bintr is updated correctly" )
             {
@@ -96,12 +97,14 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName.c_str(), 1280, 720, 30, 1));
             
-        pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+        pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
         REQUIRE( pSourceBintr->IsInUse() == true );
             
         WHEN( "The Source is removed from the Pipeline Sources Bintr" )
         {
-            pPipelineSourcesBintr->RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+            pPipelineSourcesBintr->RemoveChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
             
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
@@ -131,7 +134,8 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
 
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)) == true );
             
         WHEN( "The Single Source is Linked to the StreamMux" )
         {
@@ -174,9 +178,12 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
             sourceName2.c_str(), 1280, 720, 30, 1));
         REQUIRE( pSourceBintr2->GetId() == 2 );
 
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
         
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
                     
@@ -224,9 +231,12 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
             std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
             sourceName2.c_str(), 1280, 720, 30, 1));
 
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
                     
         REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
 
@@ -270,9 +280,12 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
                 std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
                 sourceName2.c_str(), 1280, 720, 30, 1));
 
-            REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
-            REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
-            REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
 
             REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
             REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
@@ -304,9 +317,12 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
                 std::shared_ptr<DSL::CsiSourceBintr>(new DSL::CsiSourceBintr(
                 sourceName2.c_str(), 1280, 720, 30, 1));
 
-            REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
-            REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
-            REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
 
             REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
             REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
@@ -343,7 +359,8 @@ SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and upd
         DSL_CSI_SOURCE_PTR pSourceBintr = DSL_CSI_SOURCE_NEW(
             sourceName.c_str(), width, height, fps_n, fps_d);
 
-        REQUIRE( pPipelineSourcesBintr->AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)) == true );
         REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
 
         uint num;

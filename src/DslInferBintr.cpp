@@ -688,24 +688,6 @@ namespace DSL
         LOG_INFO("Linking SecondaryInferBintr '" << GetName() 
             << "' to Tee '" << pTee->GetName() << "'");
         
-        m_pGstStaticSinkPad = 
-            gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for SecondaryInferBintr '" 
-                << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSourcePad = 
-            gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
-            
-        if (!pGstRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for  '" << pTee->GetName() <<" '");
-            return false;
-        }
-
         if (!m_pQueue->LinkToSource(pTee))
         {
             LOG_ERROR("Failed to link Tee '" << pTee->GetName() 
@@ -713,8 +695,6 @@ namespace DSL
             return false;
         }
 
-        m_pGstRequestedSourcePads["src"] = pGstRequestedSourcePad;
-        
         return true;
     }
 
@@ -738,11 +718,6 @@ namespace DSL
         }
         LOG_INFO("Unlinking and releasing requested Source Pad for SecondaryInferBintr " 
             << GetName());
-        
-//        gst_element_release_request_pad(GetSource()->GetGstElement(), 
-//            m_pGstRequestedSourcePads["src"]);
-                
-        m_pGstRequestedSourcePads.erase("src");
         
         return true;
     }

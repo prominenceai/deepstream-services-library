@@ -140,58 +140,6 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool OsdBintr::LinkToSource(DSL_NODETR_PTR pDemuxer)
-    {
-        LOG_FUNC();
-        
-        std::string srcPadName = "src_" + std::to_string(m_streamId);
-        
-        LOG_INFO("Linking the OsdBintr '" << GetName() << "' to Pad '" << srcPadName 
-            << "' for Demuxer '" << pDemuxer->GetName() << "'");
-       
-        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for OsdBintr '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSrcPad = gst_element_get_request_pad(pDemuxer->GetGstElement(), srcPadName.c_str());
-            
-        if (!pGstRequestedSrcPad)
-        {
-            LOG_ERROR("Failed to get Requested Src Pad for Demuxer '" << pDemuxer->GetName() << "'");
-            return false;
-        }
-        m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSrcPad;
-
-        // Call the base class to complete the link relationship
-        return Bintr::LinkToSource(pDemuxer);
-    }
-    
-    bool OsdBintr::UnlinkFromSource()
-    {
-        LOG_FUNC();
-        
-        // If we're not currently linked to the Demuxer
-        if (!IsLinkedToSource())
-        {
-            LOG_ERROR("OsdBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string srcPadName = "src_" + std::to_string(m_streamId);
-
-        LOG_INFO("Unlinking and releasing requested Src Pad for Demuxer");
-        
-        gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
-                
-        m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        return Nodetr::UnlinkFromSource();
-    }
-
     bool OsdBintr::AddToParent(DSL_BASE_PTR pBranchBintr)
     {
         LOG_FUNC();

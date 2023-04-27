@@ -52,7 +52,15 @@ Additional installation steps are required to use DSL's extended image services,
 DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https://opencv.org/). Note: that installing OpenCV when using a dGPU NVIDIA Docker Image can be problematic.  
 
 ### Building FFmpeg
-To use FFmpeg, DSL requires that you clone, build and install the latest version of the FFmpeg development libraries. 
+To use FFmpeg, DSL requires that you clone, build and install the latest version of the FFmpeg development libraries. Any previously installed versions of FFmpeg must be removed first. Enter the following command to check for an existing version.
+```bash
+$ ffmpeg -version
+```
+If a version exists, enter the following command to remove it.
+```bash
+$ sudo apt-get autoremove ffmpeg
+```
+
 Copy and execute each of the following commands, one at a time, to setup the required dependencies.
 ```bash
 $ mkdir ~/ffmpeg; cd ~/ffmpeg
@@ -68,13 +76,13 @@ $ sudo make install
   * `apt-get install yasm`
 
 ### Installing OpenCV
-Copy and execute the following command to install the OpenCV development library. 
+Copy and execute the following command to install the OpenCV development library (as an alternative to using FFmpeg). 
 ```bash
 sudo apt-get install -y opencv-dev
 ```
 
 ### Updating the Makefile
-After installing FFmpeg or OpenCV, search for the following section in the Makefile and set the appropriate BUILD_WITH flag to true.
+After installing FFmpeg or OpenCV, search for the following section in the DSL Makefile and set the appropriate BUILD_WITH flag to true.
 ```
 # To enable the extended Image Services, install either the FFmpeg or OpenCV 
 # development libraries (See /docs/installing-dependencies.md), and

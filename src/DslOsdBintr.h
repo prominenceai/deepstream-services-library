@@ -103,19 +103,6 @@ namespace DSL
         }
         
         /**
-         * @brief Links this OsdBintr back to a source Demuxer element
-         * @param[in] pDemuxer to link back to
-         * @return true on successful Link false other
-         */
-        bool LinkToSource(DSL_NODETR_PTR pDemuxer);
-
-        /**
-         * @brief Unlinks this OsdBintr from a source Demuxer element
-         * @return true on successful Unlink false other
-         */
-        bool UnlinkFromSource();
-
-        /**
          * @brief Gets the current display text enabled state for this OsdBintr.
          * @param[out] enabled true if text display is currently enabled, false otherwise.
          */
