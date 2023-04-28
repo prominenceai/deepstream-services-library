@@ -96,7 +96,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
 
         WHEN( "Several new components are called to Set their GPU ID" ) 
         {
-            uint newNvbufMemType(DSL_NVBUF_MEM_TYPE_UNIFIED);
+            uint newNvbufMemType(DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED);
 
 //            const wchar_t* components[] = {L"csi-source", L"pgie", L"tiler", L"osd", L"window-sink", NULL};
 //            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );

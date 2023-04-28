@@ -396,7 +396,7 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
             
         WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
         {
-            uint newNvbufMemType = DSL_NVBUF_MEM_TYPE_UNIFIED;
+            uint newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
         
             pPipelineSourcesBintr->SetStreamMuxNvbufMemType(newNvbufMemType);
              

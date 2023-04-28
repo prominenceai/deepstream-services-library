@@ -217,7 +217,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (type > DSL_NVBUF_MEM_TYPE_UNIFIED)
+            if (type > DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY)
             {
                 LOG_INFO("Invalid nvbuf memory type " << type <<
                     " for Pipeline '" << name <<"'");

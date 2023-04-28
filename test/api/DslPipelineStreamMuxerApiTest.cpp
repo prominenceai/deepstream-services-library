@@ -203,7 +203,7 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
         
         WHEN( "The Pipeline's Streammuxer's NVIDIA buffer memory type is updated" ) 
         {
-            uint new_nvbuf_mem_type(DSL_NVBUF_MEM_TYPE_UNIFIED);
+            uint new_nvbuf_mem_type(DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED);
 
             REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(pipelineName.c_str(), 
                 new_nvbuf_mem_type) == DSL_RESULT_SUCCESS );

@@ -111,8 +111,8 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
 {
     GIVEN( "A new CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
@@ -206,13 +206,10 @@ SCENARIO( "A PipelineBintr's' XWindow is created correctly in Full-Screen-Mode",
 
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new UriSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
-
-        DSL_TILER_PTR pTilerBintr = 
-            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
@@ -222,7 +219,6 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
         WHEN( "All components are added to the PipelineBintr" )
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline components are Linked correctly" )
@@ -235,13 +231,10 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
 
 SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components ", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new UriSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
-
-        DSL_TILER_PTR pTilerBintr = 
-            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
@@ -251,7 +244,6 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
         WHEN( "All components are added and the PipelineBintr is Linked" )
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPipelineBintr->LinkAll() == true );
 
@@ -265,14 +257,11 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
 
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGieBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new UriSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
 
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
-
-        DSL_TILER_PTR pTilerBintr = 
-            DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_OVERLAY_SINK_PTR pSinkBintr = 
             DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
@@ -287,7 +276,6 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
         {
             REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pTilerBintr->AddToParent(pPipelineBintr) == true );
             REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
 
             THEN( "The Pipeline components are Linked correctly" )
@@ -334,12 +322,12 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr and OsdBintr", "[PipelineBintr]" )
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, Tiler and OsdBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
@@ -375,12 +363,12 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr an
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, OsdBintr, and TrackerBintr", "[PipelineBintr]" )
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, Tiler, OsdBintr, and TrackerBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
@@ -420,13 +408,13 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, O
     }
 }
 
-SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with all Optional Components", "[PipelineBintr]" )
+SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with Optional Components", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
     {
 
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
@@ -686,10 +674,10 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 
 SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
 {
-    GIVEN( "A new DemuxerBintr, CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new DemuxerBintr, UriSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
@@ -718,10 +706,10 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
 
 SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr with DemuxerBintr, CsiSourceBintr, OverlaySinkBintr in a Linked State" ) 
+    GIVEN( "A PipelineBintr with DemuxerBintr, UriSourceBintr, OverlaySinkBintr in a Linked State" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
@@ -755,23 +743,23 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple S
 {
     GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs and WindowSinkBintrs in a Linked State" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr1 = 
-            DSL_CSI_SOURCE_NEW(sourceName1.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr1 = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr1 = 
             DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_CSI_SOURCE_PTR pSourceBintr2 = 
-            DSL_CSI_SOURCE_NEW(sourceName2.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr2 = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr2 = 
             DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_CSI_SOURCE_PTR pSourceBintr3 = 
-            DSL_CSI_SOURCE_NEW(sourceName3.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr3 = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr3 = 
             DSL_WINDOW_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_CSI_SOURCE_PTR pSourceBintr4 = 
-            DSL_CSI_SOURCE_NEW(sourceName4.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr4 = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr4 = 
             DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, windowW, windowH);
 
@@ -808,10 +796,10 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple S
 
 SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GIE", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr,  DemuxerBintr, CsiSourceBintr, WindowSinkBintr, Primary GIE" ) 
+    GIVEN( "A PipelineBintr,  DemuxerBintr, UriSourceBintr, WindowSinkBintr, Primary GIE" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
@@ -848,10 +836,10 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
 
 SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, and Tracker", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr" ) 
+    GIVEN( "A PipelineBintr, DemuxerBintr, UriSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
@@ -892,10 +880,10 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
 
 SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, Tracker and Secondary GIE", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr, DemuxerBintr, CsiSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr, SecondaryGieBintr" ) 
+    GIVEN( "A PipelineBintr, DemuxerBintr, UriSourceBintr, WindowSinkBintr, PrimaryGieBintr, TrackerBintr, SecondaryGieBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), sourceW, sourceH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
