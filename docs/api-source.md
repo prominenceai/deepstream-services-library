@@ -49,10 +49,10 @@ All Video Sources are derived from the base "Source" class (as show in the hiera
 &emsp;&emsp;&emsp;&emsp;╰── video source
 
 ### Video Buffer Conversion
-All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the formatting, scaling, cropping, and orienting of the Source's output-buffers.
+All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
 
 #### buffer-out-format
-All Video Source's set their buffer-out-format to `DSL_VIDEO_FORMAT_I420` by default. The format can be set to any one of the [DSL Video Format Types](#dsl-video-format-types) by calling [dsl_source_video_buffer_out_format_set](#dsl_source_video_buffer_out_format_set) when the Source is not PLAYING. The current setting can be read at any time by calling [dsl_source_video_buffer_out_format_get](#dsl_source_video_buffer_out_format_get). 
+All Video Source's set their buffer-out-format to `DSL_VIDEO_FORMAT_NV12` by default. The format can be set to any one of the [DSL Video Format Types](#dsl-video-format-types) by calling [dsl_source_video_buffer_out_format_set](#dsl_source_video_buffer_out_format_set) when the Source is not PLAYING. The current setting can be read at any time by calling [dsl_source_video_buffer_out_format_get](#dsl_source_video_buffer_out_format_get). 
 
 **Note:** NVIDIA's nvstreammux plugin, which is linked to each source in a Pipeline, limits the format types that can be used to `"I420"`, `"NV12"`, and `"RGBA"`.  (`"I420"` is identical to `"IYUV"`).
 
@@ -77,7 +77,7 @@ There are seven different [video orientation constants](#dsl-video-source-buffer
 When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream.
 
 ### Video Dewarping
-A [video Dewarper](/docs/api-dewarper.md), capable of 360 degreee and perspective dewarping, can be added to a Video Source by calling [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add) and removed with [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove).
+A [Video Dewarper](/docs/api-dewarper.md), capable of 360 degreee and perspective dewarping, can be added to a Video Source by calling [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add) and removed with [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove).
 
 ### Image Video Sources
 Image Video Sources are used to decode JPEG image files into `video/x-raw' buffers. PNG files will be supported in a future release. Derived from the "Video Source" class, Image Video Sources can be called with any [Video Source Method](#video-source-methods)
