@@ -52,10 +52,14 @@ static const std::string sinkName4("sink-4");
 static const std::string tilerName("tiler");
 static const std::string pipelineName("pipeline");
 static const std::string primaryGieName("primary-gie");
-static const std::string primaryInferConfigFile(
+static const std::string primaryInferConfigFileJetson(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::string primaryModelEngineFile(
+static const std::string primaryInferConfigFileDgpu(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static const std::string primaryModelEngineFileJetson(
     "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static const std::string primaryModelEngineFileDgpu(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_int8.engine");
     
 static const std::string demuxerName("demuxer");
 static const std::string trackerName("iou-tracker");
@@ -65,8 +69,10 @@ static const uint trackerH(150);
 static const std::string secondaryGieName("secondary-gie");
 static const std::string secondaryInferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
-static const std::string secondaryModelEngineFile(
+static const std::string secondaryModelEngineFileJetson(
     "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::string secondaryModelEngineFileDgpu(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
 
 static const std::string osdName("on-screen-tiler");
         
@@ -109,7 +115,7 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
 
 SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components", "[PipelineBintr]" )
 {
-    GIVEN( "A new CsiSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new CsiSourceBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -119,7 +125,7 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
-        WHEN( "The PipelineBintr has a OverlaySinkBintr but no CsiSourceBintr" )
+        WHEN( "The PipelineBintr has a WindowSinkBintr but no SourceBintr" )
         {
             pSinkBintr->AddToParent(pPipelineBintr);
 
@@ -128,7 +134,7 @@ SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components
                 REQUIRE( pPipelineBintr->LinkAll() == false );
             }
         }
-        WHEN( "The PipelineBintr has a CsiSourceBintr but no OverlaySinkBintr" )
+        WHEN( "The PipelineBintr has a SourceBintr but no SinkBintr" )
         {
             pSourceBintr->AddToParent(pPipelineBintr);
 
@@ -206,13 +212,13 @@ SCENARIO( "A PipelineBintr's' XWindow is created correctly in Full-Screen-Mode",
 
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBintr]" )
 {
-    GIVEN( "A new UriSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new UriSourceBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -231,13 +237,13 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBi
 
 SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components ", "[PipelineBintr]" )
 {
-    GIVEN( "A new UriSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new UriSourceBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -257,18 +263,30 @@ SCENARIO( "A Pipeline is able to UnlinkAll after linking with minimum Components
 
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGieBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new UriSourceBintr, PrimaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new UriSourceBintr, PrimaryGieBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -288,20 +306,33 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
 
 SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no PrimaryGieBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, CsiSourceBintr, SecondaryGieBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, SecondaryGieBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
-        DSL_CSI_SOURCE_PTR pSourceBintr = 
-            DSL_CSI_SOURCE_NEW(sourceName.c_str(), tilerW, tilerH, fps_n, fps_d);
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pSecondaryGieBintr = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName.c_str(), interval);
+        }
+        {
+            pSecondaryGieBintr = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileDgpu.c_str(), 
+                primaryGieName.c_str(), interval);
+        }
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -324,7 +355,7 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
 
 SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, Tiler and OsdBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, and OsdBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, WindowSinkBintr, PipelineBintr, and OsdBintr" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -332,12 +363,24 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
@@ -365,7 +408,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
 
 SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, Tiler, OsdBintr, and TrackerBintr", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, OverlaySinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, WindowSinkBintr, PipelineBintr, TrackerBintr, and OsdBintr" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -373,9 +416,21 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
@@ -383,8 +438,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -410,7 +465,7 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
 
 SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with Optional Components", "[PipelineBintr]" )
 {
-    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, OverlaySinkBintr, and PipelineBintr" ) 
+    GIVEN( "A new TilerBintr, UriSourceBintr, PrimaryGieBintr, SecondaryGieBintr, OsdBintr, WindowSinkBintr, and PipelineBintr" ) 
     {
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
@@ -419,13 +474,32 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with Optional Components"
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
-
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
-            secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pSecondaryGieBintr = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+            pSecondaryGieBintr = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName.c_str(), interval);
+        }
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
@@ -433,8 +507,8 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with Optional Components"
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -521,13 +595,31 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
         std::string primaryGieName1("primary-gie-1");
         std::string primaryGieName2("primary-gie-2");
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1;
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr1 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pPrimaryGieBintr2 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr1 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+            pPrimaryGieBintr2 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -674,7 +766,7 @@ SCENARIO( "Adding an OsdBintr to a PipelineBintr with a DemuxerBintr fails", "[P
 
 SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
 {
-    GIVEN( "A new DemuxerBintr, UriSourceBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new DemuxerBintr, UriSourceBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -682,8 +774,8 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -706,7 +798,7 @@ SCENARIO( "A Pipeline is able to LinkAll with a Demuxer and minimum Components",
 
 SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components", "[PipelineBintr]" )
 {
-    GIVEN( "A PipelineBintr with DemuxerBintr, UriSourceBintr, OverlaySinkBintr in a Linked State" ) 
+    GIVEN( "A PipelineBintr with DemuxerBintr, UriSourceBintr, WindowSinkBintr in a Linked State" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -714,8 +806,8 @@ SCENARIO( "A Pipeline is able to UnlinkAll with a Demuxer and minimum Components
         // Note: need to use Bintr pointer when calling DemuxerBinter->AddChild() - non-ambiguious
         DSL_BINTR_PTR pDemuxerBintr = std::shared_ptr<Bintr>(new DemuxerBintr(demuxerName.c_str()));
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth,  offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -744,22 +836,22 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and multiple S
     GIVEN( "A PipelineBintr with DemuxerBintr and multiple CsiSourceBintrs and WindowSinkBintrs in a Linked State" ) 
     {
         DSL_URI_SOURCE_PTR pSourceBintr1 = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
+            sourceName1.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr1 = 
             DSL_WINDOW_SINK_NEW(sinkName1.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_URI_SOURCE_PTR pSourceBintr2 = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
+            sourceName2.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr2 = 
             DSL_WINDOW_SINK_NEW(sinkName2.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_URI_SOURCE_PTR pSourceBintr3 = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
+            sourceName3.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr3 = 
             DSL_WINDOW_SINK_NEW(sinkName3.c_str(), offsetX, offsetY, windowW, windowH);
 
         DSL_URI_SOURCE_PTR pSourceBintr4 = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
+            sourceName4.c_str(), filePath.c_str(), false, false, 0);
         DSL_WINDOW_SINK_PTR pSinkBintr4 = 
             DSL_WINDOW_SINK_NEW(sinkName4.c_str(), offsetX, offsetY, windowW, windowH);
 
@@ -807,9 +899,21 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -847,9 +951,21 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
@@ -891,13 +1007,32 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
-
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
-            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), secondaryInferConfigFile.c_str(), 
-            secondaryModelEngineFile.c_str(), primaryGieName.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pSecondaryGieBintr = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+            pSecondaryGieBintr = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName.c_str(), interval);
+        }
 
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
@@ -929,7 +1064,7 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
 
 SCENARIO( "A Pipeline with an ImageStreamSourceBintr is able to Link/UnlinkAll", "[PipelineBintr]" )
 {
-    GIVEN( "A new ImageStreamSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new ImageStreamSourceBintr, PrimaryGieBintr, TilerBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
         bool isLive(true);
         uint timeout(0);
@@ -940,12 +1075,24 @@ SCENARIO( "A Pipeline with an ImageStreamSourceBintr is able to Link/UnlinkAll",
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -971,7 +1118,7 @@ SCENARIO( "A Pipeline with an ImageStreamSourceBintr is able to Link/UnlinkAll",
 
 SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[PipelineBintr]" )
 {
-    GIVEN( "A new FileSourceBintr, PrimaryGieBintr, TilerBintr, OverlaySinkBintr, and a PipelineBintr" ) 
+    GIVEN( "A new FileSourceBintr, PrimaryGieBintr, TilerBintr, WindowSinkBintr, and a PipelineBintr" ) 
     {
         uint repeat(true);
 
@@ -981,12 +1128,24 @@ SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[Pipe
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
 
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, windowW, windowH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
-            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), primaryInferConfigFile.c_str(), 
-            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+        }
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
