@@ -100,13 +100,12 @@ SCENARIO( "A Tiled Tiler's tiles can be updated",  "[TilerBintr]" )
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), width, height);
             
-        uint currRows(0);
-        uint currColumns(0);
+        uint currRows(99);
+        uint currColumns(99);
     
-        // Tiler element defaults to 1 x 1
         pTilerBintr->GetTiles(&currColumns, &currRows);
-        REQUIRE( currColumns == 1 );
-        REQUIRE( currRows == 1 );
+        REQUIRE( currColumns == 0 );
+        REQUIRE( currRows == 0 );
 
         WHEN( "The Tiler's tile layout is Set" )
         {
