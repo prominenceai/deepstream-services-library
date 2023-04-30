@@ -41,17 +41,23 @@ static const std::wstring source_name4(L"image-source-4");
 static const std::wstring jpeg_file_path(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.jpg");
-static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
+
+//static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
+static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p_mjpeg.mp4");
 static const std::wstring mjpeg_file_path_multi(
     L"./test/streams/sample_720p.%d.mjpeg");
 
 static const std::wstring png_file_path(L"./test/streams/sample_720p.png");
 
 static const std::wstring primary_gie_name(L"primary-gie");
-static std::wstring infer_config_file(
+static std::wstring infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static std::wstring model_engine_file(
+static std::wstring model_engine_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static std::wstring infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static std::wstring model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 
 static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
@@ -107,9 +113,20 @@ SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, 
         REQUIRE( dsl_source_image_single_new(source_name1.c_str(),
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(),
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -171,9 +188,20 @@ SCENARIO( "A new Pipeline with a Single Image Source, Primary GIE, Tiled Display
         REQUIRE( dsl_source_image_single_new(source_name1.c_str(),
             mjpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(),
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -238,9 +266,20 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
         REQUIRE( dsl_source_image_single_new(source_name4.c_str(), 
             jpeg_file_path.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -300,9 +339,20 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
         REQUIRE( dsl_source_image_stream_new(source_name1.c_str(),
             jpeg_file_path.c_str(), false, fps_n, fps_d, 3) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(),
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -372,9 +422,20 @@ SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE,
         REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
             DSL_VIDEO_FORMAT_RGBA) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(),
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -440,9 +501,20 @@ SCENARIO( "A new Pipeline with a Multi Image Source, Primary GIE, Tiled Display,
         REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
             jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -509,9 +581,20 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
             1, 4) == DSL_RESULT_SUCCESS );
             
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -575,9 +658,20 @@ SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Ti
         REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
             mjpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );

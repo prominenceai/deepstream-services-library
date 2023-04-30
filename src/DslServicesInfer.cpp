@@ -59,7 +59,8 @@ namespace DSL
                 std::ifstream modelFile(modelEngineFile);
                 if (!modelFile.good())
                 {
-                    LOG_ERROR("Model Engine File not found for Primary GIE InferBintr '" 
+                    LOG_ERROR("Model Engine File = '" << modelEngineFile 
+                        << "' not found for Primary GIE InferBintr '" 
                         << name << "'");
                     return DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND;
                 }

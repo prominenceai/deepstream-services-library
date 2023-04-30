@@ -36,10 +36,14 @@ static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/stream
 
 // Filespecs for the Primary GIE    
 static const std::wstring primary_gie_name(L"primary-gie");
-static const std::wstring primary_infer_config_file(
+static const std::wstring primary_infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::wstring primary_model_engine_file(
+static const std::wstring primary_model_engine_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring primary_infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static const std::wstring primary_model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -308,8 +312,18 @@ int test()
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using NVIDIA's provided config and model-engine files.
-        retval = dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            retval = dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                primary_infer_config_file_jetson.c_str(), 
+                primary_model_engine_file_jetson.c_str(), 0);
+        }
+        else
+        {
+            retval = dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                primary_infer_config_file_dgpu.c_str(), 
+                primary_model_engine_file_dgpu.c_str(), 0);
+        }
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Multi Object Tracker - required when using a Cross Trigger

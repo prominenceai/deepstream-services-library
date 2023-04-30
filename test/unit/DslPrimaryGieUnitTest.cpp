@@ -33,7 +33,7 @@ static std::string modelEngineFileJetson(
 static std::string inferConfigFileDgpu(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::string modelEngineFileDgpu(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 
 static uint interval(1);
 
