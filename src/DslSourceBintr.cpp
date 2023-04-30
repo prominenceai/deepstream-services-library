@@ -598,7 +598,7 @@ namespace DSL
         if (!m_cudaDeviceProp.integrated)
         {
             m_pBufferOutVidConv->SetAttribute("nvbuf-memory-type", 
-                DSL_NVBUF_MEM_TYPE_UNIFIED);
+                DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED);
         }
 
         LOG_INFO("");

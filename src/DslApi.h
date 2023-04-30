@@ -486,11 +486,13 @@ THE SOFTWARE.
 
 /**
  * NVIDIA Buffer Memory Types
+ * Jetson 0 & 4 only, dGPU 0 through 3 only
  */
 #define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
-#define DSL_NVBUF_MEM_TYPE_PINNED                                   1
-#define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
-#define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
+#define DSL_NVBUF_MEM_TYPE_CUDA_PINNED                              1
+#define DSL_NVBUF_MEM_TYPE_CUDA_DEVICE                              2
+#define DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED                             3
+#define DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY                            4
 
 /**
  * @brief DSL Stream Format Types

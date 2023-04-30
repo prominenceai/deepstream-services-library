@@ -32,10 +32,14 @@ static const uint skip_frames(0);
 static const uint drop_frame_interval(0);
 
 static const std::wstring primary_gie_name(L"primary-gie");
-static const std::wstring infer_config_file(
+static const std::wstring infer_config_file_jetson(
             L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::wstring model_engine_file(
+static const std::wstring model_engine_file_jetson(
             L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring infer_config_file_dgpu(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static const std::wstring model_engine_file_dgpu(
+            L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
         
 static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
@@ -85,9 +89,20 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
             true) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), NULL,
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -429,9 +444,20 @@ SCENARIO( "DisplayTypes with a Random Color can be displayed by an ODE Action",
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), NULL,
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -561,9 +587,20 @@ SCENARIO( "DisplayTypes with a RGBA Palette color can be displayed by an ODE Act
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), NULL,
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -762,9 +799,20 @@ SCENARIO( "DisplayTypes with an On-Deman Color can be displayed by an ODE Action
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -884,8 +932,20 @@ SCENARIO( "A Format BBox ODE Action works correctly with a Random Color Palette"
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -981,8 +1041,20 @@ SCENARIO( "A Format Label ODE Action works correctly with a Random Color Palette
         REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), 
+                model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
