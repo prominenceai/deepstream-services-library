@@ -32,11 +32,16 @@ from dsl import *
 
 # Test URI used for all sources
 uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
-# Filespecs for the Primary GIE
-inferConfigFile = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-modelEngineFile = \
+
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -167,8 +172,12 @@ def main(args):
         dsl_source_uri_new('Camera 8', uri, False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
-#        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, interval=4)
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, None, interval=4)
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -195,18 +204,19 @@ def main(args):
             break
 
         #----------------------------------------------------------------------------------------------------
-        # Create one of each Render Sink Types, Overlay and Window, to test with each. We will only add one
+        # Create one of the Render Sink Types, Overlay or Window, based on target type
         # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
         
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+            retval = dsl_sink_overlay_new('render-sink', 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+            if retval != DSL_RETURN_SUCCESS:
+                break
+        else:
+            # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+            retval = dsl_sink_window_new('render-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+            if retval != DSL_RETURN_SUCCESS:
+                break
 
         #----------------------------------------------------------------------------------------------------
         # Pipeline assembly
@@ -215,7 +225,7 @@ def main(args):
         # Note: *** change 'iou-tracker' to 'ktl-tracker' to try both. KTL => higher CPU load 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6',  'Camera 7', 'Camera 8',
-            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
+            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'render-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

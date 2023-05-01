@@ -57,11 +57,15 @@ from dsl import *
 # File path for the single File Source
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 
-# Filespecs for the Primary GIE and IOU Trcaker
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Window Sink Dimensions
 sink_width = 1280
@@ -114,8 +118,12 @@ def main(args):
             break
             
         # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
