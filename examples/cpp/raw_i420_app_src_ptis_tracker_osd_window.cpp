@@ -249,9 +249,15 @@ int main(int argc, char** argv)
     while(true)
     {
         // Initialize the App Source client data. 
-        AppSrcData data;
+        AppSrcData data{0};
         data.frame_size = source_width * source_height * 1.5; // for I420
         data.file = fopen(raw_file.c_str(), "r");
+        if (!data.file)
+        {
+            std::cout << "failed to open input file '" 
+                << raw_file << "'" << std::endl;
+            break;
+        }
         data.frame_num = 0;
         data.fps = fps_n/fps_d;
         data.sourceid = 0;
@@ -267,14 +273,15 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
 // To enable presentation timestamp
-#if CUSTOM_PTS
+#if !CUSTOM_PTS
         retval = dsl_source_app_do_timestamp_set(L"app-source", TRUE);
         if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_source_app_stream_format_set(L"app-source",
-            DSL_STREAM_FORMAT_TIME);
-        if (retval != DSL_RESULT_SUCCESS) break;
 #endif            
+
+//        retval = dsl_source_app_stream_format_set(L"app-source",
+//            DSL_STREAM_FORMAT_TIME);
+//        if (retval != DSL_RESULT_SUCCESS) break;
+
         // New Primary TIS using the filespec specified above, with interval = 0
         retval = dsl_infer_tis_primary_new(L"primary-tis", primary_infer_config_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;

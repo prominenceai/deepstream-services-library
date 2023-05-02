@@ -54,12 +54,8 @@ namespace DSL
         SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
             DSL_STREAMMUX_DEFAULT_HEIGHT);
 
-        // Set the Streammux defaults
-        m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
-        m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
-        m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
-
         // Get property defaults that aren't specifically set
+        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
         m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
         m_pStreamMux->GetAttribute("gpu-id", &m_gpuId);
         m_pStreamMux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
