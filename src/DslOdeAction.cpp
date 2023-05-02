@@ -542,16 +542,6 @@ namespace DSL
             return;
         }
 
-//        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
-//        {
-//            // Sync the surface for CPU access
-//            if (!pBufferSurface->SyncForCpu())
-//            {
-//                LOG_ERROR("Destination surface failed to Sync for '" 
-//                    << GetName() << "'");
-//                return;
-//            }
-//        }
         queueCapturedImage(pBufferSurface);
     }
 
@@ -597,25 +587,6 @@ namespace DSL
         uint bufferWidth = (&(*pBufferSurface))->surfaceList[0].width;
         uint bufferHeight = (&(*pBufferSurface))->surfaceList[0].height;
         
-//        // Check to ensure that the buffer and pitch dimensions are the same
-//        if (bufferWidth !=
-//            (&(*pBufferSurface))->surfaceList[0].planeParams.width[0] or
-//            bufferHeight !=
-//            (&(*pBufferSurface))->surfaceList[0].planeParams.height[0])
-//        {
-//            LOG_ERROR("Invalid dimensions found for surface plane[0]");
-//            m_idleThreadFunctionId = 0;
-//            return FALSE;
-//        }
-//
-//        // There should only be one plane for RGBA
-//        if ((&(*pBufferSurface))->surfaceList[0].planeParams.num_planes > 1)
-//        {
-//            LOG_ERROR("Invalid plane count (>1) for RGBA surface");
-//            m_idleThreadFunctionId = 0;
-//            return FALSE;
-//        }
-        
         // Generate the image file name from the date-time string
         std::ostringstream fileNameStream;
         fileNameStream << GetName() << "_" 
@@ -631,7 +602,7 @@ namespace DSL
         {
 #if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
             AvJpgOutputFile avJpgOutFile(pBufferSurface, 
-                fileNameStream.str().c_str());
+                filespec.c_str());
 #endif                
         }
         catch(...)
