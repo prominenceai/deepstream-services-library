@@ -255,12 +255,12 @@ namespace DSL
     /**
      * @brief callback function registered with with the appsink's "new-sample" signal.
      * The callback wraps the AppSinkBintr's HandleNewSample function.
-     * @param sink appsink element - not used.
+     * @param pSinkElement appsink element - not used.
      * @param pAppSinkBintr opaque pointer the the AppSinkBintr that triggered the 
      * "new-sample" signal - owner of the appsink element.
      * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
      */
-    static GstFlowReturn on_new_sample_cb(GstElement sink, 
+    static GstFlowReturn on_new_sample_cb(GstElement* pSinkElement, 
         gpointer pAppSinkBintr);
         
     //-------------------------------------------------------------------------
