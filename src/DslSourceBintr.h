@@ -711,22 +711,22 @@ namespace DSL
     
     /**
      * @brief Callback function for the "need-data" signal
-     * @param source "appsrc" plugin/element that invoked the signal (unused)
+     * @param pSourceElement "appsrc" plugin/element that invoked the signal (unused)
      * @param length the amount of bytes needed. length is just a hint and 
      * when it is set to -1, any number of bytes can be pushed into appsrc.
      * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
      * "need-data" signal.
      */
-    static void on_need_data_cb(GstElement source, uint length,
+    static void on_need_data_cb(GstElement* pSourceElement, uint length,
         gpointer pAppSrcBintr);
     
     /**
      * @brief Callback function for the "enough-data" signal
-     * @param source "appsrc" plugin/element that invoked the signal (unused)
+     * @param pSourceElement "appsrc" plugin/element that invoked the signal (unused)
      * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
      * "enough-data" signal.
      */
-    static void on_enough_data_cb(GstElement source, 
+    static void on_enough_data_cb(GstElement* pSourceElement, 
         gpointer pAppSrcBintr);
         
     //*********************************************************************************

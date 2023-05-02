@@ -983,14 +983,14 @@ namespace DSL
 //    }
 
 
-    static void on_need_data_cb(GstElement source, uint length,
+    static void on_need_data_cb(GstElement* source, uint length,
         gpointer pAppSrcBintr)
     {
         static_cast<AppSourceBintr*>(pAppSrcBintr)->
             HandleNeedData(length);
     }
         
-    static void on_enough_data_cb(GstElement source, 
+    static void on_enough_data_cb(GstElement* source, 
         gpointer pAppSrcBintr)
     {
         static_cast<AppSourceBintr*>(pAppSrcBintr)->
