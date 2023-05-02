@@ -282,7 +282,7 @@ namespace DSL
         return dslRetVal;
     }
     
-    static GstFlowReturn on_new_sample_cb(GstElement sink, 
+    static GstFlowReturn on_new_sample_cb(GstElement* pSinkElement, 
         gpointer pAppSinkBintr)
     {
         return static_cast<AppSinkBintr*>(pAppSinkBintr)->
