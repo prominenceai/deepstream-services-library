@@ -237,8 +237,13 @@ void eos_event_listener(void* client_data)
 // 
 void state_change_listener(uint old_state, uint new_state, void* client_data)
 {
-    std::cout << "previous state = " << dsl_state_value_to_string(old_state) 
-        << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
+    std::wcout << L"previous state = " << dsl_state_value_to_string(old_state) 
+        << L", new state = " << dsl_state_value_to_string(new_state) << std::endl;
+    if (new_state == DSL_STATE_PLAYING)
+    {
+        dsl_pipeline_dump_to_dot(L"pipeline", L"app-source-pipeline");
+    }
+        
 }
 
 int main(int argc, char** argv)
@@ -249,9 +254,16 @@ int main(int argc, char** argv)
     while(true)
     {
         // Initialize the App Source client data. 
-        AppSrcData data;
+        AppSrcData data{0};
         data.frame_size = source_width * source_height * 1.5; // for I420
         data.file = fopen(raw_file.c_str(), "r");
+        if (!data.file)
+        {
+            std::cout << "failed to open input file '" 
+                << raw_file << "'" << std::endl;
+            retval = DSL_RESULT_FAILURE;
+            break;
+        }
         data.frame_num = 0;
         data.fps = fps_n/fps_d;
         data.sourceid = 0;
@@ -267,14 +279,15 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
 // To enable presentation timestamp
-#if CUSTOM_PTS
+#if !CUSTOM_PTS
         retval = dsl_source_app_do_timestamp_set(L"app-source", TRUE);
         if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_source_app_stream_format_set(L"app-source",
-            DSL_STREAM_FORMAT_TIME);
-        if (retval != DSL_RESULT_SUCCESS) break;
 #endif            
+
+//        retval = dsl_source_app_stream_format_set(L"app-source",
+//            DSL_STREAM_FORMAT_TIME);
+//        if (retval != DSL_RESULT_SUCCESS) break;
+
         // New Primary TIS using the filespec specified above, with interval = 0
         retval = dsl_infer_tis_primary_new(L"primary-tis", primary_infer_config_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -296,6 +309,10 @@ int main(int argc, char** argv)
             L"iou-tracker",L"on-screen-display",L"window-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
+        
+        retval = dsl_pipeline_streammux_dimensions_set(L"pipeline", 
+            source_width, source_height);
+        retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
 
         // Add the XWindow event handler functions defined above
         retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
