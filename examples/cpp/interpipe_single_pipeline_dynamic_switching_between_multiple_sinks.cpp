@@ -47,11 +47,16 @@ static const std::wstring uri3(
 static const std::wstring uri4(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov");
 
-// Filespecs for the Primary GIE
-static const std::wstring primary_infer_config_file(
+// Config and model-engine files - Jetson and dGPU
+std::wstring primary_infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring primary_model_engine_file_jetson(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring primary_infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+std::wstring primary_model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+
 static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -174,9 +179,19 @@ int main(int argc, char** argv)
             L"inter-pipe-sink-1", false, false, false);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // New Primary GIE's using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new(L"primary-gie", 
-            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 4);
+        // New Primary GIE using the filespecs defined above, with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            retval = dsl_infer_gie_primary_new(L"primary-gie", 
+                primary_infer_config_file_jetson.c_str(), 
+                primary_model_engine_file_jetson.c_str(), 4);
+        }
+        else
+        {
+            retval = dsl_infer_gie_primary_new(L"primary-gie", 
+                primary_infer_config_file_dgpu.c_str(), 
+                primary_model_engine_file_dgpu.c_str(), 4);
+        }
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker setting max width and height of input frame
