@@ -36,10 +36,10 @@ There are ten Video Source components supported, three of which are [Image Video
 * [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
 * [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
 * [RTSP Source](#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
-* [Interpipe Source](#dsl_source_interpipe_new) - receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new).
+* [Interpipe Source](#dsl_source_interpipe_new) - receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Single Image Source](#dsl_source_image_single_new) - single frame to EOS.
 * [Multi Image Source](#dsl_source_image_multi_new) - streamed at one image file per frame.
-* [Streaming Image Source](#dsl_source_image_stream_new)  - single image streamed at a given frame rate.
+* [Streaming Image Source](#dsl_source_image_stream_new)  - single image streamed at a given frame rate. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 
 All Video Sources are derived from the base "Source" class (as show in the hierarchy below), therefore all [source methods](#source-methods) can be called with any Video Source.
 
@@ -594,7 +594,9 @@ DslReturnType dsl_source_interpipe_new(const wchar_t* name,
 ```
 This service creates a new, uniquely named Interpipe Source component to listen to an Interpipe Sink Component. The Sink to `listen_to` can be updated dynamically while in a playing state. 
 
-**Important** additional install/build steps for the RidgeRun `gst-interpipe` plugins are required. Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
+**Important!** The Interpipe Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md).
+
+Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Hierarchy
 [component](/docs/api-component.md)<br>
@@ -687,6 +689,8 @@ DslReturnType dsl_source_image_stream_new(const wchar_t* name,
     const wchar_t* file_path, boolean is_live, uint fps_n, uint fps_d, uint timeout);
 ```
 This service creates a new, uniquely named Streaming Image Source component. The Image is overlaid on top of a mock video stream that plays at a specified frame rate. The video source can mock both live and non-live sources allowing the Image to be batched along with other Source components.
+
+**Important!** The Streaming-Image Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md).
 
 #### Hierarchy
 [component](/docs/api-component.md)<br>

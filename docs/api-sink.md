@@ -8,9 +8,9 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
 * **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
 * **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
-* **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
+* **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
-* **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand.
+* **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * **Fake Sink** - consumes/drops all data.
 
 ### Sink Construction and Destruction
@@ -601,6 +601,8 @@ DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
 ```
 The constructor creates a new, uniquely named Inter-Pipe Sink component. Construction will fail if the name is currently in use.
 
+**Important!** The Interpipe Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md).
+
 Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Hierarchy
@@ -668,6 +670,8 @@ The constructor creates a new, uniquely named Frame-Capture Sink. Construction w
 The Application initiates a frame-capture by calling [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate).
 
 [Capture-complete-listeners](/docs/api-ode-action.md#dsl_capture_complete_listener_cb) (to notify on completion), [Image Players](/docs/api-player.md) (to auto-play the new image) and [SMTP Mailers](/docs/api-mailer.md) (to mail the new image) can be added to the Capture Action as well.
+
+**Important!** The Frame-Captre Sink Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md) to use.
 
 **Note:** The first capture may cause a noticeable short pause to the stream while cuda dependencies are loaded and cached. 
 
