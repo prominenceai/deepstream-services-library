@@ -44,11 +44,15 @@ uri2 = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_push.mov'
 uri3 = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov'
 uri4 = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov'
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = \
+# Filespecs for the Primary GIE - Jetson & dGPU
+primary_infer_config_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 WINDOW_WIDTH = 1280
@@ -145,9 +149,13 @@ def main(args):
             listen_to='inter-pipe-sink-1', is_live=False,
             accept_eos=True, accept_events=True)
         
-        # New Primary GIE's using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 4)
+        # New Primary GIE's using the filespecs above with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

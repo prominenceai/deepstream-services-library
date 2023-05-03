@@ -43,21 +43,21 @@ THE SOFTWARE.
 static const std::wstring file_path(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 
-// Filespecs for the Primary GIE
-static const std::wstring primary_infer_config_file_1(
+// Config and model-engine files - Jetson and dGPU
+std::wstring primary_infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::wstring primary_infer_config_file_2(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-//    L"../../test/configs/config_infer_primary_nano_nms_test.txt");
+std::wstring primary_model_engine_file_jetson(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring primary_infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+std::wstring primary_model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
     
     
 static const std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
 static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
-
-// File name for .dot file output
-static const std::wstring dot_file = L"state-playing";
 
 // Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
 int source_width = 960;
@@ -312,10 +312,19 @@ int main(int argc, char** argv)
         retval = create_pipeline(&client_data_1);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Primary GIE using the first config file. 
-        retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(),
-            primary_infer_config_file_1.c_str(), primary_model_engine_file.c_str(), 4);
-        if (retval != DSL_RESULT_SUCCESS) break;
+        // New Primary GIE using the filespecs defined above, with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(), 
+                primary_infer_config_file_jetson.c_str(), 
+                primary_model_engine_file_jetson.c_str(), 4);
+        }
+        else
+        {
+            retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(), 
+                primary_infer_config_file_dgpu.c_str(), 
+                primary_model_engine_file_dgpu.c_str(), 4);
+        }
 
         // New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_new(client_data_1.tracker.c_str(), 
@@ -343,9 +352,19 @@ int main(int argc, char** argv)
         retval = create_pipeline(&client_data_2);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Primary GIE using the second config file. 
-        retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(),
-            primary_infer_config_file_2.c_str(), primary_model_engine_file.c_str(), 4);
+        // New Primary GIE using the filespecs defined above, with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
+                primary_infer_config_file_jetson.c_str(), 
+                primary_model_engine_file_jetson.c_str(), 4);
+        }
+        else
+        {
+            retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
+                primary_infer_config_file_dgpu.c_str(), 
+                primary_model_engine_file_dgpu.c_str(), 4);
+        }
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame
