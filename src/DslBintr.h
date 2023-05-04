@@ -56,9 +56,7 @@ namespace DSL
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
-            , m_nvbufMemType(0)
-            , m_pGstStaticSinkPad(NULL)
-            , m_pGstStaticSourcePad(NULL)
+            , m_nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT)
         { 
             LOG_FUNC(); 
 
@@ -215,16 +213,31 @@ namespace DSL
         {
             LOG_FUNC();
             
+            if (pPadProbeHandler->IsInUse())
+            {
+                LOG_ERROR("Can't add Pad Probe Handler = '" << pPadProbeHandler->GetName() 
+                    << "' as it is currently in use");
+                return false;
+            }
+            bool result(false);
+
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->AddPadProbeHandler(pPadProbeHandler);
+                result = m_pSinkPadProbe->AddPadProbeHandler(pPadProbeHandler);
             }
-            if (pad == DSL_PAD_SRC)
+            else if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->AddPadProbeHandler(pPadProbeHandler);
+                result = m_pSrcPadProbe->AddPadProbeHandler(pPadProbeHandler);
             }
-            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
-            return false;
+            else
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            }
+            if (result)
+            {
+                pPadProbeHandler->AssignParentName(GetName());
+            }
+            return result;
         }
             
         /**
@@ -236,16 +249,25 @@ namespace DSL
         {
             LOG_FUNC();
             
+            bool result(false);
+
             if (pad == DSL_PAD_SINK)
             {
-                return m_pSinkPadProbe->RemovePadProbeHandler(pPadProbeHandler);
+                result = m_pSinkPadProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
-            if (pad == DSL_PAD_SRC)
+            else if (pad == DSL_PAD_SRC)
             {
-                return m_pSrcPadProbe->RemovePadProbeHandler(pPadProbeHandler);
+                result = m_pSrcPadProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
-            LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
-            return false;
+            else
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" << GetName() << "'");
+            }
+            if (result)
+            {
+                pPadProbeHandler->ClearParentName();
+            }
+            return result;
         }
         
         
@@ -311,7 +333,7 @@ namespace DSL
             return true;
         }
 
-    public:
+    protected:
 
         /**
          * @brief unique identifier managed by the 
@@ -332,32 +354,12 @@ namespace DSL
         /**
          * @brief current GPU Id in used by this Bintr
          */
-        guint m_gpuId;
+        uint m_gpuId;
 
         /**
          * @brief current Memory Type used by this Bintr
          */
-        guint m_nvbufMemType;
-
-        /**
-         * @brief Static Pad object for the Sink Elementr within this Bintr
-         */
-        GstPad* m_pGstStaticSinkPad;
-            
-        /**
-         * @brief A dynamic collection of requested Sink Pads for this Bintr
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSinkPads;
-            
-        /**
-         * @brief Static Pad object for the Source Elementr within this Bintr
-         */
-        GstPad* m_pGstStaticSourcePad;
-            
-        /**
-         * @brief A dynamic collection of requested Souce Pads for this Bintr
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
+        uint m_nvbufMemType;
 
         /**
          * @brief Sink PadProbetr for this Bintr

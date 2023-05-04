@@ -38,7 +38,7 @@ static const std::wstring source_name2(L"uri-source-2");
 static const std::wstring source_name3(L"uri-source-3");
 static const std::wstring source_name4(L"uri-source-4");
 static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
-static const uint intr_decode(false);
+static const uint skip_frames(0);
 static const uint drop_frame_interval(0); 
 
 static const std::wstring image_source(L"image-source");
@@ -46,10 +46,15 @@ static const std::wstring image_path1(L"/opt/nvidia/deepstream/deepstream/sample
 static const uint fps_n(15), fps_d(1);
 
 static const std::wstring primary_gie_name(L"primary-gie");
-static std::wstring infer_config_file(
+static std::wstring infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static std::wstring model_engine_file(
+static std::wstring model_engine_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+
+static std::wstring infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static std::wstring model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 
 // Note: Creating segmantation model engine file with the below config files builds the
 // engine under the trtis_model_repo, even though we are not using the triton inference server
@@ -68,27 +73,36 @@ static const std::wstring seg_visual_name(L"segvisual");
 static const uint seg_visual_width(512);
 static const uint seg_visual_height(512);
 
-static const std::wstring tracker_name(L"ktl-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
 static const uint tracker_height(272);
+
+static const std::wstring tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 static const std::wstring secondary_gie_name1(L"secondary-gie-1");
 static const std::wstring sgie_infer_config_file1(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
-static const std::wstring sgie_model_engine_file1(
+static const std::wstring sgie_model_engine_file1_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring sgie_model_engine_file1_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_int8.engine");
         
 static const std::wstring secondary_gie_name2(L"secondary-gie-2");
 static const std::wstring sgie_infer_config_file2(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
-static const std::wstring sgie_model_engine_file2(
+static const std::wstring sgie_model_engine_file2_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring sgie_model_engine_file2_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
         
 static const std::wstring secondary_gie_name3(L"secondary-gie-3");
 static const std::wstring sgie_infer_config_file3(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
-static const std::wstring sgie_model_engine_file3(
+static const std::wstring sgie_model_engine_file3_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring sgie_model_engine_file3_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_int8.engine");
 
 static const std::wstring tiler_name1(L"tiler-1");
 static const std::wstring tiler_name2(L"tiler-2");
@@ -132,7 +146,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink", "[pipeline-play]" )
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -171,10 +185,20 @@ SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Displ
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
 
         // overlay sink for observation 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -223,7 +247,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Overlay Sink, and Tiled Displa
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
                 offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -261,7 +285,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Overlay Sink, and Tiled Displa
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            true, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            true, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -300,7 +324,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -340,10 +364,20 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -374,26 +408,38 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled
 }
 
 
-SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Sink, and Tiled Display can play", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Sink, \
+and Tiled Display can play", "[pipeline-play]" )
 {
-    GIVEN( "A Pipeline, URI source, KTL Tracker, Primary GIE, Window Sink, and Tiled Display" ) 
+    GIVEN( "A Pipeline, URI source, IOU Tracker, Primary GIE, Window Sink, and Tiled Display" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"ktl-tracker", L"tiler-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", L"tiler-1", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -418,20 +464,31 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
     }
 }
 
-SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Sink, \
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Sink, \
     On-Screen Display, and Tiled Display can play", "[pipeline-play]" )
 {
-    GIVEN( "A Pipeline, URI source, KTL Tracker, Primary GIE, Window Sink, and Tiled Display" ) 
+    GIVEN( "A Pipeline, URI source, IOU Tracker, Primary GIE, Window Sink, and Tiled Display" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
         
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
@@ -441,7 +498,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1", L"primary-gie", L"ktl-tracker", 
+        const wchar_t* components[] = {L"uri-source-1", L"primary-gie", L"iou-tracker", 
             L"tiler-1", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -482,7 +539,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -528,7 +585,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -574,7 +631,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, KTL Tracker, Window Si
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -613,7 +670,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_rtsp_new(rtsp_sink_name.c_str(), host.c_str(),
             udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
@@ -662,7 +719,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_sink_rtsp_new(rtsp_sink_name.c_str(), host.c_str(),
 //            udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
@@ -702,15 +759,29 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), 
+                sgie_infer_config_file1.c_str(), sgie_model_engine_file1_jetson.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), 
+                sgie_infer_config_file1.c_str(), sgie_model_engine_file1_dgpu.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+        }
 
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
-            sgie_model_engine_file1.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
@@ -720,7 +791,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"ktl-tracker", 
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
             L"secondary-gie-1", L"tiler-1", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -747,29 +818,49 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
 }
 
 SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, \
-    Window Sink, and Tiled Display can play", "[pipeline-play]" )
+Window Sink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), 
+                sgie_infer_config_file1.c_str(), sgie_model_engine_file1_jetson.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name2.c_str(), 
+                sgie_infer_config_file2.c_str(), sgie_model_engine_file2_jetson.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name3.c_str(), 
+                sgie_infer_config_file3.c_str(), sgie_model_engine_file3_jetson.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), 
+                sgie_infer_config_file1.c_str(), sgie_model_engine_file1_dgpu.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name2.c_str(), 
+                sgie_infer_config_file1.c_str(), sgie_model_engine_file2_dgpu.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name3.c_str(), 
+                sgie_infer_config_file1.c_str(), sgie_model_engine_file3_dgpu.c_str(), 
+                    primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
+        }
 
-        REQUIRE( dsl_tracker_ktl_new(tracker_name.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name1.c_str(), sgie_infer_config_file1.c_str(), 
-            sgie_model_engine_file1.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name2.c_str(), sgie_infer_config_file2.c_str(), 
-            sgie_model_engine_file2.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name3.c_str(), sgie_infer_config_file3.c_str(), 
-            sgie_model_engine_file3.c_str(), primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
@@ -779,7 +870,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, 
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"ktl-tracker", 
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
             L"secondary-gie-1", L"secondary-gie-2", L"secondary-gie-3", L"tiler-1", L"on-screen-display", L"window-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -812,7 +903,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -853,7 +944,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, WindowSink and Demux
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
@@ -915,10 +1006,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, two overlaySinks and Demuxe
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
-                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name1.c_str(), display_id, depth,
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
@@ -963,11 +1054,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
 {
     GIVEN( "A Pipeline, URI source, Fake Sink, and Demuxer" ) 
     {
-        // Get the Device properties
-        cudaDeviceProp deviceProp;
-        cudaGetDeviceProperties(&deviceProp, 0);
-        
-        if (deviceProp.integrated)
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
             uint offest_x1(160);
             uint offest_y1(240);
@@ -981,10 +1068,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
-                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
                 bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
@@ -995,8 +1082,9 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two Overlay S
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name2.c_str(), display_id, depth,
                 offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-                model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_branch_new(branch_name1.c_str()) == DSL_RESULT_SUCCESS );
@@ -1057,7 +1145,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-                false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_tee_splitter_new(splitterName.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_branch_new(branch_name1.c_str()) == DSL_RESULT_SUCCESS );
@@ -1074,8 +1162,8 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
             REQUIRE( dsl_sink_overlay_new(overlay_sink_name2.c_str(), display_id, depth,
                 offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-                model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file_jetson.c_str(), 
+                model_engine_file_jetson.c_str(), 0) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
             
@@ -1118,7 +1206,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        std::wstring source_name1(L"uri-source-1");
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadec_mem_type(DSL_NVBUF_MEM_TYPE_DEFAULT);
-//        uint intr_decode(false);
+//        uint skip_frames(false);
 //        uint drop_frame_interval(0);
 //
 //        std::wstring tiler_name1(L"tiler-1");
@@ -1137,7 +1225,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -1176,7 +1264,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //        std::wstring source_name1(L"uri-source-1");
 //        std::wstring uri(L"./test/streams/sample_1080p_h264.mp4");
 //        uint cudadec_mem_type(DSL_NVBUF_MEM_TYPE_DEFAULT);
-//        uint intr_decode(false);
+//        uint skip_frames(false);
 //        uint drop_frame_interval(0);
 //
 //        std::wstring ofvName(L"ofv");
@@ -1197,7 +1285,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two Overlay
 //
 //        // create for of the same types of source
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-//            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+//            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        // overlay sink for observation 
 //        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
@@ -1243,7 +1331,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
@@ -1331,7 +1419,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), sem_seg_infer_config_file.c_str(), 
             sem_seg_model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
@@ -1374,7 +1462,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
 //        REQUIRE( dsl_component_list_size() == 0 );
 //
 ////        REQUIRE( dsl_source_uri_new(source_name1.c_str(), image_path2.c_str(), 
-////            false, intr_decode, interval) == DSL_RESULT_SUCCESS );
+////            false, skip_frames, interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
 //            fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
@@ -1417,26 +1505,36 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
 //}
 
 SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Window Sink", 
-    "[test]" )
+    "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name3.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name4.c_str(), uri.c_str(), 
-            false, intr_decode, drop_frame_interval) == DSL_RESULT_SUCCESS );
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_jetson.c_str(), model_engine_file_jetson.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                infer_config_file_dgpu.c_str(), model_engine_file_dgpu.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+        }
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );

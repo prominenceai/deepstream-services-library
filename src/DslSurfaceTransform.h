@@ -27,12 +27,6 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include <nvbufsurftransform.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/imgproc/types_c.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-
 #include <gst-nvdssr.h>
 
 namespace DSL
@@ -88,7 +82,7 @@ namespace DSL
         cudaStream_t stream;
     };
 
-    // ---------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
     /**
      * @struct DslMappedBuffer
      * @brief Info map to access the buffer of batched surfaces
@@ -165,11 +159,12 @@ namespace DSL
         GstBuffer* m_pBuffer;
     };
 
-    // ---------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
     
     /**
      * @struct DslMonoSurface
-     * @brief New mono surface buffer copied from a single surface in a batched surface buffer
+     * @brief New mono surface buffer copied from a single surface in a batched 
+     * surface buffer
      */
     struct DslMonoSurface : public NvBufSurface
     {
@@ -192,18 +187,15 @@ namespace DSL
             // copy the shared surface properties
             (NvBufSurface)*this = *pBatchedSurface;
             
-            // NVIDIA buffer memory 
-//            memType = mapInfo.memType;
-
             // set the buffer surface as a mono surface
             numFilled = 1;
             batchSize = 1;
 
             // copy the single indexed surface to the new surfaceList of one
-//            surfaceList = &(((NvBufSurface*)mapInfo.data)->surfaceList[index]);
             surfaceList = &(pBatchedSurface->surfaceList[index]);
             
-            // new width and height properties for the mono surface, since there's only one.
+            // new width and height properties for the mono surface, since 
+            // there's only one.
             width = surfaceList[0].width;
             height = surfaceList[0].height;
         }   
@@ -236,8 +228,9 @@ namespace DSL
     
     /**
      * @struct DslTransformParams
-     * @brief Surface transform params with coordinates and dimensions for both source and
-     * destination surfaces. Scaling of source to destination is not (currently) supported.
+     * @brief Surface transform params with coordinates and dimensions for 
+     * both source and destination surfaces. Scaling of source to destination 
+     * is not (currently) supported.
      */
     struct DslTransformParams : public NvBufSurfTransformParams
     {
@@ -247,20 +240,26 @@ namespace DSL
          * @brief ctor for the DslTransformParams structure
          * @param left x-positional coordinate for upper left corner
          * @param top y-positional coordinate for upper left corner
-         * @param width width of the source and destination rectangles for the transform
-         * @param height height of the source and destination rectangles for the transform
+         * @param width width of the source and destination rectangles for 
+         * the transform
+         * @param height height of the source and destination rectangles for 
+         * the transform
          */
-        DslTransformParams(uint32_t left, uint32_t top, uint32_t width, uint32_t height)
+        // this is the correct order for Transform (top first)
+        // this may be too limiting, only supports cropping
+        DslTransformParams(uint32_t left, uint32_t top, 
+            uint32_t width, uint32_t height)
             : NvBufSurfTransformParams{0}
-            , m_srcRect{top, left, width, height} // this is the correct order for Transform (top first)
-            , m_dstRect{0, 0, width, height} // this may be too limiting, only supports cropping
+            , m_srcRect{top, left, width, height} 
+            , m_dstRect{0, 0, width, height} 
         {
             LOG_FUNC();
 
             // src and dst rectangles are set up by pointer
             src_rect = &m_srcRect;
             dst_rect = &m_dstRect;
-            transform_flag = NVBUFSURF_TRANSFORM_CROP_SRC | NVBUFSURF_TRANSFORM_CROP_DST;
+            transform_flag = NVBUFSURF_TRANSFORM_CROP_SRC | 
+                NVBUFSURF_TRANSFORM_CROP_DST;
             transform_filter = NvBufSurfTransformInter_Default;    
         }   
 
@@ -275,12 +274,14 @@ namespace DSL
     private:
 
         /**
-         * @brief m_srcRect coordinates and dimensions of the rectangle to transform within the source surface.
+         * @brief m_srcRect coordinates and dimensions of the rectangle to 
+         * transform within the source surface.
          */
         NvBufSurfTransformRect m_srcRect;
 
         /**
-         * @brief m_srcRect coordinates and dimensions of the rectangle to transform for the destination surface.
+         * @brief m_srcRect coordinates and dimensions of the rectangle to 
+         * transform for the destination surface.
          */
         NvBufSurfTransformRect m_dstRect;
     };
@@ -304,9 +305,10 @@ namespace DSL
          * set size to 0 for no addition memory allocated when batch size = 1
          */
         DslSurfaceCreateParams(uint32_t gpuId, 
-            uint32_t width, uint32_t height, uint32_t size, NvBufSurfaceMemType memType)
+            uint32_t width, uint32_t height, uint32_t size, 
+            NvBufSurfaceColorFormat colorFormat, NvBufSurfaceMemType memType)
             : NvBufSurfaceCreateParams{gpuId, width, height, size, false, 
-                NVBUF_COLOR_FORMAT_RGBA, NVBUF_LAYOUT_PITCH, memType}
+                colorFormat, NVBUF_LAYOUT_PITCH, memType}
         {
             LOG_FUNC();
         }
@@ -320,12 +322,13 @@ namespace DSL
         }
     };
     
-    // ---------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
 
 
     /**
      * @struct DslSurfaceTransformSessionParams
-     * @brief Structure of "Transform Session" config params, with a set session params function
+     * @brief Structure of "Transform Session" config params, with a set 
+     * session params function
      */
     struct DslSurfaceTransformSessionParams : public NvBufSurfTransformConfigParams
     {
@@ -336,7 +339,8 @@ namespace DSL
          * @param gpuId GPU ID valid for multi GPU systems
          */
         DslSurfaceTransformSessionParams(int32_t gpuId, DslCudaStream& cudaStream)
-            : NvBufSurfTransformConfigParams{NvBufSurfTransformCompute_Default, gpuId, cudaStream.stream}
+            : NvBufSurfTransformConfigParams{NvBufSurfTransformCompute_Default, 
+                gpuId, cudaStream.stream}
         {
             LOG_FUNC();
         }
@@ -359,7 +363,8 @@ namespace DSL
             NvBufSurfTransform_Error error = NvBufSurfTransformSetSessionParams(this);
             if (error != NvBufSurfTransformError_Success)
             {
-                LOG_ERROR("NvBufSurfTransformSetSessionParams failed with error '" << error << "'");
+                LOG_ERROR("NvBufSurfTransformSetSessionParams failed with error '" 
+                    << error << "'");
                 return false;
             }    
 
@@ -367,7 +372,7 @@ namespace DSL
         }
     };
     
-    // ---------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
     
     /**
      * @class DslBufferSurface
@@ -382,22 +387,33 @@ namespace DSL
          * @param[in] batchSize batch size to use for the new surface
          * @param[in] surfaceCreateParams create parameters to use for the new surface
          */
-        DslBufferSurface(uint32_t batchSize, DslSurfaceCreateParams& surfaceCreateParams)
+        DslBufferSurface(uint32_t batchSize, 
+            DslSurfaceCreateParams& surfaceCreateParams, uint64_t uniqueId)
             : m_pBufSurface(NULL)
+            , m_uniqueId(uniqueId)
             , m_isMapped(false)
         {
             LOG_FUNC();
 
-            if (NvBufSurfaceCreate(&m_pBufSurface, batchSize, &surfaceCreateParams) != NvBufSurfTransformError_Success)
+            if (NvBufSurfaceCreate(&m_pBufSurface, batchSize, &surfaceCreateParams) 
+                != NvBufSurfTransformError_Success)
             {
                 LOG_ERROR("NvBufSurfaceCreate failed");
                 throw;
             }
-            if (NvBufSurfaceMemSet(m_pBufSurface, -1, -1, 0) != NvBufSurfTransformError_Success)
+            if (NvBufSurfaceMemSet(m_pBufSurface, -1, -1, 0) != 
+                NvBufSurfTransformError_Success)
             {
                 LOG_ERROR("NvBufSurfaceMemSet failed");
                 throw;
             }
+            char dateTime[64] = {0};
+            time_t seconds = time(NULL);
+            struct tm currentTm;
+            localtime_r(&seconds, &currentTm);
+
+            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
+            m_dateTimeStr = dateTime;
         }
         
         /**
@@ -426,12 +442,15 @@ namespace DSL
         NvBufSurface* operator&(){return m_pBufSurface;};
         
         /**
-         * @brief function to transform a mono source surface to a surface indexed within the batch.
+         * @brief function to transform a mono source surface to a surface 
+         * indexed within the batch.
          * @return true on successful transform, false otherwise
          */
-        bool TransformMonoSurface(DslMonoSurface& srcSurface, uint32_t index, DslTransformParams& transformParams)
+        bool TransformMonoSurface(DslMonoSurface& srcSurface, 
+            uint32_t index, DslTransformParams& transformParams)
         {
-            return (NvBufSurfTransform(&srcSurface, &m_pBufSurface[index], &transformParams)
+            return (NvBufSurfTransform(&srcSurface, 
+                &m_pBufSurface[index], &transformParams)
                 == NvBufSurfTransformError_Success);
         }
         
@@ -441,7 +460,8 @@ namespace DSL
          */
         bool Map()
         {
-            if (NvBufSurfaceMap(m_pBufSurface, -1, -1, NVBUF_MAP_READ) != NvBufSurfTransformError_Success)
+            if (NvBufSurfaceMap(m_pBufSurface, -1, -1, NVBUF_MAP_READ) != 
+                NvBufSurfTransformError_Success)
             {
                 return false;
             }
@@ -453,7 +473,8 @@ namespace DSL
         }
         
         /**
-         * @brief function to synchronize a mapped, and transformed batched surface buffer, modified by hardware, for CPU access
+         * @brief function to synchronize a mapped, and transformed batched 
+         * surface buffer, modified by hardware, for CPU access
          * @return true on successful mapping, false otherwise
          */
         bool SyncForCpu()
@@ -470,18 +491,42 @@ namespace DSL
                 == NvBufSurfTransformError_Success);
         }
         
+        uint64_t GetUniqueId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        const char* GetDateTimeStr()
+        {
+            LOG_FUNC();
+            
+            return m_dateTimeStr.c_str();
+        }
         
     private:    
 
         /**
-         * @brief pointer to a batched surface buffer.
+         * @brief pointer to an NVIDIA NvBufferSurface structure.
          */
         NvBufSurface* m_pBufSurface;
         
         /**
-         * @brief set to true once mapped so that the buffer can be unmapped before destruction.
+         * @brief unique id for the BufferSurface.
+         */
+        uint64_t m_uniqueId;
+        
+        /**
+         * @brief set to true once mapped so that the buffer can be unmapped 
+         * before destruction.
          */
         bool m_isMapped;
+        
+        /**
+         * @brief date-time string for the creation of the DslBufferSurface
+         */
+        std::string m_dateTimeStr;
 
     };
 

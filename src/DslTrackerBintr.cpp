@@ -28,23 +28,17 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    TrackerBintr::TrackerBintr(const char* name, const char* llLibFile, 
+    TrackerBintr::TrackerBintr(const char* name,
         const char* configFile, guint width, guint height)
         : Bintr(name)
-        , m_llLibFile(llLibFile)
+        , m_llLibFile(NVDS_MOT_LIB)
         , m_llConfigFile(configFile)
         , m_width(width)
         , m_height(height)
     {
         LOG_FUNC();
-        
-        // DS Version 6.0 has deprecated the separate low-level Libs
-        // for a consolidated lib that supports all three tracker types.
-        if (NVDS_VERSION_MAJOR == 6)
-        {
-            m_llLibFile = NVDS_MOT_LIB;
-        }
-        
+
+        // New Tracker element for this TrackerBintr
         m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
@@ -57,6 +51,21 @@ namespace DSL
         {
             m_pTracker->SetAttribute("ll-config-file", configFile);
         }
+
+        // Get property defaults that aren't specifically set
+        m_pTracker->GetAttribute("gpu-id", &m_gpuId);
+        m_pTracker->GetAttribute("enable-batch-process", &m_batchProcessingEnabled);
+        m_pTracker->GetAttribute("enable-past-frame", &m_pastFrameReporting);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for TrackerBintr '" << name << "'");
+        LOG_INFO("  tracker-width        : " << m_width);
+        LOG_INFO("  tracker-height       : " << m_height);
+        LOG_INFO("  ll-lib-file          : " << m_llLibFile);
+        LOG_INFO("  ll-config-file       : " << m_llConfigFile);
+        LOG_INFO("  gpu-id               : " << m_gpuId);
+        LOG_INFO("  enable-batch-process : " << m_batchProcessingEnabled);
+        LOG_INFO("  enable-past-frame    : " << m_pastFrameReporting);
 
         AddChild(m_pTracker);
 
@@ -130,6 +139,21 @@ namespace DSL
         return m_llLibFile.c_str();
     }
     
+    bool TrackerBintr::SetLibFile(const char* libFile)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set library file for TrackerBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_llLibFile.assign(libFile);
+        m_pTracker->SetAttribute("ll-lib-file", libFile);
+        return true;
+    }
+    
     const char* TrackerBintr::GetConfigFile()
     {
         LOG_FUNC();
@@ -147,6 +171,7 @@ namespace DSL
                 << "' as it's currently linked");
             return false;
         }
+        m_llConfigFile.assign(configFile);
         m_pTracker->SetAttribute("ll-config-file", configFile);
         return true;
     }
@@ -201,35 +226,20 @@ namespace DSL
         return true;
     }
 
-    //------------------------------------------------------------------------------
-    
-    DcfTrackerBintr::DcfTrackerBintr(const char* name, 
-        const char* configFile,guint width, guint height,
-        bool batchProcessingEnabled, bool pastFrameReportingEnabled)
-        : TrackerBintr(name, NVDS_DCF_LIB, configFile, width, height)
-        , m_batchProcessingEnabled(batchProcessingEnabled)
-        , m_pastFrameReporting(pastFrameReportingEnabled)
-    {
-        LOG_FUNC();
-
-        m_pTracker->SetAttribute("enable-batch-process", m_batchProcessingEnabled);
-        m_pTracker->SetAttribute("enable-past-frame", m_pastFrameReporting);
-    }
-
-    bool DcfTrackerBintr::GetBatchProcessingEnabled()
+    boolean TrackerBintr::GetBatchProcessingEnabled()
     {
         LOG_FUNC();
 
         return m_batchProcessingEnabled;
     }
     
-    bool DcfTrackerBintr::SetBatchProcessingEnabled(bool enabled)
+    bool TrackerBintr::SetBatchProcessingEnabled(boolean enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set the enable-batch-processing setting for DcfTrackerBintr '" 
+            LOG_ERROR("Unable to set the enable-batch-processing setting for TrackerBintr '" 
                 << GetName() << "' as it's currently in use");
             return false;
         }
@@ -239,20 +249,20 @@ namespace DSL
         return true;
     }
     
-    bool DcfTrackerBintr::GetPastFrameReportingEnabled()
+    boolean TrackerBintr::GetPastFrameReportingEnabled()
     {
         LOG_FUNC();
 
         return m_pastFrameReporting;
     }
     
-    bool DcfTrackerBintr::SetPastFrameReportingEnabled(bool enabled)
+    bool TrackerBintr::SetPastFrameReportingEnabled(boolean enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set the enable-past-frame setting for DcfTrackerBintr '" 
+            LOG_ERROR("Unable to set the enable-past-frame setting for TrackerBintr '" 
                 << GetName() << "' as it's currently in use");
             return false;
         }
@@ -261,33 +271,16 @@ namespace DSL
         return true;
     }
 
-    bool DcfTrackerBintr::SetBatchSize(uint batchSize)
+    bool TrackerBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
         
         if (batchSize > 1 and !m_batchProcessingEnabled)
         {
             LOG_WARN("The Pipeline's batch-size is set to " << batchSize 
-                << " while the DCF Tracker's batch processing is disable!");
+                << " while the Tracker's batch processing is disable!");
         }
         return true;
     }
     
-    //------------------------------------------------------------------------------
-    
-    KtlTrackerBintr::KtlTrackerBintr(const char* name, guint width, guint height)
-        : TrackerBintr(name, NVDS_KLT_LIB, "", width, height)
-    {
-        LOG_FUNC();
-    }
-
-    //------------------------------------------------------------------------------
-    
-    IouTrackerBintr::IouTrackerBintr(const char* name, 
-        const char* configFile, guint width, guint height)
-        : TrackerBintr(name, NVDS_IOU_LIB, configFile, width, height)
-    {
-        LOG_FUNC();
-
-    }
 } // DSL

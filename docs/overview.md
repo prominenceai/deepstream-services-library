@@ -2,13 +2,13 @@
 ### Overview Contents
 * [Introduction](#introduction)
 * [Pipeline Components](#pipeline-components)
-  * [Streaming Sources](#streaming-sources)
+  * [Sources](#sources)
   * [Preprocessor](#preprocessor)
   * [Inference Engines and Servers](#inference-engines-and-servers)
   * [Multi-Object Trackers](#multi-object-trackers)
   * [Multi-Source Tiler](#multi-source-tiler)
   * [On-Screen Display](#on-screen-display)
-  * [Rendering and Encoding Sinks](#rendering-and-encoding-sinks)
+  * [Sinks](#sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Pad Probe Handlers](#pad-probe-handlers)
 * [Display Types](#display-types)
@@ -18,6 +18,7 @@
   * [ODE Areas](#ode-areas)
   * [ODE Line Crossing Analytics](#ode-line-crossing-analytics)
   * [ODE Heat Mapping](#ode-heat-mapping)
+* [Interpipe Services](#interpipe-services)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
@@ -52,23 +53,26 @@ Using Python3, for example, the above can be written as:
 Create a set of Components, each with a specific function and purpose. 
 ```Python
 # new Camera Sources - setting dimensions and frames-per-second
-retval += dsl_source_csi_new('my-source', width=1280, height=720, fps_n=30, fps_d=1)
+retval += dsl_source_csi_new('my-source', 
+    width=1280, height=720, fps_n=30, fps_d=1)
 
 # create more Source Components as needed
 # ...
 
 # new Primary Inference Engine - path to config file and model engine, interval=0 - infer on every frame
-retval += dsl_infer_gie_primary_new('my-pgie', path_to_config_file, path_to_model_engine, interval=0)
+retval += dsl_infer_gie_primary_new('my-pgie', 
+    path_to_config_file, path_to_model_engine, interval=0)
 
 # new Multi-Source Tiler with dimensions of width and height 
 retval += dsl_tiler_new('my-tiler', width=1280, height=720)
 
 # new On-Screen Display for inference visualization - bounding boxes and labels - 
-# with both labels and clock enabled
+# with both labels and clock enabled.
 retval += dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
     bbox_enabled=True, mask_enabled=False)
 
-# new X11/EGL Window Sink for video rendering - Pipeline will create a new XWindow if one is not provided
+# new X11/EGL Window Sink for video rendering - Pipeline will create a 
+# new XWindow if one is not provided.
 retval += dsl_sink_window_new('my-window-sink', width=1280, height=720)
 
 if retval != DSL_RESULT_SUCCESS:
@@ -91,7 +95,8 @@ def xwindow_delete_event_handler(client_data):
     dsl_main_loop_quit()
 
 # add the callback function to the pipeline
-retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
+retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', 
+    xwindow_delete_event_handler, None)
 ```
 
 Transition the Pipeline to a state of Playing and start/join the main loop
@@ -113,38 +118,38 @@ There are seven categories of Components that can be added to a Pipeline, automa
 
 ![DSL Components](/Images/dsl-components.png)
 
-## Streaming Sources
-Streaming sources are the head component(s) for all Pipelines and all Pipelines must have at least one Source (among other components) before they can transition to a state of Playing. All Pipelines have the ability to multiplex multiple streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
+## Sources
+Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of PLAYING. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are seven types of Source components supported. 
-Two live connected Camera Sources:
-* Camera Serial Interface (CSI) Source - connected to one of the serial ports on the Jetson SOM
-* Universal Serial Bus (USB) Source
+There are ten (10) types of Source components supported, all are currently Video ony. Audio-Video and Video only Sources are in development.  
+* **App Source** - allows the application to insert raw samples or buffers into a DSL Pipeline.
+* **CSI Source** - Camera Serial Interface (CSI) Source - Jetson platform only.
+* **USB Source** - Universal Serial Bus (USB) Source.
+* **URI Source** - Uniform Resource Identifier ( URI ) Source.
+* **File Source** - Derived from URI Source with fixed inputs.
+* **RTSP Source** - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
+* **Interpipe Source** - receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
+* **Single Image Source** - single frame to EOS.
+* **Multi Image Source** - streamed at one image file per frame.
+* **Streaming Image Source** - single image streamed at a given frame rate.
 
-Three Decode Sources.
-* Universal Resource Identifier (URI) Source - supports files as well.
-* File Source
-* Real-time Streaming Protocol (RTSP) Source
+All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components supports multiple codec formats, including H.264, H.265, and JPEG. 
 
-Three Images Sources 
-* File Source that is derived from the URI Decode Source with some of the parameters fixed.
-* Image Source that overlays an Image on a mock/fake streaming source at a settable frame rate. The Image Source can mimic a live source allowing it to be batched with other live streaming sources.
+A [Dewarper Component](/docs/api-dewarper.md) (not shown in the image above) capable of 360 degee and perspective dewarping can be added to any Video Source. 
 
-All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI Source component support multiple codec formats, including H.264, H.265, PNG, and JPEG. A [Dewarper Component](/docs/api-dewarper.md) (not show in the image above) capable of dewarping 360 degree camera streams can be added to both. 
-
-A Pipeline's Stream-Muxer has settable output dimensions with a decoded, batched output stream that is ready to infer on.
+All Video Sources provide programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
 
 A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler).
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Preprocessor
-The Preprocessor component provides a custom library interface for preprocessing on input streams. Each stream can have its own preprocessing requirements. (e.g. per stream ROIs - Region of Interests processing.) Streams with same preprocessing requirements are grouped and processed together. 
+The Preprocessor component provides a custom library interface for preprocessing input streams. Each stream can have its own preprocessing requirements. (e.g. per stream ROIs - processing Region of Interests). Streams with the same preprocessing requirements are grouped and processed together. 
 
-NVIDIA's default plugin implementation and library (alpha in Deepstream 6.0) provide two functionalities.
+NVIDIA's plugin implementation and reference library (currently in Alpha) provide two functionalities.
 
-* Streams with predefined ROIs (Region of Interests) are scaled and format converted as per the network requirements for inference. Per stream ROIs are specified in a config file.
-* They prepares a raw tensor from the scaled & converted ROIs. The data is passed to the downstream components via user metadata. Downstream plugins can access this tensor for inference.
+* Streams with predefined ROIs (Regions of Interests) are scaled and format-converted as per the network requirements for inference. Per stream ROIs are specified in a config file.
+* Raw tensor from the scaled & converted ROIs is prepared and passed to the downstream components via user metadata. Downstream plugins can access this tensor for inference.
 
 See the [Preprocessor API](/docs/api-preproc.md) reference section for more information.
 
@@ -153,9 +158,7 @@ NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs),
 
 After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
 
-With Primary GIEs and TISs, applications can:
-* Add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
-* Enable/disable raw layer-info output to binary file, one file per layer, per frame.
+With Primary GIEs and TISs, applications can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
 
 See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
 
@@ -164,13 +167,17 @@ DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/m
 See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference section for more information.
 
 ## Multi-Object Trackers
-There are two types of streaming Multi-Object Tracker Components.
-1. [Kanade–Lucas–Tomasi](https://en.wikipedia.org/wiki/Kanade%E2%80%93Lucas%E2%80%93Tomasi_feature_tracker) (KTL) Feature Tracker
-2. [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) (IOU) High-Frame-Rate Tracker. 
+The DeepStream Services Library (DSL) supports Nvidia's four low-level tracker "reference implementations" all with in a single low-level library:
+* **IOU** - [Intersection-Over-Unioun](https://www.researchgate.net/publication/319502501_High-Speed_Tracking-by-Detection_Without_Using_Image_Information_Challenge_winner_IWOT4S) High-Frame-Rate Tracker. 
+* **NvSORT**: - NVIDIA®-enhanced Simple Online and Realtime Tracking (SORT) algorithm.
+* **DeepSORT** - a re-implementation of the official DeepSORT tracker.
+* **NvDCF** - an NVIDIA adapted Discriminative Correlation Filter (DCF) tracker.
+
+Any custom library that implements the [NvDsTracker API](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#how-to-implement-a-custom-low-level-tracker-library) can be used as well.
 
 Clients of Tracker components can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object.
 
-Tracker components are optional and a Pipeline, or [Branch](#tees-and-branches) can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
+Tracker components are optional and a Pipeline or [Branch](#tees-and-branches) can have at most one. See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
 
 ## Multi-Source Tiler
 All Source components connect to the Pipeline's internal Stream-Muxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the multiplexed stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
@@ -183,7 +190,7 @@ retval = dsl_pipeline_component_add_many('my-pipeline',
 ```
 Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
 
-Clients of Tiler components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object within.
+Clients of Tiler components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object.
 
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
@@ -194,36 +201,37 @@ OSDs are optional and a Pipeline (or Branch) can have at most one when using a T
 
 Clients of On-Screen Display components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object.
 
-## Rendering and Encoding Sinks
-Sinks, as the end components in the Pipeline, are used to render the video stream for visual display or encode the streaming video to a file or network. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped. A case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently six types of Sink Components that can be added.
+##  Sinks
+Sinks are the end components in the Pipeline. All Pipelines require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- case where the `batch-meta-data` produced from the components in the Pipeline is the only data of interest. There are currently twelve (12) types of Sink Components that can be added.
 
-Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
+1. **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
+2. **Window Sink** - renders/overlays video on a Parent XWindow
+3. **File Sink** - encodes video to a media container file
+4. **Record Sink** - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+5. **RTSP Sink** - streams encoded video on a specified port
+6. **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
+7. **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+8. **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
+9. **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
+10. **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
+11. **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand.
+12. **Fake Sink** - consumes/drops all data.
+**Overlay** and **Window Sinks** have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
-1. Overlay Render Sink - Jetson platform only
-2. X11/EGL Window Sink
-3. File Sink
-4. Record Sink
-5. RTSP Sink
-6. WebRTC Sink - Requires GStreamer 1.18 or later
-7. IoT Message Sink
-8. Fake Sink
+The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H.265 with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
 
-Overlay and Window Sinks have settable dimensions: width and height in pixels, and X and Y directional offsets that can be updated after creation. 
-
-The File and Record encoder Sinks support three codec formats: H.264, H.265 and MPEG-4, with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
-
-RTSP Sinks create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
+**RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
 
 ```Python
 retval = dsl_sink_rtsp_new('my-rtsp-sink', 
-    host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
+    host='my-jetson-desktop.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
 ```
 would use
 ```
-rtsp://my-jetson.local:8554/my-rtsp-sink
+rtsp://my-jetson-desktop.local:8554/my-rtsp-sink
 ```
 
-The Message Sink converts Object Detection Event (ODE) data into protocol specfic IoT messages and brokers/sends the messages to a remote entity.
+Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
 
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
@@ -381,7 +389,7 @@ There are three Pad Probe Handlers that can be created and added to either a Sin
 See the [Pad Probe Handler API](/docs/api-pph.md) reference section for additional information.
 
 ### Pipeline Meter Pad Probe Handler
-The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with new session started at any time. 
+The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with a new session started at any time. 
 
 ### Object Detection Event Pad Probe Handler
 The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
@@ -419,7 +427,7 @@ Refer to the [ODE Pad Probe Handler API Reference](/docs/api-pph.md) for more in
 ## Display Types
 On-Screen Display Types -- RGBA text and shapes -- can be added to a frame's metadata to be shown by an [On-Screen Display](/docs/api-osd.md) component downstream. 
 There are eight base types used when creating other complete types for actual display. 
-* RGBA Costom Color
+* RGBA Custom Color
 * RGBA Predefined Color
 * RGBA Random Color
 * RGBA On-Demand Color
@@ -453,7 +461,7 @@ Refer to the [Display Type API Reference](/docs/api-display-type.md) for more in
 ---
 
 ## Object Detection Event (ODE) Services
-DSL Provides an extensive set of ODE Triggers -- to Trigger on specific detection events -- and ODE Actions -- to perform specific action when a detection event occurrs. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
+DSL Provides an extensive set of ODE Triggers -- to Trigger on specific detection events -- and ODE Actions -- to perform specific action when a detection event occurs. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
 
 ![ODE Services](/Images/ode-services.png)
 
@@ -465,10 +473,10 @@ Current **ODE Triggers** supported:
 * **Absence** - triggers on the absence of objects within a frame. Once per-frame at most.
 * **Occurrence** - triggers on each object detected within a frame. Once per-object at most.
 * **Instance** - triggers on each new object instance across frames based on a unique tracker id. Once per new tracking id. 
-* **Persitence** - triggers on each object instance that persists in view/frame for a specified period of time.
+* **Persistence** - triggers on each object instance that persists in view/frame for a specified period of time.
 * **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
-* **Accumulation** - triggers on the accumulative count of unique instances across frames, Once per-frame always.
 * **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair.
+* **Cross** - triggers on the occurrence that an object crosses one of the Trigger's Line, Multi-Line, or Polygon Areas.
 * **Count** - triggers when the count of objects within a frame is within a specified range.. Once per-frame at most.
 * **New Low** - triggers when the count of objects within a frame reaches a new low count.
 * **New High** trigger when the count of objects within a frame reaches a new high count.
@@ -515,8 +523,8 @@ Refer to the [ODE Action API Reference](/docs/api-ode-action.md) for more inform
 The following image was produced using: 
 * Occurrence Trigger filtering on Any Class Id to hide/exclude the Object Text and Bounding Boxes.
 * Occurrence Trigger filtering on Person Class Id as criteria, using:
-  * Polygon Area of Inclussion as additional criteria,
-  * Fill Object Action to fill the object's bounding-box with an opague RGBA color on criteria met
+  * Polygon Area of Inclusion as additional criteria,
+  * Fill Object Action to fill the object's bounding-box with an opaque RGBA color on criteria met
 
 ![Polygon Area](/Images/polygon-screenshot.png)
 
@@ -554,7 +562,7 @@ retval = dsl_display_type_rgba_polygon_new('polygon1',
     coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
     
 # New "Area of Inclusion" to use as criteria for ODE Occurrence using the Polygon object
-# Test point DSL_BBOX_POINT_SOUTH = center of rectangle bottom edge must be within Pologon.
+# Test point DSL_BBOX_POINT_SOUTH = center of rectangle bottom edge must be within Polygon.
 retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
     show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
 
@@ -596,7 +604,7 @@ Note that using `ALL` points will add overhead to the processing of each detecte
 
 An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) is added to the Cross Trigger to accumulate and display the number of line-crossing occurrences in the IN and OUT directions as shown in the image below.
 
-The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to print each line-crossing occurrence to the console and to capture the object to an image file and display the image as an overlay, repectively.  
+The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to print each line-crossing occurrence to the console and to capture the object to an image file and display the image as an overlay, respectively.  
 
 **Important Note:** A reminder that other actions such as the [ODE File Action](/docs/api-ode-action.md#dsl_ode_action_file_new), [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new), and the [ODE Add IOT Message Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) can be leveraged with the ODE Cross Trigger as well.
 
@@ -680,7 +688,7 @@ See the [complete example](/examples/python/ode_line_cross_object_capture_overla
 ---
 
 ### ODE Heat Mapping
-[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE Occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within corresponding area within the source frame.
+[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE Occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within the corresponding area within the source frame.
 
 The client application can `get`, `print`, `log`, `file`, and `clear` the metric occurrence data at any time.
 
@@ -689,6 +697,37 @@ The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py
 See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more information.
 
 ![](/Images/spectral-person-heat-map.png)
+
+---
+
+## Interpipe Services
+DSL supports services for [RidgeRun's]() [Interpipe plugins](https://developer.ridgerun.com/wiki/index.php?title=GstInterpipe). From their website ***"GstInterpipe is a RidgeRun open source GStreamer plug-in that enables pipeline buffers and events to flow between two or more independent pipelines. It consists of two elements: interpipesink and interpipesrc. The interpipesrc connects with an interpipesink, from which it receives buffers and events.***
+
+The Interpipe Sink and Source are optional/conditional DSL components.  You will need to [build and install](https://developer.ridgerun.com/wiki/index.php/GstInterpipe_-_Building_and_Installation_Guide) the RidgeRun plugins. Then update the DSL Makefile to include/build the DSL Sink and Source components. Search for the following section and set `BUILD_INTER_PIPE` to `true`,
+```
+# To enable the InterPipe Sink and Source components
+# - set BUILD_INTER_PIPE:=true
+BUILD_INTER_PIPE:=true
+```
+
+There are two examples that cover two basic use cases; **Dynamic Switching** and **Multiple Listeners**. These cases can be combined and extended to achieve complex pipelines as illustrated by RidgeRun [here](https://developer.ridgerun.com/wiki/index.php/File:Complex_pipeline.png)
+
+### Dynamic Switching
+The Interpipe Source's `listen_to` setting -- the name of the Interpipe Sink to listen to -- can be updated at any time. See the following links for examples that implement the image below.
+* [interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py](/examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py)
+* [interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp](/examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp)
+
+![interpipe dynamic switching](/Images/interpipe-dynamic-switching.png)
+
+```Python
+
+```
+### Multiple Listeners
+Multiple Pipelines, each with their own Interpipe Source, can listen to the same Interpipe Sink. The following examples implement the multiple listeners use case as shown in the image below.
+* [interpipe_multiple_pipelines_listening_to_single_sink.py](/examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py)
+* [interpipe_multiple_pipelines_listening_to_single_sink.cpp](/examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp)
+
+![interpipe multiple listeners](/Images/interpipe-multiple-listeners.png)
 
 --- 
 
@@ -728,7 +767,7 @@ class ComponentNames:
         self.start_record = source + '-start-record'
         
 ##
-# Client listner function callad at the start and end of a recording session
+# Client listener function called at the start and end of a recording session
 ##
 def OnRecordingEvent(session_info_ptr, client_data):
 
@@ -746,7 +785,7 @@ def OnRecordingEvent(session_info_ptr, client_data):
     if session_info.recording_event == DSL_RECORDING_EVENT_START:
         print('event:      ', 'DSL_RECORDING_EVENT_START')
 
-        # in this example we will call on the Tiler to show the source that started recording.	
+        # In this example we will call on the Tiler to show the source that started recording.	
         retval = dsl_tiler_source_show_set('tiler', source=components.source, 
             timeout=0, has_precedence=True)	
         if (retval != DSL_RETURN_SUCCESS):
@@ -764,7 +803,7 @@ def OnRecordingEvent(session_info_ptr, client_data):
 
         # if we're showing the source that started this recording
         # we can set the tiler back to showing all tiles, otherwise
-        # another source has started recording and taken precendence
+        # another source has started recording and taken precedence
         retval, current_source, timeout  = dsl_tiler_source_show_get('tiler')
         if reval == DSL_RETURN_SUCCESS and current_source == components.source:
             dsl_tiler_source_show_all('tiler')
@@ -895,7 +934,7 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    # For each of our four sources, call the funtion to create the source-specific components.
+    # For each of our four sources, call the function to create the source-specific components.
     retval = CreatePerSourceComponents('pipeline', 'src-0', src_url_0, 'ode-handler')
     if (retval != DSL_RETURN_SUCCESS):
         break
@@ -926,26 +965,31 @@ dsl_delete-all()
 
 ```
 
-Please refere to [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) for the complete example.
+Please refer to [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) for the complete example.
 
 ---
+
 ## RTSP Stream Connection Management
-RTSP Source Components have "built-in" stream connection management for detecting and resolving stream disconnections.   
+RTSP Source Components have "built-in" stream connection management for detecting and resolving 
+1. a failed first connection.
+2. stream disconnections.   
 
-When creating a RTSP Source, the client application can specify a `next-buffer-timeout` defined as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.
+When creating an RTSP Source, the client application can specify a `next-buffer-timeout` defined as the maximum time to wait in seconds for each new frame buffer before the Source's Stream Manager -- determining that the connection has been lost -- resets the Source and tries to reconnect.
 
-The Stream manager uses two client settable parameters to control the reconnection behavior. 
+The Stream manager uses three client settable parameters to control the connection behavior. 
 
-1. `sleep` - the time to sleep between failed connection atempts, in units of seconds. 
-2. `timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
+1. `initial-connection-timeout` - the the maximum time to wait for the RTSP Source to connect and generate the first buffer when the Pipeline is first played, in units of seconds.
+2. `reconnection-sleep` - the time to sleep between failed connection attempts - also in seconds. 
+3. `reconnection-timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
 
-Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. Both parameters are set to defaults when the Source is created, defined in `dslapi.h` as:
+Note: Setting the reconnection timeout to a value less than the device's socket timeout can result in the Stream failing to connect. All three parameters are set to defaults when the Source is created -- defined in `dslapi.h` as:
 ```C
-#define DSL_RTSP_RECONNECTION_SLEEP_S    4
-#define DSL_RTSP_RECONNECTION_TIMEOUT_S  30
+#define DSL_RTSP_FIRST_CONNECTION_TIMEOUT_S   20
+#define DSL_RTSP_RECONNECTION_SLEEP_S         10
+#define DSL_RTSP_RECONNECTION_TIMEOUT_S       30
 ```
 
-The client can register a `state-change-listener` callback function to be notified on every change-of-state, to monitor the connection process and update the reconnection parameters when needed.
+The client can register a `state-change-listener` callback function to be notified on every change-of-state to monitor the connection process and update the reconnection parameters when needed.
 
 Expanding on the [Smart Recording](#smart-recording) example above,
 
@@ -958,39 +1002,39 @@ Expanding on the [Smart Recording](#smart-recording) example above,
 ##
 def SourceStateChangeListener(old_state, new_state, client_data):
 
-    # cast the C void* client_data back to a py_object pointer and deref
-    components = cast(client_data, POINTER(py_object)).contents.value
+    # cast the C void* client_data back to a py_object pointer and deref
+    components = cast(client_data, POINTER(py_object)).contents.value
 
-    print('RTSP Source ', components.source, 'change-of-state: previous =',
-        dsl_state_value_to_string(old_state), '- new =', dsl_state_value_to_string(new_state))
-    
+    print('RTSP Source ', components.source, 'change-of-state: previous =',
+        dsl_state_value_to_string(old_state), '- new =', dsl_state_value_to_string(new_state))
+    
     # A change of state to NULL occurs on every disconnection and after each failed retry.
     # A change of state to PLAYING occurs on every successful connection.
-    if (new_state == DSL_STATE_NULL or new_state == DSL_STATE_PLAYING):
-    
-        # Query the Source for it's current statistics and reconnection parameters
-        retval, data = dsl_source_rtsp_connection_data_get(components.source)
-        
-        print('Connection data for source:', components.source)
-        print('  is connected:     ', data.is_connected)
-        print('  first connected:  ', time.ctime(data.first_connected))
-        print('  last connected:   ', time.ctime(data.last_connected))
-        print('  last disconnected:', time.ctime(data.last_disconnected))
-        print('  total count:      ', data.count)
-        print('  in is reconnect:  ', data.is_in_reconnect)
-        print('  retries:          ', data.retries)
-        print('  sleep time:       ', data.sleep,'seconds')
-        print('  timeout:          ', data.timeout, 'seconds')
+    if (new_state == DSL_STATE_NULL or new_state == DSL_STATE_PLAYING):
+    
+        # Query the Source for it's current statistics and reconnection parameters
+        retval, data = dsl_source_rtsp_connection_data_get(components.source)
+        
+        print('Connection data for source:', components.source)
+        print('  is connected:     ', data.is_connected)
+        print('  first connected:  ', time.ctime(data.first_connected))
+        print('  last connected:   ', time.ctime(data.last_connected))
+        print('  last disconnected:', time.ctime(data.last_disconnected))
+        print('  total count:      ', data.count)
+        print('  in is reconnect:  ', data.is_in_reconnect)
+        print('  retries:          ', data.retries)
+        print('  sleep time:       ', data.sleep,'seconds')
+        print('  timeout:          ', data.timeout, 'seconds')
 
-        if (new_state == DSL_STATE_PLAYING):
-            print("setting the time to sleep between re-connection retries to 4 seconds for quick recovery")
-            dsl_source_rtsp_reconnection_params_set(components.source, sleep=4, timeout=30)
-            
-        # If we're in a reconnection cycle, check if the number of quick recovery attempts has
-        # been reached. (20 * 4 =~ 80 seconds), before backing off on the time between retries 
-        elif (data.is_in_reconnect and data.retries == 20):
-            print("extending the time to sleep between re-connection retries to 20 seconds")
-            dsl_source_rtsp_reconnection_params_set(components.source, sleep=20, timeout=30)
+        if (new_state == DSL_STATE_PLAYING):
+            print("setting the time to sleep between re-connection retries to 4 seconds for quick recovery")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=4, timeout=30)
+            
+        # If we're in a reconnection cycle, check if the number of quick recovery attempts has
+        # been reached. (20 * 4 =~ 80 seconds), before backing off on the time between retries 
+        elif (data.is_in_reconnect and data.retries == 20):
+            print("extending the time to sleep between re-connection retries to 20 seconds")
+            dsl_source_rtsp_reconnection_params_set(components.source, sleep=20, timeout=30)
 ```
 When creating each RTSP Source component, set the Source's next-buffer-timeout, and then add the common `SourceStateChangeListener` callback to the Source with the `components` object as `client_data` to be returned on change-of-state. 
 
@@ -1007,17 +1051,16 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     # New Component names based on unique source name
     components = ComponentNames(source)
     
-    # For each camera, create a new RTSP Source for the specific RTSP URI
-    retval = dsl_source_rtsp_new(source, 
-        uri = rtsp_uri, 
-        protocol = DSL_RTP_ALL, 
-        cudadec_mem_type = DSL_CUDADEC_MEMTYPE_DEVICE, 
-        intra_decode = False, 
-        drop_frame_interval = 0, 
-        latency=100,
-        timeout=3)
-    if (retval != DSL_RETURN_SUCCESS):
-        return retval
+    # For each camera, create a new RTSP Source for the specific RTSP URI    
+    retval = dsl_source_rtsp_new(source,     
+        uri = rtsp_uri,     
+        protocol = DSL_RTP_ALL,     
+        skip_frames = 0,     
+        drop_frame_interval = 0,     
+        latency = 1000,
+        timeout = 2)    
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
         
     # Add our state change listener to the new source, with the component names as client data
     retval = dsl_source_rtsp_state_change_listener_add(source, 
@@ -1054,14 +1097,14 @@ def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
     print('button = ', button, ' pressed at x = ', x_pos, ' y = ', y_pos)
     
     # time to show the single source before returning to view all. A timeout value of 0
-    # will disable the Tiler's timer and show the single source until called on again.
+    # will disable the Tiler's timer and show the single source until called on again.
     global SHOW_SOURCE_TIMEOUT
 
     if (button == Button1):
         # get the current XWindow dimensions as the User may have resized it. 
         retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
         
-        # call the Tiler to show the source based on the x and y button cooridantes relative
+        # call the Tiler to show the source based on the x and y button coordinates relative
         # to the current window dimensions obtained from the XWindow.
         dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 ```
@@ -1073,7 +1116,7 @@ The second callback, called on KeyRelease, allows the user to
 ```Python
 ## 
 # Function to be called on XWindow KeyRelease event
-# key_string - the ASCI key string value of the key pressed and released
+# key_string - the ASCII key string value of the key pressed and released
 # client_data
 ## 
 def XWindowKeyReleaseEventHandler(key_string, client_data):
@@ -1081,7 +1124,7 @@ def XWindowKeyReleaseEventHandler(key_string, client_data):
     
     global SHOW_SOURCE_TIMEOUT
         
-    # if one of the unique soure Ids, show source
+    # if one of the unique source Ids, show source
     elif key_string >= '0' and key_string <= '3':
         retval, source = dsl_source_name_get(int(key_string))
         if retval == DSL_RETURN_SUCCESS:
@@ -1096,7 +1139,7 @@ def XWindowKeyReleaseEventHandler(key_string, client_data):
         dsl_tiler_source_show_all('tiler')
 
     # Q or Esc = quit application
-    if key_string.upper() == 'Q' or key_string == '':
+    if key_string.upper() == 'Q' or key_string == '':
         dsl_main_loop_quit()
 ```
 The third callback is called when the user closes/deletes the XWindow allowing the application to exit from the main-loop and delete all resources
@@ -1201,11 +1244,11 @@ See the script [ode_occurrence_object_capture_overlay_image.py](/examples/python
 ---
 
 ## SMTP Services
-Secure outgoing SMTP email services allow clients to provide server info, credentials and header data (From, To, Cc, Subject, etc.) - settings required for an [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new) to send email notifications on an [Object Detection Event (ODE) Occurence](#object-detection-event-pad-probe-handler).
+Secure outgoing SMTP email services allow clients to provide server info, credentials and header data (From, To, Cc, Subject, etc.) - settings required for an [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new) to send email notifications on an [Object Detection Event (ODE) Occurrence](#object-detection-event-pad-probe-handler).
 
 Message content is sent out using multipart mime-type. Adding attachments, including captured images, will be supported in a future release.
 
-Refere to the [SMTP Services](/docs/api-smtp.md) for more information.
+Refer to the [SMTP Services](/docs/api-smtp.md) for more information.
 
 See the example script [ode_occurrence_uri_send_smtp_mail.py](/examples/python/ode_occurrence_uri_send_smtp_mail.py) for additional reference.
 
@@ -1255,7 +1298,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 <br>
 
 ## Docker Support
-The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container, built with the [nvcr.io/nvidia/deepstream-l4t:6.0-triton](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_docker_containers.html#id2) base image (Jetson).
+The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container.
 
 ## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)

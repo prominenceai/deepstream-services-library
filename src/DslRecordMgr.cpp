@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -72,7 +72,7 @@ namespace DSL
         m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
         
         m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
-        m_initParams.videoCacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
+        m_initParams.cacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
         
         g_mutex_init(&m_recordMgrMutex);
     }
@@ -190,10 +190,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return m_initParams.videoCacheSize;
+        return m_initParams.cacheSize;
     }
 
-    bool RecordMgr::SetCacheSize(uint videoCacheSize)
+    bool RecordMgr::SetCacheSize(uint cacheSize)
     {
         LOG_FUNC();
         
@@ -204,7 +204,7 @@ namespace DSL
             return false;
         }
 
-        m_initParams.videoCacheSize = videoCacheSize;
+        m_initParams.cacheSize = cacheSize;
         
         return true;
     }

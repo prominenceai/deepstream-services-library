@@ -1,33 +1,36 @@
 # Sink API Reference
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports eight different types of Sinks:
-* Overlay Sink - renders/overlays video on a Parent display **(Jetson Platform Only)**
-* Window Sink - renders/overlays video on a Parent XWindow
-* File Sink - encodes video to a media container file
-* Record Sink - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
-* RTSP Sink - streams encoded video on a specified port
-* WebRTC Sink - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
-* Message Sink - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
-* Fake Sink - consumes/drops all data.
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (12) different types of Sinks:
+* **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
+* **Window Sink** - renders/overlays video on a Parent XWindow
+* **File Sink** - encodes video to a media container file
+* **Record Sink** - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+* **RTSP Sink** - streams encoded video on a specified port
+* **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
+* **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+* **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
+* **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
+* **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* **Fake Sink** - consumes/drops all data.
 
-Sinks are created by calling one of the eight type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
+### Sink Construction and Destruction
+Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
 
-Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all).
+Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can used with another. Sinks are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
-
-There is no (practical) limit to the number of Sinks that can be created, just to the number of Sinks that can be `in use` - a child of a Pipeline - at one time. The in-use limit is imposed by the Jetson Model in use.
-
-The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DSL initialization. The value can be read by calling [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get) and updated with [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The number of Sinks in use by all Pipelines can obtained by calling [dsl_sink_get_num_in_use](#dsl_sink_get_num_in_use).
+The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
 ## Sink API
 **Types:**
 * [dsl_recording_info](#dsl_recording_info)
 
 **Callback Types:**
+* [dsl_sink_app_new_data_handler_cb](#dsl_sink_app_new_data_handler_cb)
 * [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
 * [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb)
 
 **Constructors:**
+* [dsl_sink_app_new](#dsl_sink_app_new)
 * [dsl_sink_overlay_new](#dsl_sink_overlay_new)
 * [dsl_sink_window_new](#dsl_sink_window_new)
 * [dsl_sink_file_new](#dsl_sink_file_new)
@@ -35,15 +38,38 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_rtsp_new](#dsl_sink_rtsp_new)
 * [dsl_sink_webrtc_new](#dsl_sink_webrtc_new)
 * [dsl_sink_message_new](#dsl_sink_message_new)
+* [dsl_sink_interpipe_new](#dsl_sink_interpipe_new)
+* [dsl_sink_image_multi_new](#dsl_sink_image_multi_new)
+* [dsl_sink_frame_capture_new](#dsl_sink_frame_capture_new)
 * [dsl_sink_fake_new](#dsl_sink_fake_new)
 
-**Methods**
+**Sink Methods**
+* [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
+* [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
+* [dsl_sink_pph_add](#dsl_sink_pph_add)
+* [dsl_sink_pph_remove](#dsl_sink_pph_remove)
+
+**App Sink Methods**
+* [dsl_sink_app_data_type_get](#dsl_sink_app_data_type_get)
+* [dsl_sink_app_data_type_set](#dsl_sink_app_data_type_set)
+
+**Render Sink Methods**
 * [dsl_sink_render_offsets_get](#dsl_sink_render_offsets_get)
 * [dsl_sink_render_offsets_set](#dsl_sink_render_offsets_set)
 * [dsl_sink_render_dimensions_get](#dsl_sink_render_dimensions_get)
 * [dsl_sink_render_dimensions_set](#dsl_sink_render_dimensions_set)
+
+**Window Sink Methods**
 * [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
 * [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
+
+**Encode Sink Methods**
+* [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
+* [dsl_sink_encode_settings_set](#dsl_sink_encode_settings_set)
+* [dsl_sink_encode_dimensions_get](#dsl_sink_encode_dimensions_get)
+* [dsl_sink_encode_dimensions_set](#dsl_sink_encode_dimensions_set)
+
+**Smart-Record Sink Methods**
 * [dsl_sink_record_session_start](#dsl_sink_record_session_start)
 * [dsl_sink_record_session_stop](#dsl_sink_record_session_stop)
 * [dsl_sink_record_outdir_get](#dsl_sink_record_outdir_get)
@@ -60,25 +86,39 @@ The maximum number of in-use Sinks is set to `DSL_DEFAULT_SINK_IN_USE_MAX` on DS
 * [dsl_sink_record_mailer_add](#dsl_sink_record_mailer_add)
 * [dsl_sink_record_mailer_remove](#dsl_sink_record_mailer_remove)
 * [dsl_sink_record_reset_done_get](#dsl_sink_record_reset_done_get)
+
+**RTSP Sink Methods**
 * [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_server_settings_get)
+
+**WebRTC Sink Methods**
 * [dsl_sink_webrtc_connection_close](#dsl_sink_webrtc_connection_close)
 * [dsl_sink_webrtc_servers_get](#dsl_sink_webrtc_servers_get)
 * [dsl_sink_webrtc_servers_set](#dsl_sink_webrtc_servers_set)
 * [dsl_sink_webrtc_client_listener_add](#dsl_sink_webrtc_client_listener_add)
 * [dsl_sink_webrtc_client_listener_remove](#dsl_sink_webrtc_client_listener_remove)
-* [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
-* [dsl_sink_encode_settings_set](#dsl_sink_encode_settings_set)
+
+**IOT Message Converter Sink Methods**
 * [dsl_sink_message_converter_settings_get](#dsl_sink_message_converter_settings_get)
 * [dsl_sink_message_converter_settings_set](#dsl_sink_message_converter_settings_set)
 * [dsl_sink_message_broker_settings_get](#dsl_sink_message_broker_settings_get)
 * [dsl_sink_message_broker_settings_set](#dsl_sink_message_broker_settings_set)
-* [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
-* [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
-* [dsl_sink_pph_add](#dsl_sink_pph_add)
-* [dsl_sink_pph_remove](#dsl_sink_pph_remove)
-* [dsl_sink_num_in_use_get](#dsl_sink_num_in_use_get)
-* [dsl_sink_num_in_use_max_get](#dsl_sink_num_in_use_max_get)
-* [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set)
+
+**Interpipe Sink Methods**
+* [dsl_sink_interpipe_forward_settings_get](#dsl_sink_interpipe_forward_settings_get)
+* [dsl_sink_interpipe_forward_settings_set](#dsl_sink_interpipe_forward_settings_set)
+* [dsl_sink_interpipe_num_listeners_get](#dsl_sink_interpipe_num_listeners_get)
+
+**Multi-Image Sink Methods**
+* [dsl_sink_image_multi_file_path_get](#dsl_sink_image_multi_file_path_get)
+* [dsl_sink_image_multi_file_path_set](#dsl_sink_image_multi_file_path_set)
+* [dsl_sink_image_multi_dimensions_get](#dsl_sink_image_multi_dimensions_get)
+* [dsl_sink_image_multi_dimensions_set](#dsl_sink_image_multi_dimensions_set)
+* [dsl_sink_image_multi_frame_rate_get](#dsl_sink_image_multi_frame_rate_get)
+* [dsl_sink_image_multi_frame_rate_set](#dsl_sink_image_multi_frame_rate_set)
+* [dsl_sink_image_multi_file_max_get](#dsl_sink_image_multi_file_max_get)
+
+**Frame-Capture Sink Methods**
+* [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate)
 
 ## Return Values
 The following return codes are used by the Sink API
@@ -118,12 +158,33 @@ The following codec types are used by the Sink API
 #define DSL_CODEC_H264                                              0
 #define DSL_CODEC_H265                                              1
 ```
+
 ## Video Container Types
 The following video container types are used by the File Sink API
 ```C
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
 ```
+
+## Smart Recording Events
+```C
+#define DSL_RECORDING_EVENT_START                                   0
+#define DSL_RECORDING_EVENT_END                                     1
+```
+
+## Valid return values for the dsl_sink_app_new_data_handler_cb
+```C
+#define DSL_FLOW_OK                                                 0
+#define DSL_FLOW_EOS                                                1
+#define DSL_FLOW_ERROR                                              2
+```
+
+## Data types provided by the APP Sink
+```C
+#define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
+#define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
+```
+
 ## WebRTC Connection States
 Used by the WebRTC Sink to communicate its current state to listening clients
 ```C
@@ -218,6 +279,24 @@ A structure typedef used to provide connection date for a given WebRTC Sink
 <br>
 
 ## Callback Types:
+
+
+### *dsl_sink_app_new_data_handler_cb*
+```C++
+typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
+    void* data, void* client_data);
+```
+Callback typedef for the App Sink Component. The function is registered when the App Sink is created with [dsl_sink_app_new](#dsl_sink_app_new). Once the Pipeline is playing, the function will be called when new data is available to process. The type of data is specified with the App Sink constructor.
+
+**Parameters**
+* `data_type` [in] either `DSL_SINK_APP_DATA_TYPE_SAMPLE` or `DSL_SINK_APP_DATA_TYPE_BUFFER`. See [App Sink data-types](#data-types-provided-by-the-app-sink).
+* `client_data` [in] opaque pointer to client's user data, provided by the client.
+
+**Returns**
+* One of the [DSL_FLOW](#valid-return-values-for-the-dsl_sink_app_new_data_handler_cb) constant values.
+
+<br>
+
 ### *dsl_record_client_listener_cb*
 ```C++
 typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
@@ -226,7 +305,7 @@ Callback typedef for clients to listen for a notification that a Recording Sessi
 
 **Parameters**
 * `info` [in] opaque pointer to the connection info, see... see [dsl_capture_info](#dsl_capture_info).
-* `user_data` [in] user_data opaque pointer to client's user data, provided by the client.
+* `client_data` [in] opaque pointer to client's user data, provided by the client.
 
 <br>
 
@@ -237,15 +316,44 @@ typedef void (*dsl_sink_webrtc_client_listener_cb)(dsl_webrtc_connection_data* d
 ```
 Callback typedef for a client to listen for WebRTC Sink connection events.
 
-**IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
+**IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `info` [in] opaque pointer to the session info, see [dsl_webrtc_connection_data](#dsl_webrtc_connection_data).
-* `user_data` [in] user_data opaque pointer to client's user data, provided by the client.
+* `client_data` [in] opaque pointer to client's user data, provided by the client.
 
 ---
 
 ## Constructors
+### *dsl_sink_app_new*
+```C++
+DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
+    dsl_sink_app_new_data_handler_cb client_handler, void* client_data);
+```
+The constructor creates a new, uniquely named App Sink component. Construction will fail if the name is currently in use.
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── app sink
+
+**Parameters**
+* `name` - [in] unique name for the App Sink to create.
+* `data_type` - [in]  either `DSL_SINK_APP_DATA_TYPE_SAMPLE` or `DSL_SINK_APP_DATA_TYPE_BUFFER`. See [App Sink data-types](#data-types-provided-by-the-app-sink).
+* `client_handler` - [in] client [callback function](#dsl_sink_app_new_data_handler_cb) to be called with each new buffer received.
+* `client_data` [in] opaque pointer to client data returned on callback to the `client_handler` function.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_app_new('my-app-sink', DSL_SINK_APP_DATA_TYPE_BUFFER,
+    my_data_handler, NULL)
+```
+
+<br>
+
 ### *dsl_sink_overlay_new*
 ```C++
 DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
@@ -254,6 +362,12 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
 The constructor creates a uniquely named Overlay Sink with given offsets and dimensions. Construction will fail if the name is currently in use.
 
 **IMPORTANT:** The Overlay Sink is only available on the Jetson platform.
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [render sink](#render-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── overlay sink
 
 **Parameters**
 * `name` - [in] unique name for the Overlay Sink to create.
@@ -281,6 +395,12 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
 ```
 The constructor creates a uniquely named Window Sink with given offsets and dimensions. Construction will fail if the name is currently in use. Window Sinks are used to render video onto an XWindows. See [Pipeline XWindow Support](api-pipeline.md#pipeline-xwindow-support) for more information.
 
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [render sink](#render-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── window sink
+
 **Parameters**
 * `name` - [in] unique name for the Window Sink to create.
 * `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the parent XWindow.
@@ -305,12 +425,18 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
 ```
 The constructor creates a uniquely named File Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - and two video container types - `MPEG4` and `MK4` - supported.
 
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── file sink
+
 **Parameters**
 * `name` - [in] unique name for the File Sink to create.
 * `filepath` - [in] absolute or relative filespec for the media file to write to.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to code the video. Set to 0 to code every frame.
 
 **Returns**
@@ -318,7 +444,7 @@ The constructor creates a uniquely named File Sink. Construction will fail if th
 
 **Python Example**
 ```Python
-retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_file_new('my-file-sink', './my-video.mp4', DSL_CODEC_H264, DSL_CONTAINER_MPEG, 0, 0)
 ```
 
 <br>
@@ -332,14 +458,20 @@ The constructor creates a uniquely named Record Sink. Construction will fail if 
 
 Note: the Sink name is used as the filename prefix, followed by session id and NTP time.
 
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── record sink
+
 **Parameters**
 * `name` - [in] unique name for the Record Sink to create.
 * `outdir` - [in] absolute or relative pathspec for the directory to save the recorded video streams.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
-* `client_listener` - [in] client callback function of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb)to be called when the recording is complete or stopped.
+* `client_listener` - [in] client callback function of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb) to be called when a [Recording Event}(#smart-recording-events) occurs.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -347,7 +479,7 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 **Python Example**
 ```Python
 retval = dsl_sink_record_new('my-record-sink',
-    './', DSL_CODEC_H265, DSL_CONTAINER_MPEG, 20000000, 0, my_client_record_complete_cb)
+    './', DSL_CODEC_H265, DSL_CONTAINER_MPEG, 0, 0, my-client-recording-event-cb)
 ```
 
 <br>
@@ -357,12 +489,18 @@ retval = dsl_sink_record_new('my-record-sink',
 DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
      uint udp_port, uint rtmp_port, uint codec, uint bitrate, uint interval);
 ```
-The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the Main Loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
+The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
 
 Note: the server Mount point will be derived from the unique RTSP Sink name, for example:
 ```
 rtsp://my-jetson.local:8554/rtsp-sink-name
 ```
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── rtsp sink
 
 **Parameters**
 * `name` - [in] unique name for the File Sink to create.
@@ -370,7 +508,7 @@ rtsp://my-jetson.local:8554/rtsp-sink-name
 * `udp_port` - [in] UDP port setting for the RTSP server.
 * `rtsp_port` - [in] RTSP port setting for the server.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
 
 **Returns**
@@ -390,14 +528,20 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
 ```
 The constructor creates a uniquely named WebRTC Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265`. The WebRTC Sink Implements a Signaling Transceiver which is automatically added and removed from the WebSocket Server when added and removed from a Pipeline or Branch. Refer to the [WebSocket Server API Reference](/docs/api-ws-server.md) for more information.
 
- **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
+ **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── webrtc sink
 
 **Parameters**
 * `name` - [in] unique name for the WebRTC Sink to create.
-* `stun_server` - [in] STUN server to use of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
-* `turn_server` - [in] TURN server(s) to use of the form turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server.
+* `stun_server` - [in] STUN server to use - of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
+* `turn_server` - [in] TURN server(s) to use - of the form turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [in] bitrate at which to encode the video.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
 
 **Returns**
@@ -406,7 +550,7 @@ The constructor creates a uniquely named WebRTC Sink. Construction will fail if 
 **Python Example**
 ```Python
 STUN_SERVER = "stun://stun.l.google.com:19302"
-retval = dsl_sink_webrtc_new('my-webrtc-sink', STUN_SERVER, DSL_CODEC_H264, DSL_CONTAINER_MPEG, 200000, 0)
+retval = dsl_sink_webrtc_new('my-webrtc-sink', STUN_SERVER, DSL_CODEC_H264, 0, 0)
 ```
 
 <br>
@@ -424,13 +568,18 @@ The constructor creates a uniquely named Message Sink. Construction will fail if
 
 **Note:** refer to [DSL Message Broker API reference](/docs/api-msg-broker.md) and [DSL - Azure MQTT Protocol Adapter Libraries](/docs/proto-lib-azure.md#azure-mqtt-protocol-adapter-libraries) for additional information. 
 
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── message sink
+
 **Parameters**
 * `name` - [in] unique name for the Message Sink to create.
-* `converter_config_file` - [in] absolute or relate path to a message-converter configuration file of type text or csv.
+* `converter_config_file` - [in] absolute or relative path to a message-converter configuration file of type text or csv.
 * `payload_type` - [in]  one of the [Message Converter payload schema type constants](#message-converter-payload-schema-types) defined above.
-* `broker_config_file` - [in] broker_config_file absolute or relate path to a message-broker configuration file required by nvds_msgapi_* interface.
+* `broker_config_file` - [in] broker_config_file absolute or relative path to a message-broker configuration file required by nvds_msgapi_* interface.
 * `protocol_lib` - [in] absolute or relative path to the protocol adapter that implements the nvds_msgapi_* interface. See the [NVIDIA Installed Protocol Adapter Paths](nvidia-installed-protocol-adapter-paths) defined above.
-* `connection_string` - [in] end point for communication with server of the format `<name>;<port>;<specifier>`
+* `connection_string` - [in] endpoint for communication with server of the format `<name>;<port>;<specifier>`
 * `topic` - [in] (optional) message topic for each message sent to the server.
 
 **Returns**
@@ -445,11 +594,117 @@ retval = dsl_sink_message_new('my-message-sink', converter_config_file, DSL_MSG_
 
 <br>
 
+### *dsl_sink_interpipe_new*
+```C++
+DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
+    boolean forward_eos, boolean forward_events);
+```
+The constructor creates a new, uniquely named Inter-Pipe Sink component. Construction will fail if the name is currently in use.
+
+**Important!** The Interpipe Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md).
+
+Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── interpipe sink
+
+**Parameters**
+* `name` - [in] unique name for the Interpipe Sink to create.
+* `forward_eos` - [in]  set to true to forward the EOS event to all listeners. False to not forward.
+* `forward_events` - [in] set to true to forward downstream events to all listeners (except for EOS). False to not forward.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retVal = dsl_sink_interpipe_new('my-interpipe-sink',
+    True, True)
+```
+
+<br>
+
+### *dsl_sink_image_multi_new*
+```C++
+DslReturnType dsl_sink_image_multi_new(const wchar_t* name, 
+    const wchar_t* file_path, uint width, uint height,
+    uint fps_n, uint fps_d);
+```
+The constructor creates a new, uniquely named Multi-Image Sink. Construction will fail if the name is currently in use. 
+
+The Sink Encodes each frame into a JPEG image and saves it to a file specified by a given folder/filename-pattern. The size can be scaled by setting the width and height to non-zero values. The rate can be controlled by setting the fps_n and fps_d to non-zero values as well. The maximum rate at which the sink can encode and save is hardware/platform dependent. It is up to the user to manage the maximum setting. Exceeding the limit may lead to corrupted files.
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── multi-image sink
+
+**Parameters**
+* `name` - [in] unique name for the Multi-Image Sink to create.
+* `file_path` - [in]  use the printf style %d in the absolute or relative path. Example: `"./my_images/image.%04d.jpg"`, will create files in `"./my_images/"` named `"image.0000.jpg"`, `"image.0001.jpg"`, `"image.0002.jpg"` etc.
+* `width` - [in] width of the images to save in pixels. Set to 0 for no transcode.
+* `height` - [in] height of the images to save in pixels. Set to 0 for no transcode.
+* `fps_n` - [in] fps_n frames/second fraction numerator. Set to 0 for no rate-change.
+* `fps_d` - [in] fps_d frames/second fraction denominator. Set to 0 for no rate-change.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retVal = dsl_sink_image_multi_new('my-multi-image-sink',
+    './frame_%04d.jpg', 640, 360, 1, 10)
+```
+
+<br>
+
+### *dsl_sink_frame_capture_new*
+```C++
+DslReturnType dsl_sink_frame_capture_new(const wchar_t* name, 
+    const wchar_t* frame_capture_action);
+```
+The constructor creates a new, uniquely named Frame-Capture Sink. Construction will fail if the name is currently in use. The Sink is created with an [ODE Frame-Capture Action](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) which performs the image encoding and saving. All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
+
+The Application initiates a frame-capture by calling [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate).
+
+[Capture-complete-listeners](/docs/api-ode-action.md#dsl_capture_complete_listener_cb) (to notify on completion), [Image Players](/docs/api-player.md) (to auto-play the new image) and [SMTP Mailers](/docs/api-mailer.md) (to mail the new image) can be added to the Capture Action as well.
+
+**Important!** The Frame-Captre Sink Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md) to use.
+
+**Note:** The first capture may cause a noticeable short pause to the stream while cuda dependencies are loaded and cached. 
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── frame-capture sink
+
+**Parameters**
+* `name` - [in] unique name for the Frame-Capture Sink to create.
+* `frame_capture_action` - [in] unique name of the [ODE Frame-Capture Action](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retVal = dsl_sink_frame_capture_new('my-frame-capture-sink',
+    'my-frame-capture-action')
+```
+
+<br>
+
 ### *dsl_sink_fake_new*
 ```C++
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 ```
 The constructor creates a uniquely named Fake Sink. Construction will fail if the name is currently in use.
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [sink](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── fake sink
 
 **Parameters**
 * `name` - [in] unique name for the Fake Sink to create.
@@ -459,7 +714,7 @@ The constructor creates a uniquely named Fake Sink. Construction will fail if th
 
 **Python Example**
 ```Python
- retVal = dsl_sink_fake_new('my-fake-sink')
+retVal = dsl_sink_fake_new('my-fake-sink')
 ```
 
 <br>
@@ -473,7 +728,133 @@ As with all Pipeline components, Sinks are deleted by calling [dsl_component_del
 
 ---
 
-## Methods
+## Sink Methods
+
+### *dsl_sink_sync_enabled_get*
+```C++
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service gets the current `sync` enabled setting in use by the named Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Sink to query.
+* `enabled` - [out] true if the `sync` setting for the name Sink is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_sync_enabled_get('my-overlay-sink')
+```
+
+<br>
+
+### *dsl_sink_sync_enabled_set*
+```C++
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the `sync` enabled setting in for the named Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `enabled` - [in] set to true to enable the `sync` setting, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_sync_enabled_set('my-overlay-sink', false)
+```
+
+<br>
+
+### *dsl_sink_pph_add*
+```C++
+DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
+```
+This service adds a Pad-Probe-Handler (PPH) to the sink pad of the Named Sink component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Sink Component.
+
+**Parameters**
+ * `name` [in] unique name of the Tee to update.
+ * `handler` [in] unique name of the PPH to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_pph_add('my-window-sink', 'my-meter-pph')
+```
+
+<br>
+
+### *dsl_sink_pph_remove*
+```C++
+DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
+```
+This service removes a Pad-Probe-Handler from a named Sink
+
+**Parameters**
+ * `name` [in] unique name of the Sink to update.
+ * `handler` [in] unique name of the Pad probe handler to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_pph_remove('my-window-sink', 'my-meter-pph')
+```
+
+<br>
+
+
+### *dsl_sink_app_data_type_get*
+```C++
+DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
+```
+This service gets the current data-type setting in use by a named App Sink Component.
+
+**Parameters**
+* `name` - [in] unique name of the App Sink to query.
+* `data_type` - [out] either `DSL_SINK_APP_DATA_TYPE_SAMPLE` or `DSL_SINK_APP_DATA_TYPE_BUFFER`. See [App Sink data-types](#data-types-provided-by-the-app-sink).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, data_type = dsl_sink_app_data_type_get('my-app-sink')
+```
+
+<br>
+
+## App Sink Methods
+
+### *dsl_sink_app_data_type_set*
+```C++
+DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
+```
+This service sets the data-type setting for the named App Sink Component to use.
+
+**Parameters**
+* `name` - [in] unique name of the App Sink to update.
+* `data_type` - [in] either `DSL_SINK_APP_DATA_TYPE_SAMPLE` or `DSL_SINK_APP_DATA_TYPE_BUFFER`. See [App Sink data-types](#data-types-provided-by-the-app-sink).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_app_data_type_set('my-app-sink', DSL_SINK_APP_DATA_TYPE_BUFFER)
+```
+
+<br>
+
+## Render Sink Methods
+
 ### *dsl_sink_render_offsets_get*
 ```C++
 DslReturnType dsl_sink_render_offsets_get(const wchar_t* name,
@@ -542,7 +923,7 @@ retval, width, height = dsl_sink_render_dimensions_get('my-overlay-sink')
 
 ### *dsl_sink_render_dimensions_set*
 ```C++
-DslReturnType dsl_sink_overlay_dimensions_set(const wchar_t* name,
+DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name,
     uint width, uint height);
 ```
 This service updates the dimensions of a named Render Sink; Overlay or Window. This service will fail if the Sink is currently linked.
@@ -561,6 +942,8 @@ retval = dsl_sink_render_dimensions_set('my-overlay-sink', 1280, 720)
 ```
 
 <br>
+
+## Window Sink Methods
 
 ### *dsl_sink_window_force_aspect_ratio_get*
 ```C++
@@ -604,6 +987,103 @@ retval = dsl_sink_window_force_aspect_ratio_get('my-window-sink', True)
 
 <br>
 
+## Encode Sink Methods
+
+### *dsl_sink_encode_settings_get*
+```C++
+DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
+    uint* codec, uint* bitrate, uint* interval);
+```
+This service returns the current bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC.
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to query.
+* `codec` - [out] current codec in use, one of the [Codec Types](#codec-types) defined above.
+* `bitrate` - [out] current bit rate at which to code the video.
+* `interval` - [out] current frame interval at which to encode the video. 0 equals code every frame
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, bitrate, interval = dsl_sink_encode_settings_get('my-file-sink')
+```
+
+<br>
+
+### *dsl_sink_encode_settings_set*
+```C++
+DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
+    uint codec, uint bitrate, uint interval);
+```
+This service sets the bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC. The service will fail if the Encode Sink is currently linked.
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to update.
+* `codec` - [in] new codec to use, one of the [Codec Types](#codec-types) defined above.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
+* `interval` - [in] new frame interval at which to encode the video. Set to 0 to code every frame.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_encode_settings_set('my-file-sink', 4000000, 1)
+```
+
+<br>
+
+### *dsl_sink_encode_dimensions_get*
+```C++
+DslReturnType dsl_sink_encode_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+```
+This service gets the current input dimensions for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_new), or [WebRTC](dsl_sink_webrtc_new).  Values of 0 indicate NO scaling.
+
+The dimensions, if non-zero, are used to scale the video input into the Sinks's encoder element. 
+
+**Parameters**
+* `name` - [in] unique name of the Encode Sink to query.
+* `width` - [out] current width of the Encode Sink input in pixels.
+* `height` - [out] current height of the Encode Sink input pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, width, height = dsl_sink_encode_dimensions_get('my-rtsp-sink')
+```
+
+<br>
+
+### *dsl_sink_encode_dimensions_set*
+```C++
+DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+```
+This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_new), or [WebRTC](dsl_sink_webrtc_new).  Set the values to 0 to indicate NO scaling.
+
+
+**Parameters**
+* `name` - [in] unique name of the Overlay Sink to update.
+* `width` - [in] new width setting for the Encode Sink in pixels.
+* `height` - [in] new height setting for the Encode Sink in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_encode_dimensions_set('my-rtsp-sink', 1280, 720)
+```
+
+<br>
+
+## Smart-Record Sink Methods
+
 ### *dsl_sink_record_session_start*
 ```C++
 DslReturnType dsl_sink_record_session_start(const wchar_t* name,
@@ -612,9 +1092,9 @@ DslReturnType dsl_sink_record_session_start(const wchar_t* name,
 This service starts a new recording session for the named Record Sink
 
 **Parameters**
- * `name` [in] unique of the Record Sink to start the session.
+ * `name` [in] unique name of the Record Sink to start the session.
  * `session` [out] unique id for the new session on successful start.
- * `start` [in] start time in seconds before the current time should be less that the video cache size.
+ * `start` [in] start time in seconds before the current time should be less than the video cache size.
  * `duration` [in] in seconds from the current time to record.
  * `client_data` [in] opaque pointer to client data returned on callback to the client listener function provided on Sink creation.
 
@@ -771,7 +1251,7 @@ retval = dsl_sink_record_cache_size_set('my-record-sink', 15)
 ```C++
 DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
-This service returns the dimensions, width and height, used for the video recordings. Values of zero (default) indicates no-transcode.
+This service returns the dimensions, width and height, used for the video recordings. Values of zero (default) indicate no-transcode.
 
 **Parameters**
  * `name`[in] name of the Record Sink to query.
@@ -792,7 +1272,7 @@ retval, width, height = dsl_sink_record_dimensions_get('my-record-sink')
 ```C++
 DslReturnType dsl_sink_record_dimensions_set(const wchar_t* name, uint width, uint height);
 ```
-This service sets the dimensions, width and height, for the video recordings created. Values of zero (default) indicates no-transcode.
+This service sets the dimensions, width and height, for the video recordings created. Values of zero (default) indicate no-transcode.
 
 **Parameters**
  * `name` [in] name of the Record Sink to update.
@@ -932,6 +1412,8 @@ retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
 
 <br>
 
+## RTSP Sink Methods
+
 ### *dsl_sink_rtsp_server_settings_get*
 This service returns the current RTSP video codec and Port settings for the named RTSP Sink.
 ```C++
@@ -953,13 +1435,15 @@ retval, udp_port, rtsp_port = dsl_sink_rtsp_server_settings_get('my-rtsp-sink')
 
 <br>
 
+## WebRTC Sink Methods
+
 ### *dsl_sink_webrtc_connection_close*
 ```C++
 DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name);
 ```
 This service closes a currently open WebSocket connection for the named WebRTC Sink.
 
- **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
+ **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to update.
@@ -980,7 +1464,7 @@ DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name,
 ```
 This service queries a named WebRTC Sink component for its current STUN or TURN server(s) in use.
 
- **IMPORTANT:** the WebRTC Sink implementation requires DS 1.18.0 or later.
+ **IMPORTANT:** The WebRTC Sink implementation requires DS 1.18.0 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to query.
@@ -1003,12 +1487,12 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
 ```
 This service updates a named WebRTC Sink component with either a new STUN or TURN server(s) to use.
 
- **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
+ **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to query.
-* `stun_server` - [in] STUN server to use of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
-* `turn_server` - [in] TURN server(s) to use of the form turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server.
+* `stun_server` - [in] STUN server to use - of the form stun://hostname:port. Set to NULL to omit if using TURN server(s).
+* `turn_server` - [in] TURN server(s) to use - of the form turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server.
 
 **Returns**  `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
@@ -1026,7 +1510,7 @@ DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
 ```
 This service adds a callback function of type [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb) to the WebRTC Sink. The function will be called on all changes of WebSocket connection state. Multiple callback functions can be added to the WebRTC Sink.
 
- **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
+ **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to update.
@@ -1049,7 +1533,7 @@ DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
 ```
 This service removes a callback function of type [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb) from the WebRTC Sink.
 
- **IMPORTANT:** the WebRTC Sink implementation requires GStreamer 1.18 or later.
+ **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
 * `name` [in] unique name of the WebRTC Sink to update.
@@ -1065,52 +1549,7 @@ retval = dsl_sink_webrtc_client_listener_remove('my-webrtc-sink', client_listene
 
 <br>
 
-### *dsl_sink_encode_settings_get*
-```C++
-DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* codec, uint* bitrate, uint* interval);
-```
-This service returns the current bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC.
-
-**Parameters**
-* `name` - [in] unique name of the Encode Sink to query.
-* `codec` - [out] current codec in use, one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [out] current bitrate at which to code the video.
-* `interval` - [out] current frame interval at which to code the video. 0 equals code every frame
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval, bitrate, interval = dsl_sink_encode_settings_get('my-file-sink')
-```
-
-<br>
-
-### *dsl_sink_encode_settings_set*
-```C++
-DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
-    uint codec, uint bitrate, uint interval);
-```
-This service sets the bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC. The service will fail if the Encode Sink is currently linked.
-
-**Parameters**
-* `name` - [in] unique name of the Encode Sink to update.
-* `codec` - [in] new codec to use, one of the [Codec Types](#codec-types) defined above.
-* `bitrate` - [in] new bitrate at which to code the video.
-* `interval` - [in] new frame interval at which to code the video. Set to 0 to code every frame.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_sink_encode_settings_set('my-file-sink', 2000000, 1)
-```
-
-<br>
-
+## IOT Message Converter Sink Methods
 ### *dsl_sink_message_converter_settings_get*
 ```C++
 DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name,
@@ -1200,7 +1639,7 @@ This service sets the Message Broker settings to be used by the named Message Si
 
 **Parameters**
 * `name` - [in] unique name of the Message Sink to update.
-* `broker_config_file` - [in] absolute or relative file-path to a new Message Broker config file tp use.
+* `broker_config_file` - [in] absolute or relative file-path to a new Message Broker config file to use.
 * `protocol_lib` - [in] absolute or relative file-path to a new protocol adapter library to use.
 * `connection_string` - [in] new connection string to use.
 * `topic` - [in] (optional) new message topic to use for all messages sent.
@@ -1216,130 +1655,277 @@ retval = dsl_sink_message_broker_settings_get('my-message-sink',
 
 <br>
 
-### *dsl_sink_sync_enabled_get*
+## Interpipe Sink Methods
+
+### *dsl_sink_interpipe_forward_settings_get*
 ```C++
-DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
+DslReturnType dsl_sink_interpipe_forward_settings_get(const wchar_t* name,
+    boolean* forward_eos, boolean* forward_events); 
 ```
-This service gets the current `sync` enabled setting in use by the named Sink.
+This service gets the current forward settings in use for the named Interpipe Sink component.
 
 **Parameters**
-* `name` - [in] unique name of the Sink to query.
-* `enabled` - [out] true if the `sync` setting for the name Sink is enabled, fale otherwise.
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `forward_eos` - [out] if true, the EOS event will be forwarded to all listeners. False otherwise.
+* `forward_events` - [out] if true, all downstream events will be forwarded to all the listeners (except for EOS). False otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval, enabled = dsl_sink_sync_enabled_get('my-overlay-sink')
+retval, forward_eos, forward_events = dsl_sink_interpipe_forward_settings_get(
+    'my-interpipe-sink')
 ```
 
 <br>
 
-### *dsl_sink_sync_enabled_set*
+### *dsl_sink_interpipe_forward_settings_set*
 ```C++
-DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
+DslReturnType dsl_sink_interpipe_forward_settings_set(const wchar_t* name,
+    boolean forward_eos, boolean forward_events); 
 ```
-This service sets the `sync` enabled setting in for the named Sink.
+This service sets the forward settings for named Interpipe Sink component.
 
 **Parameters**
-* `name` - [in] unique name of the Message Sink to update.
-* `enabled` - [in] set to true to eanble the `sync` setting, false to disable.
+* `name` - [in] unique name of the Interpipe Sink to update.
+* `forward_eos` - [in] set to true to forward the EOS event to all listeners. False to not forward.
+* `forward_events` - [in] set to true to forward downstream events to all listeners (except for EOS). False to not forward.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_sink_sync_enabled_set('my-overlay-sink', false)
+retval = dsl_sink_interpipe_forward_settings_set('my-interpipe-sink',
+    True, True)
 ```
 
 <br>
 
-### *dsl_sink_pph_add*
+### *dsl_sink_interpipe_num_listeners_get*
 ```C++
-DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
+DslReturnType dsl_sink_interpipe_num_listeners_get(const wchar_t* name,
+    uint* num_listeners);
 ```
-This service adds a Pad-Probe-Handler (PPH) to the sink pad of the Named Sink component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Sink Component.
+This service gets the current number of Interpipe Sources listening to the named Interpipe Sink component.
 
 **Parameters**
- * `name` [in] unique name of the Tee to update.
- * `handler` [in] uninque name of the PPH to add.
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `num_listeners` - [out]  current number of Interpipe Sources listening.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_sink_pph_add('my-window-sink', 'my-meter-pph')
+retval, num_listeners = dsl_sink_interpipe_num_listeners_get('my-interpipe-sink')
 ```
 
 <br>
 
-### *dsl_sink_pph_remove*
+## Multi-Image Sink Methods
+
+### *dsl_sink_image_multi_file_path_get*
 ```C++
-DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
+DslReturnType dsl_sink_image_multi_file_path_get(const wchar_t* name, 
+    const wchar_t** file_path);
 ```
-This service removes a Pad-Probe-Handler from a named Sink
+This service gets the current output file-path in use by the named Multi-Image Sink component.
 
 **Parameters**
- * `name` [in] unique name of the Sink to update.
- * `handler` [in] unique name of the Pad probe handler to remove.
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `file_path` - [out] current file-path in use by the Multi-Image Sink.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_sink_pph_remove('my-window-sink', 'my-meter-pph')
+retval, file_path = dsl_sink_image_multi_file_path_get('my-multi-image-sink')
 ```
 
 <br>
 
-### *dsl_sink_num_in_use_get*
+### *dsl_sink_image_multi_file_path_set*
 ```C++
-uint dsl_sink_num_in_use_get();
+DslReturnType dsl_sink_image_multi_file_path_set(const wchar_t* name, 
+    const wchar_t* file_path);
 ```
-This service returns the total number of all Sinks currently `in-use` by all Pipelines.
+This service sets the output file-path for the named Multi-Image Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `file_path` - [in]  use the printf style %d in the absolute or relative path. Example: `"./my_images/image.%04d.jpg"`, will create files in `"./my_images/"` named `"image.0000.jpg"`, `"image.0001.jpg"`, `"image.0002.jpg"` etc.
+
 
 **Returns**
-* The current number of Sinks `in-use`
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-sinks_in_use = dsl_sink_num_in_use_get()
+retval = dsl_sink_image_multi_file_path_set('my-multi-image-sink',
+    "./my_images/image.%04d.jpg")
 ```
 
 <br>
 
-### *dsl_sink_num_in_use_max_get*
+### *dsl_sink_image_multi_dimensions_get*
 ```C++
-uint dsl_sink_num_in_use_max_get();
+DslReturnType dsl_sink_image_multi_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
 ```
-This service returns the "maximum number of Sinks" that can be `in-use` at any one time, defined as `DSL_DEFAULT_SINK_NUM_IN_USE_MAX` on service initialization, and can be updated by calling [dsl_sink_num_in_use_max_set](#dsl_sink_num_in_use_max_set). The actual maximum is imposed by the GPU/CPUs in use. It's the responsibility of the client application to set the value correctly.
+This service gets the current dimensions in use by the named Multi-Image Sink component. Values of 0 indicate no transcode.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `width` - [out] current width to save images in pixels.
+* `height` - [out] current height to save images in pixels.
 
 **Returns**
-* The current max number of Sinks that can be `in-use` by all Pipelines at any one time.
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-max_sinks_in_use = dsl_sink_num_in_use_max_get()
+retval, width, height = dsl_sink_image_multi_dimensions_get(
+    'my-multi-image-sink')
 ```
 
 <br>
 
-### *dsl_sink_num_in_use_max_set*
+### *dsl_sink_image_multi_dimensions_set*
 ```C++
-boolean dsl_sink_num_in_use_max_set(uint max);
+DslReturnType dsl_sink_image_multi_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
 ```
-This service sets the "maximum number of Sinks" that can be `in-use` at any one time. The value is defined as `DSL_DEFAULT_SINK_NUM_IN_USE_MAX` on service initialization. The actual maximum is imposed by the GPU/CPUs in use. It is the responsibility of the client application to set the value correctly.
+This service sets the dimensions for the named Multi-Image Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `width` - [in] new width setting in units of pixels. Set to 0 for no transcode. 
+* `height` - [in] new width setting in units of pixels. Set to 0 for no transcode. 
 
 **Returns**
-* `false` if the new value is less than the actual current number of Sinks in use, `true` otherwise.
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_sink_num_in_use_max_set(24)
+retval = dsl_sink_image_multi_dimensions_set('my-multi-image-sink',
+    640, 360)
+```
+
+<br>
+
+### *dsl_sink_image_multi_frame_rate_get*
+```C++
+DslReturnType dsl_sink_image_multi_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
+```
+This service gets the current frame-rate in use by the named Multi-Image Sink component. Values of 0 indicate no rate-change.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `fps_n` - [out] current frames per second numerator.
+* `fps_d` - [out] current frames per second denominator.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, fps_n, fps_d = dsl_sink_image_multi_frame_rate_get(
+    'my-multi-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_frame_rate_set*
+```C++
+DslReturnType dsl_sink_image_multi_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+```
+This service sets the frame-rate for the named Multi-Image Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `fps_n` - [in] new frames per second numerator. Set to 0 for no rate-change. 
+* `fps_d` - [in] new frames per second denominator. Set to 0 for no rate-change. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_image_multi_frame_rate_set(my-multi-image-sink',
+    1, 30)
+```
+
+<br>
+
+### *dsl_sink_image_multi_file_max_get*
+```C++
+DslReturnType dsl_sink_image_multi_file_max_get(const wchar_t* name, 
+    uint* max);
+```
+This service gets the current max-file setting in use by the named Multi-Image Sink component. Once the maximum is reached, old files start to be deleted to make room for new ones. Default = 0 - no max.
+
+**Parameters**
+* `name` - [in] unique name of the Interpipe Sink to query.
+* `max` - [out] current max-file setting in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max = dsl_sink_image_multi_file_max_get(
+    'my-multi-image-sink')
+```
+
+<br>
+
+### *dsl_sink_image_multi_file_max_set*
+```C++
+DslReturnType dsl_sink_image_multi_file_max_set(const wchar_t* name, 
+    uint max);
+```
+This service sets the max-file setting for named Multi-Image Sink to use. Once the maximum is reached, old files start to be deleted to make room for new ones. Default = 0 - no max.
+
+**Parameters**
+* `name` - [in] unique name of the Multi-Image Sink to update.
+* `max` - [in] new max-files setting to use. Set to 0 for no maximum. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_image_multi_file_max_set('my-multi-image-sink', 100)
+```
+
+<br>
+
+## Frame-Capture Sink Methods
+
+### *dsl_sink_frame_capture_initiate*
+```C++
+DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name);
+```
+This service initiates a "frame-capture" action to capture the next buffer processed by the named Frame-Capture Sink.
+
+ All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
+ 
+ Note: The first capture may cause a noticeable short pause to the stream while cuda dependencies are loaded and cached.  
+
+**Parameters**
+* `name` - [in] unique name of the Frame-Capture Sink to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_frame_capture_initiate('my-frame-capture-sink')
 ```
 
 <br>

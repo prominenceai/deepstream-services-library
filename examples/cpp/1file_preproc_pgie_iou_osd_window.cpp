@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2022, Prominence AI, Inc.
+Copyright (c) 2022-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
 
 // Config file used by the IOU Tracker    
-std::wstring tracker_config_file(
+std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
@@ -53,8 +53,8 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-uint WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-uint WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
+uint WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+uint WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs defined above, with interval and Id
         retval = dsl_infer_gie_primary_new(L"primary-gie", 
-            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
+            primary_infer_config_file.c_str(), NULL, 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
@@ -137,16 +137,16 @@ int main(int argc, char** argv)
             true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(L"iou-tracker", 
-            tracker_config_file.c_str(), 480, 272);
+        // New IOU Tracker, setting operational width and height of input frame
+        retval = dsl_tracker_new(L"iou-tracker", 
+            iou_tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        // New Window Sink, 0 x/y offsets.
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
     

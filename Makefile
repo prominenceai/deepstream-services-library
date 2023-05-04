@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2019-2022, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,18 +34,62 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 USER_SITE = "`python3 -m site --user-site`"
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.25.alpha"'
+DSL_VERSION:='L"v0.26.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
-GSTREAMER_SUB_VERSION:=14
+GSTREAMER_SUB_VERSION:=16
 GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
+# To enable the extended Image Services, install either the FFmpeg or OpenCV 
+# development libraries (See /docs/installing-dependencies.md), and
+#  - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
+BUILD_WITH_FFMPEG:=false
+BUILD_WITH_OPENCV:=false
+
+# To enable the InterPipe Sink and Source components
+# - set BUILD_INTER_PIPE:=true
+BUILD_INTER_PIPE:=false
+
+# To enable the Non Maximum Processor (NMP) Pad Probe Handler (PPH)
+# - set BUILD_NMP_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
+BUILD_NMP_PPH:=false
+NUM_CPP_PATH:=
+
+# Fail if both build flags are set
+ifeq ($(BUILD_WITH_FFMPEG),true)
+ifeq ($(BUILD_WITH_OPENCV),true)
+$(error BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV both set to true)
+endif
+endif
+
 SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
+
+ifeq ($(BUILD_WITH_FFMPEG),true)
+SRCS+= $(wildcard ./src/ffmpeg/*.cpp)
+SRCS+= $(wildcard ./test/avfile/*.cpp)
+INCS+= $(wildcard ./src/ffmpeg/*.h)
+endif
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+SRCS+= $(wildcard ./src/opencv/*.cpp)
+SRCS+= $(wildcard ./test/avfile/*.cpp)
+INCS+= $(wildcard ./src/opencv/*.h)
+endif
+
+ifeq ($(BUILD_INTER_PIPE),true)
+SRCS+= $(wildcard ./test/interpipe/*.cpp)
+endif
+
+ifeq ($(BUILD_NMP_PPH),true)
+SRCS+= $(wildcard ./src/nmp/*.cpp)
+SRCS+= $(wildcard ./test/nmp/*.cpp)
+INCS+= $(wildcard ./src/nmp/*.h)
+endif
 
 SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./src/thirdparty/*.cpp)
@@ -57,23 +101,27 @@ INCS+= $(wildcard ./src/*.h)
 INCS+= $(wildcard ./src/thirdparty/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+TEST_OBJS+= $(wildcard ./test/api/*.o)
+TEST_OBJS+= $(wildcard ./test/unit/*.o)
+
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 SRCS+= $(wildcard ./src/webrtc/*.cpp)
 SRCS+= $(wildcard ./test/webrtc/*.cpp)
 INCS+= $(wildcard ./src/webrtc/*.h)
-endif
-
-TEST_OBJS+= $(wildcard ./test/api/*.o)
-TEST_OBJS+= $(wildcard ./test/unit/*.o)
-ifeq ($(GSTREAMER_SUB_VERSION),18)
 TEST_OBJS+= $(wildcard ./test/webrtc/*.o)
 endif
+
+ifeq ($(BUILD_NMP_PPH),true)
+TEST_OBJS+= $(wildcard ./test/nmp/*.o)
+endif
+
 
 OBJS:= $(SRCS:.c=.o)
 OBJS:= $(OBJS:.cpp=.o)
 
 CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-std=$(CXX_VERSION) \
+	-Wno-deprecated-declarations \
 	-I$(SRC_INSTALL_DIR)/apps/apps-common/includes \
 	-I/opt/include \
 	-I/usr/include \
@@ -88,11 +136,12 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-I./test/api \
 	-DDSL_VERSION=$(DSL_VERSION) \
 	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
+	-DBUILD_WITH_FFMPEG=$(BUILD_WITH_FFMPEG) \
+	-DBUILD_WITH_OPENCV=$(BUILD_WITH_OPENCV) \
 	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
+	-DBUILD_INTER_PIPE=$(BUILD_INTER_PIPE) \
+	-DBUILD_NMP_PPH=$(BUILD_NMP_PPH) \
 	-DBUILD_MESSAGE_SINK=$(BUILD_MESSAGE_SINK) \
-	-DNVDS_DCF_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvdcf.so"' \
-	-DNVDS_KLT_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_klt.so"' \
-	-DNVDS_IOU_LIB='"$(LIB_INSTALL_DIR)/libnvds_mot_iou.so"' \
 	-DNVDS_MOT_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so"' \
 	-DNVDS_AMQP_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_amqp_proto.so"' \
 	-DNVDS_AZURE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
@@ -101,19 +150,32 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_proto.so"' \
     -fPIC 
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+ifeq ($(BUILD_WITH_FFMPEG),true)
+CFLAGS+= -I./src/ffmpeg \
+	-I./test/avfile
+endif	
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+CFLAGS+= -I./src/opencv \
+	-I./test/avfile
+endif	
+
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
 	-I/usr/include/json-glib-$(JSON_GLIB_VERSION) \
 	-I./src/webrtc
+endif	
+
+ifeq ($(BUILD_NMP_PPH),true)
+CFLAGS+= -I./src/nmp \
+	-I$(NUM_CPP_PATH) \
+	-DNUMCPP_NO_USE_BOOST
 endif	
 
 CFLAGS += `geos-config --cflags`	
 
 LIBS+= -L$(LIB_INSTALL_DIR) \
 	-L/usr/local/lib \
-	-lopencv_core \
-	-lopencv_imgproc \
-	-lopencv_highgui \
 	-laprutil-1 \
 	-lapr-1 \
 	-lX11 \
@@ -133,23 +195,33 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
 	-Lgstreamer-video-$(GSTREAMER_VERSION) \
 	-Lgstreamer-rtsp-server-$(GSTREAMER_VERSION) \
+	-lgstapp-1.0 \
 	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	-Llibsoup-$(LIBSOUP_VERSION) \
 	-Ljson-glib-$(JSON_GLIB_VERSION)	
 endif
 
+ifeq ($(BUILD_WITH_FFMPEG),true)
+LIBS+= -lavformat \
+	-lavcodec \
+	-lavutil \
+	-lswscale \
+	-lz \
+	-lpthread \
+	-lswresample
+endif
+
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-video-$(GSTREAMER_VERSION) \
 	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
-	x11 \
-	opencv4
+	x11
 
-ifeq ($(GSTREAMER_SUB_VERSION),18)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
 PKGS+= gstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	gstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	libsoup-$(LIBSOUP_VERSION) \
@@ -159,6 +231,10 @@ endif
 CFLAGS+= `pkg-config --cflags $(PKGS)`
 
 LIBS+= `pkg-config --libs $(PKGS)`
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+PKGS+= opencv4
+endif
 
 all: $(APP)
 

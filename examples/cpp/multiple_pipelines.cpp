@@ -28,14 +28,18 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 // File path for the single File Source
-static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4");
+static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Window Sink Dimensions
-uint sink_width = 1280;
-uint sink_height = 720;
+// Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+int source_width = 960;
+int source_height = 540;
+
+// Window Sink dimensions same as Streammux dimensions - no scaling.
+int sink_width = source_width;
+int sink_height = source_height;
 
 GThread* main_loop_thread_1(NULL);
 GThread* main_loop_thread_2(NULL);
@@ -53,15 +57,11 @@ struct ClientData
     ClientData(uint id){
         pipeline = L"pipeline-" + std::to_wstring(id);
         source = L"source-" + std::to_wstring(id);    
-        pgie = L"pgie-" + std::to_wstring(id);    
-        osd = L"osd-" + std::to_wstring(id);    
         window_sink = L"window-sink-" + std::to_wstring(id);    
     }
 
     std::wstring pipeline;
     std::wstring source;
-    std::wstring pgie;
-    std::wstring osd;    
     std::wstring window_sink;
 };
 
@@ -155,6 +155,11 @@ DslReturnType create_pipeline(ClientData* client_data)
         component_names);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
+    // Update the Pipeline's Streammux dimensions to match the source dimensions.
+    retval = dsl_pipeline_streammux_dimensions_set(client_data->pipeline.c_str(),
+        source_width, source_height);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+    
     // Add the XWindow event handler functions defined above
     retval = dsl_pipeline_xwindow_key_event_handler_add(client_data->pipeline.c_str(), 
         xwindow_key_event_handler, (void*)client_data);

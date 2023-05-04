@@ -40,7 +40,8 @@ namespace DSL
         m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
         AddChild(m_pPipelineSourcesBintr);
 
-        g_mutex_init(&m_asyncCommMutex);
+        g_mutex_init(&m_asyncStopMutex);
+        g_cond_init(&m_asyncStopCond);
     }
 
     PipelineBintr::~PipelineBintr()
@@ -53,7 +54,8 @@ namespace DSL
         {
             Stop();
         }
-        g_mutex_clear(&m_asyncCommMutex);
+        g_mutex_clear(&m_asyncStopMutex);
+        g_cond_clear(&m_asyncStopCond);
     }
 
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -61,7 +63,7 @@ namespace DSL
         LOG_FUNC();
 
         if (!m_pPipelineSourcesBintr->
-            AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
+            AddChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)))
         {
             return false;
         }
@@ -78,7 +80,7 @@ namespace DSL
             return false;
         }
         return (m_pPipelineSourcesBintr->
-            IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
+            IsChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)));
     }
 
     bool PipelineBintr::RemoveSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -87,7 +89,7 @@ namespace DSL
 
         // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
         return m_pPipelineSourcesBintr->
-            RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
+            RemoveChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
     }
 
     uint PipelineBintr::GetStreamMuxNvbufMemType()
@@ -165,7 +167,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::GetStreamMuxPadding(bool* enabled)
+    bool PipelineBintr::GetStreamMuxPadding(boolean* enabled)
     {
         LOG_FUNC();
 
@@ -178,7 +180,7 @@ namespace DSL
         return true;
     }
     
-    bool PipelineBintr::SetStreamMuxPadding(bool enabled)
+    bool PipelineBintr::SetStreamMuxPadding(boolean enabled)
     {
         LOG_FUNC();
 
@@ -411,12 +413,29 @@ namespace DSL
             (!m_pMainLoop and g_main_loop_is_running(
                 DSL::Services::GetServices()->GetMainLoopHandle())))
         {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncStopMutex);
             LOG_INFO("Sending application message to stop the pipeline");
             
             gst_element_post_message(GetGstElement(),
                 gst_message_new_application(GetGstObject(),
                     gst_structure_new_empty("stop-pipline")));
-        }            
+
+            g_mutex_unlock(&m_displayMutex);
+            g_mutex_unlock(&m_busWatchMutex);
+                    
+            // We need a timeout in case the condition is never met/cleared
+            gint64 endtime = g_get_monotonic_time () + 2 * G_TIME_SPAN_SECOND;
+            if (!g_cond_wait_until(&m_asyncStopCond, &m_asyncStopMutex, endtime))
+            {
+                LOG_WARN("Pipeline '" << GetName() 
+                    << "' failed to complete async-stop");
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
         // Else, client has stopped the main-loop or we are running under test 
         // without the mainloop running - can't send a message so handle stop now.
         else
@@ -469,6 +488,9 @@ namespace DSL
         
         m_eosFlag = false;
         UnlinkAll();
+        
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncStopMutex);
+        g_cond_signal(&m_asyncStopCond);
     }
 
     bool PipelineBintr::IsLive()

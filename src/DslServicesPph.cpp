@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -334,6 +334,68 @@ namespace DSL
         {
             LOG_ERROR("ODE Pad Probe Handler '" << name 
                 << "' threw an exception setting Display Meta size");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphBufferTimeoutNew(const char* name,
+        uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Buffer Timeout Pad Probe Handler name '" 
+                    << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_BUFFER_TIMEOUR_NEW(name,
+                timeout, handler, clientData);
+            
+            LOG_INFO("New Buffer Timeout Pad Probe Handler '" 
+                << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Buffer Timeout Pad Probe Handler '" 
+                << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphEosNew(const char* name,
+        dsl_pph_eos_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("End of Stream Pad Probe Handler name '" 
+                    << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPEH_EOS_HANDLER_NEW(name,
+                handler, clientData);
+            
+            LOG_INFO("End of Stream Pad Probe Handler '" 
+                << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New End of Stream Pad Probe Handler '" 
+                << name << "' threw exception on create");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }

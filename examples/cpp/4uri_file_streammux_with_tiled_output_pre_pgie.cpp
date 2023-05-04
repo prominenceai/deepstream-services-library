@@ -60,8 +60,8 @@ std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-int TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-int TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
+int TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+int TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
 
 // Window Sink Dimensions - used to create the sink, however, in this
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(L"iou-tracker", 
+        retval = dsl_tracker_new(L"iou-tracker", 
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 

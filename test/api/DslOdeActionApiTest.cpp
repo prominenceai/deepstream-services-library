@@ -116,11 +116,11 @@ SCENARIO( "A new Format Bounding Box ODE Action can be created and deleted", "[o
 
         WHEN( "A new Format Bounding Box Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+            REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
                 border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
-            REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+            REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
                 border_color_name.c_str(), has_bg_color, bg_color_name.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Format Bounding Box Action can be deleted" ) 
@@ -151,7 +151,7 @@ SCENARIO( "A new Format Bounding Box ODE Action with no Border or Background Col
 
             THEN( "The Format Bounding Box Action can be created" ) 
             {
-                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, NULL) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -187,7 +187,7 @@ SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters co
         {
             THEN( "The Format Bounding Box Action will fail to create" ) 
             {
-                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, bg_color_name.c_str()) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -202,12 +202,48 @@ SCENARIO( "A new Format Bounding Box ODE Action verifies its input parameters co
             
             THEN( "The Format Bounding Box Action will fail to create" ) 
             {
-                REQUIRE( dsl_ode_action_format_bbox_new(action_name.c_str(), border_width, 
+                REQUIRE( dsl_ode_action_bbox_format_new(action_name.c_str(), border_width, 
                     NULL, has_bg_color, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 
                 REQUIRE( dsl_display_type_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_display_type_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Scale Bounding Box ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Scale Bounding Box ODE Action" ) 
+    {
+        std::wstring action_name1(L"scale-bbox-action-1");
+        std::wstring action_name2(L"scale-bbox-action-2");
+
+        WHEN( "A new Format Bounding Box Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_bbox_scale_new(action_name1.c_str(), 120) == 
+                DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_bbox_scale_new(action_name1.c_str(), 120) == 
+                DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            // invalid scale factor must faile
+            REQUIRE( dsl_ode_action_bbox_scale_new(action_name2.c_str(), 90) == 
+                DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
+            
+            THEN( "The Format Bounding Box Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name1.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+                
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name1.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
                 REQUIRE( dsl_display_type_list_size() == 0 );
             }
         }
@@ -243,12 +279,12 @@ SCENARIO( "A new Format Object Label ODE Action can be created and deleted", "[o
 
         WHEN( "A new Format Bounding Box Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
                 font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
-            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
                 font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
                     == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
@@ -295,7 +331,7 @@ SCENARIO( "A new Format Object Label ODE Action checks its input parameters corr
 
         WHEN( "A new Format ObjectLabel Action is created with NO Font" ) 
         {
-            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
                 NULL, true, font_bg_color_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
             
@@ -314,7 +350,7 @@ SCENARIO( "A new Format Object Label ODE Action checks its input parameters corr
         }
         WHEN( "A new Format Bounding Box Action is created with NO Background Color" ) 
         {
-            REQUIRE( dsl_ode_action_format_label_new(action_name.c_str(),  
+            REQUIRE( dsl_ode_action_label_format_new(action_name.c_str(),  
                 font_name.c_str(), false, NULL) 
                     == DSL_RESULT_SUCCESS );
             
@@ -406,12 +442,11 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
     {
         std::wstring action_name(L"capture-action");
         std::wstring outdir(L"./");
-        boolean annotate(true);
 
         WHEN( "A new Frame Capture Action is created" ) 
         {
             REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
-                outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
+                outdir.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Frame Capture Action can be deleted" ) 
             {
@@ -422,12 +457,12 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
         WHEN( "A new Frame Capture Action is created" ) 
         {
             REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
-                outdir.c_str(), annotate) == DSL_RESULT_SUCCESS );
+                outdir.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Frame Capture Action of the same names fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
-                    outdir.c_str(), annotate) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                    outdir.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
@@ -439,7 +474,7 @@ SCENARIO( "A new Frame Capture ODE Action can be created and deleted", "[ode-act
             THEN( "A new Frame Capture Action fails to create" ) 
             {
                 REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(),
-                    invalidOutDir.c_str(), annotate) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
+                    invalidOutDir.c_str()) == DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
@@ -618,7 +653,7 @@ SCENARIO( "A Mailer can be added and removed from a Capture Action", "[ode-actio
 
 SCENARIO( "A new Customize Label ODE Action can be created and deleted", "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Display ODE Action" ) 
+    GIVEN( "Attributes for a new Customize Lable ODE Action" ) 
     {
         std::wstring action_name(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
@@ -629,14 +664,44 @@ SCENARIO( "A new Customize Label ODE Action can be created and deleted", "[ode-a
 
         WHEN( "A new Customize Label is created" ) 
         {
-            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+            REQUIRE( dsl_ode_action_label_customize_new(action_name.c_str(),
                 label_types, size) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
-            REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+            REQUIRE( dsl_ode_action_label_customize_new(action_name.c_str(),
                 label_types, size) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Customize Label can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Offset Label ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Offset Label ODE Action" ) 
+    {
+        std::wstring action_name(L"customize-label-action");
+        int offset_x(-5), offset_y(-5);
+
+        WHEN( "A new Offset Label is created" ) 
+        {
+            REQUIRE( dsl_ode_action_label_offset_new(action_name.c_str(),
+                offset_x, offset_y) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_label_offset_new(action_name.c_str(),
+                offset_x, offset_y) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Offset Label can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -665,7 +730,7 @@ SCENARIO( "Parameters for a new Customize Label ODE Action are checked on constr
             
             THEN( "The Customize Label Action fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+                REQUIRE( dsl_ode_action_label_customize_new(action_name.c_str(),
                     label_types, size) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
 
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -685,7 +750,7 @@ SCENARIO( "A new Customize Label ODE Action can be updated", "[ode-action-api]" 
             
         uint size(4);
 
-        REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+        REQUIRE( dsl_ode_action_label_customize_new(action_name.c_str(),
             label_types, size) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Customize Label is updated" ) 
@@ -694,7 +759,7 @@ SCENARIO( "A new Customize Label ODE Action can be updated", "[ode-action-api]" 
             uint in_out_size(DSL_METRIC_OBJECT_PERSISTENCE+1);
 
             // test initial condition first
-            REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+            REQUIRE( dsl_ode_action_label_customize_get(action_name.c_str(),
                 ret_label_types, &in_out_size) == DSL_RESULT_SUCCESS );
             REQUIRE( in_out_size == size );
             REQUIRE( label_types[0] == ret_label_types[0] );
@@ -705,12 +770,12 @@ SCENARIO( "A new Customize Label ODE Action can be updated", "[ode-action-api]" 
             uint new_label_types[] = {DSL_METRIC_OBJECT_CLASS};
             size = 1;
 
-            REQUIRE( dsl_ode_action_customize_label_set(action_name.c_str(),
+            REQUIRE( dsl_ode_action_label_customize_set(action_name.c_str(),
                 new_label_types, size) == DSL_RESULT_SUCCESS );
             
             THEN( "The correct values are returned on get" ) 
             {
-                REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                REQUIRE( dsl_ode_action_label_customize_get(action_name.c_str(),
                     ret_label_types, &in_out_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( in_out_size == size );
                 
@@ -734,7 +799,7 @@ SCENARIO( "A Customize Label ODE Action checks its parameters correctly", "[ode-
             
         uint size(4);
 
-        REQUIRE( dsl_ode_action_customize_label_new(action_name.c_str(),
+        REQUIRE( dsl_ode_action_label_customize_new(action_name.c_str(),
             label_types, size) == DSL_RESULT_SUCCESS );
 
         WHEN( "When insufficient memory is passed in on Get" ) 
@@ -744,7 +809,7 @@ SCENARIO( "A Customize Label ODE Action checks its parameters correctly", "[ode-
             
             THEN( "The Get call fails correctly" ) 
             {
-                REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                REQUIRE( dsl_ode_action_label_customize_get(action_name.c_str(),
                     ret_label_types, &in_out_size) == DSL_RESULT_ODE_ACTION_PARAMETER_INVALID );
 
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -758,7 +823,7 @@ SCENARIO( "A Customize Label ODE Action checks its parameters correctly", "[ode-
             
             THEN( "The ODE Actions container is unchanged" ) 
             {
-                REQUIRE( dsl_ode_action_customize_label_get(action_name.c_str(),
+                REQUIRE( dsl_ode_action_label_customize_get(action_name.c_str(),
                     ret_label_types, pSize) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1912,9 +1977,9 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_monitor_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL, true) 
+                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), NULL, true) 
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) 
@@ -1922,7 +1987,7 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_customize_label_new(NULL,
+                REQUIRE( dsl_ode_action_label_customize_new(NULL,
                     NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

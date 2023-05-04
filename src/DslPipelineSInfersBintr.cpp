@@ -44,15 +44,15 @@ namespace DSL
         AddChild(m_pQueue);
         AddChild(m_pTee);
 
-        m_pGstStaticSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
+        GstPad* pGstStaticSinkPad = gst_element_get_static_pad(m_pTee->GetGstElement(), "sink");
+        if (!pGstStaticSinkPad)
         {
             LOG_ERROR("Failed to get Static Sink Pad for SInferBintr '" << GetName() << "'");
             throw;
         }
         
-        m_pGstStaticSourcePad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "src");
-        if (!m_pGstStaticSourcePad)
+        GstPad* pGstStaticSourcePad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "src");
+        if (!pGstStaticSourcePad)
         {
             LOG_ERROR("Failed to get Static Source Pad for SInferBintr '" << GetName() << "'");
             throw;
@@ -60,17 +60,17 @@ namespace DSL
         
         // Sink Pad Probe -- added to the Tee -- is used to wait on Stream events, and to 
         // unblock the waiting Src Pad Probe on Flush or EOS
-        m_sinkPadProbeId = gst_pad_add_probe(m_pGstStaticSinkPad, 
+        m_sinkPadProbeId = gst_pad_add_probe(pGstStaticSinkPad, 
             GST_PAD_PROBE_TYPE_EVENT_BOTH, SInfersSinkProbeCB, this, NULL);
 
         // Src Pad Probe -- added to the Queue -- used to block the stream and wait for
         // all SGIEs to finish processing the shared buffer.
-        m_srcPadProbeId = gst_pad_add_probe(m_pGstStaticSourcePad,
+        m_srcPadProbeId = gst_pad_add_probe(pGstStaticSourcePad,
             (GstPadProbeType)(GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_EVENT_BOTH),
             SInfersSrcProbeCB, this, NULL);
 
-        gst_object_unref(m_pGstStaticSinkPad);
-        gst_object_unref(m_pGstStaticSourcePad);
+        gst_object_unref(pGstStaticSinkPad);
+        gst_object_unref(pGstStaticSourcePad);
         
         m_pTee->AddGhostPadToParent("sink");
         m_pQueue->AddGhostPadToParent("src");
@@ -203,20 +203,7 @@ namespace DSL
             LOG_ERROR("Unable to link PipelineSInfersBintr '" << GetName() << "' - batch size Not Set");
             return false;
         }
-        // // Get a dynamic "src" pad for the Tee to link to the static "sink" pad of the shared-buffer-Queue
-        // GstPad* pGstRequestedSourcePad = gst_element_get_request_pad(m_pTee->GetGstElement(), "src_%u");
-        // if (!pGstRequestedSourcePad)
-        // {
-        //     LOG_ERROR("Failed to get Tee Pad for PipelineSinksBintr '" << GetName() <<"'");
-        //     return false;
-        // }
-        // Get the static "sink" pad for the Queue to link back with the dynamic "src" pad of the Tee
-        m_pGstStaticSinkPad = gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for SInfersBintr '" << GetName() << "'");
-            return false;
-        }
+
         // Always Link from "sink" pad back to "src" pad when linking Tees - link state is managed
         // by each individual "sink" in the one-to-many relationship 
         if (!m_pQueue->LinkToSource(m_pTee))
@@ -226,6 +213,13 @@ namespace DSL
         // Link in all secondary infers that are set to infer on the Primary
         for (auto const& imap: m_pChildSInfers)
         {
+            if (!imap.second->SetInferOnUniqueId())
+            {
+                LOG_ERROR("PipelineSInfersBintr '" << GetName() 
+                    << "' failed to set infer-on-id for SecondaryInferBintr '" 
+                    << imap.second->GetName() << "'");
+                return false;
+            }
             if (imap.second->GetInferOnUniqueId() == m_primaryInferUniqueId)
             {
                 // batch size is set to that of the Primary GIE

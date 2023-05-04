@@ -45,7 +45,7 @@ static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 // Tracker name and input dimensions.
-static const std::wstring tracker_name(L"ktl-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
 static const uint tracker_height(272);
 
@@ -80,8 +80,8 @@ static const std::wstring ode_print_action_name(L"print-action");
 static const std::wstring window_sink_name(L"window-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
-static const uint sinkW(DSL_DEFAULT_STREAMMUX_WIDTH);
-static const uint sinkH(DSL_DEFAULT_STREAMMUX_HEIGHT);
+static const uint sinkW(DSL_STREAMMUX_DEFAULT_WIDTH);
+static const uint sinkH(DSL_STREAMMUX_DEFAULT_HEIGHT);
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) return retval;
 
         // Create the format bounding box action to add to the every occurrence trigger.
-        retval = dsl_ode_action_format_bbox_new(exclude_bbox_action.c_str(), 0,
+        retval = dsl_ode_action_bbox_format_new(exclude_bbox_action.c_str(), 0,
             NULL, false, NULL);
         if (retval != DSL_RESULT_SUCCESS) return retval;
 
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
 
         // ********** IMPORT **********  need to set a minimum confidence level to
         // avoid false triggers when the bounding box coordinates are inaccurate.
-        retval = dsl_ode_trigger_confidence_min_set(person_cross_trigger.c_str(), 
+        retval = dsl_ode_trigger_infer_confidence_min_set(person_cross_trigger.c_str(), 
             0.40);
         if (retval != DSL_RESULT_SUCCESS) break;
             
@@ -266,7 +266,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Multi Object Tracker - required when using a Cross Trigger
-        retval = dsl_tracker_ktl_new(tracker_name.c_str(), 
+        retval = dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height);
         if (retval != DSL_RESULT_SUCCESS) break;
 
@@ -286,7 +286,7 @@ int main(int argc, char** argv)
 
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"ktl-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
         
         // Create a new Pipeline and add the above components in the next call.
         retval = dsl_pipeline_new_component_add_many(

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,106 @@ THE SOFTWARE.
 
 namespace DSL
 {
-        DslReturnType Services::SinkFakeNew(const char* name)
+    DslReturnType Services::SinkAppNew(const char* name, uint dataType,
+        dsl_sink_app_new_data_handler_cb clientHandler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (dataType > DSL_SINK_APP_DATA_TYPE_BUFFER)
+            {
+                LOG_ERROR("Invalid data-type = " << dataType 
+                    << " specified for App Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            m_components[name] = DSL_APP_SINK_NEW(name,
+                dataType, clientHandler, clientData);
+
+            LOG_INFO("New App Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New App Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAppDataTypeGet(const char* name, uint* dataType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSinkBintr);
+
+            DSL_APP_SINK_PTR pAppSinkBintr = 
+                std::dynamic_pointer_cast<AppSinkBintr>(m_components[name]);
+
+            *dataType = pAppSinkBintr->GetDataType();
+            
+            LOG_INFO("App Sink '" << name << "' returned data-type = " 
+                << *dataType  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Sink'" << name 
+                << "' threw an exception getting data-type");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAppDataTypeSet(const char* name, uint dataType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSinkBintr);
+
+            if (dataType > DSL_SINK_APP_DATA_TYPE_BUFFER)
+            {
+                LOG_ERROR("Invalid data-type = " << dataType 
+                    << " specified for App Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            DSL_APP_SINK_PTR pAppSinkBintr = 
+                std::dynamic_pointer_cast<AppSinkBintr>(m_components[name]);
+
+            pAppSinkBintr->SetDataType(dataType);
+
+            LOG_INFO("App Sink '" << name << "' set data-type = " 
+                << dataType  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Sink'" << name 
+                << "' threw an exception setting data-type");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkFakeNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -170,7 +269,7 @@ namespace DSL
                     << "' failed to Set 'force-aspec-ratio' property");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
-            LOG_INFO("Window Sink '" << name << "' set Force Aspect Ration = " 
+            LOG_INFO("Window Sink '" << name << "' set force-aspect-ration = " 
                 << force  << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -178,7 +277,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception setting 'force-apect-ratio' property");
+                << "' threw an exception setting force-apect-ratio property");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -340,17 +439,20 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_MPEG4)
+            if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for File Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container 
+                    << " for File Sink '" << name << "'");
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
-            m_components[name] = DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval);
+            m_components[name] = DSL_FILE_SINK_NEW(name, 
+                filepath, codec, container, bitrate, interval);
             
             LOG_INFO("New File Sink '" << name << "' created successfully");
 
@@ -363,7 +465,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SinkRecordNew(const char* name, const char* outdir, uint codec, uint container, 
+    DslReturnType Services::SinkRecordNew(const char* name, 
+        const char* outdir, uint codec, uint container, 
         uint bitrate, uint interval, dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
@@ -382,18 +485,21 @@ namespace DSL
             // ensure outdir exists
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Sink '" << name << "'");
+                LOG_ERROR("Unable to access outdir '" << outdir 
+                    << "' for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
             }
 
             if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for Record Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for Record Sink '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container 
+                    << " for Record Sink '" << name << "'");
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
 
@@ -647,7 +753,8 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::SinkRecordDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::SinkRecordDimensionsGet(const char* name, 
+        uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -655,7 +762,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -670,12 +778,14 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception getting dimensions");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception getting dimensions");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SinkRecordDimensionsSet(const char* name, uint width, uint height)
+    DslReturnType Services::SinkRecordDimensionsSet(const char* name, 
+        uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -683,7 +793,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
 
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
@@ -702,7 +813,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception setting dimensions");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception setting dimensions");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -919,7 +1031,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("File Sink '" << name << "' threw an exception getting Encoder settings");
+            LOG_ERROR("File Sink '" << name 
+                << "' threw an exception getting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -941,13 +1054,15 @@ namespace DSL
 
             if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for Encode Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for Encode Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
 
             if (!encodeSinkBintr->SetEncoderSettings(codec, bitrate, interval))
             {
-                LOG_ERROR("Encode Sink '" << name << "' failed to set Encoder settings");
+                LOG_ERROR("Encode Sink '" << name 
+                    << "' failed to set Encoder settings");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
             LOG_INFO("Encode Sink '" << name << "' set Bitrate = " 
@@ -957,10 +1072,73 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("File Sink'" << name << "' threw an exception setting Encoder settings");
+            LOG_ERROR("File Sink'" << name 
+                << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::SinkEncodeDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            encodeSinkBintr->GetConverterDimensions(width, height);
+
+            LOG_INFO("Width = " << *width << " height = " << *height << 
+                " returned successfully for Encode Sink '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Encode Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkEncodeDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
+
+            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
+                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
+
+            if (!encodeSinkBintr->SetConverterDimensions(width, height))
+            {
+                LOG_ERROR("Encode Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Width = " << width << " height = " << height << 
+                " set successfully for Record Sink '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Encode Sink '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
 
     DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
             uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
@@ -1021,6 +1199,137 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkInterpipeNew(const char* name,
+        boolean forwardEos, boolean forwardEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            m_components[name] = DSL_INTERPIPE_SINK_NEW(name,
+                forwardEos, forwardEvents);
+
+            LOG_INFO("New Inter-Pipe Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Inter-Pipe Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkInterpipeForwardSettingsGet(const char* name, 
+        boolean* forwardEos, boolean* forwardEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSinkBintr);
+            
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
+
+            bool bForwardEos(false), bForwardEvents(false);
+            interPipeSinkBintr->GetForwardSettings(&bForwardEos, &bForwardEvents);
+            *forwardEos = bForwardEos;
+            *forwardEvents = bForwardEvents;
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' returned forward-eos = " 
+                << *forwardEos << ", forward-events = " << *forwardEvents 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception getting forward settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkInterpipeForwardSettingsSet(const char* name, 
+        boolean forwardEos, boolean forwardEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSinkBintr);
+            
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
+
+            if (!interPipeSinkBintr->SetForwardSettings(forwardEos, forwardEvents))
+            {
+                LOG_ERROR("Inter-Pipe Sink '" << name 
+                    << "' failed to set Forward settings");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' set forward-eos = " 
+                << forwardEos << ", forward-events = " << forwardEvents 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception setting Forward settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkInterpipeNumListenersGet(const char* name,
+        uint* numListeners)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSinkBintr);
+            
+            DSL_INTERPIPE_SINK_PTR interPipeSinkBintr = 
+                std::dynamic_pointer_cast<InterpipeSinkBintr>(m_components[name]);
+
+            *numListeners = interPipeSinkBintr->GetNumListeners();
+
+            LOG_INFO("Inter-Pipe Sink '" << name << "' returned num-listeners = " 
+                << *numListeners  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Sink '" << name 
+                << "' threw an exception getting num-listeners");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SinkMessageNew(const char* name, 
         const char* converterConfigFile, uint payloadType, 
         const char* brokerConfigFile, const char* protocolLib,
@@ -1292,6 +1601,363 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkImageMultiNew(const char* name, 
+        const char* filepath, uint width, uint height,
+        uint fps_n, uint fps_d)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            m_components[name] = DSL_MULTI_IMAGE_SINK_NEW(name,
+                filepath, width, height, fps_n, fps_d);
+
+            LOG_INFO("New Multi-Image Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Multi-Image Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFilePathGet(const char* name, 
+        const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            *filePath = pMultiImageSink->GetFilePath();
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned file-path = '" 
+                << *filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw exception getting file-path");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SinkImageMultiFilePathSet(const char* name, 
+        const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetFilePath(filePath))
+            {
+                LOG_ERROR("Failed to Set file-path '" << filePath 
+                    << "' for Multi-Image Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Image Sink '" << name << "' set file-path = '" 
+                << filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw exception setting file-path");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            pMultiImageSink->GetDimensions(width, height);
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned Width = " 
+                << *width << " and Height = " << *height << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetDimensions(width, height))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set Width = " 
+                << width << " and Height = " << height << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkImageMultiFrameRateGet(const char* name, 
+        uint* fpsN, uint* fpsD)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            pMultiImageSink->GetFrameRate(fpsN, fpsD);
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned fpsN = " 
+                << *fpsN << " and fpsD = " << *fpsD << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFrameRateSet(const char* name, 
+        uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetFrameRate(fpsN, fpsD))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name 
+                    << "' failed to set frame-rate");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set fpsN = " 
+                << fpsN << " and fpsD = " << fpsD << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting frame-rate");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkImageMultiFileMaxGet(const char* name, 
+        uint* max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            *max = pMultiImageSink->GetMaxFiles();
+
+            LOG_INFO("Multi-Image Sink '" << name << "' returned max-file = " 
+                << *max << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception getting max-file");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkImageMultiFileMaxSet(const char* name, 
+        uint max)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, MultiImageSinkBintr);
+
+            DSL_MULTI_IMAGE_SINK_PTR pMultiImageSink = 
+                std::dynamic_pointer_cast<MultiImageSinkBintr>(m_components[name]);
+
+            if (!pMultiImageSink->SetMaxFiles(max))
+            {
+                LOG_ERROR("Multi-Image Sink '" << name 
+                    << "' failed to set max-file");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Sink '" << name << "' set max-file = " 
+                << max << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Sink '" << name 
+                << "' threw an exception setting max-file");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkFrameCaptureNew(const char* name,
+        const char* frameCaptureAction)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            DSL_RETURN_IF_ODE_ACTION_NAME_NOT_FOUND(m_odeActions, 
+                frameCaptureAction);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_odeActions,
+                frameCaptureAction, CaptureFrameOdeAction);
+                
+            m_components[name] = DSL_FRAME_CAPTURE_SINK_NEW(name, 
+                m_odeActions[frameCaptureAction]);
+
+            LOG_INFO("New Frame-Capture Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Frame-Capture Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkFrameCaptureInitiate(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, FrameCaptureSinkBintr);
+
+            DSL_FRAME_CAPTURE_SINK_PTR pFrameCaptureSink = 
+                std::dynamic_pointer_cast<FrameCaptureSinkBintr>(m_components[name]);
+
+            if (!pFrameCaptureSink->Initiate())
+            {
+                LOG_ERROR("Frame-Capture Sink '" << name 
+                    << "' failed to initiate a frame-capture");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Frame-Capture Sink '" << name 
+                << "' initiated a frame-capture successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Frame-Capture Sink '" << name 
+                << "' threw an exception initiating capture");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
@@ -1408,63 +2074,6 @@ namespace DSL
                 << "' threw an exception setting sync enabled");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
-    }
-
-    uint Services::SinkNumInUseGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        return GetNumSinksInUse();
-    }
-    
-    uint Services::SinkNumInUseMaxGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        return m_sinkNumInUseMax;
-    }
-    
-    boolean Services::SinkNumInUseMaxSet(uint max)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        uint numInUse(0);
-        
-        if (max < GetNumSinksInUse())
-        {
-            LOG_ERROR("max setting = " << max << 
-                " is less than the current number of Sinks in use = " << numInUse);
-            return false;
-        }
-        m_sinkNumInUseMax = max;
-        return true;
-    }
-
-    bool Services::IsSinkComponent(const char* component)
-    {
-        LOG_FUNC();
-     
-        return (m_components[component]->IsType(typeid(FakeSinkBintr)) or 
-            m_components[component]->IsType(typeid(OverlaySinkBintr)) or
-            m_components[component]->IsType(typeid(WindowSinkBintr)) or
-            m_components[component]->IsType(typeid(FileSinkBintr)) or
-            m_components[component]->IsType(typeid(RtspSinkBintr)));
-    }
- 
-    uint Services::GetNumSinksInUse()
-    {
-        LOG_FUNC();
-        
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSinksInUse();
-        }
-        return numInUse;
     }
 
 }

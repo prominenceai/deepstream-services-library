@@ -1,7 +1,7 @@
 ################################################################################    
 # The MIT License    
 #    
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #    
 # Permission is hereby granted, free of charge, to any person obtaining a    
 # copy of this software and associated documentation files (the "Software"),    
@@ -32,10 +32,10 @@ from dsl import *
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
 # RTSP Source URI for HIKVISION Camera    
-hikvision_rtsp_uri = 'rtsp://username:password@192.168.0.14:554/Streaming/Channels/101'    
+hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
-WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH    
-WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT    
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH    
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT    
 
 ##     
 # Function to be called on XWindow KeyRelease event    
@@ -43,11 +43,11 @@ WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
 def xwindow_key_event_handler(key_string, client_data):    
     print('key released = ', key_string)    
     if key_string.upper() == 'P':    
-        dsl_player_pause('player')    
+        dsl_player_pause('rtsp-player')    
     elif key_string.upper() == 'R':    
-        dsl_player_play('player')    
+        dsl_player_play('rtsp-player')    
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':    
-        dsl_player_stop('player')
+        dsl_player_stop('rtsp-player')
         dsl_main_loop_quit()
        
 def main(args):    
@@ -57,9 +57,9 @@ def main(args):
 
         # For each camera, create a new RTSP Source for the specific RTSP URI    
         retval = dsl_source_rtsp_new('rtsp-source',     
-            uri = amcrest_rtsp_uri,     
+            uri = hikvision_rtsp_uri,     
             protocol = DSL_RTP_ALL,     
-            intra_decode = False,     
+            skip_frames = 0,     
             drop_frame_interval = 0,     
             latency=100,
             timeout=2)    

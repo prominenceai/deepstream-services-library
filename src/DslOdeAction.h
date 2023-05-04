@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2022, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -66,20 +66,15 @@ namespace DSL
     #define DSL_ODE_ACTION_CATPURE_PTR std::shared_ptr<CaptureOdeAction>
     
     #define DSL_ODE_ACTION_CAPTURE_FRAME_PTR std::shared_ptr<CaptureFrameOdeAction>
-    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir, annotate) \
+    #define DSL_ODE_ACTION_CAPTURE_FRAME_NEW(name, outdir) \
         std::shared_ptr<CaptureFrameOdeAction>(new CaptureFrameOdeAction( \
-            name, outdir, annotate))
+            name, outdir))
         
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_PTR std::shared_ptr<CaptureObjectOdeAction>
     #define DSL_ODE_ACTION_CAPTURE_OBJECT_NEW(name, outdir) \
         std::shared_ptr<CaptureObjectOdeAction>(new CaptureObjectOdeAction( \
             name, outdir))
 
-    #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_PTR std::shared_ptr<CustomizeLabelOdeAction>
-    #define DSL_ODE_ACTION_CUSTOMIZE_LABEL_NEW(name, contentTypes) \
-        std::shared_ptr<CustomizeLabelOdeAction>(new CustomizeLabelOdeAction( \
-            name, contentTypes))
-        
     #define DSL_ODE_ACTION_DISPLAY_PTR std::shared_ptr<DisplayOdeAction>
     #define DSL_ODE_ACTION_DISPLAY_NEW(name, \
         formatString, offsetX, offsetY, pFont, hasBgColor, pBgColor) \
@@ -112,16 +107,30 @@ namespace DSL
     #define DSL_ODE_ACTION_FILL_SURROUNDINGS_NEW(name, pColor) \
         std::shared_ptr<FillSurroundingsOdeAction>(new FillSurroundingsOdeAction(name, pColor))
 
-    #define DSL_ODE_ACTION_FORMAT_BBOX_PTR std::shared_ptr<FormatBBoxOdeAction>
-    #define DSL_ODE_ACTION_FORMAT_BBOX_NEW(name, \
+    #define DSL_ODE_ACTION_BBOX_FORMAT_PTR std::shared_ptr<FormatBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_FORMAT_NEW(name, \
         borderWidth, pBorderColor, hasBgColor, pBgColor) \
         std::shared_ptr<FormatBBoxOdeAction>(new FormatBBoxOdeAction(name, \
             borderWidth, pBorderColor, hasBgColor, pBgColor))
 
-    #define DSL_ODE_ACTION_FORMAT_LABEL_PTR std::shared_ptr<FormatLabelOdeAction>
-    #define DSL_ODE_ACTION_FORMAT_LABEL_NEW(name, pFont, hasBgColor, pBgColor) \
+    #define DSL_ODE_ACTION_BBOX_SCALE_PTR std::shared_ptr<ScaleBBoxOdeAction>
+    #define DSL_ODE_ACTION_BBOX_SCALE_NEW(name, scale) \
+        std::shared_ptr<ScaleBBoxOdeAction>(new ScaleBBoxOdeAction(name, scale))
+
+    #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR std::shared_ptr<CustomizeLabelOdeAction>
+    #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(name, contentTypes) \
+        std::shared_ptr<CustomizeLabelOdeAction>(new CustomizeLabelOdeAction( \
+            name, contentTypes))
+        
+    #define DSL_ODE_ACTION_LABEL_FORMAT_PTR std::shared_ptr<FormatLabelOdeAction>
+    #define DSL_ODE_ACTION_LABEL_FORMAT_NEW(name, pFont, hasBgColor, pBgColor) \
         std::shared_ptr<FormatLabelOdeAction>(new FormatLabelOdeAction(name, \
             pFont, hasBgColor, pBgColor))
+
+    #define DSL_ODE_ACTION_LABEL_OFFSET_PTR std::shared_ptr<OffsetLabelOdeAction>
+    #define DSL_ODE_ACTION_LABEL_OFFSET_NEW(name, offsetX, offsetY) \
+        std::shared_ptr<OffsetLabelOdeAction>(new OffsetLabelOdeAction(name, \
+            offsetX, offsetY))
 
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
@@ -136,6 +145,10 @@ namespace DSL
         std::shared_ptr<MonitorOdeAction>(new MonitorOdeAction(name, \
             clientMonitor, clientData))
 
+    #define DSL_ODE_ACTION_OBJECT_REMOVE_PTR std::shared_ptr<PauseOdeAction>
+    #define DSL_ODE_ACTION_OBJECT_REMOVE_NEW(name) \
+        std::shared_ptr<RemoveObjectOdeAction>(new RemoveObjectOdeAction(name))
+        
     #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
     #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
         std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
@@ -333,6 +346,49 @@ namespace DSL
     // ********************************************************************
 
     /**
+     * @class ScaleBBoxOdeAction
+     * @brief Scale Bounding Box ODE Action class
+     */
+    class ScaleBBoxOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Scale BBox ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] scale scale factor to apply to each ObjectMeta
+         */
+        ScaleBBoxOdeAction(const char* name, uint scale);
+        
+        /**
+         * @brief dtor for the ODE Scale BBox Action class
+         */
+        ~ScaleBBoxOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by scalling the bounding box of pObjectMeta
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief scale factor to apply to each ObjectMeta 
+         */
+        uint m_scale;
+
+    };
+
+    // ********************************************************************
+
+    /**
      * @class CustomOdeAction
      * @brief Custom ODE Action class
      */
@@ -381,6 +437,8 @@ namespace DSL
     };
     
     // ********************************************************************
+    
+    static int idle_thread_handler(void* client_data);
 
     /**
      * @class CaptureOdeAction
@@ -397,15 +455,13 @@ namespace DSL
          * @param[in] outdir output directory to write captured image files.
          */
         CaptureOdeAction(const char* name, 
-            uint captureType, const char* outdir, bool annotate);
+            uint captureType, const char* outdir);
         
         /**
          * @brief dtor for the Capture ODE Action class
          */
         ~CaptureOdeAction();
 
-        cv::Mat& AnnotateObject(NvDsObjectMeta* pObjectMeta, cv::Mat& bgr_frame);
-        
         /**
          * @brief Handles the ODE occurrence by capturing a frame or object image to file
          * @param[in] pOdeTrigger shared pointer to ODE Type that triggered the event
@@ -416,6 +472,16 @@ namespace DSL
          */
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, GstBuffer* pBuffer, 
             std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Handles the ODE occurrence by capturing a frame or object image to file
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(GstBuffer* pBuffer, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
             
         /**
@@ -468,23 +534,35 @@ namespace DSL
          * @brief removes all child Mailers, Players, and Listeners from this parent Object
          */
         void RemoveAllChildren();
-        
+                
         /**
-         * @brief Queues capture info and starts the Listener notification timer
-         * @param info shared pointer to cv::MAT containing the captured image
+         * @brief Queues a captured image that has been copied to a NvBufferSurface
+         * @param pBufferSurface shared pointer to DslBufferSurface to be queued.
          */
-        void QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat);
+        void queueCapturedImage(std::shared_ptr<DslBufferSurface> pBufferSurface);
         
         /**
-         * @brief implements a timer callback to complete the capture process 
-         * by saving the image to file, notifying all client listeners, and 
-         * sending email all in the main loop context.
-         * @return false always to self remove timer once clients have been notified. 
+         * @brief implements an idle thread callback to initiate the conversion
+         * of the NvBufferSurface to a JPEG image file.
          * Timer/tread will be restarted on next Image Capture
          */
-        int CompleteCapture();
-        
+        int convertCapturedImage();
+
+//         * by saving the image to file, notifying all client listeners, and 
+//         * sending email all in the main loop context.
+//         * @return false always to self remove timer once clients have been notified. 
+
     protected:
+        
+        /**
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         */
+        cudaDeviceProp m_cudaDeviceProp;
+        
+        /**
+         * @brief Flag for one-time read of cuda-device-properties
+         */
+        bool m_cudaDevicePropRead;
 
         /**
          * @brief static, unique capture id shared by all Capture actions
@@ -500,21 +578,30 @@ namespace DSL
          * @brief relative or absolute path to output directory
          */ 
         std::string m_outdir;
+
+        /**
+         * @brief Queue mono-NvBufferSurfaces waiting to be converted
+         * to a JPEG file by the idle thread callback. The callback
+         * intiates the conversion process by pushing each Surface
+         * into a Player with an App-Source and Multi-Image Sink. 
+         */
+        std::queue<std::shared_ptr<DslBufferSurface>> m_pBufferSurfaces;
+
+        /**
+         * @brief gnome thread id for the idle thread to initiate image conversion.
+        */
+        uint m_idleThreadFunctionId;
+
+        /**
+         * @brief mutux to guard the image-capture queue read/write access.
+         */
+        GMutex m_captureQueueMutex;
         
         /**
-         * @brief annotates the image with bbox and label DSL_CAPTURE_TYPE_FRAME only
+         * @brief mutux to guard the read/write access to the maps of 
+         * Listeners, Players, and Mailers.
          */
-        bool m_annotate;
-
-        /**
-         * @brief mutux to guard the Capture info read/write access.
-         */
-        GMutex m_captureCompleteMutex;
-
-        /**
-         * @brief gnome timer Id for the capture complete callback
-         */
-        uint m_captureCompleteTimerId;
+        GMutex m_childContainerMutex;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
@@ -532,20 +619,8 @@ namespace DSL
          */
         std::map<std::string, std::shared_ptr<MailerSpecs>> m_mailers;
         
-        /**
-         * @brief a queue of captured Images to save to file and notify clients
-         */
-        std::queue<std::shared_ptr<cv::Mat>> m_imageMats;
     };
 
-    /**
-     * @brief Timer callback handler to complete the capture process
-     * by notifying all listeners and sending email with all mailers.
-     * @param[in] pSource shared pointer to Capture Action to invoke.
-     * @return int true to continue, 0 to self remove
-     */
-    static int CompleteCaptureHandler(gpointer pAction);
-    
     // ********************************************************************
 
     /**
@@ -560,11 +635,9 @@ namespace DSL
          * @brief ctor for the Capture Frame ODE Action class
          * @param[in] name unique name for the ODE Action
          * @param[in] outdir output directory to write captured image files
-         * @param[in] annotate adds bbox and label to one or all objects in the frame.
-         * One object in the case of valid pObjectMeta on call to HandleOccurrence
          */
-        CaptureFrameOdeAction(const char* name, const char* outdir, bool annotate)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir, annotate)
+        CaptureFrameOdeAction(const char* name, const char* outdir)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_FRAME, outdir)
         {};
 
     };
@@ -583,7 +656,7 @@ namespace DSL
          * @param[in] outdir output directory to write captured image files
          */
         CaptureObjectOdeAction(const char* name, const char* outdir)
-            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir, false)
+            : CaptureOdeAction(name, DSL_CAPTURE_TYPE_OBJECT, outdir)
         {};
 
     };
@@ -1159,6 +1232,97 @@ namespace DSL
 
     };
 
+    // ********************************************************************
+
+    /**
+     * @class OffsetLabelOdeAction
+     * @brief Offset Object Label ODE Action class
+     */
+    class OffsetLabelOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Offset Label ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] offsetX horizontal offset from the default top left 
+         * bounding box corner.
+         * @param[in] offsetY vertical offset from the default top left 
+         * bounding box corner.
+         */
+        OffsetLabelOdeAction(const char* name,
+            int offsetX, int offsetY);
+        
+        /**
+         * @brief dtor for the ODE Format Label Action class
+         */
+        ~OffsetLabelOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by calling the client handler
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief horizontal offset from the default top left 
+         * bounding box corner.
+         */
+        int m_offsetX;
+
+        /**
+         * @brief vertical offset from the default top left 
+         * bounding box corner.
+         */
+        int m_offsetY;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class RemoveObjectOdeAction
+     * @brief Remove Object ODE Action class
+     */
+    class RemoveObjectOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Remove Object ODE Action class
+         * @param[in] name unique name for the ODE Action
+         */
+        RemoveObjectOdeAction(const char* name);
+        
+        /**
+         * @brief dtor for the Pause ODE Action class
+         */
+        ~RemoveObjectOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by removing pObjectMeta from pFrameMeta
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+    private:
+    
+    };
+        
     // ********************************************************************
 
     /**

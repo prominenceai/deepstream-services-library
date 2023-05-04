@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,19 @@ THE SOFTWARE.
 #include "DslRecordMgr.h"
 #include "DslSourceMeter.h"
 
-#include <gst-nvdssr.h>
-
 namespace DSL
 {
     #define DSL_SINK_PTR std::shared_ptr<SinkBintr>
+
+    #define DSL_APP_SINK_PTR std::shared_ptr<AppSinkBintr>
+    #define DSL_APP_SINK_NEW(name, dataType, clientHandler, clientData) \
+        std::shared_ptr<AppSinkBintr>( \
+        new AppSinkBintr(name, dataType, clientHandler, clientData))
+
+    #define DSL_FRAME_CAPTURE_SINK_PTR std::shared_ptr<FrameCaptureSinkBintr>
+    #define DSL_FRAME_CAPTURE_SINK_NEW(name, pFrameCaptureAction) \
+        std::shared_ptr<FrameCaptureSinkBintr>( \
+        new FrameCaptureSinkBintr(name, pFrameCaptureAction))
 
     #define DSL_FAKE_SINK_PTR std::shared_ptr<FakeSinkBintr>
     #define DSL_FAKE_SINK_NEW(name) \
@@ -76,7 +84,7 @@ namespace DSL
     #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspSinkBintr>( \
         new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
-
+        
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
             converterConfigFile, payloadType, brokerConfigFile, \
@@ -85,6 +93,18 @@ namespace DSL
             converterConfigFile, payloadType, brokerConfigFile, \
             protocolLib, connectionString, topic))
         
+    #define DSL_INTERPIPE_SINK_PTR std::shared_ptr<InterpipeSinkBintr>
+    #define DSL_INTERPIPE_SINK_NEW(name, forwardEos, forwardEvents) \
+        std::shared_ptr<InterpipeSinkBintr>( \
+        new InterpipeSinkBintr(name, forwardEos, forwardEvents))
+
+    #define DSL_MULTI_IMAGE_SINK_PTR std::shared_ptr<MultiImageSinkBintr>
+    #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath, width, height, fps_n, fps_d) \
+        std::shared_ptr<MultiImageSinkBintr>( \
+        new MultiImageSinkBintr(name, filepath, width, height, fps_n, fps_d))
+
+    //-------------------------------------------------------------------------
+
     class SinkBintr : public Bintr
     {
     public: 
@@ -131,6 +151,11 @@ namespace DSL
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
          */
         cudaDeviceProp m_cudaDeviceProp;
+        
+        /**
+         * @brief Generate Quality-of-Service events upstream if true
+         */
+        bool m_qos;
 
         /**
          * @brief Sink element's current synchronous attribute setting.
@@ -142,6 +167,169 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pQueue;
     };
+
+    //-------------------------------------------------------------------------
+
+    class AppSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        AppSinkBintr(const char* name, uint dataType, 
+            dsl_sink_app_new_data_handler_cb clientHandler, void* clientData);
+
+        ~AppSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
+         */
+        bool SetSyncEnabled(bool enabled);
+        
+        /**
+         * @brief Handles the new sample on signal call and provides either
+         * the sample or the contained buffer to the client by callback.
+         * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
+         */
+        GstFlowReturn HandleNewSample();
+        
+        /**
+         * @brief Gets the current data-type setting in use by this AppSinkBintr.
+         * @return current data-type in use, either DSL_SINK_APP_DATA_TYPE_SAMPLE
+         * or DSL_SINK_APP_DATA_TYPE_BUFFER.
+         */
+        uint GetDataType();
+        
+        /**
+         * @brief Sets the data type to use for this AppSinkBintr.
+         * @param[in] dataType either DSL_SINK_APP_DATA_TYPE_SAMPLE
+         * or DSL_SINK_APP_DATA_TYPE_BUFFER.
+         */
+        void SetDataType(uint dataType);
+
+    protected:
+    
+        /**
+         * @brief opaque pointer to client data to return with the callback.
+         * Protected (not private) to allow access by the FrameCaptureSinkBintr.
+         */
+        void* m_clientData;
+
+    private:
+    
+        /**
+         * @brief either DSL_SINK_APP_DATA_TYPE_SAMPLE or 
+         * DSL_SINK_APP_DATA_TYPE_BUFFER
+         */
+        uint m_dataType;
+    
+        /**
+         * @brief mutex to protect mutual access to the client-data-handler
+         */
+        GMutex m_dataHandlerMutex;
+
+        /**
+         * @brief client callback function to be called with each new 
+         * buffer available.
+         */
+        dsl_sink_app_new_data_handler_cb m_clientHandler; 
+        
+        /**
+         * @brief App Sink element for the Sink Bintr.
+         */
+        DSL_ELEMENT_PTR m_pAppSink;
+        
+    };
+
+    /**
+     * @brief callback function registered with with the appsink's "new-sample" signal.
+     * The callback wraps the AppSinkBintr's HandleNewSample function.
+     * @param pSinkElement appsink element - not used.
+     * @param pAppSinkBintr opaque pointer the the AppSinkBintr that triggered the 
+     * "new-sample" signal - owner of the appsink element.
+     * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
+     */
+    static GstFlowReturn on_new_sample_cb(GstElement* pSinkElement, 
+        gpointer pAppSinkBintr);
+        
+    //-------------------------------------------------------------------------
+
+    /**
+     * @class FrameCaptureSinkBintr
+     * @brief Implements a Frame-Capture Sink to encode and save a frame-buffer
+     * to JPEG file on client invocation.
+     */
+    class FrameCaptureSinkBintr : public AppSinkBintr
+    {
+    public:
+        
+        /**
+         * @brief ctor for the FrameCaptureSinkBintr
+         * @param[in] name unique name for the FrameCaptureSinkBintr
+         * @param[in] pCaptureFrameAction shared pointer to an ODE Capture Frame Action
+         */
+        FrameCaptureSinkBintr(const char* name, 
+            DSL_BASE_PTR pFrameCaptureAction);
+        
+        /**
+         * @brief dtor for the FrameCaptureSinkBintr
+         */
+        ~FrameCaptureSinkBintr();
+        
+        /**
+         * @brief Function to initiate the capture of the next output
+         * frame-buffer as provided by the base AppSinkBintr. 
+         * @return false if the Sink is unlinked, true otherwise.
+         */
+        bool Initiate();
+
+        /**
+         * @brief Function to handle each new buffer provided by the AppSinkBintr.
+         * @param[in] buffer new buffer to capture if m_captureNextBuffer == true.
+         * @return GST_FLOW_OK always.
+         */
+        uint HandleNewBuffer(void* buffer);
+        
+    private:
+
+        /**
+         * @brief boolean flag used by the client to signal to the HandleNewBuffer
+         * function to capture the next frame-buffer.
+         */
+        bool m_captureNextBuffer;
+
+        /**
+         * @brief mutex to protect mutual access to m_captureNextBuffer flag.
+         */
+        GMutex m_captureNextMutex;
+
+        /**
+         * @brief Shared pointer to a Frame Capture Action.
+         * to selectively call to capture the current buffer
+         */
+        DSL_BASE_PTR m_pFrameCaptureAction;
+    };
+
+    /**
+     * @brief callback function registered with with the base AppSinkBintr.
+     * The callback wraps the FrameCaptureSinkBintr's HandleNewBuffer function.
+     * @param[in] buffer new GstBuffer with metadata to process.
+     * @param[in] client_data this pointer to the FrameCaptureSinkBintr instance.
+     * @return either GST_FLOW_OK, or GST_FLOW_EOS on no buffer available.
+     */
+    static uint on_new_buffer_cb(uint data_type, 
+        void* buffer, void* client_data);    
 
     //-------------------------------------------------------------------------
 
@@ -172,8 +360,6 @@ namespace DSL
         bool SetSyncEnabled(bool enabled);
 
     private:
-
-        boolean m_qos;
         
         /**
          * @brief Fake Sink element for the Sink Bintr.
@@ -318,8 +504,6 @@ namespace DSL
         
     private:
 
-        boolean m_qos;
-        
         uint m_displayId;
         uint m_uniqueId;
         uint m_depth;
@@ -408,7 +592,6 @@ namespace DSL
 
     private:
 
-        boolean m_qos;
         bool m_forceAspectRatio;
 
         /**
@@ -437,21 +620,45 @@ namespace DSL
             uint codec, uint bitrate, uint interval);
 
         /**
-         * @brief Gets the current bit-rate and interval settings for the Encoder in use
+         * @brief Gets the current bit-rate and interval settings in use by the 
+         * EncoderSinkBintr
          * @param[out] code the currect codec in used
-         * @param[out] bitrate the current bit-rate setting for the encoder in use
-         * @param[out] interval the current iframe interval for the encoder in use
+         * @param[out] bitrate the current bit-rate setting in use by the encoder
+         * @param[out] interval the current encode-interval in use by the encoder
          */ 
         void GetEncoderSettings(uint* codec, uint* bitrate, uint* interval);
 
         /**
-         * @brief Sets the current bit-rate and interval settings for the Encoder in use
-         * @param[in] codec the new code to use, either DSL_CODEC_H264 or DSL_CODE_H265
+         * @brief Sets the bit-rate and interval settings for the EncoderSinkBintr 
+         * to use.
+         * @param[in] codec the new code to use, either DSL_CODEC_H264 or 
+         * DSL_CODE_H265
          * @param[in] bitrate the new bit-rate setting in uints of bits/sec
-         * @param[in] interval the new iframe-interval setting
-         * @return false if the FileSink is currently in Use. True otherwise
+         * @param[in] interval the new encode-interval setting to use
+         * @return true if the settings were set successfully, false otherwise
          */ 
         bool SetEncoderSettings(uint codec, uint bitrate, uint interval);
+
+        /**
+         * @brief Gets the current width and height settings for 
+         * the EncodeSinkBintr's video converter element.
+         * @param[out] width the current width setting in pixels.
+         * @param[out] height the current height setting in pixels.
+         */ 
+        void GetConverterDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the width and height settings for the EncodeSinkBintr's 
+         * video converter elementto use. The caller is required to provide valid 
+         * width and height values.
+         * @param[in] width the width value to set in pixels. Set to 0 for 
+         * no scaling.
+         * @param[in] height the height value to set in pixels. Set to 0 for 
+         * no scaling.
+         * @return true if the video converter dimensions were set successfully, 
+         * false otherwise
+         */ 
+        bool SetConverterDimensions(uint width, uint hieght);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -461,13 +668,54 @@ namespace DSL
         
     protected:
 
+        /**
+         * @brief Current codec id for the EncodeSinkBintr
+         */
         uint m_codec;
+
+        /**
+         * @brief Current bitrate for the EncodeSinkBintr. 0 = use default
+         */
         uint m_bitrate;
+        
+        /**
+         * @brief Default bitrate for the EncodeSinkBintr.
+         */
+        uint m_defaultBitrate;
+        
+        /**
+         * @brief Decode interval - other frames are dropped
+         */
         uint m_interval;
  
+        /**
+         * @brief Width property for the Video Converter element in uints of pixels.
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the Video Converter element in uints of pixels.
+         */
+        uint m_height;
+
+        /**
+         * @brief Transform (video converter) element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pTransform;
+
+        /**
+         * @brief Caps Filter element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief Encoder element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pEncoder;
+
+        /**
+         * @brief Parser element for the EncodeSinkBintr
+         */
         DSL_ELEMENT_PTR m_pParser;
     };
 
@@ -598,7 +846,9 @@ namespace DSL
         DSL_ELEMENT_PTR m_pUdpSink;
     };
 
-/**
+    //-------------------------------------------------------------------------
+
+    /**
      * @class MessageSinkBintr 
      * @brief Implements a Message Sink Bin Container Class (Bintr)
      */
@@ -696,11 +946,6 @@ namespace DSL
     private:
 
         /**
-         * @brief qualitiy of service setting for the fake sink.
-         */
-        boolean m_qos;
-
-        /**
          * @brief defines the base_meta.meta_type id filter to use for
          * all message meta to convert and send. Default = NVDS_EVENT_MSG_META.
          * Custom values must be greater than NVDS_START_USER_META
@@ -769,7 +1014,241 @@ namespace DSL
         DSL_ELEMENT_PTR m_pFakeSink;
 
     };
+
+    //-------------------------------------------------------------------------
+
+    class InterpipeSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        InterpipeSinkBintr(const char* name, 
+            bool forwardEos, bool forwardEvents);
+
+        ~InterpipeSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
         
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Gets the current forward settings for this SinkBintr 
+         * @param[out] forwardEos if true, EOS event will be forwarded to 
+         * all listeners. 
+         * @param[out] forwardEvents if true, downstream events (except for 
+         * EOS) will be forwarded to all listeners.
+         */
+        void GetForwardSettings(bool* forwardEos, bool* forwardEvents);
+
+        /**
+         * @brief Gets the current forward settings for this SinkBintr 
+         * @param[in] forwardEos set to true to forward EOS event to 
+         * all listeners, false otherwise. 
+         * @param[in] forwardEvents set to true to forward downstream events
+         * (except for EOS) to all listeners, false otherwise.
+         * @returns ture on succesful update, false otherwise.
+         */
+        bool SetForwardSettings(bool forwardEos, bool forwardEvents);
+        
+        /**
+         * @brief Gets the current numer of Inter-Pipe Sources listening
+         * to this SinkBintr.
+         * @return number of Sources currently listening.
+         */
+        uint GetNumListeners();
+
+        /**
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
+         */
+        bool SetSyncEnabled(bool enabled);
+
+    private:
+    
+        /**
+         * @brief forward the EOS event to all the listeners if true
+         */
+        bool m_forwardEos;
+        
+        /**
+         * @brief forward downstream events to all the listeners 
+         * (except for EOS) if true.
+         */
+        bool m_forwardEvents;
+
+        /**
+         * @brief Inter-Pipe Sink element for the InterpipeSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pSinkElement;
+    };
+
+    //-------------------------------------------------------------------------
+
+    class MultiImageSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        MultiImageSinkBintr(const char* name, const char* filepath,
+            uint width, uint height, uint fps_n, uint fps_d);
+
+        ~MultiImageSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Sets the file-path for MultiImageSinkBintr 
+         * @return Current filepath set for the MultiImageSinkBintr
+         */
+        const char* GetFilePath();
+
+        /**
+         * @brief Sets the file-path for MultiImageSinkBintr 
+         * @param[in] filepath printf style %d in an absolute or relative path. 
+         * Eample: "./my_images/image.%d04.jpg", will create files in "./my_images/"
+         * named "image.0000.jpg", "image.0001.jpg", "image.0002.jpg" etc.
+         */
+        bool SetFilePath(const char* filepath);
+
+        /**
+         * @brief Gets the current width and height settings for this 
+         * MultiImageSinkBintr.
+         * @param[out] width the current width setting in pixels.
+         * @param[out] height the current height setting in pixels.
+         */ 
+        void GetDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the width and height settings for the MultiImageSinkBintr
+         * to use. The caller is required to provide valid width and height values.
+         * @param[in] width the width value to set in pixels. Set to 0 for 
+         * no transcode.
+         * @param[in] height the height value to set in pixels. Set to 0 for 
+         * no transcode.
+         * @return false if the sink is currently Linked. True otherwise
+         */ 
+        bool SetDimensions(uint width, uint hieght);
+
+        /**
+         * @brief Gets the current frame-rate setting for this 
+         * MultiImageSinkBintr.
+         * @param[out] fpsN the current frames/second numerator.
+         * @param[out] fpsD the current frames/second denominator.
+         */ 
+        void GetFrameRate(uint* fpsN, uint* fpsD);
+        
+        /**
+         * @brief Sets the width and height settings for the MultiImageSinkBintr
+         * to use. The caller is required to provide valid width and height values.
+         * @param[in] fpsN the new frames/second numerator.
+         * @param[in] fpsD the new frames/second denominator.
+         * @return false if the sink is currently Linked. True otherwise
+         */ 
+        bool SetFrameRate(uint fpsN, uint fpsD);
+        
+        /**
+         * @brief Gets the current max-files setting for the MultiImageSinkBintr.
+         * @return current max-files setting. 0 indicates no maximum.
+         */
+        uint GetMaxFiles();
+        
+        /**
+         * @brief Sets the max-files setting for the MultiImageSinkBintr.
+         * Set to 0 for no maximum.
+         * @param[in] max new max for the max-files setting. 
+         * @return false if the sink is currently Linked. True otherwise.
+         */
+        bool SetMaxFiles(uint max);
+
+        /**
+         * @brief sets the sync enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
+         */
+        bool SetSyncEnabled(bool enabled);
+        
+    private:
+
+        /**
+         * @brief Sets the Caps Filter settings using the current m_width,
+         * m_height, m_fpsN, and m_fpsD member variables.
+         * @return 
+         */
+        bool setCaps();
+        
+        /**
+         * @brief Current output filepath ("location") for the MultiImageSinkBintr.
+         */
+        std::string m_filepath;
+
+        /**
+         * @brief Width property for the Video Converter element in uints of pixels.
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the Video Converter element in uints of pixels.
+         */
+        uint m_height;
+
+        /**
+         * @brief Frames/second numerator for the Video Rate element.
+         */
+        uint m_fpsN;
+
+        /**
+         * @brief Frames/second denominator for the Video Rate element.
+         */
+        uint m_fpsD;
+        
+        /** 
+         * @brief maximum number of files to keep on disk. Once the maximum is 
+         * reached, old files start to be deleted to make room for new ones.
+         */
+        uint m_maxFiles;
+
+        /**
+         * @brief Video Converter element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pVideoConv;
+
+        /**
+         * @brief Video Rate element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pVideoRate;
+
+        /**
+         * @brief Caps Filter element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief JPEG Encoder element for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pJpegEnc;
+
+        /**
+         * @brief Multi File Sink for the MultiImageSinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pMultiFileSync;
+    };
+
 }
+
 #endif // _DSL_SINK_BINTR_H
     

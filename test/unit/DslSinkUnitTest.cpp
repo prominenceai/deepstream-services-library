@@ -25,8 +25,86 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "Dsl.h"
 #include "DslSinkBintr.h"
+#include "DslOdeAction.h"
 
 using namespace DSL;
+
+static uint new_buffer_cb(uint data_type, 
+    void* buffer, void* client_data)
+{
+    return DSL_FLOW_OK;
+}
+
+SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new App Sink" ) 
+    {
+        std::string sinkName("app-sink");
+        uint dataType(DSL_SINK_APP_DATA_TYPE_BUFFER);
+
+        WHEN( "The AppSinkBintr is created" )
+        {
+            DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
+                DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetDataType() == dataType );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new AppSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new AppSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("app-sink");
+
+        DSL_APP_SINK_PTR pSinkBintr = DSL_APP_SINK_NEW(sinkName.c_str(), 
+            DSL_SINK_APP_DATA_TYPE_BUFFER, new_buffer_cb, NULL);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new AppSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The AppSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new App Sink" ) 
+    {
+        std::string actionName("ode-action");
+        std::string outdir("./");
+
+        DSL_ODE_ACTION_CAPTURE_FRAME_PTR pAction = 
+            DSL_ODE_ACTION_CAPTURE_FRAME_NEW(actionName.c_str(), 
+                outdir.c_str());
+
+        std::string sinkName("frame-capture-sink");
+
+        WHEN( "The AppSinkBintr is created" )
+        {
+            DSL_FRAME_CAPTURE_SINK_PTR pSinkBintr =
+                DSL_FRAME_CAPTURE_SINK_NEW(sinkName.c_str(), pAction);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetDataType() == DSL_SINK_APP_DATA_TYPE_BUFFER );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+            }
+        }
+    }
+}
 
 SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
 {
@@ -34,7 +112,7 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
     {
         std::string sinkName("fake-sink");
 
-        WHEN( "The FackeSinkBintr is created " )
+        WHEN( "The FakeSinkBintr is created " )
         {
             DSL_FAKE_SINK_PTR pSinkBintr = 
                 DSL_FAKE_SINK_NEW(sinkName.c_str());
@@ -74,23 +152,27 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Overlay Sink" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        WHEN( "The OverlaySinkBintr is created " )
+        
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-            
-            THEN( "The correct attribute values are returned" )
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(100);
+            uint offsetY(140);
+            uint sinkW(1280);
+            uint sinkH(720);
+
+            WHEN( "The OverlaySinkBintr is created " )
             {
-                REQUIRE( pSinkBintr->GetDisplayId() == 0 );
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                
+                THEN( "The correct attribute values are returned" )
+                {
+                    REQUIRE( pSinkBintr->GetDisplayId() == 0 );
+                    REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                }
             }
         }
     }
@@ -100,26 +182,29 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in an Unlinked state" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-
-        REQUIRE( pSinkBintr->IsLinked() == false );
-
-        WHEN( "A new OverlaySinkBintr is Linked" )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( pSinkBintr->LinkAll() == true );
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(100);
+            uint offsetY(140);
+            uint sinkW(1280);
+            uint sinkH(720);
 
-            THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+            DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+
+            REQUIRE( pSinkBintr->IsLinked() == false );
+
+            WHEN( "A new OverlaySinkBintr is Linked" )
             {
-                REQUIRE( pSinkBintr->IsLinked() == true );
+                REQUIRE( pSinkBintr->LinkAll() == true );
+
+                THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+                {
+                    REQUIRE( pSinkBintr->IsLinked() == true );
+                }
             }
         }
     }
@@ -129,26 +214,29 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr
 {
     GIVEN( "A OverlaySinkBintr in a linked state" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-
-        REQUIRE( pSinkBintr->LinkAll() == true );
-
-        WHEN( "A OverlaySinkBintr is Unlinked" )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            pSinkBintr->UnlinkAll();
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(100);
+            uint offsetY(140);
+            uint sinkW(1280);
+            uint sinkH(720);
 
-            THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+            DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            WHEN( "A OverlaySinkBintr is Unlinked" )
             {
-                REQUIRE( pSinkBintr->IsLinked() == false );
+                pSinkBintr->UnlinkAll();
+
+                THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+                {
+                    REQUIRE( pSinkBintr->IsLinked() == false );
+                }
             }
         }
     }
@@ -158,26 +246,29 @@ SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elem
 {
     GIVEN( "A newOverlaySinkBintr" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-
-        WHEN( "A OverlaySinkBintr is Reset" )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( pSinkBintr->Reset() == true );
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(100);
+            uint offsetY(140);
+            uint sinkW(1280);
+            uint sinkH(720);
 
-            THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll" )
+            DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+
+            WHEN( "A OverlaySinkBintr is Reset" )
             {
-                REQUIRE( pSinkBintr->LinkAll() == true );
-                pSinkBintr->UnlinkAll();
-                REQUIRE( pSinkBintr->IsLinked() == false );
+                REQUIRE( pSinkBintr->Reset() == true );
+
+                THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll" )
+                {
+                    REQUIRE( pSinkBintr->LinkAll() == true );
+                    pSinkBintr->UnlinkAll();
+                    REQUIRE( pSinkBintr->IsLinked() == false );
+                }
             }
         }
     }
@@ -187,27 +278,30 @@ SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(100);
-        uint offsetY(140);
-        uint sinkW(1280);
-        uint sinkH(720);
-        uint newDisplayId(123);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-            
-        // ensure display id reflects not is use
-        REQUIRE( pSinkBintr->GetDisplayId() == 0 );
-
-        WHEN( "The OverlaySinkBintr's display Id is set " )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            pSinkBintr->SetDisplayId(newDisplayId);
-            THEN( "The OverlaySinkBintr's new display Id is returned on Get" )
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(100);
+            uint offsetY(140);
+            uint sinkW(1280);
+            uint sinkH(720);
+            uint newDisplayId(123);
+
+            DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                
+            // ensure display id reflects not is use
+            REQUIRE( pSinkBintr->GetDisplayId() == 0 );
+
+            WHEN( "The OverlaySinkBintr's display Id is set " )
             {
-                REQUIRE( pSinkBintr->GetDisplayId() == newDisplayId );
+                pSinkBintr->SetDisplayId(newDisplayId);
+                THEN( "The OverlaySinkBintr's new display Id is returned on Get" )
+                {
+                    REQUIRE( pSinkBintr->GetDisplayId() == newDisplayId );
+                }
             }
         }
     }
@@ -217,36 +311,39 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint initOffsetX(0);
-        uint initOffsetY(0);
-        uint sinkW(1280);
-        uint sinkH(720);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, initOffsetX, initOffsetY, sinkW, sinkH);
-            
-        uint currOffsetX(0);
-        uint currOffsetY(0);
-    
-        pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
-        REQUIRE( currOffsetX == initOffsetX );
-        REQUIRE( currOffsetY == initOffsetY );
-
-        WHEN( "The OverlaySinkBintr's Offsets are Set" )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            uint newOffsetX(80);
-            uint newOffsetY(20);
-            
-            pSinkBintr->SetOffsets(newOffsetX, newOffsetY);
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint initOffsetX(0);
+            uint initOffsetY(0);
+            uint sinkW(1280);
+            uint sinkH(720);
 
-            THEN( "The OverlaySinkBintr's new demensions are returned on Get")
+            DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, initOffsetX, initOffsetY, sinkW, sinkH);
+                
+            uint currOffsetX(0);
+            uint currOffsetY(0);
+        
+            pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
+            REQUIRE( currOffsetX == initOffsetX );
+            REQUIRE( currOffsetY == initOffsetY );
+
+            WHEN( "The OverlaySinkBintr's Offsets are Set" )
             {
-                pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
-                REQUIRE( currOffsetX == newOffsetX );
-                REQUIRE( currOffsetY == newOffsetY );
+                uint newOffsetX(80);
+                uint newOffsetY(20);
+                
+                pSinkBintr->SetOffsets(newOffsetX, newOffsetY);
+
+                THEN( "The OverlaySinkBintr's new demensions are returned on Get")
+                {
+                    pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
+                    REQUIRE( currOffsetX == newOffsetX );
+                    REQUIRE( currOffsetY == newOffsetY );
+                }
             }
         }
     }
@@ -257,37 +354,40 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint initSinkW(300);
-        uint initSinkH(200);
-
-        DSL_OVERLAY_SINK_PTR pSinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, 
-                offsetX, offsetY, initSinkW, initSinkH);
-            
-        uint currSinkW(0);
-        uint currSinkH(0);
-    
-        pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
-        REQUIRE( currSinkW == initSinkW );
-        REQUIRE( currSinkH == initSinkH );
-
-        WHEN( "The OverlaySinkBintr's dimensions are Set" )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            uint newSinkW(1280);
-            uint newSinkH(720);
-            
-            pSinkBintr->SetDimensions(newSinkW, newSinkH);
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(0);
+            uint offsetY(0);
+            uint initSinkW(300);
+            uint initSinkH(200);
 
-            THEN( "The OverlaySinkBintr's new dimensions are returned on Get")
+            DSL_OVERLAY_SINK_PTR pSinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, 
+                    offsetX, offsetY, initSinkW, initSinkH);
+                
+            uint currSinkW(0);
+            uint currSinkH(0);
+        
+            pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
+            REQUIRE( currSinkW == initSinkW );
+            REQUIRE( currSinkH == initSinkH );
+
+            WHEN( "The OverlaySinkBintr's dimensions are Set" )
             {
-                pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
-                REQUIRE( currSinkW == newSinkW );
-                REQUIRE( currSinkH == newSinkH );
+                uint newSinkW(1280);
+                uint newSinkH(720);
+                
+                pSinkBintr->SetDimensions(newSinkW, newSinkH);
+
+                THEN( "The OverlaySinkBintr's new dimensions are returned on Get")
+                {
+                    pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
+                    REQUIRE( currSinkW == newSinkW );
+                    REQUIRE( currSinkH == newSinkH );
+                }
             }
         }
     }
@@ -297,29 +397,32 @@ SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
     GIVEN( "A new OverlaySinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
-        uint displayId(0);
-        uint depth(0);
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(300);
-        uint sinkH(200);
-
-        DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
-            DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-        
-        uint GPUID0(0);
-        uint GPUID1(1);
-
-        REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID0 );
-        
-        WHEN( "The OverlaySinkBintr's  GPU ID is set" )
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( pOverlaySinkBintr->SetGpuId(GPUID1) == true );
+            std::string sinkName("overlay-sink");
+            uint displayId(0);
+            uint depth(0);
+            uint offsetX(0);
+            uint offsetY(0);
+            uint sinkW(300);
+            uint sinkH(200);
 
-            THEN( "The correct GPU ID is returned on get" )
+            DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            
+            uint GPUID0(0);
+            uint GPUID1(1);
+
+            REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID0 );
+            
+            WHEN( "The OverlaySinkBintr's  GPU ID is set" )
             {
-                REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID1 );
+                REQUIRE( pOverlaySinkBintr->SetGpuId(GPUID1) == true );
+
+                THEN( "The correct GPU ID is returned on get" )
+                {
+                    REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID1 );
+                }
             }
         }
     }
@@ -660,7 +763,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         WHEN( "The DSL_CODEC_H264 FileSinkBintr is created " )
@@ -673,8 +776,14 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 uint retCodec(0), retBitrate(0), retInterval(0);
                 pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
                 REQUIRE( retCodec == codec );
-                REQUIRE( retBitrate == bitrate);
+                REQUIRE( retBitrate == 4000000);
                 REQUIRE( retInterval == interval);
+                
+                uint retWidth(99), retHeight(99);
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                
             }
         }
     }
@@ -688,7 +797,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr can LinkAll Child Elementrs", "[Si
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -716,7 +825,7 @@ SCENARIO( "A Linked DSL_CODEC_H264 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H264);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -745,7 +854,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         WHEN( "The DSL_CODEC_H265 FileSinkBintr is created " )
@@ -758,8 +867,13 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 uint retCodec(0), retBitrate(0), retInterval(0);
                 pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
                 REQUIRE( retCodec == codec );
-                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retBitrate == 4000000 ); // default value
                 REQUIRE( retInterval == interval );
+
+                uint retWidth(99), retHeight(99);
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
             }
         }
     }
@@ -773,7 +887,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr can LinkAll Child Elementrs", "[Si
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -801,7 +915,7 @@ SCENARIO( "A Linked DSL_CODEC_H265 FileSinkBintr can UnlinkAll Child Elementrs",
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint bitrate(2000000);
+        uint bitrate(0); // use default
         uint interval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -830,7 +944,7 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint initBitrate(2000000);
+        uint initBitrate(0); // use default
         uint initInterval(0);
 
         DSL_FILE_SINK_PTR pSinkBintr = 
@@ -842,7 +956,7 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
     
         pSinkBintr->GetEncoderSettings(&currCodec, &currBitrate, &currInterval);
         REQUIRE( currCodec == codec );
-        REQUIRE( currBitrate == initBitrate );
+        REQUIRE( currBitrate == 4000000 ); // default
         REQUIRE( currInterval == initInterval );
 
         WHEN( "The FileSinkBintr's Encoder settings are Set" )
@@ -864,6 +978,43 @@ SCENARIO( "A FileSinkBintr's Encoder settings can be updated", "[SinkBintr]" )
     }
 }
 
+SCENARIO( "A FileSinkBintr's Converter dimensions can be updated", "[SinkBintr]" )
+{
+    GIVEN( "A new FileSinkBintr in memory" ) 
+    {
+        std::string sinkName("file-sink");
+        std::string filePath("./output.mp4");
+        uint codec(DSL_CODEC_H265);
+        uint container(DSL_CONTAINER_MP4);
+        uint initBitrate(0); // use default
+        uint initInterval(0);
+
+        DSL_FILE_SINK_PTR pSinkBintr = 
+            DSL_FILE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+            codec, container, initBitrate, initInterval);
+            
+        uint retWidth(99), retHeight(99);
+    
+        pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+        REQUIRE( retWidth == 0 );
+        REQUIRE( retHeight == 0 );
+
+        WHEN( "The FileSinkBintr's Converter dimensions are Set" )
+        {
+            uint newWidth(1280), newHeight(720);
+            
+            REQUIRE( pSinkBintr->SetConverterDimensions(newWidth, newHeight) == true );
+
+            THEN( "The FileSinkBintr's new Converter dimensions are returned on Get")
+            {
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == newWidth );
+                REQUIRE( retHeight == newHeight );
+            }
+        }
+    }
+}
+
 SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
     GIVEN( "A new FileSinkBintr in memory" ) 
@@ -872,7 +1023,7 @@ SCENARIO( "A FileSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
         std::string filePath("./output.mp4");
         uint codec(DSL_CODEC_H265);
         uint container(DSL_CONTAINER_MP4);
-        uint initBitrate(2000000);
+        uint initBitrate(0); // use default
         uint initInterval(0);
         
         uint GPUID0(0);
@@ -902,7 +1053,7 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Sin
         std::string sinkName("record-sink");
         std::string outdir("./");
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         
@@ -942,7 +1093,7 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[SinkBintr]" 
         std::string sinkName("record-sink");
         std::string outdir("./");
         uint codec(DSL_CODEC_H264);
-        uint bitrate(2000000);
+        uint bitrate(4000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
         
@@ -1309,3 +1460,99 @@ SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
     }
 }
 
+SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new MultiImageSinkBintr Sink" ) 
+    {
+        std::string sinkName("multi-image-sink");
+        
+        uint width(1920), height(1080);
+        uint fpsN(1), fpsD(2);
+        std::string filePath("./frame-%05d.jpg");
+
+        
+        WHEN( "The MultiImageSinkBintr is created " )
+        {
+            DSL_MULTI_IMAGE_SINK_PTR pSinkBintr =
+                DSL_MULTI_IMAGE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+                    width, height, fpsN, fpsD);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                std::string retFilePath = pSinkBintr->GetFilePath();
+                REQUIRE( retFilePath == filePath );
+                
+                uint retWidth(0), retHeight(0);
+                pSinkBintr->GetDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == width );
+                REQUIRE( retHeight == height );
+
+                uint retFpsN(0), retFpsD(0);
+                pSinkBintr->GetFrameRate(&retFpsN, &retFpsD);
+                REQUIRE( retFpsN == fpsN );
+                REQUIRE( retFpsD == fpsD );
+
+                REQUIRE( pSinkBintr->GetMaxFiles() == 0 );
+                
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new MultiImageSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_H265 RtspSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("multi-image-sink");
+        
+        uint width(1920), height(1080);
+        uint fpsN(1), fpsD(2);
+        std::string filePath("./frame-%05d.jpg");
+
+        DSL_MULTI_IMAGE_SINK_PTR pSinkBintr =
+            DSL_MULTI_IMAGE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+                width, height, fpsN, fpsD);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new MultiImageSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The MultiImageSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked MultiImageSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A MultiImageSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("multi-image-sink");
+        
+        uint width(1920), height(1080);
+        uint fpsN(1), fpsD(2);
+        std::string filePath("./frame-%05d.jpg");
+
+        DSL_MULTI_IMAGE_SINK_PTR pSinkBintr =
+            DSL_MULTI_IMAGE_SINK_NEW(sinkName.c_str(), filePath.c_str(), 
+                width, height, fpsN, fpsD);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A MultiImageSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The MultiImageSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}

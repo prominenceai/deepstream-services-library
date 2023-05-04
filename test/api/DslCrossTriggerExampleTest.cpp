@@ -36,15 +36,19 @@ static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/stream
 
 // Filespecs for the Primary GIE    
 static const std::wstring primary_gie_name(L"primary-gie");
-static const std::wstring primary_infer_config_file(
+static const std::wstring primary_infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::wstring primary_model_engine_file(
+static const std::wstring primary_model_engine_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+static const std::wstring primary_infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static const std::wstring primary_model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 // Tracker name and input dimensions.
-static const std::wstring tracker_name(L"ktl-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
 static const uint tracker_height(272);
 
@@ -86,8 +90,8 @@ static const std::wstring ode_print_action_name(L"print-action");
 static const std::wstring window_sink_name(L"window-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
-static const uint sinkW(DSL_DEFAULT_STREAMMUX_WIDTH);
-static const uint sinkH(DSL_DEFAULT_STREAMMUX_HEIGHT);
+static const uint sinkW(DSL_STREAMMUX_DEFAULT_WIDTH);
+static const uint sinkH(DSL_STREAMMUX_DEFAULT_HEIGHT);
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(2000)
 
@@ -220,7 +224,7 @@ int test()
         if (retval != DSL_RESULT_SUCCESS) return retval;
 
         // Create the format bounding box action to add to the every occurrence trigger.
-        retval = dsl_ode_action_format_bbox_new(exclude_bbox_action.c_str(), 0,
+        retval = dsl_ode_action_bbox_format_new(exclude_bbox_action.c_str(), 0,
             NULL, false, NULL);
         if (retval != DSL_RESULT_SUCCESS) return retval;
 
@@ -249,7 +253,7 @@ int test()
 
         // ********** IMPORT **********  need to set a minimum confidence level to
         // avoid false triggers when the bounding box coordinates are accurate - 40%.
-        retval = dsl_ode_trigger_confidence_min_set(person_cross_trigger.c_str(), 
+        retval = dsl_ode_trigger_infer_confidence_min_set(person_cross_trigger.c_str(), 
             0.40);
         if (retval != DSL_RESULT_SUCCESS) break;
             
@@ -308,13 +312,23 @@ int test()
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using NVIDIA's provided config and model-engine files.
-        retval = dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            retval = dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                primary_infer_config_file_jetson.c_str(), 
+                primary_model_engine_file_jetson.c_str(), 0);
+        }
+        else
+        {
+            retval = dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                primary_infer_config_file_dgpu.c_str(), 
+                primary_model_engine_file_dgpu.c_str(), 0);
+        }
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Multi Object Tracker - required when using a Cross Trigger
-        retval = dsl_tracker_ktl_new(tracker_name.c_str(), 
-            tracker_width, tracker_height);
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New On-Screen Display (OSD) to display bounding boxes and object traces.
@@ -334,7 +348,7 @@ int test()
 
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"ktl-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
         
         // Create a new Pipeline and add the above components in the next call.
         retval = dsl_pipeline_new_component_add_many(

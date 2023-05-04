@@ -177,7 +177,8 @@ THE SOFTWARE.
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(CsiSourceBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(UsbSourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
@@ -185,6 +186,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
         !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \
@@ -192,25 +194,13 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(components, name) do \
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(UriSourceBintr)) and  \
-        !components[name]->IsType(typeid(RtspSourceBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
-        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE; \
-    } \
-}while(0); 
-
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(FileSourceBintr)) and  \
-        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
-        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+    if (!components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
         !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageStreamSourceBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        LOG_ERROR("Component '" << name << "' is not an Image Source"); \
         return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_FILE_SOURCE; \
     } \
 }while(0); 
@@ -294,17 +284,6 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_TRACKER(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(DcfTrackerBintr)) and  \
-        !components[name]->IsType(typeid(KtlTrackerBintr)) and  \
-        !components[name]->IsType(typeid(IouTrackerBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Tracker"); \
-        return DSL_RESULT_TRACKER_COMPONENT_IS_NOT_TRACKER; \
-    } \
-}while(0); 
-
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(DemuxerBintr)) and  \
@@ -318,13 +297,16 @@ THE SOFTWARE.
 // All Bintr's that can be added as a "branch" to a "Tee"
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(BranchBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
@@ -339,13 +321,17 @@ THE SOFTWARE.
 #elif GSTREAMER_SUB_VERSION < 18
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
-        !components[name]->IsType(typeid(MessageSinkBintr))) \
+        !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
@@ -354,13 +340,16 @@ THE SOFTWARE.
 #else
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(FakeSinkBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \

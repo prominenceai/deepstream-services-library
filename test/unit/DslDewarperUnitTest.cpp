@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ SCENARIO( "A DewarperBintr is created correctly",  "[DewarperBintr]" )
         WHEN( "The Dewarper is created" )
         {
             DSL_DEWARPER_PTR pDewarperBintr = 
-                DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+                DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
             THEN( "The Dewarper's config file is found, loaded, and returned correctly")
             {
@@ -58,7 +58,7 @@ SCENARIO( "A DewarperBintr can LinkAll child Elementrs correctly",  "[DewarperBi
     GIVEN( "A new DewarperBintr in memory" ) 
     {
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         WHEN( "The DewarperBintr is called to LinkAll" )
         {
@@ -77,7 +77,7 @@ SCENARIO( "A DewarperBintr can UnlinkAll child Elementrs correctly",  "[Dewarper
     GIVEN( "A new DewarperBintr in memory" ) 
     {
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pDewarperBintr->LinkAll() == true );
         
@@ -101,7 +101,7 @@ SCENARIO( "A DewarperBintr can Get and Set it's GPU ID",  "[DewarperBintr]" )
         uint GPUID1(1);
 
         DSL_DEWARPER_PTR pDewarperBintr = 
-            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str());
+            DSL_DEWARPER_NEW(dewarperName.c_str(), defConfigFile.c_str(), 0);
 
         REQUIRE( pDewarperBintr->GetGpuId() == GPUID0 );
         

@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    // Initilize the unique id list for all PreprocBintrs 
+    // Initilize the unique id list for all InferBintrs 
     std::list<uint> InferBintr::s_uniqueIds;
 
     InferBintr::InferBintr(const char* name, uint processMode, 
@@ -66,8 +66,6 @@ namespace DSL
         // generate a unique Id for the GIE based on its unique name
         std::string inferBintrName = "infer-" + GetName();
 
-        LOG_INFO("Creating Inference Component  '" << inferBintrName << "' with unique Id = " << m_uniqueId);
-        
         // Set the name value for the current unique inference component Id.
         if (Services::GetServices()->_inferNameSet(m_uniqueId, 
             GetCStrName()) != DSL_RESULT_SUCCESS)
@@ -76,7 +74,7 @@ namespace DSL
                 << "' failed to Set name for its unique Id");
             throw;
         }   
-        
+
         // create and setup unique Inference Element, GIE or TIS
         if (m_inferType == DSL_INFER_TYPE_TIS)
         {
@@ -85,7 +83,7 @@ namespace DSL
         else
         {
             m_pInferEngine = DSL_ELEMENT_NEW("nvinfer", inferBintrName.c_str());
-            m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+            m_pInferEngine->GetAttribute("gpu-id", &m_gpuId);
             
             // If a model engine file is provided (non-server only)
             if (m_modelEngineFile.size())
@@ -93,9 +91,19 @@ namespace DSL
                 m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
             }
         }
+        
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         m_pInferEngine->SetAttribute("process-mode", m_processMode);
         m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for InferBintr '" << name << "'");
+        LOG_INFO("  Inference Type    : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path  : " << m_inferConfigFile);
+        LOG_INFO("  process-mode      : " << m_processMode);
+        LOG_INFO("  unique-id         : " << m_uniqueId);
+        LOG_INFO("  interval          : " << m_interval);
+        LOG_INFO("  model-engine-file : " << m_modelEngineFile);
 
         // update the InferEngine interval setting
         SetInterval(m_interval);
@@ -541,12 +549,11 @@ namespace DSL
         const char* inferOn, uint interval, uint inferType)
         : InferBintr(name, DSL_INFER_MODE_SECONDARY, inferConfigFile, 
             modelEngineFile, interval, inferType)
+        , m_inferOn(inferOn)
+
     {
         LOG_FUNC();
 
-        // update the InferEngine interval setting
-        SetInferOnName(inferOn);
-        
         m_pQueue = DSL_ELEMENT_EXT_NEW("queue", name, "tee");
         m_pTee = DSL_ELEMENT_NEW("tee", name);
         m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
@@ -555,6 +562,8 @@ namespace DSL
         m_pFakeSink->SetAttribute("async", false);
         m_pFakeSink->SetAttribute("sync", false);
         m_pFakeSink->SetAttribute("enable-last-sample", false);
+        
+        LOG_INFO("  Infer on name     : " << inferOn);
         
         // Note: the Elementrs created/owned by this SecondaryInferBintr are added as 
         // children to the parent InferBintr, and not to this Bintr's GST BIN
@@ -588,7 +597,6 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
-
         if (!m_pQueue->LinkToSink(m_pInferEngine) or 
             !m_pInferEngine->LinkToSink(m_pTee) or
             !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
@@ -645,7 +653,7 @@ namespace DSL
         return m_inferOn.c_str();
     }
     
-    bool SecondaryInferBintr::SetInferOnName(const char* name)
+    bool SecondaryInferBintr::SetInferOnUniqueId()
     {
         LOG_FUNC();
 
@@ -656,15 +664,14 @@ namespace DSL
             return false;
             
         }
-        if (Services::GetServices()->_inferIdGet(name, 
+        if (Services::GetServices()->_inferIdGet(m_inferOn.c_str(), 
             &m_inferOnUniqueId) != DSL_RESULT_SUCCESS)
         {
             LOG_ERROR("SecondaryInferBintr '" << GetName() 
                 << "' failed to Get unique Id for PrimaryInferBintr '" 
-                << name << "'");
+                << m_inferOn << "'");
             return false;
         }   
-        m_inferOn.assign(name);
         
         LOG_INFO("Setting infer-on-id for SecondaryInferBintr '" 
             << GetName() << "' to " << m_inferOnUniqueId);
@@ -681,24 +688,6 @@ namespace DSL
         LOG_INFO("Linking SecondaryInferBintr '" << GetName() 
             << "' to Tee '" << pTee->GetName() << "'");
         
-        m_pGstStaticSinkPad = 
-            gst_element_get_static_pad(m_pQueue->GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for SecondaryInferBintr '" 
-                << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSourcePad = 
-            gst_element_get_request_pad(pTee->GetGstElement(), "src_%u");
-            
-        if (!pGstRequestedSourcePad)
-        {
-            LOG_ERROR("Failed to get Tee Pad for  '" << pTee->GetName() <<" '");
-            return false;
-        }
-
         if (!m_pQueue->LinkToSource(pTee))
         {
             LOG_ERROR("Failed to link Tee '" << pTee->GetName() 
@@ -706,8 +695,6 @@ namespace DSL
             return false;
         }
 
-        m_pGstRequestedSourcePads["src"] = pGstRequestedSourcePad;
-        
         return true;
     }
 
@@ -731,11 +718,6 @@ namespace DSL
         }
         LOG_INFO("Unlinking and releasing requested Source Pad for SecondaryInferBintr " 
             << GetName());
-        
-//        gst_element_release_request_pad(GetSource()->GetGstElement(), 
-//            m_pGstRequestedSourcePads["src"]);
-                
-        m_pGstRequestedSourcePads.erase("src");
         
         return true;
     }

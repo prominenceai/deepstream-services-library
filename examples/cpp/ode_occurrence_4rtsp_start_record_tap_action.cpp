@@ -44,10 +44,10 @@ std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
-int TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-int TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
-int WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-int WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
+int TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+int TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+int WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+int WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
 int PGIE_CLASS_ID_VEHICLE = 0;
 int PGIE_CLASS_ID_BICYCLE = 1;    
@@ -344,7 +344,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New KTL Tracker, setting max width and height of input frame    
-        retval = dsl_tracker_iou_new(L"iou-tracker", tracker_config_file.c_str(), 480, 272);
+        retval = dsl_tracker_new(L"iou-tracker", tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Tiled Display, setting width and height, use default cols/rows set by source count    

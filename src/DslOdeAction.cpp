@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,10 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslOdeAction.h"
 #include "DslDisplayTypes.h"
+
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
+#include "DslAvFile.h"
+#endif
 
 #define DATE_BUFF_LENGTH 40
 
@@ -113,6 +117,87 @@ namespace DSL
     
     // ********************************************************************
 
+    ScaleBBoxOdeAction::ScaleBBoxOdeAction(const char* name, 
+        uint scale)
+        : OdeAction(name)
+        , m_scale(scale)
+    {
+        LOG_FUNC();
+    }
+
+    ScaleBBoxOdeAction::~ScaleBBoxOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void ScaleBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            // calculate the proposed delta change in width and height
+            
+            int proposedWidth(round((pObjectMeta->rect_params.width*m_scale)/100));
+            int proposedHeight(round((pObjectMeta->rect_params.height*m_scale)/100));
+            
+            int deltaWidth(proposedWidth - pObjectMeta->rect_params.width);
+            int deltaHeight(proposedHeight - pObjectMeta->rect_params.height);
+
+            // calculate the proposed upper left corner
+            int proposedLeft(pObjectMeta->rect_params.left - round(deltaWidth/2));
+            int proposedTop(pObjectMeta->rect_params.top - round(deltaHeight/2));
+            
+            // calculate the new upper left corner while ensuring that 
+            // it still lies within the frame - min 0,0
+            int newLeft = std::max(0, proposedLeft);
+            int newTop = std::max(0, proposedTop);
+
+            // calculate the current lower right corner
+            int currentRight(pObjectMeta->rect_params.left + 
+                pObjectMeta->rect_params.width);
+            int currentBottom(pObjectMeta->rect_params.top + 
+                pObjectMeta->rect_params.height);
+            
+            // calculate the proposed lower right corner
+            int proposedRight(currentRight + (deltaWidth/2));
+            int proposedBottom(currentBottom + (deltaHeight/2));
+            
+            // calculate the new lower right corner while ensuring that
+            // it still falls within the frame.
+            int newRight(std::min(proposedRight, 
+                (int)pFrameMeta->source_frame_width-1));
+            int newBottom(std::min(proposedBottom, 
+                (int)pFrameMeta->source_frame_height-1));
+            
+            // finally, calcuate the new width and height from the
+            // new top left and bottom right corner coordinates.
+            int newWidth(newRight - newLeft);
+            int newHeight(newBottom - newTop);
+            
+            // update the object-meta with the new values
+            pObjectMeta->rect_params.left = (float)newLeft;
+            pObjectMeta->rect_params.top = (float)newTop;
+            pObjectMeta->rect_params.width = (float)newWidth;
+            pObjectMeta->rect_params.height = (float)newHeight;
+            
+            // need to offset the label as well according to the delta
+            int proposedOffsetX(pObjectMeta->text_params.x_offset - (deltaWidth/2));
+            int proposedOffsetY(pObjectMeta->text_params.y_offset - (deltaHeight/2));
+            
+            int newOffsetX(std::max(0, proposedOffsetX));
+            int newOffsetY(std::max(0, proposedOffsetY));
+            
+            // update the object-meta with the new values
+            pObjectMeta->text_params.x_offset = (float)newOffsetX;
+            pObjectMeta->text_params.y_offset = (float)newOffsetY;
+        }
+    }
+
+    // ********************************************************************
+
     CustomOdeAction::CustomOdeAction(const char* name, 
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
         : OdeAction(name)
@@ -160,40 +245,51 @@ namespace DSL
 
     // Initialize static Event Counter
     uint64_t CaptureOdeAction::s_captureId = 0;
+    
+    static int idle_thread_handler(void* client_data)
+    {
+        CaptureOdeAction* pCaptureAction = (CaptureOdeAction*)client_data;
+        
+        return pCaptureAction->convertCapturedImage();
+    }
 
     CaptureOdeAction::CaptureOdeAction(const char* name, 
-        uint captureType, const char* outdir, bool annotate)
+        uint captureType, const char* outdir)
         : OdeAction(name)
+        , m_cudaDeviceProp{0}
+        , m_cudaDevicePropRead(false)
         , m_captureType(captureType)
         , m_outdir(outdir)
-        , m_annotate(annotate)
-        , m_captureCompleteTimerId(0)
+        , m_idleThreadFunctionId(0)
     {
         LOG_FUNC();
 
-        g_mutex_init(&m_captureCompleteMutex);
+        g_mutex_init(&m_captureQueueMutex);
+        g_mutex_init(&m_childContainerMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
     {
         LOG_FUNC();
 
+        // If the idle-thread for processing images is currently running.
+        if (m_idleThreadFunctionId)
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
-            if (m_captureCompleteTimerId)
-            {
-                g_source_remove(m_captureCompleteTimerId);
-            }
-            RemoveAllChildren();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+            g_source_remove(m_idleThreadFunctionId);
         }
-        g_mutex_clear(&m_captureCompleteMutex);
+
+        RemoveAllChildren();
+        
+        g_mutex_clear(&m_captureQueueMutex);
+        g_mutex_clear(&m_childContainerMutex);
     }
 
     bool CaptureOdeAction::AddCaptureCompleteListener(
         dsl_capture_complete_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_captureCompleteListeners.find(listener) != 
             m_captureCompleteListeners.end())
@@ -211,7 +307,7 @@ namespace DSL
         dsl_capture_complete_listener_cb listener)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_captureCompleteListeners.find(listener) == 
             m_captureCompleteListeners.end())
@@ -228,7 +324,7 @@ namespace DSL
     bool CaptureOdeAction::AddImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_imagePlayers.find(pPlayer->GetName()) != 
             m_imagePlayers.end())
@@ -245,7 +341,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveImagePlayer(DSL_PLAYER_BINTR_PTR pPlayer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_imagePlayers.find(pPlayer->GetCStrName()) == 
             m_imagePlayers.end())
@@ -263,7 +359,7 @@ namespace DSL
         const char* subject, bool attach)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_mailers.find(pMailer->GetName()) != m_mailers.end())
         {   
@@ -284,7 +380,7 @@ namespace DSL
     bool CaptureOdeAction::RemoveMailer(DSL_MAILER_PTR pMailer)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
         
         if (m_mailers.find(pMailer->GetCStrName()) == m_mailers.end())
         {   
@@ -300,63 +396,42 @@ namespace DSL
     void CaptureOdeAction::RemoveAllChildren()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
+
+        // If there are Image Players
+        for (auto const& iter: m_imagePlayers)
+        {
+            if (iter.second->IsType(typeid(ImageRenderPlayerBintr)))
+            {
+                DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pImagePlayer = 
+                    std::dynamic_pointer_cast<ImageRenderPlayerBintr>(iter.second);
+
+                GstState state;
+                pImagePlayer->GetState(state, 0);
+
+                // Queue the filepath if the Player is currently Playing/Paused
+                // otherwise, set the filepath and Play the Player
+                if (state != GST_STATE_NULL)
+                {
+                    pImagePlayer->Stop();
+                }
+            }
+        }
+
     }
     
-    cv::Mat& CaptureOdeAction::AnnotateObject(NvDsObjectMeta* pObjectMeta, 
-        cv::Mat& bgr_frame)
-    {
-        // rectangle params are in floats so convert
-        int left((int)pObjectMeta->rect_params.left);
-        int top((int)pObjectMeta->rect_params.top);
-        int width((int)pObjectMeta->rect_params.width); 
-        int height((int)pObjectMeta->rect_params.height);
-
-        // add the bounding-box rectange
-        cv::rectangle(bgr_frame,
-            cv::Point(left, top),
-            cv::Point(left+width, top+height),
-            cv::Scalar(0, 0, 255, 0),
-            2);
-        
-        // assemble the label based on the available information
-        std::string label(pObjectMeta->obj_label);
-        
-        if(pObjectMeta->object_id)
-        {
-            label = label + " " + std::to_string(pObjectMeta->object_id); 
-        }
-        if(pObjectMeta->confidence > 0)
-        {
-            label = label + " " + std::to_string(pObjectMeta->confidence); 
-        }
-        
-        // add a black background rectangle for the label as cv::putText does not 
-        // support a background color the size of the bacground is just an approximation 
-        //based on character count not their actual sizes
-        cv::rectangle(bgr_frame,
-            cv::Point(left, top-30),
-            cv::Point(left+label.size()*10+2, top-2),
-            cv::Scalar(0, 0, 0, 0),
-            cv::FILLED);
-
-        // add the label to the black background
-        cv::putText(bgr_frame, 
-            label.c_str(), 
-            cv::Point(left+2, top-12),
-            cv::FONT_HERSHEY_SIMPLEX,
-            0.5,
-            cv::Scalar(255, 255, 255, 0),
-            1);
-            
-        return bgr_frame;
-    }
-
     void CaptureOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
+        HandleOccurrence(pBuffer, pFrameMeta, pObjectMeta);
+    }
+        
+    void CaptureOdeAction::HandleOccurrence(GstBuffer* pBuffer, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
+        
         if (!m_enabled)
         {
             return;
@@ -371,64 +446,88 @@ namespace DSL
         // Map the current buffer
         std::unique_ptr<DslMappedBuffer> pMappedBuffer = 
             std::unique_ptr<DslMappedBuffer>(new DslMappedBuffer(pBuffer));
+            
+        // One time read of the Device properties
+        if (!m_cudaDevicePropRead)
+        {
+            cudaGetDeviceProperties(&m_cudaDeviceProp, pMappedBuffer->pSurface->gpuId);
+            m_cudaDevicePropRead = true;
+        }
 
-        NvBufSurfaceMemType transformMemType = pMappedBuffer->pSurface->memType;
-
-        LOG_INFO("Creating new mono-surface with memory type " 
-            << transformMemType);
-
+        NvBufSurfaceMemType transformMemType = (m_cudaDeviceProp.integrated)
+            ? NVBUF_MEM_DEFAULT
+            : NVBUF_MEM_CUDA_PINNED;
+    
         // Transforming only one frame in the batch, so create a copy of the single 
-        // surface ... becoming our new source surface. This creates a new mono (non-batched) 
-        // surface copied from the "batched frames" using the batch id as the index
+        // surface ... becoming our new source surface. This creates a new mono 
+        // (non-batched) surface copied from the "batched frames" using the batch id 
+        // as the index
         DslMonoSurface monoSurface(pMappedBuffer->pSurface, pFrameMeta->batch_id);
 
-        // Coordinates and dimensions for our destination surface for RGBA to 
-        // BGR conversion required for JPEG
-        uint32_t left(0), top(0), width(0), height(0);
+        // Coordinates and dimensions for our destination surface.
+        gint left(0), top(0), width(0), height(0);
 
         // capturing full frame or object only?
         if (m_captureType == DSL_CAPTURE_TYPE_FRAME)
         {
             width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
             height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
+            LOG_INFO("Capturing frame with dimensions " 
+                << width << "x" << height);
         }
+        // Create crop rectangle params ensuring that width and height are divisable 
+        // by 2. This is done to ensure that the plane width and height (which 
+        // are always created as even numbers) will match the buffer width and height.
         else
         {
-            left = pObjectMeta->rect_params.left;
-            top = pObjectMeta->rect_params.top;
-            width = pObjectMeta->rect_params.width; 
-            height = pObjectMeta->rect_params.height;
+            left = GST_ROUND_UP_2(
+                gint(std::round(pObjectMeta->rect_params.left)));
+            top = GST_ROUND_UP_2(
+                gint(std::round(pObjectMeta->rect_params.top)));
+            width = GST_ROUND_DOWN_2(
+                gint(std::round(pObjectMeta->rect_params.width)));
+            height = GST_ROUND_DOWN_2(
+                gint(std::round(pObjectMeta->rect_params.height)));
+
+            LOG_INFO("Capturing object " << s_captureId 
+                << " with coordinates " << left << "," << top 
+                << " and dimensions " << width << "x" << height);
         }
 
-        // New "create params" for our destination surface. we only need one surface so set 
-        // memory allocation (for the array of surfaces) size to 0
+        // New "create params" for our destination surface. we only need one 
+        // surface so set memory allocation (for the array of surfaces) size to 0
         DslSurfaceCreateParams surfaceCreateParams(monoSurface.gpuId, 
-            width, height, 0, transformMemType);
+            width, height, 0, NVBUF_COLOR_FORMAT_RGBA, transformMemType);
         
-        // New Destination surface with a batch size of 1 for transforming the single surface 
-        DslBufferSurface dstSurface(1, surfaceCreateParams);
+        // New Destination surface with a batch size of 1 for transforming 
+        // the single surface 
+        std::shared_ptr<DslBufferSurface> pBufferSurface = 
+            std::shared_ptr<DslBufferSurface>(
+                new DslBufferSurface(1, surfaceCreateParams, s_captureId++));
 
-        // New "transform params" for the surface transform, croping or (future?) scaling
+        // New "transform params" for the surface transform, croping or 
+        // (future?) scaling
         DslTransformParams transformParams(left, top, width, height);
         
         // New "Cuda stream" for the surface transform
         DslCudaStream dslCudaStream(monoSurface.gpuId);
         
         // New "Transform Session" config params using the new Cuda stream
-        DslSurfaceTransformSessionParams dslTransformSessionParams(monoSurface.gpuId, 
-            dslCudaStream);
+        DslSurfaceTransformSessionParams dslTransformSessionParams(
+            monoSurface.gpuId, dslCudaStream);
         
         // Set the "Transform Params" for the current tranform session
         if (!dslTransformSessionParams.Set())
         {
-            LOG_ERROR("Destination surface failed to set transform session params for Action '" 
+            LOG_ERROR(
+                "Destination surface failed to set transform session params for Action '" 
                 << GetName() << "'");
             return;
         }
         
         // We can now transform our Mono Source surface to the first (and only) 
         // surface in the batched buffer.
-        if (!dstSurface.TransformMonoSurface(monoSurface, 0, transformParams))
+        if (!pBufferSurface->TransformMonoSurface(monoSurface, 0, transformParams))
         {
             LOG_ERROR("Destination surface failed to transform for Action '" 
                 << GetName() << "'");
@@ -436,106 +535,87 @@ namespace DSL
         }
 
         // Map the tranformed surface for read
-        if (!dstSurface.Map())
+        if (!pBufferSurface->Map())
         {
-            LOG_ERROR("Destination surface failed to map for Action '" << GetName() << "'");
+            LOG_ERROR("Destination surface failed to map for Action '" 
+                << GetName() << "'");
             return;
         }
 
-        if (transformMemType != NVBUF_MEM_CUDA_UNIFIED)
-        {
-            // Sync the surface for CPU access
-            if (!dstSurface.SyncForCpu())
-            {
-                LOG_ERROR("Destination surface failed to Sync for '" << GetName() << "'");
-                return;
-            }
-        }
-
-        // New background Mat for our image
-        cv::Mat* pbgrFrame = new cv::Mat(cv::Size(width, height), CV_8UC3);
-
-        // new forground Mat using the first (and only) bufer in the batch
-        cv::Mat in_mat = cv::Mat(height, width, CV_8UC4, 
-            (&dstSurface)->surfaceList[0].mappedAddr.addr[0],
-            (&dstSurface)->surfaceList[0].pitch);
-
-        // Convert the RGBA buffer to BGR
-        cv::cvtColor(in_mat, *pbgrFrame, CV_RGBA2BGR);
-        
-        // if this is a frame capture and the client wants the image annotated.
-        if (m_captureType == DSL_CAPTURE_TYPE_FRAME and m_annotate)
-        {
-            // if object meta is available, then occurrence was triggered 
-            // on an object occurrence, so we only annotate the single object
-            if (pObjectMeta)
-            {
-                *pbgrFrame = AnnotateObject(pObjectMeta, *pbgrFrame);
-            }
-            
-            // otherwise, we iterate throught the object-list highlighting each object.
-            else
-            {
-                for (NvDsMetaList* pMeta = pFrameMeta->obj_meta_list; 
-                    pMeta != NULL; pMeta = pMeta->next)
-                {
-                    // not to be confussed with pObjectMeta
-                    NvDsObjectMeta* _pObjectMeta_ = (NvDsObjectMeta*) (pMeta->data);
-                    if (_pObjectMeta_ != NULL)
-                    {
-                        *pbgrFrame = AnnotateObject(_pObjectMeta_, *pbgrFrame);
-                    }
-                }
-            }
-        }
-        // convert to shared pointer and queue for asyn file save and client notificaton
-        std::shared_ptr<cv::Mat> pImageMat = std::shared_ptr<cv::Mat>(pbgrFrame);
-        QueueCapturedImage(pImageMat);
+        queueCapturedImage(pBufferSurface);
     }
 
-    void CaptureOdeAction::QueueCapturedImage(std::shared_ptr<cv::Mat> pImageMat)
+    void CaptureOdeAction::queueCapturedImage(
+        std::shared_ptr<DslBufferSurface> pBufferSurface)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
         
-        m_imageMats.push(pImageMat);
+        m_pBufferSurfaces.push(pBufferSurface);
         
-        // start the asynchronous notification timer if not currently running
-        if (!m_captureCompleteTimerId)
+        if (!m_idleThreadFunctionId)
         {
-            m_captureCompleteTimerId = g_timeout_add(1, CompleteCaptureHandler, this);
+            LOG_INFO("Starting idle thread for image processing");
+            m_idleThreadFunctionId = g_idle_add(idle_thread_handler, this);
         }
     }
 
-    int CaptureOdeAction::CompleteCapture()
+    int CaptureOdeAction::convertCapturedImage()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureCompleteMutex);
         
-        
-        while (m_imageMats.size())
+        // New shared pointer to assign to the image at the front of the queue.
+        std::shared_ptr<DslBufferSurface> pBufferSurface;
         {
-            std::shared_ptr<cv::Mat> pImageMat = m_imageMats.front();
-            m_imageMats.pop();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
             
-            char dateTime[64] = {0};
-            time_t seconds = time(NULL);
-            struct tm currentTm;
-            localtime_r(&seconds, &currentTm);
+            // There should always be at least one image queued if this
+            // thread is running - but need to check before dequing
+            if (!m_pBufferSurfaces.size())
+            {
+                LOG_ERROR("Buffer-Surface queue is empty");
+                m_idleThreadFunctionId = 0;
+                return FALSE;
+            }
+            
+            // Set the pointer to the head object and pop it off
+            pBufferSurface = m_pBufferSurfaces.front();
+            m_pBufferSurfaces.pop();
+        }
+        
+        // Get the dimensions and data size of the mono-surface
+        uint bufferWidth = (&(*pBufferSurface))->surfaceList[0].width;
+        uint bufferHeight = (&(*pBufferSurface))->surfaceList[0].height;
+        
+        // Generate the image file name from the date-time string
+        std::ostringstream fileNameStream;
+        fileNameStream << GetName() << "_" 
+            << std::setw(5) << std::setfill('0') << pBufferSurface->GetUniqueId()
+            << "_" << pBufferSurface->GetDateTimeStr() << ".jpeg";
+            
+        // Generate the filespec from the output dir and file name
+        std::string filespec = m_outdir + "/" + 
+            fileNameStream.str();
 
-            std::strftime(dateTime, sizeof(dateTime), "%Y%m%d-%H%M%S", &currentTm);
-            std::string dateTimeStr(dateTime);
+        // Try to convert and save the image to a JPEG file. 
+        try
+        {
+#if (BUILD_WITH_FFMPEG == true) || (BUILD_WITH_OPENCV == true)
+            AvJpgOutputFile avJpgOutFile(pBufferSurface, 
+                filespec.c_str());
+#endif                
+        }
+        catch(...)
+        {
+            m_idleThreadFunctionId = 0;
+            return FALSE;
+        }
+        LOG_INFO("Saved JPEG Image with id = " << pBufferSurface->GetUniqueId());
 
-            std::ostringstream fileNameStream;
-            fileNameStream << GetName() << "_" 
-                << std::setw(5) << std::setfill('0') << s_captureId
-                << "_" << dateTimeStr << ".jpeg";
-                
-            std::string filespec = m_outdir + "/" + 
-                fileNameStream.str();
-
-            cv::imwrite(filespec.c_str(), *pImageMat);
-
+        // Create scope to lock the child-container mutex
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_childContainerMutex);
+            
             // If there are Image Players for playing the captured image
             for (auto const& iter: m_imagePlayers)
             {
@@ -560,7 +640,6 @@ namespace DSL
                         
                     }
                 }
-                // TODO handle ImageRtspPlayerBintr
             }
             
             // If there are complete listeners to notify
@@ -569,21 +648,19 @@ namespace DSL
                 // assemble the capture info
                 dsl_capture_info info{0};
 
-                info.captureId = s_captureId;
+                info.capture_id = pBufferSurface->GetUniqueId();
                 
                 std::string fileName = fileNameStream.str();
                 
-                // convert the filename and dirpath to wchar string types (client format)
+                // convert the filename and dirpath to wchar string types 
+                // i.e the client's format.
                 std::wstring wstrFilename(fileName.begin(), fileName.end());
                 std::wstring wstrDirpath(m_outdir.begin(), m_outdir.end());
                
                 info.dirpath = wstrDirpath.c_str();
                 info.filename = wstrFilename.c_str();
-                
-                // get the dimensions from the image Mat
-                cv::Size imageSize = pImageMat->size();
-                info.width = imageSize.width;
-                info.height = imageSize.height;
+                info.width = bufferWidth;
+                info.height = bufferHeight;
                     
                 // iterate through the map of listeners calling each
                 for(auto const& imap: m_captureCompleteListeners)
@@ -612,15 +689,12 @@ namespace DSL
                 body.push_back(std::string("Location   : " 
                     + m_outdir + "<br>"));
                 body.push_back(std::string("Capture Id : " 
-                    + std::to_string(s_captureId) + "<br>"));
-
-                // get the dimensions from the image Mat
-                cv::Size imageSize = pImageMat->size();
+                    + std::to_string(pBufferSurface->GetUniqueId()) + "<br>"));
 
                 body.push_back(std::string("Width      : " 
-                    + std::to_string(imageSize.width) + "<br>"));
+                    + std::to_string(bufferWidth) + "<br>"));
                 body.push_back(std::string("Height     : " 
-                    + std::to_string(imageSize.height) + "<br>"));
+                    + std::to_string(bufferHeight) + "<br>"));
                     
                 for (auto const& iter: m_mailers)
                 {
@@ -633,19 +707,18 @@ namespace DSL
                         body, filepath);
                 }
             }
-            // Increment the global capture count
-            s_captureId++;
+        } // end child-container mutex lock
+        
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureQueueMutex);
+
+        // If there are more buffer-surfaces to convert, return true to reschedule.
+        if (m_pBufferSurfaces.size())
+        {
+            return TRUE;
         }
-
-        // clear the timer id and return false to self remove
-        m_captureCompleteTimerId = 0;
-        return false;
-    }
-
-    static int CompleteCaptureHandler(gpointer pAction)
-    {
-        return static_cast<CaptureOdeAction*>(pAction)->
-            CompleteCapture();
+        // Else, clear the thread-function id and return false to NOT reschedule.
+        m_idleThreadFunctionId = 0;
+        return FALSE;
     }
 
     // ********************************************************************
@@ -1471,7 +1544,7 @@ namespace DSL
             std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
         
         m_ostream << pFrameMeta->frame_num << ", ";
-        m_ostream << pObjectMeta->class_id << ", ";
+        m_ostream << pObjectMeta->object_id << ", ";
         m_ostream << pObjectMeta->rect_params.left << ", ";
         m_ostream << pObjectMeta->rect_params.top << ", ";
         m_ostream << pObjectMeta->rect_params.width << ", ";
@@ -1961,6 +2034,64 @@ namespace DSL
 
     // ********************************************************************
 
+    OffsetLabelOdeAction::OffsetLabelOdeAction(const char* name, 
+        int offsetX, int offsetY)
+        : OdeAction(name)
+        , m_offsetX(offsetX)
+        , m_offsetY(offsetY)
+    {
+        LOG_FUNC();
+    }
+
+    OffsetLabelOdeAction::~OffsetLabelOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void OffsetLabelOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            int originalOffsetX(pObjectMeta->text_params.x_offset);
+            int originalOffsetY(pObjectMeta->text_params.y_offset);
+            
+            // if off-setting to the left
+            if (m_offsetX < 0)
+            {
+                // need to ensure that the offset stays within the frame, min 0 
+                pObjectMeta->text_params.x_offset = (originalOffsetX > -m_offsetX)
+                    ? originalOffsetX + m_offsetX
+                    : 0;
+            }
+            // else we're off-setting to the right
+            else
+            {
+                // need to ensure that the offset stays within the frame, max X pixel  
+                pObjectMeta->text_params.x_offset = originalOffsetX + m_offsetX;
+            }
+            // if off-setting upwards
+            if (m_offsetY < 0)
+            {
+                // need to ensure that the offset stays within the frame, min 0 
+                pObjectMeta->text_params.y_offset = (originalOffsetY > -m_offsetY)
+                    ? originalOffsetY + m_offsetY
+                    : 0;
+            }
+            // else, off-setting downwards
+            else
+            {
+                pObjectMeta->text_params.y_offset = originalOffsetY + m_offsetY;
+            }
+        }
+    }
+
+
+    // ********************************************************************
+
     AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, 
         DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)
@@ -1994,6 +2125,32 @@ namespace DSL
             {
                 ivec->AddMeta(displayMetaData, pFrameMeta);
             }
+        }
+    }
+
+    // ********************************************************************
+
+    RemoveObjectOdeAction::RemoveObjectOdeAction(const char* name)
+        : OdeAction(name)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveObjectOdeAction::~RemoveObjectOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveObjectOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            nvds_remove_obj_meta_from_frame(pFrameMeta, pObjectMeta);
+            pObjectMeta = nullptr;
         }
     }
 

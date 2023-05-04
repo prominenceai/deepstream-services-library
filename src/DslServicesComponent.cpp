@@ -178,7 +178,7 @@ DslReturnType Services::ComponentNvbufMemTypeGet(const char* name, uint* type)
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
 
-            if (type > DSL_NVBUF_MEM_TYPE_UNIFIED)
+            if (type > DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY)
             {
                 LOG_ERROR("Invalid NVIDIA buffer memory type = " << type 
                     << " for component '"  << name << "'");

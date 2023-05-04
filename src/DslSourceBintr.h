@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -40,9 +39,14 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
-    #define DSL_SOURCE_NEW(name) \
-        std::shared_ptr<SourceBintr>(new SourceBintr(name))
 
+    #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
+
+    #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
+    #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
+        std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
+            bufferInFormat, width, height, fpsN, fpsD))
+        
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fpsN, fpsD))
@@ -53,12 +57,10 @@ namespace DSL
 
     #define DSL_RESOURCE_SOURCE_PTR std::shared_ptr<ResourceSourceBintr>
         
-    #define DSL_DECODE_SOURCE_PTR std::shared_ptr<DecodeSourceBintr>
-        
     #define DSL_URI_SOURCE_PTR std::shared_ptr<UriSourceBintr>
-    #define DSL_URI_SOURCE_NEW(name, uri, isLive, intraDecode, dropFrameInterval) \
+    #define DSL_URI_SOURCE_NEW(name, uri, isLive, skipFrames, dropFrameInterval) \
         std::shared_ptr<UriSourceBintr>(new UriSourceBintr(name, \
-            uri, isLive, intraDecode, dropFrameInterval))
+            uri, isLive, skipFrames, dropFrameInterval))
         
     #define DSL_FILE_SOURCE_PTR std::shared_ptr<FileSourceBintr>
     #define DSL_FILE_SOURCE_NEW(name, uri, repeatEnabled) \
@@ -75,37 +77,95 @@ namespace DSL
         std::shared_ptr<MultiImageSourceBintr>(new MultiImageSourceBintr(name, uri, fpsN, fpsD))
 
     #define DSL_IMAGE_STREAM_SOURCE_PTR std::shared_ptr<ImageStreamSourceBintr>
-    #define DSL_IMAGE_STREAM_SOURCE_NEW(name, filePath, isLive, fpsN, fpsD, timeout) \
+    #define DSL_IMAGE_STREAM_SOURCE_NEW(name, uri, isLive, fpsN, fpsD, timeout) \
         std::shared_ptr<ImageStreamSourceBintr>(new ImageStreamSourceBintr(name, \
-            filePath, isLive, fpsN, fpsD, timeout))
+            uri, isLive, fpsN, fpsD, timeout))
+
+    #define DSL_INTERPIPE_SOURCE_PTR std::shared_ptr<InterpipeSourceBintr>
+    #define DSL_INTERPIPE_SOURCE_NEW(name, listenTo, isLive, acceptEos, acceptEvents) \
+        std::shared_ptr<InterpipeSourceBintr>(new InterpipeSourceBintr(name, \
+            listenTo, isLive, acceptEos, acceptEvents))
 
     #define DSL_RTSP_SOURCE_PTR std::shared_ptr<RtspSourceBintr>
     #define DSL_RTSP_SOURCE_NEW(name, uri, protocol, \
-        intraDecode, dropFrameInterval, latency, timeout) \
+        skipFrames, dropFrameInterval, latency, timeout) \
         std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
-            intraDecode, dropFrameInterval, latency, timeout))
+            skipFrames, dropFrameInterval, latency, timeout))
+
+    /**
+     * @brief Utility function to define/set all capabilities (media, 
+     * format, width, height, and frame rate) for a given element.
+     * @param[in] pElement element to update.
+     * @param[in] media ascii version of one of the DSL_MEDIA_TYPE constants.
+     * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
+     * @param[in] width frame width in units of pixels.
+     * @param[in] height frame height in units of pixels.
+     * @param[in] fpsN frames-per-sec numerator.
+     * @param[in] fpsD frames-per-sec denominator.
+     * @param[in] isNvidia set to true to add memory:NVMM feature.
+     * @return on successful set, false otherwise.
+     */
+    static bool set_full_caps(DSL_ELEMENT_PTR pElement, 
+        const char* media, const char* format, uint width, uint height, 
+        uint fpsN, uint fpsD, bool isNvidia);
+
+    /**
+     * @brief Utility function to define/set the media and 
+     * format for a given element.
+     * @param[in] pElement element to update.
+     * @param[in] media ascii version of one of the DSL_MEDIA_TYPE constants.
+     * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
+     * @param[in] isNvidia set to true to add memory:NVMM feature.
+     * @return on successful set, false otherwise.
+     */
+    static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
+        const char* media, const char* format, bool isNvidia);
 
     /**
      * @class SourceBintr
      * @brief Implements a base Source Bintr for all derived Source types.
-     * CSI, V4L2, URI, and RTSP
      */
     class SourceBintr : public Bintr
     {
     public: 
     
+        /**
+         * @brief ctor for the SourceBintr base class
+         * @param[in] name unique name for the new SourceBintr
+         */
         SourceBintr(const char* name);
 
+        /**
+         * @brief dtor for the SourceBintr base class
+         */
         ~SourceBintr();
-        
-        void UnlinkAll(){};
 
+        /**
+         * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
+         * @param[in] pParentBintr shared pointer to the Parent Bintr to add to.
+         * @return true on successful add, false otherwise.
+         */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
+        /**
+         * @brief Tests if a give Bintr is the parent of the SourceBintr.
+         * @param[in] pParentBintr shared pointer to the Bintr to test for parenthood.
+         * @return true if the Bintr is the parent, false otherwise.
+         */
         bool IsParent(DSL_BASE_PTR pParentBintr);
-                        
-        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
+        /**
+         * @brief Removes the SourceBintr from a give Parent Bintr.
+         * @param pParentBintr shared pointer to the parent Bintr to remove from.
+         * @return true on successfull remove, false otherwise.
+         */
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
+
+        /**
+         * @brief Function is overridden by all derived SourceBintrs
+         */
+        void UnlinkAll(){};
+
         /**
          * @brief returns the Live state of this Streaming Source
          * @return true if the Source is Live, false otherwise.
@@ -118,25 +178,29 @@ namespace DSL
         }
         
         /**
-         * @brief For sources that manage EOS Consumers, this service must
-         * called before sending the source an EOS Event to stop playing.
-         */
-        virtual void DisableEosConsumer(){};
-        
-        /**
-         * @brief Gets the current width and height settings for this SourceBintr
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        void GetDimensions(uint* width, uint* height);
-        
-        /**
          * @brief Gets the current FPS numerator and denominator settings for this SourceBintr
          * @param[out] fpsN the FPS numerator
          * @param[out] fpsD the FPS denominator
          */ 
-        void GetFrameRate(uint* fpsN, uint* fpsD);
-        
+        void GetFrameRate(uint* fpsN, uint* fpsD)
+        {
+            LOG_FUNC();
+            
+            *fpsN = m_fpsN;
+            *fpsD = m_fpsD;
+        }
+
+        /**
+         * @brief Gets the current media-type for the SourceBintr.
+         * @return Current media type string. 
+         */
+        const char* GetMediaType()
+        {
+            LOG_FUNC();
+            
+            return m_mediaType.c_str();
+        }
+
         /**
          * @brief Returns the current linkable state of the Source. Camera Sources
          * HTTP, and RTSP sources are linkable for the life of the Source.
@@ -145,19 +209,215 @@ namespace DSL
          * @return true if the Source if linkable (able to link), false otherwise
          */
         virtual bool IsLinkable(){return true;};
-
-    public:
-
-            /**
+    
+        /**
+         * @brief For sources that manage EOS Consumers, this service must
+         * called before sending the source an EOS Event to stop playing.
+         */
+        virtual void DisableEosConsumer(){};
+        
+    protected:
+    
+        /**
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
          */
         cudaDeviceProp m_cudaDeviceProp;
 
         /**
-         * @brief True if the source is live and cannot be paused without losing data, False otherwise.
+         * @brief media-type for the SourceBintr. String version of one of the
+         * DSL_MEDIA_TYPE constant values.
+         */
+        std::string m_mediaType;
+
+        /**
+         * @brief True if the source is live and cannot be paused without losing data, 
+         * False otherwise.
          */
         bool m_isLive;
+        
+        /**
+         * @brief current frames-per-second numerator value for the SourceBintr
+         */
+        uint m_fpsN;
 
+        /**
+         * @brief current frames-per-second denominator value for the SourceBintr
+         */
+        uint m_fpsD;
+
+        /**
+         * @brief Soure Element for this SourceBintr
+         */
+        DSL_ELEMENT_PTR m_pSourceElement;
+        
+    };
+
+    /**
+     * @class VideoSourceBintr
+     * @brief Implements a base Video Source Bintr for all derived Video Source types.
+     */
+    class VideoSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the VideoSourceBintr base class
+         * @param[in] name unique name for the new VideoSourceBintr
+         */
+        VideoSourceBintr(const char* name);
+
+        /**
+         * @brief dtor for the VideoSourceBintr base class
+         */
+        ~VideoSourceBintr();
+
+        /**
+         * @brief Links the derived Source's last specific element (SrcNodetr)
+         * to the common elements shared by all sources.
+         * @param[in] pSrcNodetr source specific element to link to the common
+         * elements.
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
+        
+        /**
+         * @brief Links a dynamic src-pad to the common elements shared by all sources
+         * @param[in] pSrcPad dynamic src-pad to link
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(GstPad* pSrcPad);
+        
+        /**
+         * @brief Unlinks all common Elementrs owned by this SourceBintr
+         * elements.
+         */
+        void UnlinkCommon();
+
+        /**
+         * @brief Gets the current width and height settings for this SourceBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+
+        /**
+         * @brief Gets the current buffer-out-format for this SourceBintr.
+         * @return Current buffer-out-format. string version of one of the 
+         * DSL_VIDEO_FORMAT constants.
+         */
+        const char* GetBufferOutFormat()
+        {
+            LOG_FUNC();
+            
+            return m_bufferOutFormat.c_str();
+        };
+        
+        /**
+         * @brief Sets the buffer-out-format for the SourceBintr.
+         * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutFormat(const char* format);
+
+        /**
+         * @brief Sets the buffer-out-dimensions for the SourceBintr.
+         * @param[out] width new width value to scale the output buffer
+         * @param[out] height new height value to scale the output buffer
+         */
+        void GetBufferOutDimensions(uint* width, uint* height);
+        
+        /**
+         * @brief Sets the buffer-out-dimensions for the SourceBintr.
+         * @param[in] width new width value to scale the output buffer in pixels
+         * @param[in] height new height value to scale the output buffer in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutDimensions(uint width, uint height);
+        
+        /**
+         * @brief Gets the buffer-out-crop values for the SourceBintr.
+         * @param[in] cropAt either DSL_VIDEO_CROP_AT_SRC or 
+         * DSL_VIDEO_CROP_AT_DESTINATION.
+         * @param[out] left left coordinate for the crop frame in pixels.
+         * @param[out] top top coordinate for the crop frame in pixels.
+         * @param[out] width width of the crop frame in pixels.
+         * @param[out] height height of the crop frame in pixels.
+         * @return true if successfully set, false otherwise.
+         */
+        void GetBufferOutCropRectangle(uint cropAt, uint* left, uint* top, 
+            uint* width, uint* height);
+
+        /**
+         * @brief Sets the buffer-out-crop values for the SourceBintr.
+         * @param[in] cropAt either DSL_VIDEO_CROP_AT_SRC or 
+         * DSL_VIDEO_CROP_AT_DEST.
+         * @param[in] left left coordinate for the crop frame in pixels.
+         * @param[in] top top coordinate for the crop frame in pixels.
+         * @param[in] width width of the crop frame in pixels.
+         * @param[in] height height of the crop frame in pixels.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutCropRectangle(uint when, uint left, uint top, 
+            uint width, uint height);
+        
+        /**
+         * @brief Gets the current buffer-out-orientation for the VideoCon. 
+         * @param[out] orientation current buffer-out-format. One of the 
+         * DSL_VIDEO_ORIENTATION constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
+         * @return 
+         */
+        uint GetBufferOutOrientation();
+        
+        /**
+         * @brief Sets the buffer-out-orientation setting. 
+         * @param[out] orientation current buffer-out-format. One of the 
+         * DSL_VIDEO_ORIENTATION constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
+         * @return 
+         */
+        bool SetBufferOutOrientation(uint orientaion);
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type.
+         * @param[in] nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
+        /**
+         * @brief adds a single Dewarper Bintr to this SourceBintr 
+         * @param[in] pDewarperBintr shared pointer to Dewarper to add
+         * @returns true if the Dewarper could be added, false otherwise
+         */
+        bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
+
+        /**
+         * @brief remove a previously added Dewarper Bintr from this SourceBintr 
+         * @returns true if the Dewarper could be removed, false otherwise
+         */
+        bool RemoveDewarperBintr();
+        
+        /**
+         * @brief call to query the Decode Source if it has a Dewarper
+         * @return true if the Source has a Child
+         */
+        bool HasDewarperBintr();
+
+    private:
+
+        /**
+         * @brief Private function to update the Video Converter's capability filter.
+         * @return true if successful, false otherwise.
+         */
+        bool updateCaps();
+    
+    protected:
+
+        /**
+         * @brief current buffer-out-format. 
+         */
+        std::string m_bufferOutFormat;
+        
         /**
          * @brief current width of the streaming source in Pixels.
          */
@@ -169,47 +429,312 @@ namespace DSL
         uint m_height;
 
         /**
-         * @brief current frames-per-second numerator value for the Streaming Source
+         * @brief Current scaled width value for the SourceBintr's Output Buffer 
+         * Video Converter in units of pixels. Default = 0 for no transcode.
          */
-        uint m_fpsN;
-
-        /**
-         * @brief current frames-per-second denominator value for the Streaming Source
-         */
-        uint m_fpsD;
-
-        /**
-         * @brief
-         */
-        guint m_latency;
-
-        /**
-         * @brief
-         */
-        uint m_numDecodeSurfaces;
-
-        /**
-         * @brief
-         */
-        uint m_numExtraSurfaces;
+        uint m_bufferOutWidth;
         
         /**
-         * @brief Soure Element for this SourceBintr
+         * @brief Current scaled height setting for the SourceBintr's Output Buffer
+         * Video Converter in units of pixels. Default = 0 for no transcode
          */
-        DSL_ELEMENT_PTR m_pSourceElement;
+        uint m_bufferOutHeight;
+
+        /**
+         * @brief Current buffer-out-orientation setting for the SourceBintr
+         */
+        uint m_bufferOutOrientation;
 
         /**
          * @brief Single, optional dewarper for the DecodeSourceBintr
          */ 
         DSL_DEWARPER_PTR m_pDewarperBintr;
+        
+        /**
+         * @brief Output-buffer Video Converter element for this SourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutVidConv;
+
+        /**
+         * @brief Caps Filter for the SourceBintr's output-buffer Video Converter.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
+        
+        /**
+         * @brief Source Queue for SourceBintr - set as ghost-pad for each source
+         */
+        DSL_ELEMENT_PTR  m_pSourceQueue;
+        
     };
 
+    //*********************************************************************************
+    /**
+     * @class AppSourceBintr
+     * @brief 
+     */
+    class AppSourceBintr : public VideoSourceBintr
+    {
+    public: 
+    
+        AppSourceBintr(const char* name, bool isLive, 
+            const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD);
+
+        ~AppSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this AppSourceBintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this AppSourceBintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Adds data-handler callback functions to this AppSourceBintr
+         * @param[in] needDataHandler callback function to be called when new data is needed.
+         * @param[in] enoughDataHandler callback function to be called when the Source
+         * has enough data to process.
+         * @param[in] clientData opaque pointer to client data passed back into the 
+         * client_handler function.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddDataHandlers(dsl_source_app_need_data_handler_cb needDataHandler, 
+            dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+            void* clientData);
+        
+        /**
+         * @brief Adds data-handler callback functions from this AppSourceBintr,
+         * function previously added with AddDataHandlers
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveDataHandlers();
+        
+        /**
+         * @brief Pushes a new buffer to this AppSourceBintr for processing.
+         * @param[in] buffer buffer to push to this AppSourceBintr
+         * @return true on successful push, false otherwise.
+         */
+        bool PushBuffer(void* buffer);
+        
+        /**
+         * @brief Pushes a new sample to this AppSourceBintr for processing.
+         * @param[in] sample sample to push to this AppSourceBintr
+         * @return true on successful push, false otherwise.
+         */
+        bool PushSample(void* sample);
+        
+        /**
+         * @brief Notifies this AppSourceBintr that there are no more buffers 
+         * for processing.
+         * @return true on successful Eos, false otherwise.
+         */
+        bool Eos();
+        
+        /**
+         * @brief Callback handler function to handle the "need-data" signal.
+         * @param length the amount of bytes needed. length is just a hint and 
+         * when it is set to -1, any number of bytes can be pushed into appsrc.
+         */
+        void HandleNeedData(uint length);
+        
+        /**
+         * @brief Callback handler function to handle the "enough-data"signal.
+         */
+        void HandleEnoughData();
+
+        /**
+         * @brief Sets the source-dimensions for the AppSourceBintr.
+         * @param[in] width new width value for the Source in pixels
+         * @param[in] height new height value for the Source in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDimensions(uint width, uint height);
+
+        /**
+         * @brief Gets the current do-timestamp property setting for the AppSourceBintr.
+         * @return If TRUE, the base class will automatically timestamp outgoing 
+         * buffers based on the current running_time.
+         */
+        boolean GetDoTimestamp();
+
+        /**
+         * @brief Sets the do-timestamp property settings for the AppSourceBintr
+         * @param[in] doTimestamp set to TRUE to have the base class automatically 
+         * timestamp outgoing buffers. FALSE otherwise.
+         * @return 
+         */
+        bool SetDoTimestamp(boolean doTimestamp);
+        
+
+        /**
+         * @brief Gets the current stream-format for this AppSourceBintr
+         * @return one of the DSL_STREAM_FORMAT constants.
+         */
+        uint GetStreamFormat();
+        
+        /**
+         * @brief Sets the stream-format for this AppSourceBintr to use.
+         * @param[in] streamFormat one of the DSL_STREAM_FORMAT constants.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetStreamFormat(uint streamFormat);
+        
+        /**
+         * @brief Gets the current block-enabled setting for this AppSourceBintr.
+         * @return If true, when max-bytes/buffers/time are queued and after the 
+         * enough-data signal has been emitted, the source will block any further 
+         * push-buffer calls until the amount of queued bytes drops below the 
+         * max-bytes/buffers/time limit.
+         */
+        boolean GetBlockEnabled();
+        
+        /**
+         * @brief Sets the block-enabled setting for this AppSourceBintr.
+         * @param[in] enabled If true, when max-bytes/buffers/time are queued and 
+         * after the enough-data signal has been emitted, the source will block any 
+         * further push-buffer calls until the amount of queued bytes drops below the 
+         * max-bytes/buffers/time limit.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetBlockEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current level of queued data in bytes for 
+         * this AppSrcBintr.
+         * @return current level of queued data in bytes.
+         */
+        uint64_t GetCurrentLevelBytes();
+
+        /**
+         * @brief Gets the max level of queued data in bytes for
+         * this AppSrcBintr.
+         * @return current maximum level of queued bytes.
+         */
+        uint64_t GetMaxLevelBytes();
+        
+        /**
+         * @brief Sets the max level of queued data in bytes for 
+         * for this AppSrcBintr.
+         * @param[in] level new max level in bytes for the App Source to use.
+         * @return true on successful set, false otherwise.
+         */
+        bool SetMaxLevelBytes(uint64_t level);
+        
+//        /**
+//         * @brief Gets the current leaky-type in use by this AppSourceBintr
+//         * @return leaky-type one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+//         */
+//        uint GetLeakyType();  // TODO support GST 1.20 properties
+        
+//        /**
+//         * @brief Sets the leaky-type for the AppSrcBintr to use.
+//         * @param leakyType one of the DSL_QUEUE_LEAKY_TYPE constant values. 
+//         * @return true on successful set, false otherwise.
+//         */
+//        bool SetLeakyType(uint leakyType);
+        
+    private:
+    
+        /**
+         * @brief stream format for the AppSourceBintr - on of the DSL_STREAM_FORMAT constants.
+         */
+        uint m_streamFormat;
+
+        /**
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
+
+        /**
+         * @brief buffer-in format for the AppSourceBintr - on of the DSL_VIDEO_FORMAT constants.
+         */
+        std::string m_bufferInFormat;
+
+        /**
+         * @brief client callback function to be called when new data is needed.
+         */
+        dsl_source_app_need_data_handler_cb m_needDataHandler;
+        
+        /**
+         * @brief client callback function to be called when new data is needed.
+         */
+        dsl_source_app_enough_data_handler_cb m_enoughDataHandler;
+        
+        /**
+         * @brief opaque pointer to client data to return with the "need-data" and 
+         * "enough-data" callback.
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief mutex to protect mutual access to the client-data-handlers
+         */
+        GMutex m_dataHandlerMutex;
+        
+        /**
+         * @brief block-enabled setting for this AppSourceBintr.
+         */
+        boolean m_blockEnabled;
+        
+        /**
+         * @brief The maximum amount of bytes that can be queued internally. 
+         * After the maximum amount of bytes are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+        uint64_t m_maxBytes;
+        
+        /**
+         * @brief The maximum amount of buffers that can be queued internally. 
+         * After the maximum amount of buffers are queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+//        uint64_t m_maxBuffers; // TODO support GST 1.20 properties
+        
+        /**
+         * @brief The maximum amount of time that can be queued internally. 
+         * After the maximum amount of time is queued, appsrc will emit 
+         * the "enough-data" signal.
+         */
+//        uint64_t m_maxTime;  // TODO support GST 1.20 properties
+        
+        /**
+         * @brief Current Queue leaky-type, one of the DSL_QUEUE_LEAKY_TYPE
+         * constant values. 
+         */
+//        uint m_leakyType;  // TODO support GST 1.20 properties
+
+    };    
+    
+    /**
+     * @brief Callback function for the "need-data" signal
+     * @param pSourceElement "appsrc" plugin/element that invoked the signal (unused)
+     * @param length the amount of bytes needed. length is just a hint and 
+     * when it is set to -1, any number of bytes can be pushed into appsrc.
+     * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
+     * "need-data" signal.
+     */
+    static void on_need_data_cb(GstElement* pSourceElement, uint length,
+        gpointer pAppSrcBintr);
+    
+    /**
+     * @brief Callback function for the "enough-data" signal
+     * @param pSourceElement "appsrc" plugin/element that invoked the signal (unused)
+     * @param pAppSrcBintr pointer to the AppSrcBintr that registered for the
+     * "enough-data" signal.
+     */
+    static void on_enough_data_cb(GstElement* pSourceElement, 
+        gpointer pAppSrcBintr);
+        
     //*********************************************************************************
     /**
      * @class CsiSourceBintr
      * @brief 
      */
-    class CsiSourceBintr : public SourceBintr
+    class CsiSourceBintr : public VideoSourceBintr
     {
     public: 
     
@@ -219,24 +744,53 @@ namespace DSL
         ~CsiSourceBintr();
 
         /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @brief Links all Child Elementrs owned by this CsiSourceBintr
          * @return True success, false otherwise
          */
         bool LinkAll();
         
         /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         * @brief Unlinks all Child Elementrs owned by this CsiSourceBintr
          */
         void UnlinkAll();
         
-    private:
-    
-        uint m_sensorId;
+        /**
+         * @brief Gets the current sensor-id for the CsiSourceBintr
+         * @return current unqiue sensor-id starting with 0
+         */
+        uint GetSensorId();
         
         /**
-         * @brief
+         * @brief Sets the sensor-id
+         * @param[in] sensorId new sensor-id for the CsiSourceBintr
+         * @return true if successfull, false otherwise.
          */
-        DSL_ELEMENT_PTR m_pCapsFilter;
+        bool SetSensorId(uint sensorId);
+
+    private:
+
+        /**
+         * @brief static list of unique sersor IDs to be used/recycled by all
+         * CsiSourceBintrs
+         */
+        static std::list<uint> s_uniqueSensorIds;
+    
+        /**
+         * @brief unique sensorId for the CsiSourceBintr starting with 0
+         */
+        uint m_sensorId;
+
+        /**
+         * @brief If TRUE, the class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
+
+        /**
+         * @brief Caps Filter for the CsiSourceBintr's Source Element
+         * - nvarguscamerasrc.
+         */
+        DSL_ELEMENT_PTR m_pSourceCapsFilter;
     };    
 
     //*********************************************************************************
@@ -244,7 +798,7 @@ namespace DSL
      * @class UsbSourceBintr
      * @brief 
      */
-    class UsbSourceBintr : public SourceBintr
+    class UsbSourceBintr : public VideoSourceBintr
     {
     public: 
     
@@ -263,51 +817,73 @@ namespace DSL
          * @brief Unlinks all Child Elementrs owned by this Source Bintr
          */
         void UnlinkAll();
+
+        /**
+         * @brief Gets the current device location setting for the Source Bintr
+         * @return current device location. Default = /dev/video0
+         */
+        const char* GetDeviceLocation();
         
         /**
-         * @brief Sets the GPU ID for all Elementrs
+         * @brief Sets the device location setting for the UsbSourceBintr.
+         * @param[in] new device location for the Source Bintr to use.
          * @return true if successfully set, false otherwise.
          */
-        bool SetGpuId(uint gpuId);
-
+        bool SetDeviceLocation(const char* deviceLocation);
+        
     private:
 
         /**
-         * @brief Unique sensor ID for this USB Source
+         * @brief static list of unique device IDs to be used/recycled by all
+         * UsbSourceBintrs
          */
-        uint m_sensorId;
-        
-        /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pCapsFilter;
-        
-        /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pVidConv1;
+        static std::list<uint> s_uniqueDeviceIds;
 
         /**
-         * @brief
+         * @brief static list of unique device locations to be used/recycled by all
+         * UsbSourceBintrs
          */
-        DSL_ELEMENT_PTR m_pVidConv2;
+        static std::list<std::string> s_deviceLocations;
+        
+        /**
+         * @brief unique device-id for the UsbSourceBintr starting with 0. The
+         * device-id is used as the numeric sufix for the device-location.
+         */
+        uint m_deviceId;
+        
+        /**
+         * @brief current device location for the USB Source
+         */
+        std::string m_deviceLocation;
+
+        /**
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
+
+        /**
+         * @brief Video converter, first of two, for the USB Source if dGPU
+         */
+        DSL_ELEMENT_PTR m_pdGpuVidConv;
+
     }; 
 
     //*********************************************************************************
     
-    class ResourceSourceBintr: public SourceBintr
+    class ResourceSourceBintr: public VideoSourceBintr
     {
     public:
     
         ResourceSourceBintr(const char* name, const char* uri)
-            : SourceBintr(name)
+            : VideoSourceBintr(name)
             , m_uri(uri)
         {
             LOG_FUNC();
         };
             
         ResourceSourceBintr(const char* name, const char** uris)
-            : SourceBintr(name)
+            : VideoSourceBintr(name)
         {
             LOG_FUNC();
         };
@@ -354,29 +930,36 @@ namespace DSL
     //*********************************************************************************
 
     /**
-     * @class DecodeSourceBintr
+     * @class UriSourceBintr
      * @brief 
      */
-    class DecodeSourceBintr : public ResourceSourceBintr
+    class UriSourceBintr : public ResourceSourceBintr
     {
     public: 
     
-        DecodeSourceBintr(const char* name, const char* factoryName, const char* uri, 
-            bool isLive, uint intraDecode, uint dropFrameInterval);
-            
-        ~DecodeSourceBintr();
+        UriSourceBintr(const char* name, const char* uri, bool isLive,
+            uint skipFrames, uint dropFrameInterval);
+
+        ~UriSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        bool SetUri(const char* uri);
 
         /**
          * @brief Sets the URL for file decode sources only
          * @param uri relative or absolute path to the file decode source
          */
         bool SetFileUri(const char* uri);
-        
-        /**
-         * @brief Sets the unique source id for this Source bintr
-         * @param id value to assign [0...MAX]
-         */
-        void SetSourceId(int id);
         
         /**
          * @brief 
@@ -409,45 +992,46 @@ namespace DSL
         gboolean HandleStreamBufferSeek();
 
         /**
-         * @brief adds a single Dewarper Bintr to this DecodeSourceBintr 
-         * @param[in] pDewarperBintr shared pointer to Dewarper to add
-         * @returns true if the Dewarper could be added, false otherwise
-         */
-        bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
-
-        /**
-         * @brief remove a previously added Dewarper Bintr from this DecodeSourceBintr 
-         * @returns true if the Dewarper could be removed, false otherwise
-         */
-        bool RemoveDewarperBintr();
-        
-        /**
-         * @brief call to query the Decode Source if it has a Dewarper
-         * @return true if the Source has a Child
-         */
-        bool HasDewarperBintr();
-
-        /**
          * @brief Disables Auto Repeat without updating the RepeatEnabled flag 
          * which will take affect on next Play Pipeline command. This function
          * should be called on non-live sources before sending the source an EOS
          */
         void DisableEosConsumer();
+
+        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
         
     protected:
+    
+        /**
+         * @brief is set to true, non-live source will restart on EOS
+         */
+        bool m_repeatEnabled;
+
+    private:
+    
+        /**
+         * @brief The common elements are not linked until after the uridecodebin's
+         * pad is ready. We don't want to try and unlink unless fully linked. 
+         */
+        bool m_isFullyLinked;
 
         /**
-         * @brief
+         * @brief Additional number of surfaces in addition to min decode surfaces 
+         * given by the v4l2 driver. Default = 1.
          */
-        guint m_cudadecMemtype;
+        uint m_numExtraSurfaces;
         
         /**
-         * @brief
+         * @brief Type of frames to skip during decoding.
+         *   (0): decode_all       - Decode all frames
+         *   (1): decode_non_ref   - Decode non-ref frame
+         *   (2): decode_key       - decode key frames
          */
-        guint m_intraDecode;
+        uint m_skipFrames;
         
         /**
-         * @brief
+         * @brief Interval to drop the frames. Ex: a value of 5 means every 5th 
+         * frame will be delivered by decoder, the rest will all dropped.
          */
         guint m_dropFrameInterval;
         
@@ -473,74 +1057,9 @@ namespace DSL
         guint m_bufferProbeId;
         
         /**
-         * @brief A dynamic collection of requested Source Pads for the Tee 
-         */
-        std::map<std::string, GstPad*> m_pGstRequestedSourcePads;
-
-        /**
          * @brief mutual exclusion of the repeat enabled setting.
          */
         GMutex m_repeatEnabledMutex;
-        
-        /**
-         * @brief is set to true, non-live source will restart on EOS
-         */
-        bool m_repeatEnabled;
-
-        /**
-         @brief
-         */
-        DSL_ELEMENT_PTR m_pSourceQueue;
-
-        /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pTee;
-
-        /**
-         * @brief
-         */
-        DSL_ELEMENT_PTR m_pFakeSink;
-
-        /**
-         * @brief 
-         */
-        DSL_ELEMENT_PTR m_pFakeSinkQueue;
-        
-    };
-    
-    //*********************************************************************************
-
-    /**
-     * @class UriSourceBintr
-     * @brief 
-     */
-    class UriSourceBintr : public DecodeSourceBintr
-    {
-    public: 
-    
-        UriSourceBintr(const char* name, const char* uri, bool isLive,
-            uint intraDecode, uint dropFrameInterval);
-
-        ~UriSourceBintr();
-
-        /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
-         * @return True success, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
-         */
-        void UnlinkAll();
-
-        bool SetUri(const char* uri);
-
-        void HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad);
-        
-    private:
-
     };
 
     //*********************************************************************************
@@ -591,7 +1110,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the MultiImageSourceBintr
+         * @brief ctor for the ImageSourceBintr
          * @param[in] name unique name for the Image Source
          * @param[in] uri relative or absolute path to the input file source.
          * @param[in] type on of the DSL_IMAGE_TYPE_* constants
@@ -602,31 +1121,22 @@ namespace DSL
          * @brief dtor for the ImageSourceBintr
          */
         ~ImageSourceBintr();
-
-        /**
-         * @brief Links all Child Elementrs owned by this Source Bintr
-         * @return True success, false otherwise
-         */
-        bool LinkAll();
         
-        /**
-         * @brief Unlinks all Child Elementrs owned by this Source Bintr
-         */
-        void UnlinkAll();
-
     protected:
         /**
          * @brief one of the DSL_IMAGE_EXTENTION_* constants
          */
         std::string m_ext;
 
-
-    private:
-    
         /**
          * @brief one of the DSL_IMAGE_FORMAT_* constants
          */
         uint m_format;
+        
+        /**
+         * @brief JPEG only, set to true if file source is mjpeg.
+         */
+        boolean m_mjpeg;
         
         /**
          * @brief JPEG or PNG Parser for this ImageSourceBintr
@@ -637,7 +1147,6 @@ namespace DSL
          * @brief V4L2 Decoder for this ImageSourceBintr
          */
         DSL_ELEMENT_PTR m_pDecoder;
-
     };
 
     //*********************************************************************************
@@ -651,7 +1160,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the MultiImageSourceBintr
+         * @brief ctor for the SingleImageSourceBintr
          * @param[in] name unique name for the Image Source
          * @param[in] uri relative or absolute path to the input file source.
          */
@@ -661,6 +1170,17 @@ namespace DSL
          * @brief dtor for the ImageSourceBintr
          */
         ~SingleImageSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
 
         /**
          * @brief Sets the URIs for ImageFrameSourceBintr 
@@ -693,17 +1213,75 @@ namespace DSL
             const char* uri, uint fpsN, uint fpsD);
         
         /**
-         * @brief dtor for the ImageSourceBintr
+         * @brief dtor for the MultiImageSourceBintr
          */
         ~MultiImageSourceBintr();
 
         /**
-         * @brief Sets the URIs for MultiImageFrameSourceBintr 
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Sets the URIs for MultiImageSourceBintr 
          * @param uri relative or absolute path to the input file source.
          */
         bool SetUri(const char* uri);
         
+        /**
+         * @brief Gets the current loop-enabled setting for the 
+         * MultiImageSourceBintr.
+         * @return true if loop is enabled, false otherwise.
+         */
+        bool GetLoopEnabled();
+        
+        /**
+         * @brief Sets the loop-enabled setting for the MultiImageSourceBintr.
+         * @param[in] loopEnabled set to true to enable, false otherwise.
+         * @return true on successful update, false otherwise.
+         */
+        bool SetLoopEnabled(bool loopEnabled);
+
+        /**
+         * @brief Gets the current start and stop index settings for the
+         * MultiImageSourceBintr
+         * @param[out] startIndex zero-based index to start on. Default = 0
+         * @param[out] stopIndex index to stop on. -1 = no stop, default.
+         */
+        void GetIndices(int* startIndex, int* stopIndex);
+        
+        /**
+         * @brief Sets the start and stop index settings for the
+         * MultiImageSourceBintr
+         * @param[in] startIndex zero-based index to start on.
+         * @param[in] stopIndex index to stop on. set to -1 for no stop.
+         */
+        bool SetIndices(int startIndex, int stopIndex);
+        
     private:
+    
+        /**
+         * @brief Current loop-enabled setting for the MultiImageSourceBintr
+         */
+        bool m_loopEnabled;
+
+        /**
+         * @brief Current start index for the MultiImageSourceBintr
+         * Zero-base, default = 0
+         */
+        int m_startIndex;
+
+        /**
+         * @brief Current stop index for the MultiImageSourceBintr
+         * Default = -1, no stop.
+         */
+        int m_stopIndex;
 
     };
 
@@ -740,7 +1318,7 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Sets the URI (filepath) to use by this ImageSoureceBintr
+         * @brief Sets the URI (filepath) to use by this ImageStreamSourceBintr
          * @param filePath absolute or relative path to the image file
          * @return true if set successfully, false otherwise
          */
@@ -783,7 +1361,7 @@ namespace DSL
         GMutex m_timeoutTimerMutex;
 
         /**
-         * @brief Caps Filter for the File Source Element
+         * @brief Caps Filter for the ImageStreamSourceBintr
          */
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
 
@@ -791,9 +1369,100 @@ namespace DSL
          * @brief Image Overlay element for the FileSourceBintr
          */
         DSL_ELEMENT_PTR m_pImageOverlay;
+    };
 
-        DSL_ELEMENT_PTR m_pCapsFilter;
-        DSL_ELEMENT_PTR m_pVidConv;
+    //*********************************************************************************
+
+    /**
+     * @class InterpipeSourceBintr
+     * @brief 
+     */
+    class InterpipeSourceBintr : public VideoSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the ImageStreamSourceBintr class
+         * @param[in] name unique name to assign to the Source Bintr
+         * @param listenTo unique name of the InterpipeSinkBintr to listen to.
+         * @param acceptEos if true, accepts the EOS event received from the 
+         * Inter-Pipe Sink.
+         * @param acceptEvents if true, accepts the downstream events (except 
+         * for EOS) from the Inter-Pipe Sink.
+         */
+        InterpipeSourceBintr(const char* name, 
+            const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents);
+        
+        /**
+         * @brief Dtor for the ImageStreamSourceBintr class
+         */
+        ~InterpipeSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the name of the InterpipeSinkBintr the Source Bintr 
+         * is listening to
+         * @return name of the InterpipeSinkBintr this Bintr is listening to.
+         */
+        const char* GetListenTo();
+
+        /**
+         * @brief Sets the name of the InterpipeSinkBintr to listen to.
+         * @param listenTo unique name of the InterpipeSinkBintr to listen to.
+         */
+        void SetListenTo(const char* listenTo);
+        
+        /**
+         * @brief Gets the current Accept settings in use by the Source Bintr.
+         * @param[out] acceptEos if true, the Source accepts EOS events from 
+         * the Inter-Pipe Sink.
+         * @param[out] acceptEvent if true, the Source accepts events (except EOS event) from 
+         * the Inter-Pipe Sink.
+         */
+        void GetAcceptSettings(bool* acceptEos, bool* acceptEvents);
+
+        /**
+         * @brief Sets the Accept settings for the Source Bintr to use
+         * @param[in] acceptEos set to true to accept EOS events from the Inter-Pipe Sink,
+         * false otherwise.
+         * @param[in] acceptEvent set to true to accept events (except EOS event) from 
+         * the Inter-Pipe Sink, false otherwise.
+         * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+         */
+        bool SetAcceptSettings(bool acceptEos, bool acceptEvents);
+        
+    private:
+    
+        /**
+         * @brief uniqune name of the InterpipeSinkBintr to listen to.
+         */
+        std::string m_listenTo;
+
+        /**
+         * @brief uniqune name of the InterpipeSinkBintr's pluginto listen to.
+         */
+        std::string m_listenToFullName;
+
+        /**
+         * @brief if true, accepts the EOS event received from the Inter-Pipe Sink
+         */
+        bool m_acceptEos;
+
+        /**
+         * @brief if true, accepts the downstream events (except for EOS) from the 
+         * Inter-Pipe Sink.
+         */
+        bool m_acceptEvents;
 
     };
 
@@ -803,12 +1472,12 @@ namespace DSL
      * @class RtspSourceBintr
      * @brief 
      */
-    class RtspSourceBintr : public DecodeSourceBintr
+    class RtspSourceBintr : public ResourceSourceBintr
     {
     public: 
     
         RtspSourceBintr(const char* name, const char* uri, uint protocol, 
-            uint intraDecode, uint dropFrameInterval, 
+            uint skipFrames, uint dropFrameInterval, 
             uint latency, uint timeout);
 
         ~RtspSourceBintr();
@@ -839,25 +1508,27 @@ namespace DSL
         void SetBufferTimeout(uint timeout);
 
         /**
-         * @brief Gets the current reconnection params in use by the named RTSP Source. The parameters are set
-         * to DSL_RTSP_RECONNECT_SLEEP_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation.
-         * @param[out] sleep time to sleep between successively checking the status of the asynchrounus reconnection
-         * @param[out] timeout current time to wait before terminating the current reconnection try, and
-         * restarting the reconnection cycle again.
+         * @brief Gets the current reconnection params in use by the named RTSP Source. 
+         * The parameters are set to DSL_RTSP_CONNECTION_SLEEP_TIME_MS and 
+         * DSL_RTSP_CONNECTION_TIMEOUT_MS on source creation.
+         * @param[out] sleep time, in unit of seconds, to sleep after a failed connection.
+         * @param[out] timeout time, in units of seconds, to wait before terminating the 
+         * current connection attempt and restarting the connection cycle again.
          */
-        void GetReconnectionParams(uint* sleep, uint* timeout);
+        void GetConnectionParams(uint* sleep, uint* timeout);
         
         /**
-         * @brief Sets the current reconnection params in use by the named RTSP Source. The parameters are set
-         * to DSL_RTSP_RECONNECT_SLEEP_MS and DSL_RTSP_RECONNECT_TIMEOUT_MS on source creation. Both must be > 10ms
-         * Note: calling this service while a reconnection cycle is in progess will terminate the current cycle 
-         * before restarting with the new parmeters.
-         * @param[in] sleep time to sleep between successively checking the status of the asynchrounus reconnection
-         * @param[in] timeout current time to wait before terminating the current reconnection try, and
-         * restarting the reconnection cycle again.
+         * @brief Sets the current reconnection params in use by the named RTSP Source. 
+         * The parameters are set to DSL_RTSP_CONNECTION_SLEEP_TIME_MS and 
+         * DSL_RTSP_CONNECTION_TIMEOUT_MS on source creation.
+         * Note: calling this service while a reconnection cycle is in progess will terminate
+         * the current cycle before restarting with the new parmeters.
+         * @param[in] sleep time, in unit of seconds, to sleep after a failed connection.
+         * @param[in] timeout time, in units of seconds, to wait before terminating the 
+         * current connection attempt and restarting the connection cycle again.
          * @return true is params have been set, false otherwise.
          */
-        bool SetReconnectionParams(uint sleep, uint timeout);
+        bool SetConnectionParams(uint sleep, uint timeout);
 
         /**
          * @brief Gets the Reconnect Statistics collected by the RTSP source 
@@ -962,10 +1633,42 @@ namespace DSL
     private:
     
         /**
+         * @brief The common elements are not linked until after the rtspsrc
+         * has called the select-stream callback. We don't want to try and 
+         * unlink unless fully linked. 
+         */
+        bool m_isFullyLinked;
+        
+        /**
+         * @brief Amount of data to buffer in ms.
+         */
+        guint m_latency;
+    
+        /**
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
          */
         uint m_rtpProtocols;
+
+        /**
+         * @brief Additional number of surfaces in addition to min decode surfaces 
+         * given by the v4l2 driver. Default = 1.
+         */
+        uint m_numExtraSurfaces;
         
+        /**
+         * @brief Type of frames to skip during decoding.
+         *   (0): decode_all       - Decode all frames
+         *   (1): decode_non_ref   - Decode non-ref frame
+         *   (2): decode_key       - decode key frames
+         */
+        uint m_skipFrames;
+        
+        /**
+         * @brief Interval to drop the frames. Ex: a value of 5 means every 5th 
+         * frame will be delivered by decoder, the rest will all dropped.
+         */
+        guint m_dropFrameInterval;
+
         /**
          * @brief optional child TapBintr, tapped in pre-decode
          */ 
@@ -975,6 +1678,11 @@ namespace DSL
          * @brief H.264 or H.265 RTP Depay for the RtspSourceBintr
          */
         DSL_ELEMENT_PTR m_pDepay;
+
+        /**
+         * @brief Pre-parser queue 
+         */
+        DSL_ELEMENT_PTR m_pPreParserQueue;
 
         /**
          * @brief H.264 or H.265 RTP Parser for the RtspSourceBintr
@@ -992,17 +1700,23 @@ namespace DSL
         DSL_ELEMENT_PTR m_pPreDecodeTee;
 
         /**
-         * @brief
+         * @brief Decoder based on stream encoding type.
          */
-        DSL_ELEMENT_PTR m_pDecodeBin;
-        
+        DSL_ELEMENT_PTR m_pDecoder;
+
         /**
          * @brief Pad Probe Handler to create a timestamp for the last recieved buffer
          */
         DSL_PPH_TIMESTAMP_PTR m_TimestampPph;
 
         /**
-         * @brief maximim time between successive buffers before determining the connection is lost, 0 to disable 
+         * @brief time incremented while waiting for first connection in ms.
+         */
+        uint m_firstConnectTime;
+        
+        /**
+         * @brief maximim time between successive buffers before determining the 
+         * connection is lost, 0 to disable 
          */
         uint m_bufferTimeout;
         
@@ -1113,14 +1827,6 @@ namespace DSL
      */
     static void RtspSourceElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
     
-    /**
-     * @brief Called on new Pad Added to link the parser and the decoder
-     * @param pBin pointer to the parser bin
-     * @param pPad Pointer to the new Pad added for linking
-     * @param[in] pSource shared pointer to the RTSP Source component.
-     */
-    static void RtspDecodeElementOnPadAddedCB(GstElement* pBin, GstPad* pPad, gpointer pSource);
-
     /**
      * @brief 
      * @param[in] pChildProxy

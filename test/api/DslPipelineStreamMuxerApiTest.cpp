@@ -75,7 +75,7 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
         
         dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
         REQUIRE( batch_size == 0 );
-        REQUIRE( batch_timeout == DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT );
+        REQUIRE( batch_timeout == DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT );
         
         WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
         {
@@ -154,7 +154,7 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
         
         dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
         REQUIRE( batch_size == 0 );
-        REQUIRE( batch_timeout == DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT );
+        REQUIRE( batch_timeout == DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT );
         
         WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
         {
@@ -203,7 +203,7 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
         
         WHEN( "The Pipeline's Streammuxer's NVIDIA buffer memory type is updated" ) 
         {
-            uint new_nvbuf_mem_type(DSL_NVBUF_MEM_TYPE_UNIFIED);
+            uint new_nvbuf_mem_type(DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED);
 
             REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(pipelineName.c_str(), 
                 new_nvbuf_mem_type) == DSL_RESULT_SUCCESS );
@@ -249,8 +249,8 @@ SCENARIO( "A Tiler can be added to and removed from a Pipeline's Streammuxer out
 
         std::wstring tilerName  = L"tiler";
 
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), DSL_DEFAULT_STREAMMUX_WIDTH,
-            DSL_DEFAULT_STREAMMUX_HEIGHT) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), DSL_STREAMMUX_DEFAULT_WIDTH,
+            DSL_STREAMMUX_DEFAULT_HEIGHT) == DSL_RESULT_SUCCESS );
 
         // chech that a removal attempt after pipeline creation fails
         REQUIRE( dsl_pipeline_streammux_tiler_remove(pipelineName.c_str()) 

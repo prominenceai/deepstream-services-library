@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -799,7 +799,6 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PLAYER_NAME_NOT_FOUND(m_players, name);
-            DSL_RETURN_IF_PLAYER_IS_NOT_RENDER_PLAYER(m_players, name);
             GstState gstState;
             m_players[name]->GetState(gstState, 0);
             *state = (uint)gstState;

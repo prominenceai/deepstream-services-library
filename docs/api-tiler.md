@@ -28,6 +28,8 @@ Multiple Sink and/or Source [Pad-Probe Handlers](/docs/api-pph/md) can be added 
 * [dsl_tiler_dimensions_set](#dsl_tiler_dimensions_set)
 * [dsl_tiler_tiles_get](#dsl_tiler_tiles_get)
 * [dsl_tiler_tiles_set](#dsl_tiler_tiles_set)
+* [dsl_tiler_frame_numbering_enabled_get](#dsl_tiler_frame_numbering_enabled_get)
+* [dsl_tiler_frame_numbering_enabled_set](#dsl_tiler_frame_numbering_enabled_set)
 * [dsl_tiler_source_show_get](#dsl_tiler_source_show_get)
 * [dsl_tiler_source_show_set](#dsl_tiler_source_show_set)
 * [dsl_tiler_source_show_select](#dsl_tiler_source_show_select)
@@ -155,6 +157,48 @@ This service sets the number of columns and rows for the named Tiler. Once set, 
 **Python Example**
 ```Python
 retval = dsl_tiler_tiles_set('my-tiler', 3, 2)
+```
+
+<br>
+
+### *dsl_tiler_frame_numbering_enabled_get*
+```C++
+DslReturnType dsl_tiler_frame_numbering_enabled_get(const wchar_t* name,
+    boolean* enabled);
+```
+This service gets the current frame-numbering enabled setting for the named Tiler. When enabled, the Tiler will add a unique frame number to each frame metatdata structure flowing over its source pad.  This is to override the NVIDIA plugin's default behavior of setting the frame number to 0.
+
+**Parameters**
+* `name` - [in] unique name for the Tiler to query.
+* `enabled` - [out] if true, the Tiler will add an incrementing frame number to each frame metadata structure -- for each buffer flowing over the Tiler's source pad -- overwriting the 0 value set by the NVIDIA Tiler plugin. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_tiler_frame_numbering_enabled_get('my-tiler')
+```
+
+<br>
+
+### *dsl_tiler_frame_numbering_enabled_set*
+```C++
+DslReturnType dsl_tiler_frame_numbering_enabled_set(const wchar_t* name,
+    boolean enabled);
+```
+This service sets the frame-numbering enabled setting for the named Tiler. When enabled, the Tiler will add a unique frame number to each frame metatdata structure flowing over its source pad.  This is to override the NVIDIA plugin's default behavior of setting the frame number to 0.
+
+**Parameters**
+* `name` - [in] unique name for the Tiler to update.
+* `enabled` - [in] set to true to have the Tiler add an incrementing frame number to each frame metadata structure -- for each buffer flowing over the Tiler's source pad -- overwriting the 0 value set by the NVIDIA Tiler plugin. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_tiler_frame_numbering_enabled_set('my-tiler', True)
 ```
 
 <br>

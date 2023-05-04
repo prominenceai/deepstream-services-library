@@ -53,19 +53,35 @@ namespace DSL
         m_pOsdQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsosd");
         m_pOsd = DSL_ELEMENT_NEW("nvdsosd", name);
 
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        // Get property defaults that aren't specifically set
+        m_pVidConv->GetAttribute("gpu-id", &m_gpuId);
+        m_pVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        m_pOsd->GetAttribute("clock-color", &m_clkRgbaColor);
 
-        m_pOsd->SetAttribute("gpu-id", m_gpuId);
-        m_pOsd->SetAttribute("display-text", m_textEnabled);
         m_pOsd->SetAttribute("display-clock", m_clockEnabled);
+        m_pOsd->SetAttribute("display-text", m_textEnabled);
         m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
+        m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
         m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
-        m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("process-mode", m_processMode);
         m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
         m_pOsd->SetAttribute("display-mask", m_maskEnabled);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for OsdBintr '" << name << "'");
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
+        LOG_INFO("  display-clock     : " << m_clockEnabled);
+        LOG_INFO("  display-text      : " << m_textEnabled);
+        LOG_INFO("  clock-font        : " << m_clockFont);
+        LOG_INFO("  clock-font-size   : " << m_clockFontSize);
+        LOG_INFO("  x-clock-offset    : " << m_clockOffsetX);
+        LOG_INFO("  y-clock-offset    : " << m_clockOffsetY);
+        LOG_INFO("  clock-color       : " << m_clkRgbaColor);
+        LOG_INFO("  process-mode      : " << m_processMode);
+        LOG_INFO("  display-bbox      : " << m_bboxEnabled);
+        LOG_INFO("  display-mask      : " << m_maskEnabled);
         
         AddChild(m_pVidConvQueue);
         AddChild(m_pVidConv);
@@ -122,58 +138,6 @@ namespace DSL
         m_pVidConv->UnlinkFromSink();
         m_pOsdQueue->UnlinkFromSink();
         m_isLinked = false;
-    }
-
-    bool OsdBintr::LinkToSource(DSL_NODETR_PTR pDemuxer)
-    {
-        LOG_FUNC();
-        
-        std::string srcPadName = "src_" + std::to_string(m_streamId);
-        
-        LOG_INFO("Linking the OsdBintr '" << GetName() << "' to Pad '" << srcPadName 
-            << "' for Demuxer '" << pDemuxer->GetName() << "'");
-       
-        m_pGstStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-        if (!m_pGstStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get Static Sink Pad for OsdBintr '" << GetName() << "'");
-            return false;
-        }
-
-        GstPad* pGstRequestedSrcPad = gst_element_get_request_pad(pDemuxer->GetGstElement(), srcPadName.c_str());
-            
-        if (!pGstRequestedSrcPad)
-        {
-            LOG_ERROR("Failed to get Requested Src Pad for Demuxer '" << pDemuxer->GetName() << "'");
-            return false;
-        }
-        m_pGstRequestedSourcePads[srcPadName] = pGstRequestedSrcPad;
-
-        // Call the base class to complete the link relationship
-        return Bintr::LinkToSource(pDemuxer);
-    }
-    
-    bool OsdBintr::UnlinkFromSource()
-    {
-        LOG_FUNC();
-        
-        // If we're not currently linked to the Demuxer
-        if (!IsLinkedToSource())
-        {
-            LOG_ERROR("OsdBintr '" << GetName() << "' is not in a Linked state");
-            return false;
-        }
-
-        std::string srcPadName = "src_" + std::to_string(m_streamId);
-
-        LOG_INFO("Unlinking and releasing requested Src Pad for Demuxer");
-        
-        gst_pad_unlink(m_pGstRequestedSourcePads[srcPadName], m_pGstStaticSinkPad);
-        gst_element_release_request_pad(GetSource()->GetGstElement(), m_pGstRequestedSourcePads[srcPadName]);
-                
-        m_pGstRequestedSourcePads.erase(srcPadName);
-        
-        return Nodetr::UnlinkFromSource();
     }
 
     bool OsdBintr::AddToParent(DSL_BASE_PTR pBranchBintr)

@@ -193,7 +193,7 @@ SCENARIO( "A new EosHandlerPadProbeEventHandler is created correctly", "[PadProb
     GIVEN( "Attributes for a new EosHandlerPadProbeEventHandler" ) 
     {
         std::string handlerName("eos-handler");
-        dsl_pph_client_handler_cb clientHandler;
+        dsl_pph_eos_handler_cb clientHandler;
 
         WHEN( "The PadProbeHandler is created " )
         {
@@ -262,7 +262,7 @@ SCENARIO( "A PadProbeHandler can be added to the Sink Pad of a Bintr", "[PadProb
 {
     GIVEN( "A new Tracker and OdePadProbeHandlr in memory" ) 
     {
-        std::string trackerName("ktl-tracker");
+        std::string trackerName("iou-tracker");
         uint initWidth(200);
         uint initHeight(100);
         
@@ -270,8 +270,8 @@ SCENARIO( "A PadProbeHandler can be added to the Sink Pad of a Bintr", "[PadProb
 
         DSL_PPH_ODE_PTR pPadProbeHandler = DSL_PPH_ODE_NEW(odeHandlerName.c_str());
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", initWidth, initHeight);
 
         WHEN( "The PadProbeHandler is called to add itself to the Sink Pad of a Bintr" )
         {
@@ -308,7 +308,7 @@ SCENARIO( "A PadProbeHandler can be added to the Source Pad of a Bintr", "[PadPr
 {
     GIVEN( "A new Tracker and OdePadProbeHandlr in memory" ) 
     {
-        std::string trackerName("ktl-tracker");
+        std::string trackerName("iou-tracker");
         uint initWidth(200);
         uint initHeight(100);
         
@@ -316,8 +316,8 @@ SCENARIO( "A PadProbeHandler can be added to the Source Pad of a Bintr", "[PadPr
 
         DSL_PPH_ODE_PTR pPadProbeHandler = DSL_PPH_ODE_NEW(odeHandlerName.c_str());
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", initWidth, initHeight);
 
         WHEN( "The PadProbeHandler is called to add itself to the Source Pad of a Bintr" )
         {
@@ -355,7 +355,7 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Sink Pad of a Bintr", "
 {
     GIVEN( "A new Tracker and three new PadProbeHandlers" ) 
     {
-        std::string trackerName("ktl-tracker");
+        std::string trackerName("iou-tracker");
         uint initWidth(200);
         uint initHeight(100);
         
@@ -367,8 +367,8 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Sink Pad of a Bintr", "
         DSL_PPH_ODE_PTR pPadProbeHandler2 = DSL_PPH_ODE_NEW(odeHandlerName2.c_str());
         DSL_PPH_ODE_PTR pPadProbeHandler3 = DSL_PPH_ODE_NEW(odeHandlerName3.c_str());
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", initWidth, initHeight);
 
         WHEN( "Multiple PadProbeHandlers are added to the Sink " )
         {
@@ -390,7 +390,7 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Source Pad of a Bintr",
 {
     GIVEN( "A new Tracker and three new PadProbeHandlers" ) 
     {
-        std::string trackerName("ktl-tracker");
+        std::string trackerName("iou-tracker");
         uint initWidth(200);
         uint initHeight(100);
         
@@ -402,8 +402,8 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Source Pad of a Bintr",
         DSL_PPH_ODE_PTR pPadProbeHandler2 = DSL_PPH_ODE_NEW(odeHandlerName2.c_str());
         DSL_PPH_ODE_PTR pPadProbeHandler3 = DSL_PPH_ODE_NEW(odeHandlerName3.c_str());
 
-        DSL_KTL_TRACKER_PTR pTrackerBintr = 
-            DSL_KTL_TRACKER_NEW(trackerName.c_str(), initWidth, initHeight);
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", initWidth, initHeight);
 
         WHEN( "Multiple PadProbeHandlers are added to the Sink " )
         {
@@ -421,3 +421,21 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Source Pad of a Bintr",
     }
 }
 
+SCENARIO( "A new FrameNumberAdderPadProbeHandler is created correctly", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new FrameNumberAdderPadProbeHandler" ) 
+    {
+        std::string adderHandlerName("adder-handler");
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+            DSL_PPEH_FRAME_NUMBER_ADDER_PTR pPadProbeHandler = 
+                DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderHandlerName.c_str());
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pPadProbeHandler->GetFrameNumber() == 0 );
+            }
+        }
+    }
+}

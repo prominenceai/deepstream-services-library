@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2022, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_ODE_HANDLER_H
-#define _DSL_ODE_HANDLER_H
+#ifndef _DSL_PAD_PROBE_HANDLER_H
+#define _DSL_PAD_PROBE_HANDLER_H
 
 #include "Dsl.h"
 #include "DslApi.h"
@@ -41,11 +41,13 @@ namespace DSL
 
     #define DSL_PPH_CUSTOM_PTR std::shared_ptr<CustomPadProbeHandler>
     #define DSL_PPH_CUSTOM_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<CustomPadProbeHandler>(new CustomPadProbeHandler(name, clientHandler, clientData))
+        std::shared_ptr<CustomPadProbeHandler>(new CustomPadProbeHandler(name, \
+            clientHandler, clientData))
         
     #define DSL_PPH_METER_PTR std::shared_ptr<MeterPadProbeHandler>
     #define DSL_PPH_METER_NEW(name, interval, clientHandler, clientData) \
-        std::shared_ptr<MeterPadProbeHandler>(new MeterPadProbeHandler(name, interval, clientHandler, clientData))
+        std::shared_ptr<MeterPadProbeHandler>(new MeterPadProbeHandler(name, \
+            interval, clientHandler, clientData))
         
     #define DSL_PPH_ODE_PTR std::shared_ptr<OdePadProbeHandler>
     #define DSL_PPH_ODE_NEW(name) \
@@ -55,24 +57,38 @@ namespace DSL
     #define DSL_PPH_TIMESTAMP_NEW(name) \
         std::shared_ptr<TimestampPadProbeHandler>(new TimestampPadProbeHandler(name))
 
+    #define DSL_PPH_BUFFER_TIMEOUR_PTR std::shared_ptr<BufferTimeoutPadProbeHandler>
+    #define DSL_PPH_BUFFER_TIMEOUR_NEW(name, timeout, handler, clientData) \
+        std::shared_ptr<BufferTimeoutPadProbeHandler>(new BufferTimeoutPadProbeHandler( \
+            name, timeout, handler, clientData))
+
     #define DSL_PPEH_EOS_CONSUMER_PTR std::shared_ptr<EosConsumerPadProbeEventHandler>
     #define DSL_PPEH_EOS_CONSUMER_NEW(name) \
-        std::shared_ptr<EosConsumerPadProbeEventHandler>(new EosConsumerPadProbeEventHandler(name))
+        std::shared_ptr<EosConsumerPadProbeEventHandler>( \
+            new EosConsumerPadProbeEventHandler(name))
         
     #define DSL_PPEH_EOS_HANDLER_PTR std::shared_ptr<EosHandlerPadProbeEventHandler>
     #define DSL_PPEH_EOS_HANDLER_NEW(name, clientHandler, clientData) \
-        std::shared_ptr<EosHandlerPadProbeEventHandler>(new EosHandlerPadProbeEventHandler(name, clientHandler, clientData))
-        
+        std::shared_ptr<EosHandlerPadProbeEventHandler>( \
+            new EosHandlerPadProbeEventHandler(name, clientHandler, clientData))
+
+    #define DSL_PPEH_FRAME_NUMBER_ADDER_PTR std::shared_ptr \
+        <FrameNumberAdderPadProbeEventHandler>
+    #define DSL_PPEH_FRAME_NUMBER_ADDER_NEW(name) \
+        std::shared_ptr<FrameNumberAdderPadProbeEventHandler>( \
+            new FrameNumberAdderPadProbeEventHandler(name))
 
     #define DSL_PAD_PROBE_PTR std::shared_ptr<PadProbetr>
 
     #define DSL_PAD_BUFFER_PROBE_PTR std::shared_ptr<PadBufferProbetr>
     #define DSL_PAD_BUFFER_PROBE_NEW(name, factoryName, parentElement) \
-        std::shared_ptr<PadBufferProbetr>(new PadBufferProbetr(name, factoryName, parentElement))    
+        std::shared_ptr<PadBufferProbetr>(new PadBufferProbetr(name, \
+            factoryName, parentElement))    
 
     #define DSL_PAD_EVENT_DOWNSTREAM_PROBE_PTR std::shared_ptr<PadEventDownStreamProbetr>
     #define DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(name, factoryName, parentElement) \
-        std::shared_ptr<PadEventDownStreamProbetr>(new PadEventDownStreamProbetr(name, factoryName, parentElement))    
+        std::shared_ptr<PadEventDownStreamProbetr>(new PadEventDownStreamProbetr( \
+            name, factoryName, parentElement))    
 
     /**
      * @brief Pad Probe Handler Callback type
@@ -101,7 +117,8 @@ namespace DSL
         /**
          * @brief Sets the current state of the Handler enabled flag. 
          * The default state on creation is True
-         * @param[in] enabled set to true if Repororting is to be enabled, false otherwise
+         * @param[in] enabled set to true if Handler is to be enabled, false otherwise
+         * @return true if successfull, false otherwise.
          */
         virtual bool SetEnabled(bool enabled);
         
@@ -206,7 +223,7 @@ namespace DSL
 
     /**
      * @class EosHandlerPadProbeEventHandler
-     * @brief Pad Probe Handler to call a client handler callback function on downstream EOS event.
+     * @brief Pad Probe Handler to call a client handler callback function on EOS event.
      */
     class EosHandlerPadProbeEventHandler : public PadProbeHandler
     {
@@ -218,7 +235,8 @@ namespace DSL
          * @param[in] clientHandler client callback function to handle the EOS event
          * @param[in] clientData return to the client when the handler is called
          */
-        EosHandlerPadProbeEventHandler(const char* name, dsl_pph_client_handler_cb clientHandler, void* clientData);
+        EosHandlerPadProbeEventHandler(const char* name, 
+            dsl_pph_eos_handler_cb clientHandler, void* clientData);
 
         /**
          * @brief dtor for the EOS Consumer Pad Probe Handler
@@ -228,8 +246,7 @@ namespace DSL
         /**
          * @brief Custom Pad Probe Handler
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
 
@@ -238,7 +255,7 @@ namespace DSL
         /**
          * @brief client callback funtion, called on End-of-Stream event
          */
-        dsl_pph_custom_client_handler_cb m_clientHandler;
+        dsl_pph_eos_handler_cb m_clientHandler;
         
         /**
          * @brief opaue pointer to client data, returned on callback
@@ -247,6 +264,59 @@ namespace DSL
         
     };
 
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * @class FrameNumberAdderPadProbeEventHandler
+     * @brief Pad Probe Handler to add an incremental/unique frame number
+     * to each frame_meta. This PPH will be (conditionally) added to the
+     * source pad of 2D Tiler component. Why? Because the Tiler sets every
+     * frame_muber to 0 removing any frame reference.
+     */
+    class FrameNumberAdderPadProbeEventHandler : public PadProbeHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the Frame Number Adder Pad Probe Handler
+         * @param[in] name unique name for the PPH
+         */
+        FrameNumberAdderPadProbeEventHandler(const char* name);
+
+        /**
+         * @brief dtor for the Frame Number Adder Pad Probe Handler
+         */
+        ~FrameNumberAdderPadProbeEventHandler();
+        
+        /**
+         * @brief resets m_currentFrameNumber to 0.
+         */
+        void ResetFrameNumber();
+        
+        /**
+         * @brief gets the current value of m_currentFrameNumber;
+         * @return the value of m_currentFrameNumber;
+         */
+        uint64_t GetFrameNumber();
+
+        /**
+         * @brief ODE Pad Probe Handler
+         * @param[in] pBuffer Pad buffer
+         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, 
+         * GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, 
+         * GST_PAD_PROBE_HANDLED]
+         */
+        GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
+        
+    private:
+    
+        /**
+         * @brief current frame number to increment and assign to each
+         * frame within each batch-metadata received. 
+         */
+        uint64_t m_currentFrameNumber;
+    };
+    
     //----------------------------------------------------------------------------------------------
 
     /**
@@ -313,7 +383,7 @@ namespace DSL
         uint m_displayMetaAllocSize;
         
         /**
-         * @brief Index variable to incremment/assign on ODE Action add.
+         * @brief Index variable to incremment/assign on ODE Trigger add.
          */
         uint m_nextTriggerIndex;
         
@@ -452,6 +522,84 @@ namespace DSL
     };
     
     //----------------------------------------------------------------------------------------------
+
+    /**
+     * @class BufferTimeoutPadProbeHandler
+     * @brief implements a PPH that will call a client callback on new buffer timeout.
+     */
+    class BufferTimeoutPadProbeHandler : public TimestampPadProbeHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the BufferTimeoutPadProbeHandler.
+         * @param[in] name unique name for the BufferTimeoutPadProbeHandler.
+         * @param[in] timeoutInMs timeout value is milliseconds.
+         * @param[in] handler client handler function to call on timeout
+         * @param[in] client_data to return to the client on callback
+         */
+        BufferTimeoutPadProbeHandler(const char* name, uint timeout,
+            dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
+
+        /**
+         * @brief dtor for the BufferTimeoutPadProbeHandler.
+         */
+        ~BufferTimeoutPadProbeHandler();
+
+        /**
+         * @brief Enables or disables BufferTimeoutPadProbeHandler. The default state 
+         * on creation is True.
+         * @param[in] enabled set to true if Handler is to be enabled, false otherwise
+         * @return true if successfull, false otherwise.
+         */
+        bool SetEnabled(bool enabled);
+        
+        /**
+         * @brief Gets the current timeout setting
+         * @return timeout setting in milliseconds
+         */
+        uint GetTimeout();
+        
+        /**
+         * @brief Sets the timeout in milliseconds
+         * @param timeoutInMs new timeout value to use
+         */
+        void SetTimeout(uint timeout);
+        
+        /**
+         * @brief handles the timer experation to check for new buffer timeout
+         */
+        int TimerHanlder();
+        
+    private:
+    
+        uint m_timeout;
+    
+        /**
+         * @brief client handler to call on timeout
+         */
+        dsl_pph_buffer_timeout_handler_cb m_clientHandler;
+        
+        /**
+         * @breif opaque pointer to client data to return with callback
+         */
+        void* m_clientData;
+        
+        /**
+         * @brief gnome timer Id for buffer timeout management 
+         */
+        uint m_bufferTimerId;
+        
+    };
+
+    /**
+     * @brief Timer callback for the BufferTimeoutPadProbeHandler.
+     * @param pPph shared pointer to BufferTimeoutPadProbeHandler.
+     * @return int true to continue, 0 to self remove
+     */
+    static int buffer_timer_cb(gpointer pPph);
+
+    //----------------------------------------------------------------------------------------------
     /**
      * @class PadProbetr
      * @brief Implements a container class for GST Pad Probe
@@ -534,6 +682,16 @@ namespace DSL
          */
         GstPad* m_pStaticPad;
 
+        /**
+         * @brief Index variable to incremment/assign on PadProbeHandler add.
+         */
+        uint m_nextHanlderIndex;
+
+        /**
+         * @brief Map of child PadProbeHandlers indexed by their add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pChildrenIndexed; 
+
     };
 
     //----------------------------------------------------------------------------------------------
@@ -606,4 +764,4 @@ namespace DSL
 
 }
 
-#endif // _DSL_ODE_HANDLER_H
+#endif // _DSL_PAD_PROBE_HANDLER_H

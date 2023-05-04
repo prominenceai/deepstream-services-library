@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,59 +29,35 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    DewarperBintr::DewarperBintr(const char* name, const char* configFile)
+    DewarperBintr::DewarperBintr(const char* name, 
+        const char* configFile, uint cameraId)
         : Bintr(name)
-        , m_sourceId(0)
         , m_configFile(configFile)
+        , m_cameraId(cameraId)
     {
         LOG_FUNC();
 
-        m_configFile = configFile;
-
-        std::ifstream streamConfigFile(configFile);
-        if (!streamConfigFile.good())
-        {
-            LOG_ERROR("Dewarper Config File '" << configFile << "' Not found");
-            throw;
-        }
-        
-        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvvideoconvert");
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pVidCaps = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvdewarper");
         m_pDewarper = DSL_ELEMENT_NEW("nvdewarper", name);
-        m_pDewarperCaps = DSL_ELEMENT_NEW("capsfilter", "queue");
-        m_pSrcQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src");
 
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
-        // Set Capabilities filter for Video Converter 
-        GstCaps* caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", NULL);
-        gst_caps_set_features(caps, 0, gst_caps_features_new("memory:NVMM", NULL));
-        m_pVidCaps->SetAttribute("caps", caps);
-        gst_caps_unref(caps);
-
-        m_pDewarper->SetAttribute("gpu-id", m_gpuId);
+    
         m_pDewarper->SetAttribute("config-file", configFile);
+        m_pDewarper->SetAttribute("source-id", m_cameraId);
+        
+        // Get properties not explicitly set
+        m_pDewarper->GetAttribute("num-batch-buffers", &m_numBatchBuffers);
 
-        // Set Capabilities filter for Dewarper
-        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING,
-            "RGBA", "width", GST_TYPE_INT_RANGE, 1, G_MAXINT,
-            "height", GST_TYPE_INT_RANGE, 1, G_MAXINT, NULL);
-        gst_caps_set_features(caps, 0, gst_caps_features_new("memory:NVMM", NULL));
-        m_pDewarperCaps->SetAttribute("caps", caps);
-        gst_caps_unref(caps);
+        LOG_INFO("");
+        LOG_INFO("Initial property values for AppSourceBintr '" << name << "'");
+        LOG_INFO("  config-file       : " << m_configFile);
+        LOG_INFO("  camera-id         : " << m_cameraId);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  num-batch-buffers : " << m_numBatchBuffers);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
 
-
-        AddChild(m_pSinkQueue);
-        AddChild(m_pVidConv);
-        AddChild(m_pVidCaps);
         AddChild(m_pDewarper);
-        AddChild(m_pDewarperCaps);
-        AddChild(m_pSrcQueue);
 
-        m_pSinkQueue->AddGhostPadToParent("sink");
-        m_pSrcQueue->AddGhostPadToParent("src");
+        m_pDewarper->AddGhostPadToParent("sink");
+        m_pDewarper->AddGhostPadToParent("src");
     }
 
     DewarperBintr::~DewarperBintr()
@@ -100,7 +76,8 @@ namespace DSL
         
         // Dewarper should not be added to Pipeline 
         // Must add to source directy
-        LOG_ERROR("DewarperBintr '" << m_name << "' can not be added directly Pipeline");
+        LOG_ERROR("DewarperBintr '" << m_name 
+            << "' can not be added to a Pipeline directly. Add to Source");
         return false;
     }
     
@@ -113,12 +90,8 @@ namespace DSL
             LOG_ERROR("DewarperBintr '" << m_name << "' is already linked");
             return false;
         }
-        m_pSinkQueue->LinkToSink(m_pVidConv);
-        m_pVidConv->LinkToSink(m_pVidCaps);
-        m_pVidCaps->LinkToSink(m_pDewarper);
-        m_pDewarper->LinkToSink(m_pDewarperCaps);
-        m_pDewarperCaps->LinkToSink(m_pSrcQueue);
         
+        // single element - nothing to link
         m_isLinked = true;
         
         return true;
@@ -133,11 +106,7 @@ namespace DSL
             LOG_ERROR("DewarperBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pSinkQueue->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
-        m_pVidCaps->UnlinkFromSink();
-        m_pDewarper->UnlinkFromSink();
-        m_pDewarperCaps->UnlinkFromSink();
+        // single element - nothing to link
         
         m_isLinked = false;
     }
@@ -149,21 +118,44 @@ namespace DSL
         return m_configFile.c_str();
     }
 
-    bool DewarperBintr::SetSourceId(uint sourceId)
+    bool DewarperBintr::SetConfigFile(const char* configFile)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Source ID for DewarperBintr '" << GetName() 
+            LOG_ERROR("Unable to set config-file for DewarperBintr '" << GetName() 
+                << "' as it's currently in a linked state");
+            return false;
+        }
+        
+        m_configFile = configFile;
+        m_pDewarper->SetAttribute("config-file", configFile);
+        
+        return true;
+    }
+
+    uint DewarperBintr::GetCameraId()
+    {
+        LOG_FUNC();
+        
+        return m_cameraId;
+    }
+    
+    bool DewarperBintr::SetCameraId(uint cameraId)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set camera-id for DewarperBintr '" << GetName() 
                 << "' as it's currently in a linked state");
             return false;
         }
 
-        m_sourceId = sourceId;
-        LOG_INFO("Setting Source ID to '" << m_sourceId << "' for DewarperBintr '" << m_name << "'");
+        m_cameraId = cameraId;
 
-        m_pDewarper->SetAttribute("source-id", m_sourceId);
+        m_pDewarper->SetAttribute("source-id", m_cameraId);
         return true;
     }
     
@@ -173,31 +165,55 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set GPU ID for DewarperBintr '" << GetName() 
+            LOG_ERROR("Unable to set gpu-id for DewarperBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << m_gpuId << "' for DewarperBintr '" << m_name << "'");
+        LOG_DEBUG("Setting GPU ID to '" << m_gpuId 
+            << "' for DewarperBintr '" << m_name << "'");
 
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pDewarper->SetAttribute("gpu-id", m_gpuId);
         return true;
     }
 
+    uint DewarperBintr::GetNumBatchBuffers()
+    {
+        LOG_FUNC();
+        
+        return m_numBatchBuffers;
+    }
+
+    bool DewarperBintr::SetNumBatchBuffers(uint num)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set num-batch-buffers for DewarperBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_numBatchBuffers = num;
+
+        m_pDewarper->SetAttribute("num-batch-buffers", m_numBatchBuffers);
+        return true;
+    }
+    
     bool DewarperBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for DewarperBintr '" 
+            LOG_ERROR("Unable to set nvbuf-memory-type for DewarperBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
         m_nvbufMemType = nvbufMemType;
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        m_pDewarper->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         return true;
     }

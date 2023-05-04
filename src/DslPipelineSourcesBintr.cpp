@@ -34,24 +34,56 @@ namespace DSL
         : Bintr(name)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
-        , m_nvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE)
-        , m_batchTimeout(DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT)
+        , m_streamMuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
+        , m_streamMuxHeight(DSL_STREAMMUX_DEFAULT_HEIGHT)
+        , m_numSurfacesPerFrame(DSL_DEFAULT_NUM_EXTRA_SURFACES)
+        , m_batchTimeout(DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
     {
         LOG_FUNC();
 
+        // Need to forward all children messages for this PipelineSourcesBintr,
+        // which is the parent bin for the Pipeline's Streammux, so the Pipeline
+        // can be notified of individual source EOS events. 
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", name);
 
-        // Setup all default properties
-        //SetStreamMuxNvbufMemType(DSL_DEFAULT_STREAMMUX_DEFAULT_NVBUF_MEMORY_TYPE);
-        SetStreamMuxDimensions(DSL_DEFAULT_STREAMMUX_WIDTH, DSL_DEFAULT_STREAMMUX_HEIGHT);
-        SetStreamMuxNumSurfacesPerFrame(DSL_DEFAULT_STREAMMUX_MAX_NUM_SERFACES_PER_FRAME);
+        // Must update the default dimensions of 0x0 or the Pipeline
+        // will fail to play;
+        SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
+            DSL_STREAMMUX_DEFAULT_HEIGHT);
+
+        // Get property defaults that aren't specifically set
+        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
+        m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+        m_pStreamMux->GetAttribute("gpu-id", &m_gpuId);
+        m_pStreamMux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        m_pStreamMux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
+        m_pStreamMux->GetAttribute("attach-sys-ts", &m_attachSysTs);
+        m_pStreamMux->GetAttribute("interpolation-method", &m_interpolationMethod);
+        m_pStreamMux->GetAttribute("sync-inputs", &m_syncInputs);
+        
+        // DS 6.1 ??
+        // m_pStreamMux->GetAttribute("frame-duration", &m_frameDuration);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for Streammux '" << name << "'");
+        LOG_INFO("  width                  : " << m_streamMuxWidth);
+        LOG_INFO("  height                 : " << m_streamMuxHeight);
+        LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
+        LOG_INFO("  gpu-id                 : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
+        LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
+        LOG_INFO("  buffer-pool-size       : " << m_bufferPoolSize);
+        LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
+        LOG_INFO("  interpolation-method   : " << m_interpolationMethod);
+        LOG_INFO("  sync-inputs            : " << m_syncInputs);
+        // LOG_INFO("  frame-duration         : " << m_frameDuration);
 
         AddChild(m_pStreamMux);
 
-        // Float the StreamMux src pad as a Ghost Pad for this PipelineSourcesBintr
+        // Float the StreamMux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
 }
     
@@ -72,7 +104,7 @@ namespace DSL
         return Bintr::AddChild(pChildElement);
     }
      
-    bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::AddChild(DSL_VIDEO_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -169,7 +201,7 @@ namespace DSL
         
     }
 
-    bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::IsChild(DSL_VIDEO_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -184,7 +216,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::RemoveChild(DSL_VIDEO_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
 
@@ -374,20 +406,20 @@ namespace DSL
         m_streamMuxHeight = height;
 
         LOG_INFO("Setting StreamMux dimensions: width = " << m_streamMuxWidth 
-            << ", height = " << m_streamMuxWidth);
+            << ", height = " << m_streamMuxHeight);
 
         m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
         m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
     }
     
-    void PipelineSourcesBintr::GetStreamMuxPadding(bool* enabled)
+    void PipelineSourcesBintr::GetStreamMuxPadding(boolean* enabled)
     {
         LOG_FUNC();
         
         *enabled = m_isPaddingEnabled;
     }
     
-    void PipelineSourcesBintr::SetStreamMuxPadding(bool enabled)
+    void PipelineSourcesBintr::SetStreamMuxPadding(boolean enabled)
     {
         LOG_FUNC();
         

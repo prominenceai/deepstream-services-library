@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -55,8 +55,8 @@ tracker_config_file = \
 
 # Window Sink Dimensions - used to create the sink, however, in this
 # example the Pipeline XWindow service is called to enabled full-sreen
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 #WINDOW_WIDTH = TILER_WIDTH
 #WINDOW_HEIGHT = TILER_HEIGHT
@@ -218,7 +218,7 @@ def main(args):
             break
 
         # New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', 
+        retval = dsl_tracker_new('iou-tracker', 
             tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -226,6 +226,14 @@ def main(args):
         # New Tiler, setting width and height, use default cols/rows set by 
         # the number of sources
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        #-----------------------------------------------------------
+        # IMPORTANT!
+        # We must explicity set the columns and rows in order to use
+        # the dsl_tiler_source_show_select service to select a tile
+        retval = dsl_tiler_tiles_set('tiler', columns=2, rows=2)
         if retval != DSL_RETURN_SUCCESS:
             break
 

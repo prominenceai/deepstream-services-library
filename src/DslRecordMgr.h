@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    #define DSL_RECORD_MGR_PTR std::shared_ptr<RecordMgr>
+
     class RecordMgr
     {
     public: 
@@ -89,10 +91,10 @@ namespace DSL
         
         /**
          * @brief Sets the current cache size used by this RecordMgr
-         * @param[in] videoCacheSize size of video cache in seconds 
+         * @param[in] cacheSize size of cache in seconds 
          * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
          */
-        bool SetCacheSize(uint videoCacheSize);
+        bool SetCacheSize(uint cacheSize);
         
         /**
          * @brief Gets the current width and height settings for this RecordSinkBintr

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2021-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -49,15 +49,18 @@ primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 # Minimum Inference confidence level to Trigger ODE Occurrence
 # Used for all ODE Triggers
@@ -184,7 +187,7 @@ def main(args):
 
         # Create a new Action to remove the bounding box by default.
         # The bounding box will be reformatted by the ODE Cross Trigger
-        retval = dsl_ode_action_format_bbox_new('remove-bbox',
+        retval = dsl_ode_action_bbox_format_new('remove-bbox',
             border_width = 0,
             border_color = None,
             has_bg_color = False,
@@ -194,7 +197,7 @@ def main(args):
            
         # Create a new Action to remove the Object labels by default.
         # The bounding box will be reformatted by the ODE Cross Trigger
-        retval = dsl_ode_action_format_label_new('remove-label',
+        retval = dsl_ode_action_label_format_new('remove-label',
             font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -252,7 +255,7 @@ def main(args):
             break
 
         # Set a minimum confidence level to avoid false negatives.
-        retval = dsl_ode_trigger_confidence_min_set('person-crossing-line',
+        retval = dsl_ode_trigger_infer_confidence_min_set('person-crossing-line',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -291,6 +294,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create a new Scale BBox Action to increase the capture area for the capture
+        # action defined below. We scale up by a factor of percentage
+        retval = dsl_ode_action_bbox_scale_new('scale-bbox-action', scale=150)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # Create a new Capture Action to capture the object to jpeg image, and save to file.
         retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
@@ -306,12 +315,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_action_add_many('person-crossing-line',
-            actions=['person-capture-action', 'print-action', None])
+        # Make sure to add the scale-bbox action first.
+        retval = dsl_ode_trigger_action_add_many('person-crossing-line', actions=[
+            'scale-bbox-action', 'person-capture-action', 'print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create the Image Render Player with a NULL file_path to by updated by the Capture Action
+        # Create the Image Render Player with a NULL file_path to by updated by 
+        # the Capture Action
         dsl_player_render_image_new(
             name = 'image-player',
             file_path = None,
@@ -380,7 +391,7 @@ def main(args):
             break
 
         # Use same criteria as Cross Trigger
-        retval = dsl_ode_trigger_confidence_min_set('objects-sumation-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('objects-sumation-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -428,7 +439,7 @@ def main(args):
             break
 
         # Use same criteria as Cross and Summation Triggers
-        retval = dsl_ode_trigger_confidence_min_set('new-instance-trigger',
+        retval = dsl_ode_trigger_infer_confidence_min_set('new-instance-trigger',
             min_confidence = PERSON_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -506,8 +517,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 

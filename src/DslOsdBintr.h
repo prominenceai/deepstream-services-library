@@ -103,19 +103,6 @@ namespace DSL
         }
         
         /**
-         * @brief Links this OsdBintr back to a source Demuxer element
-         * @param[in] pDemuxer to link back to
-         * @return true on successful Link false other
-         */
-        bool LinkToSource(DSL_NODETR_PTR pDemuxer);
-
-        /**
-         * @brief Unlinks this OsdBintr from a source Demuxer element
-         * @return true on successful Unlink false other
-         */
-        bool UnlinkFromSource();
-
-        /**
          * @brief Gets the current display text enabled state for this OsdBintr.
          * @param[out] enabled true if text display is currently enabled, false otherwise.
          */
@@ -242,9 +229,16 @@ namespace DSL
         uint m_clockOffsetY;
         
         NvOSD_ColorParams m_clockColor;
+        
+        /**
+         * @brief 0xRGBA value for the color of the clock if displayed
+         */
+        uint m_clkRgbaColor;
 
         /**
-         @brief
+         * @brief Indicates the mode used to draw the objects
+         * 0: CPU mode
+         * 1: GPU mode
          */
         guint m_processMode;
 

@@ -38,8 +38,8 @@ std::wstring rtsp_uri_1 = L"rtsp://admin:Password1!@10.0.0.37:554/cam/realmonito
 std::wstring rtsp_uri_2 = L"rtsp://admin:Password1!@10.0.0.37:554/cam/realmonitor?channel=2&subtype=1";
 
 
-int WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-int WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
+int WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+int WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
 // ##     
 // # Function to be called on XWindow KeyRelease event    

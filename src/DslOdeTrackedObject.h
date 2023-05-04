@@ -145,6 +145,11 @@ namespace DSL
         uint64_t frameNumber;
         
         /**
+         * @brief total number of consecutive tracked frames
+         */
+        uint frameCount;
+        
+        /**
          * @brief number of tracked frames prior to event
          */
         uint preEventFrameCount;

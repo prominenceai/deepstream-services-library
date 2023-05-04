@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021, Prominence AI, Inc.
+# Copyright (c) 2021-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -58,8 +58,10 @@ primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -69,8 +71,8 @@ PGIE_CLASS_ID_ROADSIGN = 3
 MIN_OBJECTS = 3
 MAX_OBJECTS = 8
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
@@ -171,13 +173,13 @@ def main(args):
 
         # Create a Format Label Action to remove the Object Label from view
         # Note: the label can be disabled with the OSD API as well. 
-        retval = dsl_ode_action_format_label_new('remove-label', 
+        retval = dsl_ode_action_label_format_new('remove-label', 
             font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Create a Format Bounding Box Action to remove the box border from view
-        retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+        retval = dsl_ode_action_bbox_format_new('remove-border', border_width=0,
             border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -198,7 +200,7 @@ def main(args):
             break
             
         # Create a new  Action used to fill a bounding box with the opaque red color
-        retval = dsl_ode_action_format_bbox_new('fill-action',
+        retval = dsl_ode_action_bbox_format_new('fill-action',
             border_width = 0,
             border_color = None,
             has_bg_color = True,
@@ -257,8 +259,7 @@ def main(args):
 
         # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
         retval = dsl_ode_action_capture_frame_new('person-capture-action',
-            outdir = "./",
-            annotate = False)
+            outdir = "./")
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -304,7 +305,7 @@ def main(args):
         retval = dsl_source_uri_new('uri-source',
             uri = uri_h265,
             is_live = False,
-            intra_decode = False,
+            skip_frames = 0,
             drop_frame_interval = 0)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -315,8 +316,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 

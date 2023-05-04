@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,6 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-#!/usr/bin/env python
-
-import sys
-from dsl import *
-
 ##########################################################################33####
 # IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
 # that is seperate/unlinked from all your other email accounts -- strictly for 
@@ -42,6 +37,11 @@ from dsl import *
 # CAUTION - Do not check sripts into your repo with valid credentials
 #
 #######################################################################
+#!/usr/bin/env python
+
+import sys
+from dsl import *
+
 user_name = 'my.smtps.server'
 password = 'my-server-pw'
 server_url = 'smtps://smtp.gmail.com:465'
@@ -58,15 +58,18 @@ primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
@@ -169,7 +172,7 @@ def main(args):
             
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./", annotate=True)
+        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -203,7 +206,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         retval = dsl_source_uri_new('uri-source', uri_h265, is_live=False, 
-            intra_decode=False, drop_frame_interval=0)
+            skip_frames=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -213,8 +216,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 

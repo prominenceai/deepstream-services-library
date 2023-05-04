@@ -44,11 +44,15 @@ namespace DSL
         , m_inferId(-1)
         , m_classId(classId)
         , m_triggered(0)
-        , m_limit(limit)
+        , m_eventLimit(limit)
+        , m_frameCount(0)
+        , m_frameLimit(0)
         , m_occurrences(0)
         , m_occurrencesAccumulated(0)
         , m_minConfidence(0)
+        , m_maxConfidence(0)
         , m_minTrackerConfidence(0)
+        , m_maxTrackerConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
         , m_maxWidth(0)
@@ -88,47 +92,6 @@ namespace DSL
         g_mutex_clear(&m_resetTimerMutex);
     }
 
-    uint OdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
-        std::vector<NvDsDisplayMeta*>& displayMetaData,
-        NvDsFrameMeta* pFrameMeta)
-    {
-        // Note: function is called from the system (callback) context
-        // Gaurd against property updates from the client API
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        // Filter on skip-frame interval
-        if (!m_enabled or m_skipFrame)
-        {
-            return 0;
-        }
-
-        // If the client has added an accumulator, 
-        if (m_pAccumulator)
-        {
-            m_occurrencesAccumulated += m_occurrences;
-            
-            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
-                DSL_FRAME_INFO_OCCURRENCES;
-            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
-                m_occurrencesAccumulated;
-                
-            DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
-                std::dynamic_pointer_cast<OdeAccumulator>(m_pAccumulator);
-                
-            pOdeAccumulator->HandleOccurrences(shared_from_this(),
-                pBuffer, displayMetaData, pFrameMeta);
-        }
-        
-        // If the client has added a heat-mapper
-        if (m_pHeatMapper)
-        {
-            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->AddDisplayMeta(
-                displayMetaData);
-        }
-        
-        return m_occurrences;
-    }        
-    
     bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
@@ -317,13 +280,15 @@ namespace DSL
         m_triggered = 0;
         m_occurrencesAccumulated = 0;
         
+        m_frameCount = 0;
+        
         // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitEventListeners)
+        for(auto const& imap: m_limitStateChangeListeners)
         {
             try
             {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_COUNT_RESET, 
-                    m_limit, imap.second);
+                imap.first(DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET, 
+                    m_eventLimit, imap.second);
             }
             catch(...)
             {
@@ -339,19 +304,19 @@ namespace DSL
         
         m_triggered++;
         
-        if (m_triggered >= m_limit)
+        if (m_triggered >= m_eventLimit)
         {
             // iterate through the map of limit-event-listeners calling each
-            for(auto const& imap: m_limitEventListeners)
+            for(auto const& imap: m_limitStateChangeListeners)
             {
                 try
                 {
-                    imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_REACHED, 
-                        m_limit, imap.second);
+                    imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED, 
+                        m_eventLimit, imap.second);
                 }
                 catch(...)
                 {
-                    LOG_ERROR("Exception calling Client Limit-Event-Lister");
+                    LOG_ERROR("Exception calling Client Limit State-Change Lister");
                 }
             }
             if (m_resetTimeout)
@@ -411,7 +376,14 @@ namespace DSL
         
         // Else, if the Trigger has reached its limit and the 
         // client is setting a Timeout value, start the timer.
-        else if (m_limit and m_triggered >= m_limit and timeout)
+        else if (m_eventLimit and (m_triggered >= m_eventLimit) and timeout)
+        {
+            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                TriggerResetTimeoutHandler, this);            
+        } 
+        // Else, if the Trigger has reached its frame limit and the 
+        // client is setting a Timeout value, start the timer.
+        else if (m_frameLimit and (m_frameCount >= m_frameLimit) and timeout)
         {
             m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
                 TriggerResetTimeoutHandler, this);            
@@ -427,36 +399,36 @@ namespace DSL
         return m_resetTimerId;
     }
     
-    bool OdeTrigger::AddLimitEventListener(
-        dsl_ode_trigger_limit_event_listener_cb listener, void* clientData)
+    bool OdeTrigger::AddLimitStateChangeListener(
+        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_limitEventListeners.find(listener) != 
-            m_limitEventListeners.end())
+        if (m_limitStateChangeListeners.find(listener) != 
+            m_limitStateChangeListeners.end())
         {   
             LOG_ERROR("Limit state change listener is not unique");
             return false;
         }
-        m_limitEventListeners[listener] = clientData;
+        m_limitStateChangeListeners[listener] = clientData;
 
         return true;
     }
     
-    bool OdeTrigger::RemoveLimitEventListener(
-        dsl_ode_trigger_limit_event_listener_cb listener)
+    bool OdeTrigger::RemoveLimitStateChangeListener(
+        dsl_ode_trigger_limit_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
 
-        if (m_limitEventListeners.find(listener) == 
-            m_limitEventListeners.end())
+        if (m_limitStateChangeListeners.find(listener) == 
+            m_limitStateChangeListeners.end())
         {   
             LOG_ERROR("Limit state change listener was not found");
             return false;
         }
-        m_limitEventListeners.erase(listener);
+        m_limitStateChangeListeners.erase(listener);
 
         return true;
     }        
@@ -476,28 +448,58 @@ namespace DSL
         m_classId = classId;
     }
 
-    uint OdeTrigger::GetLimit()
+    uint OdeTrigger::GetEventLimit()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        return m_limit;
+        return m_eventLimit;
     }
     
-    void OdeTrigger::SetLimit(uint limit)
+    void OdeTrigger::SetEventLimit(uint limit)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
-        m_limit = limit;
+        m_eventLimit = limit;
         
         // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitEventListeners)
+        for(auto const& imap: m_limitStateChangeListeners)
         {
             try
             {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_LIMIT_CHANGED, 
-                    m_limit, imap.second);
+                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED, 
+                    m_eventLimit, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
+            }
+        }
+    }
+
+    uint OdeTrigger::GetFrameLimit()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        return m_frameLimit;
+    }
+    
+    void OdeTrigger::SetFrameLimit(uint limit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_frameLimit = limit;
+        
+        // iterate through the map of limit-event-listeners calling each
+        for(auto const& imap: m_limitStateChangeListeners)
+        {
+            try
+            {
+                imap.first(DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED, 
+                    m_frameLimit, imap.second);
             }
             catch(...)
             {
@@ -573,6 +575,21 @@ namespace DSL
         m_minConfidence = minConfidence;
     }
     
+    float OdeTrigger::GetMaxConfidence()
+    {
+        LOG_FUNC();
+        
+        return m_maxConfidence;
+    }
+    
+    void OdeTrigger::SetMaxConfidence(float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_maxConfidence = maxConfidence;
+    }
+    
     float OdeTrigger::GetMinTrackerConfidence()
     {
         LOG_FUNC();
@@ -586,6 +603,21 @@ namespace DSL
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
         
         m_minTrackerConfidence = minConfidence;
+    }
+    
+    float OdeTrigger::GetMaxTrackerConfidence()
+    {
+        LOG_FUNC();
+        
+        return m_maxTrackerConfidence;
+    }
+    
+    void OdeTrigger::SetMaxTrackerConfidence(float maxConfidence)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        m_maxTrackerConfidence = maxConfidence;
     }
     
     void OdeTrigger::GetMinDimensions(float* minWidth, float* minHeight)
@@ -743,6 +775,83 @@ namespace DSL
         m_skipFrame = false;
     }
 
+    uint OdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta)
+    {
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // Filter on skip-frame interval
+        if (!m_enabled or m_skipFrame)
+        {
+            return 0;
+        }
+
+        // Don't start incrementing the frame-count until after the
+        // first ODE occurrence. 
+        if (m_triggered)
+        {
+            m_frameCount++;
+        }
+
+        // Check to see if frame limit is enabled and exceeded
+        if (m_frameLimit and (m_frameCount > m_frameLimit))
+        {
+            return 0;
+        }
+
+        // Else, if frame limit is enabled and reached in this frame
+        if (m_frameLimit and (m_frameCount == m_frameLimit))
+        {
+            // iterate through the map of limit-event-listeners calling each
+            for(auto const& imap: m_limitStateChangeListeners)
+            {
+                try
+                {
+                    imap.first(DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED, 
+                        m_frameLimit, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client Limit State-Change Lister");
+                }
+            }
+            if (m_resetTimeout)
+            {
+                m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                    TriggerResetTimeoutHandler, this);            
+            }
+        }
+
+        // If the client has added an accumulator, 
+        if (m_pAccumulator)
+        {
+            m_occurrencesAccumulated += m_occurrences;
+            
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
+                DSL_FRAME_INFO_OCCURRENCES;
+            pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
+                m_occurrencesAccumulated;
+                
+            DSL_ODE_ACCUMULATOR_PTR pOdeAccumulator = 
+                std::dynamic_pointer_cast<OdeAccumulator>(m_pAccumulator);
+                
+            pOdeAccumulator->HandleOccurrences(shared_from_this(),
+                pBuffer, displayMetaData, pFrameMeta);
+        }
+        
+        // If the client has added a heat-mapper
+        if (m_pHeatMapper)
+        {
+            std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->AddDisplayMeta(
+                displayMetaData);
+        }
+        
+        return m_occurrences;
+    }        
+    
     bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
         NvDsObjectMeta* pObjectMeta)
     {
@@ -752,8 +861,13 @@ namespace DSL
             return false;
         }
         
-        // Ensure enabled, and that the limit has not been exceeded
-        if (m_limit and m_triggered >= m_limit) 
+        // Ensure that the event limit has not been exceeded
+        if (m_eventLimit and m_triggered >= m_eventLimit) 
+        {
+            return false;
+        }
+        // Ensure that the frame limit has not been exceeded
+        if (m_frameLimit and m_frameCount >= m_frameLimit) 
         {
             return false;
         }
@@ -775,9 +889,21 @@ namespace DSL
         {
             return false;
         }
+        // Ensure that the maximum Inference confidence has been reached
+        if (pObjectMeta->confidence > 0 and m_maxConfidence and
+            pObjectMeta->confidence > m_maxConfidence)
+        {
+            return false;
+        }
         // Ensure that the minimum Tracker confidence has been reached
         if (pObjectMeta->tracker_confidence > 0 and 
             pObjectMeta->tracker_confidence < m_minTrackerConfidence)
+        {
+            return false;
+        }
+        // Ensure that the maximum Tracker confidence has been reached
+        if (pObjectMeta->tracker_confidence > 0 and m_maxTrackerConfidence and
+            pObjectMeta->tracker_confidence > m_maxTrackerConfidence)
         {
             return false;
         }
@@ -1004,7 +1130,8 @@ namespace DSL
             // Gaurd against property updates from the client API
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            if (!m_enabled or (m_limit and m_triggered >= m_limit) or m_occurrences) 
+            if (!m_enabled or (m_eventLimit and m_triggered >= m_eventLimit) 
+                or m_occurrences) 
             {
                 return 0;
             }        
@@ -1035,7 +1162,9 @@ namespace DSL
 
     InstanceOdeTrigger::InstanceOdeTrigger(const char* name, 
         const char* source, uint classId, uint limit)
-        : OdeTrigger(name, source, classId, limit)
+        : TrackingOdeTrigger(name, source, classId, limit, 0)
+        , m_instanceCount(1)
+        , m_suppressionCount(0)
     {
         LOG_FUNC();
     }
@@ -1045,6 +1174,24 @@ namespace DSL
         LOG_FUNC();
     }
 
+    void InstanceOdeTrigger::GetCountSettings(uint* instanceCount, 
+        uint* suppressionCount)
+    {
+        LOG_FUNC();
+        
+        *instanceCount = m_instanceCount;
+        *suppressionCount = m_suppressionCount;
+    }
+    
+    void InstanceOdeTrigger::SetCountSettings(uint instanceCount, uint suppressionCount)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        m_instanceCount = instanceCount;
+        m_suppressionCount = suppressionCount;
+    }
+    
     void InstanceOdeTrigger::Reset()
     {
         LOG_FUNC();
@@ -1073,53 +1220,90 @@ namespace DSL
             return false;
         }
 
-        std::string sourceAndClassId = std::to_string(pFrameMeta->source_id) + "_" 
-            + std::to_string(pObjectMeta->class_id);
-            
-        // If this is the first time seeing an object of "class_id" for "source_id".
-        if (m_instances.find(sourceAndClassId) == m_instances.end())
+        std::shared_ptr<TrackedObject> pTrackedObject;
+        
+        // if this is the first occurrence of this object for this source
+        if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
+            pObjectMeta->object_id))
         {
-            // Initialize the frame number for the new source
-            m_instances[sourceAndClassId] = 0;
+            // Create a new Tracked object and return without occurence
+            pTrackedObject = m_pTrackedObjectsPerSource->Track(pFrameMeta, 
+                pObjectMeta, nullptr);
         }
-        if (m_instances[sourceAndClassId] < pObjectMeta->object_id)
+        else
         {
-            // Update the running instance
-            m_instances[sourceAndClassId] = pObjectMeta->object_id;
-            
+            pTrackedObject = m_pTrackedObjectsPerSource->GetObject(
+                pFrameMeta->source_id, pObjectMeta->object_id);
+                    
+            pTrackedObject->Update(pFrameMeta->frame_num, 
+                (NvBbox_Coords*)&pObjectMeta->rect_params);
+        }
+
+        LOG_DEBUG("Tracked object with id = " 
+            << pObjectMeta->object_id << " for source = " 
+            << pFrameMeta->source_id << " with frame-count = " 
+            << pTrackedObject->frameCount);
+
+        if (pTrackedObject->frameCount <= m_instanceCount)
+        {
+            // event has been triggered
             IncrementAndCheckTriggerCount();
             m_occurrences++;
-            
+
             // update the total event count static variable
             s_eventCount++;
 
+            // If the client has added a heat mapper, call to add the occurrence data
             if (m_pHeatMapper)
             {
                 std::dynamic_pointer_cast<OdeHeatMapper>(m_pHeatMapper)->HandleOccurrence(
                     pFrameMeta, pObjectMeta);
             }
 
-            // set the primary metric to the new instance occurrence for this frame
+            // set the primary metric as the current occurrence for this frame
             pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = m_occurrences;
-
+                
             for (const auto &imap: m_pOdeActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
-                try
-                {
-                    pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, 
-                        displayMetaData, pFrameMeta, pObjectMeta);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("Trigger '" << GetName() << "' => Action '" 
-                        << pOdeAction->GetName() << "' threw exception");
-                }
+                pOdeAction->HandleOccurrence(shared_from_this(), 
+                    pBuffer, displayMetaData, pFrameMeta, pObjectMeta);
             }
             return true;
         }
+        // if suppressing and we've reached the total number of frames to supress 
+        if (m_suppressionCount and 
+            pTrackedObject->frameCount >= (m_instanceCount + m_suppressionCount))
+        {
+            // delete the object so that the instance/suppression cycle can start again
+            // of the object is detected in the next frame.
+            m_pTrackedObjectsPerSource->DeleteObject(pFrameMeta->source_id,
+                pObjectMeta->object_id);
+        }
         return false;
+    }
+
+    uint InstanceOdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        std::vector<NvDsDisplayMeta*>& displayMetaData,  NvDsFrameMeta* pFrameMeta)
+    {
+        // create scope so the property-mutex can be unlocked before
+        // calling the base-class PostProcessFrame which locks the mutex.
+        {
+            // Note: function is called from the system (callback) context
+            // Gaurd against property updates from the client API
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            if (!m_enabled or m_skipFrame or m_pTrackedObjectsPerSource->IsEmpty())
+            {
+                return 0;
+            }
+            // purge all tracked objects, for all sources that are not in the current frame.
+            m_pTrackedObjectsPerSource->Purge(pFrameMeta->frame_num);
+        }
+        // mutext unlocked - safe to call base class
+        return OdeTrigger::PostProcessFrame(pBuffer,
+            displayMetaData, pFrameMeta);
     }
 
 
@@ -1168,7 +1352,7 @@ namespace DSL
             // Gaurd against property updates from the client API
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit))
+            if (!m_enabled or m_skipFrame or (m_eventLimit and m_triggered >= m_eventLimit))
             {
                 return 0;
             }
@@ -1381,7 +1565,7 @@ namespace DSL
             // Gaurd against property updates from the client API
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
-            if (!m_enabled or m_skipFrame or (m_limit and m_triggered >= m_limit) or
+            if (!m_enabled or m_skipFrame or (m_eventLimit and m_triggered >= m_eventLimit) or
                 (m_occurrences < m_minimum) or (m_occurrences > m_maximum))
             {
                 return 0;
@@ -2191,7 +2375,7 @@ namespace DSL
             return false;
         }
 
-        // if this is the first occurrence of any object for this source
+        // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
@@ -2301,7 +2485,7 @@ namespace DSL
             return false;
         }
 
-        // if this is the first occurrence of any object for this source
+        // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id))
         {
@@ -2418,7 +2602,7 @@ namespace DSL
             return false;
         }
 
-        // if this is the first occurrence of any object for this source
+        // if this is the first occurrence of this object for this source
         if (!m_pTrackedObjectsPerSource->IsTracked(pFrameMeta->source_id,
             pObjectMeta->object_id)) 
         {
@@ -2691,7 +2875,7 @@ namespace DSL
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
                                     pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
                             }
-                            if (m_limit and m_triggered >= m_limit)
+                            if (m_eventLimit and m_triggered >= m_eventLimit)
                             {
                                 m_occurrenceMetaListA.clear();
                                 break;
@@ -2762,7 +2946,7 @@ namespace DSL
                                     pOdeAction->HandleOccurrence(shared_from_this(), 
                                         pBuffer, displayMetaData, pFrameMeta, iterB);
                                 }
-                                if (m_limit and m_triggered >= m_limit)
+                                if (m_eventLimit and m_triggered >= m_eventLimit)
                                 {
                                     m_occurrenceMetaListA.clear();
                                     m_occurrenceMetaListB.clear();
@@ -2953,7 +3137,7 @@ namespace DSL
                                 pOdeAction->HandleOccurrence(shared_from_this(), 
                                     pBuffer, displayMetaData, pFrameMeta, m_occurrenceMetaListA[j]);
                             }
-                            if (m_limit and m_triggered >= m_limit)
+                            if (m_eventLimit and m_triggered >= m_eventLimit)
                             {
                                 m_occurrenceMetaListA.clear();
                                 return m_occurrences;
@@ -3026,7 +3210,7 @@ namespace DSL
                                     pOdeAction->HandleOccurrence(shared_from_this(), 
                                         pBuffer, displayMetaData, pFrameMeta, iterB);
                                 }
-                                if (m_limit and m_triggered >= m_limit)
+                                if (m_eventLimit and m_triggered >= m_eventLimit)
                                 {
                                     m_occurrenceMetaListA.clear();
                                     m_occurrenceMetaListB.clear();

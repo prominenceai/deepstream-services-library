@@ -2,7 +2,7 @@
 ODE Actions implement their own "action-specific" event-handler that gets invoked by an [ODE Trigger](/docs/api-ode-trigger.md) or [ODE Accumulator](/docs/api-ode-accumulator.md) on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers. The same is true for ODE Accumulators.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new), [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new),  [dsl_ode_action_customize_label_new](#dsl_ode_action_customize_label_new), [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new), and [dsl_ode_action_fill_object_new](#dsl_ode_action_fill_object_new).
+Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_object_remove_new](#dsl_ode_action_object_remove_new), [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new), [dsl_ode_action_bbox_scale_new](#dsl_ode_action_bbox_scale_new), [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new),  [dsl_ode_action_label_customize_new](#dsl_ode_action_label_customize_new), [dsl_ode_action_label_offset_new](#dsl_ode_action_label_offset_new).
 
 NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new).
 
@@ -53,10 +53,11 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 * [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new)
 * [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new)
 * [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new)
+* [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new)
+* [dsl_ode_action_bbox_scale_new](#dsl_ode_action_bbox_scale_new)
 * [dsl_ode_action_capture_frame_new](#dsl_ode_action_capture_frame_new)
 * [dsl_ode_action_capture_object_new](#dsl_ode_action_capture_object_new)
 * [dsl_ode_action_custom_new](#dsl_ode_action_custom_new)
-* [dsl_ode_action_customize_label_new](#dsl_ode_action_customize_label_new)
 * [dsl_ode_action_display_new](#dsl_ode_action_display_new)
 * [dsl_ode_action_display_meta_add_new](#dsl_ode_action_display_meta_add_new)
 * [dsl_ode_action_display_meta_add_many_new](#dsl_ode_action_display_meta_add_many_new)
@@ -64,12 +65,14 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 * [dsl_ode_action_file_new](#dsl_ode_action_file_new)
 * [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
 * [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
-* [dsl_ode_action_format_bbox_new](#dsl_ode_action_format_bbox_new)
-* [dsl_ode_action_format_label_new](#dsl_ode_action_format_label_new)
+* [dsl_ode_action_label_customize_new](#dsl_ode_action_label_customize_new)
+* [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new)
+* [dsl_ode_action_label_offset_new](#dsl_ode_action_label_offset_new)
 * [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
 * [dsl_ode_action_log_new](#dsl_ode_action_log_new)
 * [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new)
 * [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new)
+* [dsl_ode_action_object_remove_new](#dsl_ode_action_object_remove_new)
 * [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
 * [dsl_ode_action_print_new](#dsl_ode_action_print_new)
 * [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
@@ -96,8 +99,8 @@ ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_acti
 * [dsl_ode_action_capture_image_player_remove](#dsl_ode_action_capture_image_player_remove)
 * [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add)
 * [dsl_ode_action_capture_mailer_remove](#dsl_ode_action_capture_mailer_remove)
-* [dsl_ode_action_customize_label_get](#dsl_ode_action_customize_label_get)
-* [dsl_ode_action_customize_label_set](#dsl_ode_action_customize_label_set)
+* [dsl_ode_action_label_customize_get](#dsl_ode_action_label_customize_get)
+* [dsl_ode_action_label_customize_set](#dsl_ode_action_label_customize_set)
 * [dsl_ode_action_enabled_get](#dsl_ode_action_enabled_get)
 * [dsl_ode_action_enabled_set](#dsl_ode_action_enabled_set)
 * [dsl_ode_action_enabled_state_change_listener_add](#dsl_ode_action_enabled_state_change_listener_add)
@@ -495,18 +498,65 @@ retval = dsl_ode_action_area_remove_new('my-remove-area-action', 'my-trigger', '
 
 <br>
 
+### *dsl_ode_action_bbox_format_new*
+```C++
+DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_width,
+    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
+```
+The constructor creates a uniquely named **Format Bounding Box** ODE Action. When invoked, this Action updates an Object's RGBA bounding-box line width and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's bounding-box from view.
+
+**Important:** Use a RGBA Color Palette to uniquely color the bounding box border or background color using the object's class id as the Palette index. Ensure that the Palette size is at least equal to the number of class-ids inferred on. See the [Display Type Reference](/docs/api-display-type.md) for more information.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `border_width` - [in] border_width border line-width for the object's bounding box. Use 0 to remove the border from view.
+* `border_color` - [in] unique name of the RGBA Color to use for the bounding box border. Use NULL for no-color when setting `border_width` = 0.
+* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise.
+* `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_bbox_format_new('my-format-bbox-action',
+    4, 'my-custom-color, true, 'my-custom-bg-color')
+```
+
+<br>
+
+### *dsl_ode_action_bbox_scale_new*
+```C++
+DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale);
+```
+The constructor creates a uniquely named **Scale Bounding Box** ODE Action. When invoked, this Action scales an Object's bounding box by a given percentage.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `scale` - [in] scale factor in units of percent. value must be greater than 100%
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_bbox_scale_new('my-scale-bbox-action', 120)
+```
+
+<br>
+
 ### *dsl_ode_action_capture_frame_new*
 ```C++
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
+    const wchar_t* outdir);
 ```
-The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The image can be annotated with one or more objects showing bounding boxes and labels. If the action is invoked by an object occurrence, then only the object will be annotated. If the action is invoked by a frame level occurrence - summation, min, max and range triggers for example - all detected objects in the frame will be annotated.
+The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. 
 
 The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `outdir` - [in] absolute or relative path to the output directory to save the image file to
-* `annotate` - [in] if true, the action will annotate the image with object bounding boxes and labels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -560,29 +610,6 @@ The constructor creates a uniquely named **Custom** ODE Action. When invoked, th
 **Python Example**
 ```Python
 retval = dsl_ode_action_callback_new('my-callback-action', my_ode_callback, my_data)
-```
-
-<br>
-
-### *dsl_ode_action_customize_label_new*
-```C++
-DslReturnType dsl_ode_action_customize_label_new(const wchar_t* name,  
-    const uint* content_types, uint size);
-```
-The constructor creates a uniquely named **Customize Label** ODE Action. When invoked, this Action updates an Object's label to display specific content.
-
-**Parameters**
-* `name` - [in] unique name for the ODE Action to create.
-* `content_types` - [in] an array of DSL_OBJECT_LABEL constants.
-* `size` - [in] size of the content_types array.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python    
-retval = dsl_ode_action_customize_label_new('my-customize-label-action',
-    [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
 <br>
@@ -764,36 +791,32 @@ retval = dsl_ode_action_fill_surroundings_new('my-fill-object-action', 'opaque-g
 
 <br>
 
-### *dsl_ode_action_format_bbox_new*
+### *dsl_ode_action_label_customize_new*
 ```C++
-DslReturnType dsl_ode_action_format_bbox_new(const wchar_t* name, uint border_width,
-    const wchar_t* border_color, boolean has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_ode_action_label_customize_new(const wchar_t* name,  
+    const uint* content_types, uint size);
 ```
-The constructor creates a uniquely named **Format Bounding Box** ODE Action. When invoked, this Action updates an Object's RGBA bounding-box line width and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's bounding-box from view.
-
-**Important:** Use a RGBA Color Palette to uniquely color the bounding box border or background color using the object's class id as the Palette index. Ensure that the Palette size is at least equal to the number of class-ids inferred on. See the [Display Type Reference](/docs/api-display-type.md) for more information.
+The constructor creates a uniquely named **Customize Label** ODE Action. When invoked, this Action updates an Object's label to display specific content.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `border_width` - [in] border_width border line-width for the object's bounding box. Use 0 to remove the border from view.
-* `border_color` - [in] unique name of the RGBA Color to use for the bounding box border. Use NULL for no-color when setting `border_width` = 0.
-* `has_bg_color` - [in] set to true to fill the bounding box background color, false otherwise.
-* `bg_color` - [in] unique name of the RGBA Color to use for the background. Use NULL for no-color when `has_bg_color` = false.
+* `content_types` - [in] an array of DSL_OBJECT_LABEL constants.
+* `size` - [in] size of the content_types array.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
-```Python
-retval = dsl_ode_action_format_bbox_new('my-format-bbox-action',
-    4, 'my-custom-color, true, 'my-custom-bg-color')
+```Python    
+retval = dsl_ode_action_label_customize_new('my-customize-label-action',
+    [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 
 <br>
 
-### *dsl_ode_action_format_label_new*
+### *dsl_ode_action_label_format_new*
 ```C++
-DslReturnType dsl_ode_action_format_label_new(const wchar_t* name,
+DslReturnType dsl_ode_action_label_format_new(const wchar_t* name,
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
 ```
 The constructor creates a uniquely named **Format Label** ODE Action. When invoked, this Action updates an Object's label font and color for display by a downstream On-Screen-Display (OSD) component. This action can be used to hide the Object's label from view.
@@ -811,12 +834,34 @@ The constructor creates a uniquely named **Format Label** ODE Action. When invok
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_format_label_new('my-format-label-action',
+retval = dsl_ode_action_label_format_new('my-format-label-action',
     'my-custom-font, true, 'my-custom-bg-color')
 ```
 
 <br>
 
+
+### *dsl_ode_action_label_offset_new*
+```C++
+DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,  
+    int offset_x, int offset_y);
+```
+The constructor creates a uniquely named **Offset Label** ODE Action. When invoked, this Action offsets an Object's label from its current x,y coordinates.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `offset_x` - [in] horizontal offset from the default top left bounding box corner. Use a negative value to move left, positive to move right, in units of pixels.
+* `offset_y` - [in] vertical offset from the default top left bounding box corner. Use a negative value to move up, positive to move down, in units of pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python    
+retval = dsl_ode_action_label_offset_new('my-offset-label-action', 0, -5)
+```
+
+<br>
 
 ### *dsl_ode_action_handler_disable_new*
 ```C++
@@ -901,6 +946,25 @@ The constructor creates a uniquely named **Monitor Occurrence** ODE Action. When
 ```Python
 retval = dsl_ode_action_monitor_new('my-monitor-action',
     occurrence_monitor_cb, None)
+```
+
+<br>
+
+### *dsl_ode_action_object_remove_new*
+```C++
+DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name);
+```
+The constructor creates a uniquely named **Remove Object** ODE Action. When invoked, this Action will remove an object's metadata from the current frame's metadata.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_object_remove_new('my-remove-object-action')
 ```
 
 <br>
@@ -1421,9 +1485,9 @@ retval = dsl_ode_action_capture_mailer_remove('frame-capture-action', 'mailer')
 
 <br>
 
-### *dsl_ode_action_customize_label_get*
+### *dsl_ode_action_label_customize_get*
 ```C++
-DslReturnType dsl_ode_action_customize_label_get(const wchar_t* name,  
+DslReturnType dsl_ode_action_label_customize_get(const wchar_t* name,  
     uint* content_types, uint* size);
 ```
 The service queries a **Customize Label** ODE Action for its current label `content_types`.
@@ -1438,14 +1502,14 @@ The service queries a **Customize Label** ODE Action for its current label `cont
 
 **Python Example**
 ```Python    
-retval, content_types, size = dsl_ode_action_display_get('my-customize-label-action')
+retval, content_types, size = dsl_ode_action_label_customize_get('my-customize-label-action')
 ```
 
 <br>
 
-### *dsl_ode_action_customize_label_set*
+### *dsl_ode_action_label_customize_set*
 ```C++
-DslReturnType dsl_ode_action_customize_label_set(const wchar_t* name,  
+DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,  
     uint* content_types, uint* size);
 ```
 The service updates a uniquely named **Customize Label** ODE Action with new label content types.
@@ -1460,7 +1524,7 @@ The service updates a uniquely named **Customize Label** ODE Action with new lab
 
 **Python Example**
 ```Python    
-retval = dsl_ode_action_display_set('my-customize-label-action',
+retval = dsl_ode_action_label_customize_set('my-customize-label-action',
     [DSL_OBJECT_LABEL_TRACKING_ID, DSL_OBJECT_LABEL_PERSISTENCE], 2)
 ```
 

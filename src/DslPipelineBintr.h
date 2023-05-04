@@ -178,14 +178,14 @@ namespace DSL
          * @param enable true if enabled, false otherwise.
          * @return true if the Padding enabled setting could be read, false otherwisee
          */
-        bool GetStreamMuxPadding(bool* enabled);
+        bool GetStreamMuxPadding(boolean* enabled);
 
         /**
          * @brief Sets, enables/disables the Pipeline's Stream Muxer padding
          * @param enabled set to true to enable padding
          * @return true if the Padding enabled setting could be set, false otherwise.
          */
-        bool SetStreamMuxPadding(bool enabled);
+        bool SetStreamMuxPadding(boolean enabled);
         
         /**
          * @brief Gets the current setting for the Pipeline's StreamMuxer
@@ -241,15 +241,15 @@ namespace DSL
         /**
          * @brief Mutex to protect the async GCond used to synchronize
          * the Application thread with the mainloop context on
-         * asynchronous change of pipeline state.
+         * asynchronous stop.
          */
-        GMutex m_asyncCommMutex;
+        GMutex m_asyncStopMutex;
         
         /**
          * @brief Condition used to block the application context while waiting
          * for a Pipeline change of state to be completed in the mainloop context
          */
-        GCond m_asyncCondition;
+        GCond m_asyncStopCond;
         
         /**
          * @brief parent bin for all Source bins in this Pipeline

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="deepstream-services-library" Version="10.0.0" InternalType="">
+<CodeLite_Project Name="deepstream-services-library" Version="11000" InternalType="">
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <VirtualDirectory Name="opencv">
+      <File Name="../src/opencv/DslAvFile.h"/>
+      <File Name="../src/opencv/DslAvFile.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="ffmpeg">
+      <File Name="../src/ffmpeg/DslAvFile.h"/>
+      <File Name="../src/ffmpeg/DslAvFile.cpp"/>
+    </VirtualDirectory>
     <File Name="../src/DslApi.cpp"/>
     <File Name="../src/DslBranchBintr.cpp"/>
     <File Name="../src/DslDewarperBintr.cpp"/>
@@ -81,7 +89,6 @@
     <File Name="../src/DslSegVisualBintr.h"/>
     <File Name="../src/DslServices.h"/>
     <File Name="../src/DslServicesValidate.h"/>
-    <File Name="../src/DslSinkBintr.h"/>
     <File Name="../src/DslSourceBintr.h"/>
     <File Name="../src/DslSourceMeter.h"/>
     <File Name="../src/DslStateChange.h"/>
@@ -103,14 +110,30 @@
     <File Name="../src/DslPreprocBintr.h"/>
     <File Name="../src/DslServicesPreproc.cpp"/>
     <File Name="../src/DslApi.h"/>
+    <VirtualDirectory Name="nmp">
+      <File Name="../src/nmp/DslPadProbeHandlerNmp.cpp"/>
+      <File Name="../src/nmp/DslPadProbeHandlerNmp.h"/>
+      <File Name="../src/nmp/DslServicesPphNmp.cpp"/>
+    </VirtualDirectory>
+    <File Name="../src/DslServicesOdeAction.cpp"/>
+    <File Name="../src/DslSinkBintr.h"/>
+    <VirtualDirectory Name="webrtc">
+      <File Name="../src/webrtc/DslServicesSinkWebRtc.cpp"/>
+      <File Name="../src/webrtc/DslSinkWebRtcBintr.cpp"/>
+      <File Name="../src/webrtc/DslSinkWebRtcBintr.h"/>
+      <File Name="../src/webrtc/DslSoupServerMgr.cpp"/>
+      <File Name="../src/webrtc/DslSoupServerMgr.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
+    <VirtualDirectory Name="avfile">
+      <File Name="../test/avfile/DslAvFileUnitTest.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="api">
       <File Name="../test/api/DslBranchMgtApiTest.cpp"/>
       <File Name="../test/api/DslComponentMgt.cpp"/>
       <File Name="../test/api/DslDisplayTypesApiTest.cpp"/>
       <File Name="../test/api/DslDisplayTypesBehaviorTest.cpp"/>
-      <File Name="../test/api/DslInferApiTest.cpp"/>
       <File Name="../test/api/DslMailerApiTest.cpp"/>
       <File Name="../test/api/DslMessageBrokerApiTest.cpp"/>
       <File Name="../test/api/DslMessageSinkBehaviorTest.cpp"/>
@@ -145,6 +168,14 @@
       <File Name="../test/api/DslOdeAccumulatorApiTest.cpp"/>
       <File Name="../test/api/DslOdeHeatMapperApiTest.cpp"/>
       <File Name="../test/api/DslPreprocApiText.cpp"/>
+      <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
+      <File Name="../test/api/DslPphBehaviorTest.cpp"/>
+      <File Name="../test/api/DslInferApiTest.cpp"/>
+      <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
+      <File Name="../test/api/DslSourceBufferOutBehaviorTest.cpp"/>
+      <File Name="../test/api/DslDewarperBehaviorTest.cpp"/>
+      <File Name="../test/api/DslDewarperApiTest.cpp"/>
+      <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
@@ -178,9 +209,19 @@
       <File Name="../test/unit/DslOdeTrackedObjectUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeAccumulatorUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
-      <File Name="../src/DslServicesOdeAction.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="nmp">
+      <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
+      <File Name="../test/nmp/DslPphNmpApiTest.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="interpipe">
+      <File Name="../test/interpipe/DslSourceInterPipeUnitTest.cpp"/>
+      <File Name="../test/interpipe/DslInterPipeBehaviorTest.cpp"/>
+      <File Name="../test/interpipe/DslSinkInterPipeUnitTest.cpp"/>
+      <File Name="../test/interpipe/DslSinkInterPipeApiTest.cpp"/>
+      <File Name="../test/interpipe/DslSourceInterPipeApiTest.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
@@ -197,39 +238,27 @@
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
       <File Name="../examples/cpp/ode_cross_polygon_border_print_event.cpp"/>
-      <File Name="../examples/cpp/Makefile"/>
       <File Name="../examples/cpp/README"/>
       <File Name="../examples/cpp/4uri_file_tiler_show_source_control.cpp"/>
       <File Name="../examples/cpp/ode_occurrence_trigger_with_monitor_action.cpp"/>
       <File Name="../examples/cpp/ode_occurrence_trigger_with_mot_challenge_file_action.cpp"/>
-      <File Name="../examples/cpp/1file_ptis_ktl_osd_window.cpp"/>
       <File Name="../examples/cpp/1file_preproc_pgie_iou_osd_window.cpp"/>
       <File Name="../examples/cpp/4uri_file_streammux_with_tiled_output_pre_pgie.cpp"/>
+      <File Name="../examples/cpp/non_maximum_processing.cpp"/>
+      <File Name="../examples/cpp/Makefile"/>
+      <File Name="../examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp"/>
+      <File Name="../examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp"/>
+      <File Name="../examples/cpp/1file_ptis_tracker_osd_window.cpp"/>
+      <File Name="../examples/cpp/raw_i420_app_src_ptis_tracker_osd_window.cpp"/>
+      <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_thumbnail_periodically.cpp"/>
+      <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_on_viewer_demand.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
-      <File Name="../examples/python/1csi_live_pgie_demuxer_osd_overlay_rtsp_h254.py"/>
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
-      <File Name="../examples/python/1csi_live_pgie_tiler_osd_window.py"/>
-      <File Name="../examples/python/1file_ptis_dcf_osd_window.py"/>
-      <File Name="../examples/python/1file_ptis_ktl_3stis_osd_window.py"/>
-      <File Name="../examples/python/1file_ptis_ktl_osd_window.py"/>
       <File Name="../examples/python/1file_webrtc_connect_post_play.py"/>
       <File Name="../examples/python/1file_webrtc_connect_pre_play.py"/>
-      <File Name="../examples/python/1uri_file_pgie_iou_tiler_osd_custom_pph_window.py"/>
-      <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_custom_pph_window.py"/>
-      <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h264_mkv.py"/>
-      <File Name="../examples/python/1uri_file_pgie_ktl_tiler_osd_window_h265_mp4.py"/>
-      <File Name="../examples/python/1uri_https_tiler_window_dyn_overlay.py"/>
-      <File Name="../examples/python/2rtsp_splitter_demuxer_pgie_ktl_tiler_osd_window_2_file.py"/>
-      <File Name="../examples/python/2uri_file_pgie_ktl_3sgie_tiler_osd_bmh_window.py"/>
-      <File Name="../examples/python/2uri_file_pgie_ktl_demuxer_1osd_1overlay_1window.py"/>
-      <File Name="../examples/python/2uri_splitter_pgie_ktl_osd_window_and_file.py"/>
-      <File Name="../examples/python/4uri_file_pgie_ktl_tiler_osd_overlay.py"/>
       <File Name="../examples/python/4uri_file_tiler_show_source_control.py"/>
       <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
-      <File Name="../examples/python/dyn_uri_file_pgie_ktl_tiler_osd_window.py"/>
-      <File Name="../examples/python/industrial_segmentation.py"/>
-      <File Name="../examples/python/libdsl.so"/>
       <File Name="../examples/python/message_broker_azure_device_client.py"/>
       <File Name="../examples/python/multiple_pipelines.py"/>
       <File Name="../examples/python/nvidia_osd_sink_pad_buffer_probe.py"/>
@@ -249,16 +278,38 @@
       <File Name="../examples/python/ode_occurrence_uri_start_record_sink_action.py"/>
       <File Name="../examples/python/ode_persistence_and_earliest_triggers_custom_labels.py"/>
       <File Name="../examples/python/ode_persistence_trigger_fill_tracked_objects.py"/>
-      <File Name="../examples/python/ode_trigger_criteria.py"/>
       <File Name="../examples/python/player_play_all_mp4_files_found.py"/>
       <File Name="../examples/python/rtsp_player_to_test_connections.py"/>
-      <File Name="../examples/python/semantic_segmentation.py"/>
       <File Name="../examples/python/message_broker_azure_module_client.py"/>
       <File Name="../examples/python/1image_jpeg_pgie_osd_window.py"/>
       <File Name="../examples/python/ode_line_cross_object_capture_overlay_image.py"/>
       <File Name="../examples/python/ode_occurrence_trigger_with_heat_mapper.py"/>
       <File Name="../examples/python/ode_occurrence_trigger_with_monitor_action.py"/>
-      <File Name="../examples/python/1file_preproc_pgie_iou_osd_window.py"/>
+      <File Name="../examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py"/>
+      <File Name="../examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py"/>
+      <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py"/>
+      <File Name="../examples/python/1csi_live_pgie_osd_window.py"/>
+      <File Name="../examples/python/1file_ptis_dcf_tracker_osd_window.py"/>
+      <File Name="../examples/python/1file_ptis_iou_tracker_3stis_osd_window.py"/>
+      <File Name="../examples/python/1file_ptis_iou_tracker_osd_window.py"/>
+      <File Name="../examples/python/1file_preproc_pgie_iou_tracker_osd_window.py"/>
+      <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_custom_pph_window.py"/>
+      <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_window_h264_mkv.py"/>
+      <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_window_h265_mp4.py"/>
+      <File Name="../examples/python/1uri_https_window_dynamic_overlay.py"/>
+      <File Name="../examples/python/2uri_file_pgie_iou_tracker_3sgie_tiler_osd_custom_pph_window.py"/>
+      <File Name="../examples/python/2uri_file_pgie_iou_tracker_demuxer_1osd_1overlay_1window.py"/>
+      <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
+      <File Name="../examples/python/segmentation_industrial.py"/>
+      <File Name="../examples/python/segmentation_semantic.py"/>
+      <File Name="../examples/python/video_dewarper_360.py"/>
+      <File Name="../examples/python/1uri_file_pgie_iou_tracker_app_sink.py"/>
+      <File Name="../examples/python/video_dewarper_perspective.py"/>
+      <File Name="../examples/python/encode_and_save_frame_to_jpeg_thumbnail_periodically.py"/>
+      <File Name="../examples/python/encode_and_save_frame_to_jpeg_on_viewer_demand.py"/>
+      <File Name="../examples/python/2uri_file_demuxer_pgie_iou_tiler_osd_window_2_file.py"/>
+      <File Name="../examples/python/2uri_splitter_pgie_iou_osd_window_and_file.py"/>
+      <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_overlay.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
@@ -268,8 +319,10 @@
       <File Name="../examples/tkinter/tkapp.py"/>
       <File Name="../examples/tkinter/tkapp_window.py"/>
     </VirtualDirectory>
-    <File Name="../test/api/DslInfoApiTest.cpp.tmp"/>
-    <File Name="../test/api/DslCrossTriggerExampleTest.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="thirdparty">
+    <File Name="../src/thirdparty/randomcolor.cpp"/>
+    <File Name="../src/thirdparty/randomcolor.h"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
@@ -320,7 +373,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Release" CompilerType="" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
@@ -341,7 +394,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make -C ../ clean</CleanCommand>
-        <BuildCommand>make -C ../ -j 4</BuildCommand>
+        <BuildCommand>make -C ../ -j $(nproc)</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
@@ -360,8 +413,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <VirtualDirectory Name="thirdparty">
-    <File Name="../src/thirdparty/randomcolor.cpp"/>
-    <File Name="../src/thirdparty/randomcolor.h"/>
-  </VirtualDirectory>
 </CodeLite_Project>

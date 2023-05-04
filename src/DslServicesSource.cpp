@@ -30,7 +30,558 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    DslReturnType Services::SourceAppNew(const char* name, boolean isLive, 
+        const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_APP_SOURCE_NEW(name, isLive, 
+                bufferInFormat, width, height, fpsN, fpsD);
+
+            LOG_INFO("New App Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New App Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppDataHandlersAdd(const char* name,
+        dsl_source_app_need_data_handler_cb needDataHandler, 
+        dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+        void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->AddDataHandlers(needDataHandler,
+                enoughDataHandler, clientData))
+            {
+                LOG_ERROR("Failed to add data-handlers to App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name 
+                << "' added data-handlers successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception adding data-handlers");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppDataHandlersRemove(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->RemoveDataHandlers())
+            {
+                LOG_ERROR("Failed to remove data-handlers from App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name 
+                << "' removed data-handlers successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception removing data-handlers");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppBufferPush(const char* name, void* buffer)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->PushBuffer(buffer))
+            {
+                LOG_ERROR("Failed to push buffer to App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            // don't log successful case for performance reasons
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception on push buffer");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppSamplePush(const char* name, void* sample)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->PushSample(sample))
+            {
+                LOG_ERROR("Failed to push sample to App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            // don't log successful case for performance reasons
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception on push sample");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppEos(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->Eos())
+            {
+                LOG_ERROR("Failed to end-of-stream App Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("End-of-stream event sent to  App Source '" 
+                << name << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception on end-of-stream");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAppStreamFormatGet(const char* name,
+        uint* streamFormat)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            *streamFormat = pSourceBintr->GetStreamFormat();
+            
+            LOG_INFO("App Source '" << name << "' returned buffer-format = "
+                << *streamFormat << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception getting buffer-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppStreamFormatSet(const char* name,
+        uint streamFormat)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetStreamFormat(streamFormat))
+            {
+                LOG_ERROR("Failed to set stream-format to " 
+                    << streamFormat << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name 
+                << "' set stream-format = " << streamFormat << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception setting buffer-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppDoTimestampGet(const char* name, 
+        boolean* doTimestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+         
+            *doTimestamp = pSourceBintr->GetDoTimestamp();
+
+            LOG_INFO("Source '" << name << "' returned do-timestamp = " 
+                << *doTimestamp << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name << "' threw exception getting do-timestamp");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+        
+    DslReturnType Services::SourceAppDoTimestampSet(const char* name, 
+        boolean doTimestamp)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetDoTimestamp(doTimestamp))
+            {
+                LOG_ERROR("Failed to set do-timestamp = " << doTimestamp 
+                    << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("App Source '" << name << "' set do-timestamp = " 
+                << doTimestamp << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception setting do-timestamp");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+    DslReturnType Services::SourceAppBlockEnabledGet(const char* name,
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            *enabled = pSourceBintr->GetBlockEnabled();
+            
+            LOG_INFO("App Source '" << name << "' returned block-enabled = "
+                << *enabled << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception getting block-enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppBlockEnabledSet(const char* name,
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetBlockEnabled(enabled))
+            {
+                LOG_ERROR("Failed to set block-enabled to " 
+                    << enabled << " for App Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("App Source '" << name 
+                << "' set block-enabled = " << enabled << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception setting block-enabled");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppCurrentLevelBytesGet(const char* name,
+        uint64_t* level)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            *level = pSourceBintr->GetCurrentLevelBytes();
+            
+            LOG_INFO("App Source '" << name 
+                << "' returned current-level-bytes = "
+                << *level << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception getting current-level-bytes");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppMaxLevelBytesGet(const char* name,
+        uint64_t* level)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            *level = pSourceBintr->GetMaxLevelBytes();
+            
+            LOG_INFO("App Source '" << name 
+                << "' returned max-level-bytes = "
+                << *level << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception getting max-level-bytes");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAppMaxLevelBytesSet(const char* name,
+        uint64_t level)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AppSourceBintr);
+
+            DSL_APP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetMaxLevelBytes(level))
+            {
+                LOG_ERROR("App Source '" << name 
+                    << "' failed to set max-level-bytes = " << level);
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("App Source '" << name << "' set max-level-bytes = "
+                << level << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("App Source '" << name 
+                << "' threw exception setting max-level-bytes");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+//    DslReturnType Services::SourceAppLeakyTypeGet(const char* name,
+//        uint* leakyType)
+//    {
+//        LOG_FUNC();
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+//
+//        try
+//        {
+//            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+//            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+//                AppSourceBintr);
+//
+//            DSL_APP_SOURCE_PTR pSourceBintr = 
+//                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+//
+//            *leakyType = pSourceBintr->GetLeakyType();
+//            
+//            LOG_INFO("App Source '" << name << "' returned leaky-type = "
+//                << *leakyType << " successfully");
+//            
+//            return DSL_RESULT_SUCCESS;
+//        }
+//        catch(...)
+//        {
+//            LOG_ERROR("App Source '" << name 
+//                << "' threw exception getting leaky-type");
+//            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+//        }
+//    }
+//    
+//    DslReturnType Services::SourceAppLeakyTypeSet(const char* name,
+//        uint leakyType)
+//    {
+//        LOG_FUNC();
+//        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+//
+//        try
+//        {
+//            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+//            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+//                AppSourceBintr);
+//
+//            if (leakyType > DSL_QUEUE_LEAKY_TYPE_DOWNSTREAM)
+//            {
+//                LOG_ERROR("Invalid leaky-type = " << leakyType 
+//                    << " for App Source '" << name << "'");
+//                return DSL_RESULT_SOURCE_SET_FAILED;
+//            }
+//            DSL_APP_SOURCE_PTR pSourceBintr = 
+//                std::dynamic_pointer_cast<AppSourceBintr>(m_components[name]);
+//
+//            if (!pSourceBintr->SetLeakyType(leakyType))
+//            {
+//                LOG_ERROR("App Source '" << name 
+//                    << "' failed to set leaky-type = " << leakyType);
+//                return DSL_RESULT_SOURCE_SET_FAILED;
+//            }
+//
+//            LOG_INFO("App Source '" << name << "' set leaky-type = "
+//                << leakyType << " successfully");
+//            
+//            return DSL_RESULT_SUCCESS;
+//        }
+//        catch(...)
+//        {
+//            LOG_ERROR("App Source '" << name 
+//                << "' threw exception setting leaky-type");
+//            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+//        }
+//    }
+    
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fpsN, uint fpsD)
     {
@@ -39,6 +590,15 @@ namespace DSL
 
         try
         {
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);
+            
+            if (!deviceProp.integrated)
+            {
+                LOG_ERROR("CSI Source is not supported on dGPU x86_64 builds");
+                return DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED;
+            }
             // ensure component name uniqueness 
             if (m_components.find(name) != m_components.end())
             {   
@@ -54,6 +614,72 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New CSI Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceCsiSensorIdGet(const char* name, 
+            uint* sensorId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                CsiSourceBintr);
+
+
+            DSL_CSI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<CsiSourceBintr>(m_components[name]);
+
+            *sensorId = pSourceBintr->GetSensorId();
+
+            LOG_INFO("CSI Source '" << name << "' returned sensor-id = '" 
+                << *sensorId << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("CSI Source '" << name 
+                << "' threw exception getting sensor-id");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceCsiSensorIdSet(const char* name, 
+            uint sensorId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                CsiSourceBintr);
+
+            DSL_CSI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<CsiSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetSensorId(sensorId))
+            {
+                LOG_ERROR("Failed to set sensor-id '" 
+                    << sensorId << "' for CSI Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("CSI Source '" << name << "' set sensor-id = '" 
+                << sensorId << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("CSI Source '" << name 
+                << "' threw exception setting sensor-id");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -85,8 +711,74 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SourceUsbDeviceLocationGet(const char* name, 
+            const char** deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                UsbSourceBintr);
+
+
+            DSL_USB_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UsbSourceBintr>(m_components[name]);
+
+            *deviceLocation = pSourceBintr->GetDeviceLocation();
+
+            LOG_INFO("USB Source '" << name << "' returned device-location = '" 
+                << *deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("USB Source '" << name 
+                << "' threw exception getting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceUsbDeviceLocationSet(const char* name, 
+            const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                UsbSourceBintr);
+
+            DSL_USB_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UsbSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetDeviceLocation(deviceLocation))
+            {
+                LOG_ERROR("Failed to set device-location '" 
+                    << deviceLocation << "' for USB Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("USB Source '" << name << "' set device-location = '" 
+                << deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("USB Source '" << name 
+                << "' threw exception setting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
-        boolean isLive, uint intraDecode, uint dropFrameInterval)
+        boolean isLive, uint skipFrames, uint dropFrameInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -115,7 +807,7 @@ namespace DSL
                 }
             }
             m_components[name] = DSL_URI_SOURCE_NEW(
-                name, uri, isLive, intraDecode, dropFrameInterval);
+                name, uri, isLive, skipFrames, dropFrameInterval);
 
             LOG_INFO("New URI Source '" << name << "' created successfully");
 
@@ -166,7 +858,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceFilePathGet(const char* name, const char** filePath)
+    DslReturnType Services::SourceFileFilePathGet(const char* name, 
+        const char** filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -174,27 +867,30 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                FileSourceBintr);
 
-            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
 
             *filePath = pSourceBintr->GetUri();
 
-            LOG_INFO("File Source '" << name << "' returned File Path = '" 
+            LOG_INFO("File Source '" << name << "' returned file-path = '" 
                 << *filePath << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("File Source '" << name << "' threw exception getting File Path");
+            LOG_ERROR("File Source '" << name 
+                << "' threw exception getting file-path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
             
 
-    DslReturnType Services::SourceFilePathSet(const char* name, const char* filePath)
+    DslReturnType Services::SourceFileFilePathSet(const char* name, 
+        const char* filePath)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -202,30 +898,27 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_FILE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                FileSourceBintr);
 
-            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+            DSL_FILE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<FileSourceBintr>(m_components[name]);
 
-            std::ifstream streamUriFile(filePath);
-            if (!streamUriFile.good())
-            {
-                LOG_ERROR("File Source'" << filePath << "' Not found");
-                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-            }
             if (!pSourceBintr->SetUri(filePath))
             {
-                LOG_ERROR("Failed to Set FilePath '" << filePath << "' for File Source '" << name << "'");
+                LOG_ERROR("Failed to Set file-path '" << filePath 
+                    << "' for File Source '" << name << "'");
                 return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
             }
-            LOG_INFO("File Source '" << name << "' set File Path = '" 
+            LOG_INFO("File Source '" << name << "' set file-path = '" 
                 << filePath << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("File Source '" << name << "' threw exception setting File path");
+            LOG_ERROR("File Source '" << name 
+                << "' threw exception setting file-path");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -340,12 +1033,6 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-//            std::ifstream streamUriFile(filePath);
-//            if (!streamUriFile.good())
-//            {
-//                LOG_ERROR("Image Frame Source'" << filePath << "' Not found");
-//                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
-//            }
             m_components[name] = DSL_MULTI_IMAGE_SOURCE_NEW(name, 
                 filePath, fpsN, fpsD);
 
@@ -358,6 +1045,144 @@ namespace DSL
         {
             LOG_ERROR("New Multi Image Source '" << name 
                 << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceImageMultiLoopEnabledGet(const char* name,
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            *enabled = pSourceBintr->GetLoopEnabled();
+
+            LOG_INFO("Multi-Image Source '" << name << "' returned loop-enabled = '" 
+                << *enabled << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception getting the loop-enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageMultiLoopEnabledSet(const char* name,
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetLoopEnabled(enabled))
+            {
+                LOG_ERROR("Failed to set the loop-enabled setting for \\\
+                    Multi-Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Source '" << name << "' set loop-enabled = '" 
+                << enabled << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception updating the loop-enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageMultiIndicesGet(const char* name,
+        int* startIndex, int* stopIndex)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetIndices(startIndex, stopIndex);
+
+            LOG_INFO("Multi-Image Source '" << name << "' returned start-index = '" 
+                << *startIndex << "' and stop-index = '" << *stopIndex
+                << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception getting the loop-enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceImageMultiIndicesSet(const char* name,
+        int startIndex, int stopIndex)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MultiImageSourceBintr);
+
+            DSL_MULTI_IMAGE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<MultiImageSourceBintr>(m_components[name]);
+         
+            if (startIndex < 0)
+            {
+                LOG_ERROR("Invalid start-index = '" << startIndex 
+                    << "' for Multi-Image Source '" << name 
+                    << "'. Index is zero-based");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+                
+            if (!pSourceBintr->SetIndices(startIndex, stopIndex))
+            {
+                LOG_ERROR("Failed to set the indices for \\\
+                    Multi-Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("Multi-Image Source '" << name << "' set start-index = '" 
+                << startIndex << "' and stop-index = '" << stopIndex
+                << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Multi-Image Source '" << name 
+                << "' threw exception updating the loop-enabled setting");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
@@ -448,13 +1273,238 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Image Stream Source '" << name << "' threw exception setting Timeout");
+            LOG_ERROR("Image Stream Source '" << name 
+                << "' threw exception setting Timeout");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
 
+    DslReturnType Services::SourceImageFilePathGet(const char* name, 
+        const char** filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(m_components, name);
+
+            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+
+            *filePath = pSourceBintr->GetUri();
+
+            LOG_INFO("Image Source '" << name << "' returned file-path = '" 
+                << *filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name 
+                << "' threw exception getting file-path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceImageFilePathSet(const char* name, 
+        const char* filePath)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(m_components, name);
+
+            DSL_RESOURCE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<ResourceSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetUri(filePath))
+            {
+                LOG_ERROR("Failed to Set file-path '" << filePath 
+                    << "' for Image Source '" << name << "'");
+                return DSL_RESULT_SOURCE_FILE_NOT_FOUND;
+            }
+            LOG_INFO("Image Source '" << name << "' set file-path = '" 
+                << filePath << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Image Source '" << name 
+                << "' threw exception setting file-path");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceInterpipeNew(const char* name, 
+        const char* listenTo, boolean isLive, 
+        boolean acceptEos, boolean acceptEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_INTERPIPE_SOURCE_NEW(
+                name, listenTo, isLive, acceptEos, acceptEvents);
+
+            LOG_INFO("New Inter-Pipe Source '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Inter-Pipe Source '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceInterpipeListenToGet(const char* name, 
+        const char** listenTo)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            *listenTo = pSourceBintr->GetListenTo();
+
+            LOG_INFO("Inter-Pipe Source '" << name << "' returned listen_to = '" 
+                << *listenTo << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception getting listen-to setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceInterpipeListenToSet(const char* name, 
+        const char* listenTo)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            pSourceBintr->SetListenTo(listenTo);
+            
+            LOG_INFO("Inter-Pipe Source '" << name << "' set listen-to = '" 
+                << listenTo << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception setting listen-to");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceInterpipeAcceptSettingsGet(const char* name,
+        boolean* acceptEos, boolean* acceptEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            bool bAcceptEos(false), bAcceptEvents(false);
+            pSourceBintr->GetAcceptSettings(&bAcceptEos, &bAcceptEvents);
+            *acceptEos = bAcceptEos;
+            *acceptEvents = bAcceptEvents;
+
+            LOG_INFO("Inter-Pipe Source '" << name << "' returned accept-eos = " 
+                << *acceptEos << ", accept-events = " << *acceptEvents 
+                << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception getting accept setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceInterpipeAcceptSettingsSet(const char* name,
+        boolean acceptEos, boolean acceptEvents)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                InterpipeSourceBintr);
+
+            DSL_INTERPIPE_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<InterpipeSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetAcceptSettings(acceptEos, acceptEvents))
+            {
+                LOG_ERROR("Inter-Pipe Source '" << name 
+                    << "' failed to set Accept settings");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Inter-Pipe Source '" << name << "' set accept-eos = " 
+                << acceptEos << ", accept-events = " << acceptEvents 
+                << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inter-Pipe Source '" << name 
+                << "' threw exception getting accept setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SourceRtspNew(const char* name, const char* uri,  uint protocol, 
-       uint intraDecode, uint dropFrameInterval, uint latency, uint timeout)
+       uint skipFrames, uint dropFrameInterval, uint latency, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -468,7 +1518,7 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_RTSP_SOURCE_NEW(
-                name, uri, protocol, intraDecode, dropFrameInterval, latency, timeout);
+                name, uri, protocol, skipFrames, dropFrameInterval, latency, timeout);
 
             LOG_INFO("New RTSP Source '" << name << "' created successfully");
 
@@ -481,7 +1531,75 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::SourcePphAdd(const char* name, const char* handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to add itself to the Source as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], 
+                DSL_PAD_SRC))
+            {
+                LOG_ERROR("Source '" << name 
+                    << "' failed to add Pad Probe Handler '"
+                    << handler << "'");
+                return DSL_RESULT_SOURCE_HANDLER_ADD_FAILED;
+            }
+            LOG_INFO("Source '" << name << "' added Pad Probe Handler '"
+                << handler << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw an exception adding Pad Probe Handler '" 
+                << handler << "'");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::SourcePphRemove(const char* name, const char* handler) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], 
+                DSL_PAD_SRC))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Source '" << name << "'");
+                return DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED;
+            }
+            LOG_INFO("Source '" << name << "' removed Pad Probe Handler'" 
+                << handler << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw an exception removing Pad Probe Handler '" 
+                << handler << "'");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceMediaTypeGet(const char* name, 
+        const char** mediaType)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -494,9 +1612,316 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
          
+            *mediaType = pSourceBintr->GetMediaType();
+
+            LOG_INFO("Source '" << name << "' returned media-type = " 
+                << *mediaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting media-type");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutFormatGet(const char* name, 
+        const char** format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            *format = pSourceBintr->GetBufferOutFormat();
+
+            LOG_INFO("Source '" << name << "' returned buffer-out-format = " 
+                << *format << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutFormatSet(const char* name, 
+        const char* format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutFormat(format))
+            {
+                LOG_ERROR("Failed to set buffer-out-format = " << format 
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set buffer-out-format = " 
+                << format << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetBufferOutDimensions(width, height);
+
+            LOG_INFO("Source '" << name << "' returned width = " 
+                << *width << " and height = " << *height 
+                << " for buffer-out-dimensions successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutDimensions(width, height))
+            {
+                LOG_ERROR("Failed to set buffer-out-dimensions to width = " 
+                    << width << " and height = " << height  
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set width = " 
+                << width << " and height = " << height 
+                << "for buffer-out-dimensions successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::SourceVideoBufferOutCropRectangleGet(const char* name, 
+        uint cropAt, uint* left, uint* top, uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetBufferOutCropRectangle(cropAt, 
+                left, top, width, height);
+
+            LOG_INFO("Source '" << name << "' returned crop_at = "
+                << cropAt << " left = " << *left 
+                << ", top = " << *top << ", width = "
+                << *width << ", and height = " << *height
+                << " for buffer-out-crop-rectangle successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-crop-rectangle");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutCropRectangleSet(const char* name, 
+        uint cropAt, uint left, uint top, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            if (cropAt > DSL_VIDEO_CROP_AT_DEST)
+            {
+                LOG_ERROR("Invalid 'crop_at' = " << cropAt 
+                    << " setting buffer-out-crop rectangel for Source '"
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            if (!pSourceBintr->SetBufferOutCropRectangle(cropAt, 
+                left, top, width, height))
+            {
+                LOG_ERROR("Failed to set buffer-out-crop-rectangle to crop_at = " 
+                    << cropAt << ", left = " << left << ", top = " 
+                    << top << ", width = " << width <<", and height = "
+                    << height << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set crop_at = "
+                << cropAt << ", left = " << left << ", top = " 
+                << top << ", width = " << width << ", and height = " 
+                << height << " for buffer-out-crop-rectangle successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-crop-rectangle");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutOrientationGet(const char* name, 
+        uint* orientation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            *orientation = pSourceBintr->GetBufferOutOrientation();
+
+            LOG_INFO("Source '" << name << "' returned buffer-out-orientation = " 
+                << *orientation << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-orientation");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutOrientationSet(const char* name, 
+        uint orientation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            if (orientation > DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT)
+            {
+                LOG_ERROR("Invalid 'orientation' = " << orientation 
+                    << " setting buffer-out-orientaton for Source '"
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            if (!pSourceBintr->SetBufferOutOrientation(orientation))
+            {
+                LOG_ERROR("Failed to set buffer-out-orientation = " 
+                    << orientation << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set buffer-out-orientation = " 
+                << orientation << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception setting buffer-out-orientation");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
             pSourceBintr->GetDimensions(width, height);
 
-            LOG_INFO("Image Source '" << name << "' returned Width = " 
+            LOG_INFO("Source '" << name << "' returned Width = " 
                 << *width << " and Height = " << *height << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -519,11 +1944,11 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
             
             DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             pSourceBintr->GetFrameRate(fpsN, fpsD);
 
-            LOG_INFO("Image Source '" << name << "' returned FPS N = " 
+            LOG_INFO("Source '" << name << "' returned FPS N = " 
                 << *fpsN << " and FPS D = " << *fpsD << "' successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -535,7 +1960,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceDecodeUriGet(const char* name, const char** uri)
+    DslReturnType Services::SourceUriUriGet(const char* name, const char** uri)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -543,27 +1968,28 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                UriSourceBintr);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_URI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
             *uri = pSourceBintr->GetUri();
 
-            LOG_INFO("Decode Source '" << name << "' returned URI = '" 
+            LOG_INFO("URI Source '" << name << "' returned URI = '" 
                 << *uri << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name << "' threw exception getting URI");
+            LOG_ERROR("URI Source '" << name << "' threw exception getting URI");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
             
 
-    DslReturnType Services::SourceDecodeUriSet(const char* name, const char* uri)
+    DslReturnType Services::SourceUriUriSet(const char* name, const char* uri)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -571,17 +1997,19 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                UriSourceBintr);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_URI_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
             if (!pSourceBintr->SetUri(uri));
             {
-                LOG_ERROR("Failed to Set URI '" << uri << "' for Decode Source '" << name << "'");
+                LOG_ERROR("Failed to Set URI '" << uri 
+                    << "' for URI Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("Decode Source '" << name << "' set URI = '" 
+            LOG_INFO("URI Source '" << name << "' set URI = '" 
                 << uri << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -593,7 +2021,68 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceDecodeDewarperAdd(const char* name, const char* dewarper)
+    DslReturnType Services::SourceRtspUriGet(const char* name, const char** uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtspSourceBintr);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            *uri = pSourceBintr->GetUri();
+
+            LOG_INFO("RTSP Source '" << name << "' returned URI = '" 
+                << *uri << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name << "' threw exception getting URI");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceRtspUriSet(const char* name, const char* uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtspSourceBintr);
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetUri(uri));
+            {
+                LOG_ERROR("Failed to Set URI '" << uri 
+                    << "' for RTSP Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("RTSP Source '" << name << "' set URI = '" 
+                << uri << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name << "' threw exception setting URI");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceVideoDewarperAdd(const char* name, const char* dewarper)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -602,21 +2091,23 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, dewarper);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, dewarper, DewarperBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                dewarper, DewarperBintr);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             DSL_DEWARPER_PTR pDewarperBintr = 
                 std::dynamic_pointer_cast<DewarperBintr>(m_components[dewarper]);
          
             if (!pSourceBintr->AddDewarperBintr(pDewarperBintr))
             {
-                LOG_ERROR("Failed to add Dewarper '" << dewarper << "' to Decode Source '" << name << "'");
+                LOG_ERROR("Failed to add Dewarper '" << dewarper 
+                    << "' to Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED;
             }
-            LOG_INFO("Decode Source '" << name << "' added Dewarper '" 
+            LOG_INFO("Uri Source '" << name << "' added Dewarper '" 
                 << dewarper << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -628,7 +2119,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceDecodeDewarperRemove(const char* name)
+    DslReturnType Services::SourceVideoDewarperRemove(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -636,17 +2127,17 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_DECODE_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
-            DSL_DECODE_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<DecodeSourceBintr>(m_components[name]);
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
             if (!pSourceBintr->RemoveDewarperBintr())
             {
-                LOG_ERROR("Failed to remove Dewarper from Decode Source '" << name << "'");
+                LOG_ERROR("Failed to remove Dewarper from Uri Source '" << name << "'");
                 return DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED;
             }
-            LOG_INFO("Decode Source '" << name << "' removed its Dewarper successfully");
+            LOG_INFO("Uri Source '" << name << "' removed its Dewarper successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -711,7 +2202,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceRtspReconnectionParamsGet(const char* name, uint* sleep, uint* timeout)
+    DslReturnType Services::SourceRtspConnectionParamsGet(const char* name, uint* sleep, uint* timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -724,7 +2215,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            pSourceBintr->GetReconnectionParams(sleep, timeout);
+            pSourceBintr->GetConnectionParams(sleep, timeout);
             
             LOG_INFO("RTSP Source '" << name << "' returned Sleep = " <<
                 *sleep << " and Timeout = " << *timeout << "' successfully");
@@ -738,7 +2229,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspReconnectionParamsSet(const char* name, uint sleep, uint timeout)
+    DslReturnType Services::SourceRtspConnectionParamsSet(const char* name, uint sleep, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -751,7 +2242,7 @@ namespace DSL
             DSL_RTSP_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
                 
-            if (!pSourceBintr->SetReconnectionParams(sleep, timeout))
+            if (!pSourceBintr->SetConnectionParams(sleep, timeout))
             {
                 LOG_ERROR("RTSP Source '" << name << "' failed to set reconnection params");
                 return DSL_RESULT_SOURCE_SET_FAILED;
@@ -1044,7 +2535,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
             DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
                 
             if (!pSourceBintr->IsInUse())
             {
@@ -1100,7 +2591,8 @@ namespace DSL
                 return DSL_RESULT_SOURCE_NOT_IN_PAUSE;
             }
 
-            if (!pSourceBintr->SetState(GST_STATE_PLAYING, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            if (!pSourceBintr->SetState(GST_STATE_PLAYING, 
+                DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
             {
                 LOG_ERROR("Source '" << name << "' failed to change state to Play");
                 return DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE;
@@ -1125,7 +2617,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
 
-            boolean isLive = std::dynamic_pointer_cast<SourceBintr>(m_components[name])->IsLive();
+            boolean isLive = std::dynamic_pointer_cast<SourceBintr>
+                (m_components[name])->IsLive();
 
             LOG_INFO("Source '" << name << "' returned Is-Live = " << isLive );
             return DSL_RESULT_SUCCESS;
@@ -1137,46 +2630,8 @@ namespace DSL
         }
     }
     
-    uint Services::SourceNumInUseGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSourcesInUse();
-        }
-        return numInUse;
-    }
-    
-    uint Services::SourceNumInUseMaxGet()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        return m_sourceNumInUseMax;
-    }
-    
-    boolean Services::SourceNumInUseMaxSet(uint max)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        uint numInUse(0);
-        
-        if (max < GetNumSourcesInUse())
-        {
-            LOG_ERROR("max setting = " << max << 
-                " is less than the current number of Sources in use = " << numInUse);
-            return false;
-        }
-        m_sourceNumInUseMax = max;
-        return true;
-    }
-
-    DslReturnType Services::DewarperNew(const char* name, const char* configFile)
+    DslReturnType Services::DewarperNew(const char* name, 
+        const char* configFile, uint sourceId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1190,8 +2645,6 @@ namespace DSL
                 return DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE;
             }
             
-            LOG_INFO("Dewarper config file: " << configFile);
-            
             std::ifstream ifsConfigFile(configFile);
             if (!ifsConfigFile.good())
             {
@@ -1199,7 +2652,8 @@ namespace DSL
                 return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
             }
 
-            m_components[name] = DSL_DEWARPER_NEW(name, configFile);
+            m_components[name] = DSL_DEWARPER_NEW(name, 
+                configFile, sourceId);
 
             LOG_INFO("New Dewarper '" << name << "' created successfully");
 
@@ -1212,7 +2666,208 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TapRecordNew(const char* name, const char* outdir, uint container, 
+    DslReturnType Services::DewarperConfigFileGet(const char* name, 
+        const char** configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            *configFile = pDewarperBintr->GetConfigFile();
+
+            LOG_INFO("Dewarper '" << name << "' returned config-file = '"
+                << *configFile << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw exception getting the config-file pathspec");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperConfigFileSet(const char* name, 
+        const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            std::ifstream streamConfigFile(configFile);
+            if (!streamConfigFile.good())
+            {
+                LOG_ERROR("Dewarper config file not found");
+                return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            if (!pDewarperBintr->SetConfigFile(configFile))
+            {
+                LOG_ERROR("Dewarper '" << name 
+                    << "' failed to set the config file");
+                return DSL_RESULT_DEWARPER_SET_FAILED;
+            }
+            LOG_INFO("Dewarper '" << name << "' set config-file = '"
+                << configFile << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw exception setting config-file");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+    DslReturnType Services::DewarperCameraIdGet(const char* name, 
+        uint* cameraId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            *cameraId = pDewarperBintr->GetCameraId();
+
+            LOG_INFO("camera-id = " << *cameraId 
+                << " returned successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception getting camera-id");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperCameraIdSet(const char* name, 
+        uint cameraId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            if (!pDewarperBintr->SetCameraId(cameraId))
+            {
+                LOG_ERROR("Dewarper '" << name 
+                    << "' failed to set camera-id = " << cameraId);
+                return DSL_RESULT_DEWARPER_SET_FAILED;
+            }
+            LOG_INFO("camera-id = " << cameraId 
+                << " set successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception setting camera-id");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperNumBatchBuffersGet(const char* name, 
+        uint* num)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            *num = pDewarperBintr->GetNumBatchBuffers();
+
+            LOG_INFO("num-batch-buffers = " << *num 
+                << " returned successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception getting num-batch-buffers");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DewarperNumBatchBuffersSet(const char* name, 
+        uint num)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            if (num == 0 or num > 4)
+            {
+                LOG_ERROR("Invalid num-batch-buffers = " << num 
+                    << " for Dewarper '" << name << "'");
+                return false;
+            }
+            DSL_DEWARPER_PTR pDewarperBintr = 
+                std::dynamic_pointer_cast<DewarperBintr>(m_components[name]);
+
+            if (!pDewarperBintr->SetNumBatchBuffers(num))
+            {
+                LOG_ERROR("Dewarper '" << name 
+                    << "' failed to set num-batch-buffers = " << num);
+                return DSL_RESULT_DEWARPER_SET_FAILED;
+            }
+            LOG_INFO("num-batch-buffers = " << num 
+                << " set successfully for Dewarper '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw an exception setting num-batch-buffers");
+            return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordNew(const char* name, 
+        const char* outdir, uint container, 
         dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
@@ -1231,13 +2886,15 @@ namespace DSL
             // ensure outdir exists
             if ((stat(outdir, &info) != 0) or !(info.st_mode & S_IFDIR))
             {
-                LOG_ERROR("Unable to access outdir '" << outdir << "' for Record Tape '" << name << "'");
+                LOG_ERROR("Unable to access outdir '" << outdir 
+                    << "' for Record Tape '" << name << "'");
                 return DSL_RESULT_TAP_FILE_PATH_NOT_FOUND;
             }
 
             if (container > DSL_CONTAINER_MKV)
             {   
-                LOG_ERROR("Invalid Container value = " << container << " for File Tap '" << name << "'");
+                LOG_ERROR("Invalid Container value = " << container 
+                    << " for File Tap '" << name << "'");
                 return DSL_RESULT_TAP_CONTAINER_VALUE_INVALID;
             }
 
@@ -1264,7 +2921,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
@@ -1280,7 +2938,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception Starting Session");
+            LOG_ERROR("Record Tap'" << name 
+                << "' threw an exception Starting Session");
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
@@ -1293,7 +2952,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
@@ -1308,7 +2968,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Tap'" << name << "' threw an exception setting Stoping Session");
+            LOG_ERROR("Record Tap'" << name 
+                << "' threw an exception setting Stoping Session");
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
@@ -1737,26 +3398,4 @@ namespace DSL
         }
     }
 
-    bool Services::IsSourceComponent(const char* component)
-    {
-        LOG_FUNC();
-     
-        return (m_components[component]->IsType(typeid(CsiSourceBintr)) or 
-            m_components[component]->IsType(typeid(UriSourceBintr)) or
-            m_components[component]->IsType(typeid(RtspSourceBintr)));
-    }
- 
-    uint Services::GetNumSourcesInUse()
-    {
-        LOG_FUNC();
-        
-        uint numInUse(0);
-        
-        for (auto const& imap: m_pipelines)
-        {
-            numInUse += imap.second->GetNumSourcesInUse();
-        }
-        return numInUse;
-    }
-    
 }    

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2019-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,14 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+# ````````````````````````````````````````````````````````````````````````````````````````````````````````
+# This example is used to demonstrate the use of a First Occurrence Triggerand a 
+# Start Record Action to control a Record Sink.  A callback function, called on 
+# completion of the recording session, will reset the Trigger allowing a new 
+# session to be started on next occurrence. Addional actions are added to Print 
+# the ODE Occurrence to the console and an "Opection Capture" the object to a 
+# JPEG image-file 
+
 #!/usr/bin/env python
 
 import sys
@@ -34,15 +42,18 @@ primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-TILER_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH
-TILER_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT
+TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
@@ -87,45 +98,43 @@ def state_change_listener(old_state, new_state, client_data):
 # Function to be called on recording complete
 ## 
 def record_complete_listener(session_info_ptr, client_data):
-    print(' ***  Recording Complete  *** ')
+    print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
+
     print('session_id: ', session_info.session_id)
-    print('filename:   ', session_info.filename)
-    print('dirpath:    ', session_info.dirpath)
-    print('duration:   ', session_info.duration)
-    print('container:  ', session_info.container_type)
-    print('width:      ', session_info.width)
-    print('height:     ', session_info.height)
     
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    print('        is_on flag = ', is_on)
-    
-    retval, reset_done = dsl_sink_record_reset_done_get('record-sink')
-    print('        reset_done flag = ', reset_done)
-    
-    # reset the Trigger so that a new session can be started.
-    print(dsl_return_value_to_string(dsl_ode_trigger_reset('bicycle-occurrence-trigger')))
-    
-    return None
+    # If we're starting a new recording for this source
+    if session_info.recording_event == DSL_RECORDING_EVENT_START:
+        print('event:      ', 'DSL_RECORDING_EVENT_START')
 
-## 
-# Custom check-for-occurrence (NOP) callback added to the Custome trigger.
-## 
-def check_for_occurrence(buffer, object_meta, frame_meta, client_data):
-    
-    return False
+        # enable the always trigger showing the metadata for "recording in session" 
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Enable always trigger failed with error: ', 
+                dsl_return_value_to_string(retval))
 
-## 
-# Custom post-process-frame callback added to the Custome trigger.
-## 
-def post_process_frame(buffer, frame_meta, client_data):
-    
-    # check the state of the Record Sink
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    
-    # if on... returning true will execute all of the Trigger's Actions
-    return is_on
+    # Else, the recording session has ended for this source
+    else:
+        print('event:      ', 'DSL_RECORDING_EVENT_END')
+        print('filename:   ', session_info.filename)
+        print('dirpath:    ', session_info.dirpath)
+        print('duration:   ', session_info.duration)
+        print('container:  ', session_info.container_type)
+        print('width:      ', session_info.width)
+        print('height:     ', session_info.height)
+
+        # disable the always trigger showing the metadata for "recording in session" 
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Enable always trigger failed with error: ', 
+                dsl_return_value_to_string(retval))
+
+        # re-enable the one-shot trigger for the next "New Instance" of a person
+        retval = dsl_ode_trigger_reset('bicycle-occurrence-trigger')    
+        if (retval != DSL_RETURN_SUCCESS):
+            print('Failed to reset instance trigger with error:', 
+                dsl_return_value_to_string(retval))
 
 def main(args):
 
@@ -133,28 +142,21 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # This example is used to demonstrate the use of a First Occurrence Trigger and a Start Record Action
-        # to control a Record Sink.  A callback function, called on completion of the recording session, will
-        # reset the Trigger allowing a new session to be started on next occurrence.
-        # Addional actions are added to "Capture" the frame to an image-file and "Fill" the frame red as a visual marker.
+        # New Record-Sink that will buffer encoded video while waiting for the 
+        # ODE trigger/action, defined below, to start a new session on first 
+        # occurrence of a bicycle. The default 'cache-size' and 'duration' are defined in
+        # Setting the bit rate to 0 to not change from the default.  
+        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
+            container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
+            client_listener=record_complete_listener)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New Record-Sink that will buffer encoded video while waiting for the ODE trigger/action, defined below, 
-        # to start a new session on first occurrence. The default 'cache-size' and 'duration' are defined in
-        # Setting the bit rate to 12 Mbps for 1080p ??? 
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, container=DSL_CONTAINER_MKV, 
-            bitrate=12000000, interval=0, client_listener=record_complete_listener)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Let's check the default cache size, and reduce it. We only need a short buffer for this example.
-        retval, cache_size = dsl_sink_record_cache_size_get('record-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        print(' ***  Default cache_size = ', cache_size, 'seconds  *** ')
-        
-        # Update the cache size to 5 seconds.
-        retval = dsl_sink_record_cache_size_set('record-sink', 5)
+        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
+        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
+        # at the input to the encoder. Note: the dimensions can also be controlled
+        # after the video encoder by calling dsl_sink_record_dimensions_set
+        retval = dsl_sink_encode_dimensions_set('record-sink', width=640, height=360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -192,23 +194,24 @@ def main(args):
             ['rec-text', 'red-led', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_custom_new('rec-on-trigger', 
-            source = DSL_ODE_ANY_SOURCE, 
-            class_id = DSL_ODE_ANY_CLASS, 
-            limit = DSL_ODE_TRIGGER_LIMIT_NONE, 
-            client_checker = check_for_occurrence, 
-            client_post_processor=post_process_frame, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+            
+        # Create an Always Trigger that will trigger on every frame when enabled.
+        # We use this trigger to display meta data while the recording is in session.
+        # POST_OCCURRENCE_CHECK == after all other triggers are processed first.
+        retval = dsl_ode_trigger_always_new('rec-on-trigger',     
+            source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_POST_OCCURRENCE_CHECK)    
+        if (retval != DSL_RETURN_SUCCESS):    
+            return retval    
+
         retval = dsl_ode_trigger_action_add('rec-on-trigger', action='add-rec-on')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a Fill-Area Action as a visual indicator to identify the frame that triggered the recording
-        retval = dsl_ode_action_fill_frame_new('red-flash-action', 'opaque-red')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
+        # Disable the trigger, to be re-enabled in the recording_event listener callback
+        retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)    
+        if (retval != DSL_RETURN_SUCCESS):    
+            return retval
+
         # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
         # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
         retval = dsl_ode_action_capture_object_new('bicycle-capture-action', outdir="./")
@@ -222,7 +225,8 @@ def main(args):
             break
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Bicycle Occurrence Trigger. We will reset the trigger in the recording complete callback
+        # Next, create the Bicycle Occurrence Trigger. We will reset the trigger 
+        # in the recording complete callback
         retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger', 
             source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
         if retval != DSL_RETURN_SUCCESS:
@@ -233,6 +237,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # We will also print the event occurrence to the console    
         retval = dsl_ode_action_print_new('print', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -240,10 +245,9 @@ def main(args):
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Add the actions to our Bicycle Occurence Trigger.
         retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
-            'red-flash-action', 
             'bicycle-capture-action', 
-            'start-record-action', 
             'print',
+            'start-record-action',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -255,7 +259,7 @@ def main(args):
             break
         retval = dsl_pph_ode_trigger_add_many('ode-handler', triggers=[
             'bicycle-occurrence-trigger',
-            'rec-on-trigger', 
+            'rec-on-trigger',
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -265,7 +269,7 @@ def main(args):
         # Create the remaining Pipeline components
         
         retval = dsl_source_uri_new('uri-source', uri_h265, is_live=False, 
-            intra_decode=0, drop_frame_interval=0)
+            skip_frames=0, drop_frame_interval=0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -275,8 +279,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New KTL Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new('iou-tracker', tracker_config_file, 480, 272)
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 

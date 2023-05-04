@@ -54,8 +54,8 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-uint WINDOW_WIDTH = DSL_DEFAULT_STREAMMUX_WIDTH;
-uint WINDOW_HEIGHT = DSL_DEFAULT_STREAMMUX_HEIGHT;
+uint WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
+uint WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
 
 // output file path for the MOT Challenge File Action. 
 std::wstring file_path(L"./mot-challenge-data.txt");
@@ -160,7 +160,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame
-        retval = dsl_tracker_iou_new(L"iou-tracker", 
+        retval = dsl_tracker_new(L"iou-tracker", 
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 

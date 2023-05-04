@@ -1,6 +1,6 @@
 
 ################################################################################
-# Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2019-2023, NVIDIA CORPORATION. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,8 @@
 import sys
 sys.path.insert(0, "../../")
 import pyds
+
+from dsl import *
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -106,4 +108,4 @@ def osd_sink_pad_buffer_probe(buffer, user_data):
             l_frame=l_frame.next
         except StopIteration:
             break
-    return True
+    return DSL_PAD_PROBE_OK

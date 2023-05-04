@@ -49,19 +49,19 @@ namespace DSL
          * @param pChildSource shared pointer to SourceBintr to add
          * @return true if the SourceBintr was added correctly, false otherwise
          */
-        bool AddChild(DSL_SOURCE_PTR pChildSource);
+        bool AddChild(DSL_VIDEO_SOURCE_PTR pChildSource);
         
         /**
          * @brief removes a child SourceBintr from this PipelineSourcesBintr
          * @param pChildElement a shared pointer to SourceBintr to remove
          * @return true if the SourceBintr was removed correctly, false otherwise
          */
-        bool RemoveChild(DSL_SOURCE_PTR pChildSource);
+        bool RemoveChild(DSL_VIDEO_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base method and checks in m_pChildSources only.
          */
-        bool IsChild(DSL_SOURCE_PTR pChildSource);
+        bool IsChild(DSL_VIDEO_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base Noder method to only return the number of 
@@ -146,13 +146,13 @@ namespace DSL
          * @brief Gets the current setting for the PipelineSourcesBintr's Muxer padding
          * @param enable true if enabled, false otherwise.
          */
-        void GetStreamMuxPadding(bool* enabled);
+        void GetStreamMuxPadding(boolean* enabled);
 
         /**
          * @brief Sets, enables/disables the PipelineSourcesBintr's StreamMuxer padding
          * @param enabled set to true to enable padding
          */
-        void SetStreamMuxPadding(bool enabled);
+        void SetStreamMuxPadding(boolean enabled);
 
         /**
          * @brief Gets the current setting for the PipelineSourcesBintr's StreamMuxer
@@ -200,7 +200,7 @@ namespace DSL
         /**
          * @brief container of all child sources mapped by their unique names
          */
-        std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
+        std::map<std::string, DSL_VIDEO_SOURCE_PTR> m_pChildSources;
 
         /**
          * @brief Each source is assigned a unique streamux pad id when linked
@@ -239,12 +239,54 @@ namespace DSL
         /**
          * @brief true if frame padding is enabled, false otherwise
          */
-        bool m_isPaddingEnabled;
+        boolean m_isPaddingEnabled;
         
         /**
          * @brief Number of surfaces-per-frame stream-muxer setting
          */
         int m_numSurfacesPerFrame;
+
+        /**
+         * @brief Compute Scaling HW to use. Applicable only for Jetson.
+         * 0 (Default): Default, GPU for Tesla, VIC for Jetson
+         * 1 (GPU): GPU
+         * 2 (VIC): VIC
+         */
+        uint m_computeHw;
+        
+        /**
+         * @brief Number of buffers in output buffer pool
+         */
+        uint m_bufferPoolSize;
+        
+        /**
+         * @brief Attach system timestamp as ntp timestamp, otherwise ntp 
+         * timestamp calculated from RTCP sender reports.
+         */
+        boolean m_attachSysTs;
+        
+        /**
+         * @brief Interpolation method - refer to enum NvBufSurfTransform_Inter 
+         * in nvbufsurftransform.h for valid values.
+         */
+        uint m_interpolationMethod;
+        
+        /**
+         * @brief if true, sychronizes input frames using PTS.
+         */
+        boolean m_syncInputs;
+        
+        /**
+         * @brief Duration of input frames in milliseconds for use in NTP timestamp 
+         * correction based on frame rate. If set to 0 (default), frame duration is 
+         * inferred automatically from PTS values seen at RTP jitter buffer. When 
+         * there is change in frame duration between the RTP jitter buffer and the 
+         * nvstreammux, this property can be used to indicate the correct frame rate 
+         * to the nvstreammux, for e.g. when there is an audiobuffersplit GstElement 
+         * before nvstreammux in the pipeline. If set to -1, disables frame rate 
+         * based NTP timestamp correction. 
+         */
+        int m_frameDuration;
     };
 
     

@@ -31,11 +31,11 @@ namespace DSL
 
     TilerBintr::TilerBintr(const char* name, uint width, uint height)
         : Bintr(name)
-        , m_rows(0)
-        , m_columns(0)
         , m_width(width)
         , m_height(height)
-        , m_showSourceId(-1)
+        , m_rows(0)
+        , m_columns(0)
+        , m_frameNumberingEnabled(false)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
         , m_showSourceTimerId(0)
@@ -49,8 +49,25 @@ namespace DSL
         // Don't overwrite the default "best-fit" columns and rows on construction
         m_pTiler->SetAttribute("width", m_width);
         m_pTiler->SetAttribute("height", m_height);
+        
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
         m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        // Get property defaults that aren't specifically set
+        m_pTiler->GetAttribute("show-source", &m_showSourceId);
+        m_pTiler->GetAttribute("gpu-id", &m_gpuId);
+        m_pTiler->GetAttribute("compute-hw", &m_computeHw);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for TilerBintr '" << name << "'");
+        LOG_INFO("  rows              : " << m_rows);
+        LOG_INFO("  columns           : " << m_columns);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  show-source       : " << m_showSourceId);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
+        LOG_INFO("  compute-hw        : " << m_computeHw);
 
         AddChild(m_pQueue);
         AddChild(m_pTiler);
@@ -60,6 +77,11 @@ namespace DSL
     
         m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
+        
+        // temp solution to ensure PPH is always executed first - alphabetically
+        std::string adderName("___"); 
+        adderName += name;
+        m_pFrameNumberAdder = DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderName.c_str());
     
         g_mutex_init(&m_showSourceMutex);
     }
@@ -102,6 +124,8 @@ namespace DSL
         m_pQueue->LinkToSink(m_pTiler);
         m_isLinked = true;
         
+        m_pFrameNumberAdder->ResetFrameNumber();
+        
         return true;
     }
     
@@ -121,9 +145,6 @@ namespace DSL
     void TilerBintr::GetTiles(uint* columns, uint* rows)
     {
         LOG_FUNC();
-        
-        m_pTiler->GetAttribute("columns", &m_columns);
-        m_pTiler->GetAttribute("rows", &m_rows);
         
         *columns = m_columns;
         *rows = m_rows;
@@ -166,6 +187,39 @@ namespace DSL
         return true;
     }
 
+    bool TilerBintr::GetFrameNumberingEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_frameNumberingEnabled;
+    }
+
+    bool TilerBintr::SetFrameNumberingEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_frameNumberingEnabled and enabled)
+        {
+            LOG_ERROR("Can't enable frame-numbering for Tiler '" <<
+                GetName() << "' as it's already enabled ");
+            return false;
+        }
+        if (!m_frameNumberingEnabled and !enabled)
+        {
+            LOG_ERROR("Can't disabled frame-numbering for Tiler '" <<
+                GetName() << "' as it's already disabled ");
+            return false; 
+        }
+        m_frameNumberingEnabled = enabled;
+        
+        if(m_frameNumberingEnabled)
+        {
+            return AddPadProbeHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
+        }
+        return RemovePadProbeHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
+    }
+    
+
     void TilerBintr::GetShowSource(int* sourceId, uint* timeout)
     {
         LOG_FUNC();
@@ -180,8 +234,7 @@ namespace DSL
         // every object in every frame.
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
 
-        // Note: batch size is 0 until Tiler is linked... calls will fail until then
-        if (sourceId < 0 or sourceId >= (int)m_batchSize)
+        if (sourceId < 0)
         {
             LOG_ERROR("Invalid source Id '" << sourceId << "' for TilerBintr '" << GetName());
             return false;
@@ -310,7 +363,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsInUse())
+        if (m_isLinked)
         {
             LOG_ERROR("Unable to set GPU ID for TilerBintr '" << GetName() 
                 << "' as it's currently in use");

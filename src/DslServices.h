@@ -152,7 +152,7 @@ namespace DSL {
             dsl_ode_handle_occurrence_cb clientHandler, void* clientData);
             
         DslReturnType OdeActionCaptureFrameNew(const char* name, 
-            const char* outdir, boolean annotate);
+            const char* outdir);
         
         DslReturnType OdeActionCaptureObjectNew(const char* name, 
             const char* outdir);
@@ -175,23 +175,28 @@ namespace DSL {
         DslReturnType OdeActionCaptureMailerRemove(const char* name,
             const char* mailer);
 
-        DslReturnType OdeActionCustomizeLabelNew(const char* name, 
-            const uint* contentTypes, uint size);
-
-        DslReturnType OdeActionCustomizeLabelGet(const char* name, 
-            uint* contentTypes, uint* size);
-        
-        DslReturnType OdeActionCustomizeLabelSet(const char* name, 
-            const uint* contentTypes, uint size);
-        
         DslReturnType OdeActionDisplayNew(const char* name, 
             const char* formatString, uint offsetX, uint offsetY, 
             const char* font, boolean hasBgColor, const char* bgColor);
             
-        DslReturnType OdeActionFormatBBoxNew(const char* name,
+        DslReturnType OdeActionBBoxFormatNew(const char* name,
             uint borderWidth, const char* borderColor, boolean hasBgColor, const char* bgColor);
+            
+        DslReturnType OdeActionBBoxScaleNew(const char* name, uint scale);
 
-        DslReturnType OdeActionFormatLabelNew(const char* name,
+        DslReturnType OdeActionLabelCustomizeNew(const char* name, 
+            const uint* contentTypes, uint size);
+
+        DslReturnType OdeActionLabelCustomizeGet(const char* name, 
+            uint* contentTypes, uint* size);
+        
+        DslReturnType OdeActionLabelCustomizeSet(const char* name, 
+            const uint* contentTypes, uint size);
+        
+        DslReturnType OdeActionLabelOffsetNew(const char* name, 
+            int offset_x, int offset_y);
+        
+        DslReturnType OdeActionLabelFormatNew(const char* name,
             const char* font, boolean hasBgColor, const char* bgColor);
         
         DslReturnType OdeActionLogNew(const char* name);
@@ -206,6 +211,8 @@ namespace DSL {
             
         DslReturnType OdeActionMonitorNew(const char* name,
             dsl_ode_monitor_occurrence_cb clientMonitor, void* clientData);
+            
+        DslReturnType OdeActionObjectRemoveNew(const char* name);
 
         DslReturnType OdeActionEmailNew(const char* name, 
             const char* mailer, const char* subject);
@@ -317,6 +324,12 @@ namespace DSL {
 
         DslReturnType OdeTriggerInstanceNew(const char* name, 
             const char* source, uint classId, uint limit);
+            
+        DslReturnType OdeTriggerInstanceCountSettingsGet(const char* name,
+            uint* instanceCount, uint* suppressionCount);
+        
+        DslReturnType OdeTriggerInstanceCountSettingsSet(const char* name,
+            uint instanceCount, uint suppressionCount);
         
         DslReturnType OdeTriggerIntersectionNew(const char* name, 
             const char* source, uint classIdA, uint classIdB, uint limit);
@@ -402,11 +415,11 @@ namespace DSL {
 
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType OdeTriggerLimitEventListenerAdd(const char* name,
-            dsl_ode_trigger_limit_event_listener_cb listener, void* clientData);
+        DslReturnType OdeTriggerLimitStateChangeListenerAdd(const char* name,
+            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
 
-        DslReturnType OdeTriggerLimitEventListenerRemove(const char* name,
-            dsl_ode_trigger_limit_event_listener_cb listener);
+        DslReturnType OdeTriggerLimitStateChangeListenerRemove(const char* name,
+            dsl_ode_trigger_limit_state_change_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
@@ -436,9 +449,13 @@ namespace DSL {
         DslReturnType OdeTriggerClassIdABSet(const char* name, 
             uint classIdA, uint classIdB);
         
-        DslReturnType OdeTriggerLimitGet(const char* name, uint* limit);
+        DslReturnType OdeTriggerLimitEventGet(const char* name, uint* limit);
         
-        DslReturnType OdeTriggerLimitSet(const char* name, uint limit);
+        DslReturnType OdeTriggerLimitEventSet(const char* name, uint limit);
+        
+        DslReturnType OdeTriggerLimitFrameGet(const char* name, uint* limit);
+        
+        DslReturnType OdeTriggerLimitFrameSet(const char* name, uint limit);
         
         DslReturnType OdeTriggerConfidenceMinGet(const char* name, 
             float* minConfidence);
@@ -446,11 +463,23 @@ namespace DSL {
         DslReturnType OdeTriggerConfidenceMinSet(const char* name, 
             float minConfidence);
         
+        DslReturnType OdeTriggerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType OdeTriggerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
+        
         DslReturnType OdeTriggerTrackerConfidenceMinGet(const char* name, 
             float* minConfidence);
         
         DslReturnType OdeTriggerTrackerConfidenceMinSet(const char* name, 
             float minConfidence);
+        
+        DslReturnType OdeTriggerTrackerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType OdeTriggerTrackerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
         
         DslReturnType OdeTriggerDimensionsMinGet(const char* name, 
             float* min_width, float* min_height);
@@ -577,6 +606,29 @@ namespace DSL {
 
         DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
+        DslReturnType PphNmpNew(const char* name, const char* labelFile,
+            uint processMethod, uint matchMethod, float matchThreshold);
+            
+        DslReturnType PphNmpLabelFileGet(const char* name, const char** labelFile);
+        
+        DslReturnType PphNmpLabelFileSet(const char* name, const char* labelFile);
+
+        DslReturnType PphNmpProcessMethodGet(const char* name, uint* processMethod);
+        
+        DslReturnType PphNmpProcessMethodSet(const char* name, uint processMethod);
+        
+        DslReturnType PphNmpMatchSettingsGet(const char* name, 
+            uint* matchMethod, float* matchThreshold);
+        
+        DslReturnType PphNmpMatchSettingsSet(const char* name, 
+            uint matchMethod, float matchThreshold);
+        
+        DslReturnType PphBufferTimeoutNew(const char* name,
+            uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
+    
+        DslReturnType PphEosNew(const char* name,
+            dsl_pph_eos_handler_cb handler, void* clientData);
+    
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
         DslReturnType PphEnabledSet(const char* name, boolean enabled);
@@ -587,21 +639,81 @@ namespace DSL {
         
         uint PphListSize();
         
+        DslReturnType SourceAppNew(const char* name, boolean isLive, 
+            const char* bufferInFormat, uint width, uint height, 
+            uint fpsN, uint fpsD);
+            
+        DslReturnType SourceAppDataHandlersAdd(const char* name,
+            dsl_source_app_need_data_handler_cb needDataHandler, 
+            dsl_source_app_enough_data_handler_cb enoughDataHandler, 
+            void* clientData);
+
+        DslReturnType SourceAppDataHandlersRemove(const char* name);
+            
+        DslReturnType SourceAppBufferPush(const char* name, void* buffer);
+
+        DslReturnType SourceAppSamplePush(const char* name, void* sample);
+
+        DslReturnType SourceAppEos(const char* name);
+        
+        DslReturnType SourceAppStreamFormatGet(const char* name,
+            uint* StreamFormat);
+        
+        DslReturnType SourceAppStreamFormatSet(const char* name,
+            uint bufferFormat);
+        
+        DslReturnType SourceAppDoTimestampGet(const char* name, boolean* doTimestamp);
+            
+        DslReturnType SourceAppDoTimestampSet(const char* name, boolean doTimestamp);
+            
+        DslReturnType SourceAppBlockEnabledGet(const char* name,
+            boolean* enabled);
+        
+        DslReturnType SourceAppBlockEnabledSet(const char* name,
+            boolean enabled);
+        
+        DslReturnType SourceAppCurrentLevelBytesGet(const char* name,
+            uint64_t* level);
+        
+        DslReturnType SourceAppMaxLevelBytesGet(const char* name,
+            uint64_t* level);
+        
+        DslReturnType SourceAppMaxLevelBytesSet(const char* name,
+            uint64_t level);
+        
+//        DslReturnType SourceAppLeakyTypeGet(const char* name,
+//            uint* leakyType);
+//        
+//        DslReturnType SourceAppLeakyTypeSet(const char* name,
+//            uint leakyType);
+
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
+            
+        DslReturnType SourceCsiSensorIdGet(const char* name, 
+            uint* sensorId);
+        
+        DslReturnType SourceCsiSensorIdSet(const char* name, 
+            uint sensorId);
         
         DslReturnType SourceUsbNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
+
+        DslReturnType SourceUsbDeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SourceUsbDeviceLocationSet(const char* name, 
+            const char* deviceLocation);
         
         DslReturnType SourceUriNew(const char* name, const char* uri, 
-            boolean isLive, uint intraDecode, uint dropFrameInterval);
+            boolean isLive, uint skipFrames, uint dropFrameInterval);
             
         DslReturnType SourceFileNew(const char* name, const char* filePath, 
             boolean repeatEnabled);
 
-        DslReturnType SourceFilePathGet(const char* name, const char** filePath);
+        DslReturnType SourceFileFilePathGet(const char* name, const char** filePath);
 
-        DslReturnType SourceFilePathSet(const char* name, const char* filePath);
+        DslReturnType SourceFileFilePathSet(const char* name, const char* filePath);
 
         DslReturnType SourceFileRepeatEnabledGet(const char* name, boolean* enabled);
     
@@ -612,6 +724,18 @@ namespace DSL {
 
         DslReturnType SourceImageMultiNew(const char* name, 
             const char* filePath, uint fpsN, uint fpsD);
+            
+        DslReturnType SourceImageMultiLoopEnabledGet(const char* name,
+            boolean* enabled);
+        
+        DslReturnType SourceImageMultiLoopEnabledSet(const char* name,
+            boolean enabled);
+        
+        DslReturnType SourceImageMultiIndicesGet(const char* name,
+            int* startIndex, int* stopIndex);
+        
+        DslReturnType SourceImageMultiIndicesSet(const char* name,
+            int startIndex, int stopIndex);
 
         DslReturnType SourceImageStreamNew(const char* name, const char* filePath, 
             boolean isLive, uint fpsN, uint fpsD, uint timeout);
@@ -620,28 +744,80 @@ namespace DSL {
     
         DslReturnType SourceImageStreamTimeoutSet(const char* name, uint timeout);
             
-        DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
-            uint intraDecode, uint dropFrameInterval, uint latency, uint timeout);
+        DslReturnType SourceImageFilePathGet(const char* name, const char** filePath);
+
+        DslReturnType SourceImageFilePathSet(const char* name, const char* filePath);
+
+        DslReturnType SourceInterpipeNew(const char* name, const char* listenTo,
+            boolean isLive, boolean acceptEos, boolean acceptEvents);
             
-        DslReturnType SourceDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType SourceInterpipeListenToGet(const char* name, const char** listenTo);
+            
+        DslReturnType SourceInterpipeListenToSet(const char* name, const char* listenTo);
+        
+        DslReturnType SourceInterpipeAcceptSettingsGet(const char* name,
+            boolean* acceptEos, boolean* acceptEvents);
+            
+        DslReturnType SourceInterpipeAcceptSettingsSet(const char* name,
+            boolean acceptEos, boolean acceptEvents);
+            
+        DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
+            uint skipFrames, uint dropFrameInterval, uint latency, uint timeout);
+
+        DslReturnType SourcePphAdd(const char* name, const char* handler);
+
+        DslReturnType SourcePphRemove(const char* name, const char* handler);
+
+        DslReturnType SourceMediaTypeGet(const char* name, 
+            const char** mediaType);
+
+        DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
+            const char** format);
+
+        DslReturnType SourceVideoBufferOutFormatSet(const char* name, 
+            const char* format);
+            
+        DslReturnType SourceVideoBufferOutDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SourceVideoBufferOutDimensionsSet(const char* name, 
+            uint width, uint height);
+
+        DslReturnType SourceVideoBufferOutCropRectangleGet(const char* name, 
+            uint cropAt, uint* left, uint* top, uint* width, uint* height);
+
+        DslReturnType SourceVideoBufferOutCropRectangleSet(const char* name, 
+            uint cropAt, uint left, uint top, uint width, uint height);
+
+        DslReturnType SourceVideoBufferOutOrientationGet(const char* name, 
+            uint* orientation);
+
+        DslReturnType SourceVideoBufferOutOrientationSet(const char* name, 
+            uint orientation);
+
+        DslReturnType SourceVideoDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType SourceFrameRateGet(const char* name, uint* fpsN, uint* fpsD);
 
-        DslReturnType SourceDecodeUriGet(const char* name, const char** uri);
+        DslReturnType SourceVideoDewarperAdd(const char* name, const char* dewarper);
+    
+        DslReturnType SourceVideoDewarperRemove(const char* name);
 
-        DslReturnType SourceDecodeUriSet(const char* name, const char* uri);
+        DslReturnType SourceUriUriGet(const char* name, const char** uri);
+
+        DslReturnType SourceUriUriSet(const char* name, const char* uri);
     
-        DslReturnType SourceDecodeDewarperAdd(const char* name, const char* dewarper);
+        DslReturnType SourceRtspUriGet(const char* name, const char** uri);
+
+        DslReturnType SourceRtspUriSet(const char* name, const char* uri);
     
-        DslReturnType SourceDecodeDewarperRemove(const char* name);
-        
         DslReturnType SourceRtspTimeoutGet(const char* name, uint* timeout);
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType SourceRtspReconnectionParamsGet(const char* name, uint* sleep, uint* timeout);
+        DslReturnType SourceRtspConnectionParamsGet(const char* name, uint* sleep, uint* timeout);
 
-        DslReturnType SourceRtspReconnectionParamsSet(const char* name, uint sleep, uint timeout);
+        DslReturnType SourceRtspConnectionParamsSet(const char* name, uint sleep, uint timeout);
         
         DslReturnType SourceRtspConnectionDataGet(const char* name, dsl_rtsp_connection_data* data);
         
@@ -671,14 +847,23 @@ namespace DSL {
 
         boolean SourceIsLive(const char* name);
         
-        uint SourceNumInUseGet();
+        DslReturnType DewarperNew(const char* name, 
+            const char* configFile, uint sourceId);
         
-        uint SourceNumInUseMaxGet();
-        
-        boolean SourceNumInUseMaxSet(uint max);
-        
-        DslReturnType DewarperNew(const char* name, const char* configFile);
-        
+        DslReturnType DewarperConfigFileGet(const char* name, 
+            const char** configFile);
+            
+        DslReturnType DewarperConfigFileSet(const char* name, 
+            const char* configFile);
+            
+        DslReturnType DewarperCameraIdGet(const char* name, uint* cameraId);
+
+        DslReturnType DewarperCameraIdSet(const char* name, uint cameraId);
+
+        DslReturnType DewarperNumBatchBuffersGet(const char* name, uint* num);
+
+        DslReturnType DewarperNumBatchBuffersSet(const char* name, uint num);
+
         DslReturnType TapRecordNew(const char* name, const char* outdir, 
             uint container, dsl_record_client_listener_cb clientListener);
             
@@ -799,33 +984,31 @@ namespace DSL {
     
         DslReturnType _inferNameErase(uint inferId);
 
-        DslReturnType TrackerDcfNew(const char* name, 
-            const char* configFile, uint width, uint height,
-            boolean batch_processing_enabled, boolean past_frame_reporting_enabled);
-        
-        DslReturnType TrackerKtlNew(const char* name, uint width, uint height);
-        
-        DslReturnType TrackerIouNew(const char* name, 
+        DslReturnType TrackerNew(const char* name, 
             const char* configFile, uint width, uint height);
 
-        DslReturnType TrackerConfigFileGet(const char* name, const char** inferConfigFile);
+        DslReturnType TrackerLibFileGet(const char* name, const char** libFile);
 
-        DslReturnType TrackerConfigFileSet(const char* name, const char* inferConfigFile);
+        DslReturnType TrackerLibFileSet(const char* name, const char* libFile);
+        
+        DslReturnType TrackerConfigFileGet(const char* name, const char** configFile);
+
+        DslReturnType TrackerConfigFileSet(const char* name, const char* configFile);
         
         DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
         
-        DslReturnType TrackerDcfBatchProcessingEnabledGet(const char* name, 
+        DslReturnType TrackerBatchProcessingEnabledGet(const char* name, 
             boolean* enabled);
         
-        DslReturnType TrackerDcfBatchProcessingEnabledSet(const char* name, 
+        DslReturnType TrackerBatchProcessingEnabledSet(const char* name, 
             boolean enabled);
 
-        DslReturnType TrackerDcfPastFrameReportingEnabledGet(const char* name, 
+        DslReturnType TrackerPastFrameReportingEnabledGet(const char* name, 
             boolean* enabled);
 
-        DslReturnType TrackerDcfPastFrameReportingEnabledSet(const char* name, 
+        DslReturnType TrackerPastFrameReportingEnabledSet(const char* name, 
             boolean enabled);
         
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
@@ -857,7 +1040,13 @@ namespace DSL {
         DslReturnType TilerTilesGet(const char* name, uint* columns, uint* rows);
 
         DslReturnType TilerTilesSet(const char* name, uint columns, uint rows);
+        
+        DslReturnType TilerFrameNumberingEnabledGet(const char* name,
+            boolean* enabled);
 
+        DslReturnType TilerFrameNumberingEnabledSet(const char* name,
+            boolean enabled);
+            
         DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
 
         DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout, bool hasPrecedence);
@@ -915,6 +1104,13 @@ namespace DSL {
         DslReturnType OsdPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType OsdPphRemove(const char* name, const char* handler, uint pad);
+
+        DslReturnType SinkAppNew(const char* name, uint dataType,
+            dsl_sink_app_new_data_handler_cb clientHandler, void* clientData);
+            
+        DslReturnType SinkAppDataTypeGet(const char* name, uint* dataType);
+
+        DslReturnType SinkAppDataTypeSet(const char* name, uint dataType);
 
         DslReturnType SinkFakeNew(const char* name);
 
@@ -983,6 +1179,12 @@ namespace DSL {
         DslReturnType SinkRecordMailerRemove(const char* name,
             const char* mailer);
 
+        DslReturnType SinkEncodeDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkEncodeDimensionsSet(const char* name, 
+            uint width, uint height);
+
         DslReturnType SinkEncodeSettingsGet(const char* name, 
             uint* codec, uint* bitrate, uint* interval);
 
@@ -994,7 +1196,51 @@ namespace DSL {
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
+            
+        DslReturnType SinkInterpipeNew(const char* name,
+            boolean forward_eos, boolean forward_events);
 
+        DslReturnType SinkInterpipeForwardSettingsGet(const char* name,
+            boolean* forward_eos, boolean* forward_events);
+
+        DslReturnType SinkInterpipeForwardSettingsSet(const char* name,
+            boolean forward_eos, boolean forward_events);
+
+        DslReturnType SinkInterpipeNumListenersGet(const char* name,
+            uint* numListeners);
+            
+        DslReturnType SinkImageMultiNew(const char* name, const char* filepath,
+            uint width, uint height, uint fps_n, uint fps_d);
+
+        DslReturnType SinkImageMultiFilePathGet(const char* name, 
+            const char** filePath);
+
+        DslReturnType SinkImageMultiFilePathSet(const char* name, 
+            const char* filePath);
+
+        DslReturnType SinkImageMultiDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkImageMultiDimensionsSet(const char* name, 
+            uint width, uint height);
+        
+        DslReturnType SinkImageMultiFrameRateGet(const char* name, 
+            uint* fpsN, uint* fpsD);
+
+        DslReturnType SinkImageMultiFrameRateSet(const char* name, 
+            uint fpsN, uint fpsD);
+        
+        DslReturnType SinkImageMultiFileMaxGet(const char* name, 
+            uint* max);
+
+        DslReturnType SinkImageMultiFileMaxSet(const char* name, 
+            uint max);
+        
+        DslReturnType SinkFrameCaptureNew(const char* name,
+            const char* frameCaptureAction);
+            
+        DslReturnType SinkFrameCaptureInitiate(const char* name);
+            
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 
@@ -1158,9 +1404,9 @@ namespace DSL {
         
         DslReturnType PipelineIsLive(const char* name, boolean* isLive);
         
-        DslReturnType PipelineDumpToDot(const char* name, char* filename);
+        DslReturnType PipelineDumpToDot(const char* name, const char* filename);
         
-        DslReturnType PipelineDumpToDotWithTs(const char* name, char* filename);
+        DslReturnType PipelineDumpToDotWithTs(const char* name, const char* filename);
         
         DslReturnType PipelineStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);
@@ -1439,32 +1685,6 @@ namespace DSL {
         ~Services();
 
         /**
-         * @brief private helper function to test component for Source Type identity
-         * @param[in] unique component name check
-         * @returns true if component is a sink. 
-         */
-        bool IsSourceComponent(const char* component);
-    
-        /**
-         * @brief private helper function to collect Sources in use stats from all Pipelines
-         * @returns the current total number of all sinks in use
-         */
-        uint GetNumSourcesInUse();
-        
-        /**
-         * @brief private helper function to test component for Sink Type identity
-         * @param[in] unique component name to check
-         * @returns true if component is a sink. 
-         */
-        bool IsSinkComponent(const char* component);
-    
-        /**
-         * @brief private helper function to collect Sinks in use stats from all Pipelines
-         * @returns the current total number of all sinks in use
-         */
-        uint GetNumSinksInUse();
-
-        /**
          * @brief called during construction to intialize all const-to-string maps
          */
         void InitToStringMaps();
@@ -1501,20 +1721,6 @@ namespace DSL {
         */
         GMutex m_servicesMutex;
 
-        /**
-         * @brief maximum number of sources that can be in use at one time
-         * Set to the default in service contructor, the value can be read
-         * and updated as the first call to DSL.
-         */
-        uint m_sourceNumInUseMax;
-        
-        /**
-         * @brief maximum number of sinks that can be in use at one time
-         * Set to the default in service contructor, the value can be read
-         * and updated as the first call to DSL.
-         */
-        uint m_sinkNumInUseMax;
-        
         /**
          * @brief map of all default intrinsic RGBA Display Types
          */
