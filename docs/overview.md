@@ -53,23 +53,26 @@ Using Python3, for example, the above can be written as:
 Create a set of Components, each with a specific function and purpose. 
 ```Python
 # new Camera Sources - setting dimensions and frames-per-second
-retval += dsl_source_csi_new('my-source', width=1280, height=720, fps_n=30, fps_d=1)
+retval += dsl_source_csi_new('my-source', 
+    width=1280, height=720, fps_n=30, fps_d=1)
 
 # create more Source Components as needed
 # ...
 
 # new Primary Inference Engine - path to config file and model engine, interval=0 - infer on every frame
-retval += dsl_infer_gie_primary_new('my-pgie', path_to_config_file, path_to_model_engine, interval=0)
+retval += dsl_infer_gie_primary_new('my-pgie', 
+    path_to_config_file, path_to_model_engine, interval=0)
 
 # new Multi-Source Tiler with dimensions of width and height 
 retval += dsl_tiler_new('my-tiler', width=1280, height=720)
 
 # new On-Screen Display for inference visualization - bounding boxes and labels - 
-# with both labels and clock enabled
+# with both labels and clock enabled.
 retval += dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
     bbox_enabled=True, mask_enabled=False)
 
-# new X11/EGL Window Sink for video rendering - Pipeline will create a new XWindow if one is not provided
+# new X11/EGL Window Sink for video rendering - Pipeline will create a 
+# new XWindow if one is not provided.
 retval += dsl_sink_window_new('my-window-sink', width=1280, height=720)
 
 if retval != DSL_RESULT_SUCCESS:
@@ -92,7 +95,8 @@ def xwindow_delete_event_handler(client_data):
     dsl_main_loop_quit()
 
 # add the callback function to the pipeline
-retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', xwindow_delete_event_handler, None)
+retval = dsl_pipeline_xwindow_delete_event_handler_add('my pipeline', 
+    xwindow_delete_event_handler, None)
 ```
 
 Transition the Pipeline to a state of Playing and start/join the main loop
@@ -133,19 +137,19 @@ All Sources have dimensions, width and height in pixels, and frame-rates express
 
 A [Dewarper Component](/docs/api-dewarper.md) (not shown in the image above) capable of 360 degee and perspective dewarping can be added to any Video Source. 
 
-All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
+All Video Sources provide programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
 
 A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler).
 
 See the [Source API](/docs/api-source.md) reference section for more information.
 
 ## Preprocessor
-The Preprocessor component provides a custom library interface for preprocessing on input streams. Each stream can have its own preprocessing requirements. (e.g. per stream ROIs - Region of Interests processing.) Streams with the same preprocessing requirements are grouped and processed together. 
+The Preprocessor component provides a custom library interface for preprocessing input streams. Each stream can have its own preprocessing requirements. (e.g. per stream ROIs - processing Region of Interests). Streams with the same preprocessing requirements are grouped and processed together. 
 
-NVIDIA's default plugin implementation and library (alpha in Deepstream 6.0) provide two functionalities.
+NVIDIA's plugin implementation and reference library (currently in Alpha) provide two functionalities.
 
-* Streams with predefined ROIs (Region of Interests) are scaled and format converted as per the network requirements for inference. Per stream ROIs are specified in a config file.
-* They prepare a raw tensor from the scaled & converted ROIs. The data is passed to the downstream components via user metadata. Downstream plugins can access this tensor for inference.
+* Streams with predefined ROIs (Regions of Interests) are scaled and format-converted as per the network requirements for inference. Per stream ROIs are specified in a config file.
+* Raw tensor from the scaled & converted ROIs is prepared and passed to the downstream components via user metadata. Downstream plugins can access this tensor for inference.
 
 See the [Preprocessor API](/docs/api-preproc.md) reference section for more information.
 
@@ -154,9 +158,7 @@ NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs),
 
 After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
 
-With Primary GIEs and TISs, applications can:
-* Add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
-* Enable/disable raw layer-info output to binary file, one file per layer, per frame.
+With Primary GIEs and TISs, applications can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
 
 See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
 
@@ -188,7 +190,7 @@ retval = dsl_pipeline_component_add_many('my-pipeline',
 ```
 Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
 
-Clients of Tiler components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object within.
+Clients of Tiler components can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object.
 
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
@@ -216,7 +218,7 @@ Sinks are the end components in the Pipeline. All Pipelines require at least one
 12. **Fake Sink** - consumes/drops all data.
 **Overlay** and **Window Sinks** have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
-The **File** and **Record Encoder Sinks** support three codec formats: H.264, H.265 and MPEG-4, with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
+The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H.265 with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
 
 **RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
 
@@ -228,13 +230,6 @@ would use
 ```
 rtsp://my-jetson-desktop.local:8554/my-rtsp-sink
 ```
-
-The **IoT Message Sink** converts Object Detection Event (ODE) data into protocol specific IoT messages and brokers/sends the messages to a remote entity.
-
-The **Application Sink** allows the application to receive buffers or samples from a pipeline.
-
-The **Interpipe Sink** allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
-
 
 Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
 
@@ -480,8 +475,8 @@ Current **ODE Triggers** supported:
 * **Instance** - triggers on each new object instance across frames based on a unique tracker id. Once per new tracking id. 
 * **Persistence** - triggers on each object instance that persists in view/frame for a specified period of time.
 * **Summation** - triggers on the summation of all objects detected within a frame. Once per-frame always.
-* **Accumulation** - triggers on the cumulative count of unique instances across frames, Once per-frame always.
 * **Intersection** - triggers on the intersection of two objects detected within a frame. Once per-intersecting-pair.
+* **Cross** - triggers on the occurrence that an object crosses one of the Trigger's Line, Multi-Line, or Polygon Areas.
 * **Count** - triggers when the count of objects within a frame is within a specified range.. Once per-frame at most.
 * **New Low** - triggers when the count of objects within a frame reaches a new low count.
 * **New High** trigger when the count of objects within a frame reaches a new high count.
@@ -1303,7 +1298,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 <br>
 
 ## Docker Support
-The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container, built with the [nvcr.io/nvidia/deepstream-l4t:6.0-triton](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_docker_containers.html#id2) base image (Jetson).
+The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container.
 
 ## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)

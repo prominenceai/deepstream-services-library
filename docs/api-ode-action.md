@@ -547,16 +547,16 @@ retval = dsl_ode_action_bbox_scale_new('my-scale-bbox-action', 120)
 
 ### *dsl_ode_action_capture_frame_new*
 ```C++
-DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, const wchar_t* outdir, boolean annotate);
+DslReturnType dsl_ode_action_capture_frame_new(const wchar_t* name, 
+    const wchar_t* outdir);
 ```
-The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. The image can be annotated with one or more objects showing bounding boxes and labels. If the action is invoked by an object occurrence, then only the object will be annotated. If the action is invoked by a frame level occurrence - summation, min, max and range triggers for example - all detected objects in the frame will be annotated.
+The constructor creates a uniquely named **Frame Capture** ODE Action. When invoked, this Action will capture the frame that triggered the ODE occurrence to a jpeg image file in the directory specified by `outdir`. The file name will be derived from combining the unique ODE Trigger name and unique ODE occurrence ID. 
 
 The constructor will return `DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND` if `outdir` is invalid.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
 * `outdir` - [in] absolute or relative path to the output directory to save the image file to
-* `annotate` - [in] if true, the action will annotate the image with object bounding boxes and labels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
