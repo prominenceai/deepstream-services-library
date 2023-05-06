@@ -77,35 +77,6 @@ if retval != DSL_RETURN_SUCCESS:
     # --- handle error
 ```
 
-
-### Optionally generate documentation.
-Doxygen is used for source documentation which can be generated with the following make command
-```
-make dox
-```
-
-### Running the Test Application
-***This step is optional unless contributing code changes.***
-
-Current requirements and limitations.
-* Many of test cases have a dependency on the Nano versions of the caffemodel engine files.
-* Triton inference server installation is required.
-
-Once the test executable has been built, it can be run with the command below.
-
-```
-./dsl-test-app.exe
-```
-
-After completion, ensure that all tests have passed before submitting a pull request.
-```
-===============================================================================
-All tests passed (6405 assertions in 795 test cases)
-```
-
-Note: the total passed assertions and test cases are subject to change.
-
-
 ## Getting Started
 * [Installing DSL Dependencies](/docs/installing-dependencies.md)
 * **Building and Importing DSL**
