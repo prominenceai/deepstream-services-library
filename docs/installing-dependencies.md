@@ -78,7 +78,7 @@ $ sudo make install
 ### Installing OpenCV
 Copy and execute the following command to install the OpenCV development library (as an alternative to using FFmpeg). 
 ```bash
-sudo apt-get install -y opencv-dev
+sudo apt-get install -y libopencv-dev
 ```
 
 ### Updating the Makefile
