@@ -32,6 +32,9 @@ A similar set of Services are used when adding/removing a Tracker to/from a bran
 
 Pipelines with a Tracker component require a [Primary GIE/TIS](/docs/api-infer.md) component in order to Play.
 
+## Adding/Removing Pad-Probe-handlers
+Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Tracker by calling [dsl_tracker_pph_add](#dsl_tracker_pph_add) and removed with [dsl_tracker_pph_remove](#dsl_tracker_pph_remove).
+
 ## Tracker API
 **Constructors:**
 * [dsl_tracker_new](#dsl_tracker_new)
