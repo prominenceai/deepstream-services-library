@@ -13,7 +13,7 @@ Multi-Stream Tilers are added to a Pipeline by calling [dsl_pipeline_component_a
 Tilers are added to Branches by calling [dsl_branch_component_add](api-branch.md#dsl_branch_component_add) or [dsl_branch_component_add_many](api-branch.md#dsl_branch_component_add_many) (when adding with other components) and removed with [dsl_branch_component_remove](api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](api-branch.md#dsl_branch_component_remove_many), or [dsl_branch_component_remove_all](api-branch.md#dsl_branch_component_remove_all).
 
 #### Adding/Removing Pad-Probe-handlers
-Multiple Sink and/or Source [Pad-Probe Handlers](/docs/api-pph/md) can be added to a Tiler by calling [dsl_tiler_pph_add](#dsl_tiler_pph_add) and removed with [dsl_tiler_pph_remove](#dsl_tiler_pph_remove).
+Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Tiler by calling [dsl_tiler_pph_add](#dsl_tiler_pph_add) and removed with [dsl_tiler_pph_remove](#dsl_tiler_pph_remove).
 
 ## Relevant Examples
 * [4uri_file_tiler_show_source_control.py](/examples/python/4uri_file_tiler_show_source_control.py)
