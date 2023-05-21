@@ -220,18 +220,9 @@ Sinks are the end components in the Pipeline. All Pipelines require at least one
 
 The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H.265 with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
 
-**RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. The below for example,
+**RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once [dsl_main_loop_run](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
 
-```Python
-retval = dsl_sink_rtsp_new('my-rtsp-sink', 
-    host='my-jetson-desktop.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
-```
-would use
-```
-rtsp://my-jetson-desktop.local:8554/my-rtsp-sink
-```
-
-Clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
+With Sinks, clients can add/remove one or more [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers -- with Metadata for each Frame and Detected-Object -- on the input (sink pad) only.
 
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
