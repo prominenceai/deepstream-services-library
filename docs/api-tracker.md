@@ -6,7 +6,7 @@ The DeepStream Services Library (DSL) supports Nvidia's four reference low-level
 * **DeepSORT:** The DeepSORT tracker is a re-implementation of the official DeepSORT tracker, which uses the deep cosine metric learning with a Re-ID neural network. This implementation allows users to use any Re-ID network as long as it is supported by NVIDIA’s TensorRT™ framework.
 * **NvDCF:** The NvDCF tracker is an NVIDIA®-adapted Discriminative Correlation Filter (DCF) tracker that uses a correlation filter-based online discriminative learning algorithm for visual object tracking capability, while using a data association algorithm and a state estimator for multi-object tracking.
 
-The three reference implementations are provided in a single low-level library `libnvds_nvmultiobjecttracker.so` which is specified as the default library for the DSL Tracker to use as defined in the Makefile. The default library path can be updated -- by updating the Makefile or by calling [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set) -- to reference a custom library that implements the [NvDsTracker API](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#how-to-implement-a-custom-low-level-tracker-library).
+The four reference implementations are provided in a single low-level library `libnvds_nvmultiobjecttracker.so` which is specified as the default library for the DSL Tracker to use as defined in the Makefile. The default library path can be updated -- by updating the Makefile or by calling [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set) -- to reference a custom library that implements the [NvDsTracker API](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#how-to-implement-a-custom-low-level-tracker-library).
 
 **Important!** The DeepSORT tracker requires additional installation and setup steps which can be found in the **README** file located under
 ```bash
@@ -16,7 +16,7 @@ The three reference implementations are provided in a single low-level library `
 ## Construction and Destruction
 A Tracker component is created by calling [dsl_tracker_new](#dsl_tracker_new) with a type specific configuration file.
 
-**Important!** NVIDIA® provides reference configuration files for the three Tracker implementations under
+**Important!** NVIDIA® provides reference configuration files for the four Tracker implementations under
 ```bash
 /opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/
 ```
