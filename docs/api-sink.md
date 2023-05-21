@@ -491,9 +491,24 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
 ```
 The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
 
-Note: the server Mount point will be derived from the unique RTSP Sink name, for example:
+**Important Note:** the URI is derived from the device identification, `rtmp_port`, and server mount point which is derived from the unique RTSP Sink name, 
+
+**When the client and DSL application are both running locally:**
 ```
-rtsp://my-jetson.local:8554/rtsp-sink-name
+rtsp://<device-name>.local:<rtmp-port-number>/<rtsp-sink-name>
+```
+for example:
+```
+rtsp://my-jetson-device.local:8554/my-rtsp-sink
+```
+
+**When the client is running remotely from the DSL application:**
+```
+rtsp://<user-name>@<password>:<ip-address>:<rtmp-port-number>/<rtsp-sink-name>
+```
+for example:
+```
+rtsp://admin@12345:192.168.1.64:8554/my-rtsp-sink
 ```
 
 #### Hierarchy
