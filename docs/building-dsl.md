@@ -13,7 +13,7 @@ The DSL shared library is built using GCC and GNU Make. The MakeFile is located 
 ### Clone the Repository
 Clone the repository to pull all source code required to build the DSL test application - then navigate to the `deepstream-services-library` root folder.
 ```
-git clone https://github.com/prominenceai/deepstream-services-library
+git clone https://github.com/prominenceai/deepstream-services-library.git
 cd deepstream-services-library
 ```
 
