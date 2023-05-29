@@ -1108,7 +1108,6 @@ This service starts a new recording session for the named Record Sink
 
 **Parameters**
  * `name` [in] unique name of the Record Sink to start the session.
- * `session` [out] unique id for the new session on successful start.
  * `start` [in] start time in seconds before the current time should be less than the video cache size.
  * `duration` [in] in seconds from the current time to record.
  * `client_data` [in] opaque pointer to client data returned on callback to the client listener function provided on Sink creation.
@@ -1118,7 +1117,7 @@ This service starts a new recording session for the named Record Sink
 
 **Python Example**
 ```Python
-retval, session = dsl_sink_record_session_start('my-record-sink', 15, 900, None)
+retval = dsl_sink_record_session_start('my-record-sink', 15, 900, None)
 ```
 
 <br>
