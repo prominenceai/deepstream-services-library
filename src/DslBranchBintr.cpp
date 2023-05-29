@@ -375,24 +375,7 @@ namespace DSL
                 << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
-        if (m_pPreprocBintr and !m_pPrimaryInferBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() 
-                << "' has a PreprocBintr and no PrimaryInferBintr - and is unable to link");
-            return false;
-        }
-        if (m_pTrackerBintr and !m_pPrimaryInferBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() 
-                << "' has a Tracker and no PrimaryInferBintr - and is unable to link");
-            return false;
-        }
-        if (m_pSegVisualBintr and !m_pPrimaryInferBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() 
-                << "' has a Segmentation Visualizer with no PrimaryInferBintr - and is unable to link");
-            return false;
-        }
+        // TODO - remove requirement that PGIE and SGIES must be in the same branch
         if (m_pSecondaryInfersBintr and !m_pPrimaryInferBintr)
         {
             LOG_ERROR("Pipline '" << GetName() 
