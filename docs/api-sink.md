@@ -504,11 +504,11 @@ rtsp://my-jetson-device.local:8554/my-rtsp-sink
 
 **When the client is running remotely from the DSL application:**
 ```
-rtsp://<user-name>@<password>:<ip-address>:<rtmp-port-number>/<rtsp-sink-name>
+rtsp://<user-name>:<password>@<ip-address>:<rtmp-port-number>/<rtsp-sink-name>
 ```
 for example:
 ```
-rtsp://admin@12345:192.168.1.64:8554/my-rtsp-sink
+rtsp://admin:12345@192.168.1.64:8554/my-rtsp-sink
 ```
 
 #### Hierarchy
