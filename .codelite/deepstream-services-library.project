@@ -275,7 +275,6 @@
       <File Name="../examples/python/ode_occurrence_polygon_area_inclussion_exclusion.py"/>
       <File Name="../examples/python/ode_occurrence_record_sink_overlay_playback_send_email.py"/>
       <File Name="../examples/python/ode_occurrence_uri_send_smtp_mail.py"/>
-      <File Name="../examples/python/ode_occurrence_uri_start_record_sink_action.py"/>
       <File Name="../examples/python/ode_persistence_and_earliest_triggers_custom_labels.py"/>
       <File Name="../examples/python/ode_persistence_trigger_fill_tracked_objects.py"/>
       <File Name="../examples/python/player_play_all_mp4_files_found.py"/>
@@ -310,6 +309,8 @@
       <File Name="../examples/python/2uri_file_demuxer_pgie_iou_tiler_osd_window_2_file.py"/>
       <File Name="../examples/python/2uri_splitter_pgie_iou_osd_window_and_file.py"/>
       <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_overlay.py"/>
+      <File Name="../examples/python/smart_record_sink_start_session_on_ode_occurrence.py"/>
+      <File Name="../examples/python/smart_record_sink_start_session_on_user_demand.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

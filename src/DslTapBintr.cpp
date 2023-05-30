@@ -84,6 +84,7 @@ namespace DSL
             return false;
         }
         
+        // Create a new GstNodetr to wrap the record-bin
         m_pRecordBin = DSL_GSTNODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
             
