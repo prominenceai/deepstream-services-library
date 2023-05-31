@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021-2022, Prominence AI, Inc.
+Copyright (c) 2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -338,7 +338,6 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs above, with interval and Id    
         // Set the engine_file param to nullptr to create the model engine. 
-//        retval = dsl_infer_gie_primary_new(L"primary-gie", primary_infer_config_file.c_str(), nullptr, 4); 
         retval = dsl_infer_gie_primary_new(L"primary-gie", primary_infer_config_file.c_str(), 
             primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;

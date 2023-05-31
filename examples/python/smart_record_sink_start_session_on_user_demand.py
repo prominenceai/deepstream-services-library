@@ -38,8 +38,6 @@
 import sys
 from dsl import *
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
-
 # RTSP Source URI for AMCREST Camera    
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
@@ -152,16 +150,15 @@ def main(args):
         # ODE trigger/action, defined below, to start a new session on first 
         # occurrence of a bicycle. The default 'cache-size' and 'duration' are 
         # defined in DslApi.h Setting the bit rate to 0 to not change from the default.
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
-            container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
+        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H264, 
+            container=DSL_CONTAINER_MP4, bitrate=0, interval=0, 
             client_listener=record_complete_listener)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # IMPORTANT: Best to set the default cache-size to the maximum value we 
         # intend to use (see the xwindow_key_event_handler callback above). 
-        # The cache buffer needs to full before any cache can be used.
-        retval = dsl_sink_record_cache_size_set('record-sink', 30)
+#        retval = dsl_sink_record_cache_size_set('record-sink', 30)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -292,8 +289,10 @@ def main(args):
 
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['rtsp-source', 'primary-gie', 'iou-tracker', 
+            ['rtsp-source', 'primary-gie', 'iou-tracker',
             'on-screen-display', 'record-sink', 'window-sink', None])
+#            ['rtsp-source', 'primary-gie', 'iou-tracker', 
+#            'on-screen-display', 'record-sink', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
