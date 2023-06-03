@@ -42,7 +42,7 @@ from dsl import *
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
 # RTSP Source URI for HIKVISION Camera    
-hikvision_rtsp_uri = 'rtsp://admin:Segvisual44@192.168.1.64:554/Streaming/Channels/101'    
+hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -105,7 +105,7 @@ def state_change_listener(old_state, new_state, client_data):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 ## 
-# Function to be called on recording complete
+# Callback function to handle recording session start and stop events
 ## 
 def record_complete_listener(session_info_ptr, client_data):
     print(' ***  Recording Event  *** ')
@@ -144,31 +144,6 @@ def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
-        # ````````````````````````````````````````````````````````````````````````````
-        # New Record-Sink that will buffer encoded video while waiting for the 
-        # ODE trigger/action, defined below, to start a new session on first 
-        # occurrence of a bicycle. The default 'cache-size' and 'duration' are 
-        # defined in DslApi.h Setting the bit rate to 0 to not change from the default.
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H264, 
-            container=DSL_CONTAINER_MP4, bitrate=0, interval=0, 
-            client_listener=record_complete_listener)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # IMPORTANT: Best to set the default cache-size to the maximum value we 
-        # intend to use (see the xwindow_key_event_handler callback above). 
-#        retval = dsl_sink_record_cache_size_set('record-sink', 30)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
-        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
-        # at the input to the encoder. Note: the dimensions can also be controlled
-        # after the video encoder by calling dsl_sink_record_dimensions_set
-        retval = dsl_sink_encode_dimensions_set('record-sink', width=640, height=360)
-        if retval != DSL_RETURN_SUCCESS:
-            break
             
         # ````````````````````````````````````````````````````````````````````````````
         # Create new RGBA color types
@@ -240,14 +215,36 @@ def main(args):
         retval = dsl_pph_ode_trigger_add('ode-handler', 'rec-on-trigger')
         if retval != DSL_RETURN_SUCCESS:
             break
-    
+
         ##############################################################################
-        #
-        # Create the remaining Pipeline components
+
+        # New Record-Sink that will buffer encoded video while waiting for the 
+        # ODE trigger/action, defined below, to start a new session on first 
+        # occurrence of a bicycle. The default 'cache-size' and 'duration' are 
+        # defined in DslApi.h Setting the bit rate to 0 to not change from the default.
+        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H264, 
+            container=DSL_CONTAINER_MP4, bitrate=0, interval=0, 
+            client_listener=record_complete_listener)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # IMPORTANT: Best to set the default cache-size to the maximum value we 
+        # intend to use (see the xwindow_key_event_handler callback above). 
+        retval = dsl_sink_record_cache_size_set('record-sink', 25)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
+        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
+        # at the input to the encoder. Note: the dimensions can also be controlled
+        # after the video encoder by calling dsl_sink_record_dimensions_set
+        retval = dsl_sink_encode_dimensions_set('record-sink', width=640, height=360)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ##############################################################################
         
-#        retval = dsl_source_file_new('file-source', uri_h265, True)
-#        if retval != DSL_RETURN_SUCCESS:
-#            break
+        # Create the remaining Pipeline components
         
         # New RTSP Source
         retval = dsl_source_rtsp_new('rtsp-source',     
@@ -291,8 +288,6 @@ def main(args):
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['rtsp-source', 'primary-gie', 'iou-tracker',
             'on-screen-display', 'record-sink', 'window-sink', None])
-#            ['rtsp-source', 'primary-gie', 'iou-tracker', 
-#            'on-screen-display', 'record-sink', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

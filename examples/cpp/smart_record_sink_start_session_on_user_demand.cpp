@@ -23,10 +23,10 @@ THE SOFTWARE.
 */
 
 // ````````````````````````````````````````````````````````````````````````````````````
-// This example demonstrates the use of a Smart-Record Tap and how
+// This example demonstrates the use of a Smart-Record Sink and how
 // a recording session can be started on user demand - in this case
 // by pressing the 'S' key.  The xwindow_key_event_handler calls
-// dsl_tap_record_session_start with:
+// dsl_sink_record_session_start with:
 //   start-time = the seconds before the current time (i.e.the amount of 
 //                cache/history to include.
 //   duration =  the seconds after the start of recording.
@@ -78,8 +78,8 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     std::cout << "key released = " << key << std::endl;
     key = std::toupper(key[0]);
     if(key == "S"){
-        dsl_tap_record_session_start(
-            L"record-tap", 20, 20, NULL);
+        dsl_sink_record_session_start(
+            L"record-sink", 20, 20, NULL);
     } else if(key == "P"){
         dsl_pipeline_pause(L"pipeline");
     } else if (key == "R"){
@@ -224,23 +224,37 @@ int main(int argc, char** argv)
         // Disable the trigger, to be re-enabled in the recording_event listener callback
         retval = dsl_ode_trigger_enabled_set(L"rec-on-trigger", false);
         if (retval != DSL_RESULT_SUCCESS) break;
+
+        // ```````````````````````````````````````````````````````````````````````````
+
+        // New Record-Sink that will buffer encoded video while waiting for the 
+        // ODE trigger/action, defined below, to start a new session on first 
+        // occurrence of a bicycle. The default 'cache-size' and 'duration' are 
+        // defined in DslApi.h Setting the bit rate to 0 to not change from the default.
+        retval = dsl_sink_record_new(L"record-sink", L"./", DSL_CODEC_H264, 
+            DSL_CONTAINER_MP4, 0, 0, record_event_listener);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // IMPORTANT: Best to set the default cache-size to the maximum value we 
+        // intend to use (see the xwindow_key_event_handler callback above). 
+        retval = dsl_sink_record_cache_size_set(L"record-sink", 25);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Since the Record-Sink is derived from the Encode-Sink, we can use the 
+        // dsl_sink_encode_dimensions_set service to change the recording dimensions 
+        // at the input to the encoder. Note: the dimensions can also be controlled
+        // after the video encoder by calling dsl_sink_record_dimensions_set
+        retval = dsl_sink_encode_dimensions_set(L"record-sink", 640, 360);
+        if (retval != DSL_RESULT_SUCCESS) break;
             
         // ```````````````````````````````````````````````````````````````````````````
+        // ```````````````````````````````````````````````````````````````````````````
+
         // Create the remaining Pipeline components
         
         // New RTSP Source: latency = 1000ms, timeout=2s
         retval = dsl_source_rtsp_new(L"rtsp-source",
             hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 2);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // New record tap created with the record_event_listener callback function 
-        // defined above - will be called on session-start and session-end
-        retval = dsl_tap_record_new(L"record-tap",
-            L"./", DSL_CONTAINER_MP4,  record_event_listener);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the new Tap to the Source directly    
-        retval = dsl_source_rtsp_tap_add(L"rtsp-source", L"record-tap");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
@@ -270,7 +284,7 @@ int main(int argc, char** argv)
         retval = dsl_pph_ode_trigger_add(L"ode-handler", L"rec-on-trigger");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New OSD with text, clock, bboxs enabled, mask display disabled
+        // New OSD with text, clock, bboxs enabled, mask display disabled
         retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
         
@@ -278,14 +292,14 @@ int main(int argc, char** argv)
         retval = dsl_osd_pph_add(L"on-screen-display", L"ode-handler", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Overlay Sink, 0 x/y offsets and same dimensions as streammuxer    
+        // New Window Sink, 0 x/y offsets and same dimensions as streammuxer    
         retval = dsl_sink_window_new(L"window-sink", 
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"rtsp-source", L"primary-gie", L"iou-tracker", 
-            L"on-screen-display", L"window-sink", nullptr};
+            L"on-screen-display", L"window-sink", L"record-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;

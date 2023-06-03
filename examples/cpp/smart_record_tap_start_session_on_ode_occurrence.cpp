@@ -35,11 +35,16 @@ std::wstring src_url_3 = L"rtsp://user:pwd!@192.168.1.66:554/Streaming/Channels/
 std::wstring src_url_4 = L"rtsp://user:pwd!@192.168.1.67:554/Streaming/Channels/101";
 
    
-// Filespecs for the Primary GIE    
-std::wstring primary_infer_config_file(
+// Config and model-engine files - Jetson and dGPU
+std::wstring primary_infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring primary_model_engine_file_jetson(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
+std::wstring primary_infer_config_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+std::wstring primary_model_engine_file_dgpu(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -94,8 +99,9 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
         dsl_pipeline_pause(L"pipeline");
     } else if (key == "R"){
         dsl_pipeline_play(L"pipeline");
-    } else if (key == "Q"){
+    } else if (key == "Q" or key == "" or key == ""){
         std::cout << "Main Loop Quit" << std::endl;
+        dsl_pipeline_stop(L"pipeline");
         dsl_main_loop_quit();
     }
 }
@@ -106,6 +112,7 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
 void xwindow_delete_event_handler(void* client_data)
 {
     std::cout<<"delete window event"<<std::endl;
+    dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }
     
@@ -116,6 +123,7 @@ void xwindow_delete_event_handler(void* client_data)
 void eos_event_listener(void* client_data)
 {
     std::cout<<"Pipeline EOS event"<<std::endl;
+    dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }    
 
@@ -161,7 +169,7 @@ DslReturnType create_display_types()
 //    
 // Callback function to handle recording session start and stop events
 //    
-void* OnRecordingEvent(dsl_recording_info* session_info, void* client_data)
+void* record_event_listener(dsl_recording_info* session_info, void* client_data)
 {
     // session_info is obtained using the NVIDIA python bindings    
     // cast the C void* client_data back to a py_object pointer and deref
@@ -257,13 +265,15 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
         DSL_RTP_ALL, false, 0, 100, 2);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    // New record tap created with our common RecordComplete callback function defined above        
-    retval = dsl_tap_record_new(clientdata->record_tap.c_str(), L"./recordings/", 
-        DSL_CONTAINER_MKV, OnRecordingEvent);
+    // New record tap created with our common RecordComplete callback
+    // function defined above        
+    retval = dsl_tap_record_new(clientdata->record_tap.c_str(), L"./", 
+        DSL_CONTAINER_MP4, record_event_listener);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Add the new Tap to the Source directly    
-    retval = dsl_source_rtsp_tap_add(clientdata->source.c_str(), clientdata->record_tap.c_str());
+    retval = dsl_source_rtsp_tap_add(clientdata->source.c_str(), 
+        clientdata->record_tap.c_str());
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Next, create the Instance Trigger with Person class id with a limit of 1. 
@@ -272,7 +282,8 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
         clientdata->source.c_str(), PGIE_CLASS_ID_PERSON, 1);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    // Create a new Action to start the record session for this Source, with the component names as client data    
+    // Create a new Action to start the record session for this Source, 
+    // with the component names as client data    
     retval = dsl_ode_action_tap_record_start_new(clientdata->start_record.c_str(), 
         clientdata->record_tap.c_str(), 5, 30, ptrClientData);
     if (retval != DSL_RESULT_SUCCESS) return retval;
@@ -317,8 +328,9 @@ int main(int argc, char** argv)
 {  
     DslReturnType retval = DSL_RESULT_FAILURE;
 
-    // Since we're not using args, we can Let DSL initialize GST on first call    
-    while(true) // this construct allows us to use "break" to exit bracketed region below (better than "goto")
+    // Since we're not using args, we can Let DSL initialize GST on first call.  
+    // this construct allows us to use "break" to exit bracketed region below.
+    while(true) 
     {    
 
         // ````````````````````````````````````````````````````````````````````````````````````````````````````````    
@@ -336,21 +348,33 @@ int main(int argc, char** argv)
         retval = dsl_ode_action_display_meta_add_new(L"red-led-overlay", L"red-led");    
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Primary GIE using the filespecs above, with interval and Id    
-        // Set the engine_file param to nullptr to create the model engine. 
-        retval = dsl_infer_gie_primary_new(L"primary-gie", primary_infer_config_file.c_str(), 
-            primary_model_engine_file.c_str(), 4);
+        // New Primary GIE using the filespecs defined above, with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            retval = dsl_infer_gie_primary_new(L"primary-gie", 
+                primary_infer_config_file_jetson.c_str(), 
+                primary_model_engine_file_jetson.c_str(), 4);
+        }
+        else
+        {
+            retval = dsl_infer_gie_primary_new(L"primary-gie", 
+                primary_infer_config_file_dgpu.c_str(), 
+                primary_model_engine_file_dgpu.c_str(), 4);
+        }
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New KTL Tracker, setting max width and height of input frame    
-        retval = dsl_tracker_new(L"iou-tracker", tracker_config_file.c_str(), 480, 272);
+        // New IOU Tracker, setting max width and height of input frame    
+        retval = dsl_tracker_new(L"iou-tracker", 
+            tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Tiled Display, setting width and height, use default cols/rows set by source count    
+        // New Tiled Display, setting width and height, 
+        // use default cols/rows set by source count    
         retval = dsl_tiler_new(L"tiler", TILER_WIDTH, TILER_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE Triggers with their ODE Actions    
+        // Object Detection Event (ODE) Pad Probe Handler (PPH) 
+        //to manage our ODE Triggers with their ODE Actions    
         retval = dsl_pph_ode_new(L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
 
@@ -363,15 +387,18 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_new(L"window-sink",
+            0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Add all the components to our pipeline    
-        const wchar_t* cmpts[] = {L"primary-gie", L"iou-tracker", L"tiler", L"on-screen-display", L"window-sink", nullptr};
+        // Add all the components to a new pipeline    
+        const wchar_t* cmpts[] = {L"primary-gie", L"iou-tracker", 
+            L"tiler", L"on-screen-display", L"window-sink", nullptr};
+            
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Add the 4 cameras here.  If fewer/more cameras are to be used, comment/add the lines below as appropriate
+        // Add the 4 cameras here.  If fewer/more cameras are to be used, remove/add the lines below as appropriate
         ClientData camera1(L"src-1", src_url_1.c_str());
         retval = CreatePerSourceComponents(L"pipeline", &camera1, L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -388,19 +415,22 @@ int main(int argc, char** argv)
         retval = CreatePerSourceComponents(L"pipeline", &camera4, L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-
         // Add the XWindow event handler functions defined above    
-        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", xwindow_key_event_handler, nullptr);    
+        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
+            xwindow_key_event_handler, nullptr);    
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", xwindow_delete_event_handler, nullptr);
+        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", 
+            xwindow_delete_event_handler, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add(L"pipeline", state_change_listener, nullptr);
+        retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
+            state_change_listener, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, nullptr);
+        retval = dsl_pipeline_eos_listener_add(L"pipeline", 
+            eos_event_listener, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Play the pipeline    

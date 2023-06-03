@@ -39,7 +39,7 @@ from dsl import *
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
 # RTSP Source URI for HIKVISION Camera    
-hikvision_rtsp_uri = 'rtsp://admin:Segvisual44@192.168.1.64:554/Streaming/Channels/101'    
+hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -99,7 +99,7 @@ def state_change_listener(old_state, new_state, client_data):
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 ## 
-# Function to be called on recording complete
+# Callback function to handle recording session start and stop events
 ## 
 def record_complete_listener(session_info_ptr, client_data):
     print(' ***  Recording Event  *** ')
@@ -145,49 +145,49 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New Record-Sink that will buffer encoded video while waiting for the 
-        # ODE trigger/action, defined below, to start a new session on first 
-        # occurrence of a person. The default 'cache-size' and 'duration' are defined in
-        # Setting the bit rate to 0 to not change from the default.  
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
-            container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
-            client_listener=record_complete_listener)
+        # ````````````````````````````````````````````````````````````````````````````
+        # Create new RGBA color types
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
+            red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_custom_new('full-red', 
+            red=1.0, blue=0.0, green=0.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_custom_new('full-white', 
+            red=1.0, blue=1.0, green=1.0, alpha=1.0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_color_custom_new('opaque-black', 
+            red=0.0, blue=0.0, green=0.0, alpha=0.8)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_display_type_rgba_font_new('impact-20-white', 
+            font='impact', size=20, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
+        # ````````````````````````````````````````````````````````````````````````````
+
+        # Create a new Text type object that will be used to show the recording 
+        # in progress
+        retval = dsl_display_type_rgba_text_new('rec-text', 'REC', 
+            x_offset=10, y_offset=30, font='impact-20-white', 
+                has_bg_color=True, bg_color='opaque-black')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_custom_new('full-red', red=1.0, blue=0.0, green=0.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, blue=1.0, green=1.0, alpha=1.0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_color_custom_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.8)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_display_type_rgba_font_new('impact-20-white', font='impact', size=20, color='full-white')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Create a new Text type object that will be used to show the recording in progress
-        retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', x_offset=10, y_offset=30, 
-            font='impact-20-white', has_bg_color=True, bg_color='opaque-black')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        # A new RGBA Circle to be used to simulate a red LED light for the recording in progress.
-        retval = dsl_display_type_rgba_circle_new('red-led', x_center=94, y_center=52, radius=8, 
+        # A new RGBA Circle to be used to simulate a red LED light for the recording 
+        # in progress.
+        retval = dsl_display_type_rgba_circle_new('red-led', 
+            x_center=94, y_center=52, radius=8, 
             color='full-red', has_bg_color=True, bg_color='full-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Create a new Action to display the "recording in-progress" text
-        retval = dsl_ode_action_display_meta_add_many_new('add-rec-on', display_types=
-            ['rec-text', 'red-led', None])
+        retval = dsl_ode_action_display_meta_add_many_new('add-rec-on', 
+            display_types=['rec-text', 'red-led', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -208,21 +208,58 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             return retval
 
-        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a person and will be saved to the current dir.
-        retval = dsl_ode_action_capture_object_new('person-capture-action', outdir="./")
+        # ````````````````````````````````````````````````````````````````````````````
+        
+        # New Record-Sink that will buffer encoded video while waiting for the 
+        # ODE trigger/action, defined below, to start a new session on first 
+        # occurrence of a person. The default 'cache-size' and 'duration' are defined in
+        # Setting the bit rate to 0 to not change from the default.  
+        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
+            container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
+            client_listener=record_complete_listener)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # IMPORTANT: Best to set the default cache-size to the maximum value we 
+        # intend to use (see the xwindow_key_event_handler callback above). 
+        retval = dsl_sink_record_cache_size_set('record-sink', 25)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
+        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
+        # at the input to the encoder. Note: the dimensions can also be controlled
+        # after the video encoder by calling dsl_sink_record_dimensions_set
+        retval = dsl_sink_encode_dimensions_set('record-sink', 640, 360)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # ````````````````````````````````````````````````````````````````````````````
+
+        # Create a new Capture Action to capture the full-frame to jpeg image, and 
+        # saved to file. The action will be triggered on firt occurrence of a person
+        # and will be saved to the current dir.
+        retval = dsl_ode_action_capture_object_new('person-capture-action', 
+            outdir="./")
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        # Create a new Capture Action to start a new record session
+        # Create a new Start Action to start a new record session
         retval = dsl_ode_action_sink_record_start_new('start-record-action', 
             record_sink='record-sink', start=20, duration=20, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Person Occurrence Trigger. We will reset the trigger 
-        # in the recording complete callback
+        # We will also print the event occurrence to the console 
+        retval = dsl_ode_action_print_new('print', force_flush=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+
+        # ````````````````````````````````````````````````````````````````````````````
+        
+        # Next, create the Person Occurrence Trigger with a limit of 1. We will reset 
+        # the trigger in the recording complete callback.
         retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
             source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_PERSON, limit=1)
         if retval != DSL_RETURN_SUCCESS:
@@ -233,13 +270,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # We will also print the event occurrence to the console    
-        retval = dsl_ode_action_print_new('print', force_flush=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Add the actions to our Bicycle Occurence Trigger.
+        # Add the actions to our Person Occurence Trigger.
         retval = dsl_ode_trigger_action_add_many('person-occurrence-trigger', actions=[
             'person-capture-action', 
             'print',
@@ -248,8 +279,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
+        # ````````````````````````````````````````````````````````````````````````````
+        # New ODE Handler for our Triggers
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -259,9 +290,9 @@ def main(args):
             None])
         if retval != DSL_RETURN_SUCCESS:
             break
-    
-        ############################################################################################
-        #
+
+        # ````````````````````````````````````````````````````````````````````````````
+
         # Create the remaining Pipeline components
         
         # New RTSP Source
