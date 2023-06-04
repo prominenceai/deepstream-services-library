@@ -22,7 +22,37 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-# ````````````````````````````````````````````````````````````````````````````````````````````````````````
+# ````````````````````````````````````````````````````````````````````````````````````
+# This example demonstrates the use of a Smart-Record Sink and how to start
+# a recording session on the "occurrence" of an Object Detection Event (ODE).
+# An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
+# on the first detection of a Person object. The Trigger uses an ODE "Start 
+# Recording Session Action" setup with the following parameters:
+#   start-time: the seconds before the current time (i.e.the amount of 
+#               cache/history to include.
+#   duration:   the seconds after the current time (i.e. the amount of 
+#               time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
+#
+# Additional ODE Actions are added to the Trigger to 1) to print the ODE 
+# data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
+# to the console and 2) to capture the object (bounding-box) to a JPEG file.
+# 
+# A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
+#
+# IMPORTANT, the record_event_listener is used to reset the one-shot Occurrence-
+# Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
+# session to be started on the next occurrence of a Person. 
+
+
+# ````````````````````````````````````````````````````````````````````````````````````
 # This example is used to demonstrate the use of a First Occurrence Triggerand a 
 # Start Record Action to control a Record Sink.  A callback function, called on 
 # completion of the recording session, will reset the Trigger allowing a new 
@@ -146,7 +176,7 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
+        # Create new RGBA color types for our Display Text and Circle
         retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
             red=1.0, blue=0.5, green=0.5, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
@@ -208,12 +238,25 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             return retval
 
-        # ````````````````````````````````````````````````````````````````````````````
+        # Create a new Capture Action to capture the full-frame to jpeg image, and 
+        # saved to file. The action will be triggered on firt occurrence of a person
+        # and will be saved to the current dir.
+        retval = dsl_ode_action_capture_object_new('person-capture-action', 
+            outdir="./")
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # We will also print the event occurrence to the console 
+        retval = dsl_ode_action_print_new('print', force_flush=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ##############################################################################
         
         # New Record-Sink that will buffer encoded video while waiting for the 
         # ODE trigger/action, defined below, to start a new session on first 
         # occurrence of a person. The default 'cache-size' and 'duration' are defined in
-        # Setting the bit rate to 0 to not change from the default.  
+        # DslApi.h Setting the bit rate to 0 to not change from the default.  
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
             container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
             client_listener=record_complete_listener)
@@ -234,27 +277,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````
+        ##############################################################################
 
-        # Create a new Capture Action to capture the full-frame to jpeg image, and 
-        # saved to file. The action will be triggered on firt occurrence of a person
-        # and will be saved to the current dir.
-        retval = dsl_ode_action_capture_object_new('person-capture-action', 
-            outdir="./")
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # Create a new Start Action to start a new record session
+        # Create a new Start Action to start a new record session.
+        # IMPORTANT! The Record Sink (see above) must be created first or
+        # this call will fail with DSL_RESULT_COMPONENT_NAME_NOT_FOUND. 
         retval = dsl_ode_action_sink_record_start_new('start-record-action', 
             record_sink='record-sink', start=20, duration=20, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # We will also print the event occurrence to the console 
-        retval = dsl_ode_action_print_new('print', force_flush=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
 
         # ````````````````````````````````````````````````````````````````````````````
         
@@ -291,7 +322,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````
+        ##############################################################################
 
         # Create the remaining Pipeline components
         
