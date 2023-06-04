@@ -47,18 +47,9 @@
 # called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
 # and disables the "Always Trigger" according to the event received. 
 #
-# IMPORTANT, the record_event_listener is used to reset the one-shot Occurrence-
+# IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
 # Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
 # session to be started on the next occurrence of a Person. 
-
-
-# ````````````````````````````````````````````````````````````````````````````````````
-# This example is used to demonstrate the use of a First Occurrence Triggerand a 
-# Start Record Action to control a Record Sink.  A callback function, called on 
-# completion of the recording session, will reset the Trigger allowing a new 
-# session to be started on next occurrence. Addional actions are added to Print 
-# the ODE Occurrence to the console and an "Opection Capture" the object to a 
-# JPEG image-file 
 
 #!/usr/bin/env python
 
@@ -71,11 +62,15 @@ amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?c
 # RTSP Source URI for HIKVISION Camera    
 hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine'
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -337,9 +332,13 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
-        # New Primary GIE using the filespecs above with interval = 1
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 1)
+        ## New Primary GIE using the filespecs above with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 

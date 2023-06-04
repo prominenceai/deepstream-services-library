@@ -24,14 +24,26 @@ THE SOFTWARE.
 
 // ````````````````````````````````````````````````````````````````````````````````````
 // This example demonstrates the use of a Smart-Record Tap and how
-// a recording session can be started on user demand - in this case
+// to start a recording session on user/viewer demand - in this case
 // by pressing the 'S' key.  The xwindow_key_event_handler calls
 // dsl_tap_record_session_start with:
-//   start-time = the seconds before the current time (i.e.the amount of 
-//                cache/history to include.
-//   duration =  the seconds after the start of recording.
-// Therefore, a total of startTime + duration seconds of data will be recorded.
+//   start-time: the seconds before the current time (i.e.the amount of 
+//               cache/history to include.
+//   duration:   the seconds after the current time (i.e. the amount of 
+//               time to record after session start is called).
+// Therefore, a total of start-time + duration seconds of data will be recorded.
+//
+// Record Tap components tap into RTSP Source components pre-decoder to enable
+// smart-recording of the incomming (original) H.264 or H.265 stream. 
 // 
+// A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+//
+// DSL Display Types are used to overlay text ("REC") with a red circle to
+// indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+// ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+// to each frame while the Trigger is enabled. The record_event_listener callback,
+// called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+// and disables the "Always Trigger" according to the event received. 
 
 #include <iostream>
 #include <glib.h>
@@ -100,7 +112,6 @@ void xwindow_delete_event_handler(void* client_data)
     dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }
-    
 
 // 
 // Function to be called on End-of-Stream (EOS) event
@@ -120,7 +131,6 @@ void state_change_listener(uint old_state, uint new_state, void* client_data)
     std::cout<<"previous state = " << dsl_state_value_to_string(old_state) 
         << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
-
 
 //    
 // Callback function to handle recording session start and stop events
@@ -175,7 +185,7 @@ int main(int argc, char** argv)
     {    
 
         // ```````````````````````````````````````````````````````````````````````````
-        // Create new RGBA color types    
+        // Create new RGBA color types for our Display Text and Circle   
         retval = dsl_display_type_rgba_color_custom_new(L"full-red", 
             1.0f, 0.0f, 0.0f, 1.0f);    
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -211,6 +221,7 @@ int main(int argc, char** argv)
         retval = dsl_ode_action_display_meta_add_many_new(L"add-rec-on", display_types);
         if (retval != DSL_RESULT_SUCCESS) break;
             
+        // ```````````````````````````````````````````````````````````````````````````
         // Create an Always Trigger that will trigger on every frame when enabled.
         // We use this trigger to display meta data while the recording is in session.
         // POST_OCCURRENCE_CHECK == after all other triggers are processed first.
@@ -226,6 +237,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
             
         // ```````````````````````````````````````````````````````````````````````````
+        
         // Create the remaining Pipeline components
         
         // New RTSP Source: latency = 1000ms, timeout=2s

@@ -24,16 +24,26 @@
 
 # ````````````````````````````````````````````````````````````````````````````````````
 # This example demonstrates the use of a Smart-Record Tap and how
-# a recording session can be started on user demand - in this case
+# to start a recording session on user/viewer demand - in this case
 # by pressing the 'S' key.  The xwindow_key_event_handler calls
 # dsl_tap_record_session_start with:
-#   start-time = the seconds before the current time (i.e.the amount of 
-#                cache/history to include.
-#   duration =  the seconds after the start of recording.
-# Therefore, a total of startTime + duration seconds of data will be recorded.
-# 
+#   start-time: the seconds before the current time (i.e.the amount of 
+#               cache/history to include.
+#   duration:   the seconds after the current time (i.e. the amount of 
+#               time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
+#
 # Record Tap components tap into RTSP Source components pre-decoder to enable
 # smart-recording of the incomming (original) H.264 or H.265 stream. 
+# 
+# A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
 
 #!/usr/bin/env python
 
@@ -46,11 +56,15 @@ amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?c
 # RTSP Source URI for HIKVISION Camera    
 hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -148,7 +162,7 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
+        # Create new RGBA color types for our Display Text and Circle   
         retval = dsl_display_type_rgba_color_custom_new('full-red', 
             red=1.0, blue=0.0, green=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
@@ -166,6 +180,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # ````````````````````````````````````````````````````````````````````````````
         # Create a new Text type object that will be used to show 
         # the recording in progress
         retval = dsl_display_type_rgba_text_new('rec-text', 
@@ -187,6 +202,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # ````````````````````````````````````````````````````````````````````````````
         # Create an Always Trigger that will trigger on every frame when enabled.
         # We use this trigger to display meta data while the recording is in session.
         # POST_OCCURRENCE_CHECK == after all other triggers are processed first.
@@ -203,19 +219,9 @@ def main(args):
         retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval
-
-            
-        # ````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
-        retval = dsl_pph_ode_new('ode-handler')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pph_ode_trigger_add('ode-handler', 'rec-on-trigger')
-        if retval != DSL_RETURN_SUCCESS:
-            break
     
-        ##############################################################################
-        #
+        # ````````````````````````````````````````````````````````````````````````````
+
         # Create the remaining Pipeline components
         
         # New RTSP Source
@@ -243,9 +249,13 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
-        # New Primary GIE using the filespecs above with interval = 1
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 1)
+        ## New Primary GIE using the filespecs above with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -258,6 +268,14 @@ def main(args):
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, 
             bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New ODE Handler for our Trigger
+        retval = dsl_pph_ode_new('ode-handler')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pph_ode_trigger_add('ode-handler', 'rec-on-trigger')
         if retval != DSL_RETURN_SUCCESS:
             break
 

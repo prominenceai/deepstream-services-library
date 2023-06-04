@@ -22,6 +22,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// ````````````````````````````````````````````````````````````````````````````````````
+// This example demonstrates the use of a Smart-Record Tap and how to start
+// a recording session on the "occurrence" of an Object Detection Event (ODE).
+// An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
+// on the first detection of a Person object. The Trigger uses an ODE "Start 
+// Recording Session Action" setup with the following parameters:
+//   start-time: the seconds before the current time (i.e.the amount of 
+//               cache/history to include.
+//   duration:   the seconds after the current time (i.e. the amount of 
+//               time to record after session start is called).
+// Therefore, a total of start-time + duration seconds of data will be recorded.
+//
+// Record Tap components tap into RTSP Source components pre-decoder to enable
+// smart-recording of the incomming (original) H.264 or H.265 stream. 
+//
+// Additional ODE Actions are added to the Trigger to 1) print the ODE 
+// data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
+// to the console and 2) to capture the object (bounding-box) to a JPEG file.
+// 
+// A basic inference Pipeline is used with PGIE, Tracker, Tiler, OSD, and Window Sink.
+//
+// DSL Display Types are used to overlay text ("REC") with a red circle to
+// indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+// ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+// to each frame while the Trigger is enabled. The record_event_listener callback,
+// called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+// and disables the "Always Trigger" according to the event received. 
+//
+// IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
+// Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
+// session to be started on the next occurrence of a Person. 
+//
+// IMPORTANT: this demonstrates a multi-source Pipeline, each with their own
+// Smart-Recort Tap.
+
 #include <iostream>
 #include <glib.h>
 
@@ -29,10 +64,10 @@ THE SOFTWARE.
 
 // Set Camera RTSP URI's - these must be set to valid rtsp uri's for camera's on your network
 // RTSP Source URI    
-std::wstring src_url_1 = L"rtsp://user:pwd!@192.168.1.64:554/Streaming/Channels/101";
-std::wstring src_url_2 = L"rtsp://user:pwd!@192.168.1.65:554/Streaming/Channels/101";
-std::wstring src_url_3 = L"rtsp://user:pwd!@192.168.1.66:554/Streaming/Channels/101";
-std::wstring src_url_4 = L"rtsp://user:pwd!@192.168.1.67:554/Streaming/Channels/101";
+std::wstring src_url_1 = L"rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101";
+std::wstring src_url_2 = L"rtsp://user:pwd@192.168.1.65:554/Streaming/Channels/101";
+std::wstring src_url_3 = L"rtsp://user:pwd@192.168.1.66:554/Streaming/Channels/101";
+std::wstring src_url_4 = L"rtsp://user:pwd@192.168.1.67:554/Streaming/Channels/101";
 
    
 // Config and model-engine files - Jetson and dGPU
@@ -58,33 +93,6 @@ int PGIE_CLASS_ID_VEHICLE = 0;
 int PGIE_CLASS_ID_BICYCLE = 1;    
 int PGIE_CLASS_ID_PERSON = 2;    
 int PGIE_CLASS_ID_ROADSIGN = 3;
-
-//     
-// Objects of this class will be used as "client_data" for all callback notifications.    
-// defines a class of all component names associated with a single RTSP Source.     
-// The names are derived from the unique Source name    
-//    
-
-struct ClientData
-{
-    ClientData(std::wstring src, std::wstring rtsp_url){
-        source = src;    
-        instance_trigger = source + L"-instance-trigger";
-        always_trigger = source + L"-always-trigger";
-        record_tap = source + L"-record-tap";    
-        start_record = source + L"-start-record";
-        display_meta = source + L"-display-meta";
-        url = rtsp_url;
-    }
-
-    std::wstring source;
-    std::wstring instance_trigger;
-    std::wstring always_trigger;
-    std::wstring record_tap;
-    std::wstring start_record;
-    std::wstring display_meta;
-    std::wstring url;
-};
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -165,6 +173,32 @@ DslReturnType create_display_types()
     return dsl_display_type_rgba_circle_new(L"red-led", 94, 52, 8, L"full-red", true, L"full-red");
 
 }
+
+//     
+// Objects of this class will be used as "client_data" for all callback notifications.    
+// defines a class of all component names associated with a single RTSP Source.     
+// The names are derived from the unique Source name    
+//    
+struct ClientData
+{
+    ClientData(std::wstring src, std::wstring rtsp_url){
+        source = src;    
+        instance_trigger = source + L"-instance-trigger";
+        always_trigger = source + L"-always-trigger";
+        record_tap = source + L"-record-tap";    
+        start_record = source + L"-start-record";
+        display_meta = source + L"-display-meta";
+        url = rtsp_url;
+    }
+
+    std::wstring source;
+    std::wstring instance_trigger;
+    std::wstring always_trigger;
+    std::wstring record_tap;
+    std::wstring start_record;
+    std::wstring display_meta;
+    std::wstring url;
+};
 
 //    
 // Callback function to handle recording session start and stop events
@@ -398,22 +432,23 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Add the 4 cameras here.  If fewer/more cameras are to be used, remove/add the lines below as appropriate
+        // Add the 4 cameras here.  If fewer/more cameras are to be used, remove/add
+        // the lines below as appropriate
         ClientData camera1(L"src-1", src_url_1.c_str());
         retval = CreatePerSourceComponents(L"pipeline", &camera1, L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        ClientData camera2(L"src-2", src_url_2.c_str());
-        retval = CreatePerSourceComponents(L"pipeline", &camera2, L"ode-handler");
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        ClientData camera3(L"src-3", src_url_3.c_str());
-        retval = CreatePerSourceComponents(L"pipeline", &camera3, L"ode-handler");
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        ClientData camera4(L"src-4", src_url_4.c_str());
-        retval = CreatePerSourceComponents(L"pipeline", &camera4, L"ode-handler");
-        if (retval != DSL_RESULT_SUCCESS) break;
+//        ClientData camera2(L"src-2", src_url_2.c_str());
+//        retval = CreatePerSourceComponents(L"pipeline", &camera2, L"ode-handler");
+//        if (retval != DSL_RESULT_SUCCESS) break;
+//
+//        ClientData camera3(L"src-3", src_url_3.c_str());
+//        retval = CreatePerSourceComponents(L"pipeline", &camera3, L"ode-handler");
+//        if (retval != DSL_RESULT_SUCCESS) break;
+//
+//        ClientData camera4(L"src-4", src_url_4.c_str());
+//        retval = CreatePerSourceComponents(L"pipeline", &camera4, L"ode-handler");
+//        if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above    
         retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 

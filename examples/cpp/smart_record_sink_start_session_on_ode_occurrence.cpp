@@ -47,7 +47,7 @@ THE SOFTWARE.
 // called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
 // and disables the "Always Trigger" according to the event received. 
 //
-// IMPORTANT, the record_event_listener is used to reset the one-shot Occurrence-
+// IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
 // Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
 // session to be started on the next occurrence of a Person. 
 

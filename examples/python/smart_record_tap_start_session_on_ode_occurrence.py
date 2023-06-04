@@ -22,9 +22,40 @@
 # DEALINGS IN THE SOFTWARE.    
 ################################################################################    
 
-# ```````````````````````````````````````````````````````````````````````````````
-# This example demonstrates the use of "First Occurrence Triggers" and
-# "Start Record Actions" to control Smart-Recording Taps with a multi camera setup
+# ````````````````````````````````````````````````````````````````````````````````````
+# This example demonstrates the use of a Smart-Record Tap and how to start
+# a recording session on the "occurrence" of an Object Detection Event (ODE).
+# An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
+# on the first detection of a Person object. The Trigger uses an ODE "Start 
+# Recording Session Action" setup with the following parameters:
+#   start-time: the seconds before the current time (i.e.the amount of 
+#               cache/history to include.
+#   duration:   the seconds after the current time (i.e. the amount of 
+#               time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
+#
+# Record Tap components tap into RTSP Source components pre-decoder to enable
+# smart-recording of the incomming (original) H.264 or H.265 stream. 
+#
+# Additional ODE Actions are added to the Trigger to 1) print the ODE 
+# data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
+# to the console and 2) to capture the object (bounding-box) to a JPEG file.
+# 
+# A basic inference Pipeline is used with PGIE, Tracker, Tiler, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
+#
+# IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
+# Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
+# session to be started on the next occurrence of a Person. 
+#
+# IMPORTANT: this demonstrates a multi-source Pipeline, each with their own
+# Smart-Recort Tap.
 
 #!/usr/bin/env python    
 
@@ -38,11 +69,15 @@ src_url_2 = 'rtsp://user:pwd@192.168.1.65:554/Streaming/Channels/101'
 src_url_3 = 'rtsp://user:pwd@192.168.1.66:554/Streaming/Channels/101'    
 src_url_4 = 'rtsp://user:pwd@192.168.1.67:554/Streaming/Channels/101'    
 
-# Filespecs for the Primary GIE
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -131,7 +166,6 @@ def create_display_types():
     return dsl_display_type_rgba_circle_new('red-led', 
         x_center=94, y_center=52, radius=8,     
         color='full-red', has_bg_color=True, bg_color='full-red')    
-
 
 ##     
 # Objects of this class will be used as "client_data" for all callback
@@ -238,7 +272,7 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
 
     # New record tap created with our common OnRecordingEvent callback function defined above    
     retval = dsl_tap_record_new(components.record_tap,     
-        outdir = './recordings/',     
+        outdir = './',     
         container = DSL_CONTAINER_MP4,     
         client_listener = OnRecordingEvent)    
     if (retval != DSL_RETURN_SUCCESS):    
@@ -321,11 +355,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
-        # New Primary GIE using the filespecs above, with interval and Id    
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 2)    
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
+        ## New Primary GIE using the filespecs above with interval = 4
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New IOU Tracker, setting operational width and hieght
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
@@ -371,16 +409,16 @@ def main(args):
             'src-1', src_url_1, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-        retval = CreatePerSourceComponents('pipeline', 
-            'src-2', src_url_2, 'ode-handler')    
+#        retval = CreatePerSourceComponents('pipeline', 
+#            'src-2', src_url_2, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-        retval = CreatePerSourceComponents('pipeline', 
-            'src-3', src_url_3, 'ode-handler')    
+#        retval = CreatePerSourceComponents('pipeline', 
+#            'src-3', src_url_3, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-        retval = CreatePerSourceComponents('pipeline', 
-            'src-4', src_url_4, 'ode-handler')    
+#        retval = CreatePerSourceComponents('pipeline', 
+#            'src-4', src_url_4, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
 
