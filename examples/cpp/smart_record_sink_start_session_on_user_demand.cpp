@@ -24,14 +24,23 @@ THE SOFTWARE.
 
 // ````````````````````````````````````````````````````````````````````````````````````
 // This example demonstrates the use of a Smart-Record Sink and how
-// a recording session can be started on user demand - in this case
+// to start a recording session on user/viewer demand - in this case
 // by pressing the 'S' key.  The xwindow_key_event_handler calls
 // dsl_sink_record_session_start with:
-//   start-time = the seconds before the current time (i.e.the amount of 
-//                cache/history to include.
-//   duration =  the seconds after the start of recording.
-// Therefore, a total of startTime + duration seconds of data will be recorded.
+//   start-time: the seconds before the current time (i.e.the amount of 
+//               cache/history to include.
+//   duration:   the seconds after the current time (i.e. the amount of 
+//               time to record after session start is called).
+// Therefore, a total of start-time + duration seconds of data will be recorded.
 // 
+// A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+//
+// DSL Display Types are used to overlay text ("REC") with a red circle to
+// indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+// ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+// to each frame while the Trigger is enabled. The record_event_listener callback,
+// called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+// and disables the "Always Trigger" according to the event received. 
 
 #include <iostream>
 #include <glib.h>
@@ -100,7 +109,6 @@ void xwindow_delete_event_handler(void* client_data)
     dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }
-    
 
 // 
 // Function to be called on End-of-Stream (EOS) event
@@ -120,7 +128,6 @@ void state_change_listener(uint old_state, uint new_state, void* client_data)
     std::cout<<"previous state = " << dsl_state_value_to_string(old_state) 
         << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
-
 
 //    
 // Callback function to handle recording session start and stop events
@@ -175,7 +182,7 @@ int main(int argc, char** argv)
     {    
 
         // ```````````````````````````````````````````````````````````````````````````
-        // Create new RGBA color types    
+        // Create new RGBA color types for our Display Text and Circle   
         retval = dsl_display_type_rgba_color_custom_new(L"full-red", 
             1.0f, 0.0f, 0.0f, 1.0f);    
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -191,6 +198,7 @@ int main(int argc, char** argv)
         retval = dsl_display_type_rgba_font_new(L"impact-20-white", 
             L"impact", 20, L"full-white");    
         if (retval != DSL_RESULT_SUCCESS) break;
+        
 
         // ```````````````````````````````````````````````````````````````````````````
         // Create a new Text type object that will be used to show the recording 
@@ -225,7 +233,7 @@ int main(int argc, char** argv)
         retval = dsl_ode_trigger_enabled_set(L"rec-on-trigger", false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // ```````````````````````````````````````````````````````````````````````````
+        // ##############################################################################
 
         // New Record-Sink that will buffer encoded video while waiting for the 
         // ODE trigger/action, defined below, to start a new session on first 
@@ -277,6 +285,10 @@ int main(int argc, char** argv)
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // New on-screen-display (OSD) with text, clock and bbox display all enabled.
+        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
         // New ODE Handler for our Trigger
         retval = dsl_pph_ode_new(L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -284,10 +296,6 @@ int main(int argc, char** argv)
         retval = dsl_pph_ode_trigger_add(L"ode-handler", L"rec-on-trigger");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New OSD with text, clock, bboxs enabled, mask display disabled
-        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
-        if (retval != DSL_RESULT_SUCCESS) break;
-        
         // Add the ODE Pad Probe Handler to the Sink Pad of the Tiler    
         retval = dsl_osd_pph_add(L"on-screen-display", L"ode-handler", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;

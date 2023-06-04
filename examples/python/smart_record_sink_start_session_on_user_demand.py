@@ -24,14 +24,23 @@
 
 # ````````````````````````````````````````````````````````````````````````````````````
 # This example demonstrates the use of a Smart-Record Sink and how
-# a recording session can be started on user demand - in this case
+# to start a recording session on user/viewer demand - in this case
 # by pressing the 'S' key.  The xwindow_key_event_handler calls
 # dsl_sink_record_session_start with:
-#   start-time = the seconds before the current time (i.e.the amount of 
-#                cache/history to include.
-#   duration =  the seconds after the start of recording.
-# Therefore, a total of startTime + duration seconds of data will be recorded.
+#   start-time: the seconds before the current time (i.e.the amount of 
+#               cache/history to include.
+#   duration:   the seconds after the current time (i.e. the amount of 
+#               time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
 # 
+# A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
 
 #!/usr/bin/env python
 
@@ -107,7 +116,7 @@ def state_change_listener(old_state, new_state, client_data):
 ## 
 # Callback function to handle recording session start and stop events
 ## 
-def record_complete_listener(session_info_ptr, client_data):
+def record_event_listener(session_info_ptr, client_data):
     print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
@@ -146,7 +155,7 @@ def main(args):
     while True:
             
         # ````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
+        # Create new RGBA color types for our Display Text and Circle
         retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
             red=1.0, blue=0.5, green=0.5, alpha=0.7)
         if retval != DSL_RETURN_SUCCESS:
@@ -168,15 +177,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new Text type object that will be used to show 
-        # the recording in progress
+        # ````````````````````````````````````````````````````````````````````````````
+        # Create a new Text type object that will be used to show the recording
+        # in progress
         retval = dsl_display_type_rgba_text_new('rec-text', 
             'REC    ', x_offset=10, y_offset=30, font='impact-20-white', 
             has_bg_color=True, bg_color='opaque-black')
         if retval != DSL_RETURN_SUCCESS:
             break
-        # A new RGBA Circle to be used to simulate a red LED light 
-        # for the recording in progress.
+        # A new RGBA Circle to be used to simulate a red LED light for the recording
+        # in progress.
         retval = dsl_display_type_rgba_circle_new('red-led', 
         x_center=94, y_center=52, radius=8, 
             color='full-red', has_bg_color=True, bg_color='full-red')
@@ -207,15 +217,6 @@ def main(args):
             return retval
 
             
-        # ````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
-        retval = dsl_pph_ode_new('ode-handler')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pph_ode_trigger_add('ode-handler', 'rec-on-trigger')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ##############################################################################
 
         # New Record-Sink that will buffer encoded video while waiting for the 
@@ -224,7 +225,7 @@ def main(args):
         # defined in DslApi.h Setting the bit rate to 0 to not change from the default.
         retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H264, 
             container=DSL_CONTAINER_MP4, bitrate=0, interval=0, 
-            client_listener=record_complete_listener)
+            client_listener=record_event_listener)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -268,13 +269,21 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with text, clock and bbox display all enabled. 
+        # New on-screen-display (OSD) with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # add our ODE Pad Probe Handle to the Sink Pad of the Tiler
+        # New ODE Handler for our Trigger
+        retval = dsl_pph_ode_new('ode-handler')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pph_ode_trigger_add('ode-handler', 'rec-on-trigger')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # add our ODE Pad Probe Handle to the Sink Pad of the OSD
         retval = dsl_osd_pph_add('on-screen-display', 'ode-handler', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -292,18 +301,22 @@ def main(args):
             break
             
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+            xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
