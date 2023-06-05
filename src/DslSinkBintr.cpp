@@ -1319,7 +1319,8 @@ namespace DSL
             return false;
         }
         
-        m_pRecordBin = DSL_NODETR_NEW("record-bin");
+        // Create a new GstNodetr to wrap the record-bin
+        m_pRecordBin = DSL_GSTNODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
             
         AddChild(m_pRecordBin);
@@ -1327,23 +1328,11 @@ namespace DSL
         if (!m_pQueue->LinkToSink(m_pTransform) or
             !m_pTransform->LinkToSink(m_pCapsFilter) or
             !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser))
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pRecordBin))
         {
             return false;
         }
-        GstPad* pGstStaticSourcePad = gst_element_get_static_pad(
-            m_pParser->GetGstElement(), "src");
-        GstPad* pGstStaticSinkPad = gst_element_get_static_pad(
-            m_pRecordBin->GetGstElement(), "sink");
-        
-        if (gst_pad_link(pGstStaticSourcePad, pGstStaticSinkPad) != GST_PAD_LINK_OK)
-        {
-            LOG_ERROR("Failed to link parser to record-bin new RecordSinkBintr '" 
-                << GetName() << "'");
-            return false;
-        }
-        gst_object_unref(pGstStaticSourcePad);
-        gst_object_unref(pGstStaticSinkPad);
 
         m_isLinked = true;
         return true;
@@ -1358,15 +1347,7 @@ namespace DSL
             LOG_ERROR("RecordSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        GstPad* pGstStaticSourcePad = gst_element_get_static_pad(
-            m_pParser->GetGstElement(), "src");
-        GstPad* pGstStaticSinkPad = gst_element_get_static_pad(
-            m_pRecordBin->GetGstElement(), "sink");
-        
-        gst_pad_unlink(pGstStaticSourcePad, pGstStaticSinkPad);
-        gst_object_unref(pGstStaticSourcePad);
-        gst_object_unref(pGstStaticSinkPad);
-
+        m_pParser->UnlinkFromSink();
         m_pEncoder->UnlinkFromSink();
         m_pCapsFilter->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
@@ -1374,6 +1355,7 @@ namespace DSL
         
         RemoveChild(m_pRecordBin);
         
+        // Destroy the RecordBin GSTNODETR and context.
         m_pRecordBin = nullptr;
         DestroyContext();
         
