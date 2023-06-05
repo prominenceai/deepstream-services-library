@@ -1355,6 +1355,7 @@ namespace DSL
         
         RemoveChild(m_pRecordBin);
         
+        // Destroy the RecordBin GSTNODETR and context.
         m_pRecordBin = nullptr;
         DestroyContext();
         
