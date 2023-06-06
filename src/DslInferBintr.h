@@ -490,12 +490,6 @@ namespace DSL
         bool UnlinkFromSource();
         
         /**
-         * @brief sets the Infer-on name for this Bintr
-         * @return true if this Bintr was able to set its Infer-on name, false otherwise
-         */
-        bool SetInferOnUniqueId();
-        
-        /**
          * @brief returns the unique Id of the InferBintr this SecondarInferBintr 
          * should infer on
          * @return unique Id for the Infer-on Bintr
@@ -503,13 +497,28 @@ namespace DSL
         uint GetInferOnUniqueId();
         
         /**
-         * @brief gets the current Infer-on name in use by this SecondaryInferBintr
-         * @return the current unique Id
+         * @brief gets the Infer-on name for this SecondaryInferBintr
+         * @return the name of the Infer-on Bintr
          */
         const char* GetInferOnName();
-        
+
         /**
-         * @brief returns the Queue Elementr to the Parent Bintr of the SecondaryInferBintr
+         * @brief gets the current Infer-on process-mode in use by this 
+         * SecondaryInferBintr
+         * @return either DSL_INFER_MODE_PRIMARY or DSL_INFER_MODE_SECONDARY
+         */
+        uint GetInferOnProcessMode();
+
+        /**
+         * @brief sets the "infer-on name" and "infer-on process-mode"
+         * @return true if this Bintr was able to set its Infer-on attributes, 
+         * false otherwise
+         */
+        bool SetInferOnAttributes();
+
+        /**
+         * @brief returns the Queue Elementr to the Parent Bintr of the 
+         * SecondaryInferBintr
          * @return shared ponter to the Queue Elementr
          */
         DSL_ELEMENT_PTR GetQueueElementr()
@@ -573,7 +582,12 @@ namespace DSL
         /**
          @brief Unique Id of the InferBintr to infer on, primary or secondary
          */
-        int m_inferOnUniqueId;
+        uint m_inferOnUniqueId;
+        
+        /**
+         @brief Process mode of the InferBintr to infer on, primary or secondary
+         */
+        uint m_inferOnProcessMode;
         
         /**
          * @brief Tee Elementr for this SecondaryInferBintr

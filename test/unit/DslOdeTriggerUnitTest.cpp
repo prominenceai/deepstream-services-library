@@ -946,7 +946,8 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Infer Name/Id correctly", "[OdeTri
         
         std::string inferName("infer-1");
         
-        Services::GetServices()->_inferNameSet(inferId, inferName.c_str());
+        Services::GetServices()->_inferAttributesSet(inferId, 
+            inferName.c_str(), 0);
 
         std::string odeActionName("action");
 
