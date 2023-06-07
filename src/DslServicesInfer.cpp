@@ -686,7 +686,7 @@ namespace DSL
         
         m_inferNames[inferId] = name;
         m_inferIds[name] = inferId;
-        m_inferProcessModes[name];
+        m_inferProcessModes[name] = processMode;
         return DSL_RESULT_SUCCESS;
     }
 

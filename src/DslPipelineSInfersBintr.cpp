@@ -32,7 +32,6 @@ namespace DSL
         : Bintr(name)
         , m_stop(false)
         , m_flush(false)
-        , m_primaryInferUniqueId(0)
         , m_interval(0)
     {
         LOG_FUNC();
@@ -193,11 +192,6 @@ namespace DSL
             LOG_ERROR("PipelineSInfersBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_primaryInferUniqueId)
-        {
-            LOG_ERROR("Unable to link PipelineSInfersBintr '" << GetName() << "' - PrimaryGie Not Set");
-            return false;
-        }
         if (!m_batchSize)
         {
             LOG_ERROR("Unable to link PipelineSInfersBintr '" << GetName() << "' - batch size Not Set");
@@ -245,7 +239,7 @@ namespace DSL
         // to link them in as a third level of inference. 
         for (auto const& imap: m_pChildSInfers)
         {
-            if (imap.second->GetInferOnUniqueId() != m_primaryInferUniqueId)
+            if (imap.second->GetInferOnUniqueId() == DSL_INFER_MODE_SECONDARY)
             {
                 if (m_pChildSInfers.find(imap.second->GetInferOnName()) == m_pChildSInfers.end())
                 {
@@ -307,13 +301,6 @@ namespace DSL
         m_isLinked = false;
     }
 
-    void PipelineSInfersBintr::SetInferOnId(int id)
-    {
-        LOG_FUNC();
-        
-        m_primaryInferUniqueId = id;
-    }
-    
     uint PipelineSInfersBintr::GetInterval()
     {
         LOG_FUNC();

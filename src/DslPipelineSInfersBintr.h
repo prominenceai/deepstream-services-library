@@ -183,8 +183,6 @@ namespace DSL
          */
         uint m_srcPadProbeId;
         
-        int m_primaryInferUniqueId;
-        
         uint m_interval;
 
         bool m_stop;

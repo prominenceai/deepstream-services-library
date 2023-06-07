@@ -42,6 +42,8 @@ uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
 # Config file for the Primary GIE
 inferConfigFile = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+inferConfigFileNano = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
     
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
@@ -56,6 +58,9 @@ sgie3_config_file = \
 
 TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
 TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+
+# Set to true to use nano version of primary config file
+MAKE_FOR_NANO = True
 
 ## 
 # Function to be called on End-of-Stream (EOS) event
@@ -85,28 +90,34 @@ def main(args):
         dsl_source_uri_new('Camera 7', uri, False, False, 0)
         dsl_source_uri_new('Camera 8', uri, False, False, 0)
 
-        # New Primary GIE using the filespecs above, with interval and Id. Setting the
-        # model_engine_files parameter to None allows for model generation if not found.
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, None, interval=10)
+        if MAKE_FOR_NANO:
+            # New Primary GIE using the filespecs above, with interval and Id. Setting the
+            # model_engine_files parameter to None allows for model generation if not found.
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                inferConfigFileNano, None, interval=10)
+        else:
+            # New Primary GIE using the filespecs above, with interval and Id. Setting the
+            # model_engine_files parameter to None allows for model generation if not found.
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                inferConfigFile, None, interval=10)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Secondary GIEs using the filespecs above with interval = 0
-        retval = dsl_infer_gie_secondary_new('carcolor-sgie', sgie1_config_file, None, 'primary-gie', 10)
+        retval = dsl_infer_gie_secondary_new('carcolor-sgie', 
+            sgie1_config_file, None, 'primary-gie', 10)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_infer_gie_secondary_new('carmake-sgie', sgie2_config_file, None, 'primary-gie', 10)
+        retval = dsl_infer_gie_secondary_new('carmake-sgie', 
+            sgie2_config_file, None, 'primary-gie', 10)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_infer_gie_secondary_new('vehicletype-sgie', sgie3_config_file, None, 'primary-gie', 10)
+        retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
+            sgie3_config_file, None, 'primary-gie', 10)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #----------------------------------------------------------------------------------------------------
-        # Create one of each Tracker Types, KTL and IOU, to test with each. We will only add one
-        # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
-
-        # New KTL Tracker, setting max width and height of input frame
+        # New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_new('tracker', tracker_config_file, 480, 288)
         if retval != DSL_RETURN_SUCCESS:
             break

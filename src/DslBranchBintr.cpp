@@ -455,9 +455,6 @@ namespace DSL
         
         if (m_pSecondaryInfersBintr)
         {
-            // Set the SecondaryInferBintr' Primary Infer Name, and set batch sizes
-            m_pSecondaryInfersBintr->SetInferOnId(1);
-//            m_pSecondaryInfersBintr->SetInferOnId(m_pPrimaryInferBintr->GetUniqueId());
             m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
