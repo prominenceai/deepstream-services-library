@@ -423,9 +423,16 @@ namespace DSL
         {
             for (auto const &imap: m_pPrimaryInferBintrsIndexed)
             {
-                // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
-                // then LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+                // Set the m_PrimaryInferBintrs batch size to the current stream muxer
+                // batch size. IMPORTANT if client has explicitely set the batch-size, 
+                // then this call will NOP. 
                 imap.second->SetBatchSize(m_batchSize);
+                
+                // We then update the branch batch-size to whatever the Primary's value 
+                // is for all downstream components. 
+                m_batchSize = imap.second->GetBatchSize();
+
+                // LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
                 if (!imap.second->LinkAll() or
                     (m_linkedComponents.size() and 
                     !m_linkedComponents.back()->LinkToSink(imap.second)))
@@ -433,6 +440,7 @@ namespace DSL
                     return false;
                 }
                 m_linkedComponents.push_back(imap.second);
+ 
                 LOG_INFO("Branch '" << GetName() << "' Linked up PrimaryInferBintr '" << 
                     imap.second->GetName() << "' successfully");                    
             }

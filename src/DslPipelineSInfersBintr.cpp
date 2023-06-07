@@ -239,7 +239,7 @@ namespace DSL
         // to link them in as a third level of inference. 
         for (auto const& imap: m_pChildSInfers)
         {
-            if (imap.second->GetInferOnUniqueId() == DSL_INFER_MODE_SECONDARY)
+            if (imap.second->GetInferOnProcessMode() != DSL_INFER_MODE_PRIMARY)
             {
                 if (m_pChildSInfers.find(imap.second->GetInferOnName()) == m_pChildSInfers.end())
                 {

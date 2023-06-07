@@ -684,6 +684,9 @@ namespace DSL
         
         // called internally, do not lock mutex
         
+        LOG_DEBUG("Setting infer-attributes for InferBinter with id="
+            << inferId << ", name=" << name << ", process-mode=" << processMode);
+        
         m_inferNames[inferId] = name;
         m_inferIds[name] = inferId;
         m_inferProcessModes[name] = processMode;
@@ -712,6 +715,9 @@ namespace DSL
         LOG_FUNC();
         
         // called internally, do not lock mutex
+
+        LOG_DEBUG("Getting infer-attributes for InferBinter with name=" 
+            << name);
 
         if (m_inferIds.find(name) != m_inferIds.end())
         {
