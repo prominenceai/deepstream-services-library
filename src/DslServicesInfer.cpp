@@ -677,34 +677,23 @@ namespace DSL
         return DSL_RESULT_INFER_ID_NOT_FOUND;
     }
 
-    DslReturnType Services::_inferIdGet(const char* name, int* inferId)
+    DslReturnType Services::_inferAttributesSet(uint inferId, 
+        const char* name, uint processMode)
     {
         LOG_FUNC();
         
         // called internally, do not lock mutex
-
-        if (m_inferIds.find(name) != m_inferIds.end())
-        {
-            *inferId = m_inferIds[name];
-            return DSL_RESULT_SUCCESS;
-        }
-        *inferId = -1;
-        return DSL_RESULT_INFER_ID_NOT_FOUND;
-    }
-
-
-    DslReturnType Services::_inferNameSet(uint inferId, const char* name)
-    {
-        LOG_FUNC();
         
-        // called internally, do not lock mutex
+        LOG_DEBUG("Setting infer-attributes for InferBinter with id="
+            << inferId << ", name=" << name << ", process-mode=" << processMode);
         
         m_inferNames[inferId] = name;
         m_inferIds[name] = inferId;
+        m_inferProcessModes[name] = processMode;
         return DSL_RESULT_SUCCESS;
     }
 
-    DslReturnType Services::_inferNameErase(uint inferId)
+    DslReturnType Services::_inferAttributesErase(uint inferId)
     {
         LOG_FUNC();
 
@@ -713,10 +702,30 @@ namespace DSL
         if (m_inferNames.find(inferId) != m_inferNames.end())
         {
             m_inferIds.erase(m_inferNames[inferId]);
+            m_inferProcessModes.erase(m_inferNames[inferId]);
             m_inferNames.erase(inferId);
             return DSL_RESULT_SUCCESS;
         }
         return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
+    DslReturnType Services::_inferAttributesGetByName(const char* name, 
+        uint& inferId, uint& processMode)
+    {
+        LOG_FUNC();
+        
+        // called internally, do not lock mutex
+
+        LOG_DEBUG("Getting infer-attributes for InferBinter with name=" 
+            << name);
+
+        if (m_inferIds.find(name) != m_inferIds.end())
+        {
+            inferId = m_inferIds[name];
+            processMode = m_inferProcessModes[name];
+            return DSL_RESULT_SUCCESS;
+        }
+        return DSL_RESULT_INFER_ID_NOT_FOUND;
     }
 
     DslReturnType Services::SegVisualNew(const char* name, 

@@ -66,12 +66,12 @@ namespace DSL
         // generate a unique Id for the GIE based on its unique name
         std::string inferBintrName = "infer-" + GetName();
 
-        // Set the name value for the current unique inference component Id.
-        if (Services::GetServices()->_inferNameSet(m_uniqueId, 
-            GetCStrName()) != DSL_RESULT_SUCCESS)
+        // Provide the unique-id, name, and process mode to the services object.
+        if (Services::GetServices()->_inferAttributesSet(m_uniqueId, 
+            GetCStrName(), m_processMode) != DSL_RESULT_SUCCESS)
         {
             LOG_ERROR("Inference Component '" << GetName() 
-                << "' failed to Set name for its unique Id");
+                << "' failed to Set attributes for its unique Id");
             throw;
         }   
 
@@ -118,7 +118,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        Services::GetServices()->_inferNameErase(m_uniqueId);
+        Services::GetServices()->_inferAttributesErase(m_uniqueId);
         s_uniqueIds.remove(m_uniqueId);
     }
 
@@ -550,6 +550,7 @@ namespace DSL
         : InferBintr(name, DSL_INFER_MODE_SECONDARY, inferConfigFile, 
             modelEngineFile, interval, inferType)
         , m_inferOn(inferOn)
+        , m_inferOnProcessMode(0)
 
     {
         LOG_FUNC();
@@ -653,7 +654,14 @@ namespace DSL
         return m_inferOn.c_str();
     }
     
-    bool SecondaryInferBintr::SetInferOnUniqueId()
+    uint SecondaryInferBintr::GetInferOnProcessMode()
+    {
+        LOG_FUNC();
+
+        return m_inferOnProcessMode;
+    }
+    
+    bool SecondaryInferBintr::SetInferOnAttributes()
     {
         LOG_FUNC();
 
@@ -664,8 +672,8 @@ namespace DSL
             return false;
             
         }
-        if (Services::GetServices()->_inferIdGet(m_inferOn.c_str(), 
-            &m_inferOnUniqueId) != DSL_RESULT_SUCCESS)
+        if (Services::GetServices()->_inferAttributesGetByName(m_inferOn.c_str(),
+            m_inferOnUniqueId, m_inferOnProcessMode) != DSL_RESULT_SUCCESS)
         {
             LOG_ERROR("SecondaryInferBintr '" << GetName() 
                 << "' failed to Get unique Id for PrimaryInferBintr '" 

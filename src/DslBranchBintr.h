@@ -208,9 +208,20 @@ namespace DSL
         DSL_PREPROC_PTR m_pPreprocBintr;
         
         /**
-         * @brief optional, one at most GIE or TIS PrimaryInferBintr for this Branch
+         * @brief Index variable to incremment/assign on Primary InferBintr add.
          */
-        DSL_PRIMARY_INFER_PTR m_pPrimaryInferBintr;
+        uint m_nextPrimaryInferBintrIndex;
+        
+        /**
+         * @brief Map of child GIE or TIS PrimaryInferBintrs for this Branch
+         */
+        std::map <std::string, DSL_PRIMARY_INFER_PTR> m_pPrimaryInferBintrs;
+        
+        /**
+         * @brief Map of child GIE or TIS PrimaryInferBintrs for this Branch
+         * indexed by thier add-order for execution
+         */
+        std::map <uint, DSL_PRIMARY_INFER_PTR> m_pPrimaryInferBintrsIndexed;
         
         /**
          * @brief optional, one or more Secondary GIEs for this Branch

@@ -588,15 +588,18 @@ SCENARIO( "A Pipeline can have at most one TrackerBintr", "[PipelineBintr]" )
     }
 }
 
-SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
+SCENARIO( "A Pipeline can add/remove multiple PrimaryGieBintrs correctly", "[PipelineBintr]" )
 {
     GIVEN( "Two new PrimaryGieBintrs and PipelineBintr" ) 
     {
         std::string primaryGieName1("primary-gie-1");
         std::string primaryGieName2("primary-gie-2");
+        std::string primaryGieName3("primary-gie-3");
 
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1;
         DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2;
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr3;
+
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
             pPrimaryGieBintr1 = 
@@ -605,6 +608,10 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
                 primaryModelEngineFileJetson.c_str(), interval);
             pPrimaryGieBintr2 = 
                 DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pPrimaryGieBintr3 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
                 primaryInferConfigFileJetson.c_str(), 
                 primaryModelEngineFileJetson.c_str(), interval);
         }
@@ -618,8 +625,11 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
                 DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
                 primaryInferConfigFileDgpu.c_str(), 
                 primaryModelEngineFileDgpu.c_str(), interval);
+            pPrimaryGieBintr3 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
         }
-
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -627,9 +637,134 @@ SCENARIO( "A Pipeline can have at most one PrimaryGieBintr", "[PipelineBintr]" )
         {
             REQUIRE( pPrimaryGieBintr1->AddToParent(pPipelineBintr) == true );
 
-            THEN( "A second PrimaryGieBintr can not be added" )
+            THEN( "The same PrimaryGieBintr can not be added again" )
             {
-                REQUIRE( pPrimaryGieBintr2->AddToParent(pPipelineBintr) == false );
+                REQUIRE( pPrimaryGieBintr1->AddToParent(pPipelineBintr) == false );
+            }
+        }
+        WHEN( "Multiple PrimaryGieBintrs are added to the PipelineBintr" )
+        {
+            REQUIRE( pPrimaryGieBintr1->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr2->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr3->AddToParent(pPipelineBintr) == true );
+
+            THEN( "The same PrimaryGieBintrs can be removed" )
+            {
+                REQUIRE( pPrimaryGieBintr3->RemoveFromParent(pPipelineBintr) == true );
+                REQUIRE( pPrimaryGieBintr1->RemoveFromParent(pPipelineBintr) == true );
+                REQUIRE( pPrimaryGieBintr2->RemoveFromParent(pPipelineBintr) == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline with multiple Primary and Secondar InferBintrs can link correctly", 
+    "[PipelineBintr]" )
+{
+    GIVEN( "Two new PrimaryGieBintrs and PipelineBintr" ) 
+    {
+        std::string primaryGieName1("primary-gie-1");
+        std::string primaryGieName2("primary-gie-2");
+        std::string primaryGieName3("primary-gie-3");
+
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1;
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2;
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr3;
+
+        std::string secondaryGieName1("secondary-gie-1");
+        std::string secondaryGieName2("secondary-gie-2");
+        std::string secondaryGieName3("secondary-gie-3");
+        
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr1;
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr2;
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr3;
+        
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        {
+            pPrimaryGieBintr1 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pPrimaryGieBintr2 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pPrimaryGieBintr3 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
+                primaryInferConfigFileJetson.c_str(), 
+                primaryModelEngineFileJetson.c_str(), interval);
+            pSecondaryGieBintr1 = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName1.c_str(), interval);
+            pSecondaryGieBintr2 = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName2.c_str(), interval);
+            pSecondaryGieBintr3 = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileJetson.c_str(), 
+                primaryGieName3.c_str(), interval);
+        }
+        else
+        {
+            pPrimaryGieBintr1 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+            pPrimaryGieBintr2 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+            pPrimaryGieBintr3 = 
+                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
+                primaryInferConfigFileDgpu.c_str(), 
+                primaryModelEngineFileDgpu.c_str(), interval);
+            pSecondaryGieBintr1 = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileDgpu.c_str(), 
+                primaryGieName1.c_str(), interval);
+            pSecondaryGieBintr2 = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileDgpu.c_str(), 
+                primaryGieName2.c_str(), interval);
+            pSecondaryGieBintr3 = 
+                DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), 
+                secondaryInferConfigFile.c_str(), 
+                secondaryModelEngineFileDgpu.c_str(), 
+                primaryGieName3.c_str(), interval);
+        }
+
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), filePath.c_str(), false, false, 0);
+
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
+
+        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+            
+        WHEN( "Multiple all components are added to the PipelineBintr" )
+        {
+            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr1->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr2->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pPrimaryGieBintr3->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSecondaryGieBintr1->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSecondaryGieBintr2->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSecondaryGieBintr3->AddToParent(pPipelineBintr) == true );
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+            THEN( "The Pipeline can Link and Unlink All" )
+            {
+                REQUIRE( pPipelineBintr->LinkAll() == true );
+                REQUIRE( pPipelineBintr->IsLinked() == true );
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
             }
         }
     }

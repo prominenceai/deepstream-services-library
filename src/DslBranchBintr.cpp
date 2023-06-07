@@ -31,7 +31,8 @@ THE SOFTWARE.
 namespace DSL
 {
     BranchBintr::BranchBintr(const char* name, bool pipeline)
-        : Bintr(name, pipeline) 
+        : Bintr(name, pipeline)
+        , m_nextPrimaryInferBintrIndex(0)
     {
         LOG_FUNC();
     }
@@ -83,43 +84,69 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (m_pPrimaryInferBintr)
+        // Need to cast to PrimaryInferBintr from Base class
+        DSL_PRIMARY_INFER_PTR pChildBintr = 
+            std::dynamic_pointer_cast<PrimaryInferBintr>(pPrimaryInferBintr);
+        
+        if (IsLinked())
         {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting PrimaryInferBintr '" 
-                << m_pPrimaryInferBintr->GetName());
+            LOG_ERROR("Cannot remove PrimaryInferBintr '" 
+                << pChildBintr->GetName() << "' as it is currently linked");
             return false;
         }
-        m_pPrimaryInferBintr = std::dynamic_pointer_cast<PrimaryInferBintr>(pPrimaryInferBintr);
+        if (m_pPrimaryInferBintrs.find(pChildBintr->GetName()) 
+            != m_pPrimaryInferBintrs.end())
+        {
+            LOG_ERROR("PrimaryInferBintr '" << pPrimaryInferBintr->GetName() 
+                << "' is already a child of Pipeline/Branch '" << GetName() << "'");
+            return false;
+        }
+        LOG_INFO("Adding PrimaryInferBintr '"<< pChildBintr->GetName() 
+            << "' to Pipeline/Branch '" << GetName() << "'");
         
-        return AddChild(pPrimaryInferBintr);
+        // increment next index, assign to the Action, and update parent releationship.
+        pChildBintr->SetIndex(++m_nextPrimaryInferBintrIndex);
+
+        // Add the shared pointer to InferBintr to both Maps, by name and index
+        m_pPrimaryInferBintrs[pChildBintr->GetName()] = pChildBintr;
+        m_pPrimaryInferBintrsIndexed[m_nextPrimaryInferBintrIndex] = pChildBintr;
+        
+        return AddChild(pChildBintr);
     }
 
     bool BranchBintr::RemovePrimaryInferBintr(DSL_BASE_PTR pPrimaryInferBintr)
     {
         LOG_FUNC();
         
-        if (!m_pPrimaryInferBintr)
+        // Need to cast to PrimaryInferBintr from Base class
+        DSL_PRIMARY_INFER_PTR pChildBintr = 
+            std::dynamic_pointer_cast<PrimaryInferBintr>(pPrimaryInferBintr);
+
+        if (m_pPrimaryInferBintrs.find(pChildBintr->GetName()) 
+            == m_pPrimaryInferBintrs.end())
         {
-            LOG_ERROR("Branch '" << GetName() << "' has no Primary Infer to remove'");
+            LOG_ERROR("PrimaryInferBintr '" << pChildBintr->GetName() 
+                << "' is not a child of Pipeline/Branch '" << GetName() << "'");
             return false;
         }
-        if (m_pPrimaryInferBintr != pPrimaryInferBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' does not own Primary Infer' " 
-                << pPrimaryInferBintr->GetName() << "'");
-            return false;
-        }
+        
         if (IsLinked())
         {
-            LOG_ERROR("Primary Infer cannot be removed from Branch '" << GetName() 
-                << "' as it is currently linked");
+            LOG_ERROR("Cannot remove PrimaryInferBintr '" 
+                << pChildBintr->GetName() << "' as it is currently linked");
             return false;
         }
-        m_pPrimaryInferBintr = nullptr;
-        
-        LOG_INFO("Removing Primary Infer '"<< pPrimaryInferBintr->GetName() 
-            << "' from Branch '" << GetName() << "'");
-        return RemoveChild(pPrimaryInferBintr);
+        LOG_INFO("Removing PrimaryInferBintr '"<< pChildBintr->GetName() 
+            << "' from Pipeline/Branch '" << GetName() << "'");
+            
+        // Erase the child from both maps
+        m_pPrimaryInferBintrs.erase(pChildBintr->GetName());
+        m_pPrimaryInferBintrsIndexed.erase(pChildBintr->GetIndex());
+
+        // Clear the parent relationship and index
+        pChildBintr->SetIndex(0);
+            
+        return RemoveChild(pChildBintr);
     }
 
     bool BranchBintr::AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr)
@@ -375,13 +402,6 @@ namespace DSL
                 << "' has no Demuxer, Splitter or Sink - and is unable to link");
             return false;
         }
-        // TODO - remove requirement that PGIE and SGIES must be in the same branch
-        if (m_pSecondaryInfersBintr and !m_pPrimaryInferBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() 
-                << "' has a SecondayInferbintr with no PrimaryInferBintr - and is unable to link");
-            return false;
-        }
         
         if (m_pPreprocBintr)
         {
@@ -399,20 +419,31 @@ namespace DSL
                 m_pPreprocBintr->GetName() << "' successfully");
         }
         
-        if (m_pPrimaryInferBintr)
+        if (m_pPrimaryInferBintrs.size())
         {
-            // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
-            // then LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
-            m_pPrimaryInferBintr->SetBatchSize(m_batchSize);
-            if (!m_pPrimaryInferBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pPrimaryInferBintr)))
+            for (auto const &imap: m_pPrimaryInferBintrsIndexed)
             {
-                return false;
+                // Set the m_PrimaryInferBintrs batch size to the current stream muxer
+                // batch size. IMPORTANT if client has explicitely set the batch-size, 
+                // then this call will NOP. 
+                imap.second->SetBatchSize(m_batchSize);
+                
+                // We then update the branch batch-size to whatever the Primary's value 
+                // is for all downstream components. 
+                m_batchSize = imap.second->GetBatchSize();
+
+                // LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+                if (!imap.second->LinkAll() or
+                    (m_linkedComponents.size() and 
+                    !m_linkedComponents.back()->LinkToSink(imap.second)))
+                {
+                    return false;
+                }
+                m_linkedComponents.push_back(imap.second);
+ 
+                LOG_INFO("Branch '" << GetName() << "' Linked up PrimaryInferBintr '" << 
+                    imap.second->GetName() << "' successfully");                    
             }
-            m_linkedComponents.push_back(m_pPrimaryInferBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up PrimaryInferBintr '" << 
-                m_pPrimaryInferBintr->GetName() << "' successfully");
         }
         
         if (m_pTrackerBintr)
@@ -432,8 +463,6 @@ namespace DSL
         
         if (m_pSecondaryInfersBintr)
         {
-            // Set the SecondaryInferBintr' Primary Infer Name, and set batch sizes
-            m_pSecondaryInfersBintr->SetInferOnId(m_pPrimaryInferBintr->GetUniqueId());
             m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
