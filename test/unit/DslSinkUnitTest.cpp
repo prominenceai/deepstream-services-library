@@ -1251,6 +1251,46 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can UnlinkAll Child Elemen
     }
 }
 
+SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can Link/UnlinkAll multiple times", 
+    "[SinkBintr]" )
+{
+    GIVEN( "A DSL_CONTAINER_MP4 RecordSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("record-sink");
+        std::string outdir("./");
+        uint codec(DSL_CODEC_H265);
+        uint bitrate(2000000);
+        uint interval(0);
+        uint container(DSL_CONTAINER_MP4);
+        
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
+            outdir.c_str(), codec, container, bitrate, interval, clientListener);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A DSL_CONTAINER_MP4 RecordSinkBintr is Linked/Unlinked multiple times" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CONTAINER_MP4 RecordSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 

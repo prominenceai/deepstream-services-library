@@ -154,11 +154,13 @@ NVIDIA's plugin implementation and reference library (currently in Alpha) provid
 See the [Preprocessor API](/docs/api-preproc.md) reference section for more information.
 
 ## Inference Engines and Servers
-NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs), using pre-trained models, classify data to “infer” a result, e.g.: person, dog, car? A Pipeline may have at most one Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (PTIS) -- with a specified set of classification labels to infer-with -- and multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either the Primary or other Secondary GIEs/TISs. Although optional, a Primary Inference Engine or Server is required when adding a Multi-Object Tracker, Secondary Inference Engines or Servers, or On-Screen-Display to a Pipeline.
+NVIDIA's GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs) perform inferencing on the input data stream. A Pipeline can have:
+* multiple Primary Gst Inference Engines (PGIE) or Primary Triton Inference Servers (PTIS) linked in succession to operate on the full frame
+* multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either Primary or other Secondary GIEs/TISs. 
 
 After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
 
-With Primary GIEs and TISs, applications can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within. 
+With Primary GIEs and TISs, applications can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within.
 
 See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
 
@@ -723,19 +725,32 @@ Multiple Pipelines, each with their own Interpipe Source, can listen to the same
 --- 
 
 ## Smart Recording
-As mentioned above, there are two components that provide cached-video-recording:
+As mentioned above, there are two components that provide cached-video recording:
 1. Record Tap - that taps into the pre-decoded stream to record the original video - added to a RTSP Source component directly.
-2. Record Sink - that encodes the decoded, inferred-on, and optionally annotated stream - added to a Pipeline or Branch downstream of a Tiler or Demuxer.
+2. Record Sink - that encodes the decoded, inferred-on, and optionally annotated stream - added to a Pipeline or Branch.
 
-Both recording components create a fixed size cache to buffer the last N seconds of the encoded video. Services are provided to start recording at a `start` point within the current cache specified in seconds before the current time. The `duration` to record is specified in units of seconds, though the recording can be stopped at any time.  A client callback is used to notify the application when recording is complete.
+Both recording components create a fixed-size cache to buffer the last N seconds of the encoded video. Services are provided to start a recording session with a `start` point within the current cache specified in seconds before the current time and a `duration` specified in seconds from the current time. The complete duration of the recording (given sufficient time for the cache to fill) will be `start` + `duration` seconds; though a recording can be stopped at any time.  A client callback, added to the Record-Tap or Sink, is used to notify the application - first when a recording has started - and again after the recording has completed.
 
-"One-time" [ODE Triggers](/docs/api-ode-trigger.md) are defined to trigger on specific occurrences of Object Detection Events, such as a person entering a predefined [ODE Area](/docs/api-ode-area.md). Start-Record [ODE Actions]() are used to start the recording on ODE occurrence. Each "one-time" trigger can be reset in the record-complete callback function added to the Record-Tap or Sink. 
+A smart recording can be started on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services) or on user/application demand. There are examples in both Python and C/C++ for all cases.
+
+**Python:**
+* [smart_record_sink_start_session_on_ode_occurrence.py](/examples/python/smart_record_sink_start_session_on_ode_occurrence.py)
+* [smart_record_sink_start_session_on_user_demand.py](/examples/python/smart_record_sink_start_session_on_user_demand.py)
+* [smart_record_tap_start_session_on_ode_occurrence.py](/examples/python/smart_record_tap_start_session_on_ode_occurrence.py)
+* [smart_record_tap_start_session_on_user_demand.py](/examples/python/smart_record_tap_start_session_on_user_demand.py)
+
+**C/C++:**
+* [smart_record_sink_start_session_on_ode_occurrence.py](/examples/cpp/smart_record_sink_start_session_on_ode_occurrence.cpp)
+* [smart_record_sink_start_session_on_user_demand.py](/examples/cpp/smart_record_sink_start_session_on_user_demand.cpp)
+* [smart_record_tap_start_session_on_ode_occurrence.py](/examples/cpp/smart_record_tap_start_session_on_ode_occurrence.cpp)
+* [smart_record_tap_start_session_on_user_demand.py](/examples/cpp/smart_record_tap_start_session_on_user_demand.cpp)
+
+When using [Object Detection Events (ODE)](#object-detection-event-ode-services), "one-time" [ODE Triggers](/docs/api-ode-trigger.md) are defined to trigger on specific occurrences of Object Detection Events, such as a person entering a predefined [ODE Area](/docs/api-ode-area.md). Start-Record [ODE Actions]() are used to start the recording on ODE occurrence. Each "one-time" trigger can be reset in the client-callback when called after each recording has finished. 
 
 The follow example illustrates a Pipeline with multiple sources, each with a Record Tap and corresponding Occurrence Trigger with a Start-Record Action
 ![Record Tap](/Images/tap-record.png)
 
 #### Using Python to implement the above.
-
 Each Camera requires: 
 * RTSP Source Component - to decode the streaming source to raw video and audio
 * Record Tap - with cache to capture pre-event video
@@ -955,8 +970,6 @@ print(dsl_return_value_to_string(retval))
 dsl_delete-all()
 
 ```
-
-Please refer to [ode_occurrence_4rtsp_start_record_tap_action.py](/examples/python/ode_occurrence_4rtsp_start_record_tap_action.py) for the complete example.
 
 ---
 

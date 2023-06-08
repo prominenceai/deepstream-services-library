@@ -117,12 +117,21 @@ namespace DSL
         /**
          * @brief Start recording to file
          * @param[out] session unique Id for the new recording session, 
-         * @param[in] start seconds before the current time. Should be less than video cache size.
+         * @param[in] start seconds before the current time. Should be less 
+         * than video cache size.
          * @param[in] duration of recording in seconds from start
          * @param[in] clientData returned on call to client callback
          * @return true on succesful start, false otherwise
          */
         bool StartSession(uint start, uint duration, void* clientData);
+        
+        /**
+         * @brief implements a timer thread to notify the client listener 
+         * in the main loop context.
+         * @return false always to self remove timer once the client has 
+         * been notified. Timer/tread will be restarted on next call to StartSession()
+         */
+        int NotifyClientListener();
         
         /**
          * @brief Stop recording to file
@@ -226,6 +235,11 @@ protected:
         GMutex m_recordMgrMutex;
         
         /**
+         * @brief gnome timer Id for the asynchronous "start-session" client notification.
+         */
+        uint m_listenerNotifierTimerId;
+        
+        /**
          * @brief boolean flag to specify whether an async stop recording session 
          * is in progress or not. 
          */
@@ -252,6 +266,8 @@ protected:
     };
 
     //******************************************************************************************
+    
+    static int RecordMgrListenerNotificationHandler(gpointer pRecordMgr);
 
     static void* RecordCompleteCallback(NvDsSRRecordingInfo* pNvDsInfo, void* pRecordSinkBintr);
 }

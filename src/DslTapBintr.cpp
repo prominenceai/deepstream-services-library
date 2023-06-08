@@ -84,6 +84,7 @@ namespace DSL
             return false;
         }
         
+        // Create a new GstNodetr to wrap the record-bin
         m_pRecordBin = DSL_GSTNODETR_NEW("record-bin");
         m_pRecordBin->SetGstObject(GST_OBJECT(m_pContext->recordbin));
             
@@ -111,8 +112,9 @@ namespace DSL
         
         RemoveChild(m_pRecordBin);
 
-        // Destroy the RecordBin to destroy the context.
+        // Destroy the RecordBin GSTNODETR and context.
         m_pRecordBin = nullptr;
+        DestroyContext();
         
         m_isLinked = false;
     }

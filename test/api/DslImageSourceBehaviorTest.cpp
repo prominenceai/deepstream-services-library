@@ -42,8 +42,8 @@ static const std::wstring jpeg_file_path(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.jpg");
 
-//static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
-static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p_mjpeg.mp4");
+static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
+//static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p_mjpeg.mp4");
 static const std::wstring mjpeg_file_path_multi(
     L"./test/streams/sample_720p.%d.mjpeg");
 

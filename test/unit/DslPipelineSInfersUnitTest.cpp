@@ -276,8 +276,6 @@ SCENARIO( "A PipelineSInfersBintr can not LinkAll without setting the Batch Size
 
         REQUIRE( pPipelineSInfersBintr->AddChild(pSecondaryInferBintr) == true );
         
-        pPipelineSInfersBintr->SetInferOnId(pPrimaryGieBintr->GetUniqueId());
-
         WHEN( "The PipelineSInfersBintr is asked to LinkAll prior to setting the Batch Size" )
         {
             REQUIRE( pPipelineSInfersBintr->LinkAll() == false );
@@ -326,7 +324,6 @@ SCENARIO( "A PipelineSInfersBintr with its PrimaryGieId and Batch Size set can L
 
         WHEN( "The the PrimaryGieName and Batch Size is set for the PipelineSInfersBintr" )
         {
-            pPipelineSInfersBintr->SetInferOnId(pPrimaryGieBintr->GetUniqueId());
             pPipelineSInfersBintr->SetBatchSize(1);
 
             THEN( "The PipelineSInfersBintr is able to LinkAll" )
@@ -369,7 +366,6 @@ SCENARIO( "A PipelineSInfersBintr Linked with a SecondaryInferBintr can UnlinkAl
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
             
-        pPipelineSInfersBintr->SetInferOnId(pPrimaryGieBintr->GetUniqueId());
         pPipelineSInfersBintr->SetBatchSize(1);
         REQUIRE( pPipelineSInfersBintr->AddChild(pSecondaryInferBintr) == true );
 
@@ -433,7 +429,6 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can LinkAll"
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
 
-        pPipelineSInfersBintr->SetInferOnId(pPrimaryGieBintr->GetUniqueId());
         pPipelineSInfersBintr->SetBatchSize(3);
 
         WHEN( "All three SecondaryInferBintrs are added to the pPipelineSInfersBintr" )
@@ -500,7 +495,6 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can UnlinkAl
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
 
-        pPipelineSInfersBintr->SetInferOnId(pPrimaryGieBintr->GetUniqueId());
         pPipelineSInfersBintr->SetBatchSize(3);
 
         REQUIRE( pPipelineSInfersBintr->AddChild(pSecondaryInferBintr1) == true );

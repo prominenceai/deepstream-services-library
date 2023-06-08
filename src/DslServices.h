@@ -978,12 +978,14 @@ namespace DSL {
 
         DslReturnType InferIdGet(const char* name, int* inferId);
     
-        DslReturnType _inferIdGet(const char* name, int* inferId);
+        DslReturnType _inferAttributesSet(uint inferId, 
+            const char* name, uint processMode);
     
-        DslReturnType _inferNameSet(uint inferId, const char* name);
-    
-        DslReturnType _inferNameErase(uint inferId);
+        DslReturnType _inferAttributesErase(uint inferId);
 
+        DslReturnType _inferAttributesGetByName(const char* name, 
+            uint& inferId, uint& processMode);
+    
         DslReturnType TrackerNew(const char* name, 
             const char* configFile, uint width, uint height);
 
@@ -1806,6 +1808,11 @@ namespace DSL {
          * @brief map of all infer names to infer ids
          */
         std::map <std::string, uint> m_inferIds;
+        
+        /**
+         * @brief map of all infer names to process-mode
+         */
+        std::map <std::string, uint> m_inferProcessModes;
         
         /**
          * @brief map of all mailer objects by name

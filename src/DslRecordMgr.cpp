@@ -43,6 +43,7 @@ namespace DSL
         , m_clientListener(clientListener)
         , m_clientData(0)
         , m_currentSessionId(UINT32_MAX)
+        , m_listenerNotifierTimerId(0)
         , m_stopSessionInProgress(false)
     {
         LOG_FUNC();
@@ -245,6 +246,12 @@ namespace DSL
                 << "' context has not been created");
             return false;
         }
+        if (IsOn() or m_listenerNotifierTimerId)
+        {
+            LOG_INFO("Unable to start NEW session for RecordMgr '" << m_name 
+                << "' a it's in a recording session, ");
+            return false;
+        }
         
         LOG_INFO("Starting record session for RecordMgr '" << m_name 
             << "' with start = " << start << " and durarion = " << duration);
@@ -258,10 +265,23 @@ namespace DSL
             LOG_ERROR("Failed to Start Session for RecordMgr '" << m_name << "'");
             return false;
         }
+
+        // Start timer for listener notification of sesssion start.
+        m_listenerNotifierTimerId = g_timeout_add(1, 
+            RecordMgrListenerNotificationHandler, this);
+            
+        return true;
+    }
+    
+    int RecordMgr::NotifyClientListener()
+    {
+        LOG_FUNC();
+
         dsl_recording_info dslInfo{0};
-        
+
         dslInfo.session_id = m_currentSessionId;
         dslInfo.recording_event = DSL_RECORDING_EVENT_START;
+
         try
         {
             m_clientListener(&dslInfo, m_clientData);
@@ -269,9 +289,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Client Listener for RecordMgr '" << m_name << "' threw an exception");
-            return false;
         }
-        return true;
+        
+        // clear the Timer id and return false - one-shot timer.
+        m_listenerNotifierTimerId = 0;
+        return false;
+        
     }
     
     bool RecordMgr::StopSession(bool sync)
@@ -561,6 +584,12 @@ namespace DSL
     }
 
     //******************************************************************************************
+
+    static int RecordMgrListenerNotificationHandler(gpointer pRecordMgr)
+    {
+        return static_cast<RecordMgr*>(pRecordMgr)->
+            NotifyClientListener();
+    }
 
     static void* RecordCompleteCallback(NvDsSRRecordingInfo* pNvDsInfo, void* pRecordMgr)
     {

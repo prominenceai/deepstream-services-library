@@ -162,3 +162,40 @@ SCENARIO( "A Linked DSL_CONTAINER_MKV RecordTapBintr can UnlinkAll Child Element
         }
     }
 }
+
+SCENARIO( "A Linked DSL_CONTAINER_MKV RecordTapBintr can link/unlink multiple times", 
+    "[RecordTapBintr]" )
+{
+    GIVEN( "A DSL_CONTAINER_MKV RecordTapBintr in a linked state" ) 
+    {
+        std::string recordTapName("record-tap");
+        std::string outDir("./");
+        uint container(DSL_CONTAINER_MKV);
+        
+        dsl_record_client_listener_cb clientListener;
+
+        DSL_RECORD_TAP_PTR pRecordTapBintr = 
+            DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
+        
+        REQUIRE( pRecordTapBintr->IsLinked() == false );
+
+        WHEN( "A RecordTapBintr is linked/unliked multiple time" )
+        {
+            REQUIRE( pRecordTapBintr->LinkAll() == true );
+            pRecordTapBintr->UnlinkAll();
+            REQUIRE( pRecordTapBintr->LinkAll() == true );
+            pRecordTapBintr->UnlinkAll();
+            REQUIRE( pRecordTapBintr->LinkAll() == true );
+            pRecordTapBintr->UnlinkAll();
+            REQUIRE( pRecordTapBintr->LinkAll() == true );
+            pRecordTapBintr->UnlinkAll();
+            REQUIRE( pRecordTapBintr->LinkAll() == true );
+            pRecordTapBintr->UnlinkAll();
+
+            THEN( "The DSL_CONTAINER_MKV RecordTapBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pRecordTapBintr->IsLinked() == false );
+            }
+        }
+    }
+}
