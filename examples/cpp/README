@@ -33,7 +33,7 @@ To make:
     $ make [debug]
     
 To run an example:
-    $ ./<example-name>.exe
+    $ ./<example-name>.out
     
 To enable DSL logging:
     $ export GST_DEBUG=1,DSL:4
