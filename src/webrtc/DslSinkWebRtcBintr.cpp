@@ -88,7 +88,7 @@ namespace DSL
             LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
         }
 
-        m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", GetName());
+        m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", GetCStrName());
 
         // Set the STUN and/or TURN server 
         if (m_stunServer.size())
