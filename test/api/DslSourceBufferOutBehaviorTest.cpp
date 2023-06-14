@@ -80,7 +80,7 @@ SCENARIO( "A URI File Source can play with buffer-out-format = RGBA]",
     }
 }
 
-SCENARIO( "A URI File Source can play with buffer-out-format = NV12]",
+SCENARIO( "A URI File Source can play with buffer-out-format = NV12",
     "[buffer-out-behavior]")
 {
     GIVEN( "A Pipeline, URI source, and Window Sink" ) 
@@ -98,7 +98,7 @@ SCENARIO( "A URI File Source can play with buffer-out-format = NV12]",
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
         
-        WHEN( "When the buffer-out-format is set to RGBA" ) 
+        WHEN( "When the buffer-out-format is set to NV12" ) 
         {
             REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
                 DSL_VIDEO_FORMAT_NV12) == DSL_RESULT_SUCCESS );
@@ -115,8 +115,43 @@ SCENARIO( "A URI File Source can play with buffer-out-format = NV12]",
     }
 }
 
+SCENARIO( "A URI File Source can play with scaled-down frame-rate",
+    "[buffer-out-behavior]")
+{
+    GIVEN( "A Pipeline, URI source, and Window Sink" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        
+        REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+            components) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "When the buffer-out-frame-rate is set" ) 
+        {
+            REQUIRE( dsl_source_video_buffer_out_frame_rate_set(source_name1.c_str(),
+                2, 1) == DSL_RESULT_SUCCESS );
+                
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+    }
+}
+
 SCENARIO( "A URI File Source can play with buffer-out-orientation = \
-dsl_source_buffer_out_orientation_set]", "[buffer-out-behavior]")
+DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT]", "[buffer-out-behavior]")
 {
     GIVEN( "A Pipeline, URI source, and Window Sink" ) 
     {
@@ -219,3 +254,4 @@ SCENARIO( "A URI File Source can play with buffer-out-crop-post set]",
         }
     }
 }
+

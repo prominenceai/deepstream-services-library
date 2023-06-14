@@ -228,12 +228,19 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 std::wstring ret_format_string(ret_format_cstrint);
                 REQUIRE( exp_format_string == ret_format_cstrint );
                 
-                // buffer out default dimensions and framerate
+                // buffer out default dimensions
                 uint ret_bo_width(99), ret_bo_height(99);
                 REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
                     &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_width == 0 );
                 REQUIRE( ret_bo_height == 0 );
+                
+                // buffer out default framerate
+                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_fps_n == 0 );
+                REQUIRE( ret_bo_fps_d == 0 );
                 
                 // buffer out default crop rectangles
                 uint ret_bo_rec_left(99), ret_bo_rec_top(99);
@@ -369,7 +376,7 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        WHEN( "The App Source's buffer-out-dimensions setting is set" ) 
+        WHEN( "The App Source's buffer-out-dimensions settings are set" ) 
         {
             uint new_width(300), new_height(400);
             REQUIRE( dsl_source_video_buffer_out_dimensions_set(source_name.c_str(), 
@@ -386,6 +393,24 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
+        WHEN( "The App Source's buffer-out-frame-rate is set" ) 
+        {
+            uint new_bo_fps_n(30), new_bo_fps_d(1);
+            REQUIRE( dsl_source_video_buffer_out_frame_rate_set(source_name.c_str(), 
+                new_bo_fps_n, new_bo_fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_fps_n == new_bo_fps_n );
+                REQUIRE( ret_bo_fps_d == new_bo_fps_d );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        
         WHEN( "The App Source's buffer-out-crop settings are set" ) 
         {
             uint new_bo_rec_left(10), new_bo_rec_top(10);
@@ -1178,7 +1203,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         REQUIRE( dsl_component_list_size() == 0 );
         
         int start_index(0);
-        uint left(0), top(0), width(0);
+        uint left(0), top(0), width(0), fps_n(0), fps_d(0);
         dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -1304,6 +1329,15 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
                     &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_video_buffer_out_dimensions_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &fps_n, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_set(NULL, 
                     1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(NULL, 

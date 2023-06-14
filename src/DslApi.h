@@ -4657,7 +4657,7 @@ DslReturnType dsl_source_media_type_get(const wchar_t* name,
     const wchar_t** media_type);
 
 /**
- * @brief Gets the current buffer-out-format for the named Source component.
+ * @brief Gets the current buffer-out-format for the named Video Source.
  * @param name unique name of the Source Component to query.
  * @param[out] format current buffer-out-format. One of the DSL_VIDEO_FORMAT
  * constant string values. Default = DSL_VIDEO_FORMAT_DEFAULT.
@@ -4667,7 +4667,7 @@ DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format);
 
 /**
- * @brief Sets the buffer-out-format for the named Source component to use.
+ * @brief Sets the buffer-out-format for the named Video Source to use.
  * @param name unique name of the Source Component to query.
  * @param[in] format new buffer-out-format to use. One of the DSL_VIDEO_FORMAT
  * constant string values.
@@ -4677,7 +4677,7 @@ DslReturnType dsl_source_video_buffer_out_format_set(const wchar_t* name,
     const wchar_t* format);
 
 /**
- * @brief Gets the scaled buffer-out-dimensions of the named Source component. 
+ * @brief Gets the scaled buffer-out-dimensions of the named Video Source. 
  * The default values of 0 for width and height indicate no scalling.
  * @param[in] name unique name of the source to query.
  * @param[out] width scaled width of the output buffer in pixels.
@@ -4688,18 +4688,40 @@ DslReturnType dsl_source_video_buffer_out_dimensions_get(const wchar_t* name,
     uint* width, uint* height);
 
 /**
- * @brief Sets the scaled buffer-out-dimensions of the named Source component. 
+ * @brief Sets the scaled buffer-out-dimensions for the named Video Source. 
  * Set width and height to 0 to indicate no scalling.
  * @param[in] name unique name of the source to output.
- * @param[out] width scaled width of the output buffer in pixels.
- * @param[out] height scaled height of the output buffer in pixels.
+ * @param[in] width scaled width of the output buffer in pixels.
+ * @param[in] height scaled height of the output buffer in pixels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 
 /**
- * @brief Gets one of the buffer-out crop-rectangle for the named Source component,
+ * @brief Returns the scaled frame-rate as a fraction for the named Video Source.
+ * The default values of 0 for fps_n and fps_d indicate no scaling.
+ * @param[in] name unique name of the source to query
+ * @param[out] fps_n frames per second numerator
+ * @param[out] fps_d frames per second denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_video_buffer_out_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
+
+/**
+ * @brief Sets the scaled frame-rate as a fraction for the named Video Source.
+ * Set fps_n and fps_d to 0 indicate no scaling.
+ * @param[in] name unique name of the source to query
+ * @param[in] fps_n frames per second numerator
+ * @param[in] fps_d frames per second denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_video_buffer_out_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets one of the buffer-out crop-rectangle for the named Video Source
  * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
  * The default is no-crop with left, top, width, and height all 0
  * @param name unique name of the Source Component to query.
@@ -4715,7 +4737,7 @@ DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name
     uint crop_at, uint* left, uint* top, uint* width, uint* height);
     
 /**
- * @brief Sets one of the buffer-out crop-rectangle for the named Source component.
+ * @brief Sets one of the buffer-out crop-rectangle for the named Video Source.
  * The buffer can be cropped pre-video-conversion and/or post-video-conversion.
  * For no-crop, set left, top, width, and height all to 0 (default)
  * @param name unique name of the Source Component to query.

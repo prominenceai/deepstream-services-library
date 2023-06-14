@@ -147,6 +147,8 @@ namespace DSL
         , m_height(0)
         , m_bufferOutWidth(0)
         , m_bufferOutHeight(0)
+        , m_bufferOutFpsN(0)
+        , m_bufferOutFpsD(0)
         , m_bufferOutOrientation(DSL_VIDEO_ORIENTATION_NONE)
     {
         LOG_FUNC();
@@ -174,7 +176,8 @@ namespace DSL
         
         // ---- Caps Filter Setup
 
-        m_pBufferOutCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pBufferOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
+            name, "vidconv");
         
         SetBufferOutFormat(m_bufferOutFormat.c_str());
 
@@ -204,26 +207,52 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        // We can now link the upstream source element (input parameter)
+        if (!pSrcNodetr->LinkToSink(m_linkedCommonElements.front()))
         {
             return false;
         }
+        
+        // Add the videoconvert as first element to the vector of common elements
+        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
+        
+        if (m_pBufferOutVidRate)
+        {
+            // If viderate was created we link the videoconvert to it now
+            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
+            {
+                return false;
+            }
+            // Add the videorate to the vector of common elements
+            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
+
+        }            
+        // next we can link the last element in the vector to the capsfilter
+        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
+        m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
+         
+        // If the VideoSource has a dewarper, link it in next 
         if (HasDewarperBintr())
         {
             if (!m_pDewarperBintr->LinkAll() or
-                !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
-                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+                !m_linkedCommonElements.back()->LinkToSink(m_pDewarperBintr))
             {
+                LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
+                    << GetName() << "'");
                 return false;
             }
+            m_linkedCommonElements.push_back(m_pDewarperBintr);
         }
-        else
+        
+        // Link to the final queue element - the source-ghost-pad for the bintr.
+        // IMPORTANT we don't add the queue to vector of linked elements.
+        // as we'll call UnlinkFromSink on each element.
+        if(!m_linkedCommonElements.back()->LinkToSink(m_pSourceQueue))
         {
-            if (!m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
-            {
-                return false;
-            }
+            return false;
         }
         return true;
     }
@@ -232,11 +261,9 @@ namespace DSL
     {
         LOG_FUNC();
 
-        GstPad* pStaticSinkPad;
-
-        pStaticSinkPad = gst_element_get_static_pad(
-            m_pBufferOutVidConv->GetGstElement(), "sink");
-
+        // Static SinkPad for videoconverter
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_pBufferOutVidConv->GetGstElement(), "sink");
         if (!pStaticSinkPad)
         {
             LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
@@ -251,30 +278,47 @@ namespace DSL
         }
         gst_object_unref(pStaticSinkPad);
 
-        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
+        // Add the videoconvert as first element to the vector of common elements
+        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
+        
+        if (m_pBufferOutVidRate)
+        {
+            // If viderate was created we link the videoconvert to it now
+            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
+            {
+                return false;
+            }
+            // Add the videorate to the vector of common elements
+            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
+
+        }            
+        // next we can link the last element in the vector to the capsfilter
+        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
         {
             return false;
         }
+        m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
          
+        // If the VideoSource has a dewarper, link it in next 
         if (HasDewarperBintr())
         {
             if (!m_pDewarperBintr->LinkAll() or
-                !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
-                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+                !m_linkedCommonElements.back()->LinkToSink(m_pDewarperBintr))
             {
                 LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
                     << GetName() << "'");
                 return false;
             }
-        }
-        else
-        {
-            if(!m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
-            {
-                return false;
-            }
+            m_linkedCommonElements.push_back(m_pDewarperBintr);
         }
         
+        // Link to the final queue element - the source-ghost-pad for the bintr.
+        // IMPORTANT we don't add the queue to vector of linked elements.
+        // as we'll call UnlinkFromSink on each element.
+        if(!m_linkedCommonElements.back()->LinkToSink(m_pSourceQueue))
+        {
+            return false;
+        }
         return true;
     }
 
@@ -282,14 +326,12 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pBufferOutVidConv->UnlinkFromSink();
-        m_pBufferOutCapsFilter->UnlinkFromSink();
-        
-        if (HasDewarperBintr())
+        // iterate through the list of linked Elements, unlinking each
+        for (auto const& ivec: m_linkedCommonElements)
         {
-            m_pDewarperBintr->UnlinkFromSink();
-            m_pDewarperBintr->UnlinkAll();
+            ivec->UnlinkFromSink();
         }
+        m_linkedCommonElements.clear();
     }
 
     void VideoSourceBintr::GetDimensions(uint* width, uint* height)
@@ -313,7 +355,7 @@ namespace DSL
 
         m_bufferOutFormat = format;
         
-        updateCaps();
+        updateVidConvCaps();
 
         return true;
     }
@@ -332,14 +374,57 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
+            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
             return false;
         }
         m_bufferOutWidth = width;
         m_bufferOutHeight = height;
         
-        updateCaps();
+        updateVidConvCaps();
+        
+        return true;
+    }
+    
+    void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
+    {
+        LOG_FUNC();
+        
+        *fpsN = m_bufferOutFpsN;
+        *fpsD = m_bufferOutFpsD;
+    }
+    
+    bool VideoSourceBintr::SetBufferOutFrameRate(uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-frame-rate for VideoSourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFpsN = fpsN;
+        m_bufferOutFpsD = fpsD;
+        
+        // if we're scaling the output frame-rate and there is no viderate element.
+        if (fpsN and fpsD and !m_pBufferOutVidRate)
+        {
+            // time to create the viderate now
+            m_pBufferOutVidRate = DSL_ELEMENT_NEW("videorate", GetCStrName());
+            
+            AddChild(m_pBufferOutVidRate);
+        }
+        // if we're not scalling and the viderate element has already been created.
+        else if (!fpsN or !fpsD and m_pBufferOutVidRate)
+        {
+            RemoveChild(m_pBufferOutVidRate);
+
+            // delete the viderate element now
+            m_pBufferOutVidRate = nullptr;
+        }
+        // Update the output-buffer's caps filter now
+        updateVidConvCaps();
         
         return true;
     }
@@ -462,18 +547,35 @@ namespace DSL
         return true;
     }
     
-    bool VideoSourceBintr::updateCaps()
+    bool VideoSourceBintr::updateVidConvCaps()
     {
         LOG_FUNC();
 
         GstCaps* pCaps(NULL);
         
-        if (m_bufferOutWidth and m_bufferOutHeight)
+        if (m_bufferOutWidth and m_bufferOutHeight and 
+            m_bufferOutFpsN and m_bufferOutFpsD)
         {
             pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
                 "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
                 "width", G_TYPE_INT, m_bufferOutWidth, 
                 "height", G_TYPE_INT, m_bufferOutHeight,
+                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
+                NULL);
+        }
+        else if (m_bufferOutWidth and m_bufferOutHeight)
+        {
+            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                "width", G_TYPE_INT, m_bufferOutWidth, 
+                "height", G_TYPE_INT, m_bufferOutHeight,
+                NULL);
+        }
+        else if (m_bufferOutFpsN and m_bufferOutFpsD)
+        {
+            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
                 NULL);
         }
         else
@@ -618,6 +720,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1064,6 +1168,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1225,6 +1331,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1411,6 +1519,8 @@ namespace DSL
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
         LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
@@ -1878,6 +1988,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2040,6 +2152,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2226,6 +2340,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2425,18 +2541,20 @@ namespace DSL
         LOG_INFO("  accept-eos-event    : " << m_acceptEos);
         LOG_INFO("  accept-events       : " << m_acceptEvents);
         LOG_INFO("  allow-renegotiation : " << TRUE);
-        LOG_INFO("  width             : " << m_width);
-        LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  fps-n             : " << m_fpsN);
-        LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  width               : " << m_width);
+        LOG_INFO("  height              : " << m_height);
+        LOG_INFO("  fps-n               : " << m_fpsN);
+        LOG_INFO("  fps-d               : " << m_fpsD);
+        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out          : ");
+        LOG_INFO("    format            : " << m_bufferOutFormat);
+        LOG_INFO("    width             : " << m_bufferOutWidth);
+        LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
+        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2608,6 +2726,8 @@ namespace DSL
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
         LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
