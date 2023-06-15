@@ -486,14 +486,14 @@ namespace DSL
             *gpuid = m_pipelines[name]->GetGpuId();
 
             LOG_INFO("Current GPU ID = " << *gpuid 
-                << " for component '" << name << "'");
+                << " for Pipeline '" << name << "'");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Component '" << name 
-                << "' threw exception getting GPU Id");
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw exception getting GPU ID");
             return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
     }
@@ -509,8 +509,8 @@ namespace DSL
             
             if (!m_pipelines[name]->SetGpuId(gpuid))
             {
-                LOG_INFO("Component '" << name 
-                    << "' faild to set GPU Id = " << gpuid);
+                LOG_INFO("Pipeline '" << name 
+                    << "' faild to set GPU ID = " << gpuid);
                 return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
             }
 
@@ -521,7 +521,7 @@ namespace DSL
             }
         catch(...)
         {
-            LOG_ERROR("Component '" << name 
+            LOG_ERROR("Pipeline '" << name 
                 << "' threw exception setting GPU Id");
             return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
