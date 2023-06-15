@@ -56,6 +56,8 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
 * [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_streammux_gpuid_get](#dsl_pipeline_streammux_gpuid_get)
+* [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
 * [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add)
 * [dsl_pipeline_streammux_tiler_remove](#dsl_pipeline_streammux_tiler_remove)
 * [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
@@ -561,6 +563,44 @@ This service sets the current Stream-Muxer output dimensions for the uniquely na
 **Python Example**
 ```Python
 retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
+```
+<br>
+
+### *dsl_pipeline_streammux_gpuid_get*
+```C++
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
+```
+This service returns the current Stream-Muxer GPU ID for the uniquely named Pipeline. The default GPU ID is 0. The value can be changed by calling [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `gpuid` - [out] current GPU ID.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, gpuid = dsl_pipeline_streammux_gpuid_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_gpuid_set*
+```C++
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+```
+This service sets the Stream-Muxer GPU ID for the uniquely named Pipeline. The GPU ID cannot be updated while the Pipeline is linked and playing/paused.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `gpuid` - [in] new GPU ID for the Stream Muxer.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_gpuid_set('my-pipeline', 1)
 ```
 <br>
 
