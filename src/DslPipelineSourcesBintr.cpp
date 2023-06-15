@@ -450,6 +450,22 @@ namespace DSL
         
         m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
     }
+
+    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_gpuId = gpuId;
+        m_pStreamMux->SetAttribute("gpu-id", m_gpuId);
+        
+        return true;
+    }
     
     void PipelineSourcesBintr::DisableEosConsumers()
     {

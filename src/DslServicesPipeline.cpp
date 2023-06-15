@@ -473,6 +473,59 @@ namespace DSL
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::PipelineStreamMuxGpuIdGet(const char* name, uint* gpuid)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *gpuid = m_pipelines[name]->GetGpuId();
+
+            LOG_INFO("Current GPU ID = " << *gpuid 
+                << " for component '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception getting GPU Id");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PipelineStreamMuxGpuIdSet(const char* name, uint gpuid)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetGpuId(gpuid))
+            {
+                LOG_INFO("Component '" << name 
+                    << "' faild to set GPU Id = " << gpuid);
+                return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
+            }
+
+            LOG_INFO("New GPU ID = " << gpuid 
+                << " for component '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+            }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception setting GPU Id");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::PipelineStreamMuxTilerAdd(const char* name,
         const char* tiler)    

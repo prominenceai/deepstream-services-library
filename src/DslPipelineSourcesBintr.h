@@ -169,6 +169,12 @@ namespace DSL
         void SetStreamMuxNumSurfacesPerFrame(uint num);
         
         /**
+         * @brief Set the GPU ID for the PipelineSourcesBintr's StreamMuxer
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+        
+        /**
          * @brief Calls on all child Sources to disable their EOS consumers.
          */
         void DisableEosConsumers();
