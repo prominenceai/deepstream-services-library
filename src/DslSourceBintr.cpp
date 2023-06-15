@@ -208,7 +208,7 @@ namespace DSL
         LOG_FUNC();
 
         // We can now link the upstream source element (input parameter)
-        if (!pSrcNodetr->LinkToSink(m_linkedCommonElements.front()))
+        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv))
         {
             return false;
         }
