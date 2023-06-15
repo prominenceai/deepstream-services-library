@@ -227,9 +227,9 @@
   <VirtualDirectory Name="root">
     <File Name="../dsl.py"/>
     <File Name="../make_caffemodel_engine_files.py"/>
-    <File Name="../Makefile"/>
     <File Name="../README.md"/>
     <File Name="../.gitignore"/>
+    <File Name="../Makefile"/>
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">

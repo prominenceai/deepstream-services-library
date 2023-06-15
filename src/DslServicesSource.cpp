@@ -1744,7 +1744,7 @@ namespace DSL
 
             LOG_INFO("Source '" << name << "' set width = " 
                 << width << " and height = " << height 
-                << "for buffer-out-dimensions successfully");
+                << " for buffer-out-dimensions successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1756,6 +1756,71 @@ namespace DSL
         }
     }                
     
+    DslReturnType Services::SourceVideoBufferOutFrameRateGet(const char* name, 
+        uint* fps_n, uint* fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            pSourceBintr->GetBufferOutFrameRate(fps_n, fps_d);
+
+            LOG_INFO("Source '" << name << "' returned fps_n = " 
+                << *fps_n << " and fps_d = " << *fps_d 
+                << " for buffer-out-frame-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-frame-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceVideoBufferOutFrameRateSet(const char* name, 
+        uint fps_n, uint fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d))
+            {
+                LOG_ERROR("Failed to set buffer-out-frame-rate to fps_n = " 
+                    << fps_n << " and fps_d = " << fps_d  
+                    << " for Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Source '" << name << "' set fps_n = " 
+                << fps_n << " and fps_d = " << fps_d 
+                << " for buffer-out-frame-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-frame-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
     DslReturnType Services::SourceVideoBufferOutCropRectangleGet(const char* name, 
         uint cropAt, uint* left, uint* top, uint* width, uint* height)
     {

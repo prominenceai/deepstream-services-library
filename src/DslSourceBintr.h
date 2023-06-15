@@ -321,18 +321,35 @@ namespace DSL
 
         /**
          * @brief Sets the buffer-out-dimensions for the SourceBintr.
-         * @param[out] width new width value to scale the output buffer
-         * @param[out] height new height value to scale the output buffer
+         * @param[out] width current width value to scale the output buffer in pixels
+         * @param[out] height current height value to scale the output buffer in pixels
          */
         void GetBufferOutDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the buffer-out-dimensions for the SourceBintr.
-         * @param[in] width new width value to scale the output buffer in pixels
-         * @param[in] height new height value to scale the output buffer in pixels
+         * @param[in] width new width value to scale the output buffer in pixels.
+         * @param[in] height new height value to scale the output buffer in pixels.
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferOutDimensions(uint width, uint height);
+        
+        /**
+         * @brief Gets the buffer-out-frame-rate for the SourceBintr.
+         * The default value of 0 for fps_n and fps_d indicates no scaling.
+         * @param[out] fpsN current fpsN value to scale the output buffer.
+         * @param[out] fpsD current fpsD value to scale the output buffer.
+         */
+        void GetBufferOutFrameRate(uint* fpsN, uint* fpsD);
+        
+        /**
+         * @brief Sets the buffer-out-frame-rate for the SourceBintr.
+         * Set fps_n and fps_d to 0 to indicate no scaling.
+         * @param[in] fpsN new fpsN value to scale the output buffer.
+         * @param[in] fpsD new fpsN value to scale the output buffer.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutFrameRate(uint fpsN, uint fpsD);
         
         /**
          * @brief Gets the buffer-out-crop values for the SourceBintr.
@@ -409,9 +426,14 @@ namespace DSL
          * @brief Private function to update the Video Converter's capability filter.
          * @return true if successful, false otherwise.
          */
-        bool updateCaps();
+        bool updateVidConvCaps();
     
     protected:
+
+        /**
+         * @brief vector to link/unlink all common elements
+         */
+        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonElements;
 
         /**
          * @brief current buffer-out-format. 
@@ -441,24 +463,41 @@ namespace DSL
         uint m_bufferOutHeight;
 
         /**
+         * @brief Current scaled fps-n value for the SourceBintr's Output Buffer 
+         * rate controler. Default = 0 for no rate change.
+         */
+        uint m_bufferOutFpsN;
+        
+        /**
+         * @brief Current scaled height setting for the SourceBintr's Output Buffer
+         * rate controler. Default = 0 for no rate change
+         */
+        uint m_bufferOutFpsD;
+
+        /**
          * @brief Current buffer-out-orientation setting for the SourceBintr
          */
         uint m_bufferOutOrientation;
 
-        /**
-         * @brief Single, optional dewarper for the DecodeSourceBintr
-         */ 
-        DSL_DEWARPER_PTR m_pDewarperBintr;
-        
         /**
          * @brief Output-buffer Video Converter element for this SourceBintr.
          */
         DSL_ELEMENT_PTR m_pBufferOutVidConv;
 
         /**
-         * @brief Caps Filter for the SourceBintr's output-buffer Video Converter.
+         * @brief Output-buffer Video Rate element for this SourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutVidRate;
+
+        /**
+         * @brief Caps Filter for the SourceBintr's output-buffe.
          */
         DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
+
+        /**
+         * @brief Single, optional dewarper for the DecodeSourceBintr
+         */ 
+        DSL_DEWARPER_PTR m_pDewarperBintr;
         
         /**
          * @brief Source Queue for SourceBintr - set as ghost-pad for each source
