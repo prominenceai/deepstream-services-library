@@ -464,6 +464,9 @@ namespace DSL
         m_gpuId = gpuId;
         m_pStreamMux->SetAttribute("gpu-id", m_gpuId);
         
+        LOG_INFO("PipelineSourcesBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+            
         return true;
     }
     

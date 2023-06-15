@@ -174,6 +174,9 @@ namespace DSL
         m_gpuId = gpuId;
         m_pSegVisual->SetAttribute("gpu-id", m_batchSize);
         
+        LOG_INFO("SegVisualBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+
         return true;
     }
     

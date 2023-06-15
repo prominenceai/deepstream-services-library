@@ -515,7 +515,7 @@ namespace DSL
             }
 
             LOG_INFO("New GPU ID = " << gpuid 
-                << " for component '" << name << "'");
+                << " for Pipeline '" << name << "'");
 
             return DSL_RESULT_SUCCESS;
             }

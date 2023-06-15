@@ -148,6 +148,9 @@ namespace DSL
 
         m_pPreproc->SetAttribute("gpu-id", m_gpuId);
         
+        LOG_INFO("PreprocBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+
         return true;
     }
 

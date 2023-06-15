@@ -359,6 +359,9 @@ namespace DSL
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pOsd->SetAttribute("gpu-id", m_gpuId);
         
+        LOG_INFO("SecondaryGieBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+
         return true;
     }
 
