@@ -938,9 +938,11 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
         
+        LOG_INFO("WindowSinkBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+
         return true;
     }
 
@@ -1135,11 +1137,10 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for EncodeSinkBintr '" 
-            << GetName() << "'");
-
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
         
+        LOG_INFO("EncodeSinkBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
         return true;
     }
 

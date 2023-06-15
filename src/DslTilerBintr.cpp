@@ -371,9 +371,10 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << gpuId << "' for TilerBintr '" << m_name << "'");
-
         m_pTiler->SetAttribute("gpu-id", m_gpuId);
+        
+        LOG_INFO("TilerBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
         
         return true;
     }

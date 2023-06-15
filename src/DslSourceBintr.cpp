@@ -530,6 +530,26 @@ namespace DSL
         return true;
     }
 
+    bool VideoSourceBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set GPU ID for VideoSourceBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        m_pBufferOutVidConv->SetAttribute("gpu-id", m_gpuId);
+        
+        LOG_INFO("VideoSourceBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+        
+        return true;
+    }
+
     bool VideoSourceBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
@@ -546,6 +566,7 @@ namespace DSL
 
         return true;
     }
+
     
     bool VideoSourceBintr::updateVidConvCaps()
     {

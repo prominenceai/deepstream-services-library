@@ -522,6 +522,9 @@ namespace DSL
 
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+
+        LOG_INFO("PrimaryGieBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
         
         return true;
     }
@@ -759,6 +762,10 @@ namespace DSL
 
         m_gpuId = gpuId;
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+        
+        LOG_INFO("SecondaryGieBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+        
         return true;
     }
     

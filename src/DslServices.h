@@ -1379,7 +1379,11 @@ namespace DSL {
         DslReturnType PipelineStreamMuxNumSurfacesPerFrameGet(const char* name, uint* num);
 
         DslReturnType PipelineStreamMuxNumSurfacesPerFrameSet(const char* name, uint num);
-
+        
+        DslReturnType PipelineStreamMuxGpuIdGet(const char* name, uint* gpuid);
+        
+        DslReturnType PipelineStreamMuxGpuIdSet(const char* name, uint gpuid);
+        
         DslReturnType PipelineStreamMuxTilerAdd(const char* name, const char* tiler);
 
         DslReturnType PipelineStreamMuxTilerRemove(const char* name);

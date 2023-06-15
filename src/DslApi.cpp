@@ -7901,6 +7901,29 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
         cstrName.c_str(), num);
 }
 
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(gpuid);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxGpuIdGet(
+        cstrName.c_str(), gpuid);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreamMuxGpuIdSet(
+        cstrName.c_str(), gpuid);
+}
+
 DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
     const wchar_t* tiler)
 {

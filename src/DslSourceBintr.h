@@ -394,6 +394,13 @@ namespace DSL
         bool SetBufferOutOrientation(uint orientaion);
 
         /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @param[in] gpuId new GPU ID to use. 
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+        /**
          * @brief Sets the NVIDIA buffer memory type.
          * @param[in] nvbufMemType new memory type to use, one of the 
          * DSL_NVBUF_MEM_TYPE constant values.

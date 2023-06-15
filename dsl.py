@@ -5916,6 +5916,27 @@ def dsl_pipeline_streammux_num_surfaces_per_frame_set(name, num):
     return int(result)
 
 ##
+## dsl_pipeline_streammux_gpuid_get()
+##
+_dsl.dsl_pipeline_streammux_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_gpuid_get.restype = c_uint
+def dsl_pipeline_streammux_gpuid_get(name):
+    global _dsl
+    gpuid = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_gpuid_get(name, DSL_UINT_P(gpuid))
+    return int(result), gpuid.value
+
+##
+## dsl_pipeline_streammux_gpuid_set()
+##
+_dsl.dsl_pipeline_streammux_gpuid_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_gpuid_set.restype = c_uint
+def dsl_pipeline_streammux_gpuid_set(name, gpuid):
+    global _dsl
+    result =_dsl.dsl_pipeline_streammux_gpuid_set(name, gpuid)
+    return int(result)
+
+##
 ## dsl_pipeline_streammux_tiler_add()
 ##
 _dsl.dsl_pipeline_streammux_tiler_add.argtypes = [c_wchar_p, c_wchar_p]

@@ -7195,6 +7195,24 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
     const wchar_t* name, uint num);
 
 /**
+ * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] gpuid current GPU ID setting
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
+
+/**
+ * @brief Sets the current stream-muxer GPU ID for the named Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[in] gpuid new GPU ID value to use
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+
+/**
  * @brief adds a named Tiler to a named Pipeline's Stream-Muxer output.
  * The Stream-Muxer can have at most one Tiler.
  * @param[in] name name of the Pipeline to update.
