@@ -92,17 +92,6 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Set the Stream Id - for when a child of a Source
-         * @param streamId unique Id of the Parent Stream
-         */
-        void SetStreamId(uint streamId)
-        {
-            LOG_FUNC();
-            
-            m_streamId = streamId;
-        }
-        
-        /**
          * @brief Gets the current display text enabled state for this OsdBintr.
          * @param[out] enabled true if text display is currently enabled, false otherwise.
          */
@@ -252,12 +241,6 @@ namespace DSL
          */
         boolean m_maskEnabled;
 
-        /**
-         * @brief Unique streamId of Parent SourceBintr if added to Source vs. Pipeline
-         * The id is used when getting a request Pad for Src Demuxer
-         */
-        int m_streamId;
-        
         DSL_ELEMENT_PTR m_pVidConvQueue;
         DSL_ELEMENT_PTR m_pVidConv;
         DSL_ELEMENT_PTR m_pOsdQueue;

@@ -44,7 +44,6 @@ namespace DSL
         , m_clockOffsetX(DSL_DEFAULT_OSD_CLOCK_OFFSET_X)
         , m_clockOffsetY(DSL_DEFAULT_OSD_CLOCK_OFFSET_Y)
         , m_clockColor(DSL_DEFAULT_OSD_CLOCK_COLOR)
-        , m_streamId(-1)
     {
         LOG_FUNC();
         
@@ -91,7 +90,7 @@ namespace DSL
         m_pVidConvQueue->AddGhostPadToParent("sink");
         m_pOsd->AddGhostPadToParent("src");
 
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pVidConvQueue);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pOsdQueue);
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-src-pad-probe", "src", m_pOsd);
     }    
     
