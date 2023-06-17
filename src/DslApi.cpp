@@ -5634,6 +5634,7 @@ DslReturnType dsl_osd_new(const wchar_t* name,
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5649,6 +5650,29 @@ DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled)
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OsdTextEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mode);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdProcessModeGet(cstrName.c_str(), 
+        mode);
+}
+
+DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdProcessModeSet(cstrName.c_str(), 
+        mode);
 }
 
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled)

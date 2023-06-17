@@ -579,12 +579,17 @@ THE SOFTWARE.
 /**
  * @brief Default On-Screen Display (OSD) property values
  */
-#define DSL_DEFAULT_OSD_PROCESS_MODE                                0
 #define DSL_DEFAULT_OSD_CLOCK_FONT_TYPE                             "Serif"
 #define DSL_DEFAULT_OSD_CLOCK_FONT_SIZE                             12
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
 #define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {}
+
+/**
+ *@brief OSD process mode constants for CPU and GPU
+ */
+#define DSL_OSD_PROCESS_MODE_CPU                                    0
+#define DSL_OSD_PROCESS_MODE_GPU                                    1
 
 /**
  * @brief Websocket Port number for the Soup Server Manager
@@ -5802,6 +5807,23 @@ DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Returns the current process mode setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] mode either DSL_OSD_PROCESS_MODE_CPU or DSL_OSD_PROCESS_MODE_GPU.
+ * Default value = DSL_OSD_PROCESS_MODE_CPU
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode);
+
+/**
+ * @brief Sets the process mode setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to update.
+ * @param[in] mode either DSL_OSD_PROCESS_MODE_CPU or DSL_OSD_PROCESS_MODE_GPU.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
