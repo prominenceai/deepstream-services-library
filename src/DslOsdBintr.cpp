@@ -58,31 +58,37 @@ namespace DSL
         m_pVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
         m_pOsd->GetAttribute("process-mode", &m_processMode);
 
-        m_pOsd->GetAttribute("clock-color", &m_clkRgbaColor);
-
+        // Set the enabled flags - from our input parameters
         m_pOsd->SetAttribute("display-clock", m_clockEnabled);
         m_pOsd->SetAttribute("display-text", m_textEnabled);
+        m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
+        m_pOsd->SetAttribute("display-mask", m_maskEnabled);
+
+        // Override the default nvdsosd plugin clock settings
         m_pOsd->SetAttribute("clock-font", m_clockFont.c_str()); 
         m_pOsd->SetAttribute("clock-font-size", m_clockFontSize);
         m_pOsd->SetAttribute("x-clock-offset", m_clockOffsetX);
         m_pOsd->SetAttribute("y-clock-offset", m_clockOffsetY);
-        m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
-        m_pOsd->SetAttribute("display-mask", m_maskEnabled);
-
+        
+        // Call the SetClockColor method to set the m_clkRgbaColor variable
+        // which is then used to set the and nvdsosd "clock-color" property
+        SetClockColor(m_clockColor.red, m_clockColor.green,
+            m_clockColor.blue, m_clockColor.alpha);
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for OsdBintr '" << name << "'");
-        LOG_INFO("  gpu-id            : " << m_gpuId);
-        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
-        LOG_INFO("  display-clock     : " << m_clockEnabled);
+        LOG_INFO("  display-bbox      : " << m_bboxEnabled);
         LOG_INFO("  display-text      : " << m_textEnabled);
+        LOG_INFO("  display-mask      : " << m_maskEnabled);
+        LOG_INFO("  display-clock     : " << m_clockEnabled);
         LOG_INFO("  clock-font        : " << m_clockFont);
         LOG_INFO("  clock-font-size   : " << m_clockFontSize);
         LOG_INFO("  clock-color       : " << m_clkRgbaColor);
-        LOG_INFO("  x-clock-offset    : " << m_clockOffsetX);
-        LOG_INFO("  y-clock-offset    : " << m_clockOffsetY);
+        LOG_INFO("  clock-x-offset    : " << m_clockOffsetX);
+        LOG_INFO("  clock-y-offset    : " << m_clockOffsetY);
         LOG_INFO("  process-mode      : " << m_processMode);
-        LOG_INFO("  display-bbox      : " << m_bboxEnabled);
-        LOG_INFO("  display-mask      : " << m_maskEnabled);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
         
         // Add each of the 
         AddChild(m_pVidConvQueue);

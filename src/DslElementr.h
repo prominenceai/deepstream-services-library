@@ -148,9 +148,17 @@ namespace DSL
             LOG_FUNC();
             
             g_object_get(GetGObject(), name, value, NULL);
-
-            LOG_DEBUG("Attribute '" << name 
-                << "' returned string '" << *value << "'");
+            
+            if (value)
+            {
+                LOG_DEBUG("Attribute '" << name 
+                    << "' returned string '" << *value << "'");
+            }
+            else
+            {
+                LOG_DEBUG("Attribute '" << name 
+                    << "' returned NULL");
+            }
         }
 
         /**

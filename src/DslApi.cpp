@@ -5652,6 +5652,167 @@ DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OsdTextEnabledSet(cstrName.c_str(), enabled);
 }
 
+DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockEnabledGet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockEnabledSet(cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(offset_x);
+    RETURN_IF_PARAM_IS_NULL(offset_y);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), 
+        offset_x, offset_y);
+}
+
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), 
+        offset_x, offset_y);
+}
+
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, 
+    const wchar_t** font, uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(font);
+    RETURN_IF_PARAM_IS_NULL(size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cfont;
+    static std::string cstrFont;
+    static std::wstring wcstrFont;
+    
+    uint retval = DSL::Services::GetServices()->OsdClockFontGet(cstrName.c_str(), 
+        &cfont, size);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFont.assign(cfont);
+        wcstrFont.assign(cstrFont.begin(), cstrFont.end());
+        *font = wcstrFont.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_osd_clock_font_set(const wchar_t* name, 
+    const wchar_t* font, uint size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(font);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+
+    return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), 
+        cstrFont.c_str(), size);
+}
+
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(red);
+    RETURN_IF_PARAM_IS_NULL(green);
+    RETURN_IF_PARAM_IS_NULL(blue);
+    RETURN_IF_PARAM_IS_NULL(alpha);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), 
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_osd_clock_color_set(const wchar_t* 
+    name, double red, double green, double blue, double alpha)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), 
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdBboxEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdBboxEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdMaskEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdMaskEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+
 DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -5675,141 +5836,6 @@ DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode)
         mode);
 }
 
-DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockEnabledSet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint offset_y)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    const char* cfont;
-    static std::string cstrFont;
-    static std::wstring wcstrFont;
-    
-    uint retval = DSL::Services::GetServices()->OsdClockFontGet(cstrName.c_str(), &cfont, size);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrFont.assign(cfont);
-        wcstrFont.assign(cstrFont.begin(), cstrFont.end());
-        *font = wcstrFont.c_str();
-    }
-    return retval;
-}
-
-DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size)
-{
-    std::cout << "***** pre services" << "\n";
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(font);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrFont(font);
-    std::string cstrFont(wstrFont.begin(), wstrFont.end());
-
-    return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), cstrFont.c_str(), size);
-}
-
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue, alpha);
-}
-
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue, alpha);
-}
-
-DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdBboxEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdBboxEnabledSet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdMaskEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdMaskEnabledSet(cstrName.c_str(), enabled);
-}
-
 DslReturnType dsl_osd_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad)
 {
@@ -5821,7 +5847,8 @@ DslReturnType dsl_osd_pph_add(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->OsdPphAdd(cstrName.c_str(), cstrHandler.c_str(), pad);
+    return DSL::Services::GetServices()->OsdPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_osd_pph_remove(const wchar_t* name,
@@ -5835,7 +5862,8 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->OsdPphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
+    return DSL::Services::GetServices()->OsdPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name)

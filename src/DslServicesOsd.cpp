@@ -515,7 +515,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
 
-            if (mode > DSL_OSD_PROCESS_MODE_GPU)
+            if (mode > DSL_OSD_PROCESS_MODE_HW)
             {
                 LOG_ERROR("Invalid process-mode = " << mode 
                     << " for OSD '" << name);
