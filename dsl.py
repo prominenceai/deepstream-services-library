@@ -111,6 +111,10 @@ DSL_STATE_PLAYING = 4
 DSL_STATE_CHANGE_ASYNC = 5
 DSL_STATE_UNKNOWN = int('7FFFFFFF',16)
 
+DSL_OSD_PROCESS_MODE_CPU = 0
+DSL_OSD_PROCESS_MODE_GPU = 1
+DSL_OSD_PROCESS_MODE_HW  = 2
+
 DSL_COLOR_PREDEFINED_BLACK = 0
 DSL_COLOR_PREDEFINED_GRAY_50 = 1
 DSL_COLOR_PREDEFINED_DARK_RED = 2
@@ -4088,7 +4092,7 @@ _dsl.dsl_infer_unique_id_get.restype = c_uint
 def dsl_infer_unique_id_get(name):
     global _dsl
     id = c_uint(0)
-    result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(id))
+    result = _dsl.dsl_infer_unique_id_get(name, DSL_UINT_P(id))
     return int(result), id.value 
 
 ##
@@ -4486,6 +4490,27 @@ _dsl.dsl_osd_clock_color_set.restype = c_uint
 def dsl_osd_clock_color_set(name, red, green, blue, alpha):
     global _dsl
     result = _dsl.dsl_osd_clock_color_set(name, red, green, blue, alpha)
+    return int(result)
+
+##
+## dsl_osd_process_mode_get()
+##
+_dsl.dsl_osd_process_mode_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_osd_process_mode_get.restype = c_uint
+def dsl_osd_process_mode_get(name):
+    global _dsl
+    mode = c_uint(0)
+    result = _dsl.dsl_osd_process_mode_get(name, DSL_UINT_P(mode))
+    return int(result), mode.value 
+
+##
+## dsl_osd_process_mode_set()
+##
+_dsl.dsl_osd_process_mode_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_osd_process_mode_set.restype = c_uint
+def dsl_osd_process_mode_set(name, mode):
+    global _dsl
+    result = _dsl.dsl_osd_process_mode_set(name, mode)
     return int(result)
 
 ##
