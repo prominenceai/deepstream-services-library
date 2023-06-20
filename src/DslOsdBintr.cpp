@@ -38,7 +38,7 @@ namespace DSL
         , m_clockEnabled(clockEnabled)
         , m_bboxEnabled(bboxEnabled)
         , m_maskEnabled(maskEnabled)
-        , m_processMode(0)
+        , m_processMode(DSL_OSD_PROCESS_MODE_CPU)
         , m_clockFont(DSL_DEFAULT_OSD_CLOCK_FONT_TYPE)
         , m_clockFontSize(DSL_DEFAULT_OSD_CLOCK_FONT_SIZE)
         , m_clockOffsetX(DSL_DEFAULT_OSD_CLOCK_OFFSET_X)
@@ -56,7 +56,9 @@ namespace DSL
         // Get property defaults that aren't specifically set
         m_pVidConv->GetAttribute("gpu-id", &m_gpuId);
         m_pVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
-        m_pOsd->GetAttribute("process-mode", &m_processMode);
+
+        // Override the default process-mode
+        m_pOsd->SetAttribute("process-mode", m_processMode);
 
         // Set the enabled flags - from our input parameters
         m_pOsd->SetAttribute("display-clock", m_clockEnabled);

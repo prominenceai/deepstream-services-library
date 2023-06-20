@@ -43,15 +43,7 @@ SCENARIO( "The Components container is updated correctly on new OSD", "[osd-api]
 
                 uint ret_process_mode(99);
                 dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
-                
-                if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-                {
-                    REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_HW);
-                }
-                else
-                {
-                    REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_GPU);
-                }
+                REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_CPU);
             }
         }
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -377,15 +369,7 @@ SCENARIO( "An OSD's process-mode property can be updated", "[osd-api]" )
             false, false, false, false) == DSL_RESULT_SUCCESS );
             
         dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_HW);
-        }
-        else
-        {
-            REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_GPU);
-        }
+        REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_CPU);
         
         WHEN( "The OSD's process-mode is updated" ) 
         {
@@ -410,7 +394,7 @@ SCENARIO( "An OSD's process-mode property can be updated", "[osd-api]" )
             THEN( "The value is left unchanged" ) 
             {
                 dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
-                REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_HW );
+                REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_CPU );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }

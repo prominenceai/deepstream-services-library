@@ -577,6 +577,22 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 /**
+ *@brief OSD process mode constants for CPU and GPU
+ * CPU: Jetson & dGPU
+ * GPU: dGPU only
+ * HW:  Jetson only (default)
+ */
+#define DSL_OSD_PROCESS_MODE_CPU                                    0
+#define DSL_OSD_PROCESS_MODE_GPU                                    1
+#define DSL_OSD_PROCESS_MODE_HW                                     2
+
+/**
+ *@brief OSD default process mode
+ * DSL overrides the OSD plugin default of HW
+ */
+#define DSL_DEFAULT_OSD_PROCESS_MODE                                DSL_OSD_PROCESS_MODE_CPU
+
+/**
  * @brief Default On-Screen Display (OSD) property values
  * DSL overrides the OSD plugin defaults of NULL,0,0,0,0,
  * for the below values.
@@ -586,16 +602,6 @@ THE SOFTWARE.
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
 #define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {1.0,0.0,0.0,1.0}
-
-/**
- *@brief OSD process mode constants for CPU and GPU
- * CPU: Jetson & dGPU
- * GPU: dGPU only
- * HW:  Jetson only (default)
- */
-#define DSL_OSD_PROCESS_MODE_CPU                                    0
-#define DSL_OSD_PROCESS_MODE_GPU                                    1
-#define DSL_OSD_PROCESS_MODE_HW                                     2
 
 /**
  * @brief Websocket Port number for the Soup Server Manager
