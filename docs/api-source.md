@@ -61,6 +61,9 @@ All Video Source's set their buffer-out-format to `DSL_VIDEO_FORMAT_NV12` by def
 #### buffer-out-dimensions 
 The output dimensions (width and height) can be scaled by calling [dsl_source_video_buffer_out_dimensions_set](#dsl_source_video_buffer_out_dimensions_set) when the Source is not PLAYING. The default values are set to 0, i.e. "no scaling". The current values can be read at any time by calling [dsl_source_video_buffer_out_dimensions_get](#dsl_source_video_buffer_out_dimensions_get).
 
+#### buffer-out-frame-rate
+The output frame-rate can be scaled up or down by calling [dsl_source_video_buffer_out_frame_rate_set](#dsl_source_video_buffer_out_frame_rate_set) when the Source is not PLAYING. The default values are set to 0, i.e. "no scaling". The current values can be read at any time by calling [dsl_source_video_buffer_out_frame_rate_get](#dsl_source_video_buffer_out_frame_rate_get). 
+
 #### buffer-out-crop-rectangles
 Each buffer can be cropped in two different ways by calling [dsl_source_video_buffer_out_crop_rectangle_set](#dsl_source_video_buffer_out_crop_rectangle_set) when the source is not PLAYING. The method of cropping is specified by the `crop_at` parameter to one of the [crop constant values](#video-source-buffer-out-crop-constants):
 * `DSL_VIDEO_CROP_AT_SRC ` = left, top, width, and height of the input image which will be cropped and transformed into the output buffer.  
@@ -124,6 +127,8 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [dsl_source_video_buffer_out_format_set](#dsl_source_video_buffer_out_format_set)
 * [dsl_source_video_buffer_out_dimensions_get](#dsl_source_video_buffer_out_dimensions_get)
 * [dsl_source_video_buffer_out_dimensions_set](#dsl_source_video_buffer_out_dimensions_set)
+* [dsl_source_video_buffer_out_frame_rate_get](#dsl_source_video_buffer_out_frame_rate_get)
+* [dsl_source_video_buffer_out_frame_rate_set](#dsl_source_video_buffer_out_frame_rate_set)
 * [dsl_source_video_buffer_out_crop_rectangle_get](#dsl_source_video_buffer_out_crop_rectangle_get)
 * [dsl_source_video_buffer_out_crop_rectangle_set](#dsl_source_video_buffer_out_crop_rectangle_set)
 * [dsl_source_video_buffer_out_orientation_get](#dsl_source_video_buffer_out_orientation_get)
@@ -986,6 +991,50 @@ This service sets the buffer-out-format for the named Video Source component to 
 ```Python
 retval = dsl_source_video_buffer_out_dimensions_set('my-uri-source',
     1280, 720)
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_frame_rate_get*
+```C
+DslReturnType dsl_source_video_buffer_out_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d);
+```
+This service gets the scaled frame-rate as a fraction for the named Video Source. The default values of 0 for fps_n and fps_d indicate no scaling..
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `fps_n` - [out] scaled frames per second numerator. Default = 0.
+* `fps_d` - [out] scaled frames per second denominator. Default = 0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, fps_n, fps_d = dsl_source_video_buffer_out_frame_rate_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_video_buffer_out_frame_rate_set*
+```C
+DslReturnType dsl_source_video_buffer_out_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+```
+This service sets the scaled frame-rate as a fraction for the named Video Source to use.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `width` - [in] scaled width of the output buffer in pixels.
+* `height` - [out] scaled height of the output buffer in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_video_buffer_out_frame_rate_set('my-uri-source', 2, 1)
 ```
 
 <br>
