@@ -416,7 +416,7 @@ namespace DSL
             AddChild(m_pBufferOutVidRate);
         }
         // if we're not scalling and the viderate element has already been created.
-        else if (!fpsN or !fpsD and m_pBufferOutVidRate)
+        else if ((!fpsN or !fpsD) and m_pBufferOutVidRate)
         {
             RemoveChild(m_pBufferOutVidRate);
 

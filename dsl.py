@@ -3512,6 +3512,32 @@ def dsl_source_video_buffer_out_dimensions_set(name, width, height):
     return int(result)
 
 ##
+## dsl_source_video_buffer_out_frame_rate_get()
+##
+_dsl.dsl_source_video_buffer_out_frame_rate_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_source_video_buffer_out_frame_rate_get.restype = c_uint
+def dsl_source_video_buffer_out_frame_rate_get(name):
+    global _dsl
+    fps_n = c_uint(0)
+    fps_d = c_uint(0)
+    result = _dsl.dsl_source_video_buffer_out_frame_rate_get(name, 
+        DSL_UINT_P(fps_n), DSL_UINT_P(fps_d))
+    return int(result), fps_n.value, fps_d.value 
+
+##
+## dsl_source_video_buffer_out_frame_rate_set()
+##
+_dsl.dsl_source_video_buffer_out_frame_rate_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_source_video_buffer_out_frame_rate_set.restype = c_uint
+def dsl_source_video_buffer_out_frame_rate_set(name, fps_n, fps_d):
+    global _dsl
+    result = _dsl.dsl_source_video_buffer_out_frame_rate_set(name, 
+        fps_n, fps_d)
+    return int(result)
+
+##
 ## dsl_source_video_buffer_out_crop_rectangle_get()
 ##
 _dsl.dsl_source_video_buffer_out_crop_rectangle_get.argtypes = [c_wchar_p, 
