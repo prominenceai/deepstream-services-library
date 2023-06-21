@@ -209,6 +209,8 @@
 * [dsl_source_rtsp_reconnection_params_set](/docs/api-source.md#dsl_source_rtsp_reconnection_params_set)
 * [dsl_source_rtsp_connection_data_get](/docs/api-source.md#dsl_source_rtsp_connection_data_get)
 * [dsl_source_rtsp_connection_stats_clear](/docs/api-source.md#dsl_source_rtsp_connection_stats_clear)
+* [dsl_source_rtsp_tls_validation_flags_get](/docs/api-source.md#dsl_source_rtsp_tls_validation_flags_get)
+* [dsl_source_rtsp_tls_validation_flags_set](/docs/api-source.md#dsl_source_rtsp_tls_validation_flags_set)
 * [dsl_source_rtsp_state_change_listener_add](/docs/api-source.md#dsl_source_rtsp_state_change_listener_add)
 * [dsl_source_rtsp_state_change_listener_remove](/docs/api-source.md#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](/docs/api-source.md#dsl_source_rtsp_tap_add)

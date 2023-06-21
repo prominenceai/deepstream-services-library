@@ -104,6 +104,15 @@ DSL_CODEC_MPEG4 = 2
 DSL_CONTAINER_MP4 = 0
 DSL_CONTAINER_MKV = 1
 
+DSL_TLS_CERTIFICATE_UNKNOWN_CA    = 0x00000001
+DSL_TLS_CERTIFICATE_BAD_IDENTITY  = 0x00000002
+DSL_TLS_CERTIFICATE_NOT_ACTIVATED = 0x00000004
+DSL_TLS_CERTIFICATE_EXPIRED       = 0x00000008
+DSL_TLS_CERTIFICATE_REVOKED       = 0x00000010
+DSL_TLS_CERTIFICATE_INSECURE      = 0x00000020
+DSL_TLS_CERTIFICATE_GENERIC_ERROR = 0x00000040
+DSL_TLS_CERTIFICATE_VALIDATE_ALL  = 0x0000007f
+
 DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
 DSL_STATE_PAUSED = 3
@@ -3693,6 +3702,31 @@ _dsl.dsl_source_rtsp_connection_stats_clear.restype = c_uint
 def dsl_source_rtsp_connection_stats_clear(name):
     global _dsl
     result = _dsl.dsl_source_rtsp_connection_stats_clear(name)
+    return int(result)
+
+##
+## dsl_source_rtsp_tls_validation_flags_get()
+##
+_dsl.dsl_source_rtsp_tls_validation_flags_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_rtsp_tls_validation_flags_get.restype = c_uint
+def dsl_source_rtsp_tls_validation_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_source_rtsp_tls_validation_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value
+
+##
+## dsl_source_rtsp_tls_validation_flags_set()
+##
+_dsl.dsl_source_rtsp_tls_validation_flags_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_source_rtsp_tls_validation_flags_set.restype = c_uint
+def dsl_source_rtsp_tls_validation_flags_set(name, flags):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_tls_validation_flags_set(name, 
+        flags)
     return int(result)
 
 ##

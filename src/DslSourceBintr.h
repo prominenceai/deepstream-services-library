@@ -1653,6 +1653,20 @@ namespace DSL
         DSL_PPH_TIMESTAMP_PTR _getTimestampPph(){return m_TimestampPph;};
         
         /**
+         * @brief Gets the current tls-validation-flags for the RtspSourceBintr.
+         * @return mask of DSL_TLS_CERTIFICATE constants. 
+         * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+         */
+        uint GetTlsValidationFlags();
+        
+        /**
+         * @brief Sets the tls-validation-flags for the RtspSourceBintr to use.
+         * @param[in] flags mask of DSL_TLS_CERTIFICATE constants. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetTlsValidationFlags(uint flags);
+        
+        /**
          * @brief adds a TapBintr to the RTSP Source - one at most
          * @return true if the Source was able to add the Child TapBintr
          */
@@ -1713,7 +1727,13 @@ namespace DSL
          * @brief Interval to drop the frames. Ex: a value of 5 means every 5th 
          * frame will be delivered by decoder, the rest will all dropped.
          */
-        guint m_dropFrameInterval;
+        uint m_dropFrameInterval;
+        
+        /**
+         * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the
+         * RTSP server certificat.
+         */
+        uint m_tlsValidationFlags;
 
         /**
          * @brief optional child TapBintr, tapped in pre-decode

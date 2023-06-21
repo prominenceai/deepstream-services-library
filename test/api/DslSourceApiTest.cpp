@@ -927,6 +927,56 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
     }
 }
 
+SCENARIO( "An RTSP Source's tls-validation-flags can be updated correctly", "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        uint ret_flags(0);
+        
+        REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+            &ret_flags) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_flags == DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+
+        WHEN( "The RTSP Source's tls-validation-flags is updated" ) 
+        {
+            uint new_flags(DSL_TLS_CERTIFICATE_UNKNOWN_CA | 
+                DSL_TLS_CERTIFICATE_BAD_IDENTITY);
+                
+            REQUIRE( dsl_source_rtsp_tls_validation_flags_set(source_name.c_str(), 
+                new_flags) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+                    &ret_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_flags == new_flags );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "Invalid tls-validation-flags are used" ) 
+        {
+            uint new_flags(DSL_TLS_CERTIFICATE_VALIDATE_ALL+1);
+                
+            REQUIRE( dsl_source_rtsp_tls_validation_flags_set(source_name.c_str(), 
+                new_flags) == DSL_RESULT_SOURCE_SET_FAILED );
+
+            THEN( "The tls-validation-flags are unchanged" )
+            {
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+                    &ret_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_flags == DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+
 static void source_state_change_listener_cb1(uint prev_state, uint curr_state, void* user_data)
 {
 }
@@ -1274,9 +1324,19 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_video_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_video_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_rtsp_tap_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_rtsp_tap_add(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_remove(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_image_multi_new(NULL, 
                     NULL, fps_n, fps_d) == DSL_RESULT_INVALID_INPUT_PARAM );

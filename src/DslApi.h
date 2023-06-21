@@ -625,7 +625,7 @@ THE SOFTWARE.
 
 /**
  * @brief time to sleep after a failed reconnection before
- * starting a new re-connection cycle. In units of seconds
+ * starting a new re-connection cycle. In units of seconds.
  */
 #define DSL_RTSP_CONNECTION_SLEEP_S                                 10
 
@@ -635,6 +635,19 @@ THE SOFTWARE.
  * In units of seconds. 
  */
 #define DSL_RTSP_CONNECTION_TIMEOUT_S                               20
+
+/**
+ * @brief TLS certificate validation flags used to validate the 
+ * RTSP server certificate.
+ */
+#define DSL_TLS_CERTIFICATE_UNKNOWN_CA                              0x00000001
+#define DSL_TLS_CERTIFICATE_BAD_IDENTITY                            0x00000002
+#define DSL_TLS_CERTIFICATE_NOT_ACTIVATED                           0x00000004
+#define DSL_TLS_CERTIFICATE_EXPIRED                                 0x00000008
+#define DSL_TLS_CERTIFICATE_REVOKED                                 0x00000010
+#define DSL_TLS_CERTIFICATE_INSECURE                                0x00000020
+#define DSL_TLS_CERTIFICATE_GENERIC_ERROR                           0x00000040
+#define DSL_TLS_CERTIFICATE_VALIDATE_ALL                            0x0000007f
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -4910,7 +4923,8 @@ DslReturnType dsl_source_rtsp_connection_params_set(const wchar_t* name,
  * @param[out] data the current Connection Stats and Params for the Source. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_connection_data* data); 
+DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, 
+    dsl_rtsp_connection_data* data); 
 
 /**
  * @brief Clears the connection stats for the named RTSP Source.
@@ -4919,6 +4933,25 @@ DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name); 
+
+/**
+ * @brief Gets the current connection validation flags for the named RTSP Source
+ * @param[in] name name of the source object to query
+ * @param[out] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
+    uint* flags);
+
+/**
+ * @brief Sets the connection validation flags for the named RTSP Source to use.
+ * @param[in] name name of the source object to update
+ * @param[in] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
+    uint flags);
 
 /**
  * @brief adds a callback to be notified on change of RTSP Source state

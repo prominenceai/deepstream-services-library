@@ -2294,7 +2294,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspConnectionParamsSet(const char* name, uint sleep, uint timeout)
+    DslReturnType Services::SourceRtspConnectionParamsSet(const char* name, 
+        uint sleep, uint timeout)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2309,7 +2310,8 @@ namespace DSL
                 
             if (!pSourceBintr->SetConnectionParams(sleep, timeout))
             {
-                LOG_ERROR("RTSP Source '" << name << "' failed to set reconnection params");
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to set reconnection params");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
             LOG_INFO("RTSP Source '" << name << "' set Sleep = " << 
@@ -2324,7 +2326,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceRtspConnectionDataGet(const char* name, dsl_rtsp_connection_data* data)
+    DslReturnType Services::SourceRtspConnectionDataGet(const char* name, 
+        dsl_rtsp_connection_data* data)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -2376,6 +2379,80 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceRtspTlsValidationFlagsGet(const char* name, 
+        uint* flags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            *flags = pSourceBintr->GetTlsValidationFlags();
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' returned tls-validation-flags = " << std::hex << *flags 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception getting tls-validation-flags");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceRtspTlsValidationFlagsSet(const char* name, 
+        uint flags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            if (flags > DSL_TLS_CERTIFICATE_VALIDATE_ALL)
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to set tls-validation-flags -- invalid flags = "
+                    << std::hex << flags);
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetTlsValidationFlags(flags))
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to set tls-validation-flags");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' set tls-validation-flags = " << std::hex << flags 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception setting tls-validation-flags");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::SourceRtspStateChangeListenerAdd(const char* name, 
         dsl_state_change_listener_cb listener, void* clientData)
     {
