@@ -1799,7 +1799,7 @@ namespace DSL
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
-         
+
             if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d))
             {
                 LOG_ERROR("Failed to set buffer-out-frame-rate to fps_n = " 
