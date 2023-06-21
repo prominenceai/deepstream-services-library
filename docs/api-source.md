@@ -179,6 +179,8 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [dsl_source_rtsp_reconnection_params_set](#dsl_source_rtsp_reconnection_params_set)
 * [dsl_source_rtsp_connection_data_get](#dsl_source_rtsp_connection_data_get)
 * [dsl_source_rtsp_connection_stats_clear](#dsl_source_rtsp_connection_stats_clear)
+* [dsl_source_rtsp_tls_validation_flags_get](#dsl_source_rtsp_tls_validation_flags_get)
+* [dsl_source_rtsp_tls_validation_flags_set](#dsl_source_rtsp_tls_validation_flags_set)
 * [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add)
 * [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
 * [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
@@ -276,6 +278,18 @@ Streaming Source Methods use the following return codes, in addition to the gene
 ```C
 #define DSL_RTP_TCP                                                 0x04
 #define DSL_RTP_ALL                                                 0x07
+```
+
+## TLS certificate validation flags
+```c
+#define DSL_TLS_CERTIFICATE_UNKNOWN_CA                              0x00000001
+#define DSL_TLS_CERTIFICATE_BAD_IDENTITY                            0x00000002
+#define DSL_TLS_CERTIFICATE_NOT_ACTIVATED                           0x00000004
+#define DSL_TLS_CERTIFICATE_EXPIRED                                 0x00000008
+#define DSL_TLS_CERTIFICATE_REVOKED                                 0x00000010
+#define DSL_TLS_CERTIFICATE_INSECURE                                0x00000020
+#define DSL_TLS_CERTIFICATE_GENERIC_ERROR                           0x00000040
+#define DSL_TLS_CERTIFICATE_VALIDATE_ALL                            0x0000007f
 ```
 
 <br>
@@ -1827,6 +1841,47 @@ This service clears the current reconnection stats for the named RTSP Source.
 **Python Example**
 ```Python
 retval = dsl_source_rtsp_connection_stats_clear('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_tls_validation_flags_get*
+```C
+DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
+    uint* flags);
+```
+This service gets the current TLS certificate validation flags for the named RTSP Source.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `flags` - [out] mask of [TLS_certificate validation flags](/docs/api-source.md#tls-certificate-validation-flags). Default = `DSL_TLS_CERTIFICATE_VALIDATE_ALL`.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, flags = dsl_source_rtsp_tls_validation_flags_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_tls_validation_flags_set*
+```C
+DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
+    uint flags);
+```
+This service sets the TLS certificate validation flags for the named RTSP Source to use.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to update
+ * `flags` - [in] mask of [TLS_certificate validation flags](/docs/api-source.md#tls-certificate-validation-flags) constant values. 
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_tls_validation_flags_set('my-rtsp-source',
+    DSL_TLS_CERTIFICATE_UNKNOWN_CA | DSL_TLS_CERTIFICATE_BAD_IDENTITY)
 ```
 <br>
 
