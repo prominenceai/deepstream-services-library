@@ -169,6 +169,8 @@
 * [dsl_source_video_buffer_out_format_set](/docs/api-source.md#dsl_source_video_buffer_out_format_set)
 * [dsl_source_video_buffer_out_dimensions_get](/docs/api-source.md#dsl_source_video_buffer_out_dimensions_get)
 * [dsl_source_video_buffer_out_dimensions_set](/docs/api-source.md#dsl_source_video_buffer_out_dimensions_set)
+* [dsl_source_video_buffer_out_frame_rate_get](/docs/api-source.md#dsl_source_video_buffer_out_frame_rate_get)
+* [dsl_source_video_buffer_out_frame_rate_set](/docs/api-source.md#dsl_source_video_buffer_out_frame_rate_set)
 * [dsl_source_video_buffer_out_crop_rectangle_get](/docs/api-source.md#dsl_source_video_buffer_out_crop_rectangle_get)
 * [dsl_source_video_buffer_out_crop_rectangle_set](/docs/api-source.md#dsl_source_video_buffer_out_crop_rectangle_set)
 * [dsl_source_video_buffer_out_orientation_get](/docs/api-source.md#dsl_source_video_buffer_out_orientation_get)
