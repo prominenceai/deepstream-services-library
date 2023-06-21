@@ -577,17 +577,17 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 /**
- *@brief OSD process mode constants for CPU and GPU
+ * @brief OSD process mode constants for CPU and GPU
  * CPU: Jetson & dGPU
  * GPU: dGPU only
- * HW:  Jetson only (default)
+ * HW:  Jetson only
  */
 #define DSL_OSD_PROCESS_MODE_CPU                                    0
 #define DSL_OSD_PROCESS_MODE_GPU                                    1
 #define DSL_OSD_PROCESS_MODE_HW                                     2
 
 /**
- *@brief OSD default process mode
+ * @brief OSD default process mode
  * DSL overrides the OSD plugin default of HW
  */
 #define DSL_DEFAULT_OSD_PROCESS_MODE                                DSL_OSD_PROCESS_MODE_CPU
@@ -5807,7 +5807,7 @@ DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
 /**
  * @brief Returns the current process mode setting for the named On-Screen Display.
  * @param[in] name name of the OSD to query.
- * @param[out] mode either DSL_OSD_PROCESS_MODE_CPU or DSL_OSD_PROCESS_MODE_GPU.
+ * @param[out] mode one of the DSL_OSD_PROCESS_MODE constant values.
  * Default value = DSL_OSD_PROCESS_MODE_CPU
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
@@ -5816,7 +5816,7 @@ DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode);
 /**
  * @brief Sets the process mode setting for the named On-Screen Display.
  * @param[in] name name of the OSD to update.
- * @param[in] mode either DSL_OSD_PROCESS_MODE_CPU or DSL_OSD_PROCESS_MODE_GPU.
+ * @param[in] mode one of the DSL_OSD_PROCESS_MODE constant values.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
 DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode);
