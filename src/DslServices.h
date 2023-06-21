@@ -821,14 +821,23 @@ namespace DSL {
 
         DslReturnType SourceRtspTimeoutSet(const char* name, uint timeout);
         
-        DslReturnType SourceRtspConnectionParamsGet(const char* name, uint* sleep, uint* timeout);
+        DslReturnType SourceRtspConnectionParamsGet(const char* name, 
+            uint* sleep, uint* timeout);
 
-        DslReturnType SourceRtspConnectionParamsSet(const char* name, uint sleep, uint timeout);
+        DslReturnType SourceRtspConnectionParamsSet(const char* name, 
+            uint sleep, uint timeout);
         
-        DslReturnType SourceRtspConnectionDataGet(const char* name, dsl_rtsp_connection_data* data);
+        DslReturnType SourceRtspConnectionDataGet(const char* name, 
+            dsl_rtsp_connection_data* data);
         
         DslReturnType SourceRtspConnectionStatsClear(const char* name);
         
+        DslReturnType SourceRtspTlsValidationFlagsGet(const char* name, 
+            uint* flags);
+
+        DslReturnType SourceRtspTlsValidationFlagsSet(const char* name, 
+            uint flags);
+
         DslReturnType SourceRtspStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);
         

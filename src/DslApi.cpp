@@ -4539,7 +4539,8 @@ DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SourceRtspConnectionDataGet(cstrName.c_str(), data);
+    return DSL::Services::GetServices()->SourceRtspConnectionDataGet(
+        cstrName.c_str(), data);
 }
 
 DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name)
@@ -4549,9 +4550,35 @@ DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceRtspConnectionStatsClear(cstrName.c_str());
+    return DSL::Services::GetServices()->SourceRtspConnectionStatsClear(
+        cstrName.c_str());
 }
 
+DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
+    uint* flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspTlsValidationFlagsGet(
+        cstrName.c_str(), flags);
+}
+    
+DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
+    uint flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspTlsValidationFlagsSet(
+        cstrName.c_str(), flags);
+}
+    
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* source, 
     dsl_state_change_listener_cb listener, void* client_data)
 {

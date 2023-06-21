@@ -2700,6 +2700,10 @@ namespace DSL
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
         m_pPreParserQueue = DSL_ELEMENT_EXT_NEW("queue", name, "parser");
 
+        // Get the default properties
+        m_pSourceElement->GetAttribute("tls-validation-flags", 
+            &m_tlsValidationFlags);
+        
         // Configure the source to generate NTP sync values
         configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
@@ -2732,26 +2736,27 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
-        LOG_INFO("  uri                 : " << m_uri);
-        LOG_INFO("  is-live             : " << m_isLive);
-        LOG_INFO("  skip-frames         : " << m_skipFrames);
-        LOG_INFO("  latency             : " << m_latency);
-        LOG_INFO("  drop-on-latency     : " << TRUE);
-        LOG_INFO("  drop-frame-interval : " << m_dropFrameInterval);
-        LOG_INFO("  width               : " << m_width);
-        LOG_INFO("  height              : " << m_height);
-        LOG_INFO("  fps-n               : " << m_fpsN);
-        LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out          : ");
-        LOG_INFO("    format            : " << m_bufferOutFormat);
-        LOG_INFO("    width             : " << m_bufferOutWidth);
-        LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
-        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
+        LOG_INFO("  uri                  : " << m_uri);
+        LOG_INFO("  is-live              : " << m_isLive);
+        LOG_INFO("  skip-frames          : " << m_skipFrames);
+        LOG_INFO("  latency              : " << m_latency);
+        LOG_INFO("  drop-on-latency      : " << TRUE);
+        LOG_INFO("  drop-frame-interval  : " << m_dropFrameInterval);
+        LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
+        LOG_INFO("  width                : " << m_width);
+        LOG_INFO("  height               : " << m_height);
+        LOG_INFO("  fps-n                : " << m_fpsN);
+        LOG_INFO("  fps-d                : " << m_fpsD);
+        LOG_INFO("  media-out            : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out           : ");
+        LOG_INFO("    format             : " << m_bufferOutFormat);
+        LOG_INFO("    width              : " << m_bufferOutWidth);
+        LOG_INFO("    height             : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n              : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d              : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv     : 0:0:0:0" );
+        LOG_INFO("    orientation        : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
         AddChild(m_pPreDecodeTee);
@@ -3004,6 +3009,31 @@ namespace DSL
         m_connectionData.count = 0;
         m_connectionData.retries = 0;
     }
+    
+    uint RtspSourceBintr::GetTlsValidationFlags()
+    {
+        LOG_FUNC();
+
+        return m_tlsValidationFlags;
+    }
+    
+    bool RtspSourceBintr::SetTlsValidationFlags(uint flags)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Uri for RtspSourceBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+        m_tlsValidationFlags = flags;
+        m_pSourceElement->SetAttribute("tls-validation-flags", 
+            m_tlsValidationFlags);
+    
+        return true;
+    }
+    
 
     bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, 
         void* userdata)

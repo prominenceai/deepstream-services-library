@@ -70,7 +70,7 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -165,7 +165,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                 THEN( "All memeber variables are initialized correctly" )
                 {
                     REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                    REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                    REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                     REQUIRE( pSourceBintr->GetGstObject() != NULL );
                     REQUIRE( pSourceBintr->GetId() == 0 );
                     REQUIRE( pSourceBintr->GetSensorId() == 0 );
@@ -520,7 +520,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -777,16 +777,20 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
         WHEN( "The RtspSourceBintr is created " )
         {
             DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-                rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+                rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, 
+                latency, timeout);
 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 
+                    DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
+                REQUIRE( pSourceBintr->GetTlsValidationFlags() == 
+                    DSL_TLS_CERTIFICATE_VALIDATE_ALL );
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
                 
                 dsl_rtsp_connection_data data{0};
@@ -833,7 +837,7 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
         DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
             rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
-        WHEN( "The RtspSourceBintr's timeout set " )
+        WHEN( "The RtspSourceBintr's timeout is set " )
         {
             uint newTimeout(0);
             pSourceBintr->SetBufferTimeout(newTimeout);
@@ -864,6 +868,18 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
                 REQUIRE( data.count == newData.count );
                 REQUIRE( data.is_in_reconnect == newData.is_in_reconnect );
                 REQUIRE( data.retries == newData.retries );
+            }
+        }
+        WHEN( "The RtspSourceBintr's TLS certificate validation flags are set " )
+        {
+            uint newTlsValidationFlags(DSL_TLS_CERTIFICATE_BAD_IDENTITY |
+                DSL_TLS_CERTIFICATE_NOT_ACTIVATED);
+            
+            pSourceBintr->SetTlsValidationFlags(newTlsValidationFlags);
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pSourceBintr->GetTlsValidationFlags() == newTlsValidationFlags );
             }
         }
     }
@@ -1083,7 +1099,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1157,7 +1173,7 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1233,7 +1249,7 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
@@ -1304,7 +1320,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
