@@ -340,6 +340,8 @@
 * [dsl_osd_bbox_enabled_set](/docs/api-osd.md#dsl_osd_bbox_enabled_set)
 * [dsl_osd_mask_enabled_get](/docs/api-osd.md#dsl_osd_mask_enabled_get)
 * [dsl_osd_mask_enabled_set](/docs/api-osd.md#dsl_osd_mask_enabled_set)
+* [dsl_osd_process_mode_get](/docs/api-osd.md#dsl_osd_process_mode_get)
+* [dsl_osd_process_mode_set](/docs/api-osd.md#dsl_osd_process_mode_set)
 * [dsl_osd_pph_add](/docs/api-osd.md##dsl_osd_pph_add)
 * [dsl_osd_pph_remove](/docs/api-osd.md##dsl_osd_pph_remove)
 

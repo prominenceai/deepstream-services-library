@@ -577,14 +577,31 @@ THE SOFTWARE.
 #define DSL_RTP_ALL                                                 0x07
 
 /**
- * @brief Default On-Screen Display (OSD) property values
+ * @brief OSD process mode constants for CPU and GPU
+ * CPU: Jetson & dGPU
+ * GPU: dGPU only
+ * HW:  Jetson only
  */
-#define DSL_DEFAULT_OSD_PROCESS_MODE                                0
+#define DSL_OSD_PROCESS_MODE_CPU                                    0
+#define DSL_OSD_PROCESS_MODE_GPU                                    1
+#define DSL_OSD_PROCESS_MODE_HW                                     2
+
+/**
+ * @brief OSD default process mode
+ * DSL overrides the OSD plugin default of HW
+ */
+#define DSL_DEFAULT_OSD_PROCESS_MODE                                DSL_OSD_PROCESS_MODE_CPU
+
+/**
+ * @brief Default On-Screen Display (OSD) property values
+ * DSL overrides the OSD plugin defaults of NULL,0,0,0,0,
+ * for the below values.
+ */
 #define DSL_DEFAULT_OSD_CLOCK_FONT_TYPE                             "Serif"
 #define DSL_DEFAULT_OSD_CLOCK_FONT_SIZE                             12
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
-#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {}
+#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {1.0,0.0,0.0,1.0}
 
 /**
  * @brief Websocket Port number for the Soup Server Manager
@@ -5660,22 +5677,6 @@ DslReturnType dsl_osd_new(const wchar_t* name,
     boolean bbox_enabled, boolean mask_enabled);
 
 /**
- * @brief returns the current text enabled setting for the named On-Screen Display.
- * @param[in] name name of the OSD to query.
- * @param[out] enabled true if text display is enabled, false otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
- */
-DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief sets the text enabled setting for On-Screen-Display
- * @param[in] name name of the OSD to update.
- * @param[in] enabled set to true to enable text display, false otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
- */
-DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
-
-/**
  * @brief returns the current clock enabled setting for the named On-Screen Display.
  * @param[in] name name of the OSD to query.
  * @param[out] enabled true if clock display is enabled, false otherwise.
@@ -5772,6 +5773,22 @@ DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
+ * @brief returns the current process mode setting for the named On-Screen Display.
+ * @param[in] name name of the OSD to query.
+ * @param[out] mode one of 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
+ */
+DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief sets the text enabled setting for On-Screen-Display
+ * @param[in] name name of the OSD to update.
+ * @param[in] enabled set to true to enable text display, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
+ */
+DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
  * @brief returns the current mask enabled setting for the named On-Screen Display.
  * @param[in] name name of the OSD to query.
  * @param[out] enabled true if mask display is enabled, false otherwise.
@@ -5788,20 +5805,21 @@ DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief returns the current process mode setting for the named On-Screen Display.
+ * @brief Returns the current process mode setting for the named On-Screen Display.
  * @param[in] name name of the OSD to query.
- * @param[out] mode one of 
+ * @param[out] mode one of the DSL_OSD_PROCESS_MODE constant values.
+ * Default value = DSL_OSD_PROCESS_MODE_CPU
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise.
  */
-DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
+DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode);
 
 /**
- * @brief sets the text enabled setting for On-Screen-Display
+ * @brief Sets the process mode setting for the named On-Screen Display.
  * @param[in] name name of the OSD to update.
- * @param[in] enabled set to true to enable text display, false otherwise.
+ * @param[in] mode one of the DSL_OSD_PROCESS_MODE constant values.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_OSD_RESULT otherwise
  */
-DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
+DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.

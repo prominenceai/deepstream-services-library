@@ -1109,6 +1109,10 @@ namespace DSL {
 
         DslReturnType OsdMaskEnabledSet(const char* name, boolean enabled);
 
+        DslReturnType OsdProcessModeGet(const char* name, uint* mode);
+
+        DslReturnType OsdProcessModeSet(const char* name, uint mode);
+
         DslReturnType OsdPphAdd(const char* name, const char* handler, uint pad);
 
         DslReturnType OsdPphRemove(const char* name, const char* handler, uint pad);

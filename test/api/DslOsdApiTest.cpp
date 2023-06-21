@@ -35,12 +35,15 @@ SCENARIO( "The Components container is updated correctly on new OSD", "[osd-api]
 
         WHEN( "A new OSD is created" ) 
         {
-
             REQUIRE( dsl_osd_new(osdName.c_str(), false, false, false, false) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
+
+                uint ret_process_mode(99);
+                dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
+                REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_CPU);
             }
         }
         REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -354,6 +357,51 @@ SCENARIO( "An OSD's display-mask property can be updated", "[osd-api]" )
     }
 }
 
+SCENARIO( "An OSD's process-mode property can be updated", "[osd-api]" )
+{
+    GIVEN( "A new OSD in memory" ) 
+    {
+        std::wstring osdName(L"on-screen-display");
+
+        uint ret_process_mode(99);
+        
+        REQUIRE( dsl_osd_new(osdName.c_str(), 
+            false, false, false, false) == DSL_RESULT_SUCCESS );
+            
+        dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
+        REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_CPU);
+        
+        WHEN( "The OSD's process-mode is updated" ) 
+        {
+            boolean new_process_mode(DSL_OSD_PROCESS_MODE_CPU);
+            REQUIRE( dsl_osd_process_mode_set(osdName.c_str(), new_process_mode) 
+                == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on Get" ) 
+            {
+                dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
+                REQUIRE( ret_process_mode == new_process_mode );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "The invalid process-mode is used" ) 
+        {
+            boolean new_process_mode(DSL_OSD_PROCESS_MODE_HW+1);
+            REQUIRE( dsl_osd_process_mode_set(osdName.c_str(), new_process_mode) 
+                == DSL_RESULT_OSD_SET_FAILED );
+            
+            THEN( "The value is left unchanged" ) 
+            {
+                dsl_osd_process_mode_get(osdName.c_str(), &ret_process_mode);
+                REQUIRE( ret_process_mode == DSL_OSD_PROCESS_MODE_CPU );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
     return true;
@@ -443,3 +491,101 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed froma a OSD", "[o
     }
 }
 
+SCENARIO( "The OSD API checks for NULL input parameters", "[osd-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        const std::wstring osd_name(L"test-osd");
+        uint offset_x(0);
+        const wchar_t * font_name;
+        double red(0), green(0), blue(0);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_osd_new(NULL, false, false, false, false) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_osd_text_enabled_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_text_enabled_get(osd_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_text_enabled_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_osd_clock_enabled_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_enabled_get(osd_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_enabled_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_osd_clock_offsets_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_offsets_get(osd_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_offsets_get(osd_name.c_str(), 
+                    &offset_x, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_offsets_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_osd_clock_font_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_font_get(osd_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_font_get(osd_name.c_str(), 
+                    &font_name, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_font_set(NULL, 
+                    NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_font_set(osd_name.c_str(), 
+                    NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_osd_clock_color_get(NULL, 
+                    NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_color_get(osd_name.c_str(), 
+                    NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_color_get(osd_name.c_str(), 
+                    &red, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_color_get(osd_name.c_str(), 
+                    &red, &green, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_color_get(osd_name.c_str(), 
+                    &red, &green, &blue, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_clock_color_set(NULL, 
+                    0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_osd_bbox_enabled_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_bbox_enabled_get(osd_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_bbox_enabled_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_osd_mask_enabled_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_mask_enabled_get(osd_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_mask_enabled_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_osd_process_mode_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_process_mode_get(osd_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_process_mode_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_osd_pph_add(NULL, 
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_pph_remove(NULL, 
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_osd_pph_remove(osd_name.c_str(), 
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+            }
+        }
+    }
+}
