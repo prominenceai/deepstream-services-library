@@ -3,6 +3,8 @@ The On-Screen Display (OSD) component provides visualization of object detection
 
 As with all components, OSDs must be uniquely named from all other components created.
 
+![on-screen-display-graph](/Images/on-screen-display-graph.png)
+
 #### OSD Construction and Destruction
 The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
