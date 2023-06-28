@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,8 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    MultiComponentsBintr::MultiComponentsBintr(const char* name, const char* teeType)
+    MultiComponentsBintr::MultiComponentsBintr(const char* name, 
+        const char* teeType)
         : Bintr(name)
     {
         LOG_FUNC();
@@ -44,7 +45,8 @@ namespace DSL
         // Float the Queue sink pad as a Ghost Pad for this MultiComponentsBintr
         m_pQueue->AddGhostPadToParent("sink");
         
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("multi-comp-sink-pad-probe", "sink", m_pQueue);
+        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("multi-comp-sink-pad-probe", 
+            "sink", m_pQueue);
     }
     
     MultiComponentsBintr::~MultiComponentsBintr()
@@ -71,7 +73,8 @@ namespace DSL
         // Ensure Component uniqueness
         if (IsChild(pChildComponent))
         {
-            LOG_ERROR("'" << pChildComponent->GetName() << "' is already a child of '" << GetName() << "'");
+            LOG_ERROR("'" << pChildComponent->GetName() 
+                << "' is already a child of '" << GetName() << "'");
             return false;
         }
 
@@ -81,12 +84,13 @@ namespace DSL
         // call the base function to complete the add
         if (!Bintr::AddChild(pChildComponent))
         {
-            LOG_ERROR("Faild to add Component '" << pChildComponent->GetName() << "' as a child to '" << GetName() << "'");
+            LOG_ERROR("Faild to add Component '" << pChildComponent->GetName() 
+                << "' as a child to '" << GetName() << "'");
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, Set child source Id to the next available,
-        // linkAll Elementrs now and Link to with the Stream
+        // If the Pipeline is currently in a linked state, Set child source Id 
+        // to the next available, linkAll Elementrs now and Link to with the Stream
         if (IsLinked())
         {
             uint streamId(0);
@@ -103,15 +107,15 @@ namespace DSL
                 streamId = m_usedStreamIds.size();
                 m_usedStreamIds.push_back(true);
             }
-            // Must set the Unique Id first, then Link all of the ChildComponent's Elementrs, then 
+            // Must set the Unique Id first before linking all of the ChildComponent's 
             pChildComponent->SetId(streamId);
 
             // NOTE: important to use the correct request pad name based on the element type
             // Cast the base DSL_BASE_PTR to DSL_ELEMENTR_PTR so we can query the factory type 
-            DSL_ELEMENT_PTR pTeeElementr = 
-                std::dynamic_pointer_cast<Elementr>(m_pTee);
+//            DSL_ELEMENT_PTR pTeeElementr = 
+//                std::dynamic_pointer_cast<Elementr>(m_pTee);
 
-             std::string srcPadName = (pTeeElementr->IsFactoryName("nvstreamdemux"))
+             std::string srcPadName = (m_pTee->IsFactoryName("nvstreamdemux"))
                 ? "src_" + std::to_string(streamId)
                 : "src_%u";
                 
@@ -255,7 +259,8 @@ namespace DSL
             if (!imap.second->SetBatchSize(batchSize))
             {
                 LOG_ERROR("MultiComponentsBintr '" << GetName() 
-                    << "' failed to set batch size for Child Component '" << imap.second->GetName() << "'");
+                    << "' failed to set batch size for Child Component '" 
+                    << imap.second->GetName() << "'");
                 return false;
             }
         }
@@ -268,21 +273,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    DemuxerBintr::DemuxerBintr(const char* name)
-        : MultiComponentsBintr(name, "nvstreamdemux")
-    {
-        LOG_FUNC();
-    }
-
-    bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
-    {
-        LOG_FUNC();
-        
-        // add 'this' tiler to the Parent Pipeline 
-        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddDemuxerBintr(shared_from_this());
-    }
-   
     SplitterBintr::SplitterBintr(const char* name)
         : MultiComponentsBintr(name, "tee")
     {
@@ -293,9 +283,59 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' tiler to the Parent Pipeline 
+        // add 'this' SplitterBintr to the Parent Pipeline/Branch
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSplitterBintr(shared_from_this());
     }
 
+    DemuxerBintr::DemuxerBintr(const char* name, uint maxBranches)
+        : MultiComponentsBintr(name, "nvstreamdemux")
+    {
+        LOG_FUNC();
+        
+        // We need to request all the needed source pads while the 
+        // nvstreamdemux plugin is in a NULL state. This is a workaround
+        // for the fact the the plugin does not support dynamic requests
+        for (auto i=0; i++; i<maxBranches)
+        {
+            GstPad* pRequestedSrcPad = gst_element_get_request_pad(
+                m_pTee->GetGstElement(), "src_%u");
+            if (!pRequestedSrcPad)
+            {
+                
+                LOG_ERROR("Failed to get a requested source pad for Demuxer '" 
+                    << name <<"'");
+                throw;
+            }
+            m_requestedSrcPad.push_back(pRequestedSrcPad);
+        }
+    }
+    
+    DemuxerBintr::~DemuxerBintr()
+    {
+        LOG_FUNC();
+
+        // We need to unlink here vs. the parent class dtor so we can release
+        // all of the requested sink pads for the nvstreamdemux afterwards.
+        if (IsLinked())
+        {
+            UnlinkAll();
+        }
+        for (auto i=0; i++; i<m_requestedSrcPad.size())
+        {
+            gst_element_release_request_pad(GetGstElement(), 
+                m_requestedSrcPad.back());
+            m_requestedSrcPad.pop_back();
+        }
+    }
+
+    bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // add 'this' DemuxerBintr to the Parent Pipeline/Branch
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            AddDemuxerBintr(shared_from_this());
+    }
+   
 }

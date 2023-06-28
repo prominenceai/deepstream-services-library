@@ -5878,9 +5878,11 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
  * @param[in] name unique name for the new Stream Demuxer Tee
+ * @param[in] max_branches maximum number of branches that can be
+ * added/connected to this Demuxer, before or during Pipeline play.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
-DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
@@ -5888,8 +5890,8 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
-
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
+    uint max_branches, const wchar_t** branches);
 
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
@@ -6157,7 +6159,7 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
 /**
  * @brief creates a new, uniquely named Ovelay Sink component
  * @param[in] name unique component name for the new Overlay Sink
- * @param[in] display_id unique display ID for this Overlay Sink
+ * @param[in] display_id Id of the display to overlay, 0 = main display
  * @param[in] depth overlay depth for this Overlay Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels

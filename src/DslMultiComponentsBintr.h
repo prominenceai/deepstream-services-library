@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,8 @@ namespace DSL
         std::shared_ptr<MultiSinksBintr>(new MultiSinksBintr(name))
 
     #define DSL_DEMUXER_PTR std::shared_ptr<DemuxerBintr>
-    #define DSL_DEMUXER_NEW(name) \
-        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name))
+    #define DSL_DEMUXER_NEW(name, maxBranches) \
+        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name, maxBranches))
 
     #define DSL_SPLITTER_PTR std::shared_ptr<SplitterBintr>
     #define DSL_SPLITTER_NEW(name) \
@@ -116,7 +116,7 @@ namespace DSL
          */
         bool SetBatchSize(uint batchSize);
         
-    private:
+    protected:
     
         DSL_ELEMENT_PTR m_pQueue;
         DSL_ELEMENT_PTR m_pTee;
@@ -171,8 +171,8 @@ namespace DSL
         SplitterBintr(const char* name);
 
         /**
-         * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
-         * @param[in] pParentBintr Parent Pipeline to add this Bintr to
+         * @brief Adds the SplitterBintr to a Parent Pipeline/Branch Bintr
+         * @param[in] pParentBintr Parent Pipeline/Branch to add this Bintr to
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
@@ -186,13 +186,28 @@ namespace DSL
          * @brief ctor for the DemuxerBintr
          * @param[in] name name to give the new Bintr
          */
-        DemuxerBintr(const char* name);
+        DemuxerBintr(const char* name, uint maxBranches);
+        
+        /**
+         * @brief dtor for the DemuxerBintr
+         */
+        ~DemuxerBintr();
 
         /**
-         * @brief Adds the MultiComponentBintr to a Parent Branch Bintr
+         * @brief Adds the Demuxer to a Parent Branch Bintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
+
+    private:
+    
+        /**
+         * @brief list of reguest pads -- maxBranches in length -- for the 
+         * for the DemuxerBintr. The pads are preallocated on Bintr creation
+         * and then used on LinkAll or AddChild when in a linked-state
+         */
+        std::list<GstPad*> m_requestedSrcPad;
+        
     };
 
 }

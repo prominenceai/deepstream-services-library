@@ -1032,7 +1032,7 @@ namespace DSL {
 
         DslReturnType TrackerPphRemove(const char* name, const char* handler, uint pad);
         
-        DslReturnType TeeDemuxerNew(const char* name);
+        DslReturnType TeeDemuxerNew(const char* name, uint maxBranches);
         
         DslReturnType TeeSplitterNew(const char* name);
         

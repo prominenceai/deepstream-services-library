@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -628,7 +628,8 @@ namespace DSL
             return false;
         }
 
-        GstPad* pComponentStaticSinkPad = gst_element_get_static_pad(m_linkedComponents.front()->GetGstElement(), "sink");
+        GstPad* pComponentStaticSinkPad = gst_element_get_static_pad(
+            m_linkedComponents.front()->GetGstElement(), "sink");
         if (!pComponentStaticSinkPad)
         {
             LOG_ERROR("Failed to get static Sink Pad for Branch Bintr '" << GetName() <<"'");

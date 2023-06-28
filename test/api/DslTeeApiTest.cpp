@@ -35,7 +35,8 @@ SCENARIO( "The Components container is updated correctly on new Demuxer", "[tee-
 
         WHEN( "A new Demuxer is created" ) 
         {
-            REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(), 
+            2) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -53,7 +54,8 @@ SCENARIO( "The Components container is updated correctly on Demuxer delete", "[t
         std::wstring demuxerName(L"demuxer");
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+        2) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "The new Demuxer is deleted" ) 
@@ -84,7 +86,8 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer
         std::wstring demuxerName(L"demuxer");
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            1) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
@@ -124,7 +127,7 @@ SCENARIO( "A Demuxer can add and remove a Branch", "[tee-api]" )
         std::wstring demuxerName(L"demuxer");
         std::wstring branchName(L"branch");
 
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(), 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branchName.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 2 );
 
@@ -160,7 +163,8 @@ SCENARIO( "A Demuxer can add and remove many Branches", "[tee-api]" )
         std::wstring branchName2(L"branch2");
         std::wstring branchName3(L"branch3");
 
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            3) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branchName1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branchName2.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branchName3.c_str()) == DSL_RESULT_SUCCESS );
@@ -202,9 +206,10 @@ SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_tee_demuxer_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_new(NULL, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_splitter_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_demuxer_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_new_branch_add_many(teeName.c_str(), 
+                    1, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_splitter_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_branch_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_branch_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

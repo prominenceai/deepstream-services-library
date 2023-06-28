@@ -30,7 +30,8 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    DslReturnType Services::TeeDemuxerNew(const char* name)
+    DslReturnType Services::TeeDemuxerNew(const char* name, 
+        uint maxBranches)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -43,7 +44,8 @@ namespace DSL
                 LOG_ERROR("Demuxer Tee name '" << name << "' is not unique");
                 return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name));
+            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name,
+                maxBranches));
             
             LOG_INFO("New Demuxer Tee '" << name << "' created successfully");
             

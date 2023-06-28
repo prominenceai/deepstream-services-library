@@ -176,6 +176,7 @@
       <File Name="../test/api/DslDewarperBehaviorTest.cpp"/>
       <File Name="../test/api/DslDewarperApiTest.cpp"/>
       <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
+      <File Name="../test/api/DslDemuxerBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
