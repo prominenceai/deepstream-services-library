@@ -104,19 +104,30 @@ namespace DSL
                     << "' as it's currently in use");
                 return DSL_RESULT_COMPONENT_IN_USE;
             }
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[tee]);
-
-            // Cast the Branch to a Bintr to call the correct AddChile method.
+            // Cast the Branch to a Bintr to call the correct AddChild method.
             DSL_BINTR_PTR pBranchBintr = 
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
 
-            if (!pTeeBintr->AddChild(pBranchBintr))
+            bool retval;
+            
+            // We need to check which of the two types the Tee is and cast accordingly
+            if (m_components[tee]->IsType(typeid(SplitterBintr)))
+            {
+                retval = std::dynamic_pointer_cast<SplitterBintr>(
+                    m_components[tee])->AddChild(pBranchBintr);
+            }
+            else
+            {
+                retval = std::dynamic_pointer_cast<DemuxerBintr>(
+                    m_components[tee])->AddChild(pBranchBintr);
+            }
+            if (!retval)
             {
                 LOG_ERROR("Tee '" << tee << 
                     "' failed to add branch '" << branch << "'");
                 return DSL_RESULT_TEE_BRANCH_ADD_FAILED;
             }
+                
             LOG_INFO("Branch '" << branch 
                 << "' was added to Tee '" << tee << "' successfully");
                 

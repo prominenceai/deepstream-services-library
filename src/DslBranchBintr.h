@@ -191,12 +191,21 @@ namespace DSL
         void UnlinkAll();
         
         /**
-         * @brief Links this BranchBintr, becoming a sink, to a Tee Elementr
-         * The Tee can be either a demuxer of tee 
-         * @param[in] pTee Nodre to link this Sink Nodre back to.
+         * @brief Links this BranchBintr as a sink to a MultiSinksBintrs
+         * or SplitterBintr.
+         * @param[in] pTee source to link this Branch back to.
+         * @param[in] padName pad to use when allocating a requested pad for the Tee.
          * @return true if successfully linked, false otherwise.
          */
         bool LinkToSourceTee(DSL_NODETR_PTR pTee, const char* padName);
+
+        /**
+         * @brief Links this BranchBintr as a sink to a DemuxerBintr.
+         * @param[in] pTee source tplink this Branch back to.
+         * @param[in] pReqestedPad pre-allocated requested pad for the DemuxerBintr.
+         * @return true if successfully linked, false otherwise.
+         */
+        bool LinkToSourceTee(DSL_NODETR_PTR pTee, GstPad* pReqestedPad);
 
     protected:
         

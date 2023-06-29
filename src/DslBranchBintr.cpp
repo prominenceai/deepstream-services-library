@@ -648,4 +648,34 @@ namespace DSL
         return Bintr::LinkToSourceTee(pTee, srcPadName);
     }
 
+    bool BranchBintr::LinkToSourceTee(DSL_NODETR_PTR pTee, GstPad* pRequestedSrcPad)
+    {
+        LOG_FUNC();
+        
+        if (!m_linkedComponents.size())
+        {
+            LOG_ERROR("Unable to link empty Bramch '" << GetName() <<"'");
+            return false;
+        }
+
+        GstPad* pComponentStaticSinkPad = gst_element_get_static_pad(
+            m_linkedComponents.front()->GetGstElement(), "sink");
+        if (!pComponentStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static Sink Pad for Branch Bintr '" << GetName() <<"'");
+            return false;
+        }        
+        // Add a sink ghost pad to BranchBintr, using the firt componet's 
+        if (!gst_element_add_pad(GetGstElement(), 
+            gst_ghost_pad_new("sink", pComponentStaticSinkPad)))
+        {
+            gst_object_unref(pComponentStaticSinkPad);
+            LOG_ERROR("Failed to add Sink Ghost Pad for BranchBintr'" << GetName() << "'");
+            return false;
+        }
+        gst_object_unref(pComponentStaticSinkPad);
+        
+        return Bintr::LinkToSourceTee(pTee, pRequestedSrcPad);
+    }
+
 } // DSL

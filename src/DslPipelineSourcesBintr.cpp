@@ -184,6 +184,8 @@ namespace DSL
                 padId = m_usedPadIds.size();
                 m_usedPadIds.push_back(true);
             }            
+            pChildSource->SetId(padId);
+            
             std::string sinkPadName = "sink_" + std::to_string(padId);
             
             if (!pChildSource->LinkAll() or 
@@ -242,6 +244,10 @@ namespace DSL
             }
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
+
+            // set the used-stream id as available for reuse
+            m_usedPadIds[pChildSource->GetId()] = false;
+            pChildSource->SetId(-1);
         }
         
         // unreference and remove from the collection of sources
@@ -276,6 +282,7 @@ namespace DSL
             }
             // add the new stream id to the vector of currently connected (used) 
             m_usedPadIds.push_back(true);
+            imap.second->SetId(padId);
             padId++;
         }
         // Set the Batch size to the nuber of sources owned if not already set

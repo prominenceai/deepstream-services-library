@@ -4596,11 +4596,11 @@ def dsl_osd_pph_remove(name, handler, pad):
 ##
 ## dsl_tee_demuxer_new()
 ##
-_dsl.dsl_tee_demuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_tee_demuxer_new.argtypes = [c_wchar_p, c_uint]
 _dsl.dsl_tee_demuxer_new.restype = c_uint
-def dsl_tee_demuxer_new(name):
+def dsl_tee_demuxer_new(name, max_branches):
     global _dsl
-    result =_dsl.dsl_tee_demuxer_new(name)
+    result =_dsl.dsl_tee_demuxer_new(name, max_branches)
     return int(result)
 
 ##
@@ -4608,11 +4608,11 @@ def dsl_tee_demuxer_new(name):
 ##
 #_dsl.dsl_tee_demuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_tee_demuxer_new_branch_add_many.restype = c_uint
-def dsl_tee_demuxer_new_branch_add_many(name, branches):
+def dsl_tee_demuxer_new_branch_add_many(name, max_branches, branches):
     global _dsl
     arr = (c_wchar_p * len(branches))()
     arr[:] = branches
-    result =_dsl.dsl_tee_demuxer_new_branch_add_many(name, arr)
+    result =_dsl.dsl_tee_demuxer_new_branch_add_many(name, max_branches, arr)
     return int(result)
 
 ##

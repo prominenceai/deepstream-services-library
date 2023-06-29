@@ -50,8 +50,9 @@ namespace DSL
         std::shared_ptr<SplitterBintr>(new SplitterBintr(name))
 
     /**
-     * @class ProcessBintr
-     * @brief 
+     * @class MultiComponentsBintr
+     * @brief Implements a base Tee binter that can add, link, unlink, and remove
+     * child branches while in any state (NULL, PLAYING, etc.)
      */
     class MultiComponentsBintr : public Bintr
     {
@@ -91,7 +92,8 @@ namespace DSL
          * @brief overrides the base Noder method to only return the number of 
          * child ComponentBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
-         * @return the number of Child ComponentBintrs held by this MultiComponentsBintr
+         * @return the number of Child ComponentBintrs (branches) held by this 
+         * MultiComponentsBintr
          */
         uint GetNumChildren()
         {
@@ -136,7 +138,8 @@ namespace DSL
         /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
-         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         * @return a shared pointer to the Elementr if added correctly, 
+         * nullptr otherwise
          */
         bool AddChild(DSL_BASE_PTR pChildElement);
         
@@ -148,6 +151,12 @@ namespace DSL
 
     };
 
+    /**
+     * @class MultiSinksBintr
+     * @brief Derived from the parent class MultiComponentsBintr, implements 
+     * a Tee binter that can add, link, unlink, and remove child SinkBintrs 
+     * while in any state (NULL, PLAYING, etc.)
+     */
     class MultiSinksBintr : public MultiComponentsBintr
     {
     public: 
@@ -189,24 +198,48 @@ namespace DSL
         DemuxerBintr(const char* name, uint maxBranches);
         
         /**
-         * @brief dtor for the DemuxerBintr
-         */
-        ~DemuxerBintr();
-
-        /**
-         * @brief Adds the Demuxer to a Parent Branch Bintr
-         * @param[in] pParentBintr Parent Pipeline to add this Bintr to
+         * @brief Adds the DemuxerBintr to a Parent Branch/Pipeline Bintr
+         * @param[in] pParentBintr Parent Branch/Pipeline to add this Bintr to
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
+        /**
+         * @brief Adds a child ComponentBintr to this DemuxerBintr. We need to 
+         * override the parent class because we pre-allocate the requested pads.
+         * This is a workaround for the NIVIDA demuxer limatation of not allowing
+         * pads to be requested in a PLAYING state.
+         * @param[in] pChildComponent shared pointer to ComponentBintr to add
+         * @return true if the ComponentBintr was added correctly, false otherwise
+         */
+        bool AddChild(DSL_BINTR_PTR pChildComponent);
+        
+        /** 
+         * @brief links all child Component Bintrs and their elements. We need to 
+         * override the parent class because we pre-allocate the requested pads.
+         * This is a workaround for the NIVIDA demuxer limatation of not allowing
+         * pads to be requested in a PLAYING state.
+         */ 
+        bool LinkAll();
+
+        /**
+         * @brief unlinks all child Component Bintrs and their Elementrs.
+         */
+        void UnlinkAll();
+
     private:
+    
+        /**
+         * @brief maximum number of branches this DemuxerBintr can connect.
+         * Specifies the number of source pads to request prior to playing.
+         */
+        uint m_maxBranches;
     
         /**
          * @brief list of reguest pads -- maxBranches in length -- for the 
          * for the DemuxerBintr. The pads are preallocated on Bintr creation
          * and then used on LinkAll or AddChild when in a linked-state
          */
-        std::list<GstPad*> m_requestedSrcPad;
+        std::vector<GstPad*> m_requestedSrcPads;
         
     };
 

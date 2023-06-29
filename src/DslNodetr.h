@@ -655,10 +655,14 @@ namespace DSL
                     return false;
                 }
 
-                // Send a flush-stop event upstream to the muxer for this 
-                // GstNodetr's stream
+                // Send a flush-stop event upstream to all elements and
+                // downstream to the stream-muxer for this GstNodetr's stream
+                gst_pad_send_event(pStaticSrcPad, 
+                    gst_event_new_flush_stop(FALSE));
                 gst_pad_send_event(pRequestedSinkPad, 
                     gst_event_new_flush_stop(FALSE));
+                gst_pad_send_event(pRequestedSinkPad, 
+                    gst_event_new_eos());
 
                 LOG_INFO("Unlinking and releasing requested sink pad '" 
                     << pRequestedSinkPad << "' for GstNotetr '" << GetName() << "'");
@@ -769,9 +773,8 @@ namespace DSL
                 return false;
             }
 
-            // Unreference both the static sink pad and requested source pad
+            // Unreference just the static sink pad and not the requested source pad
             gst_object_unref(pStaticSinkPad);
-            gst_object_unref(pRequestedSrcPad);
             
             // Call the parent class to complete the link to source
             return Nodetr::LinkToSource(pTee);
@@ -842,7 +845,7 @@ namespace DSL
                     return false;
                 }
 
-                LOG_INFO("Unlinking and releasing requested source pad '" 
+                LOG_INFO("Unlinking requested source pad '" 
                     << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
 
                 // It should now be safe to unlink this GstNotetr from the Muxer
@@ -855,6 +858,8 @@ namespace DSL
                 }
                 if (m_releaseRequestedPadOnUnlink)
                 {
+                    LOG_INFO("Releasing requested source pad '" 
+                        << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
                     // Need to release the previously requested sink pad
                     gst_element_release_request_pad(GetSource()->GetGstElement(), 
                         pRequestedSrcPad);
