@@ -207,13 +207,14 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_NAME_NOT_FOUND                               0x000A0002
 #define DSL_RESULT_TEE_NAME_BAD_FORMAT                              0x000A0003
 #define DSL_RESULT_TEE_THREW_EXCEPTION                              0x000A0004
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0005
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0006
-#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0007
-#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0008
-#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0009
-#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000A
-#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000B
+#define DSL_RESULT_TEE_SET_FAILED                                   0x000A0005
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0006
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0007
+#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0008
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0009
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000A
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000B
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000C
 
 /**
  * Tile API Return Values
@@ -5892,6 +5893,24 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
  */
 DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
     uint max_branches, const wchar_t** branches);
+
+/**
+ * @brief Gets the current max-branches setting for the name Deumuxer Tee
+ * @param[in] name name of the Demuxer Tee to query
+ * @param[out] max_branches current setting for max-branches
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
+    uint* max_branches);
+
+/**
+ * @brief Sets the max-branches setting for the name Deumuxer Tee to use.
+ * @param[in] name name of the Demuxer Tee to update
+ * @param[in] max_branches new setting for max-branches
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
+    uint max_branches);
 
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component

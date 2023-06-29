@@ -194,6 +194,8 @@ namespace DSL
         /**
          * @brief ctor for the DemuxerBintr
          * @param[in] name name to give the new Bintr
+         * @param[in] maxBranches the maximum number of branches that can be
+         * added/connected to this Demuxer, before or during Pipeline play.
          */
         DemuxerBintr(const char* name, uint maxBranches);
         
@@ -225,6 +227,20 @@ namespace DSL
          * @brief unlinks all child Component Bintrs and their Elementrs.
          */
         void UnlinkAll();
+        
+        /**
+         * @brief Gets the current max-branches setting for this DemuxerBintr
+         * @return current max-branches setting
+         */
+        uint GetMaxBranches();
+        
+        /**
+         * @brief Set the max-branches setting for this DemuxerBintr
+         * @param[in] maxBranches the maximum number of branches that can be
+         * added/connected to this Demuxer, before or during Pipeline play.
+         * @return 
+         */
+        bool SetMaxBranches(uint maxBranches);
 
     private:
     

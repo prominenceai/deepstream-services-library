@@ -46,6 +46,7 @@ SCENARIO( "A DemuxerBintr is created correctly", "[DemuxerBintr]" )
             {
                 REQUIRE( pDemuxerBintr->GetName() == demuxerBintrName );
                 REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
+                REQUIRE( pDemuxerBintr->GetMaxBranches() == 1 );
             }
         }
     }

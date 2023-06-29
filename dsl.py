@@ -4616,6 +4616,27 @@ def dsl_tee_demuxer_new_branch_add_many(name, max_branches, branches):
     return int(result)
 
 ##
+## dsl_tee_demuxer_max_branches_get()
+##
+_dsl.dsl_tee_demuxer_max_branches_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_tee_demuxer_max_branches_get.restype = c_uint
+def dsl_tee_demuxer_max_branches_get(name):
+    global _dsl
+    max_branches = c_uint(0)
+    result = _dsl.dsl_tee_demuxer_max_branches_get(name, DSL_UINT_P(max_branches))
+    return int(result), max_branches.value 
+
+##
+## dsl_tee_demuxer_max_branches_set()
+##
+_dsl.dsl_tee_demuxer_max_branches_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tee_demuxer_max_branches_set.restype = c_uint
+def dsl_tee_demuxer_max_branches_set(name, max_branches):
+    global _dsl
+    result = _dsl.dsl_tee_demuxer_max_branches_set(name, max_branches)
+    return int(result)
+
+##
 ## dsl_tee_splitter_new()
 ##
 _dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]

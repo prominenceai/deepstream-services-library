@@ -291,6 +291,9 @@ namespace DSL
     {
         LOG_FUNC();
         
+        LOG_INFO("");
+        LOG_INFO("Initial property values for DemuxerBintr '" << name << "'");
+        LOG_INFO("  max-branches : " << m_maxBranches);
     }
     
     bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -313,6 +316,14 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
+        // Ensure that we are not exceeding max-branches
+        if ((m_pChildComponents.size()+1) > m_maxBranches)
+        {
+            LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
+                << "' to DemuxerBintr'" << GetName() 
+                << "' as it would exceed max-branches = " << m_maxBranches);
+            return false;
+        }
 
         // Add the Component to the Components collection and as a child of this Bintr
         m_pChildComponents[pChildComponent->GetName()] = pChildComponent;
@@ -320,7 +331,7 @@ namespace DSL
         // call the parent class to complete the add
         if (!Bintr::AddChild(pChildComponent))
         {
-            LOG_ERROR("Faild to add Component '" << pChildComponent->GetName() 
+            LOG_ERROR("Failed to add Branch '" << pChildComponent->GetName() 
                 << "' as a child to '" << GetName() << "'");
             return false;
         }
@@ -425,6 +436,12 @@ namespace DSL
     {
         LOG_FUNC();
 
+        if (!m_isLinked)
+        {
+            LOG_ERROR("DemuxerBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
         // Call the parent class to do the actual unlinking
         MultiComponentsBintr::UnlinkAll();
  
@@ -439,5 +456,33 @@ namespace DSL
             m_requestedSrcPads.pop_back();
         }
    }
+   
+    uint DemuxerBintr::GetMaxBranches()
+    {
+        LOG_FUNC();
+        
+        return m_maxBranches;
+    }
+
+    bool DemuxerBintr::SetMaxBranches(uint maxBranches)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set max-branches for DemuxerBintr '" 
+                << GetName() << "' as it is linked");
+            return false;
+        }
+        if (maxBranches < m_pChildComponents.size())
+        {
+            LOG_ERROR("Can't set max-branches = " << maxBranches 
+                << " for DemuxerBintr '" << GetName() 
+                << "' as it is less than the current number of added branches");
+            return false;
+        }
+        m_maxBranches = maxBranches;
+        return true;
+    }
 
 }

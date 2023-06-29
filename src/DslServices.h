@@ -1033,16 +1033,20 @@ namespace DSL {
         DslReturnType TrackerPphRemove(const char* name, const char* handler, uint pad);
         
         DslReturnType TeeDemuxerNew(const char* name, uint maxBranches);
+
+        DslReturnType TeeDemuxerMaxBranchesGet(const char* name, uint* maxBranches);
+        
+        DslReturnType TeeDemuxerMaxBranchesSet(const char* name, uint maxBranches);
         
         DslReturnType TeeSplitterNew(const char* name);
         
-        DslReturnType TeeBranchAdd(const char* demuer, const char* branch);
+        DslReturnType TeeBranchAdd(const char* name, const char* branch);
 
-        DslReturnType TeeBranchRemove(const char* demuxer, const char* branch);
+        DslReturnType TeeBranchRemove(const char* name, const char* branch);
         
-        DslReturnType TeeBranchRemoveAll(const char* demuxer);
+        DslReturnType TeeBranchRemoveAll(const char* name);
 
-        DslReturnType TeeBranchCountGet(const char* demuxer, uint* count);
+        DslReturnType TeeBranchCountGet(const char* name, uint* count);
 
         DslReturnType TeePphAdd(const char* name, const char* handler);
 
