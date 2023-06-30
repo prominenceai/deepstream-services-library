@@ -5893,17 +5893,20 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
         cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_tee_demuxer_new(const wchar_t* name)
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name, 
+    uint max_branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str());
+    return DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str(),
+        max_branches);
 }
 
-DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
+    uint max_branches, const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -5911,7 +5914,8 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wch
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    DslReturnType retval = DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str());
+    DslReturnType retval = DSL::Services::GetServices()->TeeDemuxerNew(
+        cstrName.c_str(), max_branches);
     if (retval != DSL_RESULT_SUCCESS)
     {
         return retval;
@@ -5921,7 +5925,8 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wch
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+            cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -5930,6 +5935,31 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wch
     return DSL_RESULT_SUCCESS;
 }
 
+DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
+    uint* max_branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max_branches);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerMaxBranchesGet(cstrName.c_str(),
+        max_branches);
+}
+    
+DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
+    uint max_branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerMaxBranchesSet(cstrName.c_str(),
+        max_branches);
+}
+    
 DslReturnType dsl_tee_splitter_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -5940,7 +5970,8 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name)
     return DSL::Services::GetServices()->TeeSplitterNew(cstrName.c_str());
 }
 
-DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -5948,7 +5979,8 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wc
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    DslReturnType retval = DSL::Services::GetServices()->TeeSplitterNew(cstrName.c_str());
+    DslReturnType retval = DSL::Services::GetServices()->TeeSplitterNew(
+        cstrName.c_str());
     if (retval != DSL_RESULT_SUCCESS)
     {
         return retval;

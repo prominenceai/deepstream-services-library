@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslMultiComponentsBintr.h"
+#include "DslMultiBranchesBintr.h"
 #include "DslBranchBintr.h"
 
 using namespace DSL;
@@ -39,12 +39,14 @@ SCENARIO( "A DemuxerBintr is created correctly", "[DemuxerBintr]" )
 
         WHEN( "The DemuxerBintr is created" )
         {
-            DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
+            DSL_DEMUXER_PTR pDemuxerBintr = 
+                DSL_DEMUXER_NEW(demuxerBintrName.c_str(), 1);
             
             THEN( "All members have been setup correctly" )
             {
                 REQUIRE( pDemuxerBintr->GetName() == demuxerBintrName );
                 REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
+                REQUIRE( pDemuxerBintr->GetMaxBranches() == 1 );
             }
         }
     }
@@ -57,7 +59,8 @@ SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[Dem
         std::string branchBintrName = "branch";
         std::string demuxerBintrName = "demuxer";
 
-        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = 
+            DSL_DEMUXER_NEW(demuxerBintrName.c_str(), 1);
 
         REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
             
@@ -86,7 +89,7 @@ SCENARIO( "Removing a single BranchBintr from a DemuxerBintr is managed correctl
         std::string branchBintrName = "branch";
         std::string demuxerBintrName = "demuxer";
 
-        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str(), 1);
         DSL_BRANCH_PTR pBranchBintr = DSL_BRANCH_NEW(branchBintrName.c_str());
 
         REQUIRE( pDemuxerBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pBranchBintr)) == true );
@@ -118,7 +121,7 @@ SCENARIO( "Linking multiple BranchBintrs to a DemuxerBintr is managed correctly"
         std::string sinkName2("fake-sink2");
 
 
-        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str(), 3);
         
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
@@ -171,7 +174,7 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[D
         std::string sinkName2("fake-sink2");
 
 
-        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str());
+        DSL_DEMUXER_PTR pDemuxerBintr = DSL_DEMUXER_NEW(demuxerBintrName.c_str(), 3);
         
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());

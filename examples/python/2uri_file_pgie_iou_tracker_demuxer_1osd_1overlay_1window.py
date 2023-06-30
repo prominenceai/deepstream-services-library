@@ -98,12 +98,14 @@ def main(args):
             break
 
         # New Branch for the PGIE, OSD and Window Sink
-        retval = dsl_branch_new_component_add_many('branch1', ['on-screen-display', 'window-sink', None])
+        retval = dsl_branch_new_component_add_many('branch1', 
+            ['on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add Branch1 and the overlay-sink as Branch2
-        retVal = dsl_tee_demuxer_new_branch_add_many('demuxer', ['branch1', 'overlay-sink', None])
+        retVal = dsl_tee_demuxer_new_branch_add_many('demuxer', 
+            max_branches=2, branches=['branch1', 'overlay-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -118,7 +120,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -25,7 +25,8 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
-SCENARIO( "The Components container is updated correctly on new Demuxer", "[tee-api]" )
+SCENARIO( "The Components container is updated correctly on new Demuxer",
+    "[tee-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -35,7 +36,8 @@ SCENARIO( "The Components container is updated correctly on new Demuxer", "[tee-
 
         WHEN( "A new Demuxer is created" ) 
         {
-            REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(), 
+                2) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -46,23 +48,158 @@ SCENARIO( "The Components container is updated correctly on new Demuxer", "[tee-
     }
 }
 
-SCENARIO( "The Components container is updated correctly on Demuxer delete", "[tee-api]" )
+SCENARIO( "The Components container is updated correctly on Demuxer delete",
+    "[tee-api]" )
 {
     GIVEN( "A new Demuxer in memory" ) 
     {
         std::wstring demuxerName(L"demuxer");
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            2) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "The new Demuxer is deleted" ) 
         {
-            REQUIRE( dsl_component_delete(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_delete(demuxerName.c_str()) 
+                == DSL_RESULT_SUCCESS );
             
             THEN( "The list size is updated correctly" )
             {
                 REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Demuxer can add and remove a Branch", "[tee-api]" )
+{
+    GIVEN( "A Demuxer and Branch" ) 
+    {
+        std::wstring demuxerName(L"demuxer");
+        std::wstring branchName(L"branch");
+
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(), 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 2 );
+
+        uint count(0);
+        
+        REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
+        REQUIRE( count == 0 );
+
+        WHEN( "A the Branch is added to the Demuxer" ) 
+        {
+            REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), branchName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
+            REQUIRE( count == 1 );
+
+            THEN( "The same branch can be removed" ) 
+            {
+                REQUIRE( dsl_tee_branch_remove(demuxerName.c_str(), branchName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
+                REQUIRE( count == 0 );
+                REQUIRE( dsl_component_delete(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Demuxer can manages its max-branches correctly", "[tee-api]" )
+{
+    GIVEN( "A Demuxer and three Branchs" ) 
+    {
+        std::wstring demuxerName(L"demuxer");
+        std::wstring branchName1(L"branch1");
+        std::wstring branchName2(L"branch2");
+        std::wstring branchName3(L"branch3");
+
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            2) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName3.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "When max-branches number of Braches have been added" ) 
+        {
+            REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), 
+                branchName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), 
+                branchName2.c_str()) == DSL_RESULT_SUCCESS );
+
+            uint count(99);
+            REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), 
+                &count) == DSL_RESULT_SUCCESS );
+            REQUIRE( count == 2 );
+
+            THEN( "Adding one more Branch must fail " ) 
+            {
+                REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), 
+                    branchName3.c_str()) == DSL_RESULT_TEE_BRANCH_ADD_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Demuxer can update its max-branches correctly", "[tee-api]" )
+{
+    GIVEN( "A Demuxer and three Branchs" ) 
+    {
+        std::wstring demuxerName(L"demuxer");
+        std::wstring branchName1(L"branch1");
+        std::wstring branchName2(L"branch2");
+        std::wstring branchName3(L"branch3");
+        
+        uint org_max_branches(2);
+
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            org_max_branches) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branchName3.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint ret_max_branches(99);
+        REQUIRE( dsl_tee_demuxer_max_branches_get(demuxerName.c_str(),
+            &ret_max_branches) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_max_branches == org_max_branches );
+
+        WHEN( "When the max-branches setting is updated prior to adding branches" ) 
+        {
+            uint new_max_branches(5);
+            REQUIRE( dsl_tee_demuxer_max_branches_set(demuxerName.c_str(),
+                new_max_branches) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Correct value is returned on get" )
+            {
+                REQUIRE( dsl_tee_demuxer_max_branches_get(demuxerName.c_str(),
+                    &ret_max_branches) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_branches == new_max_branches );
+                
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "When max-branches branches have been added" ) 
+        {
+            REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), 
+                branchName1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), 
+                branchName2.c_str()) == DSL_RESULT_SUCCESS );
+
+            uint count(99);
+            REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), 
+                &count) == DSL_RESULT_SUCCESS );
+            REQUIRE( count == 2 );
+
+            THEN( "Reducing the max-branches setting must fail " ) 
+            {
+                REQUIRE( dsl_tee_demuxer_max_branches_set(demuxerName.c_str(),
+                    org_max_branches-1) == DSL_RESULT_TEE_SET_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -84,7 +221,8 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer
         std::wstring demuxerName(L"demuxer");
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            1) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
@@ -117,78 +255,6 @@ SCENARIO( "A Sink Pad Batch Meta Handler can be added and removed from a Demuxer
     }
 }
 
-SCENARIO( "A Demuxer can add and remove a Branch", "[tee-api]" )
-{
-    GIVEN( "A Demuxer and Branch" ) 
-    {
-        std::wstring demuxerName(L"demuxer");
-        std::wstring branchName(L"branch");
-
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_new(branchName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 2 );
-
-        uint count(0);
-        
-        REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
-        REQUIRE( count == 0 );
-
-        WHEN( "A the Branch is added to the Demuxer" ) 
-        {
-            REQUIRE( dsl_tee_branch_add(demuxerName.c_str(), branchName.c_str()) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
-            REQUIRE( count == 1 );
-
-            THEN( "The same branch can be removed" ) 
-            {
-                REQUIRE( dsl_tee_branch_remove(demuxerName.c_str(), branchName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
-                REQUIRE( count == 0 );
-                REQUIRE( dsl_component_delete(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Demuxer can add and remove many Branches", "[tee-api]" )
-{
-    GIVEN( "A Demuxer and Branch" ) 
-    {
-        std::wstring demuxerName(L"demuxer");
-        std::wstring branchName1(L"branch1");
-        std::wstring branchName2(L"branch2");
-        std::wstring branchName3(L"branch3");
-
-        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_new(branchName1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_new(branchName2.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_branch_new(branchName3.c_str()) == DSL_RESULT_SUCCESS );
-
-        uint count(0);
-        
-        REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
-        REQUIRE( count == 0 );
-
-        WHEN( "A the Branch is added to the Demuxer" ) 
-        {
-            const wchar_t* branches[] = {L"branch1", L"branch2", L"branch3", NULL};
-            
-            REQUIRE( dsl_tee_branch_add_many(demuxerName.c_str(), branches) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
-            REQUIRE( count == 3 );
-
-            THEN( "The same branch can be removed" ) 
-            {
-                REQUIRE( dsl_tee_branch_remove_many(demuxerName.c_str(), branches) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), &count) == DSL_RESULT_SUCCESS );
-                REQUIRE( count == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
 SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -202,10 +268,22 @@ SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_tee_demuxer_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_new(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_new_branch_add_many(teeName.c_str(), 
+                    1, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_max_branches_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_max_branches_get(teeName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_demuxer_max_branches_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+
                 REQUIRE( dsl_tee_splitter_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_demuxer_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_splitter_new_branch_add_many(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_splitter_new_branch_add_many(teeName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
                 REQUIRE( dsl_tee_branch_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_branch_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_branch_add_many(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
