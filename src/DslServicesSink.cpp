@@ -193,6 +193,60 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::_sinkWindowRegister(DSL_BASE_PTR sink, 
+        GstObject* element)
+    {
+        LOG_FUNC();
+        
+        if (m_windowSinkElements.find(sink)
+            != m_windowSinkElements.end())
+        {
+            LOG_ERROR("Window-Sink '" << sink->GetName() 
+                << "' is already registered '");
+            return false;
+        }
+        LOG_INFO("Registering Window-Sink '"<< sink->GetName() 
+            << "' with GstObject* = " << std::hex << element);
+            
+        m_windowSinkElements[sink] = element;
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::_sinkWindowUnregister(DSL_BASE_PTR sink)
+    {
+        LOG_FUNC();
+
+        if (m_windowSinkElements.find(sink)
+            == m_windowSinkElements.end())
+        {
+            LOG_ERROR("Window-Sink '" << sink->GetName() 
+                << "' is not registered '");
+            return DSL_RESULT_FAILURE;
+        }
+        LOG_INFO("Unregistering Window-Sink '"<< sink->GetName() << "'");
+        m_windowSinkElements.erase(sink);
+        
+        return DSL_RESULT_SUCCESS;
+    }
+        
+    DSL_BASE_PTR Services::_sinkWindowGet(GstObject* element)
+    {
+        LOG_FUNC();
+
+        for (const auto& imap: m_windowSinkElements)
+        {
+            if (imap.second == element)
+            {
+                LOG_INFO("Returning Window-Sink '" 
+                    << imap.first->GetName() << "'");
+                return imap.first;
+            }
+        }
+        
+        return nullptr;
+    }
+    
     DslReturnType Services::SinkWindowNew(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
     {

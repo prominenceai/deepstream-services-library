@@ -522,11 +522,11 @@ namespace DSL
         ~WindowSinkBintr();
   
         /**
-         * @brief Resets the Sink element for this RenderSinkBintr
+         * @brief Resets the Sink element for this WindowSinkBintr
          * @return false if the sink is currently Linked. True otherwise
          */
         bool Reset();
-
+        
         /**
          * @brief Links all Child Elementrs owned by this Bintr
          * @return true if all links were succesful, false otherwise

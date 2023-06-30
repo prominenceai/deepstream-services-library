@@ -1141,10 +1141,20 @@ namespace DSL {
 
         DslReturnType SinkOverlayNew(const char* name, uint display_id,
             uint depth, uint offsetX, uint offsetY, uint width, uint height);
-                
+        
+        // ---------------------------------------------------------------------------
+        // The following three internal services provide access to the
+        // database of active Window Sinks
+        DslReturnType _sinkWindowRegister(DSL_BASE_PTR sink, GstObject* element);
+        
+        DslReturnType _sinkWindowUnregister(DSL_BASE_PTR sink);
+
+        DSL_BASE_PTR _sinkWindowGet(GstObject* element);
+        // ---------------------------------------------------------------------------
+    
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
-            
+        
         DslReturnType SinkWindowForceAspectRatioGet(const char* name, 
             boolean* force);
 
@@ -1840,6 +1850,11 @@ namespace DSL {
          * @brief map of all infer names to process-mode
          */
         std::map <std::string, uint> m_inferProcessModes;
+        
+        /**
+         * @brief map of all Window-Sinks to their nveglglessink object pointer
+         */
+        std::map <DSL_BASE_PTR, GstObject*> m_windowSinkElements;
         
         /**
          * @brief map of all mailer objects by name

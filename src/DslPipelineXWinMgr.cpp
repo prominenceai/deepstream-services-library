@@ -25,6 +25,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslPipelineXWinMgr.h"
+#include "DslServices.h"
 
 namespace DSL
 {
@@ -256,6 +257,14 @@ namespace DSL
                     g_object_get(GST_MESSAGE_SRC(pMessage), "window-width", &m_xWindowWidth, NULL);
                     g_object_get(GST_MESSAGE_SRC(pMessage), "window-height", &m_xWindowHeight, NULL);
                     
+                    DSL_BASE_PTR pWindowSink =
+                        DSL::Services::GetServices()->_sinkWindowGet(
+                            GST_MESSAGE_SRC(pMessage));
+                    if (pWindowSink)
+                    {
+                        LOG_WARN("Creating Window for WindowSinkBintr '" 
+                            << pWindowSink->GetName() << "'");
+                    }
                     CreateXWindow();
                 }
                 

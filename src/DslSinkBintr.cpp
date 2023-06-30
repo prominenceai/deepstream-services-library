@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslBranchBintr.h"
 #include "DslOdeAction.h"
+#include "DslServices.h"
 
 #include <gst-nvdssr.h>
 #include <gst/app/gstappsink.h>
@@ -577,7 +578,6 @@ namespace DSL
         LOG_FUNC();
         
         s_uniqueIds.remove(m_uniqueId);
-        
     }
 
     bool OverlaySinkBintr::LinkAll()
@@ -731,48 +731,7 @@ namespace DSL
             m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
         }
         
-        // Reset to create m_pEglGles
-        if (!Reset())
-        {
-            LOG_ERROR("Failed to create Window element for SinkBintr '" 
-                << GetName() << "'");
-            throw;
-        }
-        LOG_INFO("");
-        LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
-        LOG_INFO("  offset-x           : " << offsetX);
-        LOG_INFO("  offset-y           : " << offsetY);
-        LOG_INFO("  width              : " << m_width);
-        LOG_INFO("  height             : " << m_height);
-        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
-        LOG_INFO("  sync               : " << m_sync);
-        LOG_INFO("  qos                : " << m_qos);
-        
-        AddChild(m_pTransform);
-    }
-
-    bool WindowSinkBintr::Reset()
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() 
-                << "' is currently linked and cannot be reset");
-            return false;
-        }
-
-        // If not  a first time call from the constructor
-        if (m_pEglGles != nullptr)
-        {
-            // Remove the existing element from the objects bin
-            gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
-            RemoveChild(m_pEglGles);
-        }
-        
-        m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", name);
         
         m_pEglGles->SetAttribute("window-x", m_offsetX);
         m_pEglGles->SetAttribute("window-y", m_offsetY);
@@ -786,9 +745,20 @@ namespace DSL
         m_pEglGles->SetAttribute("async", false);
         m_pEglGles->SetAttribute("qos", m_qos);
         
-        AddChild(m_pEglGles);
+        LOG_INFO("");
+        LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
+        LOG_INFO("  enable-last-sample : " << false);
+        LOG_INFO("  max-lateness       : " << -1);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  qos                : " << m_qos);
         
-        return true;
+        AddChild(m_pEglGles);
+        AddChild(m_pTransform);
     }
     
     WindowSinkBintr::~WindowSinkBintr()
@@ -801,6 +771,31 @@ namespace DSL
         }
     }
 
+    bool WindowSinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("OverlaySinkBintr '" << GetName() 
+                << "' is currently linked and cannot be reset");
+            return false;
+        }
+
+        // is this needed
+        m_pEglGles->SetAttribute("window-x", 0);
+        m_pEglGles->SetAttribute("window-y", 0);
+        m_pEglGles->SetAttribute("window-width", 0);
+        m_pEglGles->SetAttribute("window-height", 0);
+
+        m_pEglGles->SetAttribute("window-x", m_offsetX);
+        m_pEglGles->SetAttribute("window-y", m_offsetY);
+        m_pEglGles->SetAttribute("window-width", m_width);
+        m_pEglGles->SetAttribute("window-height", m_height);
+
+        return true;
+    }
+
     bool WindowSinkBintr::LinkAll()
     {
         LOG_FUNC();
@@ -810,6 +805,12 @@ namespace DSL
             LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
+
+        
+        // register this Window-Sink's nveglglessink plugin.
+        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
+            m_pEglGles->GetGstObject());
+
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
@@ -849,9 +850,10 @@ namespace DSL
         {
             m_pCapsFilter->UnlinkFromSink();
         }
+        // register this Window-Sink's nveglglessink plugin.
+        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
 
         m_isLinked = false;
-        Reset();
     }
     
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)

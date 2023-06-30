@@ -321,7 +321,7 @@ namespace DSL
         if ((m_pChildBranches.size()+1) > m_maxBranches)
         {
             LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
-                << "' to DemuxerBintr'" << GetName() 
+                << "' to DemuxerBintr '" << GetName() 
                 << "' as it would exceed max-branches = " << m_maxBranches);
             return false;
         }
