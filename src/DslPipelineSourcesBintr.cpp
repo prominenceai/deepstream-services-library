@@ -156,9 +156,33 @@ namespace DSL
             }
         }
         
-        // Add the Source to the Sources collection and as a child of this Bintr
+        uint streamId(0);
+        
+        // find the next available unused stream-id
+        auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+        
+        // If we're inserting into the location of a previously remved source
+        if (ivec != m_usedStreamIds.end())
+        {
+            streamId = ivec - m_usedStreamIds.begin();
+            m_usedStreamIds[streamId] = true;
+        }
+        // Else we're adding to the end of th indexed map
+        else
+        {
+            streamId = m_usedStreamIds.size();
+            m_usedStreamIds.push_back(true);
+        }            
+        // Set the sources unique id to the available stream-id
+        pChildSource->SetId(streamId);
+
+        // Add the Source to the Bintrs collection of children mapped by name
         m_pChildSources[pChildSource->GetName()] = pChildSource;
         
+        // Add the Source to the Bintrs collection of children mapped by name
+        m_pChildSourcesIndexed[streamId] = pChildSource;
+        
+        // call the parent class to complete the add
         if (!Bintr::AddChild(pChildSource))
         {
             LOG_ERROR("Faild to add Source '" << pChildSource->GetName() 
@@ -167,32 +191,17 @@ namespace DSL
         }
         
         // If the Pipeline is currently in a linked state, Set child source 
-        // Id to the next available, linkAll Elementrs now and Link to the Stream-muxwwer
+        // Id to the next available, linkAll Elementrs now and Link to the Stream-muxer
         if (IsLinked())
         {
-           uint padId(0);
-            
-            // find the next available unused stream-id
-            auto ivec = find(m_usedPadIds.begin(), m_usedPadIds.end(), false);
-            if (ivec != m_usedPadIds.end())
-            {
-                padId = ivec - m_usedPadIds.begin();
-                m_usedPadIds[padId] = true;
-            }
-            else
-            {
-                padId = m_usedPadIds.size();
-                m_usedPadIds.push_back(true);
-            }            
-            pChildSource->SetId(padId);
-            
-            std::string sinkPadName = "sink_" + std::to_string(padId);
+            std::string sinkPadName = "sink_" + std::to_string(streamId);
             
             if (!pChildSource->LinkAll() or 
                 !pChildSource->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Link Child Source '" << pChildSource->GetName() << "'");
+                    << "' failed to Link Child Source '" 
+                    << pChildSource->GetName() << "'");
                 return false;
             }
             
@@ -239,19 +248,20 @@ namespace DSL
             if (!pChildSource->UnlinkFromSinkMuxer())
             {   
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Unlink Child Source '" << pChildSource->GetName() << "'");
+                    << "' failed to Unlink Child Source '" 
+                    << pChildSource->GetName() << "'");
                 return false;
             }
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
-
-            // set the used-stream id as available for reuse
-            m_usedPadIds[pChildSource->GetId()] = false;
-            pChildSource->SetId(-1);
         }
-        
-        // unreference and remove from the collection of sources
+        // unreference and remove from the child source collections
         m_pChildSources.erase(pChildSource->GetName());
+        m_pChildSourcesIndexed.erase(pChildSource->GetId());
+
+        // set the used-stream id as available for reuse
+        m_usedStreamIds[pChildSource->GetId()] = false;
+        pChildSource->SetId(-1);
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildSource);
@@ -263,27 +273,25 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                << "' is already linked");
             return false;
         }
         
-        uint padId(0);
-        
-        for (auto const& imap: m_pChildSources)
+        for (auto const& imap: m_pChildSourcesIndexed)
         {
-            std::string sinkPadName = "sink_" + std::to_string(padId);
+            std::string sinkPadName = 
+                "sink_" + std::to_string(imap.second->GetId());
             
-            if (!imap.second->LinkAll() or !imap.second->LinkToSinkMuxer(m_pStreamMux,
-                sinkPadName.c_str()))
+            if (!imap.second->LinkAll() or 
+                !imap.second->LinkToSinkMuxer(m_pStreamMux,
+                    sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Link Child Source '" << imap.second->GetName() << "'");
+                    << "' failed to Link Child Source '" 
+                    << imap.second->GetName() << "'");
                 return false;
             }
-            // add the new stream id to the vector of currently connected (used) 
-            m_usedPadIds.push_back(true);
-            imap.second->SetId(padId);
-            padId++;
         }
         // Set the Batch size to the nuber of sources owned if not already set
         if (!m_batchSize)
@@ -321,8 +329,6 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             imap.second->UnlinkAll();
         }
-
-        m_usedPadIds.clear();
         m_isLinked = false;
     }
     

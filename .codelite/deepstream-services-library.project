@@ -18,7 +18,6 @@
     <File Name="../src/DslInferBintr.cpp"/>
     <File Name="../src/DslMailer.cpp"/>
     <File Name="../src/DslMessageBroker.cpp"/>
-    <File Name="../src/DslMultiComponentsBintr.cpp"/>
     <File Name="../src/DslOdeAction.cpp"/>
     <File Name="../src/DslOdeArea.cpp"/>
     <File Name="../src/DslOdeTrigger.cpp"/>
@@ -69,7 +68,6 @@
     <File Name="../src/DslLogGst.h"/>
     <File Name="../src/DslMailer.h"/>
     <File Name="../src/DslMessageBroker.h"/>
-    <File Name="../src/DslMultiComponentsBintr.h"/>
     <File Name="../src/DslMutex.h"/>
     <File Name="../src/DslNodetr.h"/>
     <File Name="../src/DslOdeAction.h"/>
@@ -124,6 +122,8 @@
       <File Name="../src/webrtc/DslSoupServerMgr.cpp"/>
       <File Name="../src/webrtc/DslSoupServerMgr.h"/>
     </VirtualDirectory>
+    <File Name="../src/DslMultiBranchesBintr.h"/>
+    <File Name="../src/DslMultiBranchesBintr.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">

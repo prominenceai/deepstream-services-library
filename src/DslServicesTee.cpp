@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslServices.h"
 #include "DslServicesValidate.h"
-#include "DslMultiComponentsBintr.h"
+#include "DslMultiBranchesBintr.h"
 
 namespace DSL
 {
@@ -218,8 +218,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
             DSL_RETURN_IF_BRANCH_NAME_NOT_FOUND(m_components, branch);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
+            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
 
             if (!pTeeBintr->IsChild(m_components[branch]))
             {
@@ -261,8 +261,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
+            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
                 
             // pTeeBintr->RemoveAll();
             return DSL_RESULT_SUCCESS;
@@ -285,8 +285,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
 
-            DSL_MULTI_COMPONENTS_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiComponentsBintr>(m_components[name]);
+            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
 
             *count = pTeeBintr->GetNumChildren();
             

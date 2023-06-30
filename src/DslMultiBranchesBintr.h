@@ -35,7 +35,7 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_MULTI_COMPONENTS_PTR std::shared_ptr<MultiComponentsBintr>
+    #define DSL_MULTI_BRANCHES_PTR std::shared_ptr<MultiBranchesBintr>
 
     #define DSL_MULTI_SINKS_PTR std::shared_ptr<MultiSinksBintr>
     #define DSL_MULTI_SINKS_NEW(name) \
@@ -50,41 +50,41 @@ namespace DSL
         std::shared_ptr<SplitterBintr>(new SplitterBintr(name))
 
     /**
-     * @class MultiComponentsBintr
+     * @class MultiBranchesBintr
      * @brief Implements a base Tee binter that can add, link, unlink, and remove
      * child branches while in any state (NULL, PLAYING, etc.)
      */
-    class MultiComponentsBintr : public Bintr
+    class MultiBranchesBintr : public Bintr
     {
     public: 
     
         /**
-         * @brief ctor for the MultiComponentsBintr
+         * @brief ctor for the MultiBranchesBintr
          * @param[in] name name to give the new Bintr
          */
-        MultiComponentsBintr(const char* name, const char* teeType);
+        MultiBranchesBintr(const char* name, const char* teeType);
 
         /**
-         * @brief dtor for the MultiComponentsBintr
+         * @brief dtor for the MultiBranchesBintr
          */
-        ~MultiComponentsBintr();
+        ~MultiBranchesBintr();
 
         /**
-         * @brief adds a child ComponentBintr to this MultiComponentsBintr
+         * @brief adds a child ComponentBintr to this MultiBranchesBintr
          * @param[in] pChildComponent shared pointer to ComponentBintr to add
          * @return true if the ComponentBintr was added correctly, false otherwise
          */
         bool AddChild(DSL_BINTR_PTR pChildComponent);
         
         /**
-         * @brief removes a child ComponentBintr from this MultiComponentsBintr
+         * @brief removes a child ComponentBintr from this MultiBranchesBintr
          * @param[in] pChildComponent a shared pointer to ComponentBintr to remove
          * @return true if the ComponentBintr was removed correctly, false otherwise
          */
         bool RemoveChild(DSL_BINTR_PTR pChildComponent);
 
         /**
-         * @brief overrides the base method and checks in m_pChildComponents only.
+         * @brief overrides the base method and checks in m_pChildBranches only.
          */
         bool IsChild(DSL_BINTR_PTR pChildComponent);
 
@@ -93,13 +93,13 @@ namespace DSL
          * child ComponentBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
          * @return the number of Child ComponentBintrs (branches) held by this 
-         * MultiComponentsBintr
+         * MultiBranchesBintr
          */
         uint GetNumChildren()
         {
             LOG_FUNC();
             
-            return m_pChildComponents.size();
+            return m_pChildBranches.size();
         }
 
         /** 
@@ -120,14 +120,6 @@ namespace DSL
         
     protected:
     
-        DSL_ELEMENT_PTR m_pQueue;
-        DSL_ELEMENT_PTR m_pTee;
-        
-        /**
-         * @brief container of all child sources mapped by their unique names
-         */
-        std::map<std::string, DSL_BINTR_PTR> m_pChildComponents;
-
         /**
          * @brief Each source is assigned a unique stream id when linked
          * the vector is used on dynamic add/remove to find the next available
@@ -135,6 +127,16 @@ namespace DSL
          */
         std::vector<bool> m_usedStreamIds;
     
+        /**
+         * @brief container of all child Sinks/Branches mapped by their unique names
+         */
+        std::map<std::string, DSL_BINTR_PTR> m_pChildBranches;
+
+        /**
+         * @brief container of all child sources mapped by their unique stream-id
+         */
+        std::map<uint, DSL_BINTR_PTR> m_pChildBranchesIndexed;
+
         /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
@@ -144,20 +146,33 @@ namespace DSL
         bool AddChild(DSL_BASE_PTR pChildElement);
         
         /**
-         * @brief removes a child Elementr from this MultiComponentsBintr
+         * @brief removes a child Elementr from this MultiBranchesBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
+
+        /**
+         * @brief queue element for this Bintr to create a new process 
+         * for this Bintr to run in
+         */
+        DSL_ELEMENT_PTR m_pQueue;
+        
+        /**
+         * @brief Tee element -- multi-sinks, splitter or demuxer i.e. the
+         * actual plugin is specific to the derived child class below.
+         */
+        DSL_ELEMENT_PTR m_pTee;
+        
 
     };
 
     /**
      * @class MultiSinksBintr
-     * @brief Derived from the parent class MultiComponentsBintr, implements 
+     * @brief Derived from the parent class MultiBranchesBintr, implements 
      * a Tee binter that can add, link, unlink, and remove child SinkBintrs 
      * while in any state (NULL, PLAYING, etc.)
      */
-    class MultiSinksBintr : public MultiComponentsBintr
+    class MultiSinksBintr : public MultiBranchesBintr
     {
     public: 
     
@@ -169,7 +184,7 @@ namespace DSL
 
     };
 
-    class SplitterBintr : public MultiComponentsBintr
+    class SplitterBintr : public MultiBranchesBintr
     {
     public: 
     
@@ -187,7 +202,7 @@ namespace DSL
 
     };
 
-    class DemuxerBintr : public MultiComponentsBintr
+    class DemuxerBintr : public MultiBranchesBintr
     {
     public: 
     

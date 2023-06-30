@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSInfersBintr.h"
-#include "DslMultiComponentsBintr.h"
+#include "DslMultiBranchesBintr.h"
 #include "DslSinkBintr.h"
     
 namespace DSL 

@@ -207,13 +207,18 @@ namespace DSL
          * @brief container of all child sources mapped by their unique names
          */
         std::map<std::string, DSL_VIDEO_SOURCE_PTR> m_pChildSources;
+        
+        /**
+         * @brief container of all child sources mapped by their unique stream-id
+         */
+        std::map<uint, DSL_VIDEO_SOURCE_PTR> m_pChildSourcesIndexed;
 
         /**
-         * @brief Each source is assigned a unique streamux pad id when linked
-         * the vector is used on dynamic add/remove to find the next available
-         * pad id.
+         * @brief Each source is assigned a unique stream id used to define the
+         * streammuxer sink pad when linking. The vector is used on add/remove 
+         * to find the next available pad id.
          */
-        std::vector<bool> m_usedPadIds;
+        std::vector<bool> m_usedStreamIds;
         
         /**
          * @brief true if all sources are live, false if all sources are non-live

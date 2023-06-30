@@ -23,13 +23,13 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslMultiComponentsBintr.h"
+#include "DslMultiBranchesBintr.h"
 #include "DslBranchBintr.h"
 
 namespace DSL
 {
 
-    MultiComponentsBintr::MultiComponentsBintr(const char* name, 
+    MultiBranchesBintr::MultiBranchesBintr(const char* name, 
         const char* teeType)
         : Bintr(name)
     {
@@ -42,14 +42,14 @@ namespace DSL
         AddChild(m_pQueue);
         AddChild(m_pTee);
 
-        // Float the Queue sink pad as a Ghost Pad for this MultiComponentsBintr
+        // Float the Queue sink pad as a Ghost Pad for this MultiBranchesBintr
         m_pQueue->AddGhostPadToParent("sink");
         
         m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("multi-comp-sink-pad-probe", 
             "sink", m_pQueue);
     }
     
-    MultiComponentsBintr::~MultiComponentsBintr()
+    MultiBranchesBintr::~MultiBranchesBintr()
     {
         LOG_FUNC();
 
@@ -59,14 +59,14 @@ namespace DSL
         }
     }
 
-    bool MultiComponentsBintr::AddChild(DSL_BASE_PTR pChildElement)
+    bool MultiBranchesBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
         return Bintr::AddChild(pChildElement);
     }
 
-    bool MultiComponentsBintr::AddChild(DSL_BINTR_PTR pChildComponent)
+    bool MultiBranchesBintr::AddChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
         
@@ -77,9 +77,33 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
+       
+        // find the next available unused stream-id
+        uint streamId(0);
+        
+        // find the next available unused stream-id
+        auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+        
+        // If we're inserting into the location of a previously remved branch
+        if (ivec != m_usedStreamIds.end())
+        {
+            streamId = ivec - m_usedStreamIds.begin();
+            m_usedStreamIds[streamId] = true;
+        }
+        // Else we're adding to the end of th indexed map
+        else
+        {
+            streamId = m_usedStreamIds.size();
+            m_usedStreamIds.push_back(true);
+        }
+        // Set the branches unique id to the available stream-id
+        pChildComponent->SetId(streamId);
 
-        // Add the branch to the Demuxers collection and as a child of this Bintr
-        m_pChildComponents[pChildComponent->GetName()] = pChildComponent;
+        // Add the branch to the Demuxers collection of children mapped by name 
+        m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
+        
+        // Add the branch to the Demuxers collection of children mapped by stream-id 
+        m_pChildBranchesIndexed[streamId] = pChildComponent;
         
         // call the parent class to complete the add
         if (!Bintr::AddChild(pChildComponent))
@@ -89,32 +113,15 @@ namespace DSL
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, Set child source Id 
-        // to the next available, linkAll Elementrs now and Link to with the Stream
+        // If the Pipeline is currently in a linked state, linkAll Elementrs now 
+        // and Link to the 
         if (IsLinked())
         {
-            uint streamId(0);
-            
-            // find the next available unused stream-id
-            auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
-            if (ivec != m_usedStreamIds.end())
-            {
-                streamId = ivec - m_usedStreamIds.begin();
-                m_usedStreamIds[streamId] = true;
-            }
-            else
-            {
-                streamId = m_usedStreamIds.size();
-                m_usedStreamIds.push_back(true);
-            }
-            // Must set the Unique Id first before linking all of the branches
-            pChildComponent->SetId(streamId);
-
             // link back upstream to the Tee, the src for this Child Component 
             if (!pChildComponent->LinkAll() or 
                 !pChildComponent->LinkToSourceTee(m_pTee, "src_%u"))
             {
-                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                LOG_ERROR("MultiBranchesBintr '" << GetName() 
                     << "' failed to Link Child Component '" 
                     << pChildComponent->GetName() << "'");
                 return false;
@@ -127,15 +134,15 @@ namespace DSL
         return true;
     }
     
-    bool MultiComponentsBintr::IsChild(DSL_BINTR_PTR pChildComponent)
+    bool MultiBranchesBintr::IsChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
         
-        return (m_pChildComponents.find(pChildComponent->GetName()) 
-            != m_pChildComponents.end());
+        return (m_pChildBranches.find(pChildComponent->GetName()) 
+            != m_pChildBranches.end());
     }
 
-    bool MultiComponentsBintr::RemoveChild(DSL_BASE_PTR pChildElement)
+    bool MultiBranchesBintr::RemoveChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -143,7 +150,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool MultiComponentsBintr::RemoveChild(DSL_BINTR_PTR pChildComponent)
+    bool MultiBranchesBintr::RemoveChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
 
@@ -155,92 +162,86 @@ namespace DSL
         }
         if (pChildComponent->IsLinkedToSource())
         {
-            pChildComponent->UnlinkFromSourceTee();
+            if (!pChildComponent->UnlinkFromSourceTee())
+            {   
+                LOG_ERROR("MultiBranchesBintr '" << GetName() 
+                    << "' failed to Unlink Child Branch '" 
+                    << pChildComponent->GetName() << "'");
+                return false;
+            }
             pChildComponent->UnlinkAll();
-            
-            // set the used-stream id as available for reuse
-            m_usedStreamIds[pChildComponent->GetId()] = false;
         }
+        // unreference and remove from the child-branch collections
+        m_pChildBranches.erase(pChildComponent->GetName());
+        m_pChildBranchesIndexed.erase(pChildComponent->GetId());
         
-        // unreference and remove from the collection of sinks
-        m_pChildComponents.erase(pChildComponent->GetName());
+        // set the used-stream id as available for reuse and clear the 
+        // stream-id (id property) for the child-branch
+        m_usedStreamIds[pChildComponent->GetId()] = false;
+        pChildComponent->SetId(-1);
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildComponent);
     }
 
 
-    bool MultiComponentsBintr::LinkAll()
+    bool MultiBranchesBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("MultiComponentsBintr '" << GetName() 
+            LOG_ERROR("MultiBranchesBintr '" << GetName() 
                 << "' is already linked");
             return false;
         }
         m_pQueue->LinkToSink(m_pTee);
 
-        uint streamId(0);
-        for (auto const& imap: m_pChildComponents)
+        for (auto const& imap: m_pChildBranchesIndexed)
         {
-            // Must set the Unique Id first, then Link all of the branches
-            imap.second->SetId(streamId);
-
-            // NVIDIA Streammuxer requires pad number to be added, the tee does not.
-            std::string srcPadName = (m_pTee->IsFactoryName("nvstreamdemux"))
-                ? "src_" + std::to_string(streamId)
-                : "src_%u";
-                
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
-                !imap.second->LinkToSourceTee(m_pTee, srcPadName.c_str()))
+                !imap.second->LinkToSourceTee(m_pTee, "src_%u"))
             {
-                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                LOG_ERROR("MultiBranchesBintr '" << GetName() 
                     << "' failed to Link Child Component '" 
                     << imap.second->GetName() << "'");
                 return false;
             }
-            // add the new stream id to the vector of currently connected (used) 
-            m_usedStreamIds.push_back(true);
-            streamId++;
         }
         m_isLinked = true;
         return true;
     }
 
-    void MultiComponentsBintr::UnlinkAll()
+    void MultiBranchesBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("MultiComponentsBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("MultiBranchesBintr '" << GetName() << "' is not linked");
             return;
         }
-        for (auto const& imap: m_pChildComponents)
+        for (const auto& imap: m_pChildBranchesIndexed)
         {
             // unlink from the Tee Element
             LOG_INFO("Unlinking " << m_pTee->GetName() << " from " 
                 << imap.second->GetName());
             if (!imap.second->UnlinkFromSourceTee())
             {
-                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                LOG_ERROR("MultiBranchesBintr '" << GetName() 
                     << "' failed to Unlink Child Component '" 
                     << imap.second->GetName() << "'");
                 return;
             }
             // unink all of the ChildComponent's Elementrs and reset the unique Id
             imap.second->UnlinkAll();
-            imap.second->SetId(-1);
         }
-        m_usedStreamIds.clear();
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
-    bool MultiComponentsBintr::SetBatchSize(uint batchSize)
+    bool MultiBranchesBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
         
@@ -250,12 +251,12 @@ namespace DSL
                 << "' as it's currently linked");
             return false;
         }
-        for (auto const& imap: m_pChildComponents)
+        for (auto const& imap: m_pChildBranches)
         {
             // unlink from the Tee Element
             if (!imap.second->SetBatchSize(batchSize))
             {
-                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                LOG_ERROR("MultiBranchesBintr '" << GetName() 
                     << "' failed to set batch size for Child Component '" 
                     << imap.second->GetName() << "'");
                 return false;
@@ -265,13 +266,13 @@ namespace DSL
     }
  
     MultiSinksBintr::MultiSinksBintr(const char* name)
-        : MultiComponentsBintr(name, "tee")
+        : MultiBranchesBintr(name, "tee")
     {
         LOG_FUNC();
     }
     
     SplitterBintr::SplitterBintr(const char* name)
-        : MultiComponentsBintr(name, "tee")
+        : MultiBranchesBintr(name, "tee")
     {
         LOG_FUNC();
     }
@@ -286,7 +287,7 @@ namespace DSL
     }
 
     DemuxerBintr::DemuxerBintr(const char* name, uint maxBranches)
-        : MultiComponentsBintr(name, "nvstreamdemux")
+        : MultiBranchesBintr(name, "nvstreamdemux")
         , m_maxBranches(maxBranches)
     {
         LOG_FUNC();
@@ -317,7 +318,7 @@ namespace DSL
             return false;
         }
         // Ensure that we are not exceeding max-branches
-        if ((m_pChildComponents.size()+1) > m_maxBranches)
+        if ((m_pChildBranches.size()+1) > m_maxBranches)
         {
             LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
                 << "' to DemuxerBintr'" << GetName() 
@@ -325,8 +326,30 @@ namespace DSL
             return false;
         }
 
-        // Add the Component to the Components collection and as a child of this Bintr
-        m_pChildComponents[pChildComponent->GetName()] = pChildComponent;
+        // find the next available unused stream-id
+        uint streamId(0);
+        auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+        
+        // If we're inserting into the location of a previously remved source
+        if (ivec != m_usedStreamIds.end())
+        {
+            streamId = ivec - m_usedStreamIds.begin();
+            m_usedStreamIds[streamId] = true;
+        }
+        // Else we're adding to the end of th indexed map
+        else
+        {
+            streamId = m_usedStreamIds.size();
+            m_usedStreamIds.push_back(true);
+        }
+        // Set the branches unique id to the available stream-id
+        pChildComponent->SetId(streamId);
+
+        // Add the branch to the Demuxers collection of children mapped by name 
+        m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
+        
+        // Add the branch to the Demuxers collection of children mapped by stream-id 
+        m_pChildBranchesIndexed[streamId] = pChildComponent;
         
         // call the parent class to complete the add
         if (!Bintr::AddChild(pChildComponent))
@@ -336,27 +359,10 @@ namespace DSL
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, Set child source Id 
-        // to the next available, linkAll Elementrs now and Link with the Stream
+        // If the Pipeline is currently in a linked state, 
+        // linkAll Elementrs now and Link with the Stream
         if (IsLinked())
         {
-            uint streamId(0);
-            
-            // find the next available unused stream-id
-            auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
-            if (ivec != m_usedStreamIds.end())
-            {
-                streamId = ivec - m_usedStreamIds.begin();
-                m_usedStreamIds[streamId] = true;
-            }
-            else
-            {
-                streamId = m_usedStreamIds.size();
-                m_usedStreamIds.push_back(true);
-            }
-            // Must set the Unique Id first before linking all branches
-            pChildComponent->SetId(streamId);
-
             // link back upstream to the Tee - now the src for the child branch.
             if (!pChildComponent->LinkAll() or 
                 !pChildComponent->LinkToSourceTee(m_pTee, 
@@ -381,7 +387,7 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("MultiComponentsBintr '" << GetName() 
+            LOG_ERROR("DemuxerBintr '" << GetName() 
                 << "' is already linked");
             return false;
         }
@@ -408,25 +414,18 @@ namespace DSL
             m_requestedSrcPads.push_back(pRequestedSrcPad);
         }
 
-        uint streamId(0);
-        for (auto const& imap: m_pChildComponents)
+        for (auto const& imap: m_pChildBranchesIndexed)
         {
-            // Must set the Unique Id first, then Link all of the branches
-            imap.second->SetId(streamId);
-
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSourceTee(m_pTee, 
-                m_requestedSrcPads[streamId]))
+                    m_requestedSrcPads[imap.second->GetId()]))
             {
-                LOG_ERROR("MultiComponentsBintr '" << GetName() 
+                LOG_ERROR("DemuxerBintr '" << GetName() 
                     << "' failed to Link Child Component '" 
                         << imap.second->GetName() << "'");
                 return false;
             }
-            // add the new stream id to the vector of currently connected (used) 
-            m_usedStreamIds.push_back(true);
-            streamId++;
         }
         m_isLinked = true;
         return true;
@@ -443,7 +442,7 @@ namespace DSL
         }
 
         // Call the parent class to do the actual unlinking
-        MultiComponentsBintr::UnlinkAll();
+        MultiBranchesBintr::UnlinkAll();
  
         // We now free all of the pre-allocated requested pads
         while (m_requestedSrcPads.size())
@@ -474,7 +473,7 @@ namespace DSL
                 << GetName() << "' as it is linked");
             return false;
         }
-        if (maxBranches < m_pChildComponents.size())
+        if (maxBranches < m_pChildBranches.size())
         {
             LOG_ERROR("Can't set max-branches = " << maxBranches 
                 << " for DemuxerBintr '" << GetName() 

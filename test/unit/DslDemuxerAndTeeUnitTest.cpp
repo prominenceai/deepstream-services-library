@@ -23,7 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
-#include "DslMultiComponentsBintr.h"
+#include "DslMultiBranchesBintr.h"
 #include "DslBranchBintr.h"
 
 using namespace DSL;
