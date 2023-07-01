@@ -1539,7 +1539,7 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
+typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. 
@@ -1550,7 +1550,7 @@ typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* clien
  * @param[in] ypos from the top left corner of the window
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, 
+typedef void (*dsl_sink_window_button_event_handler_cb)(uint button, 
     int xpos, int ypos, void* client_data);
 
 /**
@@ -1559,7 +1559,7 @@ typedef void (*dsl_xwindow_button_event_handler_cb)(uint button,
  * XWindow Delete Message event.
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
+typedef void (*dsl_sink_window_delete_event_handler_cb)(void* client_data);
 
 
 /**
@@ -6190,7 +6190,7 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
     uint depth, uint offset_x, uint offset_y, uint width, uint height);
 
 /**
- * @brief creates a new, uniquely named Window Sink component
+ * @brief Creates a new, uniquely named Window Sink component
  * @param[in] name unique component name for the new Overlay Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels
@@ -6202,11 +6202,46 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
     uint offset_x, uint offset_y, uint width, uint height);
 
 /**
+ * @brief Gets the named Window Sinks's current XWindow handle. The handle will 
+ * be NULL until one is created on Pipeline play, or provided prior to play by 
+ * calling dsl_sink_window_handle_set.
+ * @param[in] name name of the Window Sink to query
+ * @param[out] handle XWindow handle currently in use. NULL if none 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
+
+/**
+ * @brief Sets the named Window Sink's current XWindow handle. The handle will 
+ * be NULL until one is created on Pipeline play, or provided prior to play by 
+ * calling this services.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] handle XWindow handle to use on Pipeline play.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
+
+/**
+ * @brief clears the named Window Sinks's XWindow.
+ * @param[in] name name of the Window Sink to update.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_clear(const wchar_t* name);
+
+/**
+ * @brief destroys the named Window Sinks's XWindow if one exists and was not 
+ * provided bythe client with an earlier call to dsl_sink_window_handle_set.
+ * @param[in] name name of the Window Sink to update.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_destroy(const wchar_t* name);
+
+/**
  * @brief Gets the current "force-aspect-ration" property setting for the 
- * named Window Sink
- * @param[in] name unique name of the Window Sink to query
- * @param[out] force true if the apect ratio is forced, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * named Window Sink.
+ * @param[in] name unique name of the Window Sink to query.
+ * @param[out] force true if the apect ratio is forced, false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force);
@@ -6215,10 +6250,92 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
  * @brief Sets the "force-aspect-ration" property for the named Window Sink
  * @param[in] name unique name of the Window Sink to update
  * @param[in] force set to true to force the apect ratio, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
     boolean force);
+
+/**
+ * @brief Gets the current full-screen-enabled setting for the named Window Sink
+ * @param[in] name name of the Window Sink to query
+ * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
+  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+*/
+DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the full-screen-enabled setting for the named Window Sink to use.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] enabled if true, sets the XWindow to full-screen on creation.
+ * The service will fail if called after the XWindow has been created.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief adds a callback to a named Window Sink to be notified on Window 
+ * KeyRelease events.
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to handle Window key events.
+ * @param[in] client_data pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback from a named Window Sink previously added with 
+ * dsl_sink_window_key_event_handler_add.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] handler pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler);
+
+/**
+ * @brief Adds a callback to a named Window Sink be notified on Window 
+ * ButtonPress Event
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to handle Window button events.
+ * @param[in] client_data pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback from a named Window Sink previously added with 
+ * dsl_sink_window_button_event_handler_add
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */ 
+DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler);
+
+/**
+ * @brief Adds a callback to a named Window Sink to be notified on Window 
+ * Delete message event
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to handle a Window Delete event.
+ * @param[in] client_data pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler, void* client_data);
+
+/**
+ * @brief removes a callback from a named Window Sink previously added with 
+ * dsl_sink_window_delete_event_handler_add
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler);
 
 /**
  * @brief returns the current X and Y offsets for the Render Sink
@@ -7435,136 +7552,6 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* name,
     dsl_state_change_listener_cb listener);
 
 /**
- * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
- * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Pipeline to query
- * @param[out] xwindow XWindow handle currently in use. NULL if none 
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
-
-/**
- * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
- * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Pipeline to update
- * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* name, uint64_t window);
-
-/**
- * @brief clears the Pipeline's XWindow
- * @param[in] name name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* name);
-
-/**
- * @brief destroys the Pipeline's XWindow if one exists and was not provided by the
- * client with an earlier call to dsl_pipeline_xwindow_handle_set
- * @param[in] name name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* name);
-
-/**
- * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
- * prior to window creation which occurs when the Pipeline is played. 
- * @param[in] name name of the pipeline to query
- * @param[out] x_offset offset in the x direction of the XWindow in pixels
- * @param[out] x_offset offset in the Y direction of the XWindow in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* name, 
-    uint* x_offset, uint* y_offset);
-
-/**
- * @brief gets the current Pipeline XWindow dimensions. 
- * @param[in] name name of the pipeline to query
- * @param[out] width width of the XWindow in pixels
- * @param[out] heigth height of the Window in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
-
-/**
- * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] name name of the pipeline to query
- * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* name, 
-    boolean* enabled);
-
-/**
- * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] name name of the pipeline to update
- * @param[in] enabled if true, sets the XWindow to full-screen on creation.
- * The service will fail if called after the XWindow has been created.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* name, 
-    boolean enabled);
-
-/**
- * @brief adds a callback to be notified on XWindow KeyRelease Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to handle XWindow key events.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler);
-
-/**
- * @brief adds a callback to be notified on XWindow ButtonPress Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to call to handle XWindow button events.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_button_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_button_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_button_event_handler_cb handler);
-
-/**
- * @brief adds a callback to be notified on XWindow Delete Message Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to call to handle XWindow Delete event.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_delete_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_delete_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_delete_event_handler_cb handler);
-
-/**
  * @brief Creates a new main-context and main-loop for a named Pipeline. This service
  * must be called prior to calling dsl_pipeline_play and dsl_pipeline_main_loop_run.
  * @param name name of the pipeline to update. 
@@ -7766,43 +7753,6 @@ DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name, 
     dsl_player_termination_event_listener_cb listener);
-
-/**
- * @brief gets the Player's current XWindow handle. The handle will be NULL until one
- * is created on Player play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Player to query
- * @param[out] xwindow XWindow handle currently in use. NULL if none 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
-
-/**
- * @brief gets the Players's current XWindow handle. The handle will be NULL until one
- * is created on Player play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Player to update
- * @param[in] xwindow XWindow handle to use on Player play. Requires a Window Sink
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_handle_set(const wchar_t* name, uint64_t window);
-
-/**
- * @brief adds a callback to be notified on XWindow KeyRelease Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to handle XWindow key events.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler);
 
 /**
  * @brief Plays a Player if in a state of NULL or Paused

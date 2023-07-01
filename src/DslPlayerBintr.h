@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslPipelineStateMgr.h"
-#include "DslPipelineXWinMgr.h"
+#include "DslPipelineBusSyncMgr.h"
 
 namespace DSL
 {
@@ -56,7 +56,7 @@ namespace DSL
             filePath, renderType, offsetX, offsetY, zoom, timeout))    
     
     class PlayerBintr : public Bintr, public PipelineStateMgr,
-        public PipelineXWinMgr
+        public PipelineBusSyncMgr
     {
     public: 
     

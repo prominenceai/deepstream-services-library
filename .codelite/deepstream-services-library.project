@@ -28,7 +28,6 @@
     <File Name="../src/DslPipelineSInfersBintr.cpp"/>
     <File Name="../src/DslPipelineSourcesBintr.cpp"/>
     <File Name="../src/DslPipelineStateMgr.cpp"/>
-    <File Name="../src/DslPipelineXWinMgr.cpp"/>
     <File Name="../src/DslPlayerBintr.cpp"/>
     <File Name="../src/DslRecordMgr.cpp"/>
     <File Name="../src/DslSegVisualBintr.cpp"/>
@@ -81,7 +80,6 @@
     <File Name="../src/DslPipelineSInfersBintr.h"/>
     <File Name="../src/DslPipelineSourcesBintr.h"/>
     <File Name="../src/DslPipelineStateMgr.h"/>
-    <File Name="../src/DslPipelineXWinMgr.h"/>
     <File Name="../src/DslPlayerBintr.h"/>
     <File Name="../src/DslRecordMgr.h"/>
     <File Name="../src/DslSegVisualBintr.h"/>
@@ -124,6 +122,8 @@
     </VirtualDirectory>
     <File Name="../src/DslMultiBranchesBintr.h"/>
     <File Name="../src/DslMultiBranchesBintr.cpp"/>
+    <File Name="../src/DslPipelineBusSyncMgr.h"/>
+    <File Name="../src/DslPipelineBusSyncMgr.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">

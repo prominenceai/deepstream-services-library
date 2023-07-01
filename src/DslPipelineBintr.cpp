@@ -33,7 +33,7 @@ namespace DSL
     PipelineBintr::PipelineBintr(const char* name)
         : BranchBintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
-        , PipelineXWinMgr(m_pGstObj)
+        , PipelineBusSyncMgr(m_pGstObj)
     {
         LOG_FUNC();
 
@@ -386,15 +386,15 @@ namespace DSL
         // the XDisplay thread or the bus-watch fucntion
         
         // Try and lock the Display mutex first
-        if (!g_mutex_trylock(&m_displayMutex))
-        {
-            // lock-failed which means we are already in the XWindow thread context
-            // calling on a client handler function for Key release or xWindow delete. 
-            // Safe to stop the Pipeline in this context.
-            LOG_INFO("dsl_pipeline_stop called from XWindow display thread context");
-            HandleStop();
-            return true;
-        }
+//        if (!g_mutex_trylock(&m_displayMutex))
+//        {
+//            // lock-failed which means we are already in the XWindow thread context
+//            // calling on a client handler function for Key release or xWindow delete. 
+//            // Safe to stop the Pipeline in this context.
+//            LOG_INFO("dsl_pipeline_stop called from XWindow display thread context");
+//            HandleStop();
+//            return true;
+//        }
         // Try the bus-watch mutex next
         if (!g_mutex_trylock(&m_busWatchMutex))
         {
@@ -403,7 +403,7 @@ namespace DSL
             // the Pipeline in this context. 
             LOG_INFO("dsl_pipeline_stop called from bus-watch-function thread context");
             HandleStop();
-            g_mutex_unlock(&m_displayMutex);
+//            g_mutex_unlock(&m_displayMutex);
             return true;
         }
         
@@ -420,7 +420,7 @@ namespace DSL
                 gst_message_new_application(GetGstObject(),
                     gst_structure_new_empty("stop-pipline")));
 
-            g_mutex_unlock(&m_displayMutex);
+//            g_mutex_unlock(&m_displayMutex);
             g_mutex_unlock(&m_busWatchMutex);
                     
             // We need a timeout in case the condition is never met/cleared
@@ -442,7 +442,7 @@ namespace DSL
         {
             HandleStop();
         }
-        g_mutex_unlock(&m_displayMutex);
+//        g_mutex_unlock(&m_displayMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }

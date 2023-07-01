@@ -261,7 +261,8 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height);
+            m_components[name] = DSL_WINDOW_SINK_NEW(name, 
+                offsetX, offsetY, width, height);
 
             LOG_INFO("New Window Sink '" << name << "' created successfully");
 
@@ -269,11 +270,140 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            LOG_ERROR("New Window Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
     
+    DslReturnType Services::SinkWindowHandleGet(const char* name, uint64_t* handle) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+            
+            *handle = pWindowSinkBintr->GetHandle();
+
+            LOG_INFO("Window Sink '" << name 
+                << "' returned handle = " << std::hex 
+                << *handle << " successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception getting handle");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkWindowHandleSet(const char* name, uint64_t handle)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+            
+            if (!pWindowSinkBintr->SetHandle(handle))
+            {
+                LOG_ERROR("Failure setting handle = " << std::hex 
+                    << " for Window Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' set handle = " << std::hex << handle << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception setting handle");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkWindowClear(const char* name)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+            
+            if (!pWindowSinkBintr->Clear())
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to clear successfully");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name << "' cleared successfuly");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception clearing");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SinkWindowDestroy(const char* name)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+            
+            
+            if (!pWindowSinkBintr->Destroy())
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to destroy its handle");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_ERROR("Window Sink '" << name 
+                << "'destroyed its handle  successfully ");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception destroying its handle");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SinkWindowForceAspectRatioGet(const char* name, 
         boolean* force)
     {
@@ -283,14 +413,16 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
 
             *force = pWindowSinkBintr->GetForceAspectRatio();
             
-            LOG_INFO("Window Sink '" << name << "' returned Force Aspect Ration = " 
+            LOG_INFO("Window Sink '" << name 
+            << "' returned Force Aspect Ration = " 
                 << *force  << " successfully");
             
             return DSL_RESULT_SUCCESS;
@@ -298,7 +430,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception getting 'force-aspect-ratio' property");
+                << "' threw an exception getting 'force-aspect-ratio'");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -312,7 +444,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -336,7 +469,277 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY)
+    DslReturnType Services::SinkWindowFullScreenEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+            
+            *enabled = (boolean)pWindowSinkBintr->GetFullScreenEnabled();
+            
+            LOG_INFO("Window Sink '" << name << "' returned Fullscreen Enabled = " 
+                << *enabled << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception getting full-screen-enabled setting");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowFullScreenEnabledSet(const char* name, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->SetFullScreenEnabled(enabled))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to set full-screen-enabled setting = "
+                    << enabled);
+                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name << "' set full-screen-enabled = " 
+                << enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception setting the full-screen-enabled setting");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
+    DslReturnType Services::SinkWindowKeyEventHandlerAdd(const char* name, 
+        dsl_sink_window_key_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+            
+            if (!pWindowSinkBintr->AddKeyEventHandler(handler, clientData))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to add Key Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' added Key Event Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception adding Key Event Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowKeyEventHandlerRemove(const char* name, 
+        dsl_sink_window_key_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->RemoveKeyEventHandler(handler))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to remove Key Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' removed Key Event Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception removing Key Event Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowButtonEventHandlerAdd(const char* name, 
+        dsl_sink_window_button_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->AddButtonEventHandler(handler, clientData))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to add Button Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' added Button Event Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception adding Button Event Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowButtonEventHandlerRemove(const char* name, 
+        dsl_sink_window_button_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->RemoveButtonEventHandler(handler))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to remove Button Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' removed Button Event Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception removing Button Event Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowDeleteEventHandlerAdd(const char* name, 
+        dsl_sink_window_delete_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->AddDeleteEventHandler(handler, clientData))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to add Delete Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' added Delete Event Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception adding Delete Event Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowDeleteEventHandlerRemove(const char* name, 
+        dsl_sink_window_delete_event_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, WindowSinkBintr);
+
+            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSinkBintr->RemoveDeleteEventHandler(handler))
+            {
+                LOG_ERROR("Window Sink '" << name 
+                    << "' failed to remove Delete Event Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name 
+                << "' removed Delete Event Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception removing Delete Event Handler");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRenderOffsetsGet(const char* name, 
+        uint* offsetX, uint* offsetY)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -363,7 +766,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRenderOffsetsSet(const char* name, uint offsetX, uint offsetY)
+    DslReturnType Services::SinkRenderOffsetsSet(const char* name, 
+        uint offsetX, uint offsetY)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -393,7 +797,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRenderDimensionsGet(const char* name, uint* width, uint* height)
+    DslReturnType Services::SinkRenderDimensionsGet(const char* name, 
+        uint* width, uint* height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -420,7 +825,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRenderDimensionsSet(const char* name, uint width, uint height)
+    DslReturnType Services::SinkRenderDimensionsSet(const char* name, 
+        uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

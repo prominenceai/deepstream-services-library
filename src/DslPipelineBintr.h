@@ -30,7 +30,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBranchBintr.h"
 #include "DslPipelineStateMgr.h"
-#include "DslPipelineXWinMgr.h"
+#include "DslPipelineBusSyncMgr.h"
 #include "DslSourceBintr.h"
 #include "DslDewarperBintr.h"
 #include "DslPipelineSourcesBintr.h"
@@ -49,7 +49,7 @@ namespace DSL
      * @brief 
      */
     class PipelineBintr : public BranchBintr, public PipelineStateMgr,
-        public PipelineXWinMgr
+        public PipelineBusSyncMgr
     {
     public:
     

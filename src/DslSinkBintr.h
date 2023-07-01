@@ -577,6 +577,107 @@ namespace DSL
         bool SetForceAspectRatio(bool force);
 
         /**
+         * @brief Gets the current full-screen-enabled setting for the WindowSinkBintr
+         * @retrun true if full-screen-mode is currently enabled, false otherwise
+         */
+        bool GetFullScreenEnabled();
+        
+        /**
+         * @brief Sets the full-screen-enabled setting for the WindowSinkBintr
+         * @param enabled if true, sets the window to full-screen on creation
+         * @return true if the full-screen-enabled could be set, 
+         * false if called after XWindow creation
+         */
+        bool SetFullScreenEnabled(bool enabled);
+
+        /**
+         * @brief Adds a callback to be notified on display/window KeyRelease event
+         * @param[in] handler pointer to the client's function to add
+         * @param[in] clientData opaque to client data passed back to the handler.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddKeyEventHandler(dsl_sink_window_key_event_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a callback previously added with AddKeyEventHandler
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveKeyEventHandler(dsl_sink_window_key_event_handler_cb handler);
+            
+        /**
+         * @brief adds a callback to be notified on display/window ButtonPress event.
+         * @param[in] handler pointer to the client's function to add
+         * @param[in] clientData opaque to client data passed back to the handler.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddButtonEventHandler(dsl_sink_window_button_event_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveButtonEventHandler(dsl_sink_window_button_event_handler_cb handler);
+        /**
+         * @brief adds a callback to be notified on display/window delete event.
+         * @param[in] handler pointer to the client's function to add
+         * @param[in] clientData opaque to client data passed back to the handler.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddDeleteEventHandler(dsl_sink_window_delete_event_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveDeleteEventHandler(dsl_sink_window_delete_event_handler_cb handler);
+        
+        /**
+         * @brief handles incoming window KEY & BUTTON events by calling
+         * all client installed event handlers for each queued event.
+         */
+        void HandleXWindowEvents();
+
+        bool CreateXWindow(GstMessage* pMessage);
+        
+        /**
+         * @brief queries the WindowSinkBintr to determine if it owns an xwindow
+         * @return true if the WindowSinkBintr has ownership of an xwindow, 
+         * false otherwise.
+         */
+        bool OwnsXWindow();
+        
+        /**
+         * @brief returns a handle to this WindowSinkBintr's XWindow
+         * @return XWindow handle, NULL untill created
+         */
+        Window GetHandle();
+        
+        /**
+         * @brief Sets the WindowSinkBintr's XWindow handle. The Pipeline
+         * must be in an unlinked state to change XWindow handles. 
+         * @return true on successful clear, false otherwise
+         */
+        bool SetHandle(Window xWindow);
+        
+        /**
+         * @brief Clears the WindowSinkBintr's XWindow buffer
+         * @return true on successful clear, false otherwise..
+         */
+        bool Clear();
+        
+        /**
+         * @brief Destroys the WindowSinkBintr's XWindow
+         * @return true on successful destruction, false otherwise.
+         */
+        bool Destroy();
+        
+        /**
          * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
          * @return true if successfully set, false otherwise.
          */
@@ -595,6 +696,61 @@ namespace DSL
         bool m_forceAspectRatio;
 
         /**
+         * @brief map of all currently registered XWindow-key-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_sink_window_key_event_handler_cb, void*> 
+            m_xWindowKeyEventHandlers;
+
+        /**
+         * @brief map of all currently registered XWindow-button-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_sink_window_button_event_handler_cb, void*> 
+            m_xWindowButtonEventHandlers;
+
+        /**
+         * @brief map of all currently registered XWindow-delete-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_sink_window_delete_event_handler_cb, void*> 
+            m_xWindowDeleteEventHandlers;
+        
+        /**
+         * @brief a single display for each Pipeline
+        */
+        Display* m_pXDisplay;
+
+        /**
+         * @brief handle to X Window
+         */
+        Window m_pXWindow;
+        
+        /**
+         * @brief flag to determine if the XWindow was created or provided by t
+         * he client. The WindowSinkBitnr needs to delete the XWindow if created, 
+         * but not the client's
+         */
+        bool m_pXWindowCreated;
+        
+        /**
+         * @brief handle to the X Window event thread, 
+         * active for the life of the Pipeline
+        */
+        GThread* m_pXWindowEventThread;        
+        
+        /**
+         * @brief mutex for display thread
+        */
+        GMutex m_displayMutex;
+        
+        /**
+         * @brief if true, the Pipeline will set its XWindow to full-screen if one is created
+         * A Pipeline requires a Window Sink to create an XWindow on Play
+         */
+        bool m_xWindowfullScreenEnabled;
+
+        /**
          * @brief Caps Filter required for dGPU WindowSinkBintr
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
@@ -609,6 +765,8 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pEglGles;
     };
+
+    static gpointer XWindowEventThread(gpointer pWindowSink);
 
     //-------------------------------------------------------------------------
 

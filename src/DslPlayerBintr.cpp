@@ -35,7 +35,7 @@ namespace DSL
         DSL_BINTR_PTR pSource, DSL_BINTR_PTR pSink)
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
-        , PipelineXWinMgr(m_pGstObj)
+        , PipelineBusSyncMgr(m_pGstObj)
         , m_pSource(pSource)
         , m_pSink(pSink)
         , m_inTermination(false)
@@ -71,13 +71,13 @@ namespace DSL
             throw;
         }
         
-        AddXWindowDeleteEventHandler(PlayerTerminate, this);
+//        AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
     PlayerBintr::PlayerBintr(const char* name)
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
-        , PipelineXWinMgr(m_pGstObj)
+        , PipelineBusSyncMgr(m_pGstObj)
         , m_inTermination(false)
         , m_clearPlayNextMutex(false)
     {
