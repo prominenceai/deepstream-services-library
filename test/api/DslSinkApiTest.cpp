@@ -838,7 +838,6 @@ SCENARIO( "A Window Sink's Handle can be Set/Get", "[sink-api]" )
         boolean defFullScreenEnabled(0);
         boolean retFullScreenEnabled(99);
 
-
         REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
@@ -848,7 +847,7 @@ SCENARIO( "A Window Sink's Handle can be Set/Get", "[sink-api]" )
             &retHandle) == DSL_RESULT_SUCCESS );
             
         // must be initialized to NULL
-        REQUIRE( retHandle == NULL );
+        REQUIRE( retHandle == 0 );
 
         WHEN( "When the Window Sink's Handle is updated" ) 
         {

@@ -29,6 +29,8 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+
 static uint new_buffer_cb(uint data_type, 
     void* buffer, void* client_data)
 {
@@ -428,7 +430,6 @@ SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
     }
 }
 
-
 SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Window Sink" ) 
@@ -535,7 +536,107 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
 }
 
 
-SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
+SCENARIO( "Multiple Window Sinks can create their XWindow correctly", 
+    "[SinkBintr]" )
+{
+    GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
+    {
+        std::string sinkName1("window-sink-1");
+        std::string sinkName2("window-sink-2");
+        std::string sinkName3("window-sink-3");
+        std::string sinkName4("window-sink-4");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint initSinkW(300);
+        uint initSinkH(200);
+
+        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
+            sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
+            sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
+            sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
+            sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+
+        WHEN( "The new PipelineBintr's XWindow is created" )
+        {
+            REQUIRE( pSinkBintr1->CreateXWindow() == true );
+            REQUIRE( pSinkBintr2->CreateXWindow() == true );
+            REQUIRE( pSinkBintr3->CreateXWindow() == true );
+            REQUIRE( pSinkBintr4->CreateXWindow() == true );
+                
+            THEN( "The XWindow handle is available" )
+            {
+                REQUIRE( pSinkBintr1->GetHandle() != 0 );
+                REQUIRE( pSinkBintr2->GetHandle() != 0 );
+                REQUIRE( pSinkBintr3->GetHandle() != 0 );
+                REQUIRE( pSinkBintr4->GetHandle() != 0 );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                
+                REQUIRE( pSinkBintr1->DestroyXWindow() == true );
+                REQUIRE( pSinkBintr2->DestroyXWindow() == true );
+                REQUIRE( pSinkBintr3->DestroyXWindow() == true );
+                REQUIRE( pSinkBintr4->DestroyXWindow() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full screen mode", 
+    "[SinkBintr]" )
+{
+    GIVEN( "Four WindowSinkBintr's with valid XWindow dimensions" ) 
+    {
+        std::string sinkName1("window-sink-1");
+        std::string sinkName2("window-sink-2");
+        std::string sinkName3("window-sink-3");
+        std::string sinkName4("window-sink-4");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint initSinkW(300);
+        uint initSinkH(200);
+
+        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
+            sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
+            sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
+            sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
+            sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+
+        WHEN( "The all WindowSinkBintr's XWindows are created" )
+        {
+            REQUIRE( pSinkBintr1->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr2->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr3->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr4->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr1->CreateXWindow() == true );
+            REQUIRE( pSinkBintr2->CreateXWindow() == true );
+            REQUIRE( pSinkBintr3->CreateXWindow() == true );
+            REQUIRE( pSinkBintr4->CreateXWindow() == true );
+                
+            THEN( "The XWindow handle is available" )
+            {
+                REQUIRE( pSinkBintr1->GetHandle() != 0 );
+                REQUIRE( pSinkBintr2->GetHandle() != 0 );
+                REQUIRE( pSinkBintr3->GetHandle() != 0 );
+                REQUIRE( pSinkBintr4->GetHandle() != 0 );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                
+                REQUIRE( pSinkBintr1->DestroyXWindow() == true );
+                REQUIRE( pSinkBintr2->DestroyXWindow() == true );
+                REQUIRE( pSinkBintr3->DestroyXWindow() == true );
+                REQUIRE( pSinkBintr4->DestroyXWindow() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[now]" )
 {
     GIVEN( "A new WindowSinkBintr in memory" ) 
     {
@@ -547,6 +648,7 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
+        REQUIRE( pSinkBintr->CreateXWindow() == true );
             
         uint currOffsetX(0);
         uint currOffsetY(0);
@@ -557,16 +659,22 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
 
         WHEN( "The WindowSinkBintr's Offsets are Set" )
         {
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             uint newOffsetX(80);
             uint newOffsetY(20);
             
-            pSinkBintr->SetOffsets(newOffsetX, newOffsetY);
+            REQUIRE( pSinkBintr->SetOffsets(newOffsetX, newOffsetY) == true );
 
-            THEN( "The WindowSinkBintr's new demensions are returned on Get")
+            THEN( "The WindowSinkBintr's new offsets are returned on Get")
             {
+                // must sleep to allow XWindow offset's to update
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
+                
                 REQUIRE( currOffsetX == newOffsetX );
                 REQUIRE( currOffsetY == newOffsetY );
+
+                REQUIRE( pSinkBintr->DestroyXWindow() == true );
             }
         }
     }
@@ -584,6 +692,7 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 
         DSL_WINDOW_SINK_PTR pSinkBintr = DSL_WINDOW_SINK_NEW(
             sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        REQUIRE( pSinkBintr->CreateXWindow() == true );
             
         uint currSinkW(0);
         uint currSinkH(0);
@@ -594,100 +703,21 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 
         WHEN( "The WindowSinkBintr's dimensions are Set" )
         {
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             uint newSinkW(1280);
             uint newSinkH(720);
-            
-            pSinkBintr->SetDimensions(newSinkW, newSinkH);
+            REQUIRE( pSinkBintr->SetDimensions(newSinkW, newSinkH) == true);
 
             THEN( "The WindowSinkBintr's new dimensions are returned on Get")
             {
+                // must sleep to allow XWindow dimensions's to update
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
+
                 REQUIRE( currSinkW == newSinkW );
                 REQUIRE( currSinkH == newSinkH );
-            }
-        }
-    }
-}
-
-SCENARIO( "Multiple Window Sinks can create their XWindow correctly", "[new]" )
-{
-    GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
-    {
-        std::string sinkName1("window-sink-1");
-        std::string sinkName2("window-sink-2");
-        std::string sinkName3("window-sink-3");
-        std::string sinkName4("window-sink-4");
-        uint offsetX(0);
-        uint offsetY(0);
-        uint initSinkW(300);
-        uint initSinkH(200);
-
-        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
-            sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
-            sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
-            sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
-            sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-
-        WHEN( "The new PipelineBintr's XWindow is created" )
-        {
-            REQUIRE( pSinkBintr1->CreateXWindow() == true );
-            REQUIRE( pSinkBintr2->CreateXWindow() == true );
-            REQUIRE( pSinkBintr3->CreateXWindow() == true );
-            REQUIRE( pSinkBintr4->CreateXWindow() == true );
                 
-            THEN( "The XWindow handle is available" )
-            {
-                REQUIRE( pSinkBintr1->GetHandle() != 0 );
-                REQUIRE( pSinkBintr2->GetHandle() != 0 );
-                REQUIRE( pSinkBintr3->GetHandle() != 0 );
-                REQUIRE( pSinkBintr4->GetHandle() != 0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full screen mode", "[new]" )
-{
-    GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
-    {
-        std::string sinkName1("window-sink-1");
-        std::string sinkName2("window-sink-2");
-        std::string sinkName3("window-sink-3");
-        std::string sinkName4("window-sink-4");
-        uint offsetX(0);
-        uint offsetY(0);
-        uint initSinkW(300);
-        uint initSinkH(200);
-
-        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
-            sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
-            sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
-            sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
-            sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-
-        WHEN( "The new PipelineBintr's XWindow is created" )
-        {
-            REQUIRE( pSinkBintr1->SetFullScreenEnabled(true) == true );
-            REQUIRE( pSinkBintr2->SetFullScreenEnabled(true) == true );
-            REQUIRE( pSinkBintr3->SetFullScreenEnabled(true) == true );
-            REQUIRE( pSinkBintr4->SetFullScreenEnabled(true) == true );
-            REQUIRE( pSinkBintr1->CreateXWindow() == true );
-            REQUIRE( pSinkBintr2->CreateXWindow() == true );
-            REQUIRE( pSinkBintr3->CreateXWindow() == true );
-            REQUIRE( pSinkBintr4->CreateXWindow() == true );
-                
-            THEN( "The XWindow handle is available" )
-            {
-                REQUIRE( pSinkBintr1->GetHandle() != 0 );
-                REQUIRE( pSinkBintr2->GetHandle() != 0 );
-                REQUIRE( pSinkBintr3->GetHandle() != 0 );
-                REQUIRE( pSinkBintr4->GetHandle() != 0 );
+                REQUIRE( pSinkBintr->DestroyXWindow() == true );
             }
         }
     }

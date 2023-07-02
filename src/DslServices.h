@@ -1161,8 +1161,6 @@ namespace DSL {
         
         DslReturnType SinkWindowClear(const char* name);
         
-        DslReturnType SinkWindowDestroy(const char* name);
-        
         DslReturnType SinkWindowForceAspectRatioGet(const char* name, 
             boolean* force);
 

@@ -702,20 +702,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", name);
-        
-        m_pEglGles->SetAttribute("window-x", m_offsetX);
-        m_pEglGles->SetAttribute("window-y", m_offsetY);
-        m_pEglGles->SetAttribute("window-width", m_width);
-        m_pEglGles->SetAttribute("window-height", m_height);
-        m_pEglGles->SetAttribute("enable-last-sample", false);
-        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        m_pEglGles->SetAttribute("max-lateness", -1);
-        m_pEglGles->SetAttribute("sync", m_sync);
-        m_pEglGles->SetAttribute("async", false);
-        m_pEglGles->SetAttribute("qos", m_qos);
-        
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
@@ -749,6 +735,13 @@ namespace DSL
             m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
         }
         
+        // Reset to create m_pEglGles
+        if (!Reset())
+        {
+            LOG_ERROR("Failed to create Window element for SinkBintr '" 
+                << GetName() << "'");
+            throw;
+        }
         LOG_INFO("");
         LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
         LOG_INFO("  offset-x           : " << offsetX);
@@ -761,7 +754,6 @@ namespace DSL
         LOG_INFO("  sync               : " << m_sync);
         LOG_INFO("  qos                : " << m_qos);
         
-        AddChild(m_pEglGles);
         AddChild(m_pTransform);
         
         g_mutex_init(&m_displayMutex);
@@ -775,26 +767,6 @@ namespace DSL
         {    
             UnlinkAll();
         }
-        // cleanup all resources
-        if (m_pXDisplay)
-        {
-            // create scope for the mutex
-            {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-
-                if (m_pXWindow and m_pXWindowCreated)
-                {
-                    XDestroyWindow(m_pXDisplay, m_pXWindow);
-                }
-                
-                XCloseDisplay(m_pXDisplay);
-                
-                // Setting the display handle to NULL will terminate 
-                // the XWindow Event Thread.
-                m_pXDisplay = NULL;
-            }
-            g_thread_join(m_pXWindowEventThread);
-        }
 
         g_mutex_clear(&m_displayMutex);
     }
@@ -805,41 +777,36 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() 
+            LOG_ERROR("WindowSinkBintr '" << GetName() 
                 << "' is currently linked and cannot be reset");
             return false;
         }
 
-        // is this needed
-        m_pEglGles->SetAttribute("window-x", 0);
-        m_pEglGles->SetAttribute("window-y", 0);
-        m_pEglGles->SetAttribute("window-width", 0);
-        m_pEglGles->SetAttribute("window-height", 0);
-
+        // If not  a first time call from the constructor
+        if (m_pEglGles != nullptr)
+        {
+            // Remove the existing element from the objects bin
+            gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
+            RemoveChild(m_pEglGles);
+            m_pEglGles = nullptr;
+        }
+        
+        m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        
         m_pEglGles->SetAttribute("window-x", m_offsetX);
         m_pEglGles->SetAttribute("window-y", m_offsetY);
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
-
-//      saved from PielineXWinMgr
-
-//            XWindowAttributes attrs;
-//            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
-//            m_xWindowOffsetX = attrs.x;
-//            m_xWindowOffsetY = attrs.y;
-
-//            XWindowAttributes attrs;
-//            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
-//            m_xWindowWidth = attrs.width;
-//            m_xWindowHeight = attrs.height;
-
-//        if (m_pXWindow)
-//        {
-//            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-//                m_xWindowOffsetX, m_xWindowOffsetY, 
-//                m_xWindowWidth, m_xWindowHeight);
-//        }
-
+        m_pEglGles->SetAttribute("enable-last-sample", false);
+        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        m_pEglGles->SetAttribute("max-lateness", -1);
+        m_pEglGles->SetAttribute("sync", m_sync);
+        m_pEglGles->SetAttribute("async", false);
+        m_pEglGles->SetAttribute("qos", m_qos);
+        
+        AddChild(m_pEglGles);
+        
         return true;
     }
 
@@ -852,7 +819,6 @@ namespace DSL
             LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-
         
         // register this Window-Sink's nveglglessink plugin.
         Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
@@ -889,6 +855,7 @@ namespace DSL
             LOG_ERROR("WindowSinkBintr '" << GetName() << "' is not linked");
             return;
         }
+
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         
@@ -901,8 +868,33 @@ namespace DSL
         DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
 
         m_isLinked = false;
+        
+        if(OwnsXWindow() and !DestroyXWindow())
+        {
+            LOG_ERROR("WindowSinkBintr '" << GetName() 
+                << "' failed to destroy its XWindow");
+        }
+        Reset();
     }
     
+    void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_offsetX = attrs.x;
+            m_offsetY = attrs.y;
+        }
+        
+        *offsetX = m_offsetX;
+        *offsetY = m_offsetY;
+    }
+
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
@@ -910,10 +902,39 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+            gst_video_overlay_expose(
+                GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
+        }
+        // Set the EglGles plugin values regardless of XWindow existence.
         m_pEglGles->SetAttribute("window-x", m_offsetX);
         m_pEglGles->SetAttribute("window-y", m_offsetY);
         
         return true;
+    }
+
+    void WindowSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_width = attrs.width;
+            m_height = attrs.height;
+        }
+
+        *width = m_width;
+        *height = m_height;
     }
 
     bool WindowSinkBintr::SetDimensions(uint width, uint height)
@@ -923,6 +944,15 @@ namespace DSL
         m_width = width;
         m_height = height;
 
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        // Set the EglGles plugin values regardless of XWindow existence.
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
         
@@ -935,8 +965,8 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync enabled setting for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set Sync enabled setting for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_sync = enabled;
@@ -1165,7 +1195,7 @@ namespace DSL
             g_usleep(G_USEC_PER_SEC / 20);
         }
     }
-
+    
     bool WindowSinkBintr::CreateXWindow()
     {
         LOG_FUNC();
@@ -1182,7 +1212,9 @@ namespace DSL
         // the Window Sink offsets and dimensions
         if (m_xWindowfullScreenEnabled)
         {
-            LOG_INFO("Creating new XWindow in 'full-screen-mode'");
+            LOG_INFO(
+                "Creating new XWindow in 'full-screen-mode' for WindowSinkBintr '"
+                << GetName() << "'");
 
             m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
                 RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
@@ -1194,11 +1226,12 @@ namespace DSL
             LOG_INFO("Creating new XWindow: x-offset = " << m_offsetX 
                 << ", y-offset = " << m_offsetY 
                 << ", width = " << m_width 
-                << ", height = " << m_width);
+                << ", height = " << m_height 
+                << " for WindowSinkBintr '" << GetName() << "'");
         
             m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
                 RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
-                m_offsetX, m_offsetY, m_width, m_width, 2, 0, 0);
+                m_offsetX, m_offsetY, m_width, m_height, 2, 0, 0);
         } 
             
         if (!m_pXWindow)
@@ -1246,12 +1279,68 @@ namespace DSL
 
         gst_video_overlay_set_window_handle(
             GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()), m_pXWindow);
+
+        XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+            m_offsetX, m_offsetY, 
+            m_width, m_height);
+
         gst_video_overlay_expose(
             GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
-        
+            
         return true;
     }
 
+    bool WindowSinkBintr::DestroyXWindow()
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to destroy XWindow for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        
+        // cleanup all resources
+        if (!OwnsXWindow())
+        {
+            LOG_ERROR("Unable to destroy XWindow for WindowSinkBintr '" 
+                << GetName() << "' as it does not own one");
+            return false;
+        }
+        else    
+        {
+            // create scope for the mutex
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+                
+                LOG_INFO("Destroying XWindow for WindowSinkBintr '" 
+                    << GetName() << "'");
+                    
+                // Destroy the XWindow and close the connection with the 
+                // XServer for the Display that was opened on create.
+                XDestroyWindow(m_pXDisplay, m_pXWindow);
+                XCloseDisplay(m_pXDisplay);
+
+                // Reset the created own window flag
+                m_pXWindowCreated = False;
+                
+                // Setting the display handle to NULL will terminate 
+                // the XWindow Event Thread.
+                m_pXDisplay = NULL;
+            }
+            g_thread_join(m_pXWindowEventThread);
+        }
+        return true;
+    }
+
+    bool WindowSinkBintr::HasXWindow()
+    {
+        LOG_FUNC();
+        
+        return (m_pXWindow);
+    }
+    
     bool WindowSinkBintr::OwnsXWindow()
     {
         LOG_FUNC();
@@ -1270,15 +1359,15 @@ namespace DSL
     {
         LOG_FUNC();
         
-//        if (IsLinked())
-//        {
-//            LOG_ERROR("Pipeline '" << GetName() 
-//                << "' failed to set XWindow handle as it is currently linked");
-//            return false;
-//        }
+        if (IsLinked())
+        {
+            LOG_ERROR("WindowSinkBintr '" << GetName() 
+                << "' failed to set XWindow handle as it is currently linked");
+            return false;
+        }
         if (m_pXWindowCreated)
         {
-            Destroy();
+            DestroyXWindow();
             LOG_INFO("WindowSinkBintr destroyed its own XWindow to use the client's");
         }
         m_pXWindow = handle;
@@ -1298,21 +1387,6 @@ namespace DSL
         return true;
     }
     
-    bool WindowSinkBintr::Destroy()
-    {
-        LOG_FUNC();
-        
-        if (!m_pXWindow or !m_pXWindowCreated)
-        {
-            LOG_INFO("WindowSinkBintr does not own an XWindow to distroy");
-            return false;
-        }
-        XDestroyWindow(m_pXDisplay, m_pXWindow);
-        m_pXWindow = 0;
-        m_pXWindowCreated = False;
-        return true;
-    }
-
     bool WindowSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();

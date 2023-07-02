@@ -370,40 +370,6 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::SinkWindowDestroy(const char* name)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
-
-            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
-                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
-            
-            
-            if (!pWindowSinkBintr->Destroy())
-            {
-                LOG_ERROR("Window Sink '" << name 
-                    << "' failed to destroy its handle");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_ERROR("Window Sink '" << name 
-                << "'destroyed its handle  successfully ");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Window Sink '" << name 
-                << "' threw an exception destroying its handle");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::SinkWindowForceAspectRatioGet(const char* name, 
         boolean* force)
     {
@@ -519,7 +485,7 @@ namespace DSL
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to set full-screen-enabled setting = "
                     << enabled);
-                return DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED;
+                return DSL_RESULT_SINK_SET_FAILED;
             }
             LOG_INFO("Window Sink '" << name << "' set full-screen-enabled = " 
                 << enabled << "' successfully");

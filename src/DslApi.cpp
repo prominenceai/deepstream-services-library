@@ -6396,16 +6396,6 @@ DslReturnType dsl_sink_window_clear(const wchar_t* name)
     return DSL::Services::GetServices()->SinkWindowClear(cstrName.c_str());
 }
  
-DslReturnType dsl_sink_window_destroy(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkWindowDestroy(cstrName.c_str());
-}
-
 DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force)
 {

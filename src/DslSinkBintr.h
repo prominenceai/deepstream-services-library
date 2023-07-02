@@ -376,9 +376,9 @@ namespace DSL
         /**
          * @brief Gets the current X and Y offset settings for this RenderSinkBintr
          * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction setting in pixels
+         * @param[out] offsetY the current offset in the Y direction in pixels
          */ 
-        void GetOffsets(uint* offsetX, uint* offsetY);
+        virtual void GetOffsets(uint* offsetX, uint* offsetY);
 
         /**
          * @brief Sets the current X and Y offset settings for this RednerSinkBintr
@@ -394,7 +394,7 @@ namespace DSL
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
-        void GetDimensions(uint* width, uint* height);
+        virtual void GetDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this RenderSinkBintr
@@ -535,6 +535,13 @@ namespace DSL
         void UnlinkAll();
 
         /**
+         * @brief Gets the current X and Y offset settings for this WindowSinkBintr
+         * @param[out] offsetX the current offset in the X direction in pixels
+         * @param[out] offsetY the current offset in the Y direction in pixels
+         */ 
+        void GetOffsets(uint* offsetX, uint* offsetY);
+
+        /**
          * @brief Sets the current X and Y offset settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] offsetX the offset in the X direction to set in pixels
@@ -543,6 +550,13 @@ namespace DSL
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
         
+        /**
+         * @brief Gets the current width and height settings for this WindowSinkBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+
         /**
          * @brief Sets the current width and height settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
@@ -638,7 +652,26 @@ namespace DSL
          */
         void HandleXWindowEvents();
 
+        /**
+         * @brief Creates a new XWindow for the current XDisplay
+         * @return true if successfully created, false otherwise.
+         * This call will fail if the client has already provided
+         * a Window handle for the WindowSinkBintr to use.
+         */
         bool CreateXWindow();
+        
+        /**
+         * @brief Destroys the WindowSinkBintr's XWindow if OwnsXWindow is true.
+         * @return true if the XWindow was destroyed successfully, false otherwise.
+         */
+        bool DestroyXWindow();
+        
+        /**
+         * @brief Determines if the WindowSinkBintr has an XWindow whether
+         * provided by the client or created with a call to CreateXWindow()
+         * @return true if the WindowSinkBintr has a Window handle.
+         */
+        bool HasXWindow();
         
         /**
          * @brief queries the WindowSinkBintr to determine if it owns an xwindow
@@ -665,12 +698,6 @@ namespace DSL
          * @return true on successful clear, false otherwise..
          */
         bool Clear();
-        
-        /**
-         * @brief Destroys the WindowSinkBintr's XWindow
-         * @return true on successful destruction, false otherwise.
-         */
-        bool Destroy();
         
         /**
          * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.

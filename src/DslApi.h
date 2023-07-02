@@ -245,14 +245,12 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
 #define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
-#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x0008000B
-#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x0008000C
-#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000D
-#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000E
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080012
+#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000B
+#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000C
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000D
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x0008000E
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x0008000F
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080010
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -376,15 +374,13 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
 #define DSL_RESULT_PLAYER_IN_USE                                    0x00400008
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400009
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000A
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000B
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000C
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000D
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000E
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000F
-#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x00400010
-#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x00400009
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000A
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000B
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000D
+#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x0040000E
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x0040000F
 
 /**
  * SMTP Mailer API Return Values
@@ -6227,14 +6223,6 @@ DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_clear(const wchar_t* name);
-
-/**
- * @brief destroys the named Window Sinks's XWindow if one exists and was not 
- * provided bythe client with an earlier call to dsl_sink_window_handle_set.
- * @param[in] name name of the Window Sink to update.
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_destroy(const wchar_t* name);
 
 /**
  * @brief Gets the current "force-aspect-ration" property setting for the 
