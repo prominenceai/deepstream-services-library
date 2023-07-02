@@ -64,18 +64,19 @@ namespace DSL
                 // the window handle. Call into the Window-Sink registry services
                 // to get the Owner of the nveglglessink element
 
-                DSL_BASE_PTR pWindowSink =
-                    DSL::Services::GetServices()->_sinkWindowGet(
-                        GST_MESSAGE_SRC(pMessage));
+                DSL_WINDOW_SINK_PTR pWindowSink =
+                    std::dynamic_pointer_cast<WindowSinkBintr>(
+                        DSL::Services::GetServices()->_sinkWindowGet(
+                            GST_MESSAGE_SRC(pMessage)));
                         
                 // If the sink is found -- should always true.
                 if (pWindowSink)
                 {
-                    pWindowSink->CreateXWindow()
+                    pWindowSink->CreateXWindow();
                 }
                 else
                 {
-                    LOG_ERROR("Failed to find WindowSinkBintr in registry"'");
+                    LOG_ERROR("Failed to find WindowSinkBintr in registry");
                 }
                     
                 UNREF_MESSAGE_ON_RETURN(pMessage);

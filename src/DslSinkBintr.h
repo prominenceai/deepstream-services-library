@@ -51,11 +51,6 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
-    #define DSL_METER_SINK_PTR std::shared_ptr<MeterSinkBintr>
-    #define DSL_METER_SINK_NEW(name, interval, clientListener, clientData) \
-        std::shared_ptr<MeterSinkBintr>( \
-        new MeterSinkBintr(name, interval, clientListener, clientData))
-
     #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
 
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
@@ -643,7 +638,7 @@ namespace DSL
          */
         void HandleXWindowEvents();
 
-        bool CreateXWindow(GstMessage* pMessage);
+        bool CreateXWindow();
         
         /**
          * @brief queries the WindowSinkBintr to determine if it owns an xwindow

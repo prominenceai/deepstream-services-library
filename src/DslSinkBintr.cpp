@@ -1166,7 +1166,7 @@ namespace DSL
         }
     }
 
-    bool WindowSinkBintr::CreateXWindow(GstMessage* pMessage)
+    bool WindowSinkBintr::CreateXWindow()
     {
         LOG_FUNC();
         

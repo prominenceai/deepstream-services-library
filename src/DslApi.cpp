@@ -6431,7 +6431,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
         cstrName.c_str(), force);
 }
 
-DslReturnType dsl_sinkwindow_fullscreen_enabled_get(const wchar_t* name,
+DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name,
     boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);

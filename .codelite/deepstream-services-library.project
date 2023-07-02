@@ -152,7 +152,6 @@
       <File Name="../test/api/DslPipelineStateMgt.cpp"/>
       <File Name="../test/api/DslPipelineStreamMuxerApiTest.cpp"/>
       <File Name="../test/api/DslPipelineTilerApiTest.cpp"/>
-      <File Name="../test/api/DslPipelineXWindowApiTest.cpp"/>
       <File Name="../test/api/DslPlayerApiTest.cpp"/>
       <File Name="../test/api/DslPphApiTest.cpp"/>
       <File Name="../test/api/DslSegVisualApiTest.cpp"/>

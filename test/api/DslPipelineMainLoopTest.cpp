@@ -172,19 +172,19 @@ DslReturnType create_pipeline(ClientData* client_data)
         0, 0, sink_width, sink_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
+    // Add the XWindow event handler functions defined above
+    retval = dsl_sink_window_key_event_handler_add(client_data->window_sink.c_str(), 
+        xwindow_key_event_handler, (void*)client_data);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+    retval = dsl_sink_window_delete_event_handler_add(client_data->window_sink.c_str(), 
+        xwindow_delete_event_handler, (void*)client_data);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
     const wchar_t* component_names[] = 
         {client_data->source.c_str(), client_data->window_sink.c_str(), NULL};
 
     retval = dsl_pipeline_new_component_add_many(client_data->pipeline.c_str(),
         component_names);
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    // Add the XWindow event handler functions defined above
-    retval = dsl_pipeline_xwindow_key_event_handler_add(client_data->pipeline.c_str(), 
-        xwindow_key_event_handler, (void*)client_data);
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-    retval = dsl_pipeline_xwindow_delete_event_handler_add(client_data->pipeline.c_str(), 
-        xwindow_delete_event_handler, (void*)client_data);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Add the listener callback functions defined above

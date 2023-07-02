@@ -340,6 +340,9 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
+        REQUIRE( dsl_sink_window_fullscreen_enabled_set(
+            window_sink_name.c_str(), true) == DSL_RESULT_SUCCESS );
+
         const wchar_t* components[] = {L"uri-source", 
             L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
         
@@ -353,9 +356,6 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
                 
-            REQUIRE( dsl_pipeline_xwindow_fullscreen_enabled_set(
-                pipeline_name.c_str(), true) == DSL_RESULT_SUCCESS );
-
             THEN( "The Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
