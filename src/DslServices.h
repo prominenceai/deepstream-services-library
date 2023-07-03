@@ -54,20 +54,10 @@ namespace DSL {
     
         /** 
          * @brief Returns a pointer to this singleton
-         * @return instance pointer to Services
+         * @return instance pointer to singleton services object.
          */
         static Services* GetServices();
 
-        /**
-         * @brief Gets the in-client-callback mutex shared by all
-         * services that call into client callback functions.
-         * @return shared in-client-callback
-         */
-        GMutex* GetSharedClientCbMutex()
-        {
-            return &m_sharedClientCbMutex;
-        }
-        
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/ 
@@ -1758,11 +1748,6 @@ namespace DSL {
          */
         GMutex m_servicesMutex;
         
-        /**
-         * @brief mutex to signal in client callback context.
-         */
-        GMutex m_sharedClientCbMutex;
-
         /**
          * @brief map of all default intrinsic RGBA Display Types
          */

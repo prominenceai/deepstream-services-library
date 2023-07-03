@@ -654,11 +654,12 @@ namespace DSL
 
         /**
          * @brief Creates a new XWindow for the current XDisplay
+         * @param[in] 
          * @return true if successfully created, false otherwise.
          * This call will fail if the client has already provided
          * a Window handle for the WindowSinkBintr to use.
          */
-        bool CreateXWindow();
+        bool CreateXWindow(GMutex* pSharedDisplayMutex);
         
         /**
          * @brief Destroys the WindowSinkBintr's XWindow if OwnsXWindow is true.
@@ -749,8 +750,8 @@ namespace DSL
         Window m_pXWindow;
         
         /**
-         * @brief flag to determine if the XWindow was created or provided by t
-         * he client. The WindowSinkBitnr needs to delete the XWindow if created, 
+         * @brief Flag to determine if the XWindow was created or provided by
+         * the client. The WindowSinkBitnr needs to delete the XWindow if created, 
          * but not the client's
          */
         bool m_pXWindowCreated;
@@ -762,15 +763,10 @@ namespace DSL
         GThread* m_pXWindowEventThread;        
         
         /**
-         * @brief mutex for display thread
+         * @brief Mutex for display thread shared by all WindowSinkBintrs
+         * currently linked to the same Pipeline. 
          */
-        GMutex m_displayMutex;
-        
-        /**
-         * @brief pointer to mutex shared by all services that call into 
-         * client callbacks.
-         */
-        GMutex* m_pSharedClientCbMutex;
+        GMutex* m_pSharedDisplayMutex;
         
         /**
          * @brief if true, the WindowSinkPinter will set its XWindow to 

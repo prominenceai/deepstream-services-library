@@ -42,6 +42,19 @@ iou_tracker_config_file = \
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 ## 
+# Function to be called on XWindow KeyRelease event
+## 
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    if key_string.upper() == 'P':
+        dsl_pipeline_pause('pipeline')
+    elif key_string.upper() == 'R':
+        dsl_pipeline_play('pipeline')
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
+        dsl_main_loop_quit()
+
+## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
@@ -68,13 +81,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, and bit-rate and frame interval
-        retval = dsl_sink_file_new('file-sink', "./2-source.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 2)
+        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, 
+        ## set bit-rate=0 to use default and drop-frame-interval=0
+        retval = dsl_sink_file_new('file-sink', 
+            "./2-source.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie', primary_infer_config_file, primary_model_engine_file, 5)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 5)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -99,6 +115,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Branch for the PGIE, OSD and Window Sink
         retval = dsl_branch_new('branch1')
         if retval != DSL_RETURN_SUCCESS:
@@ -110,7 +136,7 @@ def main(args):
             break
 
         # New Demuxer Tee- 
-        retval = dsl_tee_demuxer_new('demuxer')
+        retval = dsl_tee_demuxer_new('demuxer', 2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -139,10 +165,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the sources the components to our pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
             ['source-1', 'source-2', 'splitter', None])

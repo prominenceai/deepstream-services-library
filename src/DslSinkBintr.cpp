@@ -699,6 +699,7 @@ namespace DSL
         , m_pXWindowCreated(false)
         , m_forceAspectRatio(false)
         , m_xWindowfullScreenEnabled(false)
+        , m_pSharedDisplayMutex(NULL)
 {
         LOG_FUNC();
 
@@ -755,11 +756,6 @@ namespace DSL
         LOG_INFO("  qos                : " << m_qos);
         
         AddChild(m_pTransform);
-        
-        g_mutex_init(&m_displayMutex);
-
-        // Get a pointer to the shared in-client-callback mutex
-        m_pSharedClientCbMutex = Services::GetServices()->GetSharedClientCbMutex();
     }
     
     WindowSinkBintr::~WindowSinkBintr()
@@ -770,8 +766,6 @@ namespace DSL
         {    
             UnlinkAll();
         }
-
-        g_mutex_clear(&m_displayMutex);
     }
 
     bool WindowSinkBintr::Reset()
@@ -1129,82 +1123,16 @@ namespace DSL
         return true;
     }
 
-    void WindowSinkBintr::HandleXWindowEvents()
-    {
-        while (m_pXDisplay)
-        {
-            {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-                while (m_pXDisplay and XPending(m_pXDisplay)) 
-                {
-
-                    XEvent xEvent;
-                    XNextEvent(m_pXDisplay, &xEvent);
-                    XButtonEvent buttonEvent = xEvent.xbutton;
-                    switch (xEvent.type) 
-                    {
-                    case ButtonPress:
-                        LOG_INFO("Button '" << buttonEvent.button << "' pressed: xpos = " 
-                            << buttonEvent.x << ": ypos = " << buttonEvent.y);
-                        
-                        // iterate through the map of XWindow Button Event handlers 
-                        // calling each one
-                        for(auto const& imap: m_xWindowButtonEventHandlers)
-                        {
-                            LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedClientCbMutex);
-                            imap.first(buttonEvent.button, 
-                                buttonEvent.x, buttonEvent.y, imap.second);
-                        }
-                        break;
-                        
-                    case KeyRelease:
-                        KeySym key;
-                        char keyString[255];
-                        if (XLookupString(&xEvent.xkey, keyString, 255, &key,0))
-                        {   
-                            keyString[1] = 0;
-                            std::string cstrKeyString(keyString);
-                            std::wstring wstrKeyString(cstrKeyString.begin(), cstrKeyString.end());
-                            LOG_INFO("Key released = '" << cstrKeyString << "'"); 
-                            
-                            // iterate through the map of XWindow Key Event handlers 
-                            // calling each one
-                            for(auto const& imap: m_xWindowKeyEventHandlers)
-                            {
-                                LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedClientCbMutex);
-                                imap.first(wstrKeyString.c_str(), imap.second);
-                            }
-                        }
-                        break;
-                        
-                    case ClientMessage:
-                        LOG_INFO("Client message");
-
-                        if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
-                        {
-                            LOG_INFO("WM_DELETE_WINDOW message received");
-                            // iterate through the map of XWindow Delete Event handlers 
-                            // calling each one
-                            for(auto const& imap: m_xWindowDeleteEventHandlers)
-                            {
-                                LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedClientCbMutex);
-                                imap.first(imap.second);
-                            }
-                        }
-                        break;
-                        
-                    default:
-                        break;
-                    }
-                }
-            }
-            g_usleep(G_USEC_PER_SEC / 20);
-        }
-    }
-    
-    bool WindowSinkBintr::CreateXWindow()
+    bool WindowSinkBintr::CreateXWindow(GMutex* pSharedDisplayMutex)
     {
         LOG_FUNC();
+        
+        // Check to see if we already have a window handle provided
+        // by the client with a call the SetHandler
+        if (HasXWindow())
+        {
+            return true;
+        }
         
         // create new XDisplay first
         m_pXDisplay = XOpenDisplay(NULL);
@@ -1247,6 +1175,7 @@ namespace DSL
         }
         // Flag used to cleanup the handle - pipeline created vs. client created.
         m_pXWindowCreated = True;
+        
         XSetWindowAttributes attr{0};
         
         attr.event_mask = ButtonPress | KeyRelease;
@@ -1280,6 +1209,10 @@ namespace DSL
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);
 
+        // With successful window creation... save Pipeline's shared display mutex
+        // Mutex is used when in the X window event thread - created below.
+        m_pSharedDisplayMutex = pSharedDisplayMutex;
+
         // Start the X window event thread
         m_pXWindowEventThread = g_thread_new(NULL, XWindowEventThread, this);
 
@@ -1294,6 +1227,81 @@ namespace DSL
             GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
             
         return true;
+    }
+
+    void WindowSinkBintr::HandleXWindowEvents()
+    {
+        while (m_pXDisplay)
+        {
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedDisplayMutex);
+                while (m_pXDisplay and XPending(m_pXDisplay)) 
+                {
+
+                    XEvent xEvent;
+                    XNextEvent(m_pXDisplay, &xEvent);
+                    XButtonEvent buttonEvent = xEvent.xbutton;
+                    switch (xEvent.type) 
+                    {
+                    case ButtonPress:
+                        LOG_INFO("Button '" << buttonEvent.button << "' pressed: xpos = " 
+                            << buttonEvent.x << ": ypos = " << buttonEvent.y);
+                        
+                        // iterate through the map of XWindow Button Event handlers 
+                        // calling each one
+                        for(auto const& imap: m_xWindowButtonEventHandlers)
+                        {
+                            imap.first(buttonEvent.button, 
+                                buttonEvent.x, buttonEvent.y, imap.second);
+                        }
+                        break;
+                        
+                    case KeyRelease:
+                        KeySym key;
+                        char keyString[255];
+                        if (XLookupString(&xEvent.xkey, keyString, 255, &key,0))
+                        {   
+                            keyString[1] = 0;
+                            std::string cstrKeyString(keyString);
+                            std::wstring wstrKeyString(cstrKeyString.begin(), 
+                                cstrKeyString.end());
+                            LOG_INFO("Key released = '" << cstrKeyString << "'"); 
+                            
+                            // iterate through the map of XWindow Key Event handlers 
+                            // calling each one
+                            for(auto const& imap: m_xWindowKeyEventHandlers)
+                            {
+                                imap.first(wstrKeyString.c_str(), imap.second);
+                            }
+                        }
+                        break;
+                        
+                    case ClientMessage:
+                        LOG_INFO("Client message");
+
+                        if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
+                        {
+                            LOG_INFO("WM_DELETE_WINDOW message received");
+                            // iterate through the map of XWindow Delete Event handlers 
+                            // calling each one
+                            for(auto const& imap: m_xWindowDeleteEventHandlers)
+                            {
+                                imap.first(imap.second);
+                            }
+                        }
+                        break;
+                        
+                    default:
+                        break;
+                    }
+                }
+            }
+            g_usleep(G_USEC_PER_SEC / 20);
+        }
+        // On exit from the Window event thread we need to NULL our copy of the 
+        // pointer to the shared. The value will be set again on the next call to
+        // CreateXWindow, either from the current parent Pipeline or an other.
+        m_pSharedDisplayMutex = NULL;
     }
 
     bool WindowSinkBintr::DestroyXWindow()
@@ -1317,7 +1325,9 @@ namespace DSL
         else    
         {
             bool lockSuccess(false);
-            if (g_mutex_trylock(&m_displayMutex))
+            // need to try and lock the shared Display mutex. If it fails,
+            // then we are already in the context of a Window event thread.
+            if (g_mutex_trylock(m_pSharedDisplayMutex))
             {
                 lockSuccess = true;
             }
@@ -1339,7 +1349,7 @@ namespace DSL
             
             if (lockSuccess)
             {
-                g_mutex_unlock(&m_displayMutex);
+                g_mutex_unlock(m_pSharedDisplayMutex);
                 g_thread_join(m_pXWindowEventThread);
             }
         }

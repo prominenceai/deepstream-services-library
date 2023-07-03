@@ -48,6 +48,14 @@ namespace DSL
          * @return [GST_BUS_PASS|GST_BUS_FAIL]
          */
         GstBusSyncReply HandleBusSyncMessage(GstMessage* pMessage);
+        
+    protected:
+    
+        /**
+         * @brief Shared display mutex - owned by the the PipelineBusSyncMgr
+         * but shared amoungst all child Window Sinks.
+         */
+        GMutex m_sharedDisplayMutex;
 
     private:
 
@@ -55,13 +63,6 @@ namespace DSL
          * @brief mutex to prevent callback reentry
          */
         GMutex m_busSyncMutex;
-        
-        /**
-         * @brief Shared display mutex - owned by the Pipeline
-         * but shared amoungst all child Window Sinks.
-         */
-        GMutex m_sharedDisplayMutex;
-    
     };
     
     /**

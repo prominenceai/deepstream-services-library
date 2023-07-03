@@ -41,9 +41,6 @@ namespace DSL
 
         g_mutex_init(&m_asyncStopMutex);
         g_cond_init(&m_asyncStopCond);
-        
-        // Get a pointer to the shared in-client-callback mutex
-        m_pSharedClientCbMutex = Services::GetServices()->GetSharedClientCbMutex();
     }
 
     PipelineBintr::~PipelineBintr()
@@ -388,7 +385,7 @@ namespace DSL
         // the XDisplay thread or the bus-watch fucntion
         
         // Try and lock the Display mutex first
-        if (!g_mutex_trylock(m_pSharedClientCbMutex))
+        if (!g_mutex_trylock(&m_sharedDisplayMutex))
         {
             // lock-failed which means we are already in the XWindow thread context
             // calling on a client handler function for Key release or xWindow delete. 
@@ -405,7 +402,7 @@ namespace DSL
             // the Pipeline in this context. 
             LOG_INFO("dsl_pipeline_stop called from bus-watch-function thread context");
             HandleStop();
-            g_mutex_unlock(m_pSharedClientCbMutex);
+            g_mutex_unlock(&m_sharedDisplayMutex);
             return true;
         }
         
@@ -422,7 +419,7 @@ namespace DSL
                 gst_message_new_application(GetGstObject(),
                     gst_structure_new_empty("stop-pipline")));
 
-            g_mutex_unlock(m_pSharedClientCbMutex);
+            g_mutex_unlock(&m_sharedDisplayMutex);
             g_mutex_unlock(&m_busWatchMutex);
                     
             // We need a timeout in case the condition is never met/cleared
@@ -444,7 +441,7 @@ namespace DSL
         {
             HandleStop();
         }
-        g_mutex_unlock(m_pSharedClientCbMutex);
+        g_mutex_unlock(&m_sharedDisplayMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
@@ -474,13 +471,17 @@ namespace DSL
                     (GstMessageType)(GST_MESSAGE_CLOCK_LOST | GST_MESSAGE_ERROR | 
                         GST_MESSAGE_EOS));
 
-//            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
-//            {
-                // TODO - need to review why the 'HandleBusWatchMessage' cb
-                // is getting the message in some cases.
-//                LOG_WARN("Pipeline '" << GetName() 
-//                    << "' failed to receive final EOS message on dsl_pipeline_stop");
-//            }
+            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+            {
+//                 TODO - need to review why the 'HandleBusWatchMessage' cb
+//                 is getting the message in some cases.
+                LOG_WARN("Pipeline '" << GetName() 
+                    << "' failed to receive final EOS message on dsl_pipeline_stop");
+            }
+            {
+                LOG_INFO("Pipeline '" << GetName() 
+                    << "' completed async-stop successfully");
+            }
         }
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))

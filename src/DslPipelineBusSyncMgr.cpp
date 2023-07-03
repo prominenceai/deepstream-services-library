@@ -49,7 +49,7 @@ namespace DSL
         LOG_FUNC();
         
         g_mutex_clear(&m_busSyncMutex);
-        g_mutex_clear(&m_busSyncMutex);
+        g_mutex_clear(&m_sharedDisplayMutex);
     }
     
     GstBusSyncReply PipelineBusSyncMgr::HandleBusSyncMessage(GstMessage* pMessage)
@@ -71,10 +71,10 @@ namespace DSL
                         DSL::Services::GetServices()->_sinkWindowGet(
                             GST_MESSAGE_SRC(pMessage)));
                         
-                // If the sink is found -- should always true.
+                // If the sink is found -- should always be true.
                 if (pWindowSink)
                 {
-                    pWindowSink->CreateXWindow();
+                    pWindowSink->CreateXWindow(&m_sharedDisplayMutex);
                 }
                 else
                 {

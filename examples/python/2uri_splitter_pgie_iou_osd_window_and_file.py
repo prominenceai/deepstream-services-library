@@ -43,6 +43,19 @@ iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 ## 
+# Function to be called on XWindow KeyRelease event
+## 
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    if key_string.upper() == 'P':
+        dsl_pipeline_pause('pipeline')
+    elif key_string.upper() == 'R':
+        dsl_pipeline_play('pipeline')
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
+        dsl_main_loop_quit()
+ 
+## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
@@ -80,13 +93,14 @@ def main(args):
             break
 
         # New Tiler with dimensions for two tiles - for the two sources
-        retval = dsl_tiler_new('tiler1', 1280, 360)
+        retval = dsl_tiler_new('tiler', 1280, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -95,8 +109,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## New File Sink with H264 Codec type and MKV conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output", DSL_CODEC_H265, DSL_CONTAINER_MP4, 2000000, 0)
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        ## New File Sink with H264 Codec type and MKV conatiner muxer, 
+        ## set bit-rate=0 to use defaul and drop-frame-interval=0
+        retval = dsl_sink_file_new('file-sink', 
+            "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -126,14 +152,11 @@ def main(args):
             break
 
         # Add the window delete handler and EOS listener callbacks to the Pipeline
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the sources the components to our pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
             ['source-1', 'source-2', 'splitter', None])

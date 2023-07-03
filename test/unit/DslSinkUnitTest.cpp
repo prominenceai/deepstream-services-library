@@ -549,6 +549,9 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly",
         uint offsetY(0);
         uint initSinkW(300);
         uint initSinkH(200);
+        GMutex m_sharedDisplayMutex;
+        
+        g_mutex_init(&m_sharedDisplayMutex);
 
         DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
             sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
@@ -561,10 +564,10 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly",
 
         WHEN( "The new PipelineBintr's XWindow is created" )
         {
-            REQUIRE( pSinkBintr1->CreateXWindow() == true );
-            REQUIRE( pSinkBintr2->CreateXWindow() == true );
-            REQUIRE( pSinkBintr3->CreateXWindow() == true );
-            REQUIRE( pSinkBintr4->CreateXWindow() == true );
+            REQUIRE( pSinkBintr1->CreateXWindow(&m_sharedDisplayMutex) == true );
+            REQUIRE( pSinkBintr2->CreateXWindow(&m_sharedDisplayMutex) == true );
+            REQUIRE( pSinkBintr3->CreateXWindow(&m_sharedDisplayMutex) == true );
+            REQUIRE( pSinkBintr4->CreateXWindow(&m_sharedDisplayMutex) == true );
                 
             THEN( "The XWindow handle is available" )
             {
@@ -579,6 +582,8 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly",
                 REQUIRE( pSinkBintr2->DestroyXWindow() == true );
                 REQUIRE( pSinkBintr3->DestroyXWindow() == true );
                 REQUIRE( pSinkBintr4->DestroyXWindow() == true );
+
+                g_mutex_clear(&m_sharedDisplayMutex);
             }
         }
     }
@@ -597,6 +602,9 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full scre
         uint offsetY(0);
         uint initSinkW(300);
         uint initSinkH(200);
+        GMutex m_sharedDisplayMutex;
+
+        g_mutex_init(&m_sharedDisplayMutex);
 
         DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
             sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
@@ -613,10 +621,10 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full scre
             REQUIRE( pSinkBintr2->SetFullScreenEnabled(true) == true );
             REQUIRE( pSinkBintr3->SetFullScreenEnabled(true) == true );
             REQUIRE( pSinkBintr4->SetFullScreenEnabled(true) == true );
-            REQUIRE( pSinkBintr1->CreateXWindow() == true );
-            REQUIRE( pSinkBintr2->CreateXWindow() == true );
-            REQUIRE( pSinkBintr3->CreateXWindow() == true );
-            REQUIRE( pSinkBintr4->CreateXWindow() == true );
+            REQUIRE( pSinkBintr1->CreateXWindow(&m_sharedDisplayMutex) == true );
+            REQUIRE( pSinkBintr2->CreateXWindow(&m_sharedDisplayMutex) == true );
+            REQUIRE( pSinkBintr3->CreateXWindow(&m_sharedDisplayMutex) == true );
+            REQUIRE( pSinkBintr4->CreateXWindow(&m_sharedDisplayMutex) == true );
                 
             THEN( "The XWindow handle is available" )
             {
@@ -631,6 +639,8 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full scre
                 REQUIRE( pSinkBintr2->DestroyXWindow() == true );
                 REQUIRE( pSinkBintr3->DestroyXWindow() == true );
                 REQUIRE( pSinkBintr4->DestroyXWindow() == true );
+
+                g_mutex_clear(&m_sharedDisplayMutex);
             }
         }
     }
@@ -645,10 +655,13 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[now]" )
         uint initOffsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
+        GMutex m_sharedDisplayMutex;
+
+        g_mutex_init(&m_sharedDisplayMutex);
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
-        REQUIRE( pSinkBintr->CreateXWindow() == true );
+        REQUIRE( pSinkBintr->CreateXWindow(&m_sharedDisplayMutex) == true );
             
         uint currOffsetX(0);
         uint currOffsetY(0);
@@ -675,6 +688,8 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[now]" )
                 REQUIRE( currOffsetY == newOffsetY );
 
                 REQUIRE( pSinkBintr->DestroyXWindow() == true );
+
+                g_mutex_clear(&m_sharedDisplayMutex);
             }
         }
     }
@@ -689,10 +704,13 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
         uint offsetY(0);
         uint initSinkW(300);
         uint initSinkH(200);
+        GMutex m_sharedDisplayMutex;
+
+        g_mutex_init(&m_sharedDisplayMutex);
 
         DSL_WINDOW_SINK_PTR pSinkBintr = DSL_WINDOW_SINK_NEW(
             sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        REQUIRE( pSinkBintr->CreateXWindow() == true );
+        REQUIRE( pSinkBintr->CreateXWindow(&m_sharedDisplayMutex) == true );
             
         uint currSinkW(0);
         uint currSinkH(0);
@@ -718,6 +736,7 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
                 REQUIRE( currSinkH == newSinkH );
                 
                 REQUIRE( pSinkBintr->DestroyXWindow() == true );
+                g_mutex_clear(&m_sharedDisplayMutex);
             }
         }
     }
