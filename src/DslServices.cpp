@@ -186,6 +186,7 @@ namespace DSL
             throw;
         }
         g_mutex_init(&m_servicesMutex);
+        g_mutex_init(&m_sharedClientCbMutex);
     }
 
     Services::~Services()
@@ -215,6 +216,7 @@ namespace DSL
             }
         }
         g_mutex_clear(&m_servicesMutex);
+        g_mutex_clear(&m_sharedClientCbMutex);
     }
     
     void Services::DeleteAll()

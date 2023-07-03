@@ -239,6 +239,11 @@ namespace DSL
     private:
 
         /**
+         * @brief mutex shared by all services that call into client callbacks
+         */
+        GMutex* m_pSharedClientCbMutex;
+        
+        /**
          * @brief Mutex to protect the async GCond used to synchronize
          * the Application thread with the mainloop context on
          * asynchronous stop.

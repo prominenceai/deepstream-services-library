@@ -699,7 +699,7 @@ namespace DSL
         , m_pXWindowCreated(false)
         , m_forceAspectRatio(false)
         , m_xWindowfullScreenEnabled(false)
-    {
+{
         LOG_FUNC();
 
         // x86_64
@@ -757,6 +757,9 @@ namespace DSL
         AddChild(m_pTransform);
         
         g_mutex_init(&m_displayMutex);
+
+        // Get a pointer to the shared in-client-callback mutex
+        m_pSharedClientCbMutex = Services::GetServices()->GetSharedClientCbMutex();
     }
     
     WindowSinkBintr::~WindowSinkBintr()
@@ -1148,6 +1151,7 @@ namespace DSL
                         // calling each one
                         for(auto const& imap: m_xWindowButtonEventHandlers)
                         {
+                            LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedClientCbMutex);
                             imap.first(buttonEvent.button, 
                                 buttonEvent.x, buttonEvent.y, imap.second);
                         }
@@ -1167,6 +1171,7 @@ namespace DSL
                             // calling each one
                             for(auto const& imap: m_xWindowKeyEventHandlers)
                             {
+                                LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedClientCbMutex);
                                 imap.first(wstrKeyString.c_str(), imap.second);
                             }
                         }
@@ -1182,6 +1187,7 @@ namespace DSL
                             // calling each one
                             for(auto const& imap: m_xWindowDeleteEventHandlers)
                             {
+                                LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedClientCbMutex);
                                 imap.first(imap.second);
                             }
                         }
@@ -1310,26 +1316,32 @@ namespace DSL
         }
         else    
         {
-            // create scope for the mutex
+            bool lockSuccess(false);
+            if (g_mutex_trylock(&m_displayMutex))
             {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
-                
-                LOG_INFO("Destroying XWindow for WindowSinkBintr '" 
-                    << GetName() << "'");
-                    
-                // Destroy the XWindow and close the connection with the 
-                // XServer for the Display that was opened on create.
-                XDestroyWindow(m_pXDisplay, m_pXWindow);
-                XCloseDisplay(m_pXDisplay);
-
-                // Reset the created own window flag
-                m_pXWindowCreated = False;
-                
-                // Setting the display handle to NULL will terminate 
-                // the XWindow Event Thread.
-                m_pXDisplay = NULL;
+                lockSuccess = true;
             }
-            g_thread_join(m_pXWindowEventThread);
+            
+            LOG_INFO("Destroying XWindow for WindowSinkBintr '" 
+                << GetName() << "'");
+                
+            // Destroy the XWindow and close the connection with the 
+            // XServer for the Display that was opened on create.
+            XDestroyWindow(m_pXDisplay, m_pXWindow);
+            XCloseDisplay(m_pXDisplay);
+
+            // Reset the created own window flag
+            m_pXWindowCreated = False;
+            
+            // Setting the display handle to NULL will terminate 
+            // the XWindow Event Thread.
+            m_pXDisplay = NULL;
+            
+            if (lockSuccess)
+            {
+                g_mutex_unlock(&m_displayMutex);
+                g_thread_join(m_pXWindowEventThread);
+            }
         }
         return true;
     }

@@ -758,17 +758,23 @@ namespace DSL
         /**
          * @brief handle to the X Window event thread, 
          * active for the life of the Pipeline
-        */
+         */
         GThread* m_pXWindowEventThread;        
         
         /**
          * @brief mutex for display thread
-        */
+         */
         GMutex m_displayMutex;
         
         /**
-         * @brief if true, the Pipeline will set its XWindow to full-screen if one is created
-         * A Pipeline requires a Window Sink to create an XWindow on Play
+         * @brief pointer to mutex shared by all services that call into 
+         * client callbacks.
+         */
+        GMutex* m_pSharedClientCbMutex;
+        
+        /**
+         * @brief if true, the WindowSinkPinter will set its XWindow to 
+         * full-screen if one is created.
          */
         bool m_xWindowfullScreenEnabled;
 

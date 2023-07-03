@@ -41,12 +41,14 @@ namespace DSL
         gst_object_unref(pGstBus);
 
         g_mutex_init(&m_busSyncMutex);
+        g_mutex_init(&m_sharedDisplayMutex);
     }
 
     PipelineBusSyncMgr::~PipelineBusSyncMgr()
     {
         LOG_FUNC();
         
+        g_mutex_clear(&m_busSyncMutex);
         g_mutex_clear(&m_busSyncMutex);
     }
     

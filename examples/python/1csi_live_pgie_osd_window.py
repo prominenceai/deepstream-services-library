@@ -92,7 +92,8 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

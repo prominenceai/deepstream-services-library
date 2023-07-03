@@ -55,6 +55,12 @@ namespace DSL
          * @brief mutex to prevent callback reentry
          */
         GMutex m_busSyncMutex;
+        
+        /**
+         * @brief Shared display mutex - owned by the Pipeline
+         * but shared amoungst all child Window Sinks.
+         */
+        GMutex m_sharedDisplayMutex;
     
     };
     
