@@ -740,8 +740,8 @@ namespace DSL
             m_xWindowDeleteEventHandlers;
         
         /**
-         * @brief a single display for each Pipeline
-        */
+         * @brief Pointer to the XDisplay once connected withe server.
+         */
         Display* m_pXDisplay;
 
         /**

@@ -97,14 +97,6 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
         
-## 
-# Meter Sink client callback funtion
-## 
-def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
-    print('Meter Sink Callback called')
-    if new_state == DSL_STATE_PLAYING:
-        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-        
 
 def main(args):
 
@@ -201,6 +193,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['North Camera', 'South Camera', 'East Camera', 'West Camera', 
@@ -208,16 +210,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

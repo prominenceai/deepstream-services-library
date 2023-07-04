@@ -458,6 +458,7 @@ namespace DSL
         // Pipeline's state to NULL, 
         if (!m_eosFlag)
         {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
             m_eosFlag = true;
             
             // Send an EOS event to the Pipline bin. 
@@ -473,11 +474,10 @@ namespace DSL
 
             if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
             {
-//                 TODO - need to review why the 'HandleBusWatchMessage' cb
-//                 is getting the message in some cases.
                 LOG_WARN("Pipeline '" << GetName() 
                     << "' failed to receive final EOS message on dsl_pipeline_stop");
             }
+            else
             {
                 LOG_INFO("Pipeline '" << GetName() 
                     << "' completed async-stop successfully");

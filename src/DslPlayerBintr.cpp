@@ -70,8 +70,11 @@ namespace DSL
                 << "' to PlayerBintr '" << GetName() << "'");
             throw;
         }
-        
-//        AddXWindowDeleteEventHandler(PlayerTerminate, this);
+        if (m_pSink->IsType(typeid(WindowSinkBintr)))
+        {
+            std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink)->
+                AddDeleteEventHandler(PlayerTerminate, this);
+        }
     }
 
     PlayerBintr::PlayerBintr(const char* name)
@@ -97,8 +100,6 @@ namespace DSL
         AddChild(m_pQueue);
         AddChild(m_pConverter);
         AddChild(m_pConverterCapsFilter);
-        
-//        AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
     PlayerBintr::~PlayerBintr()
@@ -111,7 +112,11 @@ namespace DSL
         {
             Stop();
         }
-//        RemoveXWindowDeleteEventHandler(PlayerTerminate);
+        if (m_pSink->IsType(typeid(WindowSinkBintr)))
+        {
+            std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink)->
+                RemoveDeleteEventHandler(PlayerTerminate);
+        }
         g_mutex_clear(&m_asyncCommMutex);
         g_mutex_clear(&m_playNextMutex);
     }
@@ -361,15 +366,15 @@ namespace DSL
         // the XDisplay thread or the bus-watch fucntion
         
         // Try and lock the Display mutex first
-//        if (!g_mutex_trylock(&m_displayMutex))
-//        {
-//            // lock-failed which means we are already in the XWindow thread context
-//            // calling on a client handler function for Key release or xWindow delete. 
-//            // Safe to stop the Player in this context.
-//            LOG_INFO("dsl_player_stop called from XWindow display thread context");
-//            HandleStop();
-//            return true;
-//        }
+        if (!g_mutex_trylock(&m_sharedDisplayMutex))
+        {
+            // lock-failed which means we are already in the XWindow thread context
+            // calling on a client handler function for Key release or xWindow delete. 
+            // Safe to stop the Player in this context.
+            LOG_INFO("dsl_player_stop called from XWindow display thread context");
+            HandleStop();
+            return true;
+        }
         // Try the bus-watch mutex next
         if (!g_mutex_trylock(&m_busWatchMutex))
         {
@@ -378,7 +383,7 @@ namespace DSL
             // the Player in this context. 
             LOG_INFO("dsl_player_stop called from bus-watch-function thread context");
             HandleStop();
-//            g_mutex_unlock(&m_displayMutex);
+            g_mutex_unlock(&m_sharedDisplayMutex);
             return true;
         }
 
@@ -398,7 +403,7 @@ namespace DSL
         {
             HandleStop();
         }
-//        g_mutex_unlock(&m_displayMutex);
+        g_mutex_unlock(&m_sharedDisplayMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
@@ -436,11 +441,15 @@ namespace DSL
                     (GstMessageType)(GST_MESSAGE_CLOCK_LOST | GST_MESSAGE_ERROR | 
                         GST_MESSAGE_EOS));
 
-//            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
-//            {
-//                LOG_WARN("Player '" << GetName() 
-//                    << "' failed to receive final EOS message on ");
-//            }
+            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+            {
+                LOG_WARN("Player '" << GetName() 
+                    << "' failed to receive final EOS message on dsl_pipeline_stop");
+            }
+            {
+                LOG_INFO("Player '" << GetName() 
+                    << "' completed async-stop successfully");
+            }
         }
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
@@ -636,14 +645,6 @@ namespace DSL
         DSL_RENDER_SINK_PTR pRenderSink = 
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
-        // If the RenderSink is a WindowSinkBintr
-// RJH TODO        
-//        if (GetXWindow())
-//        {
-//            SetXWindowOffsets(m_offsetX, m_offsetY);
-//            return true;
-//        }
-        // Else, update the OverlaySinkBintr;
         return pRenderSink->SetOffsets(m_offsetX, m_offsetY);
     }
 
@@ -658,14 +659,6 @@ namespace DSL
         DSL_RENDER_SINK_PTR pRenderSink = 
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
-        // If the RenderSink is a WindowSinkBintr
-// RJH TODO        
-//        if (OwnsXWindow())
-//        {
-//            SetXWindowDimensions(width, height);
-//            return true;
-//        }
-        // Else, update the OverlaySinkBintr;
         return pRenderSink->SetDimensions(width, height);
     }
 
@@ -691,13 +684,6 @@ namespace DSL
         DSL_RENDER_SINK_PTR pRenderSink = 
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
-        // If the RenderSink is a WindowSinkBintr
-// RJH TODO        
-//        if (OwnsXWindow())
-//        {
-//            DestroyXWindow();
-//        }
-        
         return pRenderSink->Reset();
     }
     
@@ -719,6 +705,11 @@ namespace DSL
         {
             m_pSink = DSL_WINDOW_SINK_NEW(sinkName.c_str(), 
                 m_offsetX, m_offsetY, width, height);
+            
+            // With WindowSink we add the PlayerTerminate callback
+            // to the WindowSink's collection of delete event handler. 
+            std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink)->
+                AddDeleteEventHandler(PlayerTerminate, this);
         }
         if (!AddChild(m_pSink))
         {

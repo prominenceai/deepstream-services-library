@@ -146,14 +146,18 @@ def main(args):
     while True:
     
         #
-        # New Meter Pad Probe Handler that will measure the Pipeline's throughput. Our client callback will handle writing the 
-        # Avg Session FPS and Avg Interval FPS measurements to the console. The Key-released-handler callback (above)
-        # will disable the meter when pausing the Pipeline, and re-enable measurements when the Pipeline is resumed
-        # Note: Session averages are reset each time a Meter is disabled and then re-enable.
+        # New Meter Pad Probe Handler that will measure the Pipeline's throughput. 
+        # Our client callback will handle writing the Avg Session FPS and the 
+        # Avg Interval FPS measurements to the console. The Key-released-handler 
+        # callback (above) will disable the meter when pausing the Pipeline, and 
+        # re-enable measurements when the Pipeline is resumed 
+        # Note: Session averages are reset each time the Meter is disabled and 
+        # then re-enabled.
 
         report_data = ReportData(header_interval=12)
         
-        retval = dsl_pph_meter_new('meter-pph', interval=1, client_handler=meter_sink_handler, client_data=report_data)
+        retval = dsl_pph_meter_new('meter-pph', interval=1, 
+            client_handler=meter_sink_handler, client_data=report_data)
         if retval != DSL_RETURN_SUCCESS:
             break
         #
@@ -191,57 +195,52 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Important: add the Meter to the Sink pad of the Tiler, while the stream is still batched and
-        # measurements can be made for all sources. Adding downstream will measure the combined, tiled stream
+        # Important: add the Meter to the Sink pad of the Tiler, while the stream 
+        # is still batched and measurements can be made for all sources. Adding 
+        # downstream will measure the combined, tiled stream.
         retval = dsl_tiler_pph_add('tiler', 'meter-pph', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #----------------------------------------------------------------------------------------------------
-        # Create one of the Render Sink Types, Overlay or Window, based on target type
-        # at a time, but it's easier to create both and just update the Pipeline assembly below as needed.
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-            retval = dsl_sink_overlay_new('render-sink', 0, 0, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-        else:
-            # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-            retval = dsl_sink_window_new('render-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
-            if retval != DSL_RETURN_SUCCESS:
-                break
+        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         #----------------------------------------------------------------------------------------------------
         # Pipeline assembly
         #
-        # New Pipeline (trunk) with our Sources, Tracker, and Pre-Tiler  as last component
-        # Note: *** change 'iou-tracker' to 'ktl-tracker' to try both. KTL => higher CPU load 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6',  'Camera 7', 'Camera 8',
-            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'render-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+            ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 
+            'Camera 6',  'Camera 7', 'Camera 8', 'primary-gie', 'iou-tracker', 
+            'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
