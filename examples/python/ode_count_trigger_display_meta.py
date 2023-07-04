@@ -234,7 +234,7 @@ def main(args):
             break
             
         # Third Count trigger with range of 9 to 0 (no-max), and with no limit on the 
-        # number of occurrences
+        # number of occurrences3
         retval = dsl_ode_trigger_count_new('r3-object-count', 
             source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
             limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
@@ -306,9 +306,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
+         # Add our ODE Pad Probe Handler to the Source (output) pad of the Tracker
         retval = dsl_tracker_pph_add('iou-tracker', 
-            handler='ode-handler', pad=DSL_PAD_SINK)
+            handler='ode-handler', pad=DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 
