@@ -41,7 +41,7 @@ namespace DSL
         gst_object_unref(pGstBus);
 
         g_mutex_init(&m_busSyncMutex);
-        g_mutex_init(&m_sharedDisplayMutex);
+        m_pSharedClientCbMutex = std::shared_ptr<DslMutex>(new DslMutex());
     }
 
     PipelineBusSyncMgr::~PipelineBusSyncMgr()
@@ -49,7 +49,6 @@ namespace DSL
         LOG_FUNC();
         
         g_mutex_clear(&m_busSyncMutex);
-        g_mutex_clear(&m_sharedDisplayMutex);
     }
     
     GstBusSyncReply PipelineBusSyncMgr::HandleBusSyncMessage(GstMessage* pMessage)
@@ -74,7 +73,7 @@ namespace DSL
                 // If the sink is found -- should always be true.
                 if (pWindowSink)
                 {
-                    pWindowSink->CreateXWindow(&m_sharedDisplayMutex);
+                    pWindowSink->PrepareWindowHandle(m_pSharedClientCbMutex);
                 }
                 else
                 {

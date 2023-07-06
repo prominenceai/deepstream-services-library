@@ -654,18 +654,13 @@ namespace DSL
 
         /**
          * @brief Creates a new XWindow for the current XDisplay
-         * @param[in] 
+         * @param[in] pSharedClientCbMutex shared pointer to a shared
+         * mutex - to use when calling XWindow client callbacks.
          * @return true if successfully created, false otherwise.
          * This call will fail if the client has already provided
          * a Window handle for the WindowSinkBintr to use.
          */
-        bool CreateXWindow(GMutex* pSharedDisplayMutex);
-        
-        /**
-         * @brief Destroys the WindowSinkBintr's XWindow if OwnsXWindow is true.
-         * @return true if the XWindow was destroyed successfully, false otherwise.
-         */
-        bool DestroyXWindow();
+        bool PrepareWindowHandle(std::shared_ptr<DslMutex> pSharedClientCbMutex);
         
         /**
          * @brief Determines if the WindowSinkBintr has an XWindow whether
@@ -692,7 +687,7 @@ namespace DSL
          * must be in an unlinked state to change XWindow handles. 
          * @return true on successful clear, false otherwise
          */
-        bool SetHandle(Window xWindow);
+        bool SetHandle(Window handle);
         
         /**
          * @brief Clears the WindowSinkBintr's XWindow buffer
@@ -716,6 +711,15 @@ namespace DSL
 
     private:
 
+        /**
+         * @brief Creates a new XWindow for the current XDisplay
+         * @param[in] 
+         * @return true if successfully created, false otherwise.
+         * This call will fail if the client has already provided
+         * a Window handle for the WindowSinkBintr to use.
+         */
+        bool CreateXWindow();
+        
         bool m_forceAspectRatio;
 
         /**
@@ -743,6 +747,13 @@ namespace DSL
          * @brief Pointer to the XDisplay once connected withe server.
          */
         Display* m_pXDisplay;
+        
+        
+        /**
+         * @brief Mutex to ensures mutual exclusion for the m_pXDisplay member
+         * accessed by multiple threads.
+         */
+        DslMutex m_displayMutex;
 
         /**
          * @brief handle to X Window
@@ -766,7 +777,7 @@ namespace DSL
          * @brief Mutex for display thread shared by all WindowSinkBintrs
          * currently linked to the same Pipeline. 
          */
-        GMutex* m_pSharedDisplayMutex;
+        std::shared_ptr<DslMutex> m_pSharedClientCbMutex;
         
         /**
          * @brief if true, the WindowSinkPinter will set its XWindow to 

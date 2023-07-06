@@ -185,7 +185,7 @@ namespace DSL
             LOG_ERROR("DSL threw exception intializing Debug Settings");
             throw;
         }
-        g_mutex_init(&m_servicesMutex);
+//        g_mutex_init(&m_servicesMutex);
     }
 
     Services::~Services()
@@ -214,7 +214,7 @@ namespace DSL
                 g_main_loop_unref(m_pMainLoop);
             }
         }
-        g_mutex_clear(&m_servicesMutex);
+//        g_mutex_clear(&m_servicesMutex);
     }
     
     void Services::DeleteAll()

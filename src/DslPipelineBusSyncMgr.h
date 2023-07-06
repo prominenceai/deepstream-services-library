@@ -52,10 +52,11 @@ namespace DSL
     protected:
     
         /**
-         * @brief Shared display mutex - owned by the the PipelineBusSyncMgr
-         * but shared amoungst all child Window Sinks.
+         * @brief Shared client cb mutex - owned by the the PipelineBusSyncMgr
+         * but shared amoungst all child Window Sinks. Mutex will clear
+         * on last unreference.
          */
-        GMutex m_sharedDisplayMutex;
+        std::shared_ptr<DslMutex> m_pSharedClientCbMutex;
 
     private:
 

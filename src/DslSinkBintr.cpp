@@ -699,7 +699,7 @@ namespace DSL
         , m_pXWindowCreated(false)
         , m_forceAspectRatio(false)
         , m_xWindowfullScreenEnabled(false)
-        , m_pSharedDisplayMutex(NULL)
+        , m_pSharedClientCbMutex(NULL)
 {
         LOG_FUNC();
 
@@ -766,6 +766,24 @@ namespace DSL
         {    
             UnlinkAll();
         }
+        // cleanup all resources
+        if (m_pXDisplay)
+        {
+            // create scope for the mutex
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+
+                if (m_pXWindow and m_pXWindowCreated)
+                {
+                    XDestroyWindow(m_pXDisplay, m_pXWindow);
+                }
+                
+                XCloseDisplay(m_pXDisplay);
+                // Setting the display handle to NULL will terminate the XWindow Event Thread.
+                m_pXDisplay = NULL;
+            }
+            g_thread_join(m_pXWindowEventThread);
+        }
     }
 
     bool WindowSinkBintr::Reset()
@@ -817,6 +835,7 @@ namespace DSL
             return false;
         }
         
+        Reset();
         // register this Window-Sink's nveglglessink plugin.
         Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
             m_pEglGles->GetGstObject());
@@ -866,12 +885,10 @@ namespace DSL
 
         m_isLinked = false;
         
-        if(OwnsXWindow() and !DestroyXWindow())
+        if(OwnsXWindow())
         {
-            LOG_ERROR("WindowSinkBintr '" << GetName() 
-                << "' failed to destroy its XWindow");
+            XUnmapWindow(m_pXDisplay, m_pXWindow);
         }
-        Reset();
     }
     
     void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
@@ -906,8 +923,6 @@ namespace DSL
             XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
                 m_offsetX, m_offsetY, 
                 m_width, m_height);
-            gst_video_overlay_expose(
-                GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
         }
         // Set the EglGles plugin values regardless of XWindow existence.
         m_pEglGles->SetAttribute("window-x", m_offsetX);
@@ -1123,18 +1138,40 @@ namespace DSL
         return true;
     }
 
-    bool WindowSinkBintr::CreateXWindow(GMutex* pSharedDisplayMutex)
+    bool WindowSinkBintr::PrepareWindowHandle(
+        std::shared_ptr<DslMutex> pSharedClientCbMutex)
     {
         LOG_FUNC();
         
-        // Check to see if we already have a window handle provided
-        // by the client with a call the SetHandler
-        if (HasXWindow())
+        if (!HasXWindow())
         {
-            return true;
+            if (!CreateXWindow())
+            {
+                return false;
+            }
+            m_pSharedClientCbMutex = pSharedClientCbMutex;
         }
+        else
+        {
+            XMapRaised(m_pXDisplay, m_pXWindow);
+        }
+        gst_video_overlay_set_window_handle(
+            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()), m_pXWindow);
+
+        XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+            m_offsetX, m_offsetY, 
+            m_width, m_height);
+
+        gst_video_overlay_expose(
+            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
+        return true;
+    }
+
+    bool WindowSinkBintr::CreateXWindow()
+    {
+        LOG_FUNC();
         
-        // create new XDisplay first
+        // Open a connection to the X server that controls a display,
         m_pXDisplay = XOpenDisplay(NULL);
         if (!m_pXDisplay)
         {
@@ -1142,7 +1179,7 @@ namespace DSL
             return false;
         }
         
-        // create new simple XWindow either in 'full-screen-enabled' or using 
+        // Create new simple XWindow either in 'full-screen-enabled' or using 
         // the Window Sink offsets and dimensions
         if (m_xWindowfullScreenEnabled)
         {
@@ -1209,23 +1246,9 @@ namespace DSL
         // received and processed by the X server. TRUE = Discard all queued events
         XSync(m_pXDisplay, TRUE);
 
-        // With successful window creation... save Pipeline's shared display mutex
-        // Mutex is used when in the X window event thread - created below.
-        m_pSharedDisplayMutex = pSharedDisplayMutex;
-
         // Start the X window event thread
         m_pXWindowEventThread = g_thread_new(NULL, XWindowEventThread, this);
 
-        gst_video_overlay_set_window_handle(
-            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()), m_pXWindow);
-
-        XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-            m_offsetX, m_offsetY, 
-            m_width, m_height);
-
-        gst_video_overlay_expose(
-            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
-            
         return true;
     }
 
@@ -1234,7 +1257,7 @@ namespace DSL
         while (m_pXDisplay)
         {
             {
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(m_pSharedDisplayMutex);
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
                 while (m_pXDisplay and XPending(m_pXDisplay)) 
                 {
 
@@ -1251,6 +1274,8 @@ namespace DSL
                         // calling each one
                         for(auto const& imap: m_xWindowButtonEventHandlers)
                         {
+                            LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
+                            
                             imap.first(buttonEvent.button, 
                                 buttonEvent.x, buttonEvent.y, imap.second);
                         }
@@ -1271,6 +1296,8 @@ namespace DSL
                             // calling each one
                             for(auto const& imap: m_xWindowKeyEventHandlers)
                             {
+                                LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
+                                
                                 imap.first(wstrKeyString.c_str(), imap.second);
                             }
                         }
@@ -1286,6 +1313,7 @@ namespace DSL
                             // calling each one
                             for(auto const& imap: m_xWindowDeleteEventHandlers)
                             {
+                                LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
                                 imap.first(imap.second);
                             }
                         }
@@ -1298,62 +1326,6 @@ namespace DSL
             }
             g_usleep(G_USEC_PER_SEC / 20);
         }
-        // On exit from the Window event thread we need to NULL our copy of the 
-        // pointer to the shared. The value will be set again on the next call to
-        // CreateXWindow, either from the current parent Pipeline or an other.
-        m_pSharedDisplayMutex = NULL;
-    }
-
-    bool WindowSinkBintr::DestroyXWindow()
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to destroy XWindow for WindowSinkBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        
-        // cleanup all resources
-        if (!OwnsXWindow())
-        {
-            LOG_ERROR("Unable to destroy XWindow for WindowSinkBintr '" 
-                << GetName() << "' as it does not own one");
-            return false;
-        }
-        else    
-        {
-            bool lockSuccess(false);
-            // need to try and lock the shared Display mutex. If it fails,
-            // then we are already in the context of a Window event thread.
-            if (g_mutex_trylock(m_pSharedDisplayMutex))
-            {
-                lockSuccess = true;
-            }
-            
-            LOG_INFO("Destroying XWindow for WindowSinkBintr '" 
-                << GetName() << "'");
-                
-            // Destroy the XWindow and close the connection with the 
-            // XServer for the Display that was opened on create.
-            XDestroyWindow(m_pXDisplay, m_pXWindow);
-            XCloseDisplay(m_pXDisplay);
-
-            // Reset the created own window flag
-            m_pXWindowCreated = False;
-            
-            // Setting the display handle to NULL will terminate 
-            // the XWindow Event Thread.
-            m_pXDisplay = NULL;
-            
-            if (lockSuccess)
-            {
-                g_mutex_unlock(m_pSharedDisplayMutex);
-                g_thread_join(m_pXWindowEventThread);
-            }
-        }
-        return true;
     }
 
     bool WindowSinkBintr::HasXWindow()
@@ -1389,7 +1361,12 @@ namespace DSL
         }
         if (m_pXWindowCreated)
         {
-            DestroyXWindow();
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+            
+            XDestroyWindow(m_pXDisplay, m_pXWindow);
+            m_pXWindow = 0;
+            m_pXWindowCreated = False;
+            XCloseDisplay(m_pXDisplay);
             LOG_INFO("WindowSinkBintr destroyed its own XWindow to use the client's");
         }
         m_pXWindow = handle;

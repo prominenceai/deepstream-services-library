@@ -64,7 +64,7 @@ THE SOFTWARE.
 #include <curl/curl.h>
 
 #include "DslLog.h"
-#include "DslMutex.h"
+#include "DslUtils.h"
 
 
 #endif // _DSL_H

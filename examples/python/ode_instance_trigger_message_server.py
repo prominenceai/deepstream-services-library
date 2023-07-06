@@ -205,13 +205,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+         # Add our ODE Pad Probe Handler to the source pad of the Tracker
+        retval = dsl_tracker_pph_add('iou-tracker', 
+            handler='ode-handler', pad=DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -249,7 +245,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'primary-gie', 'iou-tracker', 'tiler', 
+            ['uri-source-1', 'primary-gie', 'iou-tracker', 
             'on-screen-display', 'window-sink', 'message-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

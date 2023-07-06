@@ -70,7 +70,7 @@ def xwindow_key_event_handler(key_string, client_data):
             sink_name = 'overlay-sink-' + str(cur_overlay_count)
             print('removing sink ', sink_name)
             dsl_pipeline_component_remove('pipeline', sink_name)
-            dsl_component_delete(sink_name)
+            #dsl_component_delete(sink_name)
             cur_overlay_count -= 1
  
 ## 

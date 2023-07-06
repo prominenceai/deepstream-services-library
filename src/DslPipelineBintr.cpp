@@ -384,9 +384,10 @@ namespace DSL
         // Need to check the context to see if we're running from either
         // the XDisplay thread or the bus-watch fucntion
         
-        // Try and lock the Display mutex first
-        if (!g_mutex_trylock(&m_sharedDisplayMutex))
+        // Try and lock the shared-client-mutex first
+        if (!g_mutex_trylock(&*m_pSharedClientCbMutex))
         {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
             // lock-failed which means we are already in the XWindow thread context
             // calling on a client handler function for Key release or xWindow delete. 
             // Safe to stop the Pipeline in this context.
@@ -402,10 +403,9 @@ namespace DSL
             // the Pipeline in this context. 
             LOG_INFO("dsl_pipeline_stop called from bus-watch-function thread context");
             HandleStop();
-            g_mutex_unlock(&m_sharedDisplayMutex);
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
             return true;
         }
-        
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Pipeline in the Application's context. 
         if ((m_pMainLoop and g_main_loop_is_running(m_pMainLoop)) or
@@ -419,7 +419,7 @@ namespace DSL
                 gst_message_new_application(GetGstObject(),
                     gst_structure_new_empty("stop-pipline")));
 
-            g_mutex_unlock(&m_sharedDisplayMutex);
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
             g_mutex_unlock(&m_busWatchMutex);
                     
             // We need a timeout in case the condition is never met/cleared
@@ -441,7 +441,7 @@ namespace DSL
         {
             HandleStop();
         }
-        g_mutex_unlock(&m_sharedDisplayMutex);
+        g_mutex_unlock(&*m_pSharedClientCbMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
@@ -458,7 +458,6 @@ namespace DSL
         // Pipeline's state to NULL, 
         if (!m_eosFlag)
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
             m_eosFlag = true;
             
             // Send an EOS event to the Pipline bin. 

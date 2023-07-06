@@ -176,7 +176,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-         # Add our ODE Pad Probe Handler to the Source (output) pad of the Tracker
+        # Add our ODE Pad Probe Handler to the Source (output) pad of the Tracker
         retval = dsl_tracker_pph_add('iou-tracker', 
             handler='ode-handler', pad=DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
@@ -188,7 +188,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # New Window Sink, 0 x/y offsets and dimensions defined above.
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -203,14 +203,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        # Add all the components to our pipeline - except for our second source and overlay sink 
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker',
             'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
+        retval = dsl_pipeline_streammux_dimensions_set('pipeline', 
+            STREAMMUX_WIDTH, STREAMMUX_HEIGHT)
             
         ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 

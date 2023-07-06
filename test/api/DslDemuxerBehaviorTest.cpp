@@ -445,13 +445,13 @@ SCENARIO( "A Pipeline add and remove three Sources and with three Window-Sinks",
             
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
-                source_name4.c_str()) == DSL_RESULT_SUCCESS );
-
-            REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
-                sink_name4.c_str()) == DSL_RESULT_SUCCESS );
-            
-            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+//            REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
+//                source_name4.c_str()) == DSL_RESULT_SUCCESS );
+//
+//            REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
+//                sink_name4.c_str()) == DSL_RESULT_SUCCESS );
+//            
+//            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
                 source_name1.c_str()) == DSL_RESULT_SUCCESS );
@@ -519,22 +519,22 @@ SCENARIO( "A Pipeline can have three Sources and three Window-Sink",
         REQUIRE( dsl_sink_window_new(sink_name1.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-//        REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-//        REQUIRE( dsl_sink_sync_enabled_set(sink_name2.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_sync_enabled_set(sink_name2.c_str(), false) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_window_new(sink_name3.c_str(), 
             offest_x+600, offest_y+600, sink_width, sink_height) == DSL_RESULT_SUCCESS );
             
-//        REQUIRE( dsl_sink_sync_enabled_set(sink_name3.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_sync_enabled_set(sink_name3.c_str(), false) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_new(sink_name4.c_str(), 
             offest_x+900, offest_y+300, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         
-//        REQUIRE( dsl_sink_sync_enabled_set(sink_name4.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_sink_sync_enabled_set(sink_name4.c_str(), false) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str(), 4) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 

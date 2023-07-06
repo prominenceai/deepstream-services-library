@@ -1746,7 +1746,7 @@ namespace DSL {
         /**
          * @brief mutex to prevent Services re-entry
          */
-        GMutex m_servicesMutex;
+        DslMutex m_servicesMutex;
         
         /**
          * @brief map of all default intrinsic RGBA Display Types

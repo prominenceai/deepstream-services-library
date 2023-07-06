@@ -366,7 +366,7 @@ namespace DSL
         // the XDisplay thread or the bus-watch fucntion
         
         // Try and lock the Display mutex first
-        if (!g_mutex_trylock(&m_sharedDisplayMutex))
+        if (!g_mutex_trylock(&*m_pSharedClientCbMutex))
         {
             // lock-failed which means we are already in the XWindow thread context
             // calling on a client handler function for Key release or xWindow delete. 
@@ -383,7 +383,7 @@ namespace DSL
             // the Player in this context. 
             LOG_INFO("dsl_player_stop called from bus-watch-function thread context");
             HandleStop();
-            g_mutex_unlock(&m_sharedDisplayMutex);
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
             return true;
         }
 
@@ -403,7 +403,7 @@ namespace DSL
         {
             HandleStop();
         }
-        g_mutex_unlock(&m_sharedDisplayMutex);
+        g_mutex_unlock(&*m_pSharedClientCbMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }

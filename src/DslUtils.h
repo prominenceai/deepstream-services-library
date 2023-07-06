@@ -24,8 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_MUTEX_H
-#define _DSL_MUTEX_H
+#ifndef _DSL_UTILS_H
+#define _DSL_UTILS_H
 
 #include "Dsl.h"
 
@@ -33,6 +33,47 @@ THE SOFTWARE.
  
 namespace DSL
 {
+
+    #define DSL_MUTEX_PTR std::shared_ptr<DslMutex>
+    #define DSL_MUTEX_NEW() std::shared_ptr<DslMutex>(new DslMutex())
+    
+    /**
+     * @class DslMutex
+     * @brief Wrapper class for the GMutex
+     */
+    class DslMutex
+    {
+    public:
+    
+        /**
+         * @brief ctor for DslMutex class
+         */
+        DslMutex() 
+        {
+            g_mutex_init(&m_mutex);
+        };
+        
+        /**
+         * @brief dtor for DslMutex class
+         */
+        ~DslMutex()
+        {
+            g_mutex_clear(&m_mutex);
+        };
+        
+        /**
+         * @brief & operator for the DslMutex class
+         * @return returns the address of the wrapped mutex.
+         */
+        GMutex* operator& ()
+        {
+            return &m_mutex;
+        }
+        
+    private:
+        GMutex m_mutex; 
+    };
+    
     #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex)
     #define LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock2(mutex)
 
@@ -80,4 +121,4 @@ namespace DSL
 
 } // namespace 
 
-#endif // _DSL_MUTEX_H
+#endif // _DSL_UTILS_H
