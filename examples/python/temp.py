@@ -29,7 +29,9 @@ import time
 
 from dsl import *
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_h265 = 'https://vd2.bdstatic.com/mda-pegj3t0z7945rwig/sc/cae_h264/1684491703321969060/mda-pegj3t0z7945rwig.mp4?v_from_s=hkapp-haokan-suzhou&auth_key=1688620894-0-0-8a3db675761716bcc65f026675af6ee1&bcevod_channel=searchbox_feed&cd=0&pd=1&pt=3&logid=3094280804&vid=8281536255871277320&abtest=110930_1&klogid=3094280804'
+uri_h265_2 = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+#uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 #uri_h265="http://192.168.101.188:8091/zftest/zftest.live.flv"
 #uri_h265="http://192.168.101.188:8091/zf/zf.live.flv"
 
@@ -66,18 +68,21 @@ def main(args):
     while True:
 
         # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 0)
+        retval = dsl_source_uri_new('uri-source-1', uri_h265, True, False, 2)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_uri_new('uri-source-2', uri_h265, False, False, 0)
-        retval = dsl_source_uri_new('uri-source-3', uri_h265, False, False, 0)
+        retval = dsl_source_uri_new('uri-source-2', uri_h265, True, False, 2)
+        retval = dsl_source_uri_new('uri-source-3', uri_h265_2, True, False, 2)
+        retval = dsl_source_uri_new('uri-source-4', uri_h265_2, True, False, 2)
+        retval = dsl_source_uri_new('uri-source-5', uri_h265_2, True, False, 2)
+        retval = dsl_source_uri_new('uri-source-6', uri_h265_2, True, False, 2)
 
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Primary GIE using the filespecs above, with infer interval
         retval = dsl_infer_gie_primary_new('primary-gie',
-            primary_infer_config_file, primary_model_engine_file, 0)
+            primary_infer_config_file, primary_model_engine_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -87,7 +92,7 @@ def main(args):
             break
 
         # New Overlay Sink with id, display, depth, x/y offsets and Dimensions
-        #retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 360, 180)  
+        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 360, 180)  
 
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -98,28 +103,45 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        retval = dsl_tiler_new('tiler', 1920, 7200)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_tiler_tiles_set('tiler', 3, 2)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # New Window Sink, with x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink', 0, 0, 720, 360)
-        retval = dsl_sink_fake_new('fakesink2')
-        retval = dsl_sink_fake_new('fakesink3')
+        retval = dsl_sink_window_new('window-sink', 0, 0, 1920, 760)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+#        retval = dsl_sink_sync_enabled_set('window-sink', False)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+
+#        retval = dsl_sink_fake_new('fakesink2')
+#        retval = dsl_sink_fake_new('fakesink3')
 
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Branch for the PGIE, OSD and Window Sink
-        retval = dsl_branch_new_component_add_many('branch1', 
-            ['on-screen-display', 'window-sink', None])
+#        retval = dsl_branch_new_component_add_many('branch1', 
+#            ['on-screen-display', 'overlay-sink', None])
 
         # Add Branch1 and the overlay-sink as Branch2
-        retval = dsl_tee_demuxer_new_branch_add_many('demuxer', 
-            max_branches=30, branches=['branch1', 'fakesink2', 'fakesink3', None])
+#        retval = dsl_tee_demuxer_new_branch_add_many('demuxer', 
+#            max_branches=30, branches=['branch1', 'fakesink2', None])
+#            max_branches=30, branches=['branch1', 'fakesink2', 'fakesink3', None])
         
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the sources the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'uri-source-2','uri-source-3', 'primary-gie', 'iou-tracker', 'demuxer', None])
+            ['uri-source-1', 'uri-source-2', 'uri-source-3', 
+            'tiler', 'window-sink', None])
+#            ['uri-source-1', 'uri-source-2','uri-source-3', 'primary-gie', 'iou-tracker', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -788,19 +788,56 @@ namespace DSL
         {
             LOG_FUNC();
             
-            // need to initialize outside of case statement
-            GstPad* pStaticSinkPad(NULL);
-            GstPad* pRequestedSrcPad(NULL);
-            
             if (!IsLinkedToSource())
             {
                 return false;
             }
 
+            // Get a reference to this GstNotetr's sink pad
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get static sink pad for GstNotetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            
+            // Get a reference to the Tee's source pad that is connected
+            // to this GstNotetr's sink pad
+            GstPad* pRequestedSrcPad = gst_pad_get_peer(pStaticSinkPad);
+            if (!pRequestedSrcPad)
+            {
+                LOG_ERROR("Failed to get requested source pad peer for GstNotetr '"
+                    << GetName() << "'");
+                return false;
+            }
+
+            LOG_INFO("Unlinking requested source pad '" 
+                << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
+
+            // It should now be safe to unlink this GstNotetr from the Muxer
+            if (!gst_pad_unlink(pRequestedSrcPad, pStaticSinkPad))
+            {
+                LOG_ERROR("GstNotetr '" << GetName() 
+                    << "' failed to unlink from source Tee");
+                Nodetr::UnlinkFromSource();
+                return false;
+            }
+            if (m_releaseRequestedPadOnUnlink)
+            {
+                LOG_INFO("Releasing requested source pad '" 
+                    << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
+                // Need to release the previously requested sink pad
+                gst_element_release_request_pad(GetSource()->GetGstElement(), 
+                    pRequestedSrcPad);
+            }
+            gst_object_unref(pStaticSinkPad);
+            gst_object_unref(pRequestedSrcPad);
+
             // Set the state of this GstNotetr to NULL - regarless of current state
             GstStateChangeReturn changeResult = gst_element_set_state(
                 GetGstElement(), GST_STATE_NULL);
-                
+
             switch (changeResult)
             {
             case GST_STATE_CHANGE_FAILURE:
@@ -826,50 +863,6 @@ namespace DSL
                 LOG_INFO("GstNotetr '" << GetName() 
                     << "' changed state to NULL successfully");
                     
-                // Get a reference to this GstNotetr's sink pad
-                pStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
-                if (!pStaticSinkPad)
-                {
-                    LOG_ERROR("Failed to get static sink pad for GstNotetr '" 
-                        << GetName() << "'");
-                    return false;
-                }
-                
-                // Get a reference to the Tee's source pad that is connected
-                // to this GstNotetr's sink pad
-                pRequestedSrcPad = gst_pad_get_peer(pStaticSinkPad);
-                if (!pRequestedSrcPad)
-                {
-                    LOG_ERROR("Failed to get requested source pad peer for GstNotetr '"
-                        << GetName() << "'");
-                    return false;
-                }
-
-                LOG_INFO("Unlinking requested source pad '" 
-                    << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
-
-                // It should now be safe to unlink this GstNotetr from the Muxer
-                if (!gst_pad_unlink(pRequestedSrcPad, pStaticSinkPad))
-                {
-                    LOG_ERROR("GstNotetr '" << GetName() 
-                        << "' failed to unlink from source Tee");
-                    Nodetr::UnlinkFromSource();
-                    return false;
-                }
-                if (m_releaseRequestedPadOnUnlink)
-                {
-                    LOG_INFO("Releasing requested source pad '" 
-                        << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
-                    // Need to release the previously requested sink pad
-                    gst_element_release_request_pad(GetSource()->GetGstElement(), 
-                        pRequestedSrcPad);
-                }
-
-                // unreference both the static sink pad and requested source pad
-                gst_object_unref(pStaticSinkPad);
-                gst_object_unref(pRequestedSrcPad);
-                
-                // Call the parent class to complete the unlink from source
                 return Nodetr::UnlinkFromSource();
             default:
                 break;

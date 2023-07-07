@@ -150,6 +150,25 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
+    typedef struct _asyncData
+    {
+        GMutex* pAsynMutex;
+        GCond* pAsyncCond;
+        GstNodetr* pChildComponent;
+    } AsyncData;
+    
+    static GstPadProbeReturn unlink_from_source_tee_cb(GstPad* pad, 
+        GstPadProbeInfo *info, gpointer pData)
+    {
+        AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
+        
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(pAsyncData->pAsynMutex);
+        pAsyncData->pChildComponent->UnlinkFromSourceTee();
+        g_cond_signal(pAsyncData->pAsyncCond);
+
+        return GST_PAD_PROBE_REMOVE;
+    }
+
     bool MultiBranchesBintr::RemoveChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
@@ -161,13 +180,50 @@ namespace DSL
             return false;
         }
         if (pChildComponent->IsLinkedToSource())
-        {
-            if (!pChildComponent->UnlinkFromSourceTee())
-            {   
-                LOG_ERROR("MultiBranchesBintr '" << GetName() 
-                    << "' failed to Unlink Child Branch '" 
-                    << pChildComponent->GetName() << "'");
-                return false;
+        {  
+            GstState currentState;
+            GetState(currentState, 0);
+            if (currentState == GST_STATE_PLAYING)
+            {
+                DslMutex asyncUnlinkChildMutex;
+//                DslCond asyncUnlinkChildCond;
+                GCond asyncUnlinkChildCond;
+                g_cond_init(&asyncUnlinkChildCond);
+                AsyncData asyncData
+                {
+                    &asyncUnlinkChildMutex,
+                    &asyncUnlinkChildCond,
+                    (GstNodetr*)&*pChildComponent
+                };
+        
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncUnlinkChildMutex);
+                
+                GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                    pChildComponent->GetGstElement(), "sink");
+                    
+                GstPad* pRequestedSrcPad = gst_pad_get_peer(pStaticSinkPad);
+                    
+                gst_pad_add_probe(pRequestedSrcPad, 
+                    GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
+                    (GstPadProbeCallback)unlink_from_source_tee_cb, 
+                    &asyncData, NULL);
+                    
+                g_cond_wait(&asyncUnlinkChildCond, &asyncUnlinkChildMutex);
+
+                gst_object_unref(pStaticSinkPad);
+                gst_object_unref(pRequestedSrcPad);
+                
+                g_cond_clear(&asyncUnlinkChildCond);
+            }
+            else
+            {
+                if (!pChildComponent->UnlinkFromSourceTee())
+                {   
+                    LOG_ERROR("MultiBranchesBintr '" << GetName() 
+                        << "' failed to Unlink Child Branch '" 
+                        << pChildComponent->GetName() << "'");
+                    return false;
+                }                
             }
             pChildComponent->UnlinkAll();
         }
@@ -183,7 +239,6 @@ namespace DSL
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildComponent);
     }
-
 
     bool MultiBranchesBintr::LinkAll()
     {

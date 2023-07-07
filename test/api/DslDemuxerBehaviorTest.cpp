@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 static const std::wstring pipeline_name(L"test-pipeline");
 
-static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4");
 
 static const std::wstring source_name1(L"file-source-1");
 static const std::wstring source_name2(L"file-source-2");

@@ -27,16 +27,47 @@ THE SOFTWARE.
 #ifndef _DSL_UTILS_H
 #define _DSL_UTILS_H
 
-#include "Dsl.h"
-
-
+#include "glib.h"
  
 namespace DSL
 {
-
-    #define DSL_MUTEX_PTR std::shared_ptr<DslMutex>
-    #define DSL_MUTEX_NEW() std::shared_ptr<DslMutex>(new DslMutex())
+    /**
+     * @class DslCond
+     * @brief Wrapper class for the GCond
+     */
+    class DslCond
+    {
+    public:
     
+        /**
+         * @brief ctor for DslCond class
+         */
+        DslCond() 
+        {
+            g_cond_init(&m_cond);
+        }
+        
+        /**
+         * @brief dtor for DslMutex class
+         */
+        ~DslCond()
+        {
+            g_cond_clear(&m_cond);
+        }
+        
+        /**
+         * @brief & operator for the DslMutex class
+         * @return returns the address of the wrapped mutex.
+         */
+        GCond* operator& ()
+        {
+            return &m_cond;
+        }
+        
+    private:
+        GCond m_cond; 
+    };
+
     /**
      * @class DslMutex
      * @brief Wrapper class for the GMutex
@@ -51,7 +82,7 @@ namespace DSL
         DslMutex() 
         {
             g_mutex_init(&m_mutex);
-        };
+        }
         
         /**
          * @brief dtor for DslMutex class
@@ -59,7 +90,7 @@ namespace DSL
         ~DslMutex()
         {
             g_mutex_clear(&m_mutex);
-        };
+        }
         
         /**
          * @brief & operator for the DslMutex class
@@ -73,7 +104,7 @@ namespace DSL
     private:
         GMutex m_mutex; 
     };
-    
+   
     #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex)
     #define LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock2(mutex)
 
@@ -87,12 +118,12 @@ namespace DSL
         LockMutexForCurrentScope(GMutex* mutex) : m_pMutex(mutex) 
         {
             g_mutex_lock(m_pMutex);
-        };
+        }
         
         ~LockMutexForCurrentScope()
         {
             g_mutex_unlock(m_pMutex);
-        };
+        }
         
     private:
         GMutex* m_pMutex; 

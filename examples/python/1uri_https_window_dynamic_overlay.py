@@ -62,6 +62,7 @@ def xwindow_key_event_handler(key_string, client_data):
             print('adding sink ', sink_name)
             dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 
                 100*cur_overlay_count, 360, 180)
+            dsl_sink_sync_enabled_set(sink_name, False)
             dsl_pipeline_component_add('pipeline', sink_name)
 
     # Remove the last sink added
@@ -70,7 +71,7 @@ def xwindow_key_event_handler(key_string, client_data):
             sink_name = 'overlay-sink-' + str(cur_overlay_count)
             print('removing sink ', sink_name)
             dsl_pipeline_component_remove('pipeline', sink_name)
-            #dsl_component_delete(sink_name)
+            dsl_component_delete(sink_name)
             cur_overlay_count -= 1
  
 ## 
