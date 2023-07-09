@@ -167,6 +167,21 @@ namespace DSL
          * and cleared by the Pipeline on transition to NULL state.
          */
         bool m_eosFlag;
+        
+        /**
+         * @brief Mutex to protect the async GCond used to synchronize
+         * the Application thread with the mainloop context on
+         * asynchronous stop.
+         */
+        DslMutex m_asyncCommsMutex;
+        
+        /**
+         * @brief Condition used to block the application context while waiting
+         * for a Pipeline/Player change of state to be completed in the 
+         * mainloop context
+         */
+        DslCond m_asyncCommsCond;
+        
 
         /**
          * @brief Pointer to the Pipelines own g_main_context if one has 

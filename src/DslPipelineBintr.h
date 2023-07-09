@@ -239,19 +239,6 @@ namespace DSL
     private:
 
         /**
-         * @brief Mutex to protect the async GCond used to synchronize
-         * the Application thread with the mainloop context on
-         * asynchronous stop.
-         */
-        DslMutex m_asyncStopMutex;
-        
-        /**
-         * @brief Condition used to block the application context while waiting
-         * for a Pipeline change of state to be completed in the mainloop context
-         */
-        DslCond m_asyncStopCond;
-        
-        /**
          * @brief parent bin for all Source bins in this Pipeline
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;

@@ -67,7 +67,6 @@
     <File Name="../src/DslLogGst.h"/>
     <File Name="../src/DslMailer.h"/>
     <File Name="../src/DslMessageBroker.h"/>
-    <File Name="../src/DslMutex.h"/>
     <File Name="../src/DslNodetr.h"/>
     <File Name="../src/DslOdeAction.h"/>
     <File Name="../src/DslOdeArea.h"/>
@@ -124,6 +123,8 @@
     <File Name="../src/DslMultiBranchesBintr.cpp"/>
     <File Name="../src/DslPipelineBusSyncMgr.h"/>
     <File Name="../src/DslPipelineBusSyncMgr.cpp"/>
+    <File Name="../src/DslMutex.h"/>
+    <File Name="../src/DslCond.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">

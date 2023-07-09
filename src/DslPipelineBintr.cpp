@@ -407,7 +407,7 @@ namespace DSL
             (!m_pMainLoop and g_main_loop_is_running(
                 DSL::Services::GetServices()->GetMainLoopHandle())))
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncStopMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
             LOG_INFO("Sending application message to stop the pipeline");
             
             gst_element_post_message(GetGstElement(),
@@ -419,7 +419,7 @@ namespace DSL
                     
             // We need a timeout in case the condition is never met/cleared
             gint64 endtime = g_get_monotonic_time () + 2 * G_TIME_SPAN_SECOND;
-            if (!g_cond_wait_until(&m_asyncStopCond, &m_asyncStopMutex, endtime))
+            if (!g_cond_wait_until(&m_asyncCommsCond, &m_asyncCommsMutex, endtime))
             {
                 LOG_WARN("Pipeline '" << GetName() 
                     << "' failed to complete async-stop");
@@ -444,6 +444,7 @@ namespace DSL
     void PipelineBintr::HandleStop()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
         
         // Call on all sources to disable their EOS consumers, before sending EOS
         m_pPipelineSourcesBintr->DisableEosConsumers();
@@ -486,8 +487,7 @@ namespace DSL
         m_eosFlag = false;
         UnlinkAll();
         
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncStopMutex);
-        g_cond_signal(&m_asyncStopCond);
+        g_cond_signal(&m_asyncCommsCond);
     }
 
     bool PipelineBintr::IsLive()

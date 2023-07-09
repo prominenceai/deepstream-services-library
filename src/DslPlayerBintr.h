@@ -191,13 +191,6 @@ namespace DSL
         DSL_BINTR_PTR m_pSink;
     
         /**
-         * @brief Mutex to protect the async GCond used to synchronize
-         * the Application thread with the mainloop context on
-         * asynchronous change of pipeline state.
-         */
-        DslMutex m_asyncCommMutex;
-        
-        /**
          * @brief Mutex to support reentrency of the Play-Next process
          */
         DslMutex m_playNextMutex;
