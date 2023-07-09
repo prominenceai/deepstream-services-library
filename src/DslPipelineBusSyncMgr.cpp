@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2023, Prominence AI, Inc.
 
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -40,7 +40,6 @@ namespace DSL
 
         gst_object_unref(pGstBus);
 
-        g_mutex_init(&m_busSyncMutex);
         m_pSharedClientCbMutex = std::shared_ptr<DslMutex>(new DslMutex());
     }
 
@@ -48,7 +47,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        g_mutex_clear(&m_busSyncMutex);
     }
     
     GstBusSyncReply PipelineBusSyncMgr::HandleBusSyncMessage(GstMessage* pMessage)

@@ -132,8 +132,6 @@ namespace DSL
             LOG_INFO("  qos                : " << m_qos);
         }
         AddChild(m_pAppSink);
-
-        g_mutex_init(&m_dataHandlerMutex);
     }
     
     AppSinkBintr::~AppSinkBintr()
@@ -144,7 +142,6 @@ namespace DSL
         {    
             UnlinkAll();
         }
-        g_mutex_clear(&m_dataHandlerMutex);
     }
 
     bool AppSinkBintr::LinkAll()
@@ -311,14 +308,11 @@ namespace DSL
         
         // override the client data (set to NULL above) to this pointer.
         m_clientData = this;
-        g_mutex_init(&m_captureNextMutex);
     }
     
     FrameCaptureSinkBintr::~FrameCaptureSinkBintr()
     {
         LOG_FUNC();
-        
-        g_mutex_clear(&m_captureNextMutex);
     }
     
     bool FrameCaptureSinkBintr::Initiate()

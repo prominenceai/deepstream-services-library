@@ -243,13 +243,13 @@ namespace DSL
          * the Application thread with the mainloop context on
          * asynchronous stop.
          */
-        GMutex m_asyncStopMutex;
+        DslMutex m_asyncStopMutex;
         
         /**
          * @brief Condition used to block the application context while waiting
          * for a Pipeline change of state to be completed in the mainloop context
          */
-        GCond m_asyncStopCond;
+        DslCond m_asyncStopCond;
         
         /**
          * @brief parent bin for all Source bins in this Pipeline

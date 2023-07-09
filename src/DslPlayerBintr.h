@@ -195,12 +195,12 @@ namespace DSL
          * the Application thread with the mainloop context on
          * asynchronous change of pipeline state.
          */
-        GMutex m_asyncCommMutex;
+        DslMutex m_asyncCommMutex;
         
         /**
          * @brief Mutex to support reentrency of the Play-Next process
          */
-        GMutex m_playNextMutex;
+        DslMutex m_playNextMutex;
         
         /**
          * @brief flag to tell the HandlePlay function to clear the Play-Next
@@ -359,7 +359,7 @@ namespace DSL
         /**
          * @brief mutual exclusion over the file path queue.
          */
-        GMutex m_filePathQueueMutex;
+        DslMutex m_filePathQueueMutex;
         
     };
 

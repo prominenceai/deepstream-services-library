@@ -232,7 +232,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to the client-data-handler
          */
-        GMutex m_dataHandlerMutex;
+        DslMutex m_dataHandlerMutex;
 
         /**
          * @brief client callback function to be called with each new 
@@ -307,7 +307,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to m_captureNextBuffer flag.
          */
-        GMutex m_captureNextMutex;
+        DslMutex m_captureNextMutex;
 
         /**
          * @brief Shared pointer to a Frame Capture Action.

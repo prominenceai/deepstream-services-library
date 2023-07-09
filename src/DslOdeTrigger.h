@@ -598,7 +598,7 @@ namespace DSL
         /**
          * @brief Mutex for timer reset logic
          */
-        GMutex m_resetTimerMutex;
+        DslMutex m_resetTimerMutex;
 
         /**
          * @brief map of all currently registered limit-state-change-listeners

@@ -719,7 +719,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to the client-data-handlers
          */
-        GMutex m_dataHandlerMutex;
+        DslMutex m_dataHandlerMutex;
         
         /**
          * @brief block-enabled setting for this AppSourceBintr.
@@ -1105,7 +1105,7 @@ namespace DSL
         /**
          * @brief mutual exclusion of the repeat enabled setting.
          */
-        GMutex m_repeatEnabledMutex;
+        DslMutex m_repeatEnabledMutex;
     };
 
     //*********************************************************************************
@@ -1404,7 +1404,7 @@ namespace DSL
         /**
          * @brief mutux to guard the display timeout callback.
          */
-        GMutex m_timeoutTimerMutex;
+        DslMutex m_timeoutTimerMutex;
 
         /**
          * @brief Caps Filter for the ImageStreamSourceBintr
@@ -1794,7 +1794,7 @@ namespace DSL
         /**
          * @brief mutux to guard the buffer timeout managment read/write attributes.
          */
-        GMutex m_streamManagerMutex;
+        DslMutex m_streamManagerMutex;
         
         /**
          * @brief active connection data for the RtspSourceBintr.
@@ -1809,7 +1809,7 @@ namespace DSL
         /**
          * @brief mutux to guard the reconnection managment read/write attributes.
          */
-        GMutex m_reconnectionManagerMutex;
+        DslMutex m_reconnectionManagerMutex;
         
         /**
          * @brief will be set to true on reconnection failure to force a mew reconnection cycle
@@ -1840,7 +1840,7 @@ namespace DSL
         /**
          * @brief mutux to guard the current State read/write access.
          */
-        GMutex m_stateChangeMutex;
+        DslMutex m_stateChangeMutex;
 
         /**
          * @brief gnome timer Id for the RTSP reconnection manager

@@ -160,7 +160,7 @@ namespace DSL
         /**
          * @brief Mutex to prevent bus-watch callback re-entry
          */
-        GMutex m_busWatchMutex;
+        DslMutex m_busWatchMutex;
 
         /**
          * @brief set to true by the bus-watch function on EOS
@@ -186,13 +186,13 @@ namespace DSL
          * @brief mutex used to synchronize the threads calling dsl_pipeline_main_loop_run
          * and dsl_pipeline_main_loop_quit
          */
-        GMutex m_mainLoopMutex;
+        DslMutex m_mainLoopMutex;
         
         /**
          * @brief conding used to synchronize the threads calling dsl_pipeline_main_loop_run
          * and dsl_pipeline_main_loop_quit
          */
-        GCond m_mainLoopCond;
+        DslCond m_mainLoopCond;
 
         /**
          * @brief Private helper function to handle a Pipeline state-change message.
@@ -259,7 +259,7 @@ namespace DSL
         /**
          * @brief mutex to protect multiple threads from accessing/updating last error message information
          */
-        GMutex m_lastErrorMutex;
+        DslMutex m_lastErrorMutex;
         
         /**
          * @brief timer used to execute the error notification thread

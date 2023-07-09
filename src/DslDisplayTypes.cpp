@@ -152,15 +152,11 @@ namespace DSL
         : Base(name)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_propertyMutex);
     }
 
     DisplayType::~DisplayType()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_propertyMutex);
     }
 
     inline void DisplayType::Lock()

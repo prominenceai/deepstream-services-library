@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -128,7 +128,8 @@ namespace DSL
         }
 
         /**
-         * @brief called to determine if a DSL Object is currently in use - i.e. has a Parent
+         * @brief called to determine if a DSL Object is currently in use 
+         * - i.e. has a Parent.
          * @return true if this Object has a Parent, false otherwise
          */
         virtual bool IsInUse()
@@ -139,9 +140,9 @@ namespace DSL
         }
 
         /**
-         * @brief function to determine if a Nodetr is a child of this Nodetr
-         * @param[in] pChild Nodetr to test for the child relationship
-         * @return true if pChild is a child of this Nodetr
+         * @brief function to determine if a Nodetr is a child of this Nodetr.
+         * @param[in] pChild Nodetr to test for the child relationship.
+         * @return true if pChild is a child of this Nodetr.
          */
         virtual bool IsChild(DSL_BASE_PTR pChild)
         {
@@ -151,8 +152,9 @@ namespace DSL
         }
 
         /**
-         * @brief determines whether this Object is a child of a given Parent Object
-         * @param[in] parentName name of the object to check for a Parental relationship
+         * @brief determines whether this Object is a child of a given Parent Object.
+         * @param[in] parentName name of the object to check for a Parental.
+         * relationship.
          * @return True if the provided Name is this Object's Parent
          */
         virtual bool IsParent(DSL_BASE_PTR pParent)
@@ -175,7 +177,8 @@ namespace DSL
         }
         
         /**
-         * @brief Clears this Object's parent name indicating that the Object is no longer "In-Use"
+         * @brief Clears this Object's parent name indicating that the Object 
+         * is no longer "In-Use"
          */
         void ClearParentName()
         {
@@ -194,13 +197,15 @@ namespace DSL
             
             if (IsChild(pChild))
             {
-                LOG_ERROR("Object '" << pChild->GetName() << "' is already a child of Object '" << GetName() << "'");
+                LOG_ERROR("Object '" << pChild->GetName() 
+                    << "' is already a child of Object '" << GetName() << "'");
                 return false;
             }
             m_pChildren[pChild->GetName()] = pChild;
             pChild->AssignParentName(GetName());
                             
-            LOG_DEBUG("Child '" << pChild->m_name <<"' added to Parent '" << m_name << "'");
+            LOG_DEBUG("Child '" << pChild->m_name 
+                <<"' added to Parent '" << m_name << "'");
             
             return true;
         }
@@ -215,13 +220,15 @@ namespace DSL
             
             if (!IsChild(pChild))
             {
-                LOG_WARN("'" << pChild->m_name <<"' is not a child of Parent '" << m_name << "'");
+                LOG_WARN("'" << pChild->m_name 
+                    <<"' is not a child of Parent '" << m_name << "'");
                 return false;
             }
             m_pChildren.erase(pChild->m_name);
             pChild->ClearParentName();
                             
-            LOG_DEBUG("Child '" << pChild->m_name <<"' removed from Parent '" << m_name << "'");
+            LOG_DEBUG("Child '" << pChild->m_name 
+                <<"' removed from Parent '" << m_name << "'");
             
             return true;
         }
@@ -235,7 +242,8 @@ namespace DSL
 
             for (auto &imap: m_pChildren)
             {
-                LOG_DEBUG("Removing Child '" << imap.second->GetName() <<"' from Parent '" << GetName() << "'");
+                LOG_DEBUG("Removing Child '" << imap.second->GetName() 
+                    <<"' from Parent '" << GetName() << "'");
                 imap.second->ClearParentName();
             }
             m_pChildren.clear();

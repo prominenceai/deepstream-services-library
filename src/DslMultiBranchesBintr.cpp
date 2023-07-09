@@ -152,8 +152,8 @@ namespace DSL
 
     typedef struct _asyncData
     {
-        GMutex* pAsynMutex;
-        GCond* pAsyncCond;
+        DslMutex asynMutex;
+        DslCond asyncCond;
         GstNodetr* pChildComponent;
     } AsyncData;
     
@@ -162,9 +162,9 @@ namespace DSL
     {
         AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
         
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(pAsyncData->pAsynMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
         pAsyncData->pChildComponent->UnlinkFromSourceTee();
-        g_cond_signal(pAsyncData->pAsyncCond);
+        g_cond_signal(&(pAsyncData->asyncCond));
 
         return GST_PAD_PROBE_REMOVE;
     }
@@ -185,18 +185,13 @@ namespace DSL
             GetState(currentState, 0);
             if (currentState == GST_STATE_PLAYING)
             {
-                DslMutex asyncUnlinkChildMutex;
-//                DslCond asyncUnlinkChildCond;
-                GCond asyncUnlinkChildCond;
-                g_cond_init(&asyncUnlinkChildCond);
-                AsyncData asyncData
-                {
-                    &asyncUnlinkChildMutex,
-                    &asyncUnlinkChildCond,
-                    (GstNodetr*)&*pChildComponent
-                };
+                LOG_INFO("Child component '" << GetName() 
+                    << "' is in a state of PLAYING - setting up async remove");
+
+                AsyncData asyncData;
+                asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
         
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncUnlinkChildMutex);
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncData.asynMutex);
                 
                 GstPad* pStaticSinkPad = gst_element_get_static_pad(
                     pChildComponent->GetGstElement(), "sink");
@@ -208,12 +203,10 @@ namespace DSL
                     (GstPadProbeCallback)unlink_from_source_tee_cb, 
                     &asyncData, NULL);
                     
-                g_cond_wait(&asyncUnlinkChildCond, &asyncUnlinkChildMutex);
+                g_cond_wait(&asyncData.asyncCond, &asyncData.asynMutex);
 
                 gst_object_unref(pStaticSinkPad);
                 gst_object_unref(pRequestedSrcPad);
-                
-                g_cond_clear(&asyncUnlinkChildCond);
             }
             else
             {

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ namespace DSL
         /**
          * @brief mutex to prevent callback reentry
          */
-        GMutex m_busSyncMutex;
+        DslMutex m_busSyncMutex;
     };
     
     /**

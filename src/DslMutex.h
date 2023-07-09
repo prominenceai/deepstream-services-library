@@ -1,9 +1,7 @@
-
-
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,53 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_UTILS_H
-#define _DSL_UTILS_H
+#ifndef _DSL_MUTEX_H
+#define _DSL_MUTEX_H
 
 #include "glib.h"
  
 namespace DSL
 {
     /**
-     * @class DslCond
-     * @brief Wrapper class for the GCond
-     */
-    class DslCond
-    {
-    public:
-    
-        /**
-         * @brief ctor for DslCond class
-         */
-        DslCond() 
-        {
-            g_cond_init(&m_cond);
-        }
-        
-        /**
-         * @brief dtor for DslMutex class
-         */
-        ~DslCond()
-        {
-            g_cond_clear(&m_cond);
-        }
-        
-        /**
-         * @brief & operator for the DslMutex class
-         * @return returns the address of the wrapped mutex.
-         */
-        GCond* operator& ()
-        {
-            return &m_cond;
-        }
-        
-    private:
-        GCond m_cond; 
-    };
-
-    /**
      * @class DslMutex
-     * @brief Wrapper class for the GMutex
+     * @brief Wrapper class for the GMutex type
      */
     class DslMutex
     {
@@ -152,4 +113,4 @@ namespace DSL
 
 } // namespace 
 
-#endif // _DSL_UTILS_H
+#endif // _DSL_MUTEX_H

@@ -76,15 +76,11 @@ namespace DSL
         m_content.insert(m_content.end(), m_htmlBegin.begin(), m_htmlBegin.end() );
         m_content.insert(m_content.end(), body.begin(), body.end() );
         m_content.insert(m_content.end(), m_htmlEnd.begin(), m_htmlEnd.end() );
-
-        g_mutex_init(&m_messageMutex);
     };
 
     SmtpMessage::~SmtpMessage()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_messageMutex);
     }
     
     std::string SmtpMessage::DateTimeLine()
@@ -156,8 +152,6 @@ namespace DSL
         , m_purgeTimerId(0)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_queueMutex);
     };
     
     SmtpMessageQueue::~SmtpMessageQueue()
@@ -169,7 +163,6 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_queueMutex);
             g_source_remove(m_purgeTimerId);
         }
-        g_mutex_clear(&m_queueMutex);
     }
     
     bool SmtpMessageQueue::GetEnabled()
@@ -228,8 +221,6 @@ namespace DSL
         , m_sslEnabled(true)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_commsMutex);
     }
     
     Mailer::~Mailer()
@@ -241,7 +232,6 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_commsMutex);
             g_source_remove(m_sendMessageThreadId);
         }
-        g_mutex_clear(&m_commsMutex);
     }
     
     bool Mailer::GetEnabled()

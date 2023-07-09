@@ -270,7 +270,7 @@ namespace DSL {
         /**
          * @brief mutex to protect mutual access to queue data
          */
-        GMutex m_messageMutex;
+        DslMutex m_messageMutex;
 
         /**
          * @brief static message counter for all messages, 
@@ -350,7 +350,7 @@ namespace DSL {
         /**
          * @brief mutex to protect mutual access to queue data
          */
-        GMutex m_queueMutex;
+        DslMutex m_queueMutex;
 
         /**
          * @brief Queue of SMTP Messages in one of three states.
@@ -490,7 +490,7 @@ namespace DSL {
         /**
          * @brief mutex to protect mutual access to comms data
          */
-        GMutex m_commsMutex;
+        DslMutex m_commsMutex;
         
         /**
          * @brief Sender's mail account User Name

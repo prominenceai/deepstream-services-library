@@ -51,9 +51,6 @@ namespace DSL
 //        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
 //        gst_caps_unref(pCaps);
 
-        g_mutex_init(&m_asyncCommMutex);
-        g_mutex_init(&m_playNextMutex);
-        
 //        AddChild(m_pQueue);
 //        AddChild(m_pConverter);
 //        AddChild(m_pConverterCapsFilter);
@@ -94,9 +91,6 @@ namespace DSL
         m_pConverterCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
-        g_mutex_init(&m_asyncCommMutex);
-        g_mutex_init(&m_playNextMutex);
-
         AddChild(m_pQueue);
         AddChild(m_pConverter);
         AddChild(m_pConverterCapsFilter);
@@ -117,8 +111,6 @@ namespace DSL
             std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink)->
                 RemoveDeleteEventHandler(PlayerTerminate);
         }
-        g_mutex_clear(&m_asyncCommMutex);
-        g_mutex_clear(&m_playNextMutex);
     }
 
     bool PlayerBintr::LinkAll()
@@ -551,15 +543,11 @@ namespace DSL
         , m_height(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_filePathQueueMutex);
     }
     
     RenderPlayerBintr::~RenderPlayerBintr()
     {
         LOG_FUNC();
-            
-        g_mutex_clear(&m_filePathQueueMutex);
     }
     
     const char* RenderPlayerBintr::GetFilePath()

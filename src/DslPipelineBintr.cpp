@@ -38,9 +38,6 @@ namespace DSL
 
         m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
         AddChild(m_pPipelineSourcesBintr);
-
-        g_mutex_init(&m_asyncStopMutex);
-        g_cond_init(&m_asyncStopCond);
     }
 
     PipelineBintr::~PipelineBintr()
@@ -53,8 +50,6 @@ namespace DSL
         {
             Stop();
         }
-        g_mutex_clear(&m_asyncStopMutex);
-        g_cond_clear(&m_asyncStopCond);
     }
 
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)

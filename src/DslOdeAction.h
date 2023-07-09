@@ -595,13 +595,13 @@ namespace DSL
         /**
          * @brief mutux to guard the image-capture queue read/write access.
          */
-        GMutex m_captureQueueMutex;
+        DslMutex m_captureQueueMutex;
         
         /**
          * @brief mutux to guard the read/write access to the maps of 
          * Listeners, Players, and Mailers.
          */
-        GMutex m_childContainerMutex;
+        DslMutex m_childContainerMutex;
         
         /**
          * @brief map of all currently registered capture-complete-listeners
@@ -1418,7 +1418,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to m_flushThreadFunctionId
          */
-        GMutex m_ostreamMutex;
+        DslMutex m_ostreamMutex;
     };
 
     /**
@@ -1489,7 +1489,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to comms data
          */
-        GMutex m_ostreamMutex;
+        DslMutex m_ostreamMutex;
     };
 
     /**

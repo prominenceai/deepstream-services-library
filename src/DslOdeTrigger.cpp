@@ -69,8 +69,6 @@ namespace DSL
         , m_nextActionIndex(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_resetTimerMutex);
     }
 
     OdeTrigger::~OdeTrigger()
@@ -89,7 +87,6 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
             g_source_remove(m_resetTimerId);
         }
-        g_mutex_clear(&m_resetTimerMutex);
     }
 
     bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
