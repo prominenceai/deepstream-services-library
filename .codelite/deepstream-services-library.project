@@ -235,7 +235,6 @@
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
       <File Name="../examples/cpp/multiple_pipelines.cpp"/>
-      <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
       <File Name="../examples/cpp/ode_cross_polygon_border_print_event.cpp"/>
       <File Name="../examples/cpp/README"/>
@@ -256,6 +255,7 @@
       <File Name="../examples/cpp/smart_record_tap_start_session_on_user_demand.cpp"/>
       <File Name="../examples/cpp/smart_record_sink_start_session_on_user_demand.cpp"/>
       <File Name="../examples/cpp/smart_record_sink_start_session_on_ode_occurrence.cpp"/>
+      <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
