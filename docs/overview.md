@@ -1081,7 +1081,7 @@ Refer to the [Source API](/docs/api-source.md) documentation for more informatio
 ---
 
 ## X11 Window Services
-DSL provides X11 Window Services for Pipelines that use a Window Sink. An Application can create an XWindow - using GTK+ for example - and pass the window handle to the Pipeline prior to playing, or let the Pipeline create the XWindow to use by default. 
+DSL provides X11 Window Services for Pipelines that use Window Sinks. An Application can create an XWindow - using GTK+ for example - and pass the window handle to a Window Sink prior to playing, or let each Window Sink create their own XWindow to use by default.
 
 The client application can register callback functions to handle window events -- `ButtonPress`, `KeyRelease`, and `WindowDelete` -- caused by user interaction. 
 
@@ -1105,12 +1105,15 @@ def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
     global SHOW_SOURCE_TIMEOUT
 
     if (button == Button1):
-        # get the current XWindow dimensions as the User may have resized it. 
-        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        # get the Window Sink's current XWindow dimensions as the User may have resized it.
+        # The Window Sink is derived from the Render Sink class - use the Render Sink
+        # service to get the current width and height of Window Sink's XWindow.
+        retval, width, height = dsl_sink_render_dimensions_get('my-window-sink')
         
         # call the Tiler to show the source based on the x and y button coordinates relative
         # to the current window dimensions obtained from the XWindow.
-        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+        dsl_tiler_source_show_select('my-tiler',
+            x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 ```
 The second callback, called on KeyRelease, allows the user to
 1. show a single source, or all
@@ -1132,18 +1135,20 @@ def XWindowKeyReleaseEventHandler(key_string, client_data):
     elif key_string >= '0' and key_string <= '3':
         retval, source = dsl_source_name_get(int(key_string))
         if retval == DSL_RETURN_SUCCESS:
-            dsl_tiler_source_show_set('tiler', source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
+            dsl_tiler_source_show_set('my-tiler',
+                source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
             
     # C = cycle All sources
     elif key_string.upper() == 'C':
-        dsl_tiler_source_show_cycle('tiler', timeout=SHOW_SOURCE_TIMEOUT)
+        dsl_tiler_source_show_cycle('my-tiler', timeout=SHOW_SOURCE_TIMEOUT)
 
     # A = show All sources
     elif key_string.upper() == 'A':
-        dsl_tiler_source_show_all('tiler')
+        dsl_tiler_source_show_all('my-tiler')
 
     # Q or Esc = quit application
     if key_string.upper() == 'Q' or key_string == '':
+        dsl_pipeline_quit('my-pipeline')
         dsl_main_loop_quit()
 ```
 The third callback is called when the user closes/deletes the XWindow allowing the application to exit from the main-loop and delete all resources
@@ -1152,10 +1157,11 @@ The third callback is called when the user closes/deletes the XWindow allowing t
 # Function to be called on XWindow Delete event
 def XWindowDeleteEventHandler(client_data):
     print('delete window event')
+    dsl_pipeline_quit('my-pipeline')
     dsl_main_loop_quit()
 
 ```
-The callback functions are added to the Pipeline after creation. The XWindow, in this example, is set into `full-screen` mode before the Pipeline is played.
+The callback functions are added to one or more Window Sinks after creation. The XWindow, in this example, is set into `full-screen` mode before the Pipeline is played.
 
 ```Python
 while True:
@@ -1165,22 +1171,22 @@ while True:
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
+    retval = dsl_sink_window_new('my-window-sink', 0, 0, width=1280, height=720)
     if (retval != DSL_RETURN_SUCCESS):
         break
     # Add the XWindow event handler functions defined above
-    retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', XWindowButtonEventHandler, None)
+    retval = dsl_sink_window_button_event_handler_add('my-window-sink', XWindowButtonEventHandler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
-    retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', XWindowKeyReleaseEventHandler, None)
+    retval = dsl_sink_window_key_event_handler_add('my-window-sink', XWindowKeyReleaseEventHandler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
-    retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', XWindowDeleteEventHandler, None)
+    retval = dsl_sink_window_delete_event_handler_add('my-window-sink', XWindowDeleteEventHandler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
 
     # Set the XWindow into 'full-screen' mode for a kiosk look and feel.         
-    retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
+    retval = dsl_sink_window_fullscreen_enabled_set('my-window-sink', enabled=True)
     if retval != DSL_RETURN_SUCCESS:
         break
         
