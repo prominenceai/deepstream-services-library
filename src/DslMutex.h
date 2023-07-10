@@ -1,9 +1,7 @@
-
-
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +25,47 @@ THE SOFTWARE.
 #ifndef _DSL_MUTEX_H
 #define _DSL_MUTEX_H
 
-#include "Dsl.h"
-
-
+#include "glib.h"
  
 namespace DSL
 {
+    /**
+     * @class DslMutex
+     * @brief Wrapper class for the GMutex type
+     */
+    class DslMutex
+    {
+    public:
+    
+        /**
+         * @brief ctor for DslMutex class
+         */
+        DslMutex() 
+        {
+            g_mutex_init(&m_mutex);
+        }
+        
+        /**
+         * @brief dtor for DslMutex class
+         */
+        ~DslMutex()
+        {
+            g_mutex_clear(&m_mutex);
+        }
+        
+        /**
+         * @brief & operator for the DslMutex class
+         * @return returns the address of the wrapped mutex.
+         */
+        GMutex* operator& ()
+        {
+            return &m_mutex;
+        }
+        
+    private:
+        GMutex m_mutex; 
+    };
+   
     #define LOCK_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock(mutex)
     #define LOCK_2ND_MUTEX_FOR_CURRENT_SCOPE(mutex) LockMutexForCurrentScope lock2(mutex)
 
@@ -46,12 +79,12 @@ namespace DSL
         LockMutexForCurrentScope(GMutex* mutex) : m_pMutex(mutex) 
         {
             g_mutex_lock(m_pMutex);
-        };
+        }
         
         ~LockMutexForCurrentScope()
         {
             g_mutex_unlock(m_pMutex);
-        };
+        }
         
     private:
         GMutex* m_pMutex; 

@@ -113,19 +113,35 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
+        # New Tiled Display, setting width and height, 
         retval = dsl_tiler_new('tiler', 1280, 720)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Set the Tiled Displays tiles to accommodate max sources.
+        retval = dsl_tiler_tiles_set('tiler', columns=2, rows=2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -136,22 +152,16 @@ def main(args):
             break
         cur_source_count = 1
 
-        ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, otherwise the Pipeline
-        # will use the current number of Sources when set to Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', MAX_SOURCE_COUNT, 40000)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # Add the XWindow event handlers and EOS listener functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
+        ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, 
+        # otherwise the Pipeline will use the current number of Sources when set to 
+        # Playing, which would be 1 and too small
+        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
+            MAX_SOURCE_COUNT, 40000)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

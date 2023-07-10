@@ -170,7 +170,7 @@ namespace DSL
         /**
          * @brief Mutex to ensure mutual exlusion for propery read/writes
          */
-        GMutex m_propertyMutex;
+        DslMutex m_propertyMutex;
     };
     
     // ********************************************************************

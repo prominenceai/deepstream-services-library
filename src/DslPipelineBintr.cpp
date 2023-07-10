@@ -24,7 +24,6 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslSurfaceTransform.h"
-
 #include "DslServices.h"
 #include "DslPipelineBintr.h"
 
@@ -33,15 +32,12 @@ namespace DSL
     PipelineBintr::PipelineBintr(const char* name)
         : BranchBintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
-        , PipelineXWinMgr(m_pGstObj)
+        , PipelineBusSyncMgr(m_pGstObj)
     {
         LOG_FUNC();
 
         m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
         AddChild(m_pPipelineSourcesBintr);
-
-        g_mutex_init(&m_asyncStopMutex);
-        g_cond_init(&m_asyncStopCond);
     }
 
     PipelineBintr::~PipelineBintr()
@@ -54,8 +50,6 @@ namespace DSL
         {
             Stop();
         }
-        g_mutex_clear(&m_asyncStopMutex);
-        g_cond_clear(&m_asyncStopCond);
     }
 
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -385,13 +379,14 @@ namespace DSL
         // Need to check the context to see if we're running from either
         // the XDisplay thread or the bus-watch fucntion
         
-        // Try and lock the Display mutex first
-        if (!g_mutex_trylock(&m_displayMutex))
+        // Try and lock the shared-client-mutex first
+        if (!g_mutex_trylock(&*m_pSharedClientCbMutex))
         {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
             // lock-failed which means we are already in the XWindow thread context
             // calling on a client handler function for Key release or xWindow delete. 
             // Safe to stop the Pipeline in this context.
-            LOG_INFO("dsl_pipeline_stop called from XWindow display thread context");
+            LOG_INFO("dsl_pipeline_stop called from client-callback context");
             HandleStop();
             return true;
         }
@@ -403,29 +398,28 @@ namespace DSL
             // the Pipeline in this context. 
             LOG_INFO("dsl_pipeline_stop called from bus-watch-function thread context");
             HandleStop();
-            g_mutex_unlock(&m_displayMutex);
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
             return true;
         }
-        
         // If the main loop is running -- normal case -- then we can't change the 
         // state of the Pipeline in the Application's context. 
         if ((m_pMainLoop and g_main_loop_is_running(m_pMainLoop)) or
             (!m_pMainLoop and g_main_loop_is_running(
                 DSL::Services::GetServices()->GetMainLoopHandle())))
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncStopMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
             LOG_INFO("Sending application message to stop the pipeline");
             
             gst_element_post_message(GetGstElement(),
                 gst_message_new_application(GetGstObject(),
                     gst_structure_new_empty("stop-pipline")));
 
-            g_mutex_unlock(&m_displayMutex);
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
             g_mutex_unlock(&m_busWatchMutex);
                     
             // We need a timeout in case the condition is never met/cleared
             gint64 endtime = g_get_monotonic_time () + 2 * G_TIME_SPAN_SECOND;
-            if (!g_cond_wait_until(&m_asyncStopCond, &m_asyncStopMutex, endtime))
+            if (!g_cond_wait_until(&m_asyncCommsCond, &m_asyncCommsMutex, endtime))
             {
                 LOG_WARN("Pipeline '" << GetName() 
                     << "' failed to complete async-stop");
@@ -442,7 +436,7 @@ namespace DSL
         {
             HandleStop();
         }
-        g_mutex_unlock(&m_displayMutex);
+        g_mutex_unlock(&*m_pSharedClientCbMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
@@ -450,6 +444,7 @@ namespace DSL
     void PipelineBintr::HandleStop()
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
         
         // Call on all sources to disable their EOS consumers, before sending EOS
         m_pPipelineSourcesBintr->DisableEosConsumers();
@@ -472,13 +467,16 @@ namespace DSL
                     (GstMessageType)(GST_MESSAGE_CLOCK_LOST | GST_MESSAGE_ERROR | 
                         GST_MESSAGE_EOS));
 
-//            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
-//            {
-                // TODO - need to review why the 'HandleBusWatchMessage' cb
-                // is getting the message in some cases.
-//                LOG_WARN("Pipeline '" << GetName() 
-//                    << "' failed to receive final EOS message on dsl_pipeline_stop");
-//            }
+            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+            {
+                LOG_WARN("Pipeline '" << GetName() 
+                    << "' failed to receive final EOS message on dsl_pipeline_stop");
+            }
+            else
+            {
+                LOG_INFO("Pipeline '" << GetName() 
+                    << "' completed async-stop successfully");
+            }
         }
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
@@ -489,8 +487,7 @@ namespace DSL
         m_eosFlag = false;
         UnlinkAll();
         
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncStopMutex);
-        g_cond_signal(&m_asyncStopCond);
+        g_cond_signal(&m_asyncCommsCond);
     }
 
     bool PipelineBintr::IsLive()

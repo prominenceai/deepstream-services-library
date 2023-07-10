@@ -292,13 +292,24 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # add our ODE Pad Probe Handle to the Sink Pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', 'ode-handler', DSL_PAD_SINK)
+         # Add our ODE Pad Probe Handler to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', 
+            handler='ode-handler', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
- 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+
+        # New Window Sink, 0 x/y offsets and dimensions.
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -309,16 +320,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)

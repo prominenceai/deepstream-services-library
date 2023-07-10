@@ -263,9 +263,6 @@ namespace DSL
         , m_idleThreadFunctionId(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_captureQueueMutex);
-        g_mutex_init(&m_childContainerMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
@@ -280,9 +277,6 @@ namespace DSL
         }
 
         RemoveAllChildren();
-        
-        g_mutex_clear(&m_captureQueueMutex);
-        g_mutex_clear(&m_childContainerMutex);
     }
 
     bool CaptureOdeAction::AddCaptureCompleteListener(
@@ -1109,8 +1103,6 @@ namespace DSL
         , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
-    
-        g_mutex_init(&m_ostreamMutex);
     }
 
     FileOdeAction::~FileOdeAction()
@@ -1129,7 +1121,6 @@ namespace DSL
         }
             
         m_ostream.close();
-        g_mutex_clear(&m_ostreamMutex);
     }
     
     bool FileOdeAction::Flush()
@@ -2190,8 +2181,6 @@ namespace DSL
         , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_ostreamMutex);
     }
 
     PrintOdeAction::~PrintOdeAction()

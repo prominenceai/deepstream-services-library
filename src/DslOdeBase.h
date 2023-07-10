@@ -51,8 +51,6 @@ namespace DSL
             , m_enabled(true)
         {
             LOG_FUNC();
-
-            g_mutex_init(&m_propertyMutex);
         };
 
         /**
@@ -61,8 +59,6 @@ namespace DSL
         ~OdeBase()
         {
             LOG_FUNC();
-
-            g_mutex_clear(&m_propertyMutex);
         };
 
         /**
@@ -151,7 +147,7 @@ namespace DSL
         /**
          * @brief Mutex to ensure mutual exlusion for propery get/sets
          */
-        GMutex m_propertyMutex;
+        DslMutex m_propertyMutex;
     
         /**
          * @brief enabled flag.

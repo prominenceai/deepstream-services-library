@@ -35,7 +35,7 @@ namespace DSL
         DSL_BINTR_PTR pSource, DSL_BINTR_PTR pSink)
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
-        , PipelineXWinMgr(m_pGstObj)
+        , PipelineBusSyncMgr(m_pGstObj)
         , m_pSource(pSource)
         , m_pSink(pSink)
         , m_inTermination(false)
@@ -51,9 +51,6 @@ namespace DSL
 //        m_pConverterCapsFilter->SetAttribute("caps", pCaps);
 //        gst_caps_unref(pCaps);
 
-        g_mutex_init(&m_asyncCommMutex);
-        g_mutex_init(&m_playNextMutex);
-        
 //        AddChild(m_pQueue);
 //        AddChild(m_pConverter);
 //        AddChild(m_pConverterCapsFilter);
@@ -70,14 +67,12 @@ namespace DSL
                 << "' to PlayerBintr '" << GetName() << "'");
             throw;
         }
-        
-        AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
     PlayerBintr::PlayerBintr(const char* name)
         : Bintr(name, true) // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
-        , PipelineXWinMgr(m_pGstObj)
+        , PipelineBusSyncMgr(m_pGstObj)
         , m_inTermination(false)
         , m_clearPlayNextMutex(false)
     {
@@ -91,14 +86,9 @@ namespace DSL
         m_pConverterCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
-        g_mutex_init(&m_asyncCommMutex);
-        g_mutex_init(&m_playNextMutex);
-
         AddChild(m_pQueue);
         AddChild(m_pConverter);
         AddChild(m_pConverterCapsFilter);
-        
-        AddXWindowDeleteEventHandler(PlayerTerminate, this);
     }
 
     PlayerBintr::~PlayerBintr()
@@ -111,9 +101,6 @@ namespace DSL
         {
             Stop();
         }
-        RemoveXWindowDeleteEventHandler(PlayerTerminate);
-        g_mutex_clear(&m_asyncCommMutex);
-        g_mutex_clear(&m_playNextMutex);
     }
 
     bool PlayerBintr::LinkAll()
@@ -198,7 +185,7 @@ namespace DSL
                 << "' as its Source is in an un-playable state");
             return false;
         }
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
 
         if (!LinkAll())
         {
@@ -258,7 +245,7 @@ namespace DSL
     bool PlayerBintr::HandlePlay()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
 
         // m_pSource is of type DSL_BINTR_PTR - need to cast to DSL_SOURCE_PTR
         // for the source to be used as such
@@ -289,7 +276,7 @@ namespace DSL
             LOG_ERROR("Failed to play Player '" << GetName() << "'");
             return false;
         }
-
+        
         // conditionally add the EOS Listener as it may have been
         // removed by the client with a previous call to Stop()
         if (!IsEosListener(PlayerHandleEos))
@@ -310,7 +297,7 @@ namespace DSL
     bool PlayerBintr::Pause()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
 
         GstState state;
         GetState(state, 0);
@@ -342,7 +329,7 @@ namespace DSL
         GetState(state, 0);
         if (state == GST_STATE_PAUSED)
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
             LOG_INFO("Setting Player '" << GetName() 
                 << "' to PLAYING before setting to NULL");
             // Call the base class to Play the Player - can be called from any context.
@@ -361,8 +348,9 @@ namespace DSL
         // the XDisplay thread or the bus-watch fucntion
         
         // Try and lock the Display mutex first
-        if (!g_mutex_trylock(&m_displayMutex))
+        if (!g_mutex_trylock(&*m_pSharedClientCbMutex))
         {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
             // lock-failed which means we are already in the XWindow thread context
             // calling on a client handler function for Key release or xWindow delete. 
             // Safe to stop the Player in this context.
@@ -378,7 +366,7 @@ namespace DSL
             // the Player in this context. 
             LOG_INFO("dsl_player_stop called from bus-watch-function thread context");
             HandleStop();
-            g_mutex_unlock(&m_displayMutex);
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
             return true;
         }
 
@@ -386,11 +374,28 @@ namespace DSL
         // state of the Player in the Application's context. 
         if (g_main_loop_is_running(DSL::Services::GetServices()->GetMainLoopHandle()))
         {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
             LOG_INFO("Sending application message to stop the player");
             
             gst_element_post_message(GetGstElement(),
                 gst_message_new_application(GetGstObject(),
                     gst_structure_new_empty("stop-pipline")));
+                    
+            g_mutex_unlock(&*m_pSharedClientCbMutex);
+            g_mutex_unlock(&m_busWatchMutex);
+                    
+            // We need a timeout in case the condition is never met/cleared
+            gint64 endtime = g_get_monotonic_time () + 2 * G_TIME_SPAN_SECOND;
+            if (!g_cond_wait_until(&m_asyncCommsCond, &m_asyncCommsMutex, endtime))
+            {
+                LOG_WARN("Player '" << GetName() 
+                    << "' failed to complete async-stop");
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
         // Else, client has stopped the main-loop or we are running under test 
         // without the mainloop running - can't send a message so handle stop now.
@@ -398,7 +403,7 @@ namespace DSL
         {
             HandleStop();
         }
-        g_mutex_unlock(&m_displayMutex);
+        g_mutex_unlock(&*m_pSharedClientCbMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
@@ -418,13 +423,15 @@ namespace DSL
     void PlayerBintr::HandleStop()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
 
         // If the client is not stoping due to EOS, we must EOS the Player 
         // to gracefully stop any recording in progress before changing the 
         // Player's state to NULL, 
         if (!m_eosFlag)
         {
+            m_eosFlag = true;
+
             // Send an EOS event to the Pipline bin. 
             SendEos();
             
@@ -436,11 +443,16 @@ namespace DSL
                     (GstMessageType)(GST_MESSAGE_CLOCK_LOST | GST_MESSAGE_ERROR | 
                         GST_MESSAGE_EOS));
 
-//            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
-//            {
-//                LOG_WARN("Player '" << GetName() 
-//                    << "' failed to receive final EOS message on ");
-//            }
+            if (!msg or GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS)
+            {
+                LOG_WARN("Player '" << GetName() 
+                    << "' failed to receive final EOS message on dsl_pipeline_stop");
+            }
+            else
+            {
+                LOG_INFO("Player '" << GetName() 
+                    << "' completed async-stop successfully");
+            }
         }
 
         if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
@@ -450,6 +462,8 @@ namespace DSL
         
         m_eosFlag = false;
         UnlinkAll();
+        
+        g_cond_signal(&m_asyncCommsCond);
         
         if (m_inTermination)
         {
@@ -480,7 +494,7 @@ namespace DSL
     void PlayerBintr::HandleTermination()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
         
         // Set the termination flag so that the async HandleStop()
         // Can notifiy all Termination Listeners
@@ -542,15 +556,11 @@ namespace DSL
         , m_height(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_filePathQueueMutex);
     }
     
     RenderPlayerBintr::~RenderPlayerBintr()
     {
         LOG_FUNC();
-            
-        g_mutex_clear(&m_filePathQueueMutex);
     }
     
     const char* RenderPlayerBintr::GetFilePath()
@@ -636,13 +646,6 @@ namespace DSL
         DSL_RENDER_SINK_PTR pRenderSink = 
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
-        // If the RenderSink is a WindowSinkBintr
-        if (GetXWindow())
-        {
-            SetXWindowOffsets(m_offsetX, m_offsetY);
-            return true;
-        }
-        // Else, update the OverlaySinkBintr;
         return pRenderSink->SetOffsets(m_offsetX, m_offsetY);
     }
 
@@ -657,13 +660,6 @@ namespace DSL
         DSL_RENDER_SINK_PTR pRenderSink = 
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
-        // If the RenderSink is a WindowSinkBintr
-        if (OwnsXWindow())
-        {
-            SetXWindowDimensions(width, height);
-            return true;
-        }
-        // Else, update the OverlaySinkBintr;
         return pRenderSink->SetDimensions(width, height);
     }
 
@@ -689,12 +685,6 @@ namespace DSL
         DSL_RENDER_SINK_PTR pRenderSink = 
             std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
 
-        // If the RenderSink is a WindowSinkBintr
-        if (OwnsXWindow())
-        {
-            DestroyXWindow();
-        }
-        
         return pRenderSink->Reset();
     }
     
@@ -716,6 +706,7 @@ namespace DSL
         {
             m_pSink = DSL_WINDOW_SINK_NEW(sinkName.c_str(), 
                 m_offsetX, m_offsetY, width, height);
+            
         }
         if (!AddChild(m_pSink))
         {
@@ -729,7 +720,7 @@ namespace DSL
     bool RenderPlayerBintr::Next()
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
         
         
         // Lock the Play-Next mutex and set the flag

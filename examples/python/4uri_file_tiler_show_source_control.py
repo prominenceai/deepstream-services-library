@@ -131,12 +131,15 @@ def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
     global SHOW_SOURCE_TIMEOUT
 
     if (button == Button1):
-        # get the current XWindow dimensions - the XWindow was overlayed with our Window Sink
-        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        # Get the current XWindow dimensions from our Window Sink
+        # The Window Sink is derived from Render Sink parent class so  
+        # use the Render Sink API to get the dimensions.
+        retval, width, height = dsl_sink_render_dimensions_get('window-sink')
         
         # call the Tiler to show the source based on the x and y button cooridantes
         # and the current window dimensions obtained from the XWindow
-        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+        dsl_tiler_source_show_select('tiler', 
+            x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 
 def main(args):
 
@@ -248,8 +251,27 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Enabled full-screen-mode for our Window Sink
+        retval = dsl_sink_window_fullscreen_enabled_set('window-sink', enabled=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_button_event_handler_add('window-sink', 
+            xwindow_button_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -260,28 +282,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Enabled the XWindow for full-screen-mode
-        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the EOS listener and XWindow event handler functions defined above
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', 
-            xwindow_button_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:

@@ -754,15 +754,11 @@ namespace DSL
 
         // add all elementrs as childer to this Bintr
         AddChild(m_pSourceElement);
-
-        g_mutex_init(&m_dataHandlerMutex);
     }
 
     AppSourceBintr::~AppSourceBintr()
     {
         LOG_FUNC();
-        
-        g_mutex_clear(&m_dataHandlerMutex);
     }
     
     bool AppSourceBintr::LinkAll()
@@ -1505,9 +1501,6 @@ namespace DSL
         
         m_isLive = isLive;
         
-        // Initialize the mutex regardless of IsLive or not
-        g_mutex_init(&m_repeatEnabledMutex);
-
         m_pSourceElement = DSL_ELEMENT_NEW("uridecodebin", name);
         
         if (!SetUri(uri))
@@ -1553,8 +1546,6 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_repeatEnabledMutex);
     }
 
     bool UriSourceBintr::SetUri(const char* uri)
@@ -2372,15 +2363,11 @@ namespace DSL
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
 
-        g_mutex_init(&m_timeoutTimerMutex);
-
     }
     
     ImageStreamSourceBintr::~ImageStreamSourceBintr()
     {
         LOG_FUNC();
-        
-        g_mutex_clear(&m_timeoutTimerMutex);
     }
 
     bool ImageStreamSourceBintr::SetUri(const char* uri)
@@ -2774,10 +2761,6 @@ namespace DSL
             "src", m_pBufferOutVidConv);
         m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
         
-        g_mutex_init(&m_streamManagerMutex);
-        g_mutex_init(&m_reconnectionManagerMutex);
-        g_mutex_init(&m_stateChangeMutex);
-        
         // Set the default connection param values
         m_connectionData.sleep = DSL_RTSP_CONNECTION_SLEEP_S;
         m_connectionData.timeout = DSL_RTSP_CONNECTION_TIMEOUT_S;
@@ -2796,10 +2779,6 @@ namespace DSL
         // Note: don't need t worry about stopping the one-shot m_listenerNotifierTimerId
         
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
-        
-        g_mutex_clear(&m_streamManagerMutex);
-        g_mutex_clear(&m_reconnectionManagerMutex);
-        g_mutex_clear(&m_stateChangeMutex);
     }
     
     bool RtspSourceBintr::LinkAll()

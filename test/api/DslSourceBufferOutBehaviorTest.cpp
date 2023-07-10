@@ -46,7 +46,7 @@ static const uint sink_height(720);
 static const std::wstring window_sink_name(L"window-sink");
 
 SCENARIO( "A URI File Source can play with buffer-out-format = RGBA]",
-    "[buffer-out-behavior]")
+    "[what]")
 {
     GIVEN( "A Pipeline, URI source, and Window Sink" ) 
     {
@@ -72,6 +72,7 @@ SCENARIO( "A URI File Source can play with buffer-out-format = RGBA]",
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::cout << "*******************************" << std::endl;
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
                 dsl_delete_all();

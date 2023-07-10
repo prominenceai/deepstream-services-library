@@ -36,8 +36,6 @@ namespace DSL
         , m_isEnabled(false)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_padHandlerMutex);
     }
 
     PadProbeHandler::~PadProbeHandler()
@@ -48,7 +46,6 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
             RemoveAllChildren();
         }
-        g_mutex_clear(&m_padHandlerMutex);
     }
     
     bool PadProbeHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
@@ -844,8 +841,6 @@ namespace DSL
         , m_nextHanlderIndex(0)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_padProbeMutex);
     }
 
     PadProbetr::~PadProbetr()
@@ -864,8 +859,6 @@ namespace DSL
             }
             gst_object_unref(m_pStaticPad);
         }
-
-        g_mutex_clear(&m_padProbeMutex);
     }
 
     bool PadProbetr::AddPadProbeHandler(DSL_BASE_PTR pPadProbeHandler)

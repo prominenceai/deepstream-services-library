@@ -434,16 +434,16 @@ DSL_EOS_LISTENER = \
 DSL_ERROR_MESSAGE_HANDLER = \
     CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 
-# dsl_xwindow_key_event_handler_cb
-DSL_XWINDOW_KEY_EVENT_HANDLER = \
+# dsl_sink_window_key_event_handler_cb
+DSL_SINK_WINDOW_KEY_EVENT_HANDLER = \
     CFUNCTYPE(None, c_wchar_p, c_void_p)
 
-# dsl_xwindow_button_event_handler_cb
-DSL_XWINDOW_BUTTON_EVENT_HANDLER = \
+# dsl_sink_window_button_event_handler_cb
+DSL_SINK_WINDOW_BUTTON_EVENT_HANDLER = \
     CFUNCTYPE(None, c_uint, c_int, c_int, c_void_p)
 
-# dsl_xwindow_delete_event_handler_cb
-DSL_XWINDOW_DELETE_EVENT_HANDLER = \
+# dsl_sink_window_delete_event_handler_cb
+DSL_SINK_WINDOW_DELETE_EVENT_HANDLER = \
     CFUNCTYPE(None, c_void_p)
 
 # dsl_record_client_listener_cb
@@ -4951,11 +4951,14 @@ def dsl_sink_fake_new(name):
 ##
 ## dsl_sink_overlay_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, display_id, depth, offset_x, offset_y, width, height):
+def dsl_sink_overlay_new(name, 
+    display_id, depth, offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, display_id, depth, offset_x, offset_y, width, height)
+    result =_dsl.dsl_sink_overlay_new(name, 
+        display_id, depth, offset_x, offset_y, width, height)
     return int(result)
 
 ##
@@ -4969,13 +4972,163 @@ def dsl_sink_window_new(name, offset_x, offset_y, width, height):
     return int(result)
 
 ##
-## dsl_sink_render_reset()
+## dsl_sink_window_handle_get()
 ##
-_dsl.dsl_sink_render_reset.argtypes = [c_wchar_p]
-_dsl.dsl_sink_render_reset.restype = c_uint
-def dsl_sink_render_reset(name):
+_dsl.dsl_sink_window_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_sink_window_handle_get.restype = c_uint
+def dsl_sink_window_handle_get(name):
     global _dsl
-    result =_dsl.dsl_sink_render_reset(name)
+    handle = c_uint64(0)
+    result = _dsl.dsl_sink_window_handle_get(name, DSL_UINT64_P(handle))
+    return int(result), handle.value
+
+##
+## dsl_sink_window_handle_set()
+##
+_dsl.dsl_sink_window_handle_set.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_sink_window_handle_set.restype = c_uint
+def dsl_sink_window_handle_set(name, handle):
+    global _dsl
+    result = _dsl.dsl_sink_window_handle_set(name, handle)
+    return int(result)
+
+##
+## dsl_sink_window_clear()
+##
+_dsl.dsl_sink_window_clear.argtypes = [c_wchar_p]
+_dsl.dsl_sink_window_clear.restype = c_uint
+def dsl_sink_window_clear(name):
+    global _dsl
+    result = _dsl.dsl_sink_window_clear(name)
+    return int(result)
+
+##
+## dsl_sink_window_force_aspect_ratio_get()
+##
+_dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_window_force_aspect_ratio_get.restype = c_uint
+def dsl_sink_window_force_aspect_ratio_get(name):
+    global _dsl
+    force = c_bool(False)
+    result =_dsl.dsl_sink_window_force_aspect_ratio_get(name, DSL_BOOL_P(force))
+    return int(result), force.value
+
+##
+## dsl_sink_window_force_aspect_ratio_set()
+##
+_dsl.dsl_sink_window_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_window_force_aspect_ratio_set.restype = c_uint
+def dsl_sink_window_force_aspect_ratio_set(name, force):
+    global _dsl
+    result =_dsl.dsl_sink_window_force_aspect_ratio_set(name, force)
+    return int(result)
+
+##
+## dsl_sink_window_fullscreen_enabled_get()
+##
+_dsl.dsl_sink_window_fullscreen_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_window_fullscreen_enabled_get.restype = c_uint
+def dsl_sink_window_fullscreen_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_window_offsets_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_sink_window_fullscreen_enabled_set()
+##
+_dsl.dsl_sink_window_fullscreen_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_window_fullscreen_enabled_set.restype = c_uint
+def dsl_sink_window_fullscreen_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_sink_window_fullscreen_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sink_window_key_event_handler_add()
+##
+_dsl.dsl_sink_window_key_event_handler_add.argtypes = [c_wchar_p, 
+    DSL_SINK_WINDOW_KEY_EVENT_HANDLER, c_void_p]
+_dsl.dsl_sink_window_key_event_handler_add.restype = c_uint
+def dsl_sink_window_key_event_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_SINK_WINDOW_KEY_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sink_window_key_event_handler_add(name, 
+        c_client_handler, c_client_data)
+    return int(result)
+
+##
+## dsl_sink_window_key_event_handler_remove()
+##
+_dsl.dsl_sink_window_key_event_handler_remove.argtypes = [c_wchar_p, 
+    DSL_SINK_WINDOW_KEY_EVENT_HANDLER]
+_dsl.dsl_sink_window_key_event_handler_remove.restype = c_uint
+def dsl_sink_window_key_event_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_SINK_WINDOW_KEY_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_sink_window_key_event_handler_remove(name, 
+        c_client_handler)
+    return int(result)
+
+##
+## dsl_sink_window_button_event_handler_add()
+##
+_dsl.dsl_sink_window_button_event_handler_add.argtypes = [c_wchar_p, 
+    DSL_SINK_WINDOW_BUTTON_EVENT_HANDLER, c_void_p]
+_dsl.dsl_sink_window_button_event_handler_add.restype = c_uint
+def dsl_sink_window_button_event_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_SINK_WINDOW_BUTTON_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sink_window_button_event_handler_add(name, 
+        c_client_handler, c_client_data)
+    return int(result)
+
+##
+## dsl_sink_window_button_event_handler_remove()
+##
+_dsl.dsl_sink_window_button_event_handler_remove.argtypes = [c_wchar_p, 
+    DSL_SINK_WINDOW_BUTTON_EVENT_HANDLER]
+_dsl.dsl_sink_window_button_event_handler_remove.restype = c_uint
+def dsl_sink_window_button_event_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_SINK_WINDOW_BUTTON_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_sink_window_button_event_handler_remove(name, 
+        c_client_handler)
+    return int(result)
+
+##
+## dsl_sink_window_delete_event_handler_add()
+##
+_dsl.dsl_sink_window_delete_event_handler_add.argtypes = [c_wchar_p, 
+    DSL_SINK_WINDOW_DELETE_EVENT_HANDLER, c_void_p]
+_dsl.dsl_sink_window_delete_event_handler_add.restype = c_uint
+def dsl_sink_window_delete_event_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_SINK_WINDOW_DELETE_EVENT_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sink_window_delete_event_handler_add(name, 
+        c_client_handler, c_client_data)
+    return int(result)
+
+##
+## dsl_sink_window_delete_event_handler_remove()
+##
+_dsl.dsl_sink_window_delete_event_handler_remove.argtypes = [c_wchar_p, 
+    DSL_SINK_WINDOW_DELETE_EVENT_HANDLER]
+_dsl.dsl_sink_window_delete_event_handler_remove.restype = c_uint
+def dsl_sink_window_delete_event_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_SINK_WINDOW_DELETE_EVENT_HANDLER(client_handler)
+    result = _dsl.dsl_sink_window_delete_event_handler_remove(name, 
+        c_client_handler)
     return int(result)
 
 ##
@@ -4998,27 +5151,6 @@ _dsl.dsl_sink_render_dimensions_set.restype = c_uint
 def dsl_sink_render_dimensions_set(name, width, height):
     global _dsl
     result = _dsl.dsl_sink_render_dimensions_set(name, width, height)
-    return int(result)
-
-##
-## dsl_sink_window_force_aspect_ratio_get()
-##
-_dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_sink_window_force_aspect_ratio_get.restype = c_uint
-def dsl_sink_window_force_aspect_ratio_get(name):
-    global _dsl
-    force = c_bool(False)
-    result =_dsl.dsl_sink_window_force_aspect_ratio_get(name, DSL_BOOL_P(force))
-    return int(result), force.value
-
-##
-## dsl_sink_window_force_aspect_ratio_set()
-##
-_dsl.dsl_sink_window_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_sink_window_force_aspect_ratio_set.restype = c_uint
-def dsl_sink_window_force_aspect_ratio_set(name, force):
-    global _dsl
-    result =_dsl.dsl_sink_window_force_aspect_ratio_set(name, force)
     return int(result)
 
 ##
@@ -6063,92 +6195,6 @@ def dsl_pipeline_streammux_tiler_remove(name):
     return int(result)
 
 ##
-## dsl_pipeline_xwindow_handle_get()
-##
-_dsl.dsl_pipeline_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
-_dsl.dsl_pipeline_xwindow_handle_get.restype = c_uint
-def dsl_pipeline_xwindow_handle_get(name):
-    global _dsl
-    handle = c_uint64(0)
-    result = _dsl.dsl_pipeline_xwindow_handle_get(name, DSL_UINT64_P(handle))
-    return int(result), handle.value
-
-##
-## dsl_pipeline_xwindow_handle_set()
-##
-_dsl.dsl_pipeline_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
-_dsl.dsl_pipeline_xwindow_handle_set.restype = c_uint
-def dsl_pipeline_xwindow_handle_set(name, handle):
-    global _dsl
-    result = _dsl.dsl_pipeline_xwindow_handle_set(name, handle)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_clear()
-##
-_dsl.dsl_pipeline_xwindow_clear.argtypes = [c_wchar_p]
-_dsl.dsl_pipeline_xwindow_clear.restype = c_uint
-def dsl_pipeline_xwindow_clear(name):
-    global _dsl
-    result = _dsl.dsl_pipeline_xwindow_clear(name)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_destroy()
-##
-_dsl.dsl_pipeline_xwindow_destroy.argtypes = [c_wchar_p]
-_dsl.dsl_pipeline_xwindow_destroy.restype = c_uint
-def dsl_pipeline_xwindow_destroy(name):
-    global _dsl
-    result = _dsl.dsl_pipeline_xwindow_destroy(name)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_dimensions_get()
-##
-_dsl.dsl_pipeline_xwindow_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_xwindow_dimensions_get.restype = c_uint
-def dsl_pipeline_xwindow_dimensions_get(name):
-    global _dsl
-    width = c_uint(0)
-    height = c_uint(0)
-    result = _dsl.dsl_pipeline_xwindow_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), int(width.value), int(height.value) 
-
-##
-## dsl_pipeline_xwindow_offsets_get()
-##
-_dsl.dsl_pipeline_xwindow_offsets_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_xwindow_offsets_get.restype = c_uint
-def dsl_pipeline_xwindow_offsets_get(name):
-    global _dsl
-    x_offset = c_uint(0)
-    y_offset = c_uint(0)
-    result = _dsl.dsl_pipeline_xwindow_offsets_get(name, DSL_UINT_P(x_offset), DSL_UINT_P(y_offset))
-    return int(result), int(x_offset.value), int(y_offset.value) 
-
-##
-## dsl_pipeline_xwindow_fullscreen_enabled_get()
-##
-_dsl.dsl_pipeline_xwindow_fullscreen_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_pipeline_xwindow_fullscreen_enabled_get.restype = c_uint
-def dsl_pipeline_xwindow_fullscreen_enabled_get(name):
-    global _dsl
-    enabled = c_bool(0)
-    result = _dsl.dsl_pipeline_xwindow_offsets_get(name, DSL_BOOL_P(enabled))
-    return int(result), enabled.value
-
-##
-## dsl_pipeline_xwindow_fullscreen_enabled_set()
-##
-_dsl.dsl_pipeline_xwindow_fullscreen_enabled_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_pipeline_xwindow_fullscreen_enabled_set.restype = c_uint
-def dsl_pipeline_xwindow_fullscreen_enabled_set(name, enabled):
-    global _dsl
-    result = _dsl.dsl_pipeline_xwindow_fullscreen_enabled_set(name, enabled)
-    return int(result)
-
-##
 ## dsl_pipeline_pause()
 ##
 _dsl.dsl_pipeline_pause.argtypes = [c_wchar_p]
@@ -6335,81 +6381,6 @@ def dsl_pipeline_error_message_handler_remove(name, client_handler):
     result = _dsl.dsl_pipeline_error_message_handler_remove(name, c_client_handler)
     return int(result)
 
-##
-## dsl_pipeline_xwindow_key_event_handler_add()
-##
-_dsl.dsl_pipeline_xwindow_key_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER, c_void_p]
-_dsl.dsl_pipeline_xwindow_key_event_handler_add.restype = c_uint
-def dsl_pipeline_xwindow_key_event_handler_add(name, client_handler, client_data):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
-    callbacks.append(c_client_handler)
-    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(c_client_data)
-    result = _dsl.dsl_pipeline_xwindow_key_event_handler_add(name, c_client_handler, c_client_data)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_key_event_handler_remove()
-##
-_dsl.dsl_pipeline_xwindow_key_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER]
-_dsl.dsl_pipeline_xwindow_key_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_key_event_handler_remove(name, client_handler):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
-    result = _dsl.dsl_pipeline_xwindow_key_event_handler_remove(name, c_client_handler)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_button_event_handler_add()
-##
-_dsl.dsl_pipeline_xwindow_button_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_BUTTON_EVENT_HANDLER, c_void_p]
-_dsl.dsl_pipeline_xwindow_button_event_handler_add.restype = c_uint
-def dsl_pipeline_xwindow_button_event_handler_add(name, client_handler, client_data):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(client_handler)
-    callbacks.append(c_client_handler)
-    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(c_client_data)
-    result = _dsl.dsl_pipeline_xwindow_button_event_handler_add(name, c_client_handler, c_client_data)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_button_event_handler_remove()
-##
-_dsl.dsl_pipeline_xwindow_button_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_BUTTON_EVENT_HANDLER]
-_dsl.dsl_pipeline_xwindow_button_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_button_event_handler_remove(name, client_handler):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_BUTTON_EVENT_HANDLER(client_handler)
-    result = _dsl.dsl_pipeline_xwindow_button_event_handler_remove(name, c_client_handler)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_delete_event_handler_add()
-##
-_dsl.dsl_pipeline_xwindow_delete_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_DELETE_EVENT_HANDLER, c_void_p]
-_dsl.dsl_pipeline_xwindow_delete_event_handler_add.restype = c_uint
-def dsl_pipeline_xwindow_delete_event_handler_add(name, client_handler, client_data):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(client_handler)
-    callbacks.append(c_client_handler)
-    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(c_client_data)
-    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_add(name, c_client_handler, c_client_data)
-    return int(result)
-
-##
-## dsl_pipeline_xwindow_delete_event_handler_remove()
-##
-_dsl.dsl_pipeline_xwindow_delete_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_DELETE_EVENT_HANDLER]
-_dsl.dsl_pipeline_xwindow_delete_event_handler_remove.restype = c_uint
-def dsl_pipeline_xwindow_delete_event_handler_remove(name, client_handler):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_DELETE_EVENT_HANDLER(client_handler)
-    result = _dsl.dsl_pipeline_xwindow_delete_event_handler_remove(name, c_client_handler)
-    return int(result)
-    
 ##
 ## dsl_player_new()
 ##
@@ -6598,52 +6569,6 @@ def dsl_player_termination_event_listener_remove(name, client_listener):
     global _dsl
     c_client_listener = DSL_PLAYER_TERMINATION_EVENT_LISTENER(client_listener)
     result = _dsl.dsl_player_termination_event_listener_remove(name, c_client_listener)
-    return int(result)
-
-##
-## dsl_player_xwindow_key_event_handler_add()
-##
-_dsl.dsl_player_xwindow_key_event_handler_add.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER, c_void_p]
-_dsl.dsl_player_xwindow_key_event_handler_add.restype = c_uint
-def dsl_player_xwindow_key_event_handler_add(name, client_handler, client_data):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
-    callbacks.append(c_client_handler)
-    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
-    clientdata.append(c_client_data)
-    result = _dsl.dsl_player_xwindow_key_event_handler_add(name, c_client_handler, c_client_data)
-    return int(result)
-
-##
-## dsl_player_xwindow_key_event_handler_remove()
-##
-_dsl.dsl_player_xwindow_key_event_handler_remove.argtypes = [c_wchar_p, DSL_XWINDOW_KEY_EVENT_HANDLER]
-_dsl.dsl_player_xwindow_key_event_handler_remove.restype = c_uint
-def dsl_player_xwindow_key_event_handler_remove(name, client_handler):
-    global _dsl
-    c_client_handler = DSL_XWINDOW_KEY_EVENT_HANDLER(client_handler)
-    result = _dsl.dsl_player_xwindow_key_event_handler_remove(name, c_client_handler)
-    return int(result)
-
-##
-## dsl_player_xwindow_handle_get()
-##
-_dsl.dsl_player_xwindow_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
-_dsl.dsl_player_xwindow_handle_get.restype = c_uint
-def dsl_player_xwindow_handle_get(name):
-    global _dsl
-    handle = c_uint64(0)
-    result = _dsl.dsl_player_xwindow_handle_get(name, DSL_UINT64_P(handle))
-    return int(result), handle.value
-
-##
-## dsl_player_xwindow_handle_set()
-##
-_dsl.dsl_player_xwindow_handle_set.argtypes = [c_wchar_p, c_uint64]
-_dsl.dsl_player_xwindow_handle_set.restype = c_uint
-def dsl_player_xwindow_handle_set(name, handle):
-    global _dsl
-    result = _dsl.dsl_player_xwindow_handle_set(name, handle)
     return int(result)
     
 ##

@@ -26,6 +26,9 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 
 **Callback Types:**
 * [dsl_sink_app_new_data_handler_cb](#dsl_sink_app_new_data_handler_cb)
+* [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb)
+* [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb)
+* [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb)
 * [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
 * [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb)
 
@@ -60,8 +63,18 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_render_dimensions_set](#dsl_sink_render_dimensions_set)
 
 **Window Sink Methods**
+* [dsl_sink_window_handle_get](#dsl_sink_window_handle_get)
+* [dsl_sink_window_handle_set](#dsl_sink_window_handle_set)
 * [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
 * [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
+* [dsl_sink_window_fullscreen_enabled_get](#dsl_sink_window_fullscreen_enabled_get)
+* [dsl_sink_window_fullscreen_enabled_set](#dsl_sink_window_fullscreen_enabled_set)
+* [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add)
+* [dsl_sink_window_key_event_handler_remove](#dsl_sink_window_key_event_handler_remove)
+* [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add)
+* [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove)
+* [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add)
+* [dsl_sink_window_delete_event_handler_remove](#dsl_sink_window_delete_event_handler_remove)
 
 **Encode Sink Methods**
 * [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
@@ -294,6 +307,43 @@ Callback typedef for the App Sink Component. The function is registered when the
 
 **Returns**
 * One of the [DSL_FLOW](#valid-return-values-for-the-dsl_sink_app_new_data_handler_cb) constant values.
+
+<br>
+
+### *dsl_sink_window_key_event_handler_cb*
+```C++
+typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* client_data);
+```
+Callback typedef for a client XWindow `KeyRelease` event handler function. Functions of this type are added to a Window Sink by calling [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add). Once added, the function will be called on every XWindow `KeyRelease` event. The handler function is removed by calling  [dsl_sink_window_key_event_handler_remove](#dsl_sink_window_key_event_handler_remove).
+
+**Parameters**
+* `key` - [in] UNICODE key string for the key pressed
+* `client_data` - [in] opaque pointer to client's user data, passed into the Window Sink on callback add
+
+<br>
+
+### *dsl_sink_window_button_event_handler_cb*
+```C++
+typedef void (*dsl_sink_window_button_event_handler_cb)(uint button, uint xpos, uint ypos, void* client_data);
+```
+Callback typedef for a client XWindow `ButtonPress` event handler function. Functions of this type are added to a Window Sink by calling [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add). Once added, the function will be called on every XWindow `ButtonPress` event. The handler function is removed by calling [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove).
+
+**Parameters**
+* `button` - [in] one of [DSL_BUTTON_ID](#) indicating which mouse button was pressed
+* `xpos` - [in] positional X-offset from the XWindow's upper left corner in pixels
+* `ypos` - [in] positional Y-offset from the XWindow's upper left corner in pixels
+* `client_data` - [in] opaque pointer to client's user data, passed into the Window Sink on callback add
+
+<br>
+
+### *dsl_sink_window_delete_event_handler_cb*
+```C++
+typedef void (*dsl_sink_window_delete_event_handler_cb)(void* client_data);
+```
+Callback typedef for a client XWindow `Delete` event handler function. Functions of this type are added to a Pipeline by calling [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add). Once added, the function will be called on XWindow `Delete` event. The handler function is removed by calling [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove).
+
+**Parameters**
+* `client_data` - [in] opaque pointer to client's user data, passed into the Window Sink on callback add
 
 <br>
 
@@ -959,6 +1009,45 @@ retval = dsl_sink_render_dimensions_set('my-overlay-sink', 1280, 720)
 <br>
 
 ## Window Sink Methods
+### *dsl_sink_window_handle_get*
+```C++
+DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
+```
+This service returns the current XWindow handle in use by the named Window Sink. The handle is set to `Null` on Wink creation and will remain `Null` until,
+1. The Sink creates an internal XWindow synchronized on Transition to a state of playing, or
+2. The Client Application passes an XWindow handle into the Pipeline by calling [dsl_sink_window_handle_set](#dsl_sink_window_handle_set).
+
+**Parameters**
+* `name` - [in] unique name for the Window Sink to query.
+* `handle` - [out] XWindow handle in use by the named Window Sink
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, handle = dsl_sink_window_handle_get('my-window-sink')
+```
+<br>
+
+### *dsl_sink_window_handle_set*
+```C++
+DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
+```
+This service sets the XWindow for the named Window Sink to use. Setting the handle to 0 will clear any previously provided handle. The Window Sink will create its own XWindow if the handle is set to 0.
+
+**Parameters**
+* `name` - [in] unique name for the Window Sink to update.
+* `handle` - [in] XWindow handle for the Window-Sink to use, or 0 to clear the value.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_window_handle_set('my-window-sink', handle)
+```
+<br>
 
 ### *dsl_sink_window_force_aspect_ratio_get*
 ```C++
@@ -998,6 +1087,195 @@ This service sets the `force-aspect-ratio` property for the named Window Sink. T
 **Python Example**
 ```Python
 retval = dsl_sink_window_force_aspect_ratio_get('my-window-sink', True)
+```
+
+<br>
+
+### *dsl_sink_window_fullscreen_enabled_get*
+```C++
+DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service gets the current full-screen-enabled setting for the named Window Sink's XWindow.
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to query
+* `enabled` - [out] true if the XWindow's full-screen mode is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_window_fullscreen_enabled_get('my-window-sink')
+```
+
+<br>
+
+### *dsl_sink_window_fullscreen_enabled_set*
+```C++
+DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the current full-screen-enabled setting for the Window Sink's XWindow.
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update
+* `enabled` - [in] set to true to enable the XWindow's full-screen mode, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_window_fullscreen_enabled_set('my-window-sink', enabled=True)
+```
+
+<br>
+
+### *dsl_sink_window_key_event_handler_add*
+```C++
+DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler, void* client_data);
+```
+This service adds a callback function of type [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update.
+* `handler` - [in] XWindow event handler callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def key_event_handler(key_string, client_data):
+    print('key pressed = ', key_string)
+   
+retval = dsl_sink_window_key_event_handler_add('my-window-sink',
+    key_event_handler, None)
+```
+
+<br>
+
+### *dsl_sink_window_key_event_handler_remove*
+```C++
+DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler);
+```
+This service removes a function of type [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb) that was previously added with [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add).
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update
+* `handler` - [in] XWindow event handler callback function to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_window_key_event_handler_remove('my-window-sink',
+    key_event_handler)
+```
+
+<br>
+
+### *dsl_sink_window_button_event_handler_add*
+```C++
+DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler, void* client_data);
+```
+This service adds a callback function of type [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update.
+* `handler` - [in] XWindow event handler callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful  addition . One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def button_event_handler(button, xpos, ypos, client_data):
+    print('button = ', button)
+    print('xpos = ', xpos)
+    print('ypos = ', ypos)
+   
+retval = dsl_sink_window_button_event_handler_add('my-window-sink',
+    button_event_handler, None)
+```
+
+<br>
+
+### *dsl_sink_window_button_event_handler_remove*
+```C++
+DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler);
+```
+This service removes a function of type [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb) that was previously added with [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add).
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update.
+* `handler` - [in] XWindow event handler callback function to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_window_button_event_handler_remove('my-window-sink',
+    button_event_handler)
+```
+
+<br>
+
+### *dsl_sink_window_delete_event_handler_add*
+```C++
+DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler, void* client_data);
+```
+This service adds a callback function of type [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb) to a named Window Sink. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update.
+* `handler` - [in] XWindow event handler callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the handler when called back
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def xwindow_delete_event_handler(client_data):
+    dsl_pipeline_stop('my-pipeline')
+    dsl_main_loop_quit()
+
+retval = dsl_sink_window_delete_event_handler_add('my-window-sink',
+    xwindow_delete_event_handler, None)
+```
+
+<br>
+
+### *dsl_sink_window_delete_event_handler_remove*
+```C++
+DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler);
+```
+This service removes a function of type [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb) that was previously added with [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add).
+
+**Parameters**
+* `name` - [in] unique name of the Window Sink to update
+* `handler` - [in] XWindow event handler callback function to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_window_delete_event_handler_remove('my-pipeline',
+    xwindow_delete_event_handler)
 ```
 
 <br>

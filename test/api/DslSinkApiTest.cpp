@@ -783,6 +783,93 @@ SCENARIO( "A Window Sink can be Reset", "[sink-api]" )
     }
 }    
 
+SCENARIO( "A Window Sinks full-screen-enabled setting can be Set/Get", "[sink-api]" )
+{
+    GIVEN( "A new Window Sink" ) 
+    {
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+        boolean defFullScreenEnabled(0);
+        boolean retFullScreenEnabled(99);
+
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_fullscreen_enabled_get(windowSinkName.c_str(), 
+            &retFullScreenEnabled) == DSL_RESULT_SUCCESS );
+            
+        // must be initialized false
+        REQUIRE( retFullScreenEnabled == defFullScreenEnabled );
+
+        WHEN( "When the Window Sinks full-screen-enabled setting is updated" ) 
+        {
+            boolean newFullScreenEnabled(1);
+            
+            REQUIRE( dsl_sink_window_fullscreen_enabled_set(windowSinkName.c_str(), 
+                newFullScreenEnabled) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The new values are returned on get" )
+            {
+                REQUIRE( dsl_sink_window_fullscreen_enabled_get(windowSinkName.c_str(), 
+                    &retFullScreenEnabled) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( retFullScreenEnabled == newFullScreenEnabled );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Window Sink's Handle can be Set/Get", "[sink-api]" )
+{
+    GIVEN( "A new Window Sink" ) 
+    {
+        std::wstring windowSinkName = L"window-sink";
+
+        uint offsetX(0);
+        uint offsetY(0);
+        uint sinkW(1280);
+        uint sinkH(720);
+        boolean defFullScreenEnabled(0);
+        boolean retFullScreenEnabled(99);
+
+        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        
+        uint64_t retHandle(0);
+        
+        REQUIRE( dsl_sink_window_handle_get(windowSinkName.c_str(), 
+            &retHandle) == DSL_RESULT_SUCCESS );
+            
+        // must be initialized to NULL
+        REQUIRE( retHandle == 0 );
+
+        WHEN( "When the Window Sink's Handle is updated" ) 
+        {
+            uint64_t newHandle = 0x1234567812345678;
+            
+            REQUIRE( dsl_sink_window_handle_set(windowSinkName.c_str(), 
+                newHandle) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The new handle value is returned on get" )
+            {
+                REQUIRE( dsl_sink_window_handle_get(windowSinkName.c_str(), 
+                    &retHandle) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( retHandle == newHandle );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "A Window Sink in use can't be deleted", "[sink-api]" )
 {
     GIVEN( "A new Window Sink and new Pipeline" ) 
@@ -950,6 +1037,117 @@ SCENARIO( "A Window Sink's Dimensions can be updated", "[sink-api]" )
     }
 }
 
+SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ", 
+    "[sink-api]" )
+{
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        std::wstring sink_name = L"window-sink";
+        uint offsetX(100), offsetY(100);
+        uint sinkW(1920), sinkH(1080);
+        dsl_sink_window_key_event_handler_cb handler;
+        
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "A XWindow Key Event Handler is added" )
+        {
+            REQUIRE( dsl_sink_window_key_event_handler_add(sink_name.c_str(),
+                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_sink_window_key_event_handler_add(sink_name.c_str(),
+                handler, NULL) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
+
+            THEN( "The same handler can be successfully removed" ) 
+            {
+                REQUIRE( dsl_sink_window_key_event_handler_remove(sink_name.c_str(),
+                    handler) == DSL_RESULT_SUCCESS );
+
+                // second attempt must fail
+                REQUIRE( dsl_sink_window_key_event_handler_remove(sink_name.c_str(),
+                    handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+   
+
+SCENARIO( "Window Sink Button Event Handler are added and removded correctly", 
+    "[pipeline-cb-api]" )
+{
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        std::wstring sink_name = L"window-sink";
+        uint offsetX(100), offsetY(100);
+        uint sinkW(1920), sinkH(1080);
+        dsl_sink_window_button_event_handler_cb handler;
+        
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "A XWindow Button Event Handler is added" )
+        {
+            REQUIRE( dsl_sink_window_button_event_handler_add(sink_name.c_str(),
+                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_sink_window_button_event_handler_add(sink_name.c_str(),
+                handler, (void*)0x12345678) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
+
+            THEN( "The same handler can't be added again" ) 
+            {
+                REQUIRE( dsl_sink_window_button_event_handler_remove(sink_name.c_str(),
+                    handler) == DSL_RESULT_SUCCESS );
+
+                // second attempt must fail
+                REQUIRE( dsl_sink_window_button_event_handler_remove(sink_name.c_str(),
+                    handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+   
+SCENARIO( "A XWindow Delete Event Handler must be unique", "[pipeline-cb-api]" )
+{
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        std::wstring sink_name = L"window-sink";
+        uint offsetX(100), offsetY(100);
+        uint sinkW(1920), sinkH(1080);
+        dsl_sink_window_delete_event_handler_cb handler;
+
+        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "A XWindow Delete Event Handler is added" )
+        {
+            REQUIRE( dsl_sink_window_delete_event_handler_add(sink_name.c_str(),
+                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_sink_window_delete_event_handler_add(sink_name.c_str(),
+                handler, (void*)0x12345678) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
+
+            THEN( "The same handler can't be added again" ) 
+            {
+                REQUIRE( dsl_sink_window_delete_event_handler_remove(sink_name.c_str(),
+                    handler) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_sink_window_delete_event_handler_remove(sink_name.c_str(),
+                    handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
+
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+   
 SCENARIO( "The Components container is updated correctly on new File Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 

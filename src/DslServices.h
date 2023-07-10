@@ -54,11 +54,10 @@ namespace DSL {
     
         /** 
          * @brief Returns a pointer to this singleton
-         * 
-         * @return instance pointer to Services
+         * @return instance pointer to singleton services object.
          */
         static Services* GetServices();
-        
+
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
          ***************************************************************/ 
@@ -1141,23 +1140,67 @@ namespace DSL {
 
         DslReturnType SinkOverlayNew(const char* name, uint display_id,
             uint depth, uint offsetX, uint offsetY, uint width, uint height);
-                
+        
+        // ---------------------------------------------------------------------------
+        // The following three internal services provide access to the
+        // database of active Window Sinks
+        DslReturnType _sinkWindowRegister(DSL_BASE_PTR sink, GstObject* element);
+        
+        DslReturnType _sinkWindowUnregister(DSL_BASE_PTR sink);
+
+        DSL_BASE_PTR _sinkWindowGet(GstObject* element);
+        // ---------------------------------------------------------------------------
+    
         DslReturnType SinkWindowNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
-            
+
+        DslReturnType SinkWindowHandleGet(const char* name, uint64_t* handle);
+
+        DslReturnType SinkWindowHandleSet(const char* name, uint64_t handle);
+        
+        DslReturnType SinkWindowClear(const char* name);
+        
         DslReturnType SinkWindowForceAspectRatioGet(const char* name, 
             boolean* force);
 
         DslReturnType SinkWindowForceAspectRatioSet(const char* name, 
             boolean force);
             
-        DslReturnType SinkRenderOffsetsGet(const char* name, uint* offsetX, uint* offsetY);
-
-        DslReturnType SinkRenderOffsetsSet(const char* name, uint offsetX, uint offsetY);
+        DslReturnType SinkWindowFullScreenEnabledGet(const char* name, 
+            boolean* enabled);
         
-        DslReturnType SinkRenderDimensionsGet(const char* name, uint* width, uint* height);
+        DslReturnType SinkWindowFullScreenEnabledSet(const char* name, 
+            boolean enabled);
+        
+        DslReturnType SinkWindowKeyEventHandlerAdd(const char* name, 
+            dsl_sink_window_key_event_handler_cb handler, void* clientData);
 
-        DslReturnType SinkRenderDimensionsSet(const char* name, uint width, uint height);
+        DslReturnType SinkWindowKeyEventHandlerRemove(const char* name, 
+            dsl_sink_window_key_event_handler_cb handler);
+
+        DslReturnType SinkWindowButtonEventHandlerAdd(const char* name, 
+            dsl_sink_window_button_event_handler_cb handler, void* clientData);
+
+        DslReturnType SinkWindowButtonEventHandlerRemove(const char* name, 
+            dsl_sink_window_button_event_handler_cb handler);
+        
+        DslReturnType SinkWindowDeleteEventHandlerAdd(const char* name, 
+            dsl_sink_window_delete_event_handler_cb handler, void* clientData);
+
+        DslReturnType SinkWindowDeleteEventHandlerRemove(const char* name, 
+            dsl_sink_window_delete_event_handler_cb handler);
+            
+        DslReturnType SinkRenderOffsetsGet(const char* name, 
+            uint* offsetX, uint* offsetY);
+
+        DslReturnType SinkRenderOffsetsSet(const char* name, 
+            uint offsetX, uint offsetY);
+        
+        DslReturnType SinkRenderDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkRenderDimensionsSet(const char* name, 
+            uint width, uint height);
         
         DslReturnType SinkRenderReset(const char* name);
 
@@ -1165,7 +1208,8 @@ namespace DSL {
             uint codec, uint container, uint bit_rate, uint interval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
+            uint codec, uint container, uint bitrate, uint interval, 
+            dsl_record_client_listener_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
             uint start, uint duration, void* clientData);
@@ -1405,24 +1449,6 @@ namespace DSL {
 
         DslReturnType PipelineStreamMuxTilerRemove(const char* name);
 
-        DslReturnType PipelineXWindowHandleGet(const char* name, uint64_t* xwindow);
-
-        DslReturnType PipelineXWindowHandleSet(const char* name, uint64_t xwindow);
-        
-        DslReturnType PipelineXWindowClear(const char* name);
-        
-        DslReturnType PipelineXWindowDestroy(const char* name);
-        
-        DslReturnType PipelineXWindowOffsetsGet(const char* name,
-            uint* xOffset, uint* yOffset);
-            
-        DslReturnType PipelineXWindowDimensionsGet(const char* name,
-            uint* width, uint* height);
-            
-        DslReturnType PipelineXWindowFullScreenEnabledGet(const char* name, boolean* enabled);
-        
-        DslReturnType PipelineXWindowFullScreenEnabledSet(const char* name, boolean enabled);
-        
         DslReturnType PipelinePause(const char* name);
         
         DslReturnType PipelinePlay(const char* name);
@@ -1458,24 +1484,6 @@ namespace DSL {
         DslReturnType PipelineErrorMessageLastGet(const char* name,
             std::wstring& source, std::wstring& message);
                         
-        DslReturnType PipelineXWindowKeyEventHandlerAdd(const char* name, 
-            dsl_xwindow_key_event_handler_cb handler, void* clientData);
-
-        DslReturnType PipelineXWindowKeyEventHandlerRemove(const char* name, 
-            dsl_xwindow_key_event_handler_cb handler);
-
-        DslReturnType PipelineXWindowButtonEventHandlerAdd(const char* name, 
-            dsl_xwindow_button_event_handler_cb handler, void* clientData);
-
-        DslReturnType PipelineXWindowButtonEventHandlerRemove(const char* name, 
-            dsl_xwindow_button_event_handler_cb handler);
-        
-        DslReturnType PipelineXWindowDeleteEventHandlerAdd(const char* name, 
-            dsl_xwindow_delete_event_handler_cb handler, void* clientData);
-
-        DslReturnType PipelineXWindowDeleteEventHandlerRemove(const char* name, 
-            dsl_xwindow_delete_event_handler_cb handler);
-            
         DslReturnType PipelineMainLoopNew(const char* name);
 
         DslReturnType PipelineMainLoopRun(const char* name);
@@ -1524,16 +1532,6 @@ namespace DSL {
         DslReturnType PlayerTerminationEventListenerRemove(const char* name,
             dsl_player_termination_event_listener_cb listener);
 
-        DslReturnType PlayerXWindowHandleGet(const char* name, uint64_t* xwindow);
-
-        DslReturnType PlayerXWindowHandleSet(const char* name, uint64_t xwindow);
-
-        DslReturnType PlayerXWindowKeyEventHandlerAdd(const char* name, 
-            dsl_xwindow_key_event_handler_cb handler, void* clientData);
-
-        DslReturnType PlayerXWindowKeyEventHandlerRemove(const char* name, 
-            dsl_xwindow_key_event_handler_cb handler);
-        
         DslReturnType PlayerPause(const char* name);
         
         DslReturnType PlayerPlay(const char* name);
@@ -1742,14 +1740,14 @@ namespace DSL {
         
         /**
          * @brief handle to the single main loop
-        */
+         */
         GMainLoop* m_pMainLoop;
             
         /**
-         * @brief mutex to prevent Services reentry
-        */
-        GMutex m_servicesMutex;
-
+         * @brief mutex to prevent Services re-entry
+         */
+        DslMutex m_servicesMutex;
+        
         /**
          * @brief map of all default intrinsic RGBA Display Types
          */
@@ -1840,6 +1838,11 @@ namespace DSL {
          * @brief map of all infer names to process-mode
          */
         std::map <std::string, uint> m_inferProcessModes;
+        
+        /**
+         * @brief map of all Window-Sinks to their nveglglessink object pointer
+         */
+        std::map <DSL_BASE_PTR, GstObject*> m_windowSinkElements;
         
         /**
          * @brief map of all mailer objects by name

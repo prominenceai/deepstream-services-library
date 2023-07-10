@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslSinkBintr.h"
 #include "DslBranchBintr.h"
 #include "DslOdeAction.h"
+#include "DslServices.h"
 
 #include <gst-nvdssr.h>
 #include <gst/app/gstappsink.h>
@@ -131,8 +132,6 @@ namespace DSL
             LOG_INFO("  qos                : " << m_qos);
         }
         AddChild(m_pAppSink);
-
-        g_mutex_init(&m_dataHandlerMutex);
     }
     
     AppSinkBintr::~AppSinkBintr()
@@ -143,7 +142,6 @@ namespace DSL
         {    
             UnlinkAll();
         }
-        g_mutex_clear(&m_dataHandlerMutex);
     }
 
     bool AppSinkBintr::LinkAll()
@@ -310,14 +308,11 @@ namespace DSL
         
         // override the client data (set to NULL above) to this pointer.
         m_clientData = this;
-        g_mutex_init(&m_captureNextMutex);
     }
     
     FrameCaptureSinkBintr::~FrameCaptureSinkBintr()
     {
         LOG_FUNC();
-        
-        g_mutex_clear(&m_captureNextMutex);
     }
     
     bool FrameCaptureSinkBintr::Initiate()
@@ -577,7 +572,6 @@ namespace DSL
         LOG_FUNC();
         
         s_uniqueIds.remove(m_uniqueId);
-        
     }
 
     bool OverlaySinkBintr::LinkAll()
@@ -694,8 +688,13 @@ namespace DSL
     WindowSinkBintr::WindowSinkBintr(const char* name, 
         guint offsetX, guint offsetY, guint width, guint height)
         : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
+        , m_pXDisplay(0)
+        , m_pXWindow(0)
+        , m_pXWindowCreated(false)
         , m_forceAspectRatio(false)
-    {
+        , m_xWindowfullScreenEnabled(false)
+        , m_pSharedClientCbMutex(NULL)
+{
         LOG_FUNC();
 
         // x86_64
@@ -752,6 +751,34 @@ namespace DSL
         
         AddChild(m_pTransform);
     }
+    
+    WindowSinkBintr::~WindowSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+        // cleanup all resources
+        if (m_pXDisplay)
+        {
+            // create scope for the mutex
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+
+                if (m_pXWindow and m_pXWindowCreated)
+                {
+                    XDestroyWindow(m_pXDisplay, m_pXWindow);
+                }
+                
+                XCloseDisplay(m_pXDisplay);
+                // Setting the display handle to NULL will terminate the XWindow Event Thread.
+                m_pXDisplay = NULL;
+            }
+            g_thread_join(m_pXWindowEventThread);
+        }
+    }
 
     bool WindowSinkBintr::Reset()
     {
@@ -770,6 +797,7 @@ namespace DSL
             // Remove the existing element from the objects bin
             gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
             RemoveChild(m_pEglGles);
+            m_pEglGles = nullptr;
         }
         
         m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
@@ -790,16 +818,6 @@ namespace DSL
         
         return true;
     }
-    
-    WindowSinkBintr::~WindowSinkBintr()
-    {
-        LOG_FUNC();
-
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
-    }
 
     bool WindowSinkBintr::LinkAll()
     {
@@ -810,6 +828,12 @@ namespace DSL
             LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
+        
+        Reset();
+        // register this Window-Sink's nveglglessink plugin.
+        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
+            m_pEglGles->GetGstObject());
+
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
@@ -841,6 +865,7 @@ namespace DSL
             LOG_ERROR("WindowSinkBintr '" << GetName() << "' is not linked");
             return;
         }
+
         m_pQueue->UnlinkFromSink();
         m_pTransform->UnlinkFromSink();
         
@@ -849,11 +874,35 @@ namespace DSL
         {
             m_pCapsFilter->UnlinkFromSink();
         }
+        // register this Window-Sink's nveglglessink plugin.
+        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
 
         m_isLinked = false;
-        Reset();
+        
+        if(OwnsXWindow())
+        {
+            XUnmapWindow(m_pXDisplay, m_pXWindow);
+        }
     }
     
+    void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_offsetX = attrs.x;
+            m_offsetY = attrs.y;
+        }
+        
+        *offsetX = m_offsetX;
+        *offsetY = m_offsetY;
+    }
+
     bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
@@ -861,10 +910,37 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        // Set the EglGles plugin values regardless of XWindow existence.
         m_pEglGles->SetAttribute("window-x", m_offsetX);
         m_pEglGles->SetAttribute("window-y", m_offsetY);
         
         return true;
+    }
+
+    void WindowSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_width = attrs.width;
+            m_height = attrs.height;
+        }
+
+        *width = m_width;
+        *height = m_height;
     }
 
     bool WindowSinkBintr::SetDimensions(uint width, uint height)
@@ -874,6 +950,15 @@ namespace DSL
         m_width = width;
         m_height = height;
 
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        // Set the EglGles plugin values regardless of XWindow existence.
         m_pEglGles->SetAttribute("window-width", m_width);
         m_pEglGles->SetAttribute("window-height", m_height);
         
@@ -886,8 +971,8 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Sync enabled setting for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set Sync enabled setting for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_sync = enabled;
@@ -910,8 +995,8 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_forceAspectRatio = force;
@@ -919,6 +1004,382 @@ namespace DSL
         return true;
     }
 
+    bool WindowSinkBintr::GetFullScreenEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_xWindowfullScreenEnabled;
+    }
+    
+    bool WindowSinkBintr::SetFullScreenEnabled(bool enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_pXWindow)
+        {
+            LOG_ERROR("Can not set full-screen-enabled once XWindow has been created.");
+            return false;
+        }
+        m_xWindowfullScreenEnabled = enabled;
+        return true;
+    }
+
+    bool WindowSinkBintr::AddKeyEventHandler(
+        dsl_sink_window_key_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowKeyEventHandlers.find(handler) != 
+            m_xWindowKeyEventHandlers.end())
+        {   
+            LOG_ERROR("handler = " << std::hex << handler
+                << " is not unique for WindowSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        m_xWindowKeyEventHandlers[handler] = clientData;
+        
+        return true;
+    }
+
+    bool WindowSinkBintr::RemoveKeyEventHandler(
+        dsl_sink_window_key_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowKeyEventHandlers.find(handler) == 
+            m_xWindowKeyEventHandlers.end())
+        {   
+            LOG_ERROR("handler = " << std::hex << handler
+                << " was not found for WindowSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        m_xWindowKeyEventHandlers.erase(handler);
+        
+        return true;
+    }
+    
+    bool WindowSinkBintr::AddButtonEventHandler(
+        dsl_sink_window_button_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowButtonEventHandlers.find(handler) != 
+            m_xWindowButtonEventHandlers.end())
+        {   
+            LOG_ERROR("handler = " << std::hex << handler
+                << " is not unique for WindowSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        m_xWindowButtonEventHandlers[handler] = clientData;
+        
+        return true;
+    }
+
+    bool WindowSinkBintr::RemoveButtonEventHandler(
+        dsl_sink_window_button_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowButtonEventHandlers.find(handler) == 
+            m_xWindowButtonEventHandlers.end())
+        {   
+            LOG_ERROR("handler = " << std::hex << handler
+                << " was not found for WindowSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        m_xWindowButtonEventHandlers.erase(handler);
+        
+        return true;
+    }
+    
+    bool WindowSinkBintr::AddDeleteEventHandler(
+        dsl_sink_window_delete_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowDeleteEventHandlers.find(handler) != 
+            m_xWindowDeleteEventHandlers.end())
+        {   
+            LOG_ERROR("handler = " << std::hex << handler
+                << " is not unique for WindowSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        m_xWindowDeleteEventHandlers[handler] = clientData;
+        
+        return true;
+    }
+
+    bool WindowSinkBintr::RemoveDeleteEventHandler(
+        dsl_sink_window_delete_event_handler_cb handler)
+    {
+        LOG_FUNC();
+
+        if (m_xWindowDeleteEventHandlers.find(handler) == 
+            m_xWindowDeleteEventHandlers.end())
+        {   
+            LOG_ERROR("handler = " << std::hex << handler
+                << " was not found for WindowSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        m_xWindowDeleteEventHandlers.erase(handler);
+        
+        return true;
+    }
+
+    bool WindowSinkBintr::PrepareWindowHandle(
+        std::shared_ptr<DslMutex> pSharedClientCbMutex)
+    {
+        LOG_FUNC();
+        
+        if (!HasXWindow())
+        {
+            if (!CreateXWindow())
+            {
+                return false;
+            }
+            m_pSharedClientCbMutex = pSharedClientCbMutex;
+        }
+        else
+        {
+            XMapRaised(m_pXDisplay, m_pXWindow);
+        }
+        gst_video_overlay_set_window_handle(
+            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()), m_pXWindow);
+
+        XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+            m_offsetX, m_offsetY, 
+            m_width, m_height);
+
+        gst_video_overlay_expose(
+            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
+        return true;
+    }
+
+    bool WindowSinkBintr::CreateXWindow()
+    {
+        LOG_FUNC();
+        
+        // Open a connection to the X server that controls a display,
+        m_pXDisplay = XOpenDisplay(NULL);
+        if (!m_pXDisplay)
+        {
+            LOG_ERROR("Failed to create new XDisplay");
+            return false;
+        }
+        
+        // Create new simple XWindow either in 'full-screen-enabled' or using 
+        // the Window Sink offsets and dimensions
+        if (m_xWindowfullScreenEnabled)
+        {
+            LOG_INFO(
+                "Creating new XWindow in 'full-screen-mode' for WindowSinkBintr '"
+                << GetName() << "'");
+
+            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                0, 0, 10, 10, 0, BlackPixel(m_pXDisplay, 0), 
+                BlackPixel(m_pXDisplay, 0));
+        } 
+        else
+        {
+            LOG_INFO("Creating new XWindow: x-offset = " << m_offsetX 
+                << ", y-offset = " << m_offsetY 
+                << ", width = " << m_width 
+                << ", height = " << m_height 
+                << " for WindowSinkBintr '" << GetName() << "'");
+        
+            m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
+                RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
+                m_offsetX, m_offsetY, m_width, m_height, 2, 0, 0);
+        } 
+            
+        if (!m_pXWindow)
+        {
+            LOG_ERROR("Failed to create new X Window");
+            return false;
+        }
+        // Flag used to cleanup the handle - pipeline created vs. client created.
+        m_pXWindowCreated = True;
+        
+        XSetWindowAttributes attr{0};
+        
+        attr.event_mask = ButtonPress | KeyRelease;
+        XChangeWindowAttributes(m_pXDisplay, m_pXWindow, CWEventMask, &attr);
+
+        Atom wmDeleteMessage = XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", False);
+        if (wmDeleteMessage != None)
+        {
+            XSetWMProtocols(m_pXDisplay, m_pXWindow, &wmDeleteMessage, 1);
+        }
+        
+        XMapRaised(m_pXDisplay, m_pXWindow);
+        if (m_xWindowfullScreenEnabled)
+        {
+            Atom wmState = XInternAtom(m_pXDisplay, "_NET_WM_STATE", False);
+            Atom fullscreen = XInternAtom(m_pXDisplay, 
+                "_NET_WM_STATE_FULLSCREEN", False);
+            XEvent xev{0};
+            xev.type = ClientMessage;
+            xev.xclient.window = m_pXWindow;
+            xev.xclient.message_type = wmState;
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = 1;
+            xev.xclient.data.l[1] = fullscreen;
+            xev.xclient.data.l[2] = 0;        
+
+            XSendEvent(m_pXDisplay, DefaultRootWindow(m_pXDisplay), False,
+                SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+        }
+        // flush the XWindow output buffer and then wait until all requests have been 
+        // received and processed by the X server. TRUE = Discard all queued events
+        XSync(m_pXDisplay, TRUE);
+
+        // Start the X window event thread
+        m_pXWindowEventThread = g_thread_new(NULL, XWindowEventThread, this);
+
+        return true;
+    }
+
+    void WindowSinkBintr::HandleXWindowEvents()
+    {
+        while (m_pXDisplay)
+        {
+            {
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+                while (m_pXDisplay and XPending(m_pXDisplay)) 
+                {
+
+                    XEvent xEvent;
+                    XNextEvent(m_pXDisplay, &xEvent);
+                    XButtonEvent buttonEvent = xEvent.xbutton;
+                    switch (xEvent.type) 
+                    {
+                    case ButtonPress:
+                        LOG_INFO("Button '" << buttonEvent.button << "' pressed: xpos = " 
+                            << buttonEvent.x << ": ypos = " << buttonEvent.y);
+                        
+                        // iterate through the map of XWindow Button Event handlers 
+                        // calling each one
+                        for(auto const& imap: m_xWindowButtonEventHandlers)
+                        {
+                            LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
+                            
+                            imap.first(buttonEvent.button, 
+                                buttonEvent.x, buttonEvent.y, imap.second);
+                        }
+                        break;
+                        
+                    case KeyRelease:
+                        KeySym key;
+                        char keyString[255];
+                        if (XLookupString(&xEvent.xkey, keyString, 255, &key,0))
+                        {   
+                            keyString[1] = 0;
+                            std::string cstrKeyString(keyString);
+                            std::wstring wstrKeyString(cstrKeyString.begin(), 
+                                cstrKeyString.end());
+                            LOG_INFO("Key released = '" << cstrKeyString << "'"); 
+                            
+                            // iterate through the map of XWindow Key Event handlers 
+                            // calling each one
+                            for(auto const& imap: m_xWindowKeyEventHandlers)
+                            {
+                                LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
+                                
+                                imap.first(wstrKeyString.c_str(), imap.second);
+                            }
+                        }
+                        break;
+                        
+                    case ClientMessage:
+                        LOG_INFO("Client message");
+
+                        if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
+                        {
+                            LOG_INFO("WM_DELETE_WINDOW message received");
+                            // iterate through the map of XWindow Delete Event handlers 
+                            // calling each one
+                            for(auto const& imap: m_xWindowDeleteEventHandlers)
+                            {
+                                LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
+                                imap.first(imap.second);
+                            }
+                        }
+                        break;
+                        
+                    default:
+                        break;
+                    }
+                }
+            }
+            g_usleep(G_USEC_PER_SEC / 20);
+        }
+    }
+
+    bool WindowSinkBintr::HasXWindow()
+    {
+        LOG_FUNC();
+        
+        return (m_pXWindow);
+    }
+    
+    bool WindowSinkBintr::OwnsXWindow()
+    {
+        LOG_FUNC();
+        
+        return (m_pXWindow and m_pXWindowCreated);
+    }
+    
+    Window WindowSinkBintr::GetHandle()
+    {
+        LOG_FUNC();
+        
+        return m_pXWindow;
+    }
+    
+    bool WindowSinkBintr::SetHandle(Window handle)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("WindowSinkBintr '" << GetName() 
+                << "' failed to set XWindow handle as it is currently linked");
+            return false;
+        }
+        if (m_pXWindowCreated)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_displayMutex);
+            
+            XDestroyWindow(m_pXDisplay, m_pXWindow);
+            m_pXWindow = 0;
+            m_pXWindowCreated = False;
+            XCloseDisplay(m_pXDisplay);
+            LOG_INFO("WindowSinkBintr destroyed its own XWindow to use the client's");
+        }
+        m_pXWindow = handle;
+        return true;
+    }
+    
+    bool WindowSinkBintr::Clear()
+    {
+        LOG_FUNC();
+        
+        if (!m_pXWindow or !m_pXWindowCreated)
+        {
+            LOG_ERROR("WindowSinkBintr does not own a XWindow to clear");
+            return false;
+        }
+        XClearWindow(m_pXDisplay, m_pXWindow);
+        return true;
+    }
+    
     bool WindowSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
@@ -970,6 +1431,12 @@ namespace DSL
         return true;
     }    
 
+    static gpointer XWindowEventThread(gpointer pWindowSink)
+    {
+        static_cast<WindowSinkBintr*>(pWindowSink)->HandleXWindowEvents();
+       
+        return NULL;
+    }
     
     //-------------------------------------------------------------------------
     

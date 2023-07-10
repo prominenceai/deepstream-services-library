@@ -51,11 +51,6 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
-    #define DSL_METER_SINK_PTR std::shared_ptr<MeterSinkBintr>
-    #define DSL_METER_SINK_NEW(name, interval, clientListener, clientData) \
-        std::shared_ptr<MeterSinkBintr>( \
-        new MeterSinkBintr(name, interval, clientListener, clientData))
-
     #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
 
     #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
@@ -237,7 +232,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to the client-data-handler
          */
-        GMutex m_dataHandlerMutex;
+        DslMutex m_dataHandlerMutex;
 
         /**
          * @brief client callback function to be called with each new 
@@ -312,7 +307,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to m_captureNextBuffer flag.
          */
-        GMutex m_captureNextMutex;
+        DslMutex m_captureNextMutex;
 
         /**
          * @brief Shared pointer to a Frame Capture Action.
@@ -381,9 +376,9 @@ namespace DSL
         /**
          * @brief Gets the current X and Y offset settings for this RenderSinkBintr
          * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction setting in pixels
+         * @param[out] offsetY the current offset in the Y direction in pixels
          */ 
-        void GetOffsets(uint* offsetX, uint* offsetY);
+        virtual void GetOffsets(uint* offsetX, uint* offsetY);
 
         /**
          * @brief Sets the current X and Y offset settings for this RednerSinkBintr
@@ -399,7 +394,7 @@ namespace DSL
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
-        void GetDimensions(uint* width, uint* height);
+        virtual void GetDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this RenderSinkBintr
@@ -522,11 +517,11 @@ namespace DSL
         ~WindowSinkBintr();
   
         /**
-         * @brief Resets the Sink element for this RenderSinkBintr
+         * @brief Resets the Sink element for this WindowSinkBintr
          * @return false if the sink is currently Linked. True otherwise
          */
         bool Reset();
-
+        
         /**
          * @brief Links all Child Elementrs owned by this Bintr
          * @return true if all links were succesful, false otherwise
@@ -540,6 +535,13 @@ namespace DSL
         void UnlinkAll();
 
         /**
+         * @brief Gets the current X and Y offset settings for this WindowSinkBintr
+         * @param[out] offsetX the current offset in the X direction in pixels
+         * @param[out] offsetY the current offset in the Y direction in pixels
+         */ 
+        void GetOffsets(uint* offsetX, uint* offsetY);
+
+        /**
          * @brief Sets the current X and Y offset settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] offsetX the offset in the X direction to set in pixels
@@ -548,6 +550,13 @@ namespace DSL
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
         
+        /**
+         * @brief Gets the current width and height settings for this WindowSinkBintr
+         * @param[out] width the current width setting in pixels
+         * @param[out] height the current height setting in pixels
+         */ 
+        void GetDimensions(uint* width, uint* height);
+
         /**
          * @brief Sets the current width and height settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
@@ -577,6 +586,116 @@ namespace DSL
         bool SetForceAspectRatio(bool force);
 
         /**
+         * @brief Gets the current full-screen-enabled setting for the WindowSinkBintr
+         * @retrun true if full-screen-mode is currently enabled, false otherwise
+         */
+        bool GetFullScreenEnabled();
+        
+        /**
+         * @brief Sets the full-screen-enabled setting for the WindowSinkBintr
+         * @param enabled if true, sets the window to full-screen on creation
+         * @return true if the full-screen-enabled could be set, 
+         * false if called after XWindow creation
+         */
+        bool SetFullScreenEnabled(bool enabled);
+
+        /**
+         * @brief Adds a callback to be notified on display/window KeyRelease event
+         * @param[in] handler pointer to the client's function to add
+         * @param[in] clientData opaque to client data passed back to the handler.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddKeyEventHandler(dsl_sink_window_key_event_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a callback previously added with AddKeyEventHandler
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveKeyEventHandler(dsl_sink_window_key_event_handler_cb handler);
+            
+        /**
+         * @brief adds a callback to be notified on display/window ButtonPress event.
+         * @param[in] handler pointer to the client's function to add
+         * @param[in] clientData opaque to client data passed back to the handler.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddButtonEventHandler(dsl_sink_window_button_event_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveButtonEventHandler(dsl_sink_window_button_event_handler_cb handler);
+        /**
+         * @brief adds a callback to be notified on display/window delete event.
+         * @param[in] handler pointer to the client's function to add
+         * @param[in] clientData opaque to client data passed back to the handler.
+         * @return true on successful add, false otherwise.
+         */
+        bool AddDeleteEventHandler(dsl_sink_window_delete_event_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful remove, false otherwise.
+         */
+        bool RemoveDeleteEventHandler(dsl_sink_window_delete_event_handler_cb handler);
+        
+        /**
+         * @brief handles incoming window KEY & BUTTON events by calling
+         * all client installed event handlers for each queued event.
+         */
+        void HandleXWindowEvents();
+
+        /**
+         * @brief Creates a new XWindow for the current XDisplay
+         * @param[in] pSharedClientCbMutex shared pointer to a shared
+         * mutex - to use when calling XWindow client callbacks.
+         * @return true if successfully created, false otherwise.
+         * This call will fail if the client has already provided
+         * a Window handle for the WindowSinkBintr to use.
+         */
+        bool PrepareWindowHandle(std::shared_ptr<DslMutex> pSharedClientCbMutex);
+        
+        /**
+         * @brief Determines if the WindowSinkBintr has an XWindow whether
+         * provided by the client or created with a call to CreateXWindow()
+         * @return true if the WindowSinkBintr has a Window handle.
+         */
+        bool HasXWindow();
+        
+        /**
+         * @brief queries the WindowSinkBintr to determine if it owns an xwindow
+         * @return true if the WindowSinkBintr has ownership of an xwindow, 
+         * false otherwise.
+         */
+        bool OwnsXWindow();
+        
+        /**
+         * @brief returns a handle to this WindowSinkBintr's XWindow
+         * @return XWindow handle, NULL untill created
+         */
+        Window GetHandle();
+        
+        /**
+         * @brief Sets the WindowSinkBintr's XWindow handle. The Pipeline
+         * must be in an unlinked state to change XWindow handles. 
+         * @return true on successful clear, false otherwise
+         */
+        bool SetHandle(Window handle);
+        
+        /**
+         * @brief Clears the WindowSinkBintr's XWindow buffer
+         * @return true on successful clear, false otherwise..
+         */
+        bool Clear();
+        
+        /**
          * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
          * @return true if successfully set, false otherwise.
          */
@@ -592,7 +711,79 @@ namespace DSL
 
     private:
 
+        /**
+         * @brief Creates a new XWindow for the current XDisplay
+         * @param[in] 
+         * @return true if successfully created, false otherwise.
+         * This call will fail if the client has already provided
+         * a Window handle for the WindowSinkBintr to use.
+         */
+        bool CreateXWindow();
+        
         bool m_forceAspectRatio;
+
+        /**
+         * @brief map of all currently registered XWindow-key-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_sink_window_key_event_handler_cb, void*> 
+            m_xWindowKeyEventHandlers;
+
+        /**
+         * @brief map of all currently registered XWindow-button-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_sink_window_button_event_handler_cb, void*> 
+            m_xWindowButtonEventHandlers;
+
+        /**
+         * @brief map of all currently registered XWindow-delete-event-handlers
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_sink_window_delete_event_handler_cb, void*> 
+            m_xWindowDeleteEventHandlers;
+        
+        /**
+         * @brief Pointer to the XDisplay once connected withe server.
+         */
+        Display* m_pXDisplay;
+        
+        
+        /**
+         * @brief Mutex to ensures mutual exclusion for the m_pXDisplay member
+         * accessed by multiple threads.
+         */
+        DslMutex m_displayMutex;
+
+        /**
+         * @brief handle to X Window
+         */
+        Window m_pXWindow;
+        
+        /**
+         * @brief Flag to determine if the XWindow was created or provided by
+         * the client. The WindowSinkBitnr needs to delete the XWindow if created, 
+         * but not the client's
+         */
+        bool m_pXWindowCreated;
+        
+        /**
+         * @brief handle to the X Window event thread, 
+         * active for the life of the Pipeline
+         */
+        GThread* m_pXWindowEventThread;        
+        
+        /**
+         * @brief Mutex for display thread shared by all WindowSinkBintrs
+         * currently linked to the same Pipeline. 
+         */
+        std::shared_ptr<DslMutex> m_pSharedClientCbMutex;
+        
+        /**
+         * @brief if true, the WindowSinkPinter will set its XWindow to 
+         * full-screen if one is created.
+         */
+        bool m_xWindowfullScreenEnabled;
 
         /**
          * @brief Caps Filter required for dGPU WindowSinkBintr
@@ -609,6 +800,8 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pEglGles;
     };
+
+    static gpointer XWindowEventThread(gpointer pWindowSink);
 
     //-------------------------------------------------------------------------
 

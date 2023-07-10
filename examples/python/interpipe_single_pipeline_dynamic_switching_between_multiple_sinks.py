@@ -175,20 +175,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', components=[
             'inter-pipe-source', 'primary-gie', 'iou-tracker', 'on-screen-display',
             'window-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

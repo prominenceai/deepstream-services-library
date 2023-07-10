@@ -30,7 +30,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBranchBintr.h"
 #include "DslPipelineStateMgr.h"
-#include "DslPipelineXWinMgr.h"
+#include "DslPipelineBusSyncMgr.h"
 #include "DslSourceBintr.h"
 #include "DslDewarperBintr.h"
 #include "DslPipelineSourcesBintr.h"
@@ -49,7 +49,7 @@ namespace DSL
      * @brief 
      */
     class PipelineBintr : public BranchBintr, public PipelineStateMgr,
-        public PipelineXWinMgr
+        public PipelineBusSyncMgr
     {
     public:
     
@@ -238,19 +238,6 @@ namespace DSL
         
     private:
 
-        /**
-         * @brief Mutex to protect the async GCond used to synchronize
-         * the Application thread with the mainloop context on
-         * asynchronous stop.
-         */
-        GMutex m_asyncStopMutex;
-        
-        /**
-         * @brief Condition used to block the application context while waiting
-         * for a Pipeline change of state to be completed in the mainloop context
-         */
-        GCond m_asyncStopCond;
-        
         /**
          * @brief parent bin for all Source bins in this Pipeline
          */

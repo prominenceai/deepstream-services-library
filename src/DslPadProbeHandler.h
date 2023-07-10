@@ -140,7 +140,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to probe data
          */
-        GMutex m_padHandlerMutex;
+        DslMutex m_padHandlerMutex;
         
     };
     
@@ -665,7 +665,7 @@ namespace DSL
         /**
          * @brief mutex fo the Pad Probe handler
          */
-        GMutex m_padProbeMutex;
+        DslMutex m_padProbeMutex;
         
         /**
          * @brief unique sink/src pad probe id (handle)

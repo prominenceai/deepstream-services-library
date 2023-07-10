@@ -185,6 +185,15 @@ int main(int argc, char** argv)
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
     
+        // Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+            xwindow_key_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+            xwindow_delete_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+    
         // Create a new Capture Action to capture and encode frame to jpeg image, 
         // and save to file. Encoding and saving is done in the g-idle-thread.
         // Saving to current directory. File names will be generated as
@@ -210,16 +219,8 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);
         if (retval != DSL_RESULT_SUCCESS) break;
             
-        // Add the EOS listener and XWindow event handler functions defined above
+        // Add the EOS listener function defined above
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
-            xwindow_key_event_handler, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", 
-            xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Play the pipeline

@@ -284,6 +284,15 @@ int main(int argc, char** argv)
             offsetX, offsetY, sinkW, sinkH);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add(window_sink_name.c_str(), 
+            xwindow_key_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_delete_event_handler_add(window_sink_name.c_str(), 
+            xwindow_delete_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+    
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source", 
             L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
@@ -296,16 +305,6 @@ int main(int argc, char** argv)
         // ---------------------------------------------------------------------------
         // Add all Client callback functions to the Pipeline.
         
-        // Add the XWindow key event handler callback function.
-        retval = dsl_pipeline_xwindow_key_event_handler_add(pipeline_name.c_str(), 
-            xwindow_key_event_handler, nullptr);    
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the XWindow delete window event handler function.
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(pipeline_name.c_str(), 
-            xwindow_delete_event_handler, nullptr);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // Add the state-change listener callback function.
         retval = dsl_pipeline_state_change_listener_add(pipeline_name.c_str(), 
             state_change_listener, nullptr);
