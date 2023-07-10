@@ -1530,7 +1530,7 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
 
 /**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. 
- * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow KeyRelease events.
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] client_data opaque pointer to client's user data
@@ -1539,7 +1539,7 @@ typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* c
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. 
- * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow ButtonPress events.
  * @param[in] button button 1 through 5 including scroll wheel up and down
  * @param[in] xpos from the top left corner of the window
@@ -1551,7 +1551,7 @@ typedef void (*dsl_sink_window_button_event_handler_cb)(uint button,
 
 /**
  * @brief callback typedef for a client XWindow Delete Message event handler function. 
- * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow Delete Message event.
  * @param[in] client_data opaque pointer to client's user data
  */
