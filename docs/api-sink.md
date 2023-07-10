@@ -28,7 +28,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_app_new_data_handler_cb](#dsl_sink_app_new_data_handler_cb)
 * [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb)
 * [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb)
-* [dsl_sink_window_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb)
+* [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb)
 * [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
 * [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb)
 
@@ -71,6 +71,10 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 * [dsl_sink_window_fullscreen_enabled_set](#dsl_sink_window_fullscreen_enabled_set)
 * [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add)
 * [dsl_sink_window_key_event_handler_remove](#dsl_sink_window_key_event_handler_remove)
+* [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add)
+* [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove)
+* [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add)
+* [dsl_sink_window_delete_event_handler_remove](#dsl_sink_window_delete_event_handler_remove)
 
 **Encode Sink Methods**
 * [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
@@ -1149,7 +1153,8 @@ This service adds a callback function of type [dsl_sink_window_key_event_handler
 def key_event_handler(key_string, client_data):
     print('key pressed = ', key_string)
    
-retval = dsl_sink_window_key_event_handler_add('my-window-sink', key_event_handler, None)
+retval = dsl_sink_window_key_event_handler_add('my-window-sink',
+    key_event_handler, None)
 ```
 
 <br>
@@ -1159,7 +1164,7 @@ retval = dsl_sink_window_key_event_handler_add('my-window-sink', key_event_handl
 DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_key_event_handler_cb handler);
 ```
-This service removes a Client XWindow key event handler callback that was previously add with [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add)
+This service removes a function of type [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb) that was previously added with [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add).
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update
@@ -1170,23 +1175,21 @@ This service removes a Client XWindow key event handler callback that was previo
 
 **Python Example**
 ```Python
-retval = dsl_sink_window_key_event_handler_remove('my-window-sink', key_event_handler)
+retval = dsl_sink_window_key_event_handler_remove('my-window-sink',
+    key_event_handler)
 ```
 
 <br>
 
-### *dsl_pipeline_xwindow_button_event_handler_add*
+### *dsl_sink_window_button_event_handler_add*
 ```C++
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline,
-    dsl_xwindow_button_handler_cb handler, void* client_data);
+DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_xwindow_button_event_handler_cb](#dsl_xwindow_button_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
-
-**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a [Window-Sink](/docs/api-sink.md#dsl_sink_window_new) component.
+This service adds a callback function of type [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
 
 **Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
+* `name` - [in] unique name of the Window Sink to update.
 * `handler` - [in] XWindow event handler callback function to add.
 * `client_data` - [in] opaque pointer to user data returned to the handler when called back
 
@@ -1200,20 +1203,21 @@ def button_event_handler(button, xpos, ypos, client_data):
     print('xpos = ', xpos)
     print('ypos = ', ypos)
    
-retval = dsl_pipeline_xwindow_button_event_handler_add('my-pipeline', button_event_handler, None)
+retval = dsl_sink_window_button_event_handler_add('my-window-sink',
+    button_event_handler, None)
 ```
 
 <br>
 
-### *dsl_pipeline_xwindow_button_event_handler_remove*
+### *dsl_sink_window_button_event_handler_remove*
 ```C++
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const char* pipeline,
-    dsl_xwindow_button_event_handler_cb handler);
+DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler);
 ```
-This service removes a Client XWindow button event handler callback that was added previously with [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
+This service removes a function of type [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb) that was previously added with [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add).
 
 **Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
+* `name` - [in] unique name of the Window Sink to update.
 * `handler` - [in] XWindow event handler callback function to remove.
 
 **Returns**
@@ -1221,48 +1225,48 @@ This service removes a Client XWindow button event handler callback that was add
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_xwindow_button_event_handler_remove('my-pipeline', button_event_handler)
+retval = dsl_sink_window_button_event_handler_remove('my-window-sink',
+    button_event_handler)
 ```
 
 <br>
 
-### *dsl_pipeline_xwindow_delete_event_handler_add*
+### *dsl_sink_window_delete_event_handler_add*
 ```C++
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline,
-    dsl_xwindow_delete_handler_cb handler, void* client_data);
+DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
-
-**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a minimum of one Window-Sink component.
+This service adds a callback function of type [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb) to a named Window Sink. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sink.
 
 **Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
+* `name` - [in] unique name of the Window Sink to update.
 * `handler` - [in] XWindow event handler callback function to add.
 * `client_data` - [in] opaque pointer to user data returned to the handler when called back
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
 def xwindow_delete_event_handler(client_data):
-    dsl_main_loop_quit()    
+    dsl_pipeline_stop('my-pipeline')
+    dsl_main_loop_quit()
 
-retval = dsl_pipeline_xwindow_delete_event_handler_add('my-pipeline', xwindow_delete_event_handler, None)
+retval = dsl_sink_window_delete_event_handler_add('my-window-sink',
+    xwindow_delete_event_handler, None)
 ```
 
 <br>
 
-### *dsl_pipeline_xwindow_delete_event_handler_remove*
+### *dsl_sink_window_delete_event_handler_remove*
 ```C++
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const char* pipeline,
-    dsl_xwindow_delete_handler_cb handler);
+DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler);
 ```
-This service removes a Client XWindow delete event handler callback that was added previously with [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
+This service removes a function of type [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb) that was previously added with [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add).
 
 **Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
+* `name` - [in] unique name of the Window Sink to update
 * `handler` - [in] XWindow event handler callback function to remove.
 
 **Returns**
@@ -1270,7 +1274,8 @@ This service removes a Client XWindow delete event handler callback that was add
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_xwindow_delete_event_handler_remove('my-pipeline', xwindow_delete_event_handler)
+retval = dsl_sink_window_delete_event_handler_remove('my-pipeline',
+    xwindow_delete_event_handler)
 ```
 
 <br>
