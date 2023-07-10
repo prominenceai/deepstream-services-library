@@ -20,20 +20,12 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * **End of Stream (EOS)** - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) / [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
 * **Error Message Received** - with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add) / [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove).
 
-#### Pipeline XWindow Support
-Pipelines - that have a Window-Sink - will create an XWindow by default unless one is provided. Clients can obtain a handle to this window by calling [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get). The Client Application can provide the Pipeline with the XWindow handle to use by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_display_xwindow_handle_set).
-
-In the case that the Pipeline creates the XWindow, Clients can be notified of XWindow `KeyRelease` events by registering one or more callback functions with [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Notifications are stopped by calling [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove). Notifications of XWindow `ButtonPress` events can be enabled and stopped by calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add) and [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove) respectively.
-
 ---
 ## Pipeline API
 **Client Callback Typedefs**
 * [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
 * [dsl_eos_listener_cb](#dsl_eos_listener_cb)
 * [dsl_error_message_handler_cb](#dsl_error_message_handler_cb)
-* [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb)
-* [dsl_xwindow_button_event_handler_cb](#dsl_xwindow_button_event_handler_cb)
-* [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb)
 
 **Constructors**
 * [dsl_pipeline_new](#dsl_pipeline_new)
@@ -60,21 +52,6 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 * [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
 * [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add)
 * [dsl_pipeline_streammux_tiler_remove](#dsl_pipeline_streammux_tiler_remove)
-* [dsl_pipeline_xwindow_handle_get](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_get)
-* [dsl_pipeline_xwindow_handle_set](/docs/api-pipeline.md#dsl_pipeline_xwindow_handle_set)
-* [dsl_pipeline_xwindow_dimensions_get](#dsl_pipeline_xwindow_dimensions_get)
-* [dsl_pipeline_xwindow_dimensions_set](#dsl_pipeline_xwindow_dimensions_set)
-* [dsl_pipeline_xwindow_handle_get](#dsl_pipeline_xwindow_handle_get)
-* [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set)
-* [dsl_pipeline_xwindow_destroy](#dsl_pipeline_xwindow_destroy)
-* [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add)
-* [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove)
-* [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
-* [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove)
-* [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
-* [dsl_pipeline_xwindow_delete_event_handler_remove](#dsl_pipeline_xwindow_delete_event_handler_remove)
-* [dsl_pipeline_xwindow_fullscreen_enabled_get](#dsl_pipeline_xwindow_fullscreen_enabled_get)
-* [dsl_pipeline_xwindow_fullscreen_enabled_set](#dsl_pipeline_xwindow_fullscreen_enabled_set)
 * [dsl_pipeline_state_get](#dsl_pipeline_state_get)
 * [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add)
 * [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
@@ -98,6 +75,7 @@ In the case that the Pipeline creates the XWindow, Clients can be notified of XW
 ## Return Values
 The following return codes are used by the Pipeline API
 ```C++
+#define DSL_RESULT_PIPELINE_RESULT                                  0x00080000
 #define DSL_RESULT_PIPELINE_NAME_NOT_UNIQUE                         0x00080001
 #define DSL_RESULT_PIPELINE_NAME_NOT_FOUND                          0x00080002
 #define DSL_RESULT_PIPELINE_NAME_BAD_FORMAT                         0x00080003
@@ -108,15 +86,12 @@ The following return codes are used by the Pipeline API
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
 #define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
-#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x0008000B
-#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x0008000C
-#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000D
-#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000E
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
-#define DSL_RESULT_PIPELINE_SOURCE_MAX_IN_USE_REACED                0x00080012
-#define DSL_RESULT_PIPELINE_SINK_MAX_IN_USE_REACED                  0x00080013
+#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000B
+#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000C
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000D
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x0008000E
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x0008000F
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080010
 ```
 
 ## Pipeline States
@@ -169,42 +144,6 @@ Callback typedef for a client error-message-handler function. Functions of this 
 
 <br>
 
-### *dsl_xwindow_key_event_handler_cb*
-```C++
-typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
-```
-Callback typedef for a client XWindow `KeyRelease` event handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add). Once added, the function will be called on every XWindow `KeyRelease` event, as long as the Pipeline has a [Window Sink](/docs.api-sink.md). The handler function is removed by calling  [dsl_pipeline_xwindow_key_event_handler_remove](#dsl_pipeline_xwindow_key_event_handler_remove).
-
-**Parameters**
-* `key` - [in] UNICODE key string for the key pressed
-* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
-
-<br>
-
-### *dsl_xwindow_button_event_handler_cb*
-```C++
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, uint xpos, uint ypos, void* client_data);
-```
-Callback typedef for a client XWindow `ButtonPress` event handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add). Once added, the function will be called on every XWindow `ButtonPress` event, as long as the Pipeline has a [Window Sink](/docs.api-sink.md). The handler function is removed by calling [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove).
-
-**Parameters**
-* `button` - [in] one of [DSL_BUTTON_ID](#) indicating which mouse button was pressed
-* `xpos` - [in] positional X-offset from the XWindow's upper left corner in pixels
-* `ypos` - [in] positional Y-offset from the XWindow's upper left corner in pixels
-* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
-
-<br>
-
-### *dsl_xwindow_delete_event_handler_cb*
-```C++
-typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
-```
-Callback typedef for a client XWindow `Delete` event handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add). Once added, the function will be called on XWindow `Delete` event, as long as the Pipeline has a [Window Sink](/docs.api-sink.md). The handler function is removed by calling [dsl_pipeline_xwindow_button_event_handler_remove](#dsl_pipeline_xwindow_button_event_handler_remove).
-
-**Parameters**
-* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
-
-<br>
 
 
 ---
@@ -642,297 +581,6 @@ This service removes a named Tiler from a named Pipeline's Stream-Muxer previous
 ```Python
 retval = dsl_pipeline_streammux_tiler_remove('my-pipeline')
 ```
-<br>
-
-### *dsl_pipeline_xwindow_handle_get*
-```C++
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* pipeline, Window* handle);
-```
-This service returns the current XWindow handle in use by the named Pipeline. The handle is set to `Null` on Pipeline creation and will remain `Null` until,
-1. The Pipeline creates an internal XWindow synchronized with one or more Window-Sinks on Transition to a state of playing, or
-2. The Client Application passes an XWindow handle into the Pipeline by calling [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set).
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `handle` - [out] XWindow handle in use by the named Pipeline
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, x_window = dsl_pipeline_xwindow_handle_get('my-pipeline')
-```
-<br>
-
-### *dsl_pipeline_xwindow_handle_set*
-```C++
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* pipeline, Window handle);
-```
-This service sets the XWindow for the named Pipeline to use. The Pipeline must have a single [Window Sink](/docs/api-sink.md#dsl_sink_window_new) for this service to take effect.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `handle` - [in] XWindow handle to be used by the Pipeline's Child Window-Sink.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_handle_set('my-pipeline', handle)
-```
-<br>
-
-### *dsl_pipeline_xwindow_destroy*
-```C++
-DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* pipeline);
-```
-This service destroys the Pipeline's XWindow if one exists and was created by the Pipeline, i.e. was not provided by the client with an earlier call to [dsl_pipeline_xwindow_handle_set](#dsl_pipeline_xwindow_handle_set). This service will fail if the Pipeline is in a state of `passed` or `playing`.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_destroy('my-pipeline')
-```
-<br>
-
-### *dsl_pipeline_xwindow_dimensions_get*
-```C++
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* pipeline,
-    uint* width, uint* height);
-```
-This service returns the current XWindow dimensions in use on XWindow creation for the uniquely named Pipeline.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `width` - [out] width of the XWindow in pixels.
-* `height` - [out] height of the XWindow output in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, width, height = dsl_pipeline_xwindow_dimensions_get('my-pipeline')
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_dimensions_set*
-```C++
-DslReturnType dsl_pipeline_xwindow_dimensions_set(const wchar_t* pipeline,
-    uint width, uint height);
-```
-This service updates the dimensions to use on XWindow creation. This service will fail if the Pipeline has an existing XWindow handle.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `width` - [in] new width setting to use on XWindow creation, in pixels.
-* `height` - [in] new height setting to use on XWindow creation in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_dimensions_set('my-pipeline', 1280, 720)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_key_event_handler_add*
-```C++
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* pipeline,
-    dsl_xwindow_key_handler_cb handler, void* client_data);
-```
-This service adds a callback function of type [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
-
-**Note** Client XWindow Callback functions will only be called if the Pipeline creates the XWindow, which requires a [Window-Sink](/docs/api-sink.md#dsl_sink_window_new) component.
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
-* `handler` - [in] XWindow event handler callback function to add.
-* `client_data` - [in] opaque pointer to user data returned to the handler when called back
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-def key_event_handler(key_string, client_data):
-    print('key pressed = ', key_string)
-   
-retval = dsl_pipeline_xwindow_key_event_handler_add('my-pipeline', key_event_handler, None)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_key_event_handler_remove*
-```C++
-DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const char* pipeline,
-    dsl_xwindow_key_event_handler_cb handler);
-```
-This service removes a Client XWindow key event handler callback that was added previously with [dsl_pipeline_xwindow_key_event_handler_add](#dsl_pipeline_xwindow_key_event_handler_add)
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
-* `handler` - [in] XWindow event handler callback function to remove.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_key_event_handler_remove('my-pipeline', key_event_handler)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_button_event_handler_add*
-```C++
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* pipeline,
-    dsl_xwindow_button_handler_cb handler, void* client_data);
-```
-This service adds a callback function of type [dsl_xwindow_button_event_handler_cb](#dsl_xwindow_button_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
-
-**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a [Window-Sink](/docs/api-sink.md#dsl_sink_window_new) component.
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
-* `handler` - [in] XWindow event handler callback function to add.
-* `client_data` - [in] opaque pointer to user data returned to the handler when called back
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful  addition . One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-def button_event_handler(button, xpos, ypos, client_data):
-    print('button = ', button)
-    print('xpos = ', xpos)
-    print('ypos = ', ypos)
-   
-retval = dsl_pipeline_xwindow_button_event_handler_add('my-pipeline', button_event_handler, None)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_button_event_handler_remove*
-```C++
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const char* pipeline,
-    dsl_xwindow_button_event_handler_cb handler);
-```
-This service removes a Client XWindow button event handler callback that was added previously with [dsl_pipeline_xwindow_button_event_handler_add](#dsl_pipeline_xwindow_button_event_handler_add)
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
-* `handler` - [in] XWindow event handler callback function to remove.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_button_event_handler_remove('my-pipeline', button_event_handler)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_delete_event_handler_add*
-```C++
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* pipeline,
-    dsl_xwindow_delete_handler_cb handler, void* client_data);
-```
-This service adds a callback function of type [dsl_xwindow_delete_event_handler_cb](#dsl_xwindow_delete_event_handler_cb) to a
-pipeline identified by it's unique name. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
-
-**Note** Client XWindow Callback functions will only be called if the Pipeline has created an XWindow, which requires a minimum of one Window-Sink component.
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update.
-* `handler` - [in] XWindow event handler callback function to add.
-* `client_data` - [in] opaque pointer to user data returned to the handler when called back
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-def xwindow_delete_event_handler(client_data):
-    dsl_main_loop_quit()    
-
-retval = dsl_pipeline_xwindow_delete_event_handler_add('my-pipeline', xwindow_delete_event_handler, None)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_delete_event_handler_remove*
-```C++
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const char* pipeline,
-    dsl_xwindow_delete_handler_cb handler);
-```
-This service removes a Client XWindow delete event handler callback that was added previously with [dsl_pipeline_xwindow_delete_event_handler_add](#dsl_pipeline_xwindow_delete_event_handler_add)
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
-* `handler` - [in] XWindow event handler callback function to remove.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_delete_event_handler_remove('my-pipeline', xwindow_delete_event_handler)
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_fullscreen_enabled_get*
-```C++
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* pipeline, boolean* enabled)
-```
-This service gets the current full-screen-enabled setting for the Pipeline's XWindow.
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
-* `enbled` - [out] true if the XWindow's full-screen mode is enabled, false otherwise.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval, enabled = dsl_pipeline_xwindow_fullscreen_enabled_get('my-pipeline')
-```
-
-<br>
-
-### *dsl_pipeline_xwindow_fullscreen_enabled_set*
-```C++
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* pipeline, boolean enabled)
-```
-This service sets the current full-screen-enabled setting for the Pipeline's XWindow.
-
-**Parameters**
-* `pipeline` - [in] unique name of the Pipeline to update
-* `enbled` - [in] set to true to enable the XWindow's full-screen mode, false otherwise.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_fullscreen_enabled_get('my-pipeline', enabled=True)
-```
-
 <br>
 
 ### *dsl_pipeline_state_change_listener_add*
