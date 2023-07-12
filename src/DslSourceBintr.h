@@ -92,6 +92,11 @@ namespace DSL
         std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
             skipFrames, dropFrameInterval, latency, timeout))
 
+    #define DSL_DUPLICATE_SOURCE_PTR std::shared_ptr<DuplicateSourceBintr>
+    #define DSL_DUPLICATE_SOURCE_NEW(name, original, isLive) \
+        std::shared_ptr<DuplicateSourceBintr>(new DuplicateSourceBintr(name, \
+            original, isLive))
+
     /**
      * @brief Utility function to define/set all capabilities (media, 
      * format, width, height, and frame rate) for a given element.
@@ -409,23 +414,37 @@ namespace DSL
         bool SetNvbufMemType(uint nvbufMemType);
 
         /**
-         * @brief adds a single Dewarper Bintr to this SourceBintr 
+         * @brief Adds a single Dewarper Bintr to this SourceBintr 
          * @param[in] pDewarperBintr shared pointer to Dewarper to add
          * @returns true if the Dewarper could be added, false otherwise
          */
         bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
 
         /**
-         * @brief remove a previously added Dewarper Bintr from this SourceBintr 
+         * @brief Removed a previously added DewarperBintr from this SourceBintr.
          * @returns true if the Dewarper could be removed, false otherwise
          */
         bool RemoveDewarperBintr();
         
         /**
-         * @brief call to query the Decode Source if it has a Dewarper
+         * @brief Call to query the VideoSourceBintr if it has a Dewarper.
          * @return true if the Source has a Child
          */
         bool HasDewarperBintr();
+        
+        /**
+         * @brief Adds a DuplicateSourceBintr to this VideoSourceBintr.
+         * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
+         * @return true if the DuplicateSourceBintr could be added, false otherwise.
+         */
+        bool AddDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
+
+        /**
+         * @brief Removes a DuplicateSourceBintr from this VideoSourceBintr.
+         * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
+         * @return true if the DuplicateSourceBintr could be added, false otherwise.
+         */
+        bool RemoveDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
 
     private:
 
@@ -436,6 +455,10 @@ namespace DSL
         bool updateVidConvCaps();
     
     protected:
+    
+        bool LinkAllDuplicates();
+
+        bool UnlinkAllDuplicates();
 
         /**
          * @brief vector to link/unlink all common elements
@@ -510,6 +533,71 @@ namespace DSL
          * @brief Source Queue for SourceBintr - set as ghost-pad for each source
          */
         DSL_ELEMENT_PTR  m_pSourceQueue;
+
+        /**
+         * @brief Conditional Tee used if this VideoSourceBintr has 1 or more
+         * DuplicateSourceBintrs.
+         */
+        DSL_ELEMENT_PTR m_pDuplicateSourceTee;
+        
+        /**
+         * @brief Conditional Queue used if this VideoSourceBintr has 1 or more
+         * DuplicateSourceBintrs.
+         */
+        DSL_ELEMENT_PTR m_pDuplicateSourceTeeQueue;
+        
+        /**
+         * @brief map of DuplicateSourceBintrs to duplicate this VideSourceBintr
+         */
+        std::map <std::string, DSL_VIDEO_SOURCE_PTR> m_duplicateSources;
+        
+    };
+
+    /**
+     * @class DuplicateSourceBintr
+     * @brief Implements a Source that can be added to any other Video Source
+     * to duplicate the original stream.
+     */
+    class DuplicateSourceBintr : public VideoSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the DuplicateSourceBintr
+         * @param[in] name unique name to give the new DuplicateSourceBintr 
+         * @param[in] original unique name of the original source for this
+         * @param[in] isLive set to true if original source isLive, false otherwise. 
+         */
+        DuplicateSourceBintr(const char* name, const char* original,
+            bool isLive);
+
+        /**
+         * @brief dtor for the DuplicateSourceBintr
+         */
+        ~DuplicateSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+        
+    private:
+    
+        /**
+         * @brief name of the Original Source -- currently added to -- to duplicate.
+         */
+        std::string m_original;
+        
+        /**
+         * @brief Sink (input) queue for this DuplicateSourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pSinkQueue;
         
     };
 
@@ -1949,6 +2037,7 @@ namespace DSL
      * @return int true to continue, 0 to self remove
      */
     static int RtspListenerNotificationHandler(gpointer pSource);
+
 
 } // DSL
 #endif // _DSL_SOURCE_BINTR_H

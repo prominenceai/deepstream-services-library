@@ -4138,6 +4138,20 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
         protocol, skip_frames, dropFrameInterval, latency, timeout);
 }
 
+DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(original);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOriginal(original);
+    std::string cstrOriginal(wstrOriginal.begin(), wstrOriginal.end());
+    
+    return DSL::Services::GetServices()->SourceDuplicateNew(cstrName.c_str(), 
+        cstrOriginal.c_str());
+}
+
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);

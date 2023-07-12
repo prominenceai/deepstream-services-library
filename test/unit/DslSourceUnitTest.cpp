@@ -1385,3 +1385,174 @@ SCENARIO( "An MultiImageSourceBintr can UnlinkAll all child Elementrs correctly"
         }
     }
 }
+
+SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A name for a new DuplicateSourceBintr" ) 
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        WHEN( "The DuplicateSourceBintr is created " )
+        {
+            DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+                sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == isLive );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+            }
+        }
+    }
+}
+
+SCENARIO( "A DuplicateSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new DuplicateSourceBintr in memory" ) 
+
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+            sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+        WHEN( "The DuplicateSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The DuplicateSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DuplicateSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new, linked DuplicateSourceBintr " ) 
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+            sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+        REQUIRE( pSourceBintr->LinkAll() == true );
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The DuplicateSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The DuplicateSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DuplicateSourceBintr added and removed correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new DuplicateSourceBintr and VideoSourceBintr" ) 
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        DSL_FILE_SOURCE_PTR pVideoSourceBintr = DSL_FILE_SOURCE_NEW(
+            originalSourceName.c_str(), filePath.c_str(), false);
+
+        DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+            sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+        WHEN( "The DuplicateSourceBintr is added to the VideoSourceBintr" )
+        {
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pSourceBintr) == true );
+
+            // second call must fail
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pSourceBintr) == false );
+
+            THEN( "The same DuplicateSourceBintr can be removed correctly" )
+            {
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pSourceBintr) == true );
+
+                // second call must fail
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pSourceBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "Multiple DuplicateSourceBintrs can be added and linked with a VideoSourceBintr",  "[SourceBintr]" )
+{
+    GIVEN( "A new DuplicateSourceBintr and VideoSourceBintr" ) 
+    {
+        std::string originalSourceName("original-source");
+        std::string duplicateSourceName1("duplicate-source-1");
+        std::string duplicateSourceName2("duplicate-source-2");
+        std::string duplicateSourceName3("duplicate-source-3");
+        std::string duplicateSourceName4("duplicate-source-4");
+        bool isLive(true);
+        
+//        DSL_FILE_SOURCE_PTR pVideoSourceBintr = DSL_FILE_SOURCE_NEW(
+//            originalSourceName.c_str(), filePath.c_str(), isLive);
+
+        DSL_USB_SOURCE_PTR pVideoSourceBintr = DSL_USB_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr1 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName1.c_str(), originalSourceName.c_str(), isLive);
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr2 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName2.c_str(), originalSourceName.c_str(), isLive);
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr3 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName3.c_str(), originalSourceName.c_str(), isLive);
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr4 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName4.c_str(), originalSourceName.c_str(), isLive);
+
+        WHEN( "The DuplicateSourceBintrs are added to the VideoSourceBintr and all are linked" )
+        {
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr1) == true );
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr2) == true );
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr3) == true );
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr4) == true );
+
+            REQUIRE( pVideoSourceBintr->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr1->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr2->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr3->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr4->LinkAll() == true );
+
+            THEN( "All Sources can be unliked and removed correctly" )
+            {
+                pVideoSourceBintr->UnlinkAll();
+                pDuplicateSourceBintr1->UnlinkAll();
+                pDuplicateSourceBintr2->UnlinkAll();
+                pDuplicateSourceBintr3->UnlinkAll();
+                pDuplicateSourceBintr4->UnlinkAll();
+
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr1) == true );
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr2) == true );
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr3) == true );
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr4) == true );
+            }
+        }
+    }
+}
