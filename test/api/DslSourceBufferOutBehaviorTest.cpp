@@ -270,16 +270,22 @@ SCENARIO( "A URI File Source with three Duplicate Sources can play",
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+        
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_1.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(
+                duplicate_source_1.c_str(), DSL_VIDEO_CROP_AT_SRC, 
+                480, 270, 960, 540) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_2.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_3.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_video_buffer_out_orientation_set(duplicate_source_3.c_str(),
+            DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );

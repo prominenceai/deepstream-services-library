@@ -277,28 +277,6 @@ namespace DSL
         ~VideoSourceBintr();
 
         /**
-         * @brief Links the derived Source's last specific element (SrcNodetr)
-         * to the common elements shared by all sources.
-         * @param[in] pSrcNodetr source specific element to link to the common
-         * elements.
-         * @return True on success, false otherwise
-         */
-        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
-        
-        /**
-         * @brief Links a dynamic src-pad to the common elements shared by all sources
-         * @param[in] pSrcPad dynamic src-pad to link
-         * @return True on success, false otherwise
-         */
-        bool LinkToCommon(GstPad* pSrcPad);
-        
-        /**
-         * @brief Unlinks all common Elementrs owned by this SourceBintr
-         * elements.
-         */
-        void UnlinkCommon();
-
-        /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
@@ -449,16 +427,53 @@ namespace DSL
     private:
 
         /**
-         * @brief Private function to update the Video Converter's capability filter.
+         * @brief Private helper function to update the Video Converter's capability filter.
          * @return true if successful, false otherwise.
          */
         bool updateVidConvCaps();
+
+        /**
+         * @brief Private helper function to link all DuplicateSourceBintrs to
+         * this VideoSourceBintr.
+         * @return true on successful link, false otherwise
+         */
+        bool linkAllDuplicates();
+
+        /**
+         * @brief Private helper function to unlink all DuplicateSourceBintrs from
+         * this VideoSourceBintr.
+         * @return true on successful unlink, false otherwise
+         */
+        bool unlinkAllDuplicates();
     
     protected:
     
-        bool LinkAllDuplicates();
+        /**
+         * @brief Links the derived Source's last specific element (SrcNodetr)
+         * to the common elements shared by all sources.
+         * @param[in] pSrcNodetr source specific element to link to the common
+         * elements.
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
+        
+        /**
+         * @brief Links a dynamic src-pad to the common elements shared by all sources
+         * @param[in] pSrcPad dynamic src-pad to link
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(GstPad* pSrcPad);
 
-        bool UnlinkAllDuplicates();
+        /**
+         * @brief Common shared code for the two LinkToCommon methods.
+         * @return True on success, false otherwise
+         */
+        bool CompleteLinkToCommon();
+        
+        /**
+         * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
+         */
+        void UnlinkCommon();
 
         /**
          * @brief vector to link/unlink all common elements
@@ -550,6 +565,11 @@ namespace DSL
          * @brief map of DuplicateSourceBintrs to duplicate this VideSourceBintr
          */
         std::map <std::string, DSL_VIDEO_SOURCE_PTR> m_duplicateSources;
+        
+        /**
+         * @brief vecotr of requested source pads from m_pDuplicateSourceTee
+         */
+        std::vector <GstPad*> m_requestedDuplicateSrcPads;
         
     };
 
