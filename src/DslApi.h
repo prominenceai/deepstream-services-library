@@ -4665,7 +4665,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name,
  * Original Source prior to the source's output-buffer video converter and caps filter.
  * (built into every Video Source). The Duplicate Source, as a Video Source, will have
  * its own buffer-out video converter and caps filter as well. Meaning both sources
- * have independent controll over their buffer-out formating, dimensions, framerate, 
+ * have independent control over their buffer-out formatting, dimensions, frame-rate, 
  * orientation, and cropping.
  * @param name unique name for the new Duplicate Source
  * @param original unique name of the Original Source to duplicate.

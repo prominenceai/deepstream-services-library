@@ -204,13 +204,13 @@ def main(args):
         retval = dsl_source_file_new('file-source-1', file_path1, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_file_new('file-source-2', file_path2, True)
+        retval = dsl_source_file_new('file-source-2', file_path2, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_file_new('file-source-3', file_path3, True)
+        retval = dsl_source_file_new('file-source-3', file_path3, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_file_new('file-source-4', file_path4, True)
+        retval = dsl_source_file_new('file-source-4', file_path4, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
