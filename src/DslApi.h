@@ -4659,7 +4659,7 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name,
     uint latency, uint timeout);
 
 /**
- * @brief Creats a new, uniquely name Duplicate Source used to duplicate the stream 
+ * @brief Creates a new, uniquely name Duplicate Source used to duplicate the stream 
  * of another named Video Source. Both the Duplicate Source and the Original Source
  * must be added to the same Pipeline. The Duplicate Source will be Tee'd into the
  * Original Source prior to the source's output-buffer video converter and caps filter.
@@ -4668,10 +4668,31 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name,
  * have independent controll over their buffer-out formating, dimensions, framerate, 
  * orientation, and cropping.
  * @param name unique name for the new Duplicate Source
- * @param original unique name of the Origianl Source to duplicate.
+ * @param original unique name of the Original Source to duplicate.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original);
+
+/**
+ * @brief Gets the unique name of the Original Source for the named Duplicate Source
+ * @param[in] name unique name of the Duplicate Source to query
+ * @param[out] original unique name of the current Original Source in use by the
+ * named Duplicate Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
+    const wchar_t** original);
+
+/**
+ * @brief Sets the Original Source, unique name, for the named Duplicate Source 
+ * to use.
+ * @param[in] name unique name of the Duplicate Source to query
+ * @param[in] original unique name of the new Original Source for this Duplicate 
+ * Source to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_original_set(const wchar_t* name, 
+    const wchar_t* original);
 
 /**
  * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 

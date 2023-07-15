@@ -1406,6 +1406,9 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetId() == 0 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
+                std::string retOriginalName = pSourceBintr->GetOriginal();
+                REQUIRE( retOriginalName == originalSourceName);
+                
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == isLive );
 

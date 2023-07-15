@@ -1010,6 +1010,20 @@ namespace DSL
         m_isLinked = false;
     }
 
+    const char* DuplicateSourceBintr::GetOriginal()
+    {
+        LOG_FUNC();
+        
+        return m_original.c_str();
+    }
+    
+    void DuplicateSourceBintr::SetOriginal(const char* original)
+    {
+        LOG_FUNC();
+        
+        m_original = original;
+    }
+
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)

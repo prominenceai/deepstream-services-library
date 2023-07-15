@@ -4152,6 +4152,45 @@ DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* origi
         cstrOriginal.c_str());
 }
 
+DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
+    const wchar_t** original)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(original);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cOriginal;
+    static std::string cstrOriginal;
+    static std::wstring wcstrOriginal;
+    
+    uint retval = DSL::Services::GetServices()->SourceDuplicateOriginalGet(
+        cstrName.c_str(), &cOriginal);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrOriginal.assign(cOriginal);
+        wcstrOriginal.assign(cstrOriginal.begin(), cstrOriginal.end());
+        *original = wcstrOriginal.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_source_duplicate_original_set(const wchar_t* name, 
+    const wchar_t* original)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(original);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOriginal(original);
+    std::string cstrOriginal(wstrOriginal.begin(), wstrOriginal.end());
+    
+    return DSL::Services::GetServices()->SourceDuplicateOriginalSet(cstrName.c_str(), 
+        cstrOriginal.c_str());
+}
+    
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);

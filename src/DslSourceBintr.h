@@ -607,6 +607,18 @@ namespace DSL
          */
         void UnlinkAll();
         
+        /**
+         * @brief Gets the unique name of the original Source (VideoSourceBintr)
+         * for this DuplicateSourceBintr
+         */
+        const char* GetOriginal();
+        
+        /**
+         * @brief Sets the the original Source (VideoSourceBintr) by name
+         * for this DuplicateSourceBintr
+         */
+        void SetOriginal(const char* original);
+        
     private:
     
         /**
