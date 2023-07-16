@@ -28,18 +28,19 @@ A Source's production of new buffers can be monitored for timeout by adding a [N
 ... currently under design.
 
 ## Video Sources
-There are ten Video Source components supported, three of which are [Image Video Sources](image-video-sources):
+There are eleven Video Source components supported, three of which are [Image Video Sources](image-video-sources):
 
-* [App Source](#dsl_source_app_new) - allows the application to insert raw samples or buffers into a DSL Pipeline.
+* [App Source](#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
 * [USB Source](#dsl_source_usb_new) - Universal Serial Bus (USB) Source.
 * [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
 * [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
 * [RTSP Source](#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
-* [Interpipe Source](#dsl_source_interpipe_new) - receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
-* [Single Image Source](#dsl_source_image_single_new) - single frame to EOS.
-* [Multi Image Source](#dsl_source_image_multi_new) - streamed at one image file per frame.
-* [Streaming Image Source](#dsl_source_image_stream_new)  - single image streamed at a given frame rate. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Interpipe Source](#dsl_source_interpipe_new) - Receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Single Image Source](#dsl_source_image_single_new) - Single frame to EOS.
+* [Multi Image Source](#dsl_source_image_multi_new) - Streamed at one image file per frame.
+* [Streaming Image Source](#dsl_source_image_stream_new)  - Single image streamed at a given frame rate. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Duplicate Source](#dsl_source_duplicate_new) - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 
 All Video Sources are derived from the base "Source" class (as show in the hierarchy below), therefore all [source methods](#source-methods) can be called with any Video Source.
 
@@ -80,7 +81,7 @@ There are seven different [video orientation constants](#dsl-video-source-buffer
 When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream.
 
 ### Video Dewarping
-A [Video Dewarper](/docs/api-dewarper.md), capable of 360 degreee and perspective dewarping, can be added to a Video Source by calling [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add) and removed with [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove).
+A [Video Dewarper](/docs/api-dewarper.md), capable of 360 degree and perspective dewarping, can be added to a Video Source by calling [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add) and removed with [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove).
 
 ### Image Video Sources
 Image Video Sources are used to decode JPEG image files into `video/x-raw' buffers. PNG files will be supported in a future release. Derived from the "Video Source" class, Image Video Sources can be called with any [Video Source Method](#video-source-methods)
@@ -111,6 +112,7 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [dsl_source_image_single_new](#dsl_source_image_single_new)
 * [dsl_source_image_multi_new](#dsl_source_image_multi_new)
 * [dsl_source_image_stream_new](#dsl_source_image_stream_new)
+* [dsl_source_duplicate_new](#dsl_source_duplicate_new)
 
 **Source Methods:**
 * [dsl_source_media_type_get](#dsl_source_media_type_get)
@@ -206,6 +208,10 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [dsl_source_image_stream_timeout_get](#dsl_source_image_stream_timeout_get)
 * [dsl_source_image_stream_timeout_set](#dsl_source_image_stream_timeout_get)
 
+**Duplicate Source Methods**
+* [dsl_source_duplicate_original_get](#dsl_source_duplicate_original_get)
+* [dsl_source_duplicate_original_set](#dsl_source_duplicate_original_set)
+
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
 ```C
@@ -224,7 +230,8 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
 #define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
-#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            
+
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE            0x00020011
@@ -454,7 +461,7 @@ Creates a new, uniquely named CSI Camera Source component.
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── csi source
 
 **Parameters**
-* `source` - [in] unique name for the new Source
+* `name` - [in] unique name for the new Source
 * `width` - [in] width of the source in pixels
 * `height` - [in] height of the source in pixels
 * `fps-n` - [in] frames per second fraction numerator
@@ -486,7 +493,7 @@ Creates a new, uniquely named USB Camera Source component.
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── usb source
 
 **Parameters**
-* `source` - [in] unique name for the new Source
+* `name` - [in] unique name for the new Source
 * `width` - [in] width of the source in pixels
 * `height` - [in] height of the source in pixels
 * `fps-n` - [in] frames per second fraction numerator
@@ -737,6 +744,35 @@ retval = dsl_source_image_stream_new('my-image-stream-source', './streams/image4
 
 <br>
 
+### *dsl_source_duplicate_new*
+```C
+DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original);
+```
+This service creates a new, uniquely named Duplicate Source used to duplicate the stream of another named Video Source. Both the Duplicate Source and the Original Source must be added to the same Pipeline. The Duplicate Source will be Tee'd into the Original Source prior to the Original Source's output-buffer video-converter, video-rate-controller,  and caps-filter (output buffer control plugins built into every Video Source). The Duplicate Source, as a Video Source, will have its own output buffer control plugins meaning both sources will have independent control over their buffer-out formatting, dimensions, frame-rate, cropping, and orientation.
+
+The relationship between Duplicate Sources and Original Sources is many to one, i.e. multiple Duplicates Sources can duplicate the same Original Source and a Duplicate Source can be an Original Source for one or more other Duplicate Sources.
+
+**IMPORTANT!** The Original Source must exist prior to calling the Duplicate Source constructor. 
+
+#### Hierarchy
+[component](/docs/api-component.md)<br>
+&emsp;╰── [source](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── duplicate source
+
+**Parameters**
+* `source` - [in] unique name for the new Duplicate Source.
+* `original` - [in] unique name of the Original Source to duplicate. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_duplicate_new('my-duplicate-source', 'my-rtsp-source')
+```
+<br>
+
 ---
 
 ## Destructors
@@ -844,7 +880,7 @@ This method tries to change the state of a Source component from `DSL_STATE_PAUS
 * `name` - unique name of the Source to resume.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -1669,7 +1705,7 @@ retval, repeat_enabled = dsl_source_file_repeat_enabled_get('my-file-source')
 ```C
 DslReturnType dsl_source_file_repeat_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the repeat-enabled setting for named File source to use.
+This service sets the repeat-enabled setting for the named File source to use.
 
 **Parameters**
 * `name` - [in] unique name of the Source to update
@@ -2213,10 +2249,10 @@ retval = dsl_source_image_multi_loop_enabled_set('my-multi-image-source', True)
 ```C
 DslReturnType dsl_source_image_stream_timeout_get(const wchar_t* name, uint* timeout);
 ```
-This service gets the current timeout setting in use for the named Streaming Image source
+This service gets the current timeout setting in use for the named Streaming Image source.
 
 **Parameters**
-* `name` - [in] unique name of the Image Source to query
+* `name` - [in] unique name of the Image Source to query.
 * `timeout` - [out] current timeout setting in units of seconds. 0 = no timeout.
 
 **Returns**
@@ -2235,8 +2271,8 @@ DslReturnType dsl_source_image_stream_timeout_set(const wchar_t* name, uint time
 This service sets the File Path to use by the named Streaming Image source.
 
 **Parameters**
-* `name` - [in] unique name of the Image Source to update
-* `timeout` - [out] new timeout setting in units of seconds. 0 = no timeout.
+* `name` - [in] unique name of the Image Source to update.
+* `timeout` - [in] new timeout setting in units of seconds. 0 = no timeout.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
@@ -2244,6 +2280,47 @@ This service sets the File Path to use by the named Streaming Image source.
 **Python Example**
 ```Python
 retval = dsl_source_image_stream_timeout_set('my-image-source', 30)
+```
+
+<br>
+
+### *dsl_source_duplicate_original_get*
+```C
+DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
+    const wchar_t** original);
+```
+This service gets the unique name of the Original Source assigned to the named Duplicate Source.
+
+**Parameters**
+* `name` - [in] unique name of the Duplicate Source to query.
+* `original` - [out] unique name of the current Original Source assigned to named Duplicate Source.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, original = dsl_source_duplicate_original_get('my-duplicate-source')
+```
+<br>
+
+### *dsl_source_duplicate_original_set*
+```C
+DslReturnType dsl_source_duplicate_original_set(const wchar_t* name, 
+    const wchar_t* original);
+```
+This service assigns the Original Source (by unique name) for the named Duplicate Source.
+
+**Parameters**
+* `name` - [in] unique name of the Duplicate Source to update
+* `original` - [in] unique name of the new Original Source for this Duplicate Source.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-usb-source')
 ```
 
 <br>
