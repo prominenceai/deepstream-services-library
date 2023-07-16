@@ -140,6 +140,7 @@
 * [dsl_source_image_single_new](/docs/api-source.md#dsl_source_image_single_new)
 * [dsl_source_image_multi_new](/docs/api-source.md#dsl_source_image_multi_new)
 * [dsl_source_image_stream_new](/docs/api-source.md#dsl_source_image_stream_new)
+* [dsl_source_duplicate_new](/docs/api-source.md#dsl_source_duplicate_new)
 * [dsl_source_media_type_get](/docs/api-source.md#dsl_source_media_type_get)
 * [dsl_source_framerate get](/docs/api-source.md#dsl_source_framerate_get)
 * [dsl_source_is_live](/docs/api-source.md#dsl_source_is_live)
@@ -210,7 +211,9 @@
 * [dsl_source_image_multi_indices_set](/docs/api-source.md#dsl_source_image_multi_indices_set)
 * [dsl_source_image_stream_timeout_get](/docs/api-source.md#dsl_source_image_stream_timeout_get)
 * [dsl_source_image_stream_timeout_set](/docs/api-source.md#dsl_source_image_stream_timeout_get)
-
+* [dsl_source_duplicate_original_get](/docs/api-source.md#dsl_source_duplicate_original_get)
+* [dsl_source_duplicate_original_set](/docs/api-source.md#dsl_source_duplicate_original_set)
+  
 ## Source Tap API:
 * [Overview](/docs/api-tap.md)
 * [dsl_tap_record_session_start](/docs/api-tap.md#dsl_tap_record_session_start)
