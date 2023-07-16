@@ -4654,8 +4654,45 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint skip_frames, uint drop_frame_interval, uint latency, uint timeout);
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
+    const wchar_t* uri, uint protocol, uint skip_frames, uint drop_frame_interval, 
+    uint latency, uint timeout);
+
+/**
+ * @brief Creates a new, uniquely name Duplicate Source used to duplicate the stream 
+ * of another named Video Source. Both the Duplicate Source and the Original Source
+ * must be added to the same Pipeline. The Duplicate Source will be Tee'd into the
+ * Original Source prior to the source's output-buffer video converter and caps filter.
+ * (built into every Video Source). The Duplicate Source, as a Video Source, will have
+ * its own buffer-out video converter and caps filter as well. Meaning both sources
+ * have independent control over their buffer-out formatting, dimensions, frame-rate, 
+ * orientation, and cropping.
+ * @param name unique name for the new Duplicate Source
+ * @param original unique name of the Original Source to duplicate.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original);
+
+/**
+ * @brief Gets the unique name of the Original Source for the named Duplicate Source
+ * @param[in] name unique name of the Duplicate Source to query
+ * @param[out] original unique name of the current Original Source in use by the
+ * named Duplicate Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
+    const wchar_t** original);
+
+/**
+ * @brief Sets the Original Source, unique name, for the named Duplicate Source 
+ * to use.
+ * @param[in] name unique name of the Duplicate Source to query
+ * @param[in] original unique name of the new Original Source for this Duplicate 
+ * Source to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_original_set(const wchar_t* name, 
+    const wchar_t* original);
 
 /**
  * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 

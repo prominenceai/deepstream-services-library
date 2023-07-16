@@ -3408,6 +3408,37 @@ def dsl_source_rtsp_new(name, uri, protocol, skip_frames,
     return int(result)
 
 ##
+## dsl_source_duplicate_new()
+##
+_dsl.dsl_source_duplicate_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_duplicate_new.restype = c_uint
+def dsl_source_duplicate_new(name, original):
+    global _dsl
+    result = _dsl.dsl_source_duplicate_new(name, original)
+    return int(result)
+
+##
+## dsl_source_duplicate_original_get()
+##
+_dsl.dsl_source_duplicate_original_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_duplicate_original_get.restype = c_uint
+def dsl_source_duplicate_original_get(name):
+    global _dsl
+    original = c_wchar_p(0)
+    result = _dsl.dsl_source_duplicate_original_get(name, DSL_WCHAR_PP(original))
+    return int(result), original.value 
+
+##
+## dsl_source_duplicate_original_set()
+##
+_dsl.dsl_source_duplicate_original_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_duplicate_original_set.restype = c_uint
+def dsl_source_duplicate_original_set(name, original):
+    global _dsl
+    result = _dsl.dsl_source_duplicate_original_set(name, original)
+    return int(result)
+
+##
 ## dsl_source_name_get()
 ##
 _dsl.dsl_source_name_get.argtypes = [c_uint, POINTER(c_wchar_p)]

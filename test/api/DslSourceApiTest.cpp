@@ -559,7 +559,7 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values",
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -624,7 +624,7 @@ SCENARIO( "A new USB Camera Source returns the correct attribute values", "[sour
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -1246,6 +1246,85 @@ SCENARIO( "A Image Stream Source Component can Set/Get its Display Timeout setti
     }
 }
 
+SCENARIO( "A new Duplicate Source returns the correct attribute values", 
+    "[source-api]" )
+{
+    GIVEN( "A new CSI Source as Original Source" ) 
+    {
+        std::wstring original_source_name(L"original-source");
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        //
+        REQUIRE( dsl_source_csi_new(original_source_name.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Duplicate Source is created" ) 
+        {
+            REQUIRE( dsl_source_duplicate_new(source_name.c_str(), 
+                original_source_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                const wchar_t* ret_c_original;
+                REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+                    &ret_c_original) == DSL_RESULT_SUCCESS );
+
+                std::wstring ret_original = ret_c_original;
+                REQUIRE( ret_original == original_source_name );
+
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new Duplicate Source can update it Origian Source correctly", 
+    "[next]" )
+{
+    GIVEN( "Two new USB Sources as Original Sources" ) 
+    {
+        std::wstring original_source_name1(L"original-source-1");
+        std::wstring original_source_name2(L"original-source-2");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_csi_new(original_source_name1.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_csi_new(original_source_name2.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_duplicate_new(source_name.c_str(), 
+            original_source_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* ret_c_original;
+        REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+            &ret_c_original) == DSL_RESULT_SUCCESS );
+
+        std::wstring ret_original = ret_c_original;
+        REQUIRE( ret_original == original_source_name1 );
+
+        WHEN( "A the Duplicate Source's Original Source is updated" ) 
+        {
+            REQUIRE( dsl_source_duplicate_original_set(source_name.c_str(),
+                original_source_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+                    &ret_c_original) == DSL_RESULT_SUCCESS );
+
+                std::wstring ret_original = ret_c_original;
+                REQUIRE( ret_original == original_source_name2 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -1419,6 +1498,19 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_video_buffer_out_orientation_set(NULL, 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_duplicate_new(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_new(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_set(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_set(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

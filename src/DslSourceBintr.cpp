@@ -183,14 +183,14 @@ namespace DSL
 
         // ---- SinkQueue as ghost pad to connect to Streammuxer
         
-        m_pSourceQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
         
         // add both elementrs as children to this Bintr
         AddChild(m_pBufferOutVidConv);
         AddChild(m_pBufferOutCapsFilter);
         AddChild(m_pSourceQueue);
 
-        // buffer-out caps filter is "src" ghost-pad for all SourceBintrs
+        // Source (output) queue is "src" ghost-pad for all SourceBintrs
         m_pSourceQueue->AddGhostPadToParent("src");
         
         std::string padProbeName = GetName() + "-src-pad-probe";
@@ -206,78 +206,104 @@ namespace DSL
     bool VideoSourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
     {
         LOG_FUNC();
-
-        // We can now link the upstream source element (input parameter)
-        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv))
-        {
-            return false;
-        }
         
-        // Add the videoconvert as first element to the vector of common elements
-        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
-        
-        if (m_pBufferOutVidRate)
+        // If we're duplicating this source stream.
+        if (m_pDuplicateSourceTee)
         {
-            // If viderate was created we link the videoconvert to it now
-            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
+            // We link the upstream source element (input parameter) to the
+            // DuplicateSourceTee
+            if (!pSrcNodetr->LinkToSink(m_pDuplicateSourceTee) or
+                !m_pDuplicateSourceTeeQueue->LinkToSourceTee(
+                    m_pDuplicateSourceTee, "src_%u") or
+                !m_pDuplicateSourceTeeQueue->LinkToSink(m_pBufferOutVidConv))
             {
                 return false;
             }
-            // Add the videorate to the vector of common elements
-            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
+            // Add the queue as first element to the vector of linked elements
+            m_linkedCommonElements.push_back(m_pDuplicateSourceTeeQueue);
 
-        }            
-        // next we can link the last element in the vector to the capsfilter
-        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
-        {
-            return false;
-        }
-        m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
-         
-        // If the VideoSource has a dewarper, link it in next 
-        if (HasDewarperBintr())
-        {
-            if (!m_pDewarperBintr->LinkAll() or
-                !m_linkedCommonElements.back()->LinkToSink(m_pDewarperBintr))
+            // Link all Duplicate Sources to the Duplicate Source Tee.
+            if (!linkAllDuplicates())
             {
-                LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
-                    << GetName() << "'");
                 return false;
             }
-            m_linkedCommonElements.push_back(m_pDewarperBintr);
         }
-        
-        // Link to the final queue element - the source-ghost-pad for the bintr.
-        // IMPORTANT we don't add the queue to vector of linked elements.
-        // as we'll call UnlinkFromSink on each element.
-        if(!m_linkedCommonElements.back()->LinkToSink(m_pSourceQueue))
+        else
         {
-            return false;
+            // We link the upstream source element (input parameter) to the
+            // videoconvert
+            if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv))
+            {
+                return false;
+            }
         }
-        return true;
+        return CompleteLinkToCommon();
     }
 
     bool VideoSourceBintr::LinkToCommon(GstPad* pSrcPad)
     {
         LOG_FUNC();
 
-        // Static SinkPad for videoconverter
-        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+        // If we're duplicating this source stream.
+        if (m_pDuplicateSourceTee)
+        {
+            // Static SinkPad for duplicating tee
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                    m_pDuplicateSourceTee->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+            {
+                LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
+                    << GetName() << "'");
+                return false;
+            }
+            // We link the upstream source element (input parameter) to the
+            // DuplicateSourceTee
+            if (!m_pDuplicateSourceTeeQueue->LinkToSourceTee(
+                    m_pDuplicateSourceTee, "src_%u") or
+                !m_pDuplicateSourceTeeQueue->LinkToSink(m_pBufferOutVidConv))
+            {
+                return false;
+            }
+            // Add the queue as first element to the vector of linked elements
+            m_linkedCommonElements.push_back(m_pDuplicateSourceTeeQueue);
+            
+            // Link all Duplicate Sources to the Duplicate Source Tee.
+            if (!linkAllDuplicates())
+            {
+                return false;
+            }
+        }
+        else
+        {
+            // Static SinkPad for videoconverter
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
                 m_pBufferOutVidConv->GetGstElement(), "sink");
-        if (!pStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
-                << GetName() << "'");
-            return false;
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+            {
+                LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
+                    << GetName() << "'");
+                return false;
+            }
+            gst_object_unref(pStaticSinkPad);
         }
-        if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
-        {
-            LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
-                << GetName() << "'");
-            return false;
-        }
-        gst_object_unref(pStaticSinkPad);
-
+        return CompleteLinkToCommon();
+    }
+    
+    bool VideoSourceBintr::CompleteLinkToCommon()
+    {
+        
         // Add the videoconvert as first element to the vector of common elements
         m_linkedCommonElements.push_back(m_pBufferOutVidConv);
         
@@ -332,6 +358,173 @@ namespace DSL
             ivec->UnlinkFromSink();
         }
         m_linkedCommonElements.clear();
+
+        // If we're duplicating this source stream.
+        if (m_pDuplicateSourceTee)
+        {
+            m_pDuplicateSourceTeeQueue->UnlinkFromSourceTee();
+            unlinkAllDuplicates();
+        }
+    }
+
+    bool VideoSourceBintr::linkAllDuplicates()
+    {
+        LOG_FUNC();
+        
+        uint index(1);
+        for (const auto& imap: m_duplicateSources)
+        {
+            // For each duplicate source, we need to request a new source pad
+            // from the Duplicate-Source Tee element.
+            GstPad* pRequestedSrcPad = gst_element_get_request_pad(
+                m_pDuplicateSourceTee->GetGstElement(), "src_%u");
+            if (!pRequestedSrcPad)
+            {
+                LOG_ERROR("Failed to get a requested source pad from Tee '" 
+                    << m_pDuplicateSourceTee->GetName() <<"'");
+                return false;
+            }
+            // We must save the Requested source pad so we can release it 
+            // in the helper function UnlinkAllDuplicates below
+            m_requestedDuplicateSrcPads.push_back(pRequestedSrcPad);
+            
+            LOG_INFO("New request pad = " << std::hex << pRequestedSrcPad
+                << " allocated from Tee '" 
+                << m_pDuplicateSourceTee->GetName() << "'");
+            
+            // Next, we must elevate the requested pad so that it can be linked
+            // to the Sink pad of the DuplicateSourceBintr. We do this be creating
+            // a ghost pad from the requested pad, then active it and add it to  
+            // Tee's parent, i.e. this VideoSourceBintr's gst-bin.
+        
+            // start by creating a new, unique name for the new ghost pad.
+            std::string padName = "src_" + std::to_string(index);
+
+            GstPad* pGhostPad = gst_ghost_pad_new(padName.c_str(), 
+                pRequestedSrcPad);
+            if (!pGhostPad)
+            {
+                LOG_ERROR("Failed to create a ghost pad for requested source pad = "
+                    << std::hex << pRequestedSrcPad);
+                return false;
+            }
+            gst_pad_set_active(pGhostPad, TRUE);
+                
+            if (!gst_element_add_pad(GetGstElement(), pGhostPad))
+            {
+                LOG_ERROR("Failed to add new ghost pad '" << padName 
+                    << "' to Original Source'" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("New ghost pad = " << std::hex << pGhostPad
+                << " allocated for request pad = " 
+                << std::hex << pRequestedSrcPad 
+                << "' added to Original Source '" << GetName() << "'");
+            
+            // We can now get the newly added/elevated source pad by name
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                GetGstElement(), padName.c_str()); 
+                
+            // Along with the elevated static sink pad for the DuplicateSourceBintr    
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                imap.second->GetGstElement(), "sink");
+            
+            // and link them together... with a new stream now splitting
+            // off from the original.
+            if (gst_pad_link(pStaticSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("Original Source '" << GetName() 
+                    << "' failed to link to Duplicate Source '"
+                    << imap.second->GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Original Source '" << GetName() 
+                << "' linked to Duplicate Source '" << imap.second->GetName()
+                << "' successfully");
+            
+            // Need to unreference the pointers to the static source and sink pads.
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pStaticSinkPad);
+            
+            index++;
+        }
+        return true;
+    }
+
+    bool VideoSourceBintr::unlinkAllDuplicates()
+    {
+        LOG_FUNC();
+        
+        uint index(1);
+        for (const auto& imap: m_duplicateSources)
+        {
+            // for each duplicate source, get the elevated static pad for
+            // the added ghost pad for duplicate-source-tee element
+            std::string padName = "src_" + std::to_string(index);
+            
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                GetGstElement(), padName.c_str()); 
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Original Source '" << GetName() 
+                    << "' failed to get static source pad");
+                return false;
+            }
+            
+            // get the static sink for the Duplicate Source so we can unlink it
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                imap.second->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Duplicate Source '" << imap.second->GetName() 
+                    << "' failed to get static sink pad");
+                return false;
+            }
+            
+            // unlink the Original Source From the Duplicate Source
+            if (gst_pad_is_linked(pStaticSinkPad) and
+                (!gst_pad_unlink(pStaticSrcPad, pStaticSinkPad)))
+            {
+                LOG_ERROR("Original Source '" << GetName() 
+                    << "' failed to unlink from Duplicate Source '"
+                    << imap.second->GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Original Source '" << GetName() 
+                << "' unlinked from Duplicate Source '" << imap.second->GetName()
+                << "' successfully");
+            
+            // Need to remove the elevated ghost pad this Origian Sources's gst-bin. 
+            if (!gst_element_remove_pad(GetGstElement(), pStaticSrcPad))
+            {
+                LOG_ERROR("Failed to remove pad '" << padName 
+                    << "' from Original Source'" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Elevated static pad '" << padName 
+                << "' removed from Original Source'" << GetName() << "'");
+
+            // unreference the static pad pointers. 
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pStaticSinkPad);
+
+            // Finally, we need to release and unref the requested pad (the one 
+            // that was ghosted) back to the duplicate-souce-tee
+            GstPad* pRequestedSrcPad = m_requestedDuplicateSrcPads[index-1];
+            
+            LOG_INFO("Releasing and unreferencing requested source pad = " 
+                << pRequestedSrcPad << " for Tee '" 
+                << m_pDuplicateSourceTee->GetName() << "'");
+
+            gst_element_release_request_pad(m_pDuplicateSourceTee->GetGstElement(), 
+                pRequestedSrcPad);
+            gst_object_unref(pRequestedSrcPad);
+            
+            index++;
+        }
+        // Clear out the vector of requested (now unreferenced) source pads
+        m_requestedDuplicateSrcPads.clear();
+        return true;
     }
 
     void VideoSourceBintr::GetDimensions(uint* width, uint* height)
@@ -632,7 +825,8 @@ namespace DSL
         
         if (m_pDewarperBintr)
         {
-            LOG_ERROR("VideoSourceBintr '" << GetName() << "' allready has a Dewarper");
+            LOG_ERROR("VideoSourceBintr '" << GetName() 
+                << "' allready has a Dewarper");
             return false;
         }
         m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
@@ -663,6 +857,173 @@ namespace DSL
         return (m_pDewarperBintr != nullptr);
     }
     
+    bool VideoSourceBintr::AddDuplicateSource(
+        DSL_VIDEO_SOURCE_PTR pDuplicateSource)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to add DuplicateSourceBintr '"
+                << pDuplicateSource->GetName() << "' to VideoSourceBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        // ensure uniqueness 
+        if (m_duplicateSources.find(pDuplicateSource->GetName()) 
+            != m_duplicateSources.end())
+        {   
+            LOG_ERROR("DuplicateSourceBintr '" << pDuplicateSource->GetName()
+                << "' has been previously added to VideoSourceBintr '"
+                << GetName() << "' and cannot be added again");
+            return false;
+        }
+        // if this is the first DuplicateSourceBintr to be added, then we need
+        // to create the required Tee and Queue elements to support duplicates.
+        if (!m_duplicateSources.size())
+        {
+            m_pDuplicateSourceTee = DSL_ELEMENT_EXT_NEW("tee", 
+                GetCStrName(), "duplicate");
+            m_pDuplicateSourceTeeQueue = DSL_ELEMENT_EXT_NEW("queue", 
+                GetCStrName(), "duplicate");
+                
+            AddChild(m_pDuplicateSourceTee);
+            AddChild(m_pDuplicateSourceTeeQueue);
+        }
+        // add the duplicate to the map of duplicates for this VideoSourceBintr
+        m_duplicateSources[pDuplicateSource->GetName()] = pDuplicateSource;
+        return true;
+    }
+    
+    bool VideoSourceBintr::RemoveDuplicateSource(
+        DSL_VIDEO_SOURCE_PTR pDuplicateSource)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to remove DuplicateSourceBintr '"
+                << pDuplicateSource->GetName() << "' from VideoSourceBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        // ensure exists
+        if (m_duplicateSources.find(pDuplicateSource->GetName()) 
+            == m_duplicateSources.end())
+        {   
+            LOG_ERROR("DuplicateSourceBintr '" << pDuplicateSource->GetName()
+                << "' has not been previously added to VideoSourceBintr '"
+                << GetName() << "' and cannot removed");
+            return false;
+        }
+        
+        // remove the duplicate from the map of duplicates for this VideoSourceBintr
+        m_duplicateSources.erase(pDuplicateSource->GetName());
+        
+        // if this was the last DuplicateSourceBintr to be remove, then we need
+        // to delete the Tee and Queue elements used to support duplicates.
+        if (!m_duplicateSources.size())
+        {
+            RemoveChild(m_pDuplicateSourceTee);
+            RemoveChild(m_pDuplicateSourceTeeQueue);
+            m_pDuplicateSourceTee = nullptr;
+            m_pDuplicateSourceTeeQueue = nullptr;
+        }
+        
+        return true;
+    }
+    
+    //*********************************************************************************
+    DuplicateSourceBintr::DuplicateSourceBintr(const char* name, 
+            const char* original, bool isLive)
+        : VideoSourceBintr(name) 
+        , m_original(original)
+    {
+        LOG_FUNC();
+        
+        m_isLive = isLive;
+        
+        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "sink-pad");
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for DuplicateSourceBintr '" << name << "'");
+        LOG_INFO("  original-source   : " << m_original);
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+
+        // add all elementrs as childer to this Bintr
+        AddChild(m_pSinkQueue);
+
+        // Sink (input) queue is "sink" ghost-pad for the DuplicateSourceBintr
+        m_pSinkQueue->AddGhostPadToParent("sink");
+    }
+
+    DuplicateSourceBintr::~DuplicateSourceBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool DuplicateSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("DuplicateSourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        
+        if (!LinkToCommon(m_pSinkQueue))
+        {
+            return false;
+        }
+        
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void DuplicateSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("DuplicateSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        m_pSinkQueue->UnlinkFromSink();
+        UnlinkCommon();
+        m_isLinked = false;
+    }
+
+    const char* DuplicateSourceBintr::GetOriginal()
+    {
+        LOG_FUNC();
+        
+        return m_original.c_str();
+    }
+    
+    void DuplicateSourceBintr::SetOriginal(const char* original)
+    {
+        LOG_FUNC();
+        
+        m_original = original;
+    }
+
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)

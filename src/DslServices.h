@@ -763,6 +763,14 @@ namespace DSL {
         DslReturnType SourceRtspNew(const char* name, const char* uri, uint protocol, 
             uint skipFrames, uint dropFrameInterval, uint latency, uint timeout);
 
+        DslReturnType SourceDuplicateNew(const char* name, const char* original);
+
+        DslReturnType SourceDuplicateOriginalGet(const char* name, 
+            const char** original);
+
+        DslReturnType SourceDuplicateOriginalSet(const char* name, 
+            const char* original);
+
         DslReturnType SourcePphAdd(const char* name, const char* handler);
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
