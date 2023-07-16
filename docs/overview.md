@@ -121,17 +121,18 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ## Sources
 Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of PLAYING. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are ten (10) types of Source components supported, all are currently Video ony. Audio-Video and Video only Sources are in development.  
-* **App Source** - allows the application to insert raw samples or buffers into a DSL Pipeline.
+There are eleven (11) types of Source components supported, all are currently Video ony. Audio-Video and Audo only Sources are in development.  
+* **App Source** - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * **CSI Source** - Camera Serial Interface (CSI) Source - Jetson platform only.
 * **USB Source** - Universal Serial Bus (USB) Source.
 * **URI Source** - Uniform Resource Identifier ( URI ) Source.
 * **File Source** - Derived from URI Source with fixed inputs.
 * **RTSP Source** - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
-* **Interpipe Source** - receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
-* **Single Image Source** - single frame to EOS.
-* **Multi Image Source** - streamed at one image file per frame.
-* **Streaming Image Source** - single image streamed at a given frame rate.
+* **Interpipe Source** - Receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
+* **Single Image Source** - Single frame to EOS.
+* **Multi Image Source** - Streamed at one image file per frame.
+* **Streaming Image Source** - Single image streamed at a given frame rate.
+* **Duplicate Source** - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 
 All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components supports multiple codec formats, including H.264, H.265, and JPEG. 
 
