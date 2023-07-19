@@ -1860,16 +1860,15 @@ namespace DSL
     {
         LOG_FUNC();
 
-        std::string codecString;
         switch (codec)
         {
         case DSL_CODEC_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
-            codecString.assign("H264");
+            m_codecString.assign("H264");
             break;
         case DSL_CODEC_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
-            codecString.assign("H265");
+            m_codecString.assign("H265");
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
@@ -1894,28 +1893,6 @@ namespace DSL
         {
             m_pEncoder->SetAttribute("gpu-id", m_gpuId);
         }
-        // Setup the GST RTSP Server
-        m_pServer = gst_rtsp_server_new();
-        g_object_set(m_pServer, "service", std::to_string(m_rtspPort).c_str(), NULL);
-
-        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) + 
-            " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
-            codecString + ", payload=96 \")";
-        
-        // Create a nw RTSP Media Factory and set the launch settings
-        // to the UDP source defined above
-        m_pFactory = gst_rtsp_media_factory_new();
-        gst_rtsp_media_factory_set_launch(m_pFactory, udpSrc.c_str());
-
-        LOG_INFO("UDP Src for RtspSinkBintr '" << GetName() << "' = " << udpSrc);
-
-        // Get a handle to the Mount-Points object from the new RTSP Server
-        GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
-
-        // Attach the RTSP Media Factory to the mount-point-path in the mounts object.
-        std::string uniquePath = "/" + GetName();
-        gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
-        g_object_unref(pMounts);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
@@ -1962,6 +1939,29 @@ namespace DSL
             return false;
         }
         
+        // Setup the GST RTSP Server
+        m_pServer = gst_rtsp_server_new();
+        g_object_set(m_pServer, "service", std::to_string(m_rtspPort).c_str(), NULL);
+
+        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) + 
+            " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
+            m_codecString + ", payload=96 \")";
+        
+        // Create a nw RTSP Media Factory and set the launch settings
+        // to the UDP source defined above
+        m_pFactory = gst_rtsp_media_factory_new();
+        gst_rtsp_media_factory_set_launch(m_pFactory, udpSrc.c_str());
+
+        LOG_INFO("UDP Src for RtspSinkBintr '" << GetName() << "' = " << udpSrc);
+
+        // Get a handle to the Mount-Points object from the new RTSP Server
+        GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
+
+        // Attach the RTSP Media Factory to the mount-point-path in the mounts object.
+        std::string uniquePath = "/" + GetName();
+        gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
+        g_object_unref(pMounts);
+
         if (!m_pQueue->LinkToSink(m_pTransform) or
             !m_pTransform->LinkToSink(m_pCapsFilter) or
             !m_pCapsFilter->LinkToSink(m_pEncoder) or
@@ -1980,6 +1980,20 @@ namespace DSL
         return true;
     }
     
+    /**
+     * @brief Callback function will be called by the gst_rtsp_server_client_filter. 
+     * @param server RTSP server that is managing the client.
+     * @param client calling client to be removed
+     * @param user_data not used.
+     * @return GST_RTSP_FILTER_REMOVE to remove the client on call
+     */
+    static GstRTSPFilterResult client_filter_cb(GstRTSPServer* server,
+        GstRTSPClient* client, gpointer user_data)
+    {
+        LOG_INFO("Removing Client from RTSP Server");
+        return GST_RTSP_FILTER_REMOVE;
+    }
+
     void RtspSinkBintr::UnlinkAll()
     {
         LOG_FUNC();
@@ -1989,6 +2003,28 @@ namespace DSL
             LOG_ERROR("RtspSinkBintr '" << GetName() << "' is not linked");
             return;
         }
+
+        // remove the mount point for this RtspSinkBintr's server
+        GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);        
+        std::string uniquePath = "/" + GetName();
+        gst_rtsp_mount_points_remove_factory(pMounts, uniquePath.c_str());
+        g_object_unref(pMounts);
+
+        // add the client filter callback to the server to remove any clients.
+        if (g_main_loop_is_running(
+            DSL::Services::GetServices()->GetMainLoopHandle()))
+        {
+            LOG_INFO("Adding server filter to remove clients for RtspSourceBintr '"
+                << GetName() << "'");
+            gst_rtsp_server_client_filter(m_pServer, client_filter_cb, NULL);
+        }
+
+        GstRTSPSessionPool* pSessionPool = 
+            gst_rtsp_server_get_session_pool(m_pServer);
+            
+        gst_rtsp_session_pool_cleanup(pSessionPool);
+        g_object_unref(pSessionPool);
+
         if (m_pServerSrcId)
         {
             // Remove (destroy) the source from the Main loop context

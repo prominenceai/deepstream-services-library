@@ -1031,6 +1031,11 @@ namespace DSL
         uint m_udpPort;
         uint m_rtspPort;
         
+        /**
+         * @brief string representing current codec; "H264" or "H265"
+         */
+        std::string m_codecString;
+
         GstRTSPServer* m_pServer;
         uint m_pServerSrcId;
         GstRTSPMediaFactory* m_pFactory;
