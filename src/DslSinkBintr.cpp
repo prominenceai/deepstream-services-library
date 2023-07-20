@@ -1857,6 +1857,7 @@ namespace DSL
         , m_rtspPort(rtspPort)
         , m_pServer(NULL)
         , m_pFactory(NULL)
+        , m_udpBufferSize(DSL_DEFAULT_UDP_BUFER_SIZE)
     {
         LOG_FUNC();
 
@@ -1943,7 +1944,8 @@ namespace DSL
         m_pServer = gst_rtsp_server_new();
         g_object_set(m_pServer, "service", std::to_string(m_rtspPort).c_str(), NULL);
 
-        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) + 
+        std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) +
+            " buffer-size=" + std::to_string(m_udpBufferSize) +
             " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
             m_codecString + ", payload=96 \")";
         

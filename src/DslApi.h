@@ -647,6 +647,11 @@ THE SOFTWARE.
 #define DSL_TLS_CERTIFICATE_VALIDATE_ALL                            0x0000007f
 
 /**
+ @brief default UDP buffer size for RTSP Media Factory launc settings
+  */
+#define DSL_DEFAULT_UDP_BUFER_SIZE                                  (512*1024)
+
+/**
  * @brief Predefined Color Constants - rows 1 and 2.
  */
 #define DSL_COLOR_PREDEFINED_BLACK                                  0

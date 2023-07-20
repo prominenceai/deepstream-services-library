@@ -1032,6 +1032,11 @@ namespace DSL
         uint m_rtspPort;
         
         /**
+         * @brief current UPD-buffer-size for the RTSP Media Factory
+         */
+        uint m_udpBufferSize;
+
+        /**
          * @brief string representing current codec; "H264" or "H265"
          */
         std::string m_codecString;
