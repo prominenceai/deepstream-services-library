@@ -110,6 +110,7 @@ SCENARIO( "An App Sink can update it Sync setting correctly", "[sink-api]" )
                     &retSync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retSync == newSync );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -144,6 +145,7 @@ SCENARIO( "An App Sink can update its data-type setting correctly", "[sink-api]"
                     &ret_data_type) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_data_type == new_data_type );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
         WHEN( "An ivalid data-type is provided" ) 
@@ -155,6 +157,7 @@ SCENARIO( "An App Sink can update its data-type setting correctly", "[sink-api]"
                 REQUIRE( dsl_sink_app_data_type_set(sink_name.c_str(), 
                     new_data_type) == DSL_RESULT_SINK_SET_FAILED);
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -216,6 +219,7 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[si
                     &sync) == DSL_RESULT_SUCCESS );
                 REQUIRE( sync == true );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -263,6 +267,7 @@ SCENARIO( "A Fake Sink can update it Sync/Async attributes", "[sink-api]" )
                 REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), &retSync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retSync == newSync );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -297,9 +302,11 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink", "
                 THEN( "The list size is updated correctly" ) 
                 {
                     REQUIRE( dsl_component_list_size() == 1 );
+
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
-            REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
         }
     }
 }    
@@ -376,6 +383,7 @@ SCENARIO( "A Overlay Sink can update its Sync/Async attributes", "[sink-api]" )
                         &retSync) == DSL_RESULT_SUCCESS );
                     REQUIRE( retSync == newSync );
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
         }
@@ -418,6 +426,7 @@ SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
                     REQUIRE( preOffsetY == retOffsetY);
 
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
         }
@@ -460,6 +469,7 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
                     REQUIRE( preSinkH == retSinkH);
 
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
         }
@@ -494,6 +504,7 @@ SCENARIO( "An Overlay Sink can be Reset", "[sink-api]" )
                     REQUIRE( dsl_sink_render_reset(overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
 
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
         }
@@ -626,6 +637,7 @@ SCENARIO( "An Overlay Sink in use can't be added to a second Pipeline", "[sink-a
 
                     REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
         }
@@ -653,10 +665,11 @@ SCENARIO( "The Components container is updated correctly on new Window Sink", "[
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 0 );
     }
 }    
 
@@ -716,6 +729,7 @@ SCENARIO( "A Window Sink can update its Sync/Async attributes", "[sink-api]" )
                     &retSync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retSync == newSync );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -778,6 +792,7 @@ SCENARIO( "A Window Sink can be Reset", "[sink-api]" )
                 REQUIRE( dsl_sink_render_reset(windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -820,6 +835,7 @@ SCENARIO( "A Window Sinks full-screen-enabled setting can be Set/Get", "[sink-ap
                 REQUIRE( retFullScreenEnabled == newFullScreenEnabled );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -864,7 +880,9 @@ SCENARIO( "A Window Sink's Handle can be Set/Get", "[sink-api]" )
                 REQUIRE( retHandle == newHandle );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -934,6 +952,7 @@ SCENARIO( "A Window Sink, once removed from a Pipeline, can be deleted", "[sink-
                 REQUIRE( dsl_component_delete(windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
@@ -970,6 +989,8 @@ SCENARIO( "A Window Sink in use can't be added to a second Pipeline", "[sink-api
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1001,6 +1022,7 @@ SCENARIO( "A Window Sink's Offsets can be updated", "[sink-api]" )
                 REQUIRE( preOffsetY == retOffsetY);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1032,6 +1054,7 @@ SCENARIO( "A Window Sink's Dimensions can be updated", "[sink-api]" )
                 REQUIRE( preSinkH == retSinkH);
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1069,6 +1092,7 @@ SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ",
                     handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1107,6 +1131,7 @@ SCENARIO( "Window Sink Button Event Handler are added and removded correctly",
                     handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1140,9 +1165,8 @@ SCENARIO( "A XWindow Delete Event Handler must be unique", "[pipeline-cb-api]" )
                 REQUIRE( dsl_sink_window_delete_event_handler_remove(sink_name.c_str(),
                     handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
 
-
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1180,11 +1204,13 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[si
                     &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
-                
+
                 REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }    
 
@@ -1423,9 +1449,11 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
                 REQUIRE( ret_width == 0 );
                 REQUIRE( ret_height == 0 );
                 REQUIRE( dsl_component_list_size() == 1 );
+    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }    
 
@@ -1501,6 +1529,8 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
                     
                 REQUIRE( dsl_component_delete(recordSinkName.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
@@ -1580,9 +1610,11 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }    
 
@@ -1640,9 +1672,11 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
-        REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
     }
 }    
 
@@ -1814,6 +1848,7 @@ SCENARIO( "An Multi-Image Sink can update its property settings correctly", "[si
                 REQUIRE( ret_file_path == new_file_path );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
         WHEN( "The Multi-Image Sinks's dimensions are updated" ) 
@@ -1837,6 +1872,7 @@ SCENARIO( "An Multi-Image Sink can update its property settings correctly", "[si
                 REQUIRE( ret_height == new_height );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
         WHEN( "The Multi-Image Sink's frame-rate is updated" ) 
@@ -1860,6 +1896,7 @@ SCENARIO( "An Multi-Image Sink can update its property settings correctly", "[si
                 REQUIRE( ret_fps_d == new_fps_d );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
         WHEN( "The Multi-Image Sink's max-file setting is updated" ) 
@@ -1881,6 +1918,7 @@ SCENARIO( "An Multi-Image Sink can update its property settings correctly", "[si
                 REQUIRE( ret_max_file == new_max_file );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
             }
         }
     }
