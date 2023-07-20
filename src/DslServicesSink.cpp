@@ -519,7 +519,7 @@ namespace DSL
             {
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to add Key Event Handler");
-                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+                return DSL_RESULT_SINK_HANDLER_ADD_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
                 << "' added Key Event Handler successfully");
@@ -553,7 +553,7 @@ namespace DSL
             {
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to remove Key Event Handler");
-                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
                 << "' removed Key Event Handler successfully");

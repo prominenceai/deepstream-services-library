@@ -1867,10 +1867,16 @@ namespace DSL
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             m_codecString.assign("H264");
             break;
+            
         case DSL_CODEC_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             m_codecString.assign("H265");
+            
+            // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
+            // why RTSP Encode Sink only ????
+            m_pParser->SetAttribute("config-interval", -1);
             break;
+            
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw;
@@ -1895,6 +1901,7 @@ namespace DSL
             m_pEncoder->SetAttribute("gpu-id", m_gpuId);
         }
 
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
         LOG_INFO("  host               : " << m_host);
