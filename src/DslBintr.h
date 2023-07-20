@@ -50,8 +50,9 @@ namespace DSL
         /**
          * @brief named container ctor with new Bin 
          */
-        Bintr(const char* name, bool pipeline = false)
+        Bintr(const char* name, bool isPipeline = false)
             : GstNodetr(name)
+            , m_isPipeline(isPipeline)
             , m_uniqueId(-1)
             , m_isLinked(false)
             , m_batchSize(0)
@@ -60,7 +61,7 @@ namespace DSL
         { 
             LOG_FUNC(); 
 
-            if (pipeline)
+            if (m_isPipeline)
             {
                 m_pGstObj = GST_OBJECT(gst_pipeline_new(name));
             }
@@ -334,6 +335,11 @@ namespace DSL
         }
 
     protected:
+    
+        /**
+         * @brief flag to specify if derived as Pipeline or other Bintr.
+         */
+        bool m_isPipeline;
 
         /**
          * @brief unique identifier managed by the 
