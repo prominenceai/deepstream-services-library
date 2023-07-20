@@ -58,7 +58,7 @@ namespace DSL
         /** 
          * 
          */
-        BranchBintr(const char* name, bool pipeline = false);
+        BranchBintr(const char* name, bool isPipeline = false);
 
         /**
          * @brief adds a PreprocBintr to this Branch 
@@ -190,25 +190,17 @@ namespace DSL
         
         void UnlinkAll();
         
-        /**
-         * @brief Links this BranchBintr as a sink to a MultiSinksBintrs
-         * or SplitterBintr.
-         * @param[in] pTee source to link this Branch back to.
-         * @param[in] padName pad to use when allocating a requested pad for the Tee.
-         * @return true if successfully linked, false otherwise.
-         */
-        bool LinkToSourceTee(DSL_NODETR_PTR pTee, const char* padName);
-
-        /**
-         * @brief Links this BranchBintr as a sink to a DemuxerBintr.
-         * @param[in] pTee source tplink this Branch back to.
-         * @param[in] pReqestedPad pre-allocated requested pad for the DemuxerBintr.
-         * @return true if successfully linked, false otherwise.
-         */
-        bool LinkToSourceTee(DSL_NODETR_PTR pTee, GstPad* pReqestedPad);
-
     protected:
+    
+        /**
+         * @brief Created and added as first componet if instantiated as a
+         * Branch t linked to Demuxer or Splitter Tees. 
+         */
+        DSL_ELEMENT_PTR  m_pBranchQueue;
         
+        /**
+         * @brief vector of linked components to simplfy the unlink process
+         */
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**

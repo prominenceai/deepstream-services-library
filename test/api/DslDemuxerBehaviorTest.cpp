@@ -370,7 +370,7 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
 }
 
 SCENARIO( "A Pipeline add and remove three Sources and with three Window-Sinks", 
-    "[old]")
+    "[seg-fault]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sink" ) 
     {
@@ -497,7 +497,7 @@ SCENARIO( "A Pipeline add and remove three Sources and with three Window-Sinks",
 }
 
 SCENARIO( "A Pipeline can have three Sources and three Window-Sink", 
-    "[new]")
+    "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sinks" ) 
     {
