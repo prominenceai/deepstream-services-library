@@ -33,14 +33,15 @@ THE SOFTWARE.
 namespace DSL
 {
     #define DSL_PIPELINE_SOURCES_PTR std::shared_ptr<PipelineSourcesBintr>
-    #define DSL_PIPELINE_SOURCES_NEW(name) \
-        std::shared_ptr<PipelineSourcesBintr>(new PipelineSourcesBintr(name))
+    #define DSL_PIPELINE_SOURCES_NEW(name, uniquePipelineId) \
+        std::shared_ptr<PipelineSourcesBintr> \
+           (new PipelineSourcesBintr(name, uniquePipelineId))
 
     class PipelineSourcesBintr : public Bintr
     {
     public: 
     
-        PipelineSourcesBintr(const char* name);
+        PipelineSourcesBintr(const char* name, uint uniquePipelineId);
 
         ~PipelineSourcesBintr();
         
@@ -194,10 +195,29 @@ namespace DSL
         bool RemoveChild(DSL_BASE_PTR pChildElement);
         
         /**
+         * @brief unique id for the Parent Pipeline, used to offset all source
+         * Id's (if greater than 0)
+         */
+        uint m_uniquePipelineId; 
+         
+        /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
-         * Will be created if and when a RTSP source is added to this PipelineSourcesBintr.
+         * Will be created if and when a RTSP source is added to this 
+         * PipelineSourcesBintr.
          */
         DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
+        
+        /**
+         * @brief Source PadBufferProbetr for the SourceIdOffsetterPadProbeHandler 
+         * m_pSourceIdOffsetter owned by this PipelineSourcesBintr.
+         */
+        DSL_PAD_BUFFER_PROBE_PTR m_pSrcPadBufferProbe;
+        
+        /**
+         * @brief Pad Probe Handler to add the source-id offset (based on unique 
+         * pipeline-id) for this PipelineSourcesBintr
+         */
+        DSL_PPH_SOURCE_ID_OFFSETTER_PTR m_pSourceIdOffsetter;
 
     public:
 

@@ -239,7 +239,12 @@ namespace DSL
     private:
 
         /**
-         * @brief parent bin for all Source bins in this Pipeline
+         * @brief unique static pipeline-id for the PipelineBintr
+         */
+        static uint s_nextPipelineId;
+
+        /**
+         * @brief parent bin for all Source bins in this PipelineBintr
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
         

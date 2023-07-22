@@ -36,6 +36,8 @@ static const std::string sourceName1("source-1");
 static const std::string sourceName2("source-2");
 static const std::string sourceName3("source-3");
 
+static const uint pipelineId(0);
+
 static const std::string filePath(
     "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
@@ -47,7 +49,7 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
         WHEN( "The PipelineSourcesBintr is created" )
         {
             DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
             
             THEN( "All members have been setup correctly" )
             {
@@ -64,7 +66,7 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
     GIVEN( "A new Pipeline Sources Bintr and new Source in memory" ) 
     {
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
 
@@ -94,7 +96,7 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
         std::string pipelineSourcesName = "pipeline-sources";
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -122,7 +124,7 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
     GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
     {
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
 
@@ -151,7 +153,7 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
     GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
     {
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
             sourceName0.c_str(), filePath.c_str(), false, false, 0);
@@ -200,7 +202,7 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
     {
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
             sourceName0.c_str(), filePath.c_str(), false, false, 0);
@@ -241,7 +243,7 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
         WHEN( "The Bintrs are created and the Sources are added as children and linked" )
         {
             DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
             DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
                 sourceName0.c_str(), filePath.c_str(), false, false, 0);
@@ -275,7 +277,7 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
         WHEN( "After destruction, all SourceBintrs and Request Pads can be recreated and linked again" )
         {
             DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+                DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
             DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
                 sourceName0.c_str(), filePath.c_str(), false, false, 0);
@@ -314,7 +316,7 @@ SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and upd
     GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
     {
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
 
@@ -350,7 +352,7 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
     GIVEN( "A new PipelineSourcesBintr" ) 
     {
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {

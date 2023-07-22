@@ -30,8 +30,10 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
+    PipelineSourcesBintr::PipelineSourcesBintr(const char* name,
+        uint uniquePipelineId)
         : Bintr(name)
+        , m_uniquePipelineId(uniquePipelineId)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
         , m_streamMuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
@@ -85,7 +87,20 @@ namespace DSL
 
         // Float the StreamMux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
-}
+        
+        if (m_uniquePipelineId > 0)
+        {
+            std::string bufferHandlerName = GetName() + "-source-id-offsetter";
+            m_pSourceIdOffsetter = DSL_PPH_SOURCE_ID_OFFSETTER_NEW(
+                bufferHandlerName.c_str(), 
+                (m_uniquePipelineId << DSL_STREAMMUX_SOURCE_ID_OFFSET_IN_BITS));
+
+            std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
+            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
+                padBufferProbeName.c_str(), "src", m_pStreamMux);
+            m_pSrcPadBufferProbe->AddPadProbeHandler(m_pSourceIdOffsetter);
+        }
+    }
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
     {
@@ -149,8 +164,8 @@ namespace DSL
                 std::string eventHandlerName = GetName() + "-eos-consumer";
                 m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
 
-                std::string padProbeName = GetName() + "-src-pad-probe";
-                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), 
+                std::string padEventProbeName = GetName() + "-src-pad-event-probe";
+                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padEventProbeName.c_str(), 
                     "src", m_pStreamMux);
                 m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
             }
@@ -175,6 +190,9 @@ namespace DSL
         }            
         // Set the sources unique id to the available stream-id
         pChildSource->SetId(streamId);
+        
+        Services::GetServices()->_sourceNameSet(pChildSource->GetCStrName(),
+            (m_uniquePipelineId << DSL_STREAMMUX_SOURCE_ID_OFFSET_IN_BITS) | streamId);
 
         // Add the Source to the Bintrs collection of children mapped by name
         m_pChildSources[pChildSource->GetName()] = pChildSource;

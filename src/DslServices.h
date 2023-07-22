@@ -859,7 +859,7 @@ namespace DSL {
 
         DslReturnType SourceIdGet(const char* name, int* sourceId);
     
-        uint _sourceNameSet(const char* name);
+        void _sourceNameSet(const char* name, uint sourceId);
     
         bool _sourceNameErase(const char* name);
     
@@ -1815,12 +1815,6 @@ namespace DSL {
          * @brief map of all message borkers creaated by the client, key=name
          */
         std::map <std::string, std::shared_ptr<MessageBroker>> m_messageBrokers;
-        
-        /**
-         * @brief Each source is assigned a unique id for the life of the source.
-         * Each source is given the first/lowest available id when created.
-         */
-        std::vector<bool> m_usedSourceIds;
         
         /**
          * @brief container of all unique source Ids mapped by their unique name.

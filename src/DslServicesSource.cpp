@@ -2771,30 +2771,13 @@ namespace DSL
         return DSL_RESULT_SOURCE_NOT_FOUND;
     }
 
-    uint Services::_sourceNameSet(const char* name)
+    void Services::_sourceNameSet(const char* name, uint sourceId)
     {
         LOG_FUNC();
         
         
-       uint sourceId(0);
-        
-        // find the next available unused source-id
-        auto ivec = find(m_usedSourceIds.begin(), m_usedSourceIds.end(), false);
-        if (ivec != m_usedSourceIds.end())
-        {
-            sourceId = ivec - m_usedSourceIds.begin();
-            m_usedSourceIds[sourceId] = true;
-        }
-        else
-        {
-            sourceId = m_usedSourceIds.size();
-            m_usedSourceIds.push_back(true);
-        }            
-        
         m_sourceNamesById[sourceId] = name;
         m_sourceIdsByName[name] = sourceId;
-        
-        return sourceId;
     }
 
     bool Services::_sourceNameErase(const char* name)
@@ -2808,10 +2791,9 @@ namespace DSL
             LOG_ERROR("Source '" << name << "' not found ");
             return false;
         }
-        
-        m_usedSourceIds[m_sourceIdsByName[name]] = false;
         m_sourceNamesById.erase(m_sourceIdsByName[name]);
         m_sourceIdsByName.erase(name);
+
         return true;
     }
 

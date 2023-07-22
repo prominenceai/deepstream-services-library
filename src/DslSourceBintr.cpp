@@ -87,9 +87,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Set the stream-id of the unique Source name
-        SetId(Services::GetServices()->_sourceNameSet(name));
-        
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 

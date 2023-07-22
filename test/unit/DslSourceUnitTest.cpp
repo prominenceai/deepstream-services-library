@@ -980,7 +980,7 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         std::string pipelineSourcesName = "pipeline-sources";
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), 0);
             
         DSL_VIDEO_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<VideoSourceBintr>(pRtspSourceBintr);
             

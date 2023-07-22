@@ -28,6 +28,58 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+SCENARIO( "A new SourceIdOffsetterPadProbeHandler is created correctly", 
+    "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new SourceIdOffsetterPadProbeHandler" ) 
+    {
+        std::string offsetterHandlerName("offsetter-handler");
+
+        WHEN( "A new PadProbeHandler is created" )
+        {
+            DSL_PPH_SOURCE_ID_OFFSETTER_PTR pPadProbeHandler = 
+                DSL_PPH_SOURCE_ID_OFFSETTER_NEW(offsetterHandlerName.c_str(),
+                    0x00010000);
+
+            THEN( "The PadProbeHandler's memebers are setup and returned correctly" )
+            {
+                REQUIRE( pPadProbeHandler->GetEnabled() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new SourceIdOffsetterPadProbeHandler can Disable and Re-enable", 
+    "[PadProbeHandler]" )
+{
+    GIVEN( "A new OdePadProbeHandler" ) 
+    {
+        std::string offsetterHandlerName("offsetter-handler");
+
+        DSL_PPH_SOURCE_ID_OFFSETTER_PTR pPadProbeHandler = 
+            DSL_PPH_SOURCE_ID_OFFSETTER_NEW(offsetterHandlerName.c_str(),
+                0x00010000);
+        REQUIRE( pPadProbeHandler->GetEnabled() == true );
+
+        // Attempting to enable and enabled PadProbeHandler must fail
+        REQUIRE( pPadProbeHandler->SetEnabled(true) == false );
+
+        WHEN( "A new OdePadProbeHandler is Disabled'" )
+        {
+            REQUIRE( pPadProbeHandler->SetEnabled(false) == true );
+
+            // Attempting to disable a disabled PadProbeHandler must fail
+            REQUIRE( pPadProbeHandler->SetEnabled(false) == false );
+
+            THEN( "The OdePadProbeHandler can be enabled again" )
+            {
+                REQUIRE( pPadProbeHandler->SetEnabled(true) == true );
+                REQUIRE( pPadProbeHandler->GetEnabled() == true );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new OdePadProbeHandler is created correctly", "[PadProbeHandler]" )
 {
     GIVEN( "Attributes for a new OdePadProbeHandler" ) 

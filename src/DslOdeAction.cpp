@@ -35,6 +35,17 @@ THE SOFTWARE.
 
 namespace DSL
 {
+
+    template< typename T >
+    std::string int_to_hex( T i )
+    {
+      std::stringstream stream;
+      stream << "0x" 
+             << std::setfill ('0') << std::setw(sizeof(T)*2) 
+             << std::hex << i;
+      return stream.str();
+    }    
+    
     OdeAction::OdeAction(const char* name)
         : OdeBase(name)
     {
@@ -1000,7 +1011,7 @@ namespace DSL
                 body.push_back(std::string("    Inference       : No<br>"));
             }
             body.push_back(std::string("    Source Id       : " 
-                +  std::to_string(pFrameMeta->source_id) + "<br>"));
+                +  int_to_hex(pFrameMeta->source_id) + "<br>"));
             body.push_back(std::string("    Batch Id        : " 
                 +  std::to_string(pFrameMeta->batch_id) + "<br>"));
             body.push_back(std::string("    Pad Index       : " 
@@ -1228,7 +1239,7 @@ namespace DSL
         {
             m_ostream << "    Inference       : No\n";
         }
-        m_ostream << "    Source Id       : " << pFrameMeta->source_id << "\n";
+        m_ostream << "    Source Id       : " << int_to_hex(pFrameMeta->source_id) << "\n";
         m_ostream << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
         m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
@@ -1691,7 +1702,7 @@ namespace DSL
             {
                 LOG_INFO("    Inference       : No");
             }
-            LOG_INFO("    Source Id       : " << pFrameMeta->source_id);
+            LOG_INFO("    Source Id       : " << int_to_hex(pFrameMeta->source_id));
             LOG_INFO("    Batch Id        : " << pFrameMeta->batch_id);
             LOG_INFO("    Pad Index       : " << pFrameMeta->pad_index);
             LOG_INFO("    Frame           : " << pFrameMeta->frame_num);
@@ -2219,7 +2230,7 @@ namespace DSL
         {
             std::cout << "    Inference       : No\n";
         }
-        std::cout << "    Source Id       : " << pFrameMeta->source_id << "\n";
+        std::cout << "    Source Id       : " << int_to_hex(pFrameMeta->source_id) << "\n";
         std::cout << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
         std::cout << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         std::cout << "    Frame           : " << pFrameMeta->frame_num << "\n";
