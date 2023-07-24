@@ -239,9 +239,15 @@ namespace DSL
     private:
 
         /**
-         * @brief unique static pipeline-id for the PipelineBintr
+         * @brief 0-based unique (static) pipeline-id generator for the 
+         * PipelineBintr class. Incremented after each pipeline instantiation.
          */
         static uint s_nextPipelineId;
+        
+        /**
+         * @brief unique pipeline-id for this PipelineBintr
+         */
+        uint m_pipelineId;
 
         /**
          * @brief parent bin for all Source bins in this PipelineBintr

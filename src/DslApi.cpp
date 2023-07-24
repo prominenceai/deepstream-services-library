@@ -4681,6 +4681,17 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name)
     return DSL::Services::GetServices()->SourceRtspTapRemove(cstrName.c_str());
 }
 
+DslReturnType dsl_source_id_get(const wchar_t* name, int* id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceIdGet(cstrName.c_str(), id);
+}
+
 DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name)
 {
     const char* cName;

@@ -79,31 +79,31 @@ namespace DSL
         }
        
         // find the next available unused stream-id
-        uint streamId(0);
+        uint padId(0);
         
         // find the next available unused stream-id
-        auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved branch
-        if (ivec != m_usedStreamIds.end())
+        if (ivec != m_usedRequestPadIds.end())
         {
-            streamId = ivec - m_usedStreamIds.begin();
-            m_usedStreamIds[streamId] = true;
+            padId = ivec - m_usedRequestPadIds.begin();
+            m_usedRequestPadIds[padId] = true;
         }
         // Else we're adding to the end of th indexed map
         else
         {
-            streamId = m_usedStreamIds.size();
-            m_usedStreamIds.push_back(true);
+            padId = m_usedRequestPadIds.size();
+            m_usedRequestPadIds.push_back(true);
         }
         // Set the branches unique id to the available stream-id
-        pChildComponent->SetId(streamId);
+        pChildComponent->SetRequestPadId(padId);
 
         // Add the branch to the Demuxers collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
         
         // Add the branch to the Demuxers collection of children mapped by stream-id 
-        m_pChildBranchesIndexed[streamId] = pChildComponent;
+        m_pChildBranchesIndexed[padId] = pChildComponent;
         
         // call the parent class to complete the add
         if (!Bintr::AddChild(pChildComponent))
@@ -222,12 +222,12 @@ namespace DSL
         }
         // unreference and remove from the child-branch collections
         m_pChildBranches.erase(pChildComponent->GetName());
-        m_pChildBranchesIndexed.erase(pChildComponent->GetId());
+        m_pChildBranchesIndexed.erase(pChildComponent->GetRequestPadId());
         
         // set the used-stream id as available for reuse and clear the 
         // stream-id (id property) for the child-branch
-        m_usedStreamIds[pChildComponent->GetId()] = false;
-        pChildComponent->SetId(-1);
+        m_usedRequestPadIds[pChildComponent->GetRequestPadId()] = false;
+        pChildComponent->SetRequestPadId(-1);
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildComponent);
@@ -376,22 +376,22 @@ namespace DSL
 
         // find the next available unused stream-id
         uint streamId(0);
-        auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
-        if (ivec != m_usedStreamIds.end())
+        if (ivec != m_usedRequestPadIds.end())
         {
-            streamId = ivec - m_usedStreamIds.begin();
-            m_usedStreamIds[streamId] = true;
+            streamId = ivec - m_usedRequestPadIds.begin();
+            m_usedRequestPadIds[streamId] = true;
         }
         // Else we're adding to the end of th indexed map
         else
         {
-            streamId = m_usedStreamIds.size();
-            m_usedStreamIds.push_back(true);
+            streamId = m_usedRequestPadIds.size();
+            m_usedRequestPadIds.push_back(true);
         }
         // Set the branches unique id to the available stream-id
-        pChildComponent->SetId(streamId);
+        pChildComponent->SetRequestPadId(streamId);
 
         // Add the branch to the Demuxers collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
@@ -467,7 +467,7 @@ namespace DSL
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSourceTee(m_pTee, 
-                    m_requestedSrcPads[imap.second->GetId()]))
+                    m_requestedSrcPads[imap.second->GetRequestPadId()]))
             {
                 LOG_ERROR("DemuxerBintr '" << GetName() 
                     << "' failed to Link Child Component '" 

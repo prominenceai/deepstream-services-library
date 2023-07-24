@@ -815,7 +815,7 @@ THE SOFTWARE.
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
 
-#define DSL_STREAMMUX_SOURCE_ID_OFFSET_IN_BITS                      16
+#define DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS                       16
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
@@ -5029,12 +5029,24 @@ DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 
 /**
+ * @brief Gets the unique id assigned to the Source component once added
+ * to a Pipeline. The unique Source Id will be derived from the 
+ * (unique pipeline-id << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS) | 
+ *      unique Streammuxer pad-id for the named source
+ * @param[in] name unique name of Source component to query
+ * @param[out] source_id unique Source Id as assigned by the Pipeline.
+ * The Source's id will be set to -1 when unassigned (i.e. not added to a Pipeline).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_id_get(const wchar_t* name, int* id);
+
+/**
  * @brief returns the name of a Source component from a unique Source Id
  * @param[in] source_id unique Source Id to check for
  * @param[out] name the name of Source component if found
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name);
+DslReturnType dsl_source_name_get(int source_id, const wchar_t** name);
 
 /**
  * @brief pauses a single Source object if the Source is 

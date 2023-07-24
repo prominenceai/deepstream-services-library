@@ -29,12 +29,17 @@ THE SOFTWARE.
 using namespace DSL;
 
 static const std::string pipelineSourcesName("pipeline-sources");
+static const std::string pipelineSourcesName0("pipeline-sources-0");
+static const std::string pipelineSourcesName1("pipeline-sources-1");
+static const std::string pipelineSourcesName2("pipeline-sources-2");
 
 static const std::string sourceName("source");
 static const std::string sourceName0("source-0");
 static const std::string sourceName1("source-1");
 static const std::string sourceName2("source-2");
 static const std::string sourceName3("source-3");
+static const std::string sourceName4("source-4");
+static const std::string sourceName5("source-5");
 
 static const uint pipelineId(0);
 
@@ -76,7 +81,7 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
         WHEN( "The Source is added to the Pipeline Sources Bintr" )
         {
             pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
             
             THEN( "The Pipeline Sources Bintr is updated correctly" )
             {
@@ -88,7 +93,8 @@ SCENARIO( "Adding a single Source to a PipelineSourcesBintr is managed correctly
     }
 }
 
-SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed correctly", "[PipelineSourcesBintr]" )
+SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed correctly", 
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A Pipeline Sources Bintr with a Source in memory" ) 
     {
@@ -101,14 +107,22 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
             
-        pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
         REQUIRE( pSourceBintr->IsInUse() == true );
+            
+        // second call must fail
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == false );
             
         WHEN( "The Source is removed from the Pipeline Sources Bintr" )
         {
-            pPipelineSourcesBintr->RemoveChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
+            REQUIRE(pPipelineSourcesBintr->RemoveChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
+
+            // second call must fail
+            REQUIRE(pPipelineSourcesBintr->RemoveChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == false );
             
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
@@ -119,7 +133,8 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
     }
 }
 
-SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly",  "[PipelineSourcesBintr]" )
+SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly",  
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
     {
@@ -132,7 +147,7 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
             sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
             
         WHEN( "The Single Source is Linked to the StreamMux" )
         {
@@ -148,7 +163,8 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
 }
 
 
-SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[PipelineSourcesBintr]" )
+SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly",
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
     {
@@ -157,22 +173,22 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
 
         DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
             sourceName0.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr0->GetId() == 0 );
+        REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr1  = DSL_URI_SOURCE_NEW(
             sourceName1.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr1->GetId() == 1 );
+        REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr2 = DSL_URI_SOURCE_NEW(
             sourceName2.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr2->GetId() == 2 );
+        REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
 
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
         
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
                     
@@ -183,20 +199,21 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly", "[Pipe
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
                 REQUIRE( pSourceBintr0->IsInUse() == true );
-                REQUIRE( pSourceBintr0->GetId() == 0 );
+                REQUIRE( pSourceBintr0->GetRequestPadId() == 0 );
                 REQUIRE( pSourceBintr0->IsLinkedToSink() == true );
                 REQUIRE( pSourceBintr1->IsInUse() == true );
-                REQUIRE( pSourceBintr1->GetId() == 1 );
+                REQUIRE( pSourceBintr1->GetRequestPadId() == 1 );
                 REQUIRE( pSourceBintr1->IsLinkedToSink() == true );
                 REQUIRE( pSourceBintr2->IsInUse() == true );
-                REQUIRE( pSourceBintr2->GetId() == 2 );
+                REQUIRE( pSourceBintr2->GetRequestPadId() == 2 );
                 REQUIRE( pSourceBintr2->IsLinkedToSink() == true );
             }
         }
     }
 }
 
-SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[PipelineSourcesBintr]" )
+SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", 
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A Pipeline Sources Bintr with multiple Sources a linked to the StreamMux" ) 
     {
@@ -214,11 +231,11 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
             sourceName2.c_str(), filePath.c_str(), false, false, 0);
 
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
                     
         REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
 
@@ -236,7 +253,113 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", "[
     }
 }
 
-SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", "[PipelineSourcesBintr]" )
+SCENARIO( "Linking and unlinking multiple Sources to multiple StreamMuxers is managed correctly", 
+    "[PipelineSourcesBintr]" )
+{
+    GIVEN( "Multiple Pipeline Sources Bintrs with multiple Sources in memory" ) 
+    {
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr0 = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName0.c_str(), 0);
+
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr1 = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName1.c_str(), 1);
+
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr2 = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName2.c_str(), 2);
+
+        DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
+            sourceName0.c_str(), filePath.c_str(), false, false, 0);
+        REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr0->GetUniqueId() == -1 );
+
+        DSL_URI_SOURCE_PTR pSourceBintr1  = DSL_URI_SOURCE_NEW(
+            sourceName1.c_str(), filePath.c_str(), false, false, 0);
+        REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr1->GetUniqueId() == -1 );
+
+        DSL_URI_SOURCE_PTR pSourceBintr2 = DSL_URI_SOURCE_NEW(
+            sourceName2.c_str(), filePath.c_str(), false, false, 0);
+        REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr2->GetUniqueId() == -1 );
+
+        DSL_URI_SOURCE_PTR pSourceBintr3 = DSL_URI_SOURCE_NEW(
+            sourceName3.c_str(), filePath.c_str(), false, false, 0);
+        REQUIRE( pSourceBintr3->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr3->GetUniqueId() == -1 );
+
+        DSL_URI_SOURCE_PTR pSourceBintr4  = DSL_URI_SOURCE_NEW(
+            sourceName4.c_str(), filePath.c_str(), false, false, 0);
+        REQUIRE( pSourceBintr4->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr4->GetUniqueId() == -1 );
+
+        DSL_URI_SOURCE_PTR pSourceBintr5 = DSL_URI_SOURCE_NEW(
+            sourceName5.c_str(), filePath.c_str(), false, false, 0);
+        REQUIRE( pSourceBintr5->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr5->GetUniqueId() == -1 );
+
+        REQUIRE( pPipelineSourcesBintr0->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr0->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr0->GetNumChildren() == 2 );
+            
+        REQUIRE( pPipelineSourcesBintr1->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+        REQUIRE( pPipelineSourcesBintr1->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr3)) == true );
+        REQUIRE( pPipelineSourcesBintr1->GetNumChildren() == 2 );
+        
+        REQUIRE( pPipelineSourcesBintr2->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr4)) == true );
+        REQUIRE( pPipelineSourcesBintr2->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr5)) == true );
+        REQUIRE( pPipelineSourcesBintr2->GetNumChildren() == 2 );
+        
+        WHEN( "All Sources are linked to the StreamMux" )
+        {
+            REQUIRE( pPipelineSourcesBintr0->LinkAll() == true );
+            REQUIRE( pPipelineSourcesBintr1->LinkAll() == true );
+            REQUIRE( pPipelineSourcesBintr2->LinkAll() == true );
+            
+            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
+            {
+                REQUIRE( pSourceBintr0->IsInUse() == true );
+                REQUIRE( pSourceBintr0->IsLinkedToSink() == true );
+                REQUIRE( pSourceBintr0->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr0->GetUniqueId() == 0x00000000 );
+
+                REQUIRE( pSourceBintr1->IsInUse() == true );
+                REQUIRE( pSourceBintr1->IsLinkedToSink() == true );
+                REQUIRE( pSourceBintr1->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr1->GetUniqueId() == 0x00000001 );
+
+                REQUIRE( pSourceBintr2->IsInUse() == true );
+                REQUIRE( pSourceBintr2->IsLinkedToSink() == true );
+                REQUIRE( pSourceBintr2->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr2->GetUniqueId() == 0x00010000 );
+
+                REQUIRE( pSourceBintr3->IsInUse() == true );
+                REQUIRE( pSourceBintr3->IsLinkedToSink() == true );
+                REQUIRE( pSourceBintr3->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr3->GetUniqueId() == 0x00010001 );
+
+                REQUIRE( pSourceBintr4->IsInUse() == true );
+                REQUIRE( pSourceBintr4->IsLinkedToSink() == true );
+                REQUIRE( pSourceBintr4->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr4->GetUniqueId() == 0x00020000 );
+
+                REQUIRE( pSourceBintr5->IsInUse() == true );
+                REQUIRE( pSourceBintr5->IsLinkedToSink() == true );
+                REQUIRE( pSourceBintr5->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr5->GetUniqueId() == 0x00020001 );
+
+            }
+        }
+    }
+}
+
+SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "Attributes for a new PipelineSourcesBintr and several new SourcesBintrs" ) 
     {
@@ -255,11 +378,11 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
                 sourceName2.c_str(), filePath.c_str(), false, false, 0);
 
             REQUIRE( pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
             REQUIRE( pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
             REQUIRE( pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
 
             REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
             REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
@@ -289,11 +412,11 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
                 sourceName2.c_str(), filePath.c_str(), false, false, 0);
 
             REQUIRE( pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr0)) == true );
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
             REQUIRE( pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr1)) == true );
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
             REQUIRE( pPipelineSourcesBintr->AddChild(
-                std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr2)) == true );
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
 
             REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
             REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
@@ -311,7 +434,8 @@ SCENARIO( "All GST Resources are released on PipelineSourcesBintr destruction", 
     }
 }
 
-SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and updaed",  "[PipelineSourcesBintr]" )
+SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and updaed",
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
     {
@@ -324,7 +448,7 @@ SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and upd
             sourceName.c_str(), filePath.c_str(), false, false, 0);
 
         REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)) == true );
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
         REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
 
         uint num;
@@ -347,7 +471,8 @@ SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and upd
     }
 }
 
-SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated",  "[PipelineSourcesBintr]" )
+SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated",
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new PipelineSourcesBintr" ) 
     {

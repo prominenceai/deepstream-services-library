@@ -66,7 +66,7 @@ SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[Dem
             
         DSL_BRANCH_PTR pBranchBintr = DSL_BRANCH_NEW(branchBintrName.c_str());
             
-        REQUIRE( pBranchBintr->GetId() == -1 );
+        REQUIRE( pBranchBintr->GetRequestPadId() == -1 );
 
         WHEN( "The BranchBintr is added to the DemuxerBintr" )
         {
@@ -76,7 +76,7 @@ SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[Dem
             {
                 REQUIRE( pDemuxerBintr->GetNumChildren() == 1 );
                 REQUIRE( pBranchBintr->IsInUse() == true );
-                REQUIRE( pBranchBintr->GetId() == -1 );
+                REQUIRE( pBranchBintr->GetRequestPadId() == -1 );
             }
         }
     }
@@ -102,7 +102,7 @@ SCENARIO( "Removing a single BranchBintr from a DemuxerBintr is managed correctl
             {
                 REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
                 REQUIRE( pBranchBintr->IsInUse() == false );
-                REQUIRE( pBranchBintr->GetId() == -1 );
+                REQUIRE( pBranchBintr->GetRequestPadId() == -1 );
             }
         }
     }
@@ -149,13 +149,13 @@ SCENARIO( "Linking multiple BranchBintrs to a DemuxerBintr is managed correctly"
             {
                 REQUIRE( pBranchBintr0->IsInUse() == true );
                 REQUIRE( pBranchBintr0->IsLinkedToSource() == true );
-                REQUIRE( pBranchBintr0->GetId() == 0 );
+                REQUIRE( pBranchBintr0->GetRequestPadId() == 0 );
                 REQUIRE( pBranchBintr1->IsInUse() == true );
                 REQUIRE( pBranchBintr1->IsLinkedToSource() == true );
-                REQUIRE( pBranchBintr1->GetId() == 1 );
+                REQUIRE( pBranchBintr1->GetRequestPadId() == 1 );
                 REQUIRE( pBranchBintr2->IsInUse() == true );
                 REQUIRE( pBranchBintr2->IsLinkedToSource() == true );
-                REQUIRE( pBranchBintr2->GetId() == 2 );
+                REQUIRE( pBranchBintr2->GetRequestPadId() == 2 );
             }
         }
     }
@@ -197,13 +197,13 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[D
 
         REQUIRE( pBranchBintr0->IsInUse() == true );
         REQUIRE( pBranchBintr0->IsLinkedToSource() == true );
-        REQUIRE( pBranchBintr0->GetId() == 0 );
+        REQUIRE( pBranchBintr0->GetRequestPadId() == 0 );
         REQUIRE( pBranchBintr1->IsInUse() == true );
         REQUIRE( pBranchBintr1->IsLinkedToSource() == true );
-        REQUIRE( pBranchBintr1->GetId() == 1 );
+        REQUIRE( pBranchBintr1->GetRequestPadId() == 1 );
         REQUIRE( pBranchBintr2->IsInUse() == true );
         REQUIRE( pBranchBintr2->IsLinkedToSource() == true );
-        REQUIRE( pBranchBintr2->GetId() == 2 );
+        REQUIRE( pBranchBintr2->GetRequestPadId() == 2 );
             
         WHEN( "The BranchBintrs are unlinked and removed from the DemuxerBintr" )
         {
@@ -216,13 +216,13 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[D
             {
                 REQUIRE( pBranchBintr0->IsInUse() == false );
                 REQUIRE( pBranchBintr0->IsLinkedToSource() == false );
-                REQUIRE( pBranchBintr0->GetId() == -1 );
+                REQUIRE( pBranchBintr0->GetRequestPadId() == -1 );
                 REQUIRE( pBranchBintr1->IsInUse() == false );
                 REQUIRE( pBranchBintr1->IsLinkedToSource() == false );
-                REQUIRE( pBranchBintr1->GetId() == -1 );
+                REQUIRE( pBranchBintr1->GetRequestPadId() == -1 );
                 REQUIRE( pBranchBintr2->IsInUse() == false );
                 REQUIRE( pBranchBintr2->IsLinkedToSource() == false );
-                REQUIRE( pBranchBintr2->GetId() == -1 );
+                REQUIRE( pBranchBintr2->GetRequestPadId() == -1 );
             }
         }
     }
@@ -264,13 +264,13 @@ SCENARIO( "Multiple Branches linked to a Splitter component can be unlinked corr
 
         REQUIRE( pBranchBintr0->IsInUse() == true );
         REQUIRE( pBranchBintr0->IsLinkedToSource() == true );
-        REQUIRE( pBranchBintr0->GetId() == 0 );
+        REQUIRE( pBranchBintr0->GetRequestPadId() == 0 );
         REQUIRE( pBranchBintr1->IsInUse() == true );
         REQUIRE( pBranchBintr1->IsLinkedToSource() == true );
-        REQUIRE( pBranchBintr1->GetId() == 1 );
+        REQUIRE( pBranchBintr1->GetRequestPadId() == 1 );
         REQUIRE( pBranchBintr2->IsInUse() == true );
         REQUIRE( pBranchBintr2->IsLinkedToSource() == true );
-        REQUIRE( pBranchBintr2->GetId() == 2 );
+        REQUIRE( pBranchBintr2->GetRequestPadId() == 2 );
             
         WHEN( "The BranchBintrs are unlinked and removed from the DemuxerBintr" )
         {
@@ -283,13 +283,13 @@ SCENARIO( "Multiple Branches linked to a Splitter component can be unlinked corr
             {
                 REQUIRE( pBranchBintr0->IsInUse() == false );
                 REQUIRE( pBranchBintr0->IsLinkedToSource() == false );
-                REQUIRE( pBranchBintr0->GetId() == -1 );
+                REQUIRE( pBranchBintr0->GetRequestPadId() == -1 );
                 REQUIRE( pBranchBintr1->IsInUse() == false );
                 REQUIRE( pBranchBintr1->IsLinkedToSource() == false );
-                REQUIRE( pBranchBintr1->GetId() == -1 );
+                REQUIRE( pBranchBintr1->GetRequestPadId() == -1 );
                 REQUIRE( pBranchBintr2->IsInUse() == false );
                 REQUIRE( pBranchBintr2->IsLinkedToSource() == false );
-                REQUIRE( pBranchBintr2->GetId() == -1 );
+                REQUIRE( pBranchBintr2->GetRequestPadId() == -1 );
             }
         }
     }

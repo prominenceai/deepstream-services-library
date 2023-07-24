@@ -121,11 +121,11 @@ namespace DSL
     protected:
     
         /**
-         * @brief Each source is assigned a unique stream id when linked
+         * @brief Each source is assigned a unique request pad id when linked
          * the vector is used on dynamic add/remove to find the next available
          * stream id.
          */
-        std::vector<bool> m_usedStreamIds;
+        std::vector<bool> m_usedRequestPadIds;
     
         /**
          * @brief container of all child Sinks/Branches mapped by their unique names

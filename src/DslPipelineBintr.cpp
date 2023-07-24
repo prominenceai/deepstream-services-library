@@ -33,19 +33,19 @@ namespace DSL
     uint PipelineBintr::s_nextPipelineId = 0;
 
     PipelineBintr::PipelineBintr(const char* name)
-        : BranchBintr(name, true) // Pipeline = true
+        : BranchBintr(name, true)            // Pipeline = true
+        , m_pipelineId(s_nextPipelineId++)   // Assign this Pipeline's unique id
         , PipelineStateMgr(m_pGstObj)
         , PipelineBusSyncMgr(m_pGstObj)
     {
         LOG_FUNC();
 
-        // Assign this Pipeline's unique id and increment the global/static next-id
-        SetId(s_nextPipelineId++);
-
-        // Instantiate the PipelineSourcesBintr for the Pipeline Bintr, add as chid.
+        // Instantiate the PipelineSourcesBintr for the Pipeline Bintr, 
         std::string sourcesBinName = GetName() + "-sources-bin";
         m_pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), GetId());
+            DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
+
+        // Add PipelineSourcesBintr as chid of this PipelineBintr.
         AddChild(m_pPipelineSourcesBintr);
     }
 
@@ -64,7 +64,7 @@ namespace DSL
         LOG_FUNC();
 
         if (!m_pPipelineSourcesBintr->
-            AddChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)))
+            AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
         {
             return false;
         }
@@ -76,7 +76,7 @@ namespace DSL
         LOG_FUNC();
 
         return (m_pPipelineSourcesBintr->
-            IsChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)));
+            IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
     }
 
     bool PipelineBintr::RemoveSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -86,7 +86,7 @@ namespace DSL
         // Must cast to SourceBintr first so that correct Instance of 
         // RemoveChild is called
         return m_pPipelineSourcesBintr->
-            RemoveChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
+            RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
     uint PipelineBintr::GetStreamMuxNvbufMemType()
