@@ -29,16 +29,31 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    // Initialize the global/static next unique Pipeline Id
-    uint PipelineBintr::s_nextPipelineId = 0;
-
+    // Initialize the global/static vector of used pipeline-ids.
+    std::vector<bool> PipelineBintr::m_usedPipelineIds;
+    
     PipelineBintr::PipelineBintr(const char* name)
-        : BranchBintr(name, true)            // Pipeline = true
-        , m_pipelineId(s_nextPipelineId++)   // Assign this Pipeline's unique id
+        : BranchBintr(name, true)      // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
         , PipelineBusSyncMgr(m_pGstObj)
     {
         LOG_FUNC();
+
+        // find the next available unused pipeline-id
+        auto ivec = find(m_usedPipelineIds.begin(), m_usedPipelineIds.end(), false);
+        
+        // If we're inserting into the location of a previously remved source
+        if (ivec != m_usedPipelineIds.end())
+        {
+            m_pipelineId = ivec - m_usedPipelineIds.begin();
+            m_usedPipelineIds[m_pipelineId] = true;
+        }
+        // Else we're adding to the end of the vector
+        else
+        {
+            m_pipelineId = m_usedPipelineIds.size(); // 0 based
+            m_usedPipelineIds.push_back(true);
+        }            
 
         // Instantiate the PipelineSourcesBintr for the Pipeline Bintr, 
         std::string sourcesBinName = GetName() + "-sources-bin";
@@ -57,6 +72,8 @@ namespace DSL
         {
             Stop();
         }
+        // clear the pipeline-id for reuse.
+        m_usedPipelineIds[m_pipelineId] = false;
     }
 
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -392,7 +409,8 @@ namespace DSL
             g_mutex_unlock(&m_busWatchMutex);
                     
             // We need a timeout in case the condition is never met/cleared
-            gint64 endtime = g_get_monotonic_time () + 2 * G_TIME_SPAN_SECOND;
+            gint64 endtime = g_get_monotonic_time () + 
+                (DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC * G_TIME_SPAN_SECOND);
             if (!g_cond_wait_until(&m_asyncCommsCond, &m_asyncCommsMutex, endtime))
             {
                 LOG_WARN("Pipeline '" << GetName() 

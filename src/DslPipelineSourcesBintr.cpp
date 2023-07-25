@@ -88,16 +88,26 @@ namespace DSL
         // Float the StreamMux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
         
+        // If the unqiue pipeline-id is greater than 0, then we need to add the
+        // SourceIdOffsetterPadProbeHandler to offset every source-id found in
+        // the frame-metadata produced by the streammux plugin. 
         if (m_uniquePipelineId > 0)
         {
+            LOG_INFO("Adding source-id-offsetter to PipelineSourcesBintr '"
+                << GetName() << "' with unique Pipeline-id = " << m_uniquePipelineId);
+            // Create the buffer-pad-probe to probe all buffers flowing over the 
+            // streammuxer's source pad. 
+            std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
+            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
+                padBufferProbeName.c_str(), "src", m_pStreamMux);
+
+            // Create the specialized pad-probe-handler to offset all source-ids'
             std::string bufferHandlerName = GetName() + "-source-id-offsetter";
             m_pSourceIdOffsetter = DSL_PPH_SOURCE_ID_OFFSETTER_NEW(
                 bufferHandlerName.c_str(), 
                 (m_uniquePipelineId << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS));
 
-            std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
-            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
-                padBufferProbeName.c_str(), "src", m_pStreamMux);
+            // Add the specialized handler to the buffer-pad-probe. 
             m_pSrcPadBufferProbe->AddPadProbeHandler(m_pSourceIdOffsetter);
         }
     }

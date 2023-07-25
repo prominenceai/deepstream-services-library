@@ -5042,11 +5042,12 @@ DslReturnType dsl_source_id_get(const wchar_t* name, int* id);
 
 /**
  * @brief returns the name of a Source component from a unique Source Id
- * @param[in] source_id unique Source Id to check for
+ * @param[in] source_id unique Source Id to check for. Must be a valid
+ * assigned source-id and not -1.
  * @param[out] name the name of Source component if found
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_name_get(int source_id, const wchar_t** name);
+DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name);
 
 /**
  * @brief pauses a single Source object if the Source is 

@@ -1512,6 +1512,13 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_duplicate_original_set(source_name.c_str(),
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_source_name_get(0,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_id_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_id_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
