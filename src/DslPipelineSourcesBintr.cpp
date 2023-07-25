@@ -30,8 +30,10 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    PipelineSourcesBintr::PipelineSourcesBintr(const char* name)
+    PipelineSourcesBintr::PipelineSourcesBintr(const char* name,
+        uint uniquePipelineId)
         : Bintr(name)
+        , m_uniquePipelineId(uniquePipelineId)
         , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
         , m_streamMuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
@@ -85,7 +87,30 @@ namespace DSL
 
         // Float the StreamMux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreamMux->AddGhostPadToParent("src");
-}
+        
+        // If the unqiue pipeline-id is greater than 0, then we need to add the
+        // SourceIdOffsetterPadProbeHandler to offset every source-id found in
+        // the frame-metadata produced by the streammux plugin. 
+        if (m_uniquePipelineId > 0)
+        {
+            LOG_INFO("Adding source-id-offsetter to PipelineSourcesBintr '"
+                << GetName() << "' with unique Pipeline-id = " << m_uniquePipelineId);
+            // Create the buffer-pad-probe to probe all buffers flowing over the 
+            // streammuxer's source pad. 
+            std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
+            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
+                padBufferProbeName.c_str(), "src", m_pStreamMux);
+
+            // Create the specialized pad-probe-handler to offset all source-ids'
+            std::string bufferHandlerName = GetName() + "-source-id-offsetter";
+            m_pSourceIdOffsetter = DSL_PPH_SOURCE_ID_OFFSETTER_NEW(
+                bufferHandlerName.c_str(), 
+                (m_uniquePipelineId << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS));
+
+            // Add the specialized handler to the buffer-pad-probe. 
+            m_pSrcPadBufferProbe->AddPadProbeHandler(m_pSourceIdOffsetter);
+        }
+    }
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
     {
@@ -104,7 +129,7 @@ namespace DSL
         return Bintr::AddChild(pChildElement);
     }
      
-    bool PipelineSourcesBintr::AddChild(DSL_VIDEO_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -149,38 +174,47 @@ namespace DSL
                 std::string eventHandlerName = GetName() + "-eos-consumer";
                 m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
 
-                std::string padProbeName = GetName() + "-src-pad-probe";
-                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padProbeName.c_str(), 
+                std::string padEventProbeName = GetName() + "-src-pad-event-probe";
+                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padEventProbeName.c_str(), 
                     "src", m_pStreamMux);
                 m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
             }
         }
         
-        uint streamId(0);
+        uint padId(0);
         
         // find the next available unused stream-id
-        auto ivec = find(m_usedStreamIds.begin(), m_usedStreamIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
-        if (ivec != m_usedStreamIds.end())
+        if (ivec != m_usedRequestPadIds.end())
         {
-            streamId = ivec - m_usedStreamIds.begin();
-            m_usedStreamIds[streamId] = true;
+            padId = ivec - m_usedRequestPadIds.begin();
+            m_usedRequestPadIds[padId] = true;
         }
         // Else we're adding to the end of th indexed map
         else
         {
-            streamId = m_usedStreamIds.size();
-            m_usedStreamIds.push_back(true);
+            padId = m_usedRequestPadIds.size();
+            m_usedRequestPadIds.push_back(true);
         }            
-        // Set the sources unique id to the available stream-id
-        pChildSource->SetId(streamId);
+        // Set the source's request sink pad-id
+        pChildSource->SetRequestPadId(padId);
+
+        // Set the sources unique id by shifting/or-ing the unique pipeline-id
+        // with the sources pad-id -- gauranteed to be unique.
+        pChildSource->SetUniqueId((
+            m_uniquePipelineId << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS) | padId);
+            
+        // Add the source's "unique-name to unique-id" mapping to the Services DB.
+        Services::GetServices()->_sourceNameSet(pChildSource->GetCStrName(),
+            pChildSource->GetUniqueId());
 
         // Add the Source to the Bintrs collection of children mapped by name
         m_pChildSources[pChildSource->GetName()] = pChildSource;
         
-        // Add the Source to the Bintrs collection of children mapped by name
-        m_pChildSourcesIndexed[streamId] = pChildSource;
+        // Add the Source to the Bintrs collection of children mapped by padId
+        m_pChildSourcesIndexed[padId] = pChildSource;
         
         // call the parent class to complete the add
         if (!Bintr::AddChild(pChildSource))
@@ -194,7 +228,7 @@ namespace DSL
         // Id to the next available, linkAll Elementrs now and Link to the Stream-muxer
         if (IsLinked())
         {
-            std::string sinkPadName = "sink_" + std::to_string(streamId);
+            std::string sinkPadName = "sink_" + std::to_string(padId);
             
             if (!pChildSource->LinkAll() or 
                 !pChildSource->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
@@ -212,7 +246,7 @@ namespace DSL
         
     }
 
-    bool PipelineSourcesBintr::IsChild(DSL_VIDEO_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -227,7 +261,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool PipelineSourcesBintr::RemoveChild(DSL_VIDEO_SOURCE_PTR pChildSource)
+    bool PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
 
@@ -255,13 +289,17 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
         }
+        // Erase the Source the source from the name<->unique-id database.
+        Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
+        
         // unreference and remove from the child source collections
         m_pChildSources.erase(pChildSource->GetName());
-        m_pChildSourcesIndexed.erase(pChildSource->GetId());
+        m_pChildSourcesIndexed.erase(pChildSource->GetRequestPadId());
 
         // set the used-stream id as available for reuse
-        m_usedStreamIds[pChildSource->GetId()] = false;
-        pChildSource->SetId(-1);
+        m_usedRequestPadIds[pChildSource->GetRequestPadId()] = false;
+        pChildSource->SetRequestPadId(-1);
+        pChildSource->SetUniqueId(-1);
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildSource);
@@ -281,7 +319,7 @@ namespace DSL
         for (auto const& imap: m_pChildSourcesIndexed)
         {
             std::string sinkPadName = 
-                "sink_" + std::to_string(imap.second->GetId());
+                "sink_" + std::to_string(imap.second->GetRequestPadId());
             
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSinkMuxer(m_pStreamMux,

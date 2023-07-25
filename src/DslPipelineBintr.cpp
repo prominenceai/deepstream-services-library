@@ -29,14 +29,38 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    // Initialize the global/static vector of used pipeline-ids.
+    std::vector<bool> PipelineBintr::m_usedPipelineIds;
+    
     PipelineBintr::PipelineBintr(const char* name)
-        : BranchBintr(name, true) // Pipeline = true
+        : BranchBintr(name, true)      // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
         , PipelineBusSyncMgr(m_pGstObj)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr = DSL_PIPELINE_SOURCES_NEW("sources-bin");
+        // find the next available unused pipeline-id
+        auto ivec = find(m_usedPipelineIds.begin(), m_usedPipelineIds.end(), false);
+        
+        // If we're inserting into the location of a previously remved source
+        if (ivec != m_usedPipelineIds.end())
+        {
+            m_pipelineId = ivec - m_usedPipelineIds.begin();
+            m_usedPipelineIds[m_pipelineId] = true;
+        }
+        // Else we're adding to the end of the vector
+        else
+        {
+            m_pipelineId = m_usedPipelineIds.size(); // 0 based
+            m_usedPipelineIds.push_back(true);
+        }            
+
+        // Instantiate the PipelineSourcesBintr for the Pipeline Bintr, 
+        std::string sourcesBinName = GetName() + "-sources-bin";
+        m_pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
+
+        // Add PipelineSourcesBintr as chid of this PipelineBintr.
         AddChild(m_pPipelineSourcesBintr);
     }
 
@@ -44,12 +68,12 @@ namespace DSL
     {
         LOG_FUNC();
         
-        GstState state;
-        GetState(state, 0);
         if (m_isLinked)
         {
             Stop();
         }
+        // clear the pipeline-id for reuse.
+        m_usedPipelineIds[m_pipelineId] = false;
     }
 
     bool PipelineBintr::AddSourceBintr(DSL_BASE_PTR pSourceBintr)
@@ -57,7 +81,7 @@ namespace DSL
         LOG_FUNC();
 
         if (!m_pPipelineSourcesBintr->
-            AddChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)))
+            AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
         {
             return false;
         }
@@ -68,22 +92,18 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_INFO("Pipeline '" << GetName() << "' has no Sources");
-            return false;
-        }
         return (m_pPipelineSourcesBintr->
-            IsChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr)));
+            IsChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)));
     }
 
     bool PipelineBintr::RemoveSourceBintr(DSL_BASE_PTR pSourceBintr)
     {
         LOG_FUNC();
 
-        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
+        // Must cast to SourceBintr first so that correct Instance of 
+        // RemoveChild is called
         return m_pPipelineSourcesBintr->
-            RemoveChild(std::dynamic_pointer_cast<VideoSourceBintr>(pSourceBintr));
+            RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
     uint PipelineBintr::GetStreamMuxNvbufMemType()
@@ -118,7 +138,8 @@ namespace DSL
             GetStreamMuxBatchProperties(batchSize, batchTimeout);
     }
 
-    bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout)
+    bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, 
+        uint batchTimeout)
     {
         LOG_FUNC();
 
@@ -139,11 +160,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
         m_pPipelineSourcesBintr->GetStreamMuxDimensions(width, height);
         return true;
     }
@@ -152,11 +168,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
         m_pPipelineSourcesBintr->SetStreamMuxDimensions(width, height);
         return true;
     }
@@ -165,11 +176,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
         m_pPipelineSourcesBintr->GetStreamMuxPadding(enabled);
         return true;
     }
@@ -178,11 +184,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
         m_pPipelineSourcesBintr->SetStreamMuxPadding(enabled);
         return true;
     }
@@ -191,11 +192,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
         m_pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(num);
         return true;
     }
@@ -204,11 +200,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr)
-        {
-            LOG_ERROR("Pipeline '" << GetName() << "' has no Sources or Stream Muxer");
-            return false;
-        }
         m_pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(num);
         return true;
     }
@@ -418,7 +409,8 @@ namespace DSL
             g_mutex_unlock(&m_busWatchMutex);
                     
             // We need a timeout in case the condition is never met/cleared
-            gint64 endtime = g_get_monotonic_time () + 2 * G_TIME_SPAN_SECOND;
+            gint64 endtime = g_get_monotonic_time () + 
+                (DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC * G_TIME_SPAN_SECOND);
             if (!g_cond_wait_until(&m_asyncCommsCond, &m_asyncCommsMutex, endtime))
             {
                 LOG_WARN("Pipeline '" << GetName() 
@@ -479,7 +471,8 @@ namespace DSL
             }
         }
 
-        if (!SetState(GST_STATE_NULL, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+        if (!SetState(GST_STATE_NULL, 
+            DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }
@@ -496,7 +489,8 @@ namespace DSL
         
         if (!m_pPipelineSourcesBintr)
         {
-            LOG_INFO("Pipeline '" << GetName() << "' has no sources, therefore is-live = false");
+            LOG_INFO("Pipeline '" << GetName() 
+                << "' has no sources, therefore is-live = false");
             return false;
         }
         return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet();

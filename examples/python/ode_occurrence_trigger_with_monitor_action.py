@@ -109,7 +109,7 @@ def ode_occurrence_monitor(info_ptr, client_data):
     print('  Unique Id         :', info.unique_ode_id)
     print('  NTP Timestamp     :', info.ntp_timestamp)
     print('  Source Data       : ------------------------')
-    print('    Id              :', info.source_info.source_id)
+    print('    Id              :', hex(info.source_info.source_id))
     print('    Batch Id        :', info.source_info.batch_id)
     print('    Pad Index       :', info.source_info.pad_index)
     print('    Frame Num       :', info.source_info.frame_num)
@@ -223,7 +223,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Add the ODE Heat-Mapper to the Person Occurrence Trigger.
+        # Add the Person-Occurrence Monitor to the Person Occurrence Trigger.
         retval = dsl_ode_trigger_action_add('person-occurrence-trigger', 
             action='person-occurrence-monitor')
         if retval != DSL_RETURN_SUCCESS:

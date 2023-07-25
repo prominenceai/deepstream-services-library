@@ -710,7 +710,8 @@ namespace DSL
             if (m_sourceId == -1)
             {
                 
-                Services::GetServices()->SourceIdGet(m_source.c_str(), &m_sourceId);
+                Services::GetServices()->SourceUniqueIdGet(m_source.c_str(), 
+                    &m_sourceId);
             }
             if (m_sourceId != sourceId)
             {

@@ -224,16 +224,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-         # Add our ODE Pad Probe Handler to the source pad of the Tracker
-        retval = dsl_tracker_pph_add('iou-tracker', 
-            handler='ode-handler', pad=DSL_PAD_SRC)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, 
             bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add our ODE Pad Probe Handler to the source pad of the Tracker
+        retval = dsl_osd_pph_add('on-screen-display', 
+            handler='ode-handler', pad=DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -4681,13 +4681,27 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name)
     return DSL::Services::GetServices()->SourceRtspTapRemove(cstrName.c_str());
 }
 
-DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name)
+DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id)
 {
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(unique_id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceUniqueIdGet(cstrName.c_str(), 
+        unique_id);
+}
+
+DslReturnType dsl_source_name_get(uint unique_id, const wchar_t** name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
     const char* cName;
     static std::string cstrName;
     static std::wstring wcstrName;
     
-    uint retval = DSL::Services::GetServices()->SourceNameGet(source_id, &cName);
+    uint retval = DSL::Services::GetServices()->SourceNameGet(unique_id, &cName);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrName.assign(cName);

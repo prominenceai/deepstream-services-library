@@ -868,7 +868,8 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
         
         std::string source("source-1");
         
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         std::string odeActionName("action");
 
@@ -1650,7 +1651,8 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
         
         std::string source("source-1");
         
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         std::string odeActionName("action");
 
@@ -2034,7 +2036,8 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
 
         std::string odeActionName("action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
@@ -2163,7 +2166,8 @@ SCENARIO( "An InstanceOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTr
         std::string odeAccumulatorName("accumulator-name");
         std::string odeActionName("print-action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
@@ -2266,7 +2270,8 @@ SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" 
         std::string odeAreaName("line-area");
         std::string odeActionName("print-action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         DSL_RGBA_PREDEFINED_COLOR_PTR pBlack = 
             DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), 
@@ -2406,7 +2411,8 @@ SCENARIO( "A CrossOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigge
 
         std::string odeAccumulatorName("accumulator-name");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         DSL_RGBA_PREDEFINED_COLOR_PTR pBlack = 
             DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), 
@@ -3625,7 +3631,8 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
 
         std::string odeActionName("action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         DSL_ODE_TRIGGER_NEW_LOW_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_NEW_LOW_NEW(odeTriggerName.c_str(), 
@@ -3703,7 +3710,8 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
 
         std::string odeActionName("action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        uint sourceId(0x10001);
+        Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
 
         DSL_ODE_TRIGGER_NEW_HIGH_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_NEW_HIGH_NEW(odeTriggerName.c_str(), 

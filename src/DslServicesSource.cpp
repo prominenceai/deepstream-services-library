@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2032, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -12,6 +12,7 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in-
 all copies or substantial portions of the Software.
+
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -2743,58 +2744,56 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceNameGet(int sourceId, const char** name)
+    DslReturnType Services::SourceNameGet(int uniqueId, const char** name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_sourceNamesById.find(sourceId) != m_sourceNamesById.end())
+        if (m_sourceNamesById.find(uniqueId) != m_sourceNamesById.end())
         {
-            *name = m_sourceNamesById[sourceId].c_str();
+            *name = m_sourceNamesById[uniqueId].c_str();
             return DSL_RESULT_SUCCESS;
         }
         *name = NULL;
         return DSL_RESULT_SOURCE_NOT_FOUND;
     }
 
-    DslReturnType Services::SourceIdGet(const char* name, int* sourceId)
+    DslReturnType Services::SourceUniqueIdGet(const char* name, int* uniqueId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (m_sourceIdsByName.find(name) != m_sourceIdsByName.end())
+
+        try
         {
-            *sourceId = m_sourceIdsByName[name];
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+
+            *uniqueId = pSourceBintr->GetUniqueId();
+            
+            LOG_INFO("Source '" << name 
+                << "' returned source-id = " << int_to_hex(*uniqueId));
+                
             return DSL_RESULT_SUCCESS;
         }
-        *sourceId = -1;
-        return DSL_RESULT_SOURCE_NOT_FOUND;
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting unique source-id");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
     }
 
-    uint Services::_sourceNameSet(const char* name)
+    void Services::_sourceNameSet(const char* name, uint uniqueId)
     {
         LOG_FUNC();
+
+        // called internally, do not lock mutex
         
-        
-       uint sourceId(0);
-        
-        // find the next available unused source-id
-        auto ivec = find(m_usedSourceIds.begin(), m_usedSourceIds.end(), false);
-        if (ivec != m_usedSourceIds.end())
-        {
-            sourceId = ivec - m_usedSourceIds.begin();
-            m_usedSourceIds[sourceId] = true;
-        }
-        else
-        {
-            sourceId = m_usedSourceIds.size();
-            m_usedSourceIds.push_back(true);
-        }            
-        
-        m_sourceNamesById[sourceId] = name;
-        m_sourceIdsByName[name] = sourceId;
-        
-        return sourceId;
+        m_sourceNamesById[uniqueId] = name;
+        m_sourceIdsByName[name] = uniqueId;
     }
 
     bool Services::_sourceNameErase(const char* name)
@@ -2808,10 +2807,9 @@ namespace DSL
             LOG_ERROR("Source '" << name << "' not found ");
             return false;
         }
-        
-        m_usedSourceIds[m_sourceIdsByName[name]] = false;
         m_sourceNamesById.erase(m_sourceIdsByName[name]);
         m_sourceIdsByName.erase(name);
+
         return true;
     }
 

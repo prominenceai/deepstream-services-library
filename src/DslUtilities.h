@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c)   2032, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,51 +22,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_H
-#define _DSL_H
+#ifndef _DSL_UTILITIES_H
+#define _DSL_UTILITIES_H
 
-#include <cstdlib>
+#include "glib.h"
+ 
+namespace DSL
+{
+    template< typename T >
+    std::string int_to_hex( T i )
+    {
+        std::stringstream stream;
+        stream << "0x" 
+            << std::setfill ('0') << std::setw(sizeof(T)*2) 
+            << std::hex << i;
+        return stream.str();
+    }    
+    
+}
 
-#include <gst/gst.h>
-#include <gst/video/videooverlay.h>
-#include <gst/rtsp-server/rtsp-server.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-#include <queue>
-#include <iomanip>
-#include <iostream> 
-#include <sstream>
-#include <vector>
-#include <map>
-#include <list> 
-#include <memory> 
-#include <math.h>
-#include <fstream>
-#include <thread>
-#include <chrono>
-#include <unordered_map>
-#include <typeinfo>
-#include <algorithm>
-#include <random>
-#include <ctime>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <regex>
-
-#include <nvds_version.h>
-#include <gstnvdsmeta.h>
-#include <nvdsmeta_schema.h>
-#include <gstnvdsinfer.h>
-#include <gst-nvdssr.h>
-#include <cuda_runtime_api.h>
-#include <geos_c.h>
-#include <curl/curl.h>
-
-#include "DslUtilities.h"
-#include "DslLog.h"
-#include "DslMutex.h"
-#include "DslCond.h"
-
-
-#endif // _DSL_H
+#endif // _DSL_UTILITIES_H

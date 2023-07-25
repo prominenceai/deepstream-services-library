@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -216,12 +216,43 @@ namespace DSL
         virtual bool IsLinkable(){return true;};
     
         /**
-         * @brief For sources that manage EOS Consumers, this service must
+         * @brief For sources that manage EOS Consumers, this service must.
          * called before sending the source an EOS Event to stop playing.
          */
         virtual void DisableEosConsumer(){};
         
+        /**
+         * @brief Gets the current unique id for the SourceBintr.
+         * @return unique-id, -1 untill assigned by the parent PipelineSourceBintr.
+         */
+        int GetUniqueId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        /**
+         * @brief Sets the current unique id for the SourceBintr.
+         * @param[in] id, new unique id to assign set the SourceBintr, 
+         * set to -1 to unassign.
+         */
+        void SetUniqueId(int id)
+        {
+            LOG_FUNC();
+            
+            m_uniqueId = id;
+        }
+        
     protected:
+    
+        /**
+         * @brief Unique, assigned Source-Id for the SourceBintr. -1 when
+         * unassigned, set to a unique-id once added to a PipelineSourceBintr 
+         * derived from the parent Pipeline's unique-id or'd with the unique 
+         * stream/pad-id == guaranted uniqueness.
+         */
+        int m_uniqueId; 
     
         /**
          * @brief Device Properties, used for aarch64/x86_64 conditional logic

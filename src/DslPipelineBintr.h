@@ -239,7 +239,18 @@ namespace DSL
     private:
 
         /**
-         * @brief parent bin for all Source bins in this Pipeline
+         * @brief 0-based unique (static) pipeline-id generator for the 
+         * PipelineBintr class. Incremented after each pipeline instantiation.
+         */
+        static std::vector<bool> m_usedPipelineIds;
+        
+        /**
+         * @brief unique pipeline-id for this PipelineBintr
+         */
+        uint m_pipelineId;
+
+        /**
+         * @brief parent bin for all Source bins in this PipelineBintr
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
         

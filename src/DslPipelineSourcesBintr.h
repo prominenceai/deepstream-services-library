@@ -33,14 +33,15 @@ THE SOFTWARE.
 namespace DSL
 {
     #define DSL_PIPELINE_SOURCES_PTR std::shared_ptr<PipelineSourcesBintr>
-    #define DSL_PIPELINE_SOURCES_NEW(name) \
-        std::shared_ptr<PipelineSourcesBintr>(new PipelineSourcesBintr(name))
+    #define DSL_PIPELINE_SOURCES_NEW(name, uniquePipelineId) \
+        std::shared_ptr<PipelineSourcesBintr> \
+           (new PipelineSourcesBintr(name, uniquePipelineId))
 
     class PipelineSourcesBintr : public Bintr
     {
     public: 
     
-        PipelineSourcesBintr(const char* name);
+        PipelineSourcesBintr(const char* name, uint uniquePipelineId);
 
         ~PipelineSourcesBintr();
         
@@ -49,19 +50,19 @@ namespace DSL
          * @param pChildSource shared pointer to SourceBintr to add
          * @return true if the SourceBintr was added correctly, false otherwise
          */
-        bool AddChild(DSL_VIDEO_SOURCE_PTR pChildSource);
+        bool AddChild(DSL_SOURCE_PTR pChildSource);
         
         /**
          * @brief removes a child SourceBintr from this PipelineSourcesBintr
          * @param pChildElement a shared pointer to SourceBintr to remove
          * @return true if the SourceBintr was removed correctly, false otherwise
          */
-        bool RemoveChild(DSL_VIDEO_SOURCE_PTR pChildSource);
+        bool RemoveChild(DSL_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base method and checks in m_pChildSources only.
          */
-        bool IsChild(DSL_VIDEO_SOURCE_PTR pChildSource);
+        bool IsChild(DSL_SOURCE_PTR pChildSource);
 
         /**
          * @brief overrides the base Noder method to only return the number of 
@@ -194,10 +195,29 @@ namespace DSL
         bool RemoveChild(DSL_BASE_PTR pChildElement);
         
         /**
+         * @brief unique id for the Parent Pipeline, used to offset all source
+         * Id's (if greater than 0)
+         */
+        uint m_uniquePipelineId; 
+         
+        /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
-         * Will be created if and when a RTSP source is added to this PipelineSourcesBintr.
+         * Will be created if and when a RTSP source is added to this 
+         * PipelineSourcesBintr.
          */
         DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
+        
+        /**
+         * @brief Source PadBufferProbetr for the SourceIdOffsetterPadProbeHandler 
+         * m_pSourceIdOffsetter owned by this PipelineSourcesBintr.
+         */
+        DSL_PAD_BUFFER_PROBE_PTR m_pSrcPadBufferProbe;
+        
+        /**
+         * @brief Pad Probe Handler to add the source-id offset (based on unique 
+         * pipeline-id) for this PipelineSourcesBintr
+         */
+        DSL_PPH_SOURCE_ID_OFFSETTER_PTR m_pSourceIdOffsetter;
 
     public:
 
@@ -206,19 +226,19 @@ namespace DSL
         /**
          * @brief container of all child sources mapped by their unique names
          */
-        std::map<std::string, DSL_VIDEO_SOURCE_PTR> m_pChildSources;
+        std::map<std::string, DSL_SOURCE_PTR> m_pChildSources;
         
         /**
          * @brief container of all child sources mapped by their unique stream-id
          */
-        std::map<uint, DSL_VIDEO_SOURCE_PTR> m_pChildSourcesIndexed;
+        std::map<uint, DSL_SOURCE_PTR> m_pChildSourcesIndexed;
 
         /**
-         * @brief Each source is assigned a unique stream id used to define the
+         * @brief Each source is assigned a unique pad/stream id used to define the
          * streammuxer sink pad when linking. The vector is used on add/remove 
          * to find the next available pad id.
          */
-        std::vector<bool> m_usedStreamIds;
+        std::vector<bool> m_usedRequestPadIds;
         
         /**
          * @brief true if all sources are live, false if all sources are non-live

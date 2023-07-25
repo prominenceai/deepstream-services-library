@@ -3439,14 +3439,25 @@ def dsl_source_duplicate_original_set(name, original):
     return int(result)
 
 ##
+## dsl_source_unique_id_get()
+##
+_dsl.dsl_source_unique_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_unique_id_get.restype = c_uint
+def dsl_source_unique_id_get(name):
+    global _dsl
+    unique_id = c_uint(0)
+    result =_dsl.dsl_source_unique_id_get(name, DSL_UINT_P(unique_id))
+    return int(result), unique_id.value
+
+##
 ## dsl_source_name_get()
 ##
 _dsl.dsl_source_name_get.argtypes = [c_uint, POINTER(c_wchar_p)]
 _dsl.dsl_source_name_get.restype = c_uint
-def dsl_source_name_get(source_id):
+def dsl_source_name_get(unique_id):
     global _dsl
     name = c_wchar_p(0)
-    result = _dsl.dsl_source_name_get(source_id, DSL_WCHAR_PP(name))
+    result = _dsl.dsl_source_name_get(unique_id, DSL_WCHAR_PP(name))
     return int(result), name.value 
 
 ##

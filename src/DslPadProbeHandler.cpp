@@ -109,6 +109,55 @@ namespace DSL
 
     //----------------------------------------------------------------------------------------------
 
+    SourceIdOffsetterPadProbeHandler::SourceIdOffsetterPadProbeHandler(
+        const char* name, uint offset)
+        : PadProbeHandler(name)
+        , m_offset(offset)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+    
+    SourceIdOffsetterPadProbeHandler::~SourceIdOffsetterPadProbeHandler()
+    {
+        LOG_FUNC();
+    }
+
+    GstPadProbeReturn SourceIdOffsetterPadProbeHandler::HandlePadData(
+        GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
+        
+        NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        
+        // For each frame in the batched meta data
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
+            pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
+        {
+            // Check for valid frame data
+            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*)(pFrameMetaList->data);
+            if (pFrameMeta != NULL)
+            {
+                // update the source_id with the unique offset. 
+                pFrameMeta->source_id = (pFrameMeta->source_id | m_offset);
+            }
+        }
+        return GST_PAD_PROBE_OK;
+    }
+
+    //----------------------------------------------------------------------------------------------
+
     FrameNumberAdderPadProbeEventHandler::FrameNumberAdderPadProbeEventHandler(const char* name)
         : PadProbeHandler(name)
         , m_currentFrameNumber(0)

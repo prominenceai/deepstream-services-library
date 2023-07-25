@@ -72,7 +72,7 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
                 
@@ -167,7 +167,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( pSourceBintr->GetGpuId() == 0 );
                     REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                     REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                    REQUIRE( pSourceBintr->GetId() == 0 );
+                    REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                     REQUIRE( pSourceBintr->GetSensorId() == 0 );
                     REQUIRE( pSourceBintr->IsInUse() == false );
                     REQUIRE( pSourceBintr->IsLive() == true );
@@ -316,7 +316,7 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
@@ -522,7 +522,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -786,7 +786,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetNvbufMemType() == 
                     DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
                 REQUIRE( pSourceBintr->GetTlsValidationFlags() == 
@@ -980,9 +980,9 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         std::string pipelineSourcesName = "pipeline-sources";
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), 0);
             
-        DSL_VIDEO_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<VideoSourceBintr>(pRtspSourceBintr);
+        DSL_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<SourceBintr>(pRtspSourceBintr);
             
         // Source needs a parent to test reconnect - required for source to call "gst_element_sync_state_with_parent"
         pPipelineSourcesBintr->AddChild(pSourceBintr);
@@ -1101,7 +1101,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1175,7 +1175,7 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1251,7 +1251,7 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1322,7 +1322,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1403,7 +1403,7 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 std::string retOriginalName = pSourceBintr->GetOriginal();

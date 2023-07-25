@@ -80,6 +80,7 @@ namespace DSL
     
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
+        , m_uniqueId(-1)  // unassigned until added to a Pipeline
         , m_cudaDeviceProp{0}
         , m_isLive(true)
         , m_fpsN(0)
@@ -87,9 +88,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Set the stream-id of the unique Source name
-        SetId(Services::GetServices()->_sourceNameSet(name));
-        
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 
@@ -140,6 +138,8 @@ namespace DSL
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
+    
+    //--------------------------------------------------------------------------------
     
     VideoSourceBintr::VideoSourceBintr(const char* name)
         : SourceBintr(name)
