@@ -125,6 +125,7 @@
     <File Name="../src/DslPipelineBusSyncMgr.cpp"/>
     <File Name="../src/DslMutex.h"/>
     <File Name="../src/DslCond.h"/>
+    <File Name="../src/DslUtilities.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">

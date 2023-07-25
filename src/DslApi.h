@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -5032,22 +5032,22 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
  * @brief Gets the unique id assigned to the Source component once added
  * to a Pipeline. The unique Source Id will be derived from the 
  * (unique pipeline-id << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS) | 
- *      unique Streammuxer pad-id for the named source
+ *      unique Streammuxer stream-id (stream-id == pad-id) for the named source.
  * @param[in] name unique name of Source component to query
- * @param[out] source_id unique Source Id as assigned by the Pipeline.
+ * @param[out] unique_id unique Source Id as assigned by the Pipeline.
  * The Source's id will be set to -1 when unassigned (i.e. not added to a Pipeline).
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_id_get(const wchar_t* name, int* id);
+DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id);
 
 /**
  * @brief returns the name of a Source component from a unique Source Id
- * @param[in] source_id unique Source Id to check for. Must be a valid
+ * @param[in] unique_id unique source-id to check for. Must be a valid
  * assigned source-id and not -1.
  * @param[out] name the name of Source component if found
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name);
+DslReturnType dsl_source_name_get(uint unique_id, const wchar_t** name);
 
 /**
  * @brief pauses a single Source object if the Source is 
