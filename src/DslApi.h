@@ -815,7 +815,8 @@ THE SOFTWARE.
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
 
-#define DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS                       16
+#define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
+#define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
@@ -1957,7 +1958,7 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
     const wchar_t* bg_color);
 
 /**
- * @brief Creates a uniquely named Source Number Display Type.
+ * @brief Creates a uniquely named Source Unique-Id Display Type.
  * @param[in] name unique name of the Display Type.
  * @param[in] x_offset starting x positional offset.
  * @param[in] y_offset starting y positional offset.
@@ -1967,9 +1968,24 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
+DslReturnType dsl_display_type_source_unique_id_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
+    
+/**
+ * @brief Creates a uniquely named Source Stream-Id Display Type.
+ * @param[in] name unique name of the Display Type.
+ * @param[in] x_offset starting x positional offset.
+ * @param[in] y_offset starting y positional offset.
+ * @param[in] font RGBA font to use for the display text.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bg_color RGBA Color for the Text background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color); 
     
 /**
  * @brief Creates a uniquely named Source Name Display Type.
@@ -5031,7 +5047,7 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 /**
  * @brief Gets the unique-id assigned to the Source component once added
  * to a Pipeline. The unique source-id will be derived from the 
- * (unique pipeline-id << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS) | 
+ * (unique pipeline-id << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) | 
  *      unique Streammuxer stream-id (stream-id == pad-id) for the named source.
  * @param[in] name unique name of the Source component to query
  * @param[out] unique_id unique Source Id as assigned by the Pipeline.

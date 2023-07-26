@@ -163,9 +163,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # Create a new "source-number" display-type using the new RGBA
+        # Create a new "source-stream-id" display-type using the new RGBA
         # colors and font created above.
-        retval = dsl_display_type_source_number_new('source-number', 
+        retval = dsl_display_type_source_stream_id_new('source-stream-id', 
             x_offset=15, y_offset=20, font='arial-18-white', 
             has_bg_color=True, bg_color='full-black')
         if retval != DSL_RETURN_SUCCESS:
@@ -173,20 +173,20 @@ def main(args):
             
         # Create a new Action to add the display-type's metadata
         # to a frame's meta on invocation.
-        retval = dsl_ode_action_display_meta_add_new('add-souce-number', 
-            display_type='source-number')
+        retval = dsl_ode_action_display_meta_add_new('add-souce-stream-id', 
+            display_type='source-stream-id')
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
         # Create an ODE Always triger to call the "add-meta" Action to display
-        # the source number on every frame for each source. 
+        # the source stream-id on every frame for each source. 
         retval = dsl_ode_trigger_always_new('always-trigger', 
             source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
         retval = dsl_ode_trigger_action_add('always-trigger', 
-            action='add-souce-number')
+            action='add-souce-stream-id')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             

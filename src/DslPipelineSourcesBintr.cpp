@@ -105,7 +105,7 @@ namespace DSL
             std::string bufferHandlerName = GetName() + "-source-id-offsetter";
             m_pSourceIdOffsetter = DSL_PPH_SOURCE_ID_OFFSETTER_NEW(
                 bufferHandlerName.c_str(), 
-                (m_uniquePipelineId << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS));
+                (m_uniquePipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS));
 
             // Add the specialized handler to the buffer-pad-probe. 
             m_pSrcPadBufferProbe->AddPadProbeHandler(m_pSourceIdOffsetter);
@@ -167,16 +167,17 @@ namespace DSL
             {
                 LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
                 
-                // Create the Pad Probe and EOS Consumer to drop the EOS event that occurs on 
-                // loss of RTSP stream, allowing the Pipeline to continue to play. Each RTSP source 
-                // will then manage their own restart attempts and time management.
+                // Create the Pad Probe and EOS Consumer to drop the EOS event that 
+                // occurs on loss of RTSP stream, allowing the Pipeline to continue 
+                // to play. Each RTSP source will then manage their own restart 
+                // attempts and time management.
 
                 std::string eventHandlerName = GetName() + "-eos-consumer";
                 m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
 
                 std::string padEventProbeName = GetName() + "-src-pad-event-probe";
-                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(padEventProbeName.c_str(), 
-                    "src", m_pStreamMux);
+                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(
+                    padEventProbeName.c_str(), "src", m_pStreamMux);
                 m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
             }
         }
@@ -184,7 +185,8 @@ namespace DSL
         uint padId(0);
         
         // find the next available unused stream-id
-        auto ivec = find(m_usedRequestPadIds.begin(), m_usedRequestPadIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), 
+            m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
         if (ivec != m_usedRequestPadIds.end())
@@ -203,8 +205,9 @@ namespace DSL
 
         // Set the sources unique id by shifting/or-ing the unique pipeline-id
         // with the sources pad-id -- gauranteed to be unique.
-        pChildSource->SetUniqueId((
-            m_uniquePipelineId << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS) | padId);
+        pChildSource->SetUniqueId(
+            (m_uniquePipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) 
+            | padId);
             
         // Add the source's "unique-name to unique-id" mapping to the Services DB.
         Services::GetServices()->_sourceNameSet(pChildSource->GetCStrName(),
@@ -225,7 +228,8 @@ namespace DSL
         }
         
         // If the Pipeline is currently in a linked state, Set child source 
-        // Id to the next available, linkAll Elementrs now and Link to the Stream-muxer
+        // Id to the next available, linkAll Elementrs now and Link to the 
+        // Stream-muxer
         if (IsLinked())
         {
             std::string sinkPadName = "sink_" + std::to_string(padId);

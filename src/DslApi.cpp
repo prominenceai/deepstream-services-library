@@ -235,7 +235,8 @@ DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name,
 }
     
 DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name, 
-    uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color)
+    uint x1, uint y1, uint x2, uint y2, uint width, uint head, 
+    const wchar_t* color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -245,13 +246,13 @@ DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaArrowNew(cstrName.c_str(), 
-        x1, y1, x2, y2, width, head, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaArrowNew(
+        cstrName.c_str(), x1, y1, x2, y2, width, head, cstrColor.c_str());
 }
     
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, 
-    uint width, uint height, uint border_width, const wchar_t* color, 
-    bool has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, uint border_width, 
+    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -269,8 +270,9 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(cstrName.c_str(), 
-        left, top, width, height, border_width, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(
+        cstrName.c_str(), left, top, width, height, border_width, 
+        cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
 DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
@@ -286,8 +288,9 @@ DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaPolygonNew(cstrName.c_str(), 
-        coordinates, num_coordinates, border_width, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaPolygonNew(
+        cstrName.c_str(), coordinates, num_coordinates, border_width, 
+        cstrColor.c_str());
 }
     
 DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
@@ -303,8 +306,9 @@ DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaLineMultiNew(cstrName.c_str(), 
-        coordinates, num_coordinates, border_width, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaLineMultiNew(
+        cstrName.c_str(), coordinates, num_coordinates, border_width, 
+        cstrColor.c_str());
 }
     
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
@@ -327,12 +331,14 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(cstrName.c_str(), 
-        x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(
+        cstrName.c_str(), x_center, y_center, radius, cstrColor.c_str(), 
+        has_bg_color, cstrBgColor.c_str());
 }
 
-DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_source_unique_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -350,12 +356,39 @@ DslReturnType dsl_display_type_source_number_new(const wchar_t* name,
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->DisplayTypeSourceNumberNew(cstrName.c_str(),
-        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeSourceUniqueIdNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
+}
+
+DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(font);
+
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+
+    return DSL::Services::GetServices()->DisplayTypeSourceStreamIdNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
 }
 
 DslReturnType dsl_display_type_source_name_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -378,7 +411,8 @@ DslReturnType dsl_display_type_source_name_new(const wchar_t* name,
 }
 
 DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -396,12 +430,11 @@ DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name,
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->DisplayTypeSourceDimensionsNew(cstrName.c_str(),
-        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeSourceDimensionsNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
 }
 
-// TODO: leaving this implementation as is without including in the header file for now.
-// Needs to be completed and tested for all source types.
 DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color)
@@ -422,8 +455,9 @@ DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name,
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->DisplayTypeSourceFrameRateNew(cstrName.c_str(),
-        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeSourceFrameRateNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
 }
 
 DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name, 
@@ -437,8 +471,8 @@ DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayRgbaTextShadowAdd(cstrName.c_str(), 
-        x_offset, y_offset, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayRgbaTextShadowAdd(
+        cstrName.c_str(), x_offset, y_offset, cstrColor.c_str());
 }
     
 DslReturnType dsl_display_type_meta_add(const wchar_t* name, 
