@@ -3450,6 +3450,17 @@ def dsl_source_unique_id_get(name):
     return int(result), unique_id.value
 
 ##
+## dsl_source_stream_id_get()
+##
+_dsl.dsl_source_stream_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_stream_id_get.restype = c_uint
+def dsl_source_stream_id_get(name):
+    global _dsl
+    stream_id = c_uint(0)
+    result =_dsl.dsl_source_stream_id_get(name, DSL_UINT_P(stream_id))
+    return int(result), stream_id.value
+
+##
 ## dsl_source_name_get()
 ##
 _dsl.dsl_source_name_get.argtypes = [c_uint, POINTER(c_wchar_p)]

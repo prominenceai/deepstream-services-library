@@ -5029,16 +5029,33 @@ DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 
 /**
- * @brief Gets the unique id assigned to the Source component once added
- * to a Pipeline. The unique Source Id will be derived from the 
+ * @brief Gets the unique-id assigned to the Source component once added
+ * to a Pipeline. The unique source-id will be derived from the 
  * (unique pipeline-id << DSL_PIPELINE_SOURCE_ID_OFFSET_IN_BITS) | 
  *      unique Streammuxer stream-id (stream-id == pad-id) for the named source.
- * @param[in] name unique name of Source component to query
+ * @param[in] name unique name of the Source component to query
  * @param[out] unique_id unique Source Id as assigned by the Pipeline.
- * The Source's id will be set to -1 when unassigned (i.e. not added to a Pipeline).
+ * The Source's unique id will be set to -1 when unassigned (i.e. not added 
+ * to a Pipeline).
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id);
+
+/**
+ * @brief Gets the stream-id assigned to the Source component once added
+ * to a Pipeline. The 0-based stream-id is assigned to each Source by the 
+ * Pipeline according to the order they are added.
+ * Note: the stream-id will be equal to the Streammuxer sink pad-id connected
+ * to the Source Component once linked-up and playing.
+ * IMPORTANT: If a source is dynamically removed (while the Pipeline is playing)
+ * and a new Source is added, the stream-id (and sink-pad) will be reused.
+ * @param[in] name unique name of the Source component to query.
+ * @param[out] stream_id stream-id as assigned by the Pipeline.
+ * The Source's stream id will be set to -1 when unassigned (i.e. not added 
+ * to a Pipeline).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_stream_id_get(const wchar_t* name, int* stream_id);
 
 /**
  * @brief returns the name of a Source component from a unique Source Id

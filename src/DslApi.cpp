@@ -4693,6 +4693,18 @@ DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id)
         unique_id);
 }
 
+DslReturnType dsl_source_stream_id_get(const wchar_t* name, int* stream_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(stream_id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceStreamIdGet(cstrName.c_str(), 
+        stream_id);
+}
+
 DslReturnType dsl_source_name_get(uint unique_id, const wchar_t** name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

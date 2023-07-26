@@ -855,10 +855,12 @@ namespace DSL {
     
         DslReturnType SourceRtspTapRemove(const char* name);
         
-        DslReturnType SourceNameGet(int uniqueId, const char** name);
-
         DslReturnType SourceUniqueIdGet(const char* name, int* uniqueId);
     
+        DslReturnType SourceStreamIdGet(const char* name, int* streamId);
+    
+        DslReturnType SourceNameGet(int uniqueId, const char** name);
+
         void _sourceNameSet(const char* name, uint uniqueId);
     
         bool _sourceNameErase(const char* name);
