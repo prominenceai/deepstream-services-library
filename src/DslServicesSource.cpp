@@ -2744,20 +2744,6 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceNameGet(int uniqueId, const char** name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (m_sourceNamesById.find(uniqueId) != m_sourceNamesById.end())
-        {
-            *name = m_sourceNamesById[uniqueId].c_str();
-            return DSL_RESULT_SUCCESS;
-        }
-        *name = NULL;
-        return DSL_RESULT_SOURCE_NOT_FOUND;
-    }
-
     DslReturnType Services::SourceUniqueIdGet(const char* name, int* uniqueId)
     {
         LOG_FUNC();
@@ -2784,6 +2770,49 @@ namespace DSL
                 << "' threw exception getting unique source-id");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
+    }
+
+    DslReturnType Services::SourceStreamIdGet(const char* name, int* streamId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+
+            // streammux source pad-id == stream-id for all sources
+            *streamId = pSourceBintr->GetRequestPadId();
+            
+            LOG_INFO("Source '" << name 
+                << "' returned stream-id = " << *streamId);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting unique source-id");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceNameGet(int uniqueId, const char** name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        if (m_sourceNamesById.find(uniqueId) != m_sourceNamesById.end())
+        {
+            *name = m_sourceNamesById[uniqueId].c_str();
+            return DSL_RESULT_SUCCESS;
+        }
+        *name = NULL;
+        return DSL_RESULT_SOURCE_NOT_FOUND;
     }
 
     void Services::_sourceNameSet(const char* name, uint uniqueId)

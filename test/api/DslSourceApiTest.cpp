@@ -182,55 +182,79 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted",
     }
 }
 
-SCENARIO( "Source-ids for multiple sources are managed correctly", 
-    "[test]" )
+SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources ", 
+    "[source-api]" )
 {
     GIVEN( "A new Source and new pPipeline" ) 
     {
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        int ret_source_id(99);
+        int ret_unique_id(99);
+        int ret_stream_id(99);
         REQUIRE( dsl_source_usb_new(source_name0.c_str(), 
             width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
-           &ret_source_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_source_id == -1);
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name0.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
 
-        ret_source_id = 99;
+        ret_unique_id = 99;
+        ret_stream_id = 99;
         REQUIRE( dsl_source_usb_new(source_name1.c_str(), 
             width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
-           &ret_source_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_source_id == -1);
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name1.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
 
-        ret_source_id = 99;
+        ret_unique_id = 99;
+        ret_stream_id = 99;
         REQUIRE( dsl_source_usb_new(source_name2.c_str(), 
             width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
-           &ret_source_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_source_id == -1);
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name2.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
 
-        ret_source_id = 99;
+        ret_unique_id = 99;
+        ret_stream_id = 99;
         REQUIRE( dsl_source_usb_new(source_name3.c_str(), 
             width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
-           &ret_source_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_source_id == -1);
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name3.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
 
-        ret_source_id = 99;
+        ret_unique_id = 99;
+        ret_stream_id = 99;
         REQUIRE( dsl_source_usb_new(source_name4.c_str(), 
             width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
-           &ret_source_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_source_id == -1);
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name4.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
 
-        ret_source_id = 99;
+        ret_unique_id = 99;
+        ret_stream_id = 99;
         REQUIRE( dsl_source_usb_new(source_name5.c_str(), 
             width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
-           &ret_source_id) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_source_id == -1);
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name5.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
 
         REQUIRE( dsl_pipeline_new(pipeline_name0.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -258,35 +282,59 @@ SCENARIO( "Source-ids for multiple sources are managed correctly",
 
             THEN( "The source-ids are updated correctly" ) 
             {
-                ret_source_id = 99;
+                ret_unique_id = 99;
+                ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
-                   &ret_source_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_source_id == 0x00000000 );
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00000000 );
+                REQUIRE( dsl_source_stream_id_get(source_name0.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 0 );
                 
-                ret_source_id = 99;
+                ret_unique_id = 99;
+                ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
-                   &ret_source_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_source_id == 0x00000001 );
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00000001 );
+                REQUIRE( dsl_source_stream_id_get(source_name1.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 1 );
                 
-                ret_source_id = 99;
+                ret_unique_id = 99;
+                ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
-                   &ret_source_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_source_id == 0x00010000 );
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00010000 );
+                REQUIRE( dsl_source_stream_id_get(source_name2.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 0 );
                 
-                ret_source_id = 99;
+                ret_unique_id = 99;
+                ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
-                   &ret_source_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_source_id == 0x00010001 );
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00010001 );
+                REQUIRE( dsl_source_stream_id_get(source_name3.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 1 );
                 
-                ret_source_id = 99;
+                ret_unique_id = 99;
+                ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
-                   &ret_source_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_source_id == 0x00020000 );
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00020000 );
+                REQUIRE( dsl_source_stream_id_get(source_name4.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 0 );
                 
-                ret_source_id = 99;
+                ret_unique_id = 99;
+                ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
-                   &ret_source_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_source_id == 0x00020001 );
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00020001 );
+                REQUIRE( dsl_source_stream_id_get(source_name5.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 1 );
                 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -1652,6 +1700,10 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_unique_id_get(NULL,
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_unique_id_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_stream_id_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_stream_id_get(source_name.c_str(),
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
