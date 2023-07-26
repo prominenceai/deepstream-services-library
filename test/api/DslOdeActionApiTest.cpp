@@ -984,7 +984,7 @@ SCENARIO( "A new Add Many Display Meta ODE Action can be created and deleted", "
         REQUIRE( dsl_display_type_source_name_new(sourceName.c_str(), 
             x_offset, y_offset, fontName.c_str(), false, NULL) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_display_type_source_number_new(sourceNumber.c_str(), 
+        REQUIRE( dsl_display_type_source_stream_id_new(sourceNumber.c_str(), 
             x_offset, y_offset+30, fontName.c_str(), false, NULL) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_display_type_source_dimensions_new(sourceDimensions.c_str(), 

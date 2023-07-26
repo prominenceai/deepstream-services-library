@@ -176,27 +176,27 @@ int main(int argc, char** argv)
             L"arial", 18, L"full-white");
         if (retval != DSL_RESULT_SUCCESS) break;
             
-        // Create a new "source-number" display-type using the new RGBA
+        // Create a new "source-stream-id" display-type using the new RGBA
         // colors and font created above.
-        retval = dsl_display_type_source_number_new(L"source-number", 
+        retval = dsl_display_type_source_stream_id_new(L"source-stream-id", 
             15, 20, L"arial-18-white", true, L"full-black");
         if (retval != DSL_RESULT_SUCCESS) break;
             
         // Create a new ODE Action to add the display-type's metadata
         // to a frame's meta on invocation.
-        retval = dsl_ode_action_display_meta_add_new(L"add-souce-number", 
-            L"source-number");
+        retval = dsl_ode_action_display_meta_add_new(L"add-souce-stream-id", 
+            L"source-stream-id");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create an ODE Always triger to call the "add-meta" Action to display
-        // the source number on every frame for each source. 
+        // the source stream-id on every frame for each source. 
         retval = dsl_ode_trigger_always_new(L"always-trigger", 
             DSL_ODE_ANY_SOURCE, DSL_ODE_PRE_OCCURRENCE_CHECK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the Action to new Trigger
         retval = dsl_ode_trigger_action_add(L"always-trigger", 
-            L"add-souce-number");
+            L"add-souce-stream-id");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a new ODE Pad Probe Handler (PPH) to add to the Tiler's Src Pad

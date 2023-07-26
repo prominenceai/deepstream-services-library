@@ -416,7 +416,8 @@ THE SOFTWARE.
 { \
     if (!types[name]->IsType(typeid(RgbaText)) and \
         !types[name]->IsType(typeid(SourceDimensions)) and \
-        !types[name]->IsType(typeid(SourceNumber)) and \
+        !types[name]->IsType(typeid(SourceUniqueId)) and \
+        !types[name]->IsType(typeid(SourceStreamId)) and \
         !types[name]->IsType(typeid(SourceName))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is not color type"); \

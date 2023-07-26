@@ -689,65 +689,96 @@ def dsl_display_type_rgba_rectangle_new(name,
 ##
 ## dsl_display_type_rgba_polygon_new()
 ##
-#_dsl.dsl_display_type_rgba_polygon_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+#_dsl.dsl_display_type_rgba_polygon_new.argtypes = [c_wchar_p, 
+#    c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_polygon_new.restype = c_uint
-def dsl_display_type_rgba_polygon_new(name, coordinates, num_coordinates, border_width, color):
+def dsl_display_type_rgba_polygon_new(name, 
+    coordinates, num_coordinates, border_width, color):
     global _dsl
     arr = (dsl_coordinate * num_coordinates)()
     arr[:] = coordinates
-    result =_dsl.dsl_display_type_rgba_polygon_new(name, arr, num_coordinates, border_width, color)
+    result =_dsl.dsl_display_type_rgba_polygon_new(name, 
+        arr, num_coordinates, border_width, color)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_line_multi_new()
 ##
-#_dsl.dsl_display_type_rgba_line_multi_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+#_dsl.dsl_display_type_rgba_line_multi_new.argtypes = [c_wchar_p, 
+#    c_uint, c_uint, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_line_multi_new.restype = c_uint
-def dsl_display_type_rgba_line_multi_new(name, coordinates, num_coordinates, border_width, color):
+def dsl_display_type_rgba_line_multi_new(name, 
+    coordinates, num_coordinates, border_width, color):
     global _dsl
     arr = (dsl_coordinate * num_coordinates)()
     arr[:] = coordinates
-    result =_dsl.dsl_display_type_rgba_line_multi_new(name, arr, num_coordinates, border_width, color)
+    result =_dsl.dsl_display_type_rgba_line_multi_new(name, 
+        arr, num_coordinates, border_width, color)
     return int(result)
 
 ##
 ## dsl_display_type_rgba_circle_new()
 ##
-_dsl.dsl_display_type_rgba_circle_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_rgba_circle_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_rgba_circle_new.restype = c_uint
-def dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, has_bg_color, bg_color):
+def dsl_display_type_rgba_circle_new(name, 
+    x_center, y_center, radius, color, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_rgba_circle_new(name, x_center, y_center, radius, color, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_rgba_circle_new(name, 
+        x_center, y_center, radius, color, has_bg_color, bg_color)
     return int(result)
 
 ##
-## dsl_display_type_source_number_new()
+## dsl_display_type_source_unique_id_new()
 ##
-_dsl.dsl_display_type_source_number_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
-_dsl.dsl_display_type_source_number_new.restype = c_uint
-def dsl_display_type_source_number_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+_dsl.dsl_display_type_source_unique_id_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_unique_id_new.restype = c_uint
+def dsl_display_type_source_unique_id_new(name, 
+    x_offset, y_offset, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_source_number_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_source_unique_id_new(name, 
+        x_offset, y_offset, font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_display_type_source_stream_id_new()
+##
+_dsl.dsl_display_type_source_stream_id_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_stream_id_new.restype = c_uint
+def dsl_display_type_source_stream_id_new(name, 
+    x_offset, y_offset, font, has_bg_color, bg_color):
+    global _dsl
+    result =_dsl.dsl_display_type_source_stream_id_new(name, 
+        x_offset, y_offset, font, has_bg_color, bg_color)
     return int(result)
 
 ##
 ## dsl_display_type_source_name_new()
 ##
-_dsl.dsl_display_type_source_name_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_name_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_source_name_new.restype = c_uint
-def dsl_display_type_source_name_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+def dsl_display_type_source_name_new(name, 
+    x_offset, y_offset, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_source_name_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_source_name_new(name, 
+        x_offset, y_offset, font, has_bg_color, bg_color)
     return int(result)
 
 ##
 ## dsl_display_type_source_dimensions_new()
 ##
-_dsl.dsl_display_type_source_dimensions_new.argtypes = [c_wchar_p, c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_display_type_source_dimensions_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_wchar_p, c_bool, c_wchar_p]
 _dsl.dsl_display_type_source_dimensions_new.restype = c_uint
-def dsl_display_type_source_dimensions_new(name, x_offset, y_offset, font, has_bg_color, bg_color):
+def dsl_display_type_source_dimensions_new(name, 
+    x_offset, y_offset, font, has_bg_color, bg_color):
     global _dsl
-    result =_dsl.dsl_display_type_source_dimensions_new(name, x_offset, y_offset, font, has_bg_color, bg_color)
+    result =_dsl.dsl_display_type_source_dimensions_new(name, 
+        x_offset, y_offset, font, has_bg_color, bg_color)
     return int(result)
 
 ##
