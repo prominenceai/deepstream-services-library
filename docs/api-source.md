@@ -14,6 +14,32 @@ When adding multiple sources to a Pipeline, all must have the same `is_live` set
 
 The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can be used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
 
+### Source Stream-Ids and Unique-Ids
+All Sources are assigned two identifiers when added to a Pipeline.
+#### **`stream-id`**
+The stream-id identifies the Source's stream within a unique Pipeline. Stream-ids are assigned to the Sources in the order they are added to the Pipeline starting with 0. The stream-id identifies the Streammuxer sink (input) pad-id the Source will connect with when the Pipeline transitions to a state of PLAYING. When using multiple Pipelines, the first source added to each Pipeline will be given same stream-id=0, meaning that stream-ids are only unique for a given Pipeline. A source's stream-id can be queried by calling [dsl_source_stream_id_get](#dsl_source_stream_id_get). 
+
+When not added to a Pipeline, a Source's `stream-id` will be set to `-1`. 
+
+#### **`unique-Id`**
+The unique-id uniquely identifies a Source from all other Sources. The Source's unique-id is calculated by offsetting the Source's stream-id with the Pipeline's unique 0-based id.  The following constant defines the positional offset for the Pipeline's unique-id.
+```c
+#define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS  16
+
+unique-id = unique-pipeline-id << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS | stream-id
+```
+Examples:
+```
+unique-id    | description
+-------------|---------------------------
+0x00000000   | pipeline-id:0, stream-id:0
+0x00010000   | pipeline-id:1, stream-id:0
+0x00030002   | pipeline-id:3, stream-id:2
+```
+A source's unique-id can be queried by calling [dsl_source_unique_id_get](#dsl_source_unique_id_get). A Source's unique name can be obtained by calling [dsl_source_name_get](#dsl_source_name_get) with a unique source-id. This can be important when reading source-id's while processing frame-metadata in a [Custom PPH](/docs/api-pph.md#custom-pad-probe-handler).
+
+When not added to a Pipeline, a Source's `unique-id` will be set to `-1`. 
+
 ### Source Services
 A Source can be queried for it's media type -- `video/x-raw`, `audio/x-raw`, or both -- by calling [dsl_source_media_type_get](#dsl_source_media_type_get). A Source's framerate can be queried by calling [dsl_source_framerate get](#dsl_source_framerate_get). Some Sources need to transition to a state of `PLAYING` before their framerate is known.
 
@@ -115,6 +141,9 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [dsl_source_duplicate_new](#dsl_source_duplicate_new)
 
 **Source Methods:**
+* [dsl_source_unique_id_get](#dsl_source_unique_id_get)
+* [dsl_source_stream_id_get](#dsl_source_stream_id_get)
+* [dsl_source_name_get](#dsl_source_name_get)
 * [dsl_source_media_type_get](#dsl_source_media_type_get)
 * [dsl_source_framerate get](#dsl_source_framerate_get)
 * [dsl_source_is_live](#dsl_source_is_live)
@@ -782,6 +811,72 @@ As with all Pipeline components, Sources are deleted by calling [dsl_component_d
 
 ## Source Methods
 
+### *dsl_source_unique_id_get*
+```C
+DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id);
+```
+This service gets the unique-id assigned to the Source component once added to a Pipeline. The unique source-id will be derived from the 
+```
+unique-id = (unique pipeline-id << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) | unique stream-id
+```
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `unique_id` - [out] unique source id as assigned by the Pipeline. The unique id will be set to -1 when unassigned (i.e. not added to a Pipeline).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, unique_id = dsl_source_unique_id_get('my-source')
+```
+
+<br>
+
+### *dsl_source_stream_id_get*
+```C
+DslReturnType dsl_source_stream_id_get(const wchar_t* name, int* stream_id);
+```
+This service get the stream-id assigned to the Source component once added to a Pipeline. The 0-based stream-id is assigned to each Source by the Pipeline according to the order they are added. The Source will be connected to a Streammuxer sink-pad with the same pad-id as the stream-id.
+
+IMPORTANT: If a source is dynamically removed (while the Pipeline is playing) and a new Source is added, the stream-id (and Streammuxer sink-pad) will be reused.
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `stream_id` - [out] unique stream-id as assigned by the Pipeline. The stream id will be set to -1 when unassigned (i.e. not added to a Pipeline).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, stream_id = dsl_source_stream_id_get('my-source')
+```
+
+<br>
+
+### *dsl_source_name_get*
+```C
+DslReturnType dsl_source_name_get(uint unique_id, const wchar_t** name);
+```
+This service gets the name of a Source component from a unique source-id.
+
+**Parameters**
+* `unique_id` - [in] unique source-id to check for. Must be a valid assigned source-id and not -1.
+* `name` - [out] unique name of the Source component if found.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+# get the name of the source from pipeline-id=1 with stream-id=2
+retval, name = dsl_source_name_get(0x00010002)
+```
+
+<br>
+
 ### *dsl_source_media_type_get*
 ```C
 DslReturnType dsl_source_media_type_get(const wchar_t* name,
@@ -795,7 +890,7 @@ This service gets the media type for the named Source component. The media-type 
 **Note:** DSL currently implements Video only. Audio is to be supported in a future release.
 
 **Parameters**
-* `source` - [in] unique name of the Source to play.
+* `name` - [in] unique name of the Source to query.
 * `media-type` - [out] one of the [DSL_MEDIA_TYPE constants](#dsl-source-media-types).
 
 **Returns**
@@ -815,7 +910,7 @@ DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* 
 This service returns the fractional frames per second as numerator and denominator for a named source. **Note:** Some Sources need to transition to a state of PLAYING before their framerate is known.
 
 **Parameters**
-* `source` - [in] unique name of the Source to play.
+* `name` - [in] unique name of the Source to play.
 * `fps_n` - [out] width of the Source in pixels.
 * `fps_d` - [out] height of the Source in pixels.
 

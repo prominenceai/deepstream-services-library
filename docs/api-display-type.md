@@ -24,7 +24,8 @@ There are seven types for displaying text and shapes.
 * **RGBA Circle** - defined with center point coordinates, radius, border-width, and RGBA Colors.
 
 And three types for displaying source information on each frame.
-* **Source Number** - based on the order the sources are added to the Pipeline, defined with RGBA Font and optional RGBA background color.
+* **Source Stream-Id** - based on the order the sources are added to the Pipeline, defined with RGBA Font and optional RGBA background color.
+* **Source Unique-Id** - assigned to each source when added to a Pipeline, defined with RGBA Font and optional RGBA background color.
 * **Source Name** - assigned to each source when created, defined with RGBA Font and optional RGBA background color.
 * **Source Dimensions** - obtained from the frame dimensions in the frame metadata, defined with RGBA Font and optional RGBA background color.
 
@@ -130,7 +131,8 @@ retval = dsl_ode_trigger_action_add('max-trigger', action='overlay-warning')
 * [dsl_display_type_rgba_rectangle_new](#dsl_display_type_rgba_rectangle_new)
 * [dsl_display_type_rgba_polygon_new](#dsl_display_type_rgba_polygon_new)
 * [dsl_display_type_rgba_circle_new](#dsl_display_type_rgba_circle_new)
-* [dsl_display_type_source_number_new](#dsl_display_type_source_number_new)
+* [dsl_display_type_source_stream_id_new](#dsl_display_type_source_stream_id_new)
+* [dsl_display_type_source_unique_id_new](#dsl_display_type_source_unique_id_new)
 * [dsl_display_type_source_name_new](#dsl_display_type_source_name_new)
 * [dsl_display_type_source_dimensions_new](#dsl_display_type_source_dimensions_new)
 
@@ -699,13 +701,14 @@ retval = dsl_display_type_rgba_circle_new('blue-circle', 220, 220, 20, 'my-blue'
 
 <br>
 
-### *dsl_display_type_source_number_new*
+### *dsl_display_type_source_stream_id_new*
 ```C++
-DslReturnType dsl_display_type_source_number_new(const wchar_t* name, uint x_offset, uint y_offset,
-    const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color);
+DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
 ```
 
-The constructor creates a uniquely name Source Number Display Type.
+The constructor creates a uniquely name Source Stream-Id Display Type. Refer to the [Source documentation](/docs/api-source.md) for more information on [stream-ids](/docs/api-source.md#stream-id) and how they are assigned. 
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -720,7 +723,36 @@ The constructor creates a uniquely name Source Number Display Type.
 
 **Python Example**
 ```Python
-retval = dsl_display_type_source_number_new('display-source-number', 10, 10, 'arial-blue-14', False, None)
+retval = dsl_display_type_source_stream_id_new('display-stream-id', 10, 10, 'arial-blue-14', False, None)
+```
+
+<br>
+
+### *dsl_display_type_source_unique_id_new*
+```C++
+DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color);
+```
+
+The constructor creates a uniquely name Source Unique-Id Display Type. Refer to the [Source documentation](/docs/api-source.md) for more information on [unique-ids](/docs/api-source.md#unique-id) and how they are assigned. 
+
+**IMPORTANT!** the unique-id is displayed in hexidecimal format to better view the Pipeline and stream ids within the unique-id.
+
+**Parameters**
+* `name` - [in] unique name for the Display Type to create.
+* `x_offset` - [in] starting x positional offset.
+* `y_offset` - [in] starting y positional offset.
+* `font` - [in] RGBA font to use for the display text.
+* `hasBgColor` - [in] set to true to enable background color, false otherwise.
+* `bgColor` - [in] RGBA Color for the Text background if set.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_display_type_source_unique_id_new('display-unique-id', 10, 10, 'arial-blue-14', False, None)
 ```
 
 <br>
