@@ -429,6 +429,94 @@ namespace DSL
         return true;
     }
 
+    bool DemuxerBintr::AddChildAt(DSL_BINTR_PTR pChildComponent, uint stream_id)
+    {
+        LOG_FUNC();
+        
+        // Ensure Component uniqueness
+        if (IsChild(pChildComponent))
+        {
+            LOG_ERROR("'" << pChildComponent->GetName() 
+                << "' is already a child of '" << GetName() << "'");
+            return false;
+        }
+        // Ensure that we are not exceeding max-branches
+        if ((stream_id+1) > m_maxBranches)
+        {
+            LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
+                << "' to DemuxerBintr '" << GetName() 
+                << "' as it would exceed max-branches = " << m_maxBranches);
+            return false;
+        }
+
+        // If the stream_id has every been used since bintr creation
+        if ((stream_id+1) <= m_usedRequestPadIds.size())
+        {
+            // Ensure that the stream_id is not currently linked
+            if (m_usedRequestPadIds[stream_id] == true)
+            {
+                LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
+                    << "' to DemuxerBintr '" << GetName() << "' at stream_id = " 
+                    << stream_id << " as it's currently taken");
+                return false;
+            }
+            // Else set the used pad-ids to true at position stream-id
+            else
+            {
+                m_usedRequestPadIds[stream_id] = true;
+            }
+        }
+        // Else, the stream_id exceeds the size so it has never been used before
+        else
+        {
+            // Need to pad the vector with false entries up to the new
+            // requested stream-id / pad-id
+            for (auto i=m_usedRequestPadIds.size(); i<stream_id; i++)
+            {
+                m_usedRequestPadIds.push_back(false);
+            }
+            // We can now push a true (currently used) entry at position stream_id.
+            m_usedRequestPadIds.push_back(true);
+        }
+
+        // Set the branches unique id to the available stream-id
+        pChildComponent->SetRequestPadId(stream_id);
+
+        // Add the branch to the Demuxers collection of children mapped by name 
+        m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
+        
+        // Add the branch to the Demuxers collection of children mapped by stream-id 
+        m_pChildBranchesIndexed[stream_id] = pChildComponent;
+        
+        // call the parent class to complete the add
+        if (!Bintr::AddChild(pChildComponent))
+        {
+            LOG_ERROR("Failed to add Branch '" << pChildComponent->GetName() 
+                << "' as a child to '" << GetName() << "'");
+            return false;
+        }
+        
+        // If the Pipeline is currently in a linked state, 
+        // linkAll Elementrs now and Link with the Stream
+        if (IsLinked())
+        {
+            // link back upstream to the Tee - now the src for the child branch.
+            if (!pChildComponent->LinkAll() or 
+                !pChildComponent->LinkToSourceTee(m_pTee, 
+                    m_requestedSrcPads[stream_id]))
+            {
+                LOG_ERROR("DemuxerBintr '" << GetName() 
+                    << "' failed to Link Child Component '" 
+                    << pChildComponent->GetName() << "'");
+                return false;
+            }
+
+            // Sync component up with the parent state
+            return gst_element_sync_state_with_parent(
+                pChildComponent->GetGstElement());
+        }
+        return true;
+    }
     bool DemuxerBintr::LinkAll()
     {
         LOG_FUNC();
