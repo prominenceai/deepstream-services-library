@@ -708,7 +708,7 @@ DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name,
     const wchar_t* bg_color);
 ```
 
-The constructor creates a uniquely name Source Stream-Id Display Type. Refer to the [Source documentation](/docs/api-source.md) for more information on [stream-ids] (/docs/api-source.md#stream-id) and how they are assigned. 
+The constructor creates a uniquely name Source Stream-Id Display Type. Refer to the [Source documentation](/docs/api-source.md) for more information on [stream-ids](/docs/api-source.md#stream-id) and how they are assigned. 
 
 **Parameters**
 * `name` - [in] unique name for the Display Type to create.
@@ -735,7 +735,7 @@ DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name,
     const wchar_t* bg_color);
 ```
 
-The constructor creates a uniquely name Source Unique-Id Display Type. Refer to the [Source documentation](/docs/api-source.md) for more information on [unique-ids] (/docs/api-source.md#unique-id) and how they are assigned. 
+The constructor creates a uniquely name Source Unique-Id Display Type. Refer to the [Source documentation](/docs/api-source.md) for more information on [unique-ids](/docs/api-source.md#unique-id) and how they are assigned. 
 
 **IMPORTANT!** the unique-id is displayed in hexidecimal format to better view the Pipeline and stream ids within the unique-id.
 
