@@ -1002,7 +1002,7 @@ Trigger Name        : person-crossing-line
   NTP Timestamp     : 2022-05-11 20:47:53.170223
   Source Data       : ------------------------
     Inference       : Yes
-    Source Id       : 0
+    Source Id       : 0x00000000
     Batch Id        : 0
     Pad Index       : 0
     Frame           : 292
