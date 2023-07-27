@@ -4548,6 +4548,27 @@ def dsl_osd_text_enabled_set(name, enabled):
     return int(result)
 
 ##
+## dsl_osd_bbox_enabled_get()
+##
+_dsl.dsl_osd_bbox_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_osd_bbox_enabled_get.restype = c_uint
+def dsl_osd_bbox_enabled_get(name):
+    global _dsl
+    enabled = c_bool(False)
+    result = _dsl.dsl_osd_bbox_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value 
+
+##
+## dsl_osd_bbox_enabled_set()
+##
+_dsl.dsl_osd_bbox_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_bbox_enabled_set.restype = c_uint
+def dsl_osd_bbox_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_bbox_enabled_set(name, enabled)
+    return int(result)
+
+##
 ## dsl_osd_clock_enabled_get()
 ##
 _dsl.dsl_osd_clock_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
