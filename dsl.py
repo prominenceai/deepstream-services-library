@@ -4658,6 +4658,16 @@ def dsl_osd_clock_color_set(name, red, green, blue, alpha):
     return int(result)
 
 ##
+## dsl_osd_mask_enabled_set()
+##
+_dsl.dsl_osd_mask_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_osd_mask_enabled_set.restype = c_uint
+def dsl_osd_mask_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_osd_mask_enabled_set(name, enabled)
+    return int(result)
+
+##
 ## dsl_osd_process_mode_get()
 ##
 _dsl.dsl_osd_process_mode_get.argtypes = [c_wchar_p, POINTER(c_uint)]

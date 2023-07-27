@@ -179,12 +179,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set the display text enabled setting for OsdBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
+        // OSD plugin supports dynamic updates to "display-text"
+        // do not check link-state
+
         m_textEnabled = enabled;
         m_pOsd->SetAttribute("display-text", m_textEnabled);
         
@@ -202,12 +199,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set the clock display enabled attribute for OsdBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
+        // OSD plugin supports dynamic updates to "display-clock"
+        // do not check link-state
+
         m_clockEnabled = enabled;
         m_pOsd->SetAttribute("display-clock", m_clockEnabled);
         
@@ -318,12 +312,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set the display bbox enabled setting for OsdBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
+        // OSD plugin supports dynamic updates to "display-bbox"
+        // do not check link-state
+
         m_bboxEnabled = enabled;
         m_pOsd->SetAttribute("display-bbox", m_bboxEnabled);
         
@@ -340,13 +331,10 @@ namespace DSL
     bool OsdBintr::SetMaskEnabled(boolean enabled)
     {
         LOG_FUNC();
+
+        // OSD plugin supports dynamic updates to "display-mask"
+        // do not check link-state
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set the display mask enabled setting for OsdBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
         m_maskEnabled = enabled;
         m_pOsd->SetAttribute("display-mask", m_maskEnabled);
         
