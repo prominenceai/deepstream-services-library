@@ -135,6 +135,8 @@ DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 ```
 This service sets the current text display enabled setting for the named On-Screen Display.
 
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
+
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
 * `enable` - [in] set to true to enable text display, false otherwise.
@@ -175,6 +177,8 @@ retval, enabled = dsl_osd_clock_enabled_get('my-on-screen-display')
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 ```
 This service sets the current clock display enabled setting for the named On-Screen Display.
+
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
@@ -328,6 +332,8 @@ DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled);
 ```
 This service returns the current bounding box display enabled setting for the named On-Screen Display.
 
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
+
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
 * `enabled` - [out] true if bounding box display is currently enabled, false otherwise.
@@ -389,10 +395,11 @@ DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
 ```
 This service sets the current segmentation mask display enabled setting for the named On-Screen Display.
 
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
+
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
 * `enable` - [in] set to true to enable segmentation mask display, false otherwise.
-
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
