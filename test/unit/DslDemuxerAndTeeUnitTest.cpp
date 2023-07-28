@@ -229,7 +229,7 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[D
 }
 
 SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is managed correctly", 
-    "[rjh]" )
+    "[DemuxerBintr]" )
 {
     GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {

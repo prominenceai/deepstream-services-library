@@ -5981,6 +5981,16 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
     uint max_branches, const wchar_t** branches);
 
 /**
+ * @brief Adds a single Branch to a specific stream of a named Demuxer Tee 
+ * @param[in] name name of the Dumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ */
+DslReturnType dsl_tee_demuxer_branch_add_at(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+
+/**
  * @brief Gets the current max-branches setting for the name Deumuxer Tee
  * @param[in] name name of the Demuxer Tee to query
  * @param[out] max_branches current setting for max-branches
@@ -6011,7 +6021,8 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name);
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches);
 
 /**
  * @brief adds a single Branch to a Stream Demuxer or Splitter Tee

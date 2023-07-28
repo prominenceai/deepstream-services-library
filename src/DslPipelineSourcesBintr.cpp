@@ -204,7 +204,7 @@ namespace DSL
         pChildSource->SetRequestPadId(padId);
 
         // Set the sources unique id by shifting/or-ing the unique pipeline-id
-        // with the sources pad-id -- gauranteed to be unique.
+        // with the source's pad-id -- combined, they are gauranteed to be unique.
         pChildSource->SetUniqueId(
             (m_uniquePipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) 
             | padId);
