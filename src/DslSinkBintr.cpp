@@ -521,7 +521,9 @@ namespace DSL
         m_pOverlay->SetAttribute("overlay", m_uniqueId);
         m_pOverlay->SetAttribute("display-id", m_displayId);
         m_pOverlay->SetAttribute("max-lateness", -1);
-        m_pOverlay->SetAttribute("sync", m_sync);
+//        m_pOverlay->SetAttribute("sync", m_sync);
+//        m_pOverlay->SetAttribute("async", false);
+        m_pOverlay->SetAttribute("sync", false);
         m_pOverlay->SetAttribute("async", false);
         m_pOverlay->SetAttribute("qos", m_qos);
 

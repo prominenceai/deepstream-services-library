@@ -4773,7 +4773,16 @@ def dsl_tee_splitter_new_branch_add_many(name, branches):
     result =_dsl.dsl_tee_splitter_new_branch_add_many(name, arr)
     return int(result)
 
-
+##
+## dsl_tee_demuxer_branch_add_at()
+##
+_dsl.dsl_tee_demuxer_branch_add_at.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_tee_demuxer_branch_add_at.restype = c_uint
+def dsl_tee_demuxer_branch_add_at(name, branch, stream_id):
+    global _dsl
+    result =_dsl.dsl_tee_demuxer_branch_add_at(name, branch, stream_id)
+    return int(result)
+    
 ##
 ## dsl_tee_branch_add()
 ##

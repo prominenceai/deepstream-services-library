@@ -113,7 +113,7 @@ SCENARIO( "A Demuxer can add and remove a Branch", "[tee-api]" )
     }
 }
 
-SCENARIO( "A Demuxer can add and remove Branches at a specific stream-id", "[rjh]" )
+SCENARIO( "A Demuxer can add and remove Branches at a specific stream-id", "[tee-api]" )
 {
     GIVEN( "A Demuxer and three Branches" ) 
     {

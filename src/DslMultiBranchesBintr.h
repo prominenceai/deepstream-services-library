@@ -237,7 +237,7 @@ namespace DSL
          * @param[in] stream_id the stream-id and demuxer source pad to link to.
          * @return true if the ComponentBintr was added correctly, false otherwise
          */
-        bool AddChildAt(DSL_BINTR_PTR pChildComponent, uint stream_id);
+        bool AddChildAt(DSL_BINTR_PTR pChildComponent, uint streamId);
         
         /** 
          * @brief links all child Component Bintrs and their elements. We need to 

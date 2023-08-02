@@ -150,7 +150,7 @@ namespace DSL
     }
 
     DslReturnType Services::TeeDemuxerBranchAddAt(const char* name, 
-        const char* branch, uint stream_id)
+        const char* branch, uint streamId)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -175,11 +175,11 @@ namespace DSL
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
 
             if (!std::dynamic_pointer_cast<DemuxerBintr>(
-                    m_components[name])->AddChildAt(pBranchBintr, stream_id))
+                    m_components[name])->AddChildAt(pBranchBintr, streamId))
             {
                 LOG_ERROR("Demuxer '" << name << 
                     "' failed to add branch '" << branch 
-                    << "' at stream-id = " << stream_id);
+                    << "' at stream-id = " << streamId);
                 return DSL_RESULT_TEE_BRANCH_ADD_FAILED;
             }
                 
