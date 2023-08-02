@@ -20,6 +20,27 @@ Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-
 
 The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
 
+### Common Sink Properties
+
+| Sink               | DS Plugin     | sync  | async | max-lateness |  qos  |
+| -------------------|---------------|-------|------ | ------------ | ----- |
+| Overlay Sink       | nvoverlaysink | true  | true  |      -1      | true  |
+| Window Sink        | nveglglessink | true  | true  |      -1      | true  |
+| File Sink          | filesink      | false | true  |      -1      | false |
+| Record Sink        |               |       |       |              |       |
+| RTSP Sink          | udpsink       | true  | true  |      -1      | false |
+| WebRTC Sink        |               |       |       |              |       |
+| Message Sink       | nvmsgbroker   | true  | true  |      -1      | false |
+| App Sink           | appsink       | true  | true  |      -1      | false |
+| Interpipe Sink     | interpipesink | false | true  |      -1      | false |
+| Multi-Image Sink   | multifilesink | false | true  |      -1      | false |
+| Frame-Capture Sink | appsink       | true  | true  |      -1      | false |
+
+* sync : Sync on the clock
+* async : Go asynchronously to PAUSED
+* max-lateness : Maximum number of nanoseconds that a buffer can be late before it is dropped (-1 unlimited)
+* qos : Generate Quality-of-Service events upstream
+
 ## Sink API
 **Types:**
 * [dsl_recording_info](#dsl_recording_info)
