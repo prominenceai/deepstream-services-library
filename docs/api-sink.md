@@ -22,12 +22,12 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 
 ### Common Sink Properties
 
-| Sink               | DS Plugin     | sync  | async | max-lateness |  qos  |
+| Sink               |  GS Plugin    | sync  | async | max-lateness |  qos  |
 | -------------------|---------------|-------|------ | ------------ | ----- |
-| Overlay Sink       | nvoverlaysink | true  | true  |      -1      | true  |
-| Window Sink        | nveglglessink | true  | true  |      -1      | true  |
+| Overlay Sink       | nvoverlaysink | true  | true  |   20000000   | true  |
+| Window Sink        | nveglglessink | true  | true  |   20000000   | true  |
 | File Sink          | filesink      | false | true  |      -1      | false |
-| Record Sink        |               |       |       |              |       |
+| Record Sink        |               |  n/a  |  n/a  |      n/a     |  n/a  |
 | RTSP Sink          | udpsink       | true  | true  |      -1      | false |
 | WebRTC Sink        |               |       |       |              |       |
 | Message Sink       | nvmsgbroker   | true  | true  |      -1      | false |
@@ -35,6 +35,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 | Interpipe Sink     | interpipesink | false | true  |      -1      | false |
 | Multi-Image Sink   | multifilesink | false | true  |      -1      | false |
 | Frame-Capture Sink | appsink       | true  | true  |      -1      | false |
+| Fake Sink          | fakesink      | false | true  |      -1      | false |
 
 * sync : Sync on the clock
 * async : Go asynchronously to PAUSED
