@@ -7140,6 +7140,22 @@ DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
+ * @brief Gets the current settings for the "async" attribute for the named Sink
+ * @param[in] name unique name of the Sink to query
+ * @param[out] enabled the current setting for the Sink's "async" attribute
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "async" attribute for the named Sink
+ * @param[in] name unique name of the Sink to update
+ * @param[in] enabled set to true to enable the Sink's "async" attribute, false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
  * @brief deletes a Component object by name
  * @param[in] name name of the Component object to delete
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT

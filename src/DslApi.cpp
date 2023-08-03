@@ -7753,6 +7753,28 @@ DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
         enabled);
 }
     
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkAsyncEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkAsyncEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+    
 DslReturnType dsl_component_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

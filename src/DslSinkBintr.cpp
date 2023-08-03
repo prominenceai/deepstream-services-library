@@ -34,12 +34,14 @@ THE SOFTWARE.
 namespace DSL
 {
 
-    SinkBintr::SinkBintr(const char* name, 
-        bool sync)
+    SinkBintr::SinkBintr(const char* name) 
         : Bintr(name)
-        , m_sync(sync)
-        , m_cudaDeviceProp{0}
+        , m_sync(false)         // Note: each derived bintr will update the 4 common
+        , m_async(false)        // propery settings (sync, async, max-latness, qos)
+        , m_maxLateness(-1)     // with get-property calls on bintr construction.
         , m_qos(false)
+        , m_enableLastSample(false) // disable last-sample for all bintrs.
+        , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
 
@@ -89,36 +91,129 @@ namespace DSL
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    bool SinkBintr::GetSyncEnabled()
+    gboolean SinkBintr::GetSyncEnabled()
     {
         LOG_FUNC();
         
         return m_sync;
+    }
+    
+    bool SinkBintr::SetSyncEnabled(gboolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set sync enabled property for SinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_sync = enabled;
+        
+        m_pSink->SetAttribute("sync", m_sync);
+        
+        return true;
+    }
+    
+    gboolean SinkBintr::GetAsyncEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_async;
+    }
+
+    bool SinkBintr::SetAsyncEnabled(gboolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set async enabled property for SinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_async = enabled;
+        
+        m_pSink->SetAttribute("async", m_async);
+        
+        return true;
+    }
+
+    gint64 SinkBintr::GetMaxLateness()
+    {
+        LOG_FUNC();
+        
+        return m_maxLateness;
+    }
+
+    bool SinkBintr::SetMaxLateness(gint64 maxLateness)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the max-lateness property for SinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_maxLateness = maxLateness;
+        
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+        
+        return true;
+    }
+
+    gboolean SinkBintr::GetQosEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_qos;
+    }
+
+    bool SinkBintr::SetQosEnabled(gboolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set the qos enabled setting for SinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_qos = enabled;
+        
+        m_pSink->SetAttribute("qos", m_qos);
+        
+        return true;
     }
 
     //-------------------------------------------------------------------------
 
     AppSinkBintr::AppSinkBintr(const char* name, uint dataType,
         dsl_sink_app_new_data_handler_cb clientHandler, void* clientData)
-        : SinkBintr(name, true)
+        : SinkBintr(name)
         , m_dataType(dataType)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
     {
         LOG_FUNC();
-        
-        m_pAppSink = DSL_ELEMENT_NEW("appsink", name);
-        m_pAppSink->SetAttribute("enable-last-sample", false);
-        m_pAppSink->SetAttribute("max-lateness", -1);
-        m_pAppSink->SetAttribute("sync", m_sync);
-        m_pAppSink->SetAttribute("async", false);
-        m_pAppSink->SetAttribute("qos", m_qos);
+
+        m_pSink = DSL_ELEMENT_NEW("appsink", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
         // emit-signals are disabled by default... need to enable
-        m_pAppSink->SetAttribute("emit-signals", true);
+        m_pSink->SetAttribute("emit-signals", true);
         
         // register callback with the new-sample signal
-        g_signal_connect(m_pAppSink->GetGObject(), "new-sample", 
+        g_signal_connect(m_pSink->GetGObject(), "new-sample", 
             G_CALLBACK(on_new_sample_cb), this);
         
         // Only log properties if App Sink and not Frame-Capture Sink
@@ -126,12 +221,13 @@ namespace DSL
         {
             LOG_INFO("");
             LOG_INFO("Initial property values for AppSinkBintr '" << name << "'");
-            LOG_INFO("  enable-last-sample : " << false);
-            LOG_INFO("  max-lateness       : " << -1);
             LOG_INFO("  sync               : " << m_sync);
+            LOG_INFO("  async              : " << m_async);
+            LOG_INFO("  max-lateness       : " << m_maxLateness);
             LOG_INFO("  qos                : " << m_qos);
+            LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         }
-        AddChild(m_pAppSink);
+        AddChild(m_pSink);
     }
     
     AppSinkBintr::~AppSinkBintr()
@@ -153,7 +249,7 @@ namespace DSL
             LOG_ERROR("AppSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pAppSink))
+        if (!m_pQueue->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -172,23 +268,6 @@ namespace DSL
         }
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
-    }
-
-    bool AppSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for AppSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pAppSink->SetAttribute("sync", m_sync);
-        
-        return true;
     }
 
     uint AppSinkBintr::GetDataType()
@@ -215,7 +294,7 @@ namespace DSL
         void* pData(NULL);
         
         GstSample* pSample = gst_app_sink_pull_sample(
-            GST_APP_SINK(m_pAppSink->GetGstElement()));
+            GST_APP_SINK(m_pSink->GetGstElement()));
             
         if (m_dataType == DSL_SINK_APP_DATA_TYPE_SAMPLE)
         {
@@ -301,10 +380,11 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for FrameCaptureSinkBintr '" 
             << name << "'");
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
         // override the client data (set to NULL above) to this pointer.
         m_clientData = this;
@@ -379,25 +459,30 @@ namespace DSL
 
     //-------------------------------------------------------------------------
     FakeSinkBintr::FakeSinkBintr(const char* name)
-        : SinkBintr(name, true)
+        : SinkBintr(name)
     {
         LOG_FUNC();
         
-        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
-        m_pFakeSink->SetAttribute("enable-last-sample", false);
-        m_pFakeSink->SetAttribute("max-lateness", -1);
-        m_pFakeSink->SetAttribute("sync", m_sync);
-        m_pFakeSink->SetAttribute("async", false);
-        m_pFakeSink->SetAttribute("qos", m_qos);
+        m_pSink = DSL_ELEMENT_NEW("fakesink", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for FakeSinkBintr '" << name << "'");
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
-        AddChild(m_pFakeSink);
+        AddChild(m_pSink);
     }
     
     FakeSinkBintr::~FakeSinkBintr()
@@ -419,7 +504,7 @@ namespace DSL
             LOG_ERROR("FakeSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pFakeSink))
+        if (!m_pQueue->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -440,28 +525,11 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool FakeSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for FakeSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pFakeSink->SetAttribute("sync", m_sync);
-        
-        return true;
-    }
-
     //-------------------------------------------------------------------------
 
     RenderSinkBintr::RenderSinkBintr(const char* name, 
-        uint offsetX, uint offsetY, uint width, uint height, bool sync)
-        : SinkBintr(name, sync)
+        uint offsetX, uint offsetY, uint width, uint height)
+        : SinkBintr(name)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
@@ -496,7 +564,7 @@ namespace DSL
 
     OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
         uint depth, uint offsetX, uint offsetY, uint width, uint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
+        : RenderSinkBintr(name, offsetX, offsetY, width, height)
         , m_displayId(displayId)
         , m_depth(depth)
         , m_uniqueId(1)
@@ -516,30 +584,36 @@ namespace DSL
         }
         s_uniqueIds.push_back(m_uniqueId);
         
-        m_pOverlay = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
+        m_pSink = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
         
-        m_pOverlay->SetAttribute("overlay", m_uniqueId);
-        m_pOverlay->SetAttribute("display-id", m_displayId);
-        m_pOverlay->SetAttribute("max-lateness", -1);
-//        m_pOverlay->SetAttribute("sync", m_sync);
-//        m_pOverlay->SetAttribute("async", false);
-        m_pOverlay->SetAttribute("sync", false);
-        m_pOverlay->SetAttribute("async", false);
-        m_pOverlay->SetAttribute("qos", m_qos);
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("overlay", m_uniqueId);
+        m_pSink->SetAttribute("display-id", m_displayId);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for OverlaySinkBintr '" << name << "'");
-        LOG_INFO("  unique-id         : " << m_uniqueId);
-        LOG_INFO("  display-id        : " << m_displayId);
-        LOG_INFO("  offset-x          : " << offsetX);
-        LOG_INFO("  offset-y          : " << offsetY);
-        LOG_INFO("  width             : " << m_width);
-        LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  max-lateness      : " << -1);
-        LOG_INFO("  sync              : " << m_sync);
-        LOG_INFO("  qos               : " << m_qos);
+        LOG_INFO("  unique-id          : " << m_uniqueId);
+        LOG_INFO("  display-id         : " << m_displayId);
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
-        AddChild(m_pOverlay);
+        AddChild(m_pSink);
     }
     
     bool OverlaySinkBintr::Reset()
@@ -556,15 +630,15 @@ namespace DSL
         // Need to clear and then reset the Overlay attributes. Note this is
         // a workaround see 
         // https://forums.developer.nvidia.com/t/nvoverlaysink-ignores-properties-when-pipeline-is-restarted/179379
-        m_pOverlay->SetAttribute("overlay-x", 0);
-        m_pOverlay->SetAttribute("overlay-y", 0);
-        m_pOverlay->SetAttribute("overlay-w", 0);
-        m_pOverlay->SetAttribute("overlay-h", 0);
+        m_pSink->SetAttribute("overlay-x", 0);
+        m_pSink->SetAttribute("overlay-y", 0);
+        m_pSink->SetAttribute("overlay-w", 0);
+        m_pSink->SetAttribute("overlay-h", 0);
 
-        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
-        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
-        m_pOverlay->SetAttribute("overlay-w", m_width);
-        m_pOverlay->SetAttribute("overlay-h", m_height);
+        m_pSink->SetAttribute("overlay-x", m_offsetX);
+        m_pSink->SetAttribute("overlay-y", m_offsetY);
+        m_pSink->SetAttribute("overlay-w", m_width);
+        m_pSink->SetAttribute("overlay-h", m_height);
 
         return true;
     }
@@ -591,7 +665,7 @@ namespace DSL
             LOG_ERROR("Failed to create/reset Overlay pluggin");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pOverlay))
+        if (!m_pQueue->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -633,7 +707,7 @@ namespace DSL
         }
 
         m_displayId = id;
-        m_pOverlay->SetAttribute("display-id", m_displayId);
+        m_pSink->SetAttribute("display-id", m_displayId);
         
         return true;
     }
@@ -647,10 +721,10 @@ namespace DSL
 
         // workaround for NVIDIA bug... need to reset offsets
         // before setting them to new values.
-        m_pOverlay->SetAttribute("overlay-x", 0);
-        m_pOverlay->SetAttribute("overlay-y", 0);
-        m_pOverlay->SetAttribute("overlay-x", m_offsetX);
-        m_pOverlay->SetAttribute("overlay-y", m_offsetY);
+        m_pSink->SetAttribute("overlay-x", 0);
+        m_pSink->SetAttribute("overlay-y", 0);
+        m_pSink->SetAttribute("overlay-x", m_offsetX);
+        m_pSink->SetAttribute("overlay-y", m_offsetY);
         
         return true;
     }
@@ -662,34 +736,17 @@ namespace DSL
         m_width = width;
         m_height = height;
 
-        m_pOverlay->SetAttribute("overlay-w", m_width);
-        m_pOverlay->SetAttribute("overlay-h", m_height);
+        m_pSink->SetAttribute("overlay-w", m_width);
+        m_pSink->SetAttribute("overlay-h", m_height);
         
         return true;
     }
 
-    bool OverlaySinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pOverlay->SetAttribute("sync", m_sync);
-
-        return true;
-    }
-    
     //-------------------------------------------------------------------------
 
     WindowSinkBintr::WindowSinkBintr(const char* name, 
         guint offsetX, guint offsetY, guint width, guint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height, true)
+        : RenderSinkBintr(name, offsetX, offsetY, width, height)
         , m_pXDisplay(0)
         , m_pXWindow(0)
         , m_pXWindowCreated(false)
@@ -732,7 +789,7 @@ namespace DSL
             m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
         }
         
-        // Reset to create m_pEglGles
+        // Reset to create m_pSink
         if (!Reset())
         {
             LOG_ERROR("Failed to create Window element for SinkBintr '" 
@@ -746,10 +803,11 @@ namespace DSL
         LOG_INFO("  width              : " << m_width);
         LOG_INFO("  height             : " << m_height);
         LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
         AddChild(m_pTransform);
     }
@@ -794,29 +852,33 @@ namespace DSL
         }
 
         // If not  a first time call from the constructor
-        if (m_pEglGles != nullptr)
+        if (m_pSink != nullptr)
         {
             // Remove the existing element from the objects bin
-            gst_element_set_state(m_pEglGles->GetGstElement(), GST_STATE_NULL);
-            RemoveChild(m_pEglGles);
-            m_pEglGles = nullptr;
+            gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
+            RemoveChild(m_pSink);
+            m_pSink = nullptr;
         }
         
-        m_pEglGles = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
         
-        m_pEglGles->SetAttribute("window-x", m_offsetX);
-        m_pEglGles->SetAttribute("window-y", m_offsetY);
-        m_pEglGles->SetAttribute("window-width", m_width);
-        m_pEglGles->SetAttribute("window-height", m_height);
-        m_pEglGles->SetAttribute("enable-last-sample", false);
-        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         
-        m_pEglGles->SetAttribute("max-lateness", -1);
-        m_pEglGles->SetAttribute("sync", m_sync);
-        m_pEglGles->SetAttribute("async", false);
-        m_pEglGles->SetAttribute("qos", m_qos);
-        
-        AddChild(m_pEglGles);
+        AddChild(m_pSink);
         
         return true;
     }
@@ -834,14 +896,14 @@ namespace DSL
         Reset();
         // register this Window-Sink's nveglglessink plugin.
         Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
-            m_pEglGles->GetGstObject());
+            m_pSink->GetGstObject());
 
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
             if (!m_pQueue->LinkToSink(m_pTransform) or
                 !m_pTransform->LinkToSink(m_pCapsFilter) or
-                !m_pCapsFilter->LinkToSink(m_pEglGles))
+                !m_pCapsFilter->LinkToSink(m_pSink))
             {
                 return false;
             }
@@ -849,7 +911,7 @@ namespace DSL
         else // aarch_64
         {
             if (!m_pQueue->LinkToSink(m_pTransform) or
-                !m_pTransform->LinkToSink(m_pEglGles))
+                !m_pTransform->LinkToSink(m_pSink))
             {
                 return false;
             }
@@ -921,8 +983,8 @@ namespace DSL
                 m_width, m_height);
         }
         // Set the EglGles plugin values regardless of XWindow existence.
-        m_pEglGles->SetAttribute("window-x", m_offsetX);
-        m_pEglGles->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
         
         return true;
     }
@@ -961,26 +1023,9 @@ namespace DSL
                 m_width, m_height);
         }
         // Set the EglGles plugin values regardless of XWindow existence.
-        m_pEglGles->SetAttribute("window-width", m_width);
-        m_pEglGles->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
         
-        return true;
-    }
-
-    bool WindowSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for WindowSinkBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pEglGles->SetAttribute("sync", m_sync);
-
         return true;
     }
 
@@ -1002,7 +1047,7 @@ namespace DSL
             return false;
         }
         m_forceAspectRatio = force;
-        m_pEglGles->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
 
@@ -1152,14 +1197,14 @@ namespace DSL
             XMapRaised(m_pXDisplay, m_pXWindow);
         }
         gst_video_overlay_set_window_handle(
-            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()), m_pXWindow);
+            GST_VIDEO_OVERLAY(m_pSink->GetGstObject()), m_pXWindow);
 
         XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
             m_offsetX, m_offsetY, 
             m_width, m_height);
 
         gst_video_overlay_expose(
-            GST_VIDEO_OVERLAY(m_pEglGles->GetGstObject()));
+            GST_VIDEO_OVERLAY(m_pSink->GetGstObject()));
         return true;
     }
 
@@ -1444,7 +1489,7 @@ namespace DSL
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
         uint codec, uint bitrate, uint interval)
-        : SinkBintr(name, true)
+        : SinkBintr(name)
         , m_codec(codec)
         , m_bitrate(bitrate)
         , m_interval(interval)
@@ -1622,10 +1667,19 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pFileSink = DSL_ELEMENT_NEW("filesink", name);
+        m_pSink = DSL_ELEMENT_NEW("filesink", name);
 
-        m_pFileSink->SetAttribute("location", filepath);
-        m_pFileSink->SetAttribute("sync", m_sync);
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Set the location for the output file
+        m_pSink->SetAttribute("location", filepath);
         
         switch (container)
         {
@@ -1656,13 +1710,14 @@ namespace DSL
         LOG_INFO("  interval           : " << m_interval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
 
         AddChild(m_pContainer);
-        AddChild(m_pFileSink);
+        AddChild(m_pSink);
     }
     
     FileSinkBintr::~FileSinkBintr()
@@ -1689,7 +1744,7 @@ namespace DSL
             !m_pCapsFilter->LinkToSink(m_pEncoder) or
             !m_pEncoder->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pContainer) or
-            !m_pContainer->LinkToSink(m_pFileSink))
+            !m_pContainer->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -1715,23 +1770,6 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool FileSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for FileSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pFileSink->SetAttribute("sync", m_sync);
-
-        return true;
-    }
-    
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
@@ -1758,10 +1796,11 @@ namespace DSL
         LOG_INFO("  interval           : " << m_interval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
-        LOG_INFO("  sync               : " << m_sync);
-        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << "n/a");
+        LOG_INFO("  max-lateness       : " << "n/a");
+        LOG_INFO("  sync               : " << "n/a");
+        LOG_INFO("  async              : " << "n/a");
+        LOG_INFO("  qos                : " << "n/a");
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -1832,23 +1871,6 @@ namespace DSL
         m_isLinked = false;
     }
 
-    
-    bool RecordSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for RecordSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-
-        // TODO set sync/async for file element owned by context??
-        return true;
-    }
-
     //******************************************************************************************
     
     RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
@@ -1884,12 +1906,20 @@ namespace DSL
             throw;
         }
 
-        m_pUdpSink = DSL_ELEMENT_NEW("udpsink", name);
+        m_pSink = DSL_ELEMENT_NEW("udpsink", name);
 
-        m_pUdpSink->SetAttribute("host", m_host.c_str());
-        m_pUdpSink->SetAttribute("port", m_udpPort);
-        m_pUdpSink->SetAttribute("sync", m_sync);
-        m_pUdpSink->SetAttribute("async", false);
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("host", m_host.c_str());
+        m_pSink->SetAttribute("port", m_udpPort);
 
         // aarch_64
         if (m_cudaDeviceProp.integrated)
@@ -1920,13 +1950,14 @@ namespace DSL
         LOG_INFO("  interval           : " << m_interval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
 
         AddChild(m_pPayloader);
-        AddChild(m_pUdpSink);
+        AddChild(m_pSink);
     }
     
     RtspSinkBintr::~RtspSinkBintr()
@@ -1978,7 +2009,7 @@ namespace DSL
             !m_pCapsFilter->LinkToSink(m_pEncoder) or
             !m_pEncoder->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pPayloader) or
-            !m_pPayloader->LinkToSink(m_pUdpSink))
+            !m_pPayloader->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -2060,27 +2091,12 @@ namespace DSL
         *rtspPort = m_rtspPort;
     }
     
-    bool RtspSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for RtspSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pUdpSink->SetAttribute("sync", m_sync);
-
-        return true;
-    }
-
+    // -------------------------------------------------------------------------------
+    
     MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
         uint payloadType, const char* brokerConfigFile, const char* protocolLib, 
         const char* connectionString, const char* topic)
-        : SinkBintr(name, true) // used for fake sink only
+        : SinkBintr(name) // used for fake sink only
         , m_metaType(NVDS_EVENT_MSG_META)
         , m_converterConfigFile(converterConfigFile)
         , m_payloadType(payloadType)
@@ -2094,7 +2110,19 @@ namespace DSL
         m_pTee = DSL_ELEMENT_NEW("tee", name);
         m_pMsgConverterQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvmsgconv");
         m_pMsgConverter = DSL_ELEMENT_NEW("nvmsgconv", name);
-        m_pMsgBroker = DSL_ELEMENT_NEW("nvmsgbroker", name);
+        
+        // Message broker is primary sink component.
+        m_pSink = DSL_ELEMENT_NEW("nvmsgbroker", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+        
         m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
         m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
         
@@ -2102,23 +2130,26 @@ namespace DSL
         m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
         m_pMsgConverter->SetAttribute("payload-type", m_payloadType);
 
-        m_pMsgBroker->SetAttribute("proto-lib", m_protocolLib.c_str());
-        m_pMsgBroker->SetAttribute("conn-str", m_connectionString.c_str());
-        m_pMsgBroker->SetAttribute("sync", false);
+        m_pSink->SetAttribute("proto-lib", m_protocolLib.c_str());
+        m_pSink->SetAttribute("conn-str", m_connectionString.c_str());
+        
+        // Get the property defaults
+//        m_pFakeSink->GetAttribute("async", &m_async);
 
-        m_pFakeSink->SetAttribute("enable-last-sample", false);
-        m_pFakeSink->SetAttribute("max-lateness", -1);
-        m_pFakeSink->SetAttribute("sync", m_sync);
-        m_pFakeSink->SetAttribute("async", false);
-        m_pFakeSink->SetAttribute("qos", m_qos);
+        // Update all default DSL values
+//        m_pFakeSink->SetAttribute("enable-last-sample", false);
+//        m_pFakeSink->SetAttribute("max-lateness", -1);
+//        m_pFakeSink->SetAttribute("sync", m_sync);
+//        m_pFakeSink->SetAttribute("async", false);
+//        m_pFakeSink->SetAttribute("qos", m_qos);
         
         if (brokerConfigFile)
         {
-            m_pMsgBroker->SetAttribute("config", m_brokerConfigFile.c_str());
+            m_pSink->SetAttribute("config", m_brokerConfigFile.c_str());
         }
         if (m_topic.size())
         {
-            m_pMsgBroker->SetAttribute("topic", m_topic.c_str());
+            m_pSink->SetAttribute("topic", m_topic.c_str());
         }
 
         LOG_INFO("");
@@ -2127,15 +2158,16 @@ namespace DSL
         LOG_INFO("  payload-type       : " << m_payloadType);
         LOG_INFO("  broker-config      : " << m_brokerConfigFile);
         LOG_INFO("  proto-lib          : " << m_protocolLib);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
         AddChild(m_pTee);
         AddChild(m_pMsgConverterQueue);
         AddChild(m_pMsgConverter);
-        AddChild(m_pMsgBroker);
+        AddChild(m_pSink);
         AddChild(m_pFakeSinkQueue);
         AddChild(m_pFakeSink);
     }
@@ -2162,7 +2194,7 @@ namespace DSL
         if (!m_pQueue->LinkToSink(m_pTee) or
             !m_pMsgConverterQueue->LinkToSourceTee(m_pTee, "src_%u") or
             !m_pMsgConverterQueue->LinkToSink(m_pMsgConverter) or
-            !m_pMsgConverter->LinkToSink(m_pMsgBroker) or
+            !m_pMsgConverter->LinkToSink(m_pSink) or
             !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
             !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
         {
@@ -2190,22 +2222,6 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool MessageSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for MessageSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-
-        m_pMsgBroker->SetAttribute("sink", m_sync);
-        return true;
-    }
-
     void MessageSinkBintr::GetConverterSettings(const char** converterConfigFile,
         uint* payloadType)
     {
@@ -2285,10 +2301,10 @@ namespace DSL
         m_connectionString.assign(connectionString);
         m_topic.assign(topic);
         
-        m_pMsgBroker->SetAttribute("config", m_brokerConfigFile.c_str());
-        m_pMsgBroker->SetAttribute("proto-lib", m_protocolLib.c_str());
-        m_pMsgBroker->SetAttribute("conn-str", m_connectionString.c_str());
-        m_pMsgBroker->SetAttribute("topic", m_topic.c_str());
+        m_pSink->SetAttribute("config", m_brokerConfigFile.c_str());
+        m_pSink->SetAttribute("proto-lib", m_protocolLib.c_str());
+        m_pSink->SetAttribute("conn-str", m_connectionString.c_str());
+        m_pSink->SetAttribute("topic", m_topic.c_str());
         return true;
     }
 
@@ -2296,32 +2312,40 @@ namespace DSL
 
     InterpipeSinkBintr::InterpipeSinkBintr(const char* name,
         bool forwardEos, bool forwardEvents)
-        : SinkBintr(name, true)
+        : SinkBintr(name)
         , m_forwardEos(forwardEos)
         , m_forwardEvents(forwardEvents)
     {
         LOG_FUNC();
         
-        m_pSinkElement = DSL_ELEMENT_NEW("interpipesink", name);
-        m_pSinkElement->SetAttribute("sync", m_sync);
-        m_pSinkElement->SetAttribute("async", true);
-        m_pSinkElement->SetAttribute("qos", m_qos);
-        m_pSinkElement->SetAttribute("forward-eos", m_forwardEos);
-        m_pSinkElement->SetAttribute("forward-events", m_forwardEvents);
+        m_pSink = DSL_ELEMENT_NEW("interpipesink", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+        
+        m_pSink->SetAttribute("forward-eos", m_forwardEos);
+        m_pSink->SetAttribute("forward-events", m_forwardEvents);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for InterpipeSinkBintr '" << name << "'");
         LOG_INFO("  forward-eos        : " << m_forwardEos);
         LOG_INFO("  forward-events     : " << m_forwardEvents);
-        LOG_INFO("  enable-last-sample : " << false);
-        LOG_INFO("  max-lateness       : " << -1);
         LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
-        LOG_INFO("interpipesink full name = " << m_pSinkElement->GetName());
+        LOG_INFO("interpipesink full name = " << m_pSink->GetName());
 
         
-        AddChild(m_pSinkElement);
+        AddChild(m_pSink);
     }
     
     InterpipeSinkBintr::~InterpipeSinkBintr()
@@ -2343,7 +2367,7 @@ namespace DSL
             LOG_ERROR("InterpipeSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pSinkElement))
+        if (!m_pQueue->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -2387,8 +2411,8 @@ namespace DSL
         m_forwardEos = forwardEos;
         m_forwardEvents = forwardEvents;
         
-        m_pSinkElement->SetAttribute("forward-eos", m_forwardEos);
-        m_pSinkElement->SetAttribute("forward-events", m_forwardEvents);
+        m_pSink->SetAttribute("forward-eos", m_forwardEos);
+        m_pSink->SetAttribute("forward-events", m_forwardEvents);
         
         return true;
     }
@@ -2398,26 +2422,9 @@ namespace DSL
         LOG_FUNC();
         
         uint numListeners;
-        m_pSinkElement->GetAttribute("num-listeners", &numListeners);
+        m_pSink->GetAttribute("num-listeners", &numListeners);
         
         return numListeners;
-    }
-
-    bool InterpipeSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for FakeSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pSinkElement->SetAttribute("sync", m_sync);
-        
-        return true;
     }
 
     //-------------------------------------------------------------------------
@@ -2425,7 +2432,7 @@ namespace DSL
     MultiImageSinkBintr::MultiImageSinkBintr(const char* name,
         const char* filepath, uint width, uint height,
         uint fpsN, uint fpsD)
-        : SinkBintr(name, false)
+        : SinkBintr(name)
         , m_filepath(filepath)
         , m_width(width)
         , m_height(height)
@@ -2438,10 +2445,19 @@ namespace DSL
         m_pVideoRate = DSL_ELEMENT_NEW("videorate", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
         m_pJpegEnc = DSL_ELEMENT_NEW("jpegenc", name);
-        m_pMultiFileSync = DSL_ELEMENT_NEW("multifilesink", name);
+        m_pSink = DSL_ELEMENT_NEW("multifilesink", name);
         
-        m_pMultiFileSync->SetAttribute("location", filepath);
-        m_pMultiFileSync->SetAttribute("sync", m_sync);
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update the output file location
+        m_pSink->SetAttribute("location", filepath);
 
         if (!setCaps())
         {
@@ -2449,7 +2465,7 @@ namespace DSL
         }
 
         // get the property defaults
-        m_pMultiFileSync->GetAttribute("max-files", &m_maxFiles);
+        m_pSink->GetAttribute("max-files", &m_maxFiles);
         
         LOG_INFO("");
         LOG_INFO("Initial property values for MultiImageSinkBintr '" << name << "'");
@@ -2459,13 +2475,17 @@ namespace DSL
         LOG_INFO("  fps_n             : " << m_fpsN);
         LOG_INFO("  fps_d             : " << m_fpsD);
         LOG_INFO("  max-files         : " << m_maxFiles);
-        LOG_INFO("  sync              : " << m_sync);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
         AddChild(m_pVideoConv);
         AddChild(m_pVideoRate);
         AddChild(m_pCapsFilter);
         AddChild(m_pJpegEnc);
-        AddChild(m_pMultiFileSync);
+        AddChild(m_pSink);
     }
 
     MultiImageSinkBintr::~MultiImageSinkBintr()
@@ -2491,7 +2511,7 @@ namespace DSL
             !m_pVideoConv->LinkToSink(m_pVideoRate) or
             !m_pVideoRate->LinkToSink(m_pCapsFilter) or
             !m_pCapsFilter->LinkToSink(m_pJpegEnc) or
-            !m_pJpegEnc->LinkToSink(m_pMultiFileSync))
+            !m_pJpegEnc->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -2536,7 +2556,7 @@ namespace DSL
             return false;
         }
         m_filepath = filepath;
-        m_pMultiFileSync->SetAttribute("location", filepath);
+        m_pSink->SetAttribute("location", filepath);
         return true;
     }
     
@@ -2609,28 +2629,10 @@ namespace DSL
             return false;
         }
         m_maxFiles = max;
-        m_pMultiFileSync->SetAttribute("max-files", m_maxFiles);
+        m_pSink->SetAttribute("max-files", m_maxFiles);
         return true;
     }
     
-    bool MultiImageSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR(
-                "Unable to set Sync enabled setting for MultiImageSinkBintr '"
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        m_sync = enabled;
-        
-        m_pMultiFileSync->SetAttribute("sync", m_sync);
-        
-        return true;
-    }
-
     bool MultiImageSinkBintr::setCaps()
     {
         LOG_FUNC();

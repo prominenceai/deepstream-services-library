@@ -1352,6 +1352,10 @@ namespace DSL {
 
         DslReturnType SinkSyncEnabledSet(const char* name, boolean enabled);
 
+        DslReturnType SinkAsyncEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkAsyncEnabledSet(const char* name, boolean enabled);
+
         DslReturnType WebsocketServerPathAdd(const char* path);
         
         DslReturnType WebsocketServerListeningStart(uint portNumber);

@@ -104,7 +104,7 @@ namespace DSL
     {
     public: 
     
-        SinkBintr(const char* name, bool sync);
+        SinkBintr(const char* name);
 
         ~SinkBintr();
   
@@ -122,45 +122,105 @@ namespace DSL
         bool IsParent(DSL_BASE_PTR pParentBintr);
         
         /**
-         * @brief removes this SinkBintr from a parent Branch/Pipeline bintr
-         * @param[in] pParentBintr parent bintr to remove this sink from
+         * @brief removes this SinkBintr from a parent Branch/Pipeline bintr.
+         * @param[in] pParentBintr parent bintr to remove this sink from.
          * @return true on successful remove, false otherwise
          */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
-         * @brief returns the current sync enabled setting for the SinkBintr
-         * @return true if the sync attribute is enabled, false othewise
+         * @brief returns the current sync enabled property for the SinkBintr.
+         * @return true if the sync property is enabled, false othewise.
          */
-        bool GetSyncEnabled();
+        gboolean GetSyncEnabled();
         
         /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
+         * @brief sets the sync enabled property for the SinkBintr.
+         * @param[in] enabled new sync enabled property value.
          */
-        virtual bool SetSyncEnabled(bool enabled) = 0;
+        virtual bool SetSyncEnabled(gboolean enabled);
+
+        /**
+         * @brief returns the current async enabled property value for the SinkBintr.
+         * @return true if the async property is enabled, false othewise.
+         */
+        gboolean GetAsyncEnabled();
         
+        /**
+         * @brief sets the async enabled property for the SinkBintr.
+         * @param[in] enabled new async property value.
+         */
+        virtual bool SetAsyncEnabled(gboolean enabled);
+        
+        /**
+         * @brief returns the current max-lateness property value for the SinkBintr.
+         * @return current max-lateness (default = -1 unlimited).
+         */
+        gint64 GetMaxLateness();
+        
+        /**
+         * @brief sets the max-lateness property for the SinkBintr.
+         * @param[in] maxLateness new max-lateness proprty value.
+         */
+        virtual bool SetMaxLateness(gint64 maxLateness);
+
+        /**
+         * @brief returns the current qos enabled property value for the SinkBintr.
+         * @return true if the qos property is enabled, false othewise.
+         */
+        gboolean GetQosEnabled();
+        
+        /**
+         * @brief sets the qos enabled property for the SinkBintr.
+         * @param[in] enabled new qos enabled property value.
+         */
+        virtual bool SetQosEnabled(gboolean enabled);
+
     protected:
 
         /**
-         * @brief Device Properties, used for aarch64/x86_64 conditional logic
+         * @brief Device Properties, used for aarch64/x86_64 conditional logic.
          */
         cudaDeviceProp m_cudaDeviceProp;
         
         /**
-         * @brief Generate Quality-of-Service events upstream if true
+         * @brief Sink element's current "sync" property setting.
+         * Set to true to Sync on the clock.
          */
-        bool m_qos;
+        gboolean m_sync;
 
         /**
-         * @brief Sink element's current synchronous attribute setting.
+         * @brief Sink element's current "async" property setting.
+         * set to true to go asynchronously to PAUSED.
          */
-        bool m_sync;
+        gboolean m_async;
 
+        /**
+         * @brief Sink element's current "max-lateness" property setting.
+         * Maximum number of nanoseconds that a buffer can be late before it is .
+         * dropped (-1 unlimited).
+         */
+        int64_t m_maxLateness; 
+
+        /**
+         * @brief Generate Quality-of-Service events upstream if true.
+         */
+        gboolean m_qos;
+        
+        /**
+         * @brief Enable/disabled the last-sample property.
+         */
+        gboolean m_enableLastSample;
+ 
         /**
          * @brief Queue element as sink for all Sink Bintrs.
          */
         DSL_ELEMENT_PTR m_pQueue;
+        
+        /**
+         * @brief Actual sink element specific to each Sink Bintr.
+         */
+        DSL_ELEMENT_PTR m_pSink;
     };
 
     //-------------------------------------------------------------------------
@@ -191,6 +251,12 @@ namespace DSL
          * @param[in] enabled current sync setting.
          */
         bool SetSyncEnabled(bool enabled);
+        
+        /**
+         * @brief sets the async enabled setting for the SinkBintr
+         * @param[in] enabled current sync setting.
+         */
+        bool SetAsyncEnabled(bool enabled);
         
         /**
          * @brief Handles the new sample on signal call and provides either
@@ -239,11 +305,6 @@ namespace DSL
          * buffer available.
          */
         dsl_sink_app_new_data_handler_cb m_clientHandler; 
-        
-        /**
-         * @brief App Sink element for the Sink Bintr.
-         */
-        DSL_ELEMENT_PTR m_pAppSink;
         
     };
 
@@ -348,18 +409,8 @@ namespace DSL
          */
         void UnlinkAll();
         
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-
     private:
         
-        /**
-         * @brief Fake Sink element for the Sink Bintr.
-         */
-        DSL_ELEMENT_PTR m_pFakeSink;
     };
 
     //-------------------------------------------------------------------------
@@ -369,7 +420,7 @@ namespace DSL
     public: 
     
         RenderSinkBintr(const char* name, 
-            uint offsetX, uint offsetY, uint width, uint height, bool sync);
+            uint offsetX, uint offsetY, uint width, uint height);
 
         ~RenderSinkBintr();
         
@@ -485,16 +536,6 @@ namespace DSL
          */ 
         bool SetDimensions(uint width, uint hieght);
 
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-
-        /**
-         * @brief static list of unique Overlay IDs to be used/recycled by all
-         * Overlay Sinks cto/dtor
-         */
         static std::list<uint> s_uniqueIds;
         
     private:
@@ -502,8 +543,6 @@ namespace DSL
         uint m_displayId;
         uint m_uniqueId;
         uint m_depth;
-
-        DSL_ELEMENT_PTR m_pOverlay;
     };
 
     //-------------------------------------------------------------------------
@@ -512,7 +551,8 @@ namespace DSL
     {
     public: 
     
-        WindowSinkBintr(const char* name, guint offsetX, guint offsetY, guint width, guint height);
+        WindowSinkBintr(const char* name, 
+            guint offsetX, guint offsetY, guint width, guint height);
 
         ~WindowSinkBintr();
   
@@ -566,12 +606,6 @@ namespace DSL
          */ 
         bool SetDimensions(uint width, uint hieght);
 
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-        
         /**
          * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
          * @return true if forced, false otherwise
@@ -795,10 +829,6 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pTransform;
         
-        /**
-         * @brief Window Sink Element for the WindowSinkBintr
-         */
-        DSL_ELEMENT_PTR m_pEglGles;
     };
 
     static gpointer XWindowEventThread(gpointer pWindowSink);
@@ -934,18 +964,10 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
-
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
         
     private:
 
         uint m_container;
-
-        DSL_ELEMENT_PTR m_pFileSink;
 
         DSL_ELEMENT_PTR m_pContainer;       
     };
@@ -1019,12 +1041,6 @@ namespace DSL
          */ 
         void GetServerSettings(uint* udpPort, uint* rtspPort);
 
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-
     private:
 
         std::string m_host;
@@ -1046,7 +1062,6 @@ namespace DSL
         GstRTSPMediaFactory* m_pFactory;
  
         DSL_ELEMENT_PTR m_pPayloader;
-        DSL_ELEMENT_PTR m_pUdpSink;
     };
 
     //-------------------------------------------------------------------------
@@ -1140,12 +1155,6 @@ namespace DSL
         bool SetBrokerSettings(const char* brokerConfigFile, const char* protocolLib, 
             const char* connectionString, const char* topic);
 
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-
     private:
 
         /**
@@ -1200,11 +1209,6 @@ namespace DSL
          * @brief NVIDIA message-converter element for this MessageSinkBintr 
          */
         DSL_ELEMENT_PTR m_pMsgConverter;
-
-        /**
-         * @brief NVIDIA message-broker element for this MessageSinkBintr.
-         */
-        DSL_ELEMENT_PTR m_pMsgBroker;
 
         /**
          * @brief Tee Src Queue for the Fake Sink element for this MessageSinkBintr 
@@ -1286,10 +1290,6 @@ namespace DSL
          */
         bool m_forwardEvents;
 
-        /**
-         * @brief Inter-Pipe Sink element for the InterpipeSinkBintr.
-         */
-        DSL_ELEMENT_PTR m_pSinkElement;
     };
 
     //-------------------------------------------------------------------------
@@ -1444,11 +1444,6 @@ namespace DSL
          * @brief JPEG Encoder element for the MultiImageSinkBintr.
          */
         DSL_ELEMENT_PTR m_pJpegEnc;
-
-        /**
-         * @brief Multi File Sink for the MultiImageSinkBintr.
-         */
-        DSL_ELEMENT_PTR m_pMultiFileSync;
     };
 
 }

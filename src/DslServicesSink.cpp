@@ -2455,7 +2455,6 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            bool bSync(false), bAsync(false);
             *enabled = (boolean)pSinkBintr->GetSyncEnabled();
 
             LOG_INFO("Sink '" << name << "' returned Sync = " 
@@ -2502,4 +2501,63 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkAsyncEnabledGet(const char* name,  boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            *enabled = (boolean)pSinkBintr->GetAsyncEnabled();
+
+            LOG_INFO("Sink '" << name << "' returned Async = " 
+                << *enabled  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception getting Async enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAsyncEnabledSet(const char* name,  boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetAsyncEnabled(enabled))
+            {
+                LOG_ERROR("Sink '" << name << "' failed to set Async attribute");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Sink '" << name << "' set Async = " 
+                << enabled  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception setting Async enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
 }
