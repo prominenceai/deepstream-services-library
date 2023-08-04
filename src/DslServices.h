@@ -1344,10 +1344,6 @@ namespace DSL {
         DslReturnType SinkWebRtcClientListenerRemove(const char* name,
             dsl_sink_webrtc_client_listener_cb listener);
 
-        DslReturnType SinkPphAdd(const char* name, const char* handler);
-
-        DslReturnType SinkPphRemove(const char* name, const char* handler);
-
         DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType SinkSyncEnabledSet(const char* name, boolean enabled);
@@ -1355,6 +1351,18 @@ namespace DSL {
         DslReturnType SinkAsyncEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType SinkAsyncEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SinkMaxLatenessGet(const char* name, int64_t* maxLateness);
+
+        DslReturnType SinkMaxLatenessSet(const char* name, int64_t maxLateness);
+
+        DslReturnType SinkQosEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SinkQosEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SinkPphAdd(const char* name, const char* handler);
+
+        DslReturnType SinkPphRemove(const char* name, const char* handler);
 
         DslReturnType WebsocketServerPathAdd(const char* path);
         
