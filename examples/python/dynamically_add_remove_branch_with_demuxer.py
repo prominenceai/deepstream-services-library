@@ -72,31 +72,15 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
 
-class RepeatTimer(Timer):
-    def run(self):
-        while not self.finished.wait(self.interval):
-            self.function(*self.args, **self.kwargs)
-            
-def change_stream_id():
-    global current_stream_id
-    
-    current_stream_id = (current_stream_id+1)%4
+    # if one of the unique soure Ids, show source
+    elif key_string >= '0' and key_string <= '3':
 
-    # we first call the TEE base class service to remove the branch.
-    if dsl_tee_branch_remove('demuxer', 'branch-0') == DSL_RETURN_SUCCESS:
-        
-        time.sleep(2)
-        
-        # we then call the Demuxer service to add it back at the next stream-id
-        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', current_stream_id)
-        
-#
-# Thread function to start and wait on the main-loop
-#
-def main_loop_thread_func():
+        # we first call the TEE base class service to remove the branch.
+        retval = dsl_tee_branch_remove('demuxer', 'branch-0')
 
-    # blocking call
-    dsl_main_loop_run()
+        # we then call the Demuxer service to add it back at the specified stream-id
+        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', int(key_string))
+
 
 def main(args):
 
@@ -104,25 +88,25 @@ def main(args):
     while True:
 
         # First new Streaming Image Source
-        retval = dsl_source_file_new('source-0', uri_h265, True)
-#        retval = dsl_source_image_stream_new('source-0', image_0, False, 5, 1, 0)
+#        retval = dsl_source_file_new('source-0', uri_h265, True)
+        retval = dsl_source_image_stream_new('source-0', image_0, False, 1, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_file_new('source-1', uri_h265, True)
-#        retval = dsl_source_image_stream_new('source-1', image_1, False, 5, 1, 0)
+#        retval = dsl_source_file_new('source-1', uri_h265, True)
+        retval = dsl_source_image_stream_new('source-1', image_1, False, 1, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_file_new('source-2', uri_h265, True)
-#        retval = dsl_source_image_stream_new('source-2', image_2, False, 5, 1, 0)
+#        retval = dsl_source_file_new('source-2', uri_h265, True)
+        retval = dsl_source_image_stream_new('source-2', image_2, False, 1, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_file_new('source-3', uri_h265, True)
-#        retval = dsl_source_image_stream_new('source-3', image_3, False, 5, 1, 0)
+#        retval = dsl_source_file_new('source-3', uri_h265, True)
+        retval = dsl_source_image_stream_new('source-3', image_3, False, 1, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_source_file_new('source-4', uri_h265, True)
-#        retval = dsl_source_image_stream_new('source-4', image_4, False, 5, 1, 0)
+#        retval = dsl_source_file_new('source-4', uri_h265, True)
+        retval = dsl_source_image_stream_new('source-4', image_4, False, 1, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -161,6 +145,7 @@ def main(args):
         retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
+            
         # New Fake Sink
         retval = dsl_sink_fake_new('fake-sink')
         if retval != DSL_RETURN_SUCCESS:
@@ -211,32 +196,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        main_loop_thread = Thread(target=main_loop_thread_func)
-        main_loop_thread.start()
+        # blocking call
+        dsl_main_loop_run()
 
-        for i in range(200):
-        
-            sleep(4)
-
-            # we first call the TEE base class service to remove the branch.
-            retval = dsl_tee_branch_remove('demuxer', 'branch-0')
-            if retval != DSL_RETURN_SUCCESS:
-                break
-
-            # we then call the Demuxer service to add it back at the next stream-id
-            retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', i%4)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-        
-#        timer.cancel()
         retval = DSL_RETURN_SUCCESS
         break
 
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

@@ -2003,6 +2003,94 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[sink-api]" )
     }
 }
 
+SCENARIO( "A RTSP Sink can update it's common properties correctly", 
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name(L"rtsp-sink");
+        std::wstring host(L"224.224.255.255");
+        uint udpPort(5400);
+        uint rtspPort(8554);
+        uint codec(DSL_CODEC_H265);
+        uint initBitrate(4000000);
+        uint initInterval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_rtsp_new(sink_name.c_str(), host.c_str(),
+            udpPort, rtspPort, codec, initBitrate, initInterval) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The RTSP Sink's sync property is updated from its default" ) 
+        {
+            boolean newSync(false); // default == true
+            REQUIRE( dsl_sink_sync_enabled_set(sink_name.c_str(), 
+                newSync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true);
+                REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
+                    &retSync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The RTSP Sink's async property is updated from its default" ) 
+        {
+            boolean newAsync(false);  // default == true
+            REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
+                newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retAsync(true);
+                REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
+                    &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The RTSP Sink's max-lateness property is updated from its default" ) 
+        {
+            int64_t newMaxLateness(1);  // default == -1
+            REQUIRE( dsl_sink_max_lateness_set(sink_name.c_str(), 
+                newMaxLateness) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                int64_t retMaxLateness(12345678);
+                REQUIRE( dsl_sink_max_lateness_get(sink_name.c_str(), 
+                    &retMaxLateness) == DSL_RESULT_SUCCESS );
+                REQUIRE( retMaxLateness == newMaxLateness );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The RTSP Sink's qos property is updated from its default" ) 
+        {
+            boolean newQos(false);  // default == true
+            REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
+                newQos) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retQos(true);
+                REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
+                    &retQos) == DSL_RESULT_SUCCESS );
+                REQUIRE( retQos == newQos );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+    
 SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[sink-api]" )
 {
     GIVEN( "A new Fake Sink as incorrect Sink Type" ) 
@@ -2170,6 +2258,92 @@ SCENARIO( "An Multi-Image Sink can update its property settings correctly", "[si
         }
     }
 }    
+
+SCENARIO( "A Multi-Image Sink can update it's common properties correctly", 
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name = L"multi-image-sink";
+        std::wstring file_path(L"./frame-%05d.jpg");
+        
+        uint width(0), height(0);
+        uint fps_n(1), fps_d(2);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_image_multi_new(sink_name.c_str(),
+            file_path.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Multi-Image Sink's sync property is updated from its default" ) 
+        {
+            boolean newSync(false); // default == true
+            REQUIRE( dsl_sink_sync_enabled_set(sink_name.c_str(), 
+                newSync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true);
+                REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
+                    &retSync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Multi-Image Sink's async property is updated from its default" ) 
+        {
+            boolean newAsync(false);  // default == true
+            REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
+                newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retAsync(true);
+                REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
+                    &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Multi-Image Sink's max-lateness property is updated from its default" ) 
+        {
+            int64_t newMaxLateness(1);  // default == -1
+            REQUIRE( dsl_sink_max_lateness_set(sink_name.c_str(), 
+                newMaxLateness) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                int64_t retMaxLateness(12345678);
+                REQUIRE( dsl_sink_max_lateness_get(sink_name.c_str(), 
+                    &retMaxLateness) == DSL_RESULT_SUCCESS );
+                REQUIRE( retMaxLateness == newMaxLateness );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Multi-Image Sink's qos property is updated from its default" ) 
+        {
+            boolean newQos(false);  // default == true
+            REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
+                newQos) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retQos(true);
+                REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
+                    &retQos) == DSL_RESULT_SUCCESS );
+                REQUIRE( retQos == newQos );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 {
