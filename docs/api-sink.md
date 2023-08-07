@@ -14,13 +14,23 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 * **Fake Sink** - consumes/drops all data.
 
 ### Sink Construction and Destruction
-Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
+Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created. 
 
+The relationship between [Pipelines](/docs/api-pipeline.md) and Sinks is one-to-many. The same relationship exists between [Branches](/docs/api-branch.md) and Sinks. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+
+### Adding and Deleting
 Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-The relationship between Pipelines and Sinks is one-to-many. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+A similar set of Services are used when adding/removing a to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+
+IMPORTANT: A Sink can be added as a branch (of one component) to either a Splitter or Demuxer Tee. 
 
 ### Common Sink Properties
+All Sinks<sup id="a1">[1](#f1)</sup> support the following common properties accessable through corresponding get/set base [Sink Methods](#sink-methods). (_Note: the follow bullets are quotes from the [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/base/gstbasesink.html?gi-language=c)_)
+* **`sync`** : Each Sink sets a timestamp for when a frame should be played, if `sync=true` it will block the pipeline and only play the frame after that time. This is useful for playing from a video file, or other non-live source. If you play a video file with `sync=false` it would play back as fast as it can be read and processed. See [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get) and [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
+* **`async`** : If set to `async=true`, the Sink will perform asynchronous state changes. When `async=false`, the Sink will not signal the parent when it prerolls. Use this option when dealing with sparse streams or when synchronisation is not required.
+* **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`.
+* **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronisation. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example.
 
 | Sink               |  GS Plugin    | sync  | async | max-lateness |  qos  |
 | -------------------|---------------|-------|------ | ------------ | ----- |
@@ -37,10 +47,7 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 | Frame-Capture Sink | appsink       | true  | true  |      -1      | false |
 | Fake Sink          | fakesink      | false | true  |      -1      | false |
 
-* sync : Sync on the clock
-* async : Go asynchronously to PAUSED
-* max-lateness : Maximum number of nanoseconds that a buffer can be late before it is dropped (-1 unlimited)
-* qos : Generate Quality-of-Service events upstream
+<b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
 
 ## Sink API
 **Types:**
@@ -71,6 +78,12 @@ The relationship between Pipelines and Sinks is one-to-many. Once added to a Pip
 **Sink Methods**
 * [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
 * [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
+* [dsl_sink_async_enabled_get](#dsl_sink_async_enabled_get)
+* [dsl_sink_async_enabled_set](#dsl_sink_async_enabled_set)
+* [dsl_sink_max_lateness_get](#dsl_sink_max_lateness_get)
+* [dsl_sink_max_lateness_set](#dsl_sink_max_lateness_set)
+* [dsl_sink_qos_enabled_get](#dsl_sink_qos_enabled_get)
+* [dsl_sink_qos_enabled_set](#dsl_sink_qos_enabled_set)
 * [dsl_sink_pph_add](#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](#dsl_sink_pph_remove)
 
@@ -821,7 +834,7 @@ As with all Pipeline components, Sinks are deleted by calling [dsl_component_del
 ```C++
 DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service gets the current `sync` enabled setting in use by the named Sink.
+This service gets the current `sync` enabled setting in use by the named Sink. See the [Common Sink Properties](#common_sink_properties) for more information.
 
 **Parameters**
 * `name` - [in] unique name of the Sink to query.
