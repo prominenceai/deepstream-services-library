@@ -1,17 +1,18 @@
+
 # Sink API Reference
 Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (12) different types of Sinks:
-* **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
-* **Window Sink** - renders/overlays video on a Parent XWindow
-* **File Sink** - encodes video to a media container file
-* **Record Sink** - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
-* **RTSP Sink** - streams encoded video on a specified port
-* **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
-* **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
-* **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
-* **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
-* **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
-* **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
-* **Fake Sink** - consumes/drops all data.
+* [Overlay Sink](#dsl_sink_overlay_new) - renders/overlays video on a Parent display **(Jetson Platform Only)**
+* [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
+* [File Sink](#dsl_sink_file_new) - encodes video to a media container file
+* [Record Sink](#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+* [RTSP Sink](#dsl_sink_rtsp_new) - streams encoded video on a specified port
+* [WebRTC Sink](#dsl_sink_webrtc_new) - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
+* [Message Sink](dsl_sink_message_new) - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+* [Application Sink](#dsl_sink_app_new) - allows the application to receive buffers or samples from a DSL Pipeline.
+* [Interpipe Sink](#dsl_sink_interpipe_new) -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Multi-Image Sink](#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
+* [Frame-Capture Sink](#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on application/user demand. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Fake Sink](#dsl_sink_fake_new) - consumes/drops all data.
 
 ### Sink Construction and Destruction
 Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created. 
@@ -23,23 +24,26 @@ Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-
 
 A similar set of Services are used when adding/removing a to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
 
-IMPORTANT: A Sink can be added as a branch (of one component) to either a Splitter or Demuxer Tee. 
+**IMPORTANT!:** A Sink Component can be added as a branch to either a [Splitter or Demuxer Tee](/docs/api-tee.md).
 
 ### Common Sink Properties
-All Sinks<sup id="a1">[1](#f1)</sup> support the following common properties accessable through corresponding get/set base [Sink Methods](#sink-methods). (_Note: the follow bullets are quotes from the [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/base/gstbasesink.html?gi-language=c)_)
-* **`sync`** : Each Sink sets a timestamp for when a frame should be played, if `sync=true` it will block the pipeline and only play the frame after that time. This is useful for playing from a video file, or other non-live source. If you play a video file with `sync=false` it would play back as fast as it can be read and processed. See [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get) and [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
-* **`async`** : If set to `async=true`, the Sink will perform asynchronous state changes. When `async=false`, the Sink will not signal the parent when it prerolls. Use this option when dealing with sparse streams or when synchronisation is not required.
+All Sinks<sup id="a1">[1](#f1)</sup> support the following common properties accessible through corresponding get/set base [Sink Methods](#sink-methods). (_Note: the follow bullets are quotes from the [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/base/gstbasesink.html?gi-language=c)_)
+* **`sync`** : Each Sink sets a timestamp for when a frame should be played, if `sync=true` it will block the pipeline and only play the frame after that time. This is useful for playing from a video file, or other non-live source. If you play a video file with `sync=false` it will play back as fast as it can be read and processed. See [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get) and [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
+* **`async`** : If set to `async=true`, the Sink will perform asynchronous state changes. When `async=false`, the Sink will not signal the parent when it prerolls. Use this option when dealing with sparse streams or when synchronization is not required.
 * **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`.
-* **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronisation. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example.
+* **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronization. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example.
 
-| Sink               |  GS Plugin    | sync  | async | max-lateness |  qos  |
+**IMPORTANT!** All DSL Sink Components use the default property values assigned to their GStreamer (GST) Sink Plugin as defined in the table below.
+
+#### Default common property values
+| Sink               |  GST Plugin   | sync  | async | max-lateness |  qos  |
 | -------------------|---------------|-------|------ | ------------ | ----- |
 | Overlay Sink       | nvoverlaysink | true  | true  |   20000000   | true  |
 | Window Sink        | nveglglessink | true  | true  |   20000000   | true  |
 | File Sink          | filesink      | false | true  |      -1      | false |
-| Record Sink        |               |  n/a  |  n/a  |      n/a     |  n/a  |
+| Record Sink        | n/a           |  n/a  |  n/a  |      n/a     |  n/a  |
 | RTSP Sink          | udpsink       | true  | true  |      -1      | false |
-| WebRTC Sink        |               |       |       |              |       |
+| WebRTC Sink        | fakesink      | false | true  |      -1      | false |
 | Message Sink       | nvmsgbroker   | true  | true  |      -1      | false |
 | App Sink           | appsink       | true  | true  |      -1      | false |
 | Interpipe Sink     | interpipesink | false | true  |      -1      | false |
@@ -771,7 +775,7 @@ The Application initiates a frame-capture by calling [dsl_sink_frame_capture_ini
 
 [Capture-complete-listeners](/docs/api-ode-action.md#dsl_capture_complete_listener_cb) (to notify on completion), [Image Players](/docs/api-player.md) (to auto-play the new image) and [SMTP Mailers](/docs/api-mailer.md) (to mail the new image) can be added to the Capture Action as well.
 
-**Important!** The Frame-Captre Sink Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md) to use.
+**Important!** The Frame-Capture Sink Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md) to use.
 
 **Note:** The first capture may cause a noticeable short pause to the stream while cuda dependencies are loaded and cached. 
 
