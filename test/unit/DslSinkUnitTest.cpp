@@ -53,6 +53,9 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == dataType );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -103,6 +106,9 @@ SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == DSL_SINK_APP_DATA_TYPE_BUFFER );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -121,7 +127,10 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -168,12 +177,16 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
             WHEN( "The OverlaySinkBintr is created " )
             {
                 DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                        displayId, depth, offsetX, offsetY, sinkW, sinkH);
                 
                 THEN( "The correct attribute values are returned" )
                 {
                     REQUIRE( pSinkBintr->GetDisplayId() == 0 );
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                    REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                    REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                    REQUIRE( pSinkBintr->GetQosEnabled() == true );
                 }
             }
         }
@@ -195,7 +208,8 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
             uint sinkH(720);
 
             DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -227,7 +241,8 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr
             uint sinkH(720);
 
             DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->LinkAll() == true );
 
@@ -447,8 +462,11 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == true );
             }
         }
     }
@@ -535,7 +553,7 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
     }
 }
 
-SCENARIO( "A WindowSinkBintr can LinkAll and UnlinkAll mutlple times", "[now]" )
+SCENARIO( "A WindowSinkBintr can LinkAll and UnlinkAll mutlple times", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr" ) 
     {
@@ -946,6 +964,10 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
                 
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -1036,6 +1058,11 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
+
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -1478,6 +1505,9 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -1697,6 +1727,9 @@ SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( pSinkBintr->GetMaxFiles() == 0 );
                 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }

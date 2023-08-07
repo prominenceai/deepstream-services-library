@@ -302,7 +302,6 @@
       <File Name="../examples/python/1uri_https_window_dynamic_overlay.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_3sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_demuxer_1osd_1overlay_1window.py"/>
-      <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
       <File Name="../examples/python/segmentation_industrial.py"/>
       <File Name="../examples/python/segmentation_semantic.py"/>
       <File Name="../examples/python/video_dewarper_360.py"/>
@@ -317,6 +316,8 @@
       <File Name="../examples/python/smart_record_sink_start_session_on_user_demand.py"/>
       <File Name="../examples/python/smart_record_tap_start_session_on_ode_occurrence.py"/>
       <File Name="../examples/python/smart_record_tap_start_session_on_user_demand.py"/>
+      <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window.py"/>
+      <File Name="../examples/python/dynamically_add_remove_branch_with_demuxer.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

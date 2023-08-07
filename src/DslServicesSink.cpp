@@ -2384,6 +2384,252 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::SinkSyncEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            *enabled = (boolean)pSinkBintr->GetSyncEnabled();
+
+            LOG_INFO("Sink '" << name << "' returned sync enabled = " 
+                << *enabled  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception getting sync enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkSyncEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetSyncEnabled(enabled))
+            {
+                LOG_ERROR("Sink '" << name 
+                    << "' failed to set sync enabled = " << enabled);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Sink '" << name << "' set sync enabled = " 
+                << enabled  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception setting sync enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAsyncEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            *enabled = (boolean)pSinkBintr->GetAsyncEnabled();
+
+            LOG_INFO("Sink '" << name << "' returned async enabled = " 
+                << *enabled  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception getting async enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAsyncEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetAsyncEnabled(enabled))
+            {
+                LOG_ERROR("Sink '" << name 
+                    << "' failed to set async enabled = " << enabled);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Sink '" << name << "' set the async enabled = " 
+                << enabled  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception setting async enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkMaxLatenessGet(const char* name, 
+        int64_t* maxLateness)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            *maxLateness = pSinkBintr->GetMaxLateness();
+
+            LOG_INFO("Sink '" << name << "' returned max-lateness = " 
+                << *maxLateness  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception getting max-lateness");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkMaxLatenessSet(const char* name,
+        int64_t maxLateness)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetMaxLateness(maxLateness))
+            {
+                LOG_ERROR("Sink '" << name 
+                    << "' failed to set max-latenes = " << maxLateness);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Sink '" << name << "' set max-lateness = " 
+                << maxLateness  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception setting max-lateness");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkQosEnabledGet(const char* name, boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            *enabled = (boolean)pSinkBintr->GetQosEnabled();
+
+            LOG_INFO("Sink '" << name << "' returned qos enabled = " 
+                << *enabled  << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception getting qos enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkQosEnabledSet(const char* name, boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
+
+            DSL_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetQosEnabled(enabled))
+            {
+                LOG_ERROR("Sink '" << name 
+                    << "' failed to set qos enabled = " << enabled);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Sink '" << name << "' set the qos enabled = " 
+                << enabled  << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Sink '" << name 
+                << "' threw an exception setting qos enabled");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkPphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
@@ -2440,66 +2686,4 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::SinkSyncEnabledGet(const char* name,  boolean* enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
-
-            DSL_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
-
-            bool bSync(false), bAsync(false);
-            *enabled = (boolean)pSinkBintr->GetSyncEnabled();
-
-            LOG_INFO("Sink '" << name << "' returned Sync = " 
-                << *enabled  << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Sink '" << name 
-                << "' threw an exception getting Sync enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkSyncEnabledSet(const char* name,  boolean enabled)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(m_components, name);
-
-            DSL_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
-
-            if (!pSinkBintr->SetSyncEnabled(enabled))
-            {
-                LOG_ERROR("Sink '" << name << "' failed to set sync attribute");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Sink '" << name << "' set Sync = " 
-                << enabled  << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Sink '" << name 
-                << "' threw an exception setting sync enabled");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
 }

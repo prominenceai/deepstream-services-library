@@ -148,6 +148,54 @@ namespace DSL
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::TeeDemuxerBranchAddAt(const char* name, 
+        const char* branch, uint streamId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+            
+            // Can't add components if they're In use by another Branch
+            if (m_components[branch]->IsInUse())
+            {
+                LOG_ERROR("Unable to add branch '" << branch 
+                    << "' as it's currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+            // Cast the Branch to a Bintr to call the correct AddChild method.
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            if (!std::dynamic_pointer_cast<DemuxerBintr>(
+                    m_components[name])->AddChildAt(pBranchBintr, streamId))
+            {
+                LOG_ERROR("Demuxer '" << name << 
+                    "' failed to add branch '" << branch 
+                    << "' at stream-id = " << streamId);
+                return DSL_RESULT_TEE_BRANCH_ADD_FAILED;
+            }
+                
+            LOG_INFO("Branch '" << branch 
+                << "' was added to Demuxer Tee '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer Tee '" << name 
+                << "' threw an exception adding branch '" << branch << "'");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }    
+
     
     DslReturnType Services::TeeBranchAdd(const char* name, 
         const char* branch)
@@ -201,7 +249,7 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tee '" << name 
-                << "' threw an exception removing branch '" << branch << "'");
+                << "' threw an exception adding branch '" << branch << "'");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }    

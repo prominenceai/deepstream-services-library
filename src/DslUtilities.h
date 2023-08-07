@@ -39,6 +39,7 @@ namespace DSL
         return stream.str();
     }    
     
+    
 }
 
 #endif // _DSL_UTILITIES_H

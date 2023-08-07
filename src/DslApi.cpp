@@ -6048,6 +6048,21 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
+DslReturnType dsl_tee_demuxer_branch_add_at(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerBranchAddAt(cstrName.c_str(),
+        cstrBranch.c_str(), stream_id);
+}
+    
 DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
     uint* max_branches)
 {
@@ -7686,6 +7701,97 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
         cstrConn.c_str(), cstrTopic.c_str());
 }
     
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkSyncEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkSyncEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkAsyncEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkAsyncEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_max_lateness_get(const wchar_t* name, int64_t* max_lateness)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max_lateness);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkMaxLatenessGet(cstrName.c_str(), 
+        max_lateness);
+}
+    
+DslReturnType dsl_sink_max_lateness_set(const wchar_t* name, int64_t max_lateness)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkMaxLatenessSet(cstrName.c_str(), 
+        max_lateness);
+}
+    
+DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkQosEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkQosEnabledSet(cstrName.c_str(), 
+        enabled);
+}
     
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 {
@@ -7716,28 +7822,6 @@ DslReturnType dsl_sink_pph_remove(const wchar_t* name,
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkSyncEnabledGet(cstrName.c_str(), 
-        enabled);
-}
-    
-DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkSyncEnabledSet(cstrName.c_str(), 
-        enabled);
-}
-    
 DslReturnType dsl_component_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

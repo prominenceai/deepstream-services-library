@@ -230,6 +230,15 @@ namespace DSL
          */
         bool AddChild(DSL_BINTR_PTR pChildComponent);
         
+        /**
+         * @brief Adds a child ComponentBintr to this DemuxerBintr to a specified
+         * stream-id and Demuxer source pd.
+         * @param[in] pChildComponent shared pointer to ComponentBintr to add
+         * @param[in] stream_id the stream-id and demuxer source pad to link to.
+         * @return true if the ComponentBintr was added correctly, false otherwise
+         */
+        bool AddChildAt(DSL_BINTR_PTR pChildComponent, uint streamId);
+        
         /** 
          * @brief links all child Component Bintrs and their elements. We need to 
          * override the parent class because we pre-allocate the requested pads.

@@ -819,7 +819,7 @@ THE SOFTWARE.
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
-#define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
+#define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     1
 
 #define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
 #define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
@@ -5981,6 +5981,16 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
     uint max_branches, const wchar_t** branches);
 
 /**
+ * @brief Adds a single Branch to a specific stream of a named Demuxer Tee 
+ * @param[in] name name of the Dumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ */
+DslReturnType dsl_tee_demuxer_branch_add_at(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+
+/**
  * @brief Gets the current max-branches setting for the name Deumuxer Tee
  * @param[in] name name of the Demuxer Tee to query
  * @param[out] max_branches current setting for max-branches
@@ -6011,7 +6021,8 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name);
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches);
 
 /**
  * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
@@ -7096,6 +7107,84 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     const wchar_t* connection_string, const wchar_t* topic);
 
 /**
+ * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
+ * the Sink will synchronize on the clock.
+ * @param[in] name unique name of the Sink to query
+ * @param[out] enabled the current setting for the Sink's "sync" property
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "sync" enabled setting for the named Sink. If enabled
+ * the Sink will synchronize on the clock.
+ * @param[in] name unique name of the Sink to update.
+ * @param[in] enabled set to true to enable the Sink's "sync" property, 
+ * false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Gets the current "async" enabled setting for the named Sink. If enabled
+ * the Sink will go asynchronously to PAUSED,
+ * @param[in] name unique name of the Sink to query.
+ * @param[out] enabled the current setting for the Sink's "async" property.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "async" enabled setting for the named Sink. If enabled
+ * the Sink will go asynchronously to PAUSED,
+ * @param[in] name unique name of the Sink to update.
+ * @param[in] enabled set to true to enable the Sink's "async" property, 
+ * false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Gets the current "max-lateness" setting for the named Sink.
+ * Max-lateness == the maximum number of nanoseconds that a buffer can be late before
+ * it is dropped (-1 unlimited).
+ * @param[in] name unique name of the Sink to query.
+ * @param[out] max_lateness the current setting for the Sink's "max-lateness" property.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_max_lateness_get(const wchar_t* name, int64_t* max_lateness);
+
+/**
+ * @brief Sets the "max-lateness" setting for the named Sink
+ * Max-lateness == the maximum number of nanoseconds that a buffer can be late before
+ * it is dropped (-1 unlimited).
+ * @param[in] name unique name of the Sink to update
+ * @param[in] max_lateness the maximum number of nanoseconds a buffer can be late.
+ * Set to -1 for unlimited lateness.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_max_lateness_set(const wchar_t* name, int64_t max_lateness);
+
+/**
+ * @brief Gets the current "qos" enabled setting for the named Sink. If enabled, the
+ * sink will generate Quality-of-Service events upstream.
+ * @param[in] name unique name of the Sink to query.
+ * @param[out] enabled the current setting for the Sink's "qos" property.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "qos" enabled setting for the named Sink.  If enabled, the
+ * sink will generate Quality-of-Service events upstream.
+ * @param[in] name unique name of the Sink to update
+ * @param[in] enabled set to true to enable the Sink's "qos" property, 
+ * false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
  * @param[in] name unique name of the Sink to update
@@ -7111,22 +7200,6 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
-
-/**
- * @brief Gets the current settings for the "sync" attribute for the named Sink
- * @param[in] name unique name of the Sink to query
- * @param[out] enabled the current setting for the Sink's "sync" attribute
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the "sync" attribute for the named Sink
- * @param[in] name unique name of the Sink to update
- * @param[in] enabled set to true to enable the Sink's "sync" attribute, false otherwise.
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief deletes a Component object by name

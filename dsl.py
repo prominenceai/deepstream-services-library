@@ -376,6 +376,7 @@ class dsl_ode_occurrence_info(Structure):
 ## Pointer Typedefs
 ##
 DSL_INT_P = POINTER(c_int)
+DSL_INT64_P = POINTER(c_int64)
 DSL_UINT_P = POINTER(c_uint)
 DSL_UINT64_P = POINTER(c_uint64)
 DSL_UINT64_PP = POINTER(DSL_UINT64_P)
@@ -3971,9 +3972,9 @@ def dsl_tap_record_session_start(name, start, duration, client_data):
 ##
 _dsl.dsl_tap_record_session_stop.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_tap_record_session_stop.restype = c_uint
-def dsl_tap_record_session_stop(name, _sync):
+def dsl_tap_record_session_stop(name, sync):
     global _dsl
-    result = _dsl.dsl_tap_record_session_stop(name, _sync)
+    result = _dsl.dsl_tap_record_session_stop(name, sync)
     return int(result)
 
 ##
@@ -4773,7 +4774,16 @@ def dsl_tee_splitter_new_branch_add_many(name, branches):
     result =_dsl.dsl_tee_splitter_new_branch_add_many(name, arr)
     return int(result)
 
-
+##
+## dsl_tee_demuxer_branch_add_at()
+##
+_dsl.dsl_tee_demuxer_branch_add_at.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_tee_demuxer_branch_add_at.restype = c_uint
+def dsl_tee_demuxer_branch_add_at(name, branch, stream_id):
+    global _dsl
+    result =_dsl.dsl_tee_demuxer_branch_add_at(name, branch, stream_id)
+    return int(result)
+    
 ##
 ## dsl_tee_branch_add()
 ##
@@ -5771,18 +5781,81 @@ _dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
 _dsl.dsl_sink_sync_enabled_get.restype = c_uint
 def dsl_sink_sync_enabled_get(name):
     global _dsl
-    _sync = c_bool(0)
-    result = _dsl.dsl_sink_sync_enabled_get(name, DSL_BOOL_P(_sync))
-    return int(result), _sync.value
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_sync_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
 
 ##
 ## dsl_sink_sync_enabled_set()
 ##
 _dsl.dsl_sink_sync_enabled_set.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_sink_sync_enabled_set.restype = c_uint
-def dsl_sink_sync_enabled_set(name, _sync):
+def dsl_sink_sync_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_sink_sync_enabled_set(name, _sync)
+    result = _dsl.dsl_sink_sync_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sink_async_enabled_get()
+##
+_dsl.dsl_sink_async_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_async_enabled_get.restype = c_uint
+def dsl_sink_async_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_async_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_sink_async_enabled_set()
+##
+_dsl.dsl_sink_async_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_async_enabled_set.restype = c_uint
+def dsl_sink_async_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_sink_async_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sink_max_lateness_get()
+##
+_dsl.dsl_sink_max_lateness_get.argtypes = [c_wchar_p, POINTER(c_int64)]
+_dsl.dsl_sink_max_lateness_get.restype = c_uint
+def dsl_sink_max_lateness_get(name):
+    global _dsl
+    max_lateness = c_int64(0)
+    result = _dsl.dsl_sink_max_lateness_get(name, DSL_INT64_P(max_lateness))
+    return int(result), max_lateness.value
+
+##
+## dsl_sink_max_lateness_set()
+##
+_dsl.dsl_sink_max_lateness_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_max_lateness_set.restype = c_uint
+def dsl_sink_max_lateness_set(name, max_lateness):
+    global _dsl
+    result = _dsl.dsl_sink_max_lateness_set(name, max_lateness)
+    return int(result)
+
+##
+## dsl_sink_qos_enabled_get()
+##
+_dsl.dsl_sink_qos_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_qos_enabled_get.restype = c_uint
+def dsl_sink_qos_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_sink_qos_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_sink_qos_enabled_set()
+##
+_dsl.dsl_sink_qos_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_qos_enabled_set.restype = c_uint
+def dsl_sink_qos_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_sink_qos_enabled_set(name, enabled)
     return int(result)
 
 ##
