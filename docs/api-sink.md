@@ -834,11 +834,11 @@ As with all Pipeline components, Sinks are deleted by calling [dsl_component_del
 ```C++
 DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service gets the current `sync` enabled setting in use by the named Sink. See the [Common Sink Properties](#common_sink_properties) for more information.
+This service gets the current `sync` enabled property in use by the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
 
 **Parameters**
 * `name` - [in] unique name of the Sink to query.
-* `enabled` - [out] true if the `sync` setting for the name Sink is enabled, false otherwise.
+* `enabled` - [out] true if the `sync` property for the named Sink is enabled, false otherwise.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
@@ -854,18 +854,138 @@ retval, enabled = dsl_sink_sync_enabled_get('my-overlay-sink')
 ```C++
 DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the `sync` enabled setting in for the named Sink.
+This service sets the `sync` enabled property for the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
 
 **Parameters**
 * `name` - [in] unique name of the Message Sink to update.
-* `enabled` - [in] set to true to enable the `sync` setting, false to disable.
+* `enabled` - [in] set to true to enable the `async` property, false to disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_sink_sync_enabled_set('my-overlay-sink', false)
+retval = dsl_sink_sync_enabled_set('my-overlay-sink', False)
+```
+
+<br>
+
+### *dsl_sink_async_enabled_get*
+```C++
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service gets the current `sync` enabled property in use by the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
+
+**Parameters**
+* `name` - [in] unique name of the Sink to query.
+* `enabled` - [out] true if the `async` property for the named Sink is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_async_enabled_get('my-overlay-sink')
+```
+
+<br>
+
+### *dsl_sink_async_enabled_set*
+```C++
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the `async` enabled property for the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `enabled` - [in] set to true to enable the `async` property, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_async_enabled_set('my-overlay-sink', False)
+```
+
+<br>
+
+### *dsl_sink_max_lateness_get*
+```C++
+DslReturnType dsl_sink_max_lateness_get(const wchar_t* name, int64_t* max_lateness);
+```
+This service gets the current value of the `max_lateness` property in use by the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
+
+**Parameters**
+* `name` - [in] unique name of the Sink to query.
+* `max_lateness` - [out] the maximum number of nanoseconds a buffer can be late. -1 equals unlimited lateness.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_lateness = dsl_sink_max_lateness_get('my-overlay-sink')
+```
+
+<br>
+
+### *dsl_sink_max_lateness_set*
+```C++
+DslReturnType dsl_sink_max_lateness_set(const wchar_t* name, int64_t max_lateness);
+```
+This service sets the `max_lateness` property for the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `max_lateness` - [in] the maximum number of nanoseconds a buffer can be late. Set to -1 for unlimited lateness.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_max_lateness_set('my-overlay-sink', -1)
+```
+
+<br>
+
+### *dsl_sink_qos_enabled_get*
+```C++
+DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled);
+```
+This service gets the current `qos` enabled property in use by the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
+
+**Parameters**
+* `name` - [in] unique name of the Sink to query.
+* `enabled` - [out] true if the `qos` property for the named Sink is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_sink_qos_enabled_get('my-overlay-sink')
+```
+
+<br>
+
+### *dsl_sink_qos_enabled_set*
+```C++
+DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
+```
+This service sets the `qos` enabled property for the named Sink. See the [Common Sink Properties](#common-sink-properties) for more information.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `enabled` - [in] set to true to enable the `qos` property, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_qos_enabled_set('my-overlay-sink', False)
 ```
 
 <br>
