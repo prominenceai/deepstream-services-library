@@ -1060,6 +1060,12 @@ namespace DSL
         boolean m_doTimestamp;
 
         /**
+         * @brief "v4l2src" caps filter 
+         */
+         
+        DSL_ELEMENT_PTR m_pSourceCapsFilter;
+        
+        /**
          * @brief Video converter, first of two, for the USB Source if dGPU
          */
         DSL_ELEMENT_PTR m_pdGpuVidConv;

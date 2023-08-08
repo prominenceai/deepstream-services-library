@@ -1668,6 +1668,7 @@ namespace DSL
         m_fpsD = fpsD;
         
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
+        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         // Find the first available unique device-id
         while(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
@@ -1688,6 +1689,13 @@ namespace DSL
 
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+        
+        // Set the full capabilities (format, dimensions, and framerate)
+        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
+            m_width, m_height, m_fpsN, m_fpsD, false))
+        {
+            throw;
+        }
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -1716,6 +1724,7 @@ namespace DSL
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
+        AddChild(m_pSourceCapsFilter);
     }
 
     UsbSourceBintr::~UsbSourceBintr()
@@ -1741,7 +1750,8 @@ namespace DSL
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
-            if (!m_pSourceElement->LinkToSink(m_pdGpuVidConv) or 
+            if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
+                !m_pSourceCapsFilter->LinkToSink(m_pdGpuVidConv) or 
                 !LinkToCommon(m_pdGpuVidConv))
             {
                 return false;
@@ -1749,7 +1759,8 @@ namespace DSL
         }
         else // aarch_64
         {
-            if (!LinkToCommon(m_pSourceElement))
+            if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
+                !LinkToCommon(m_pSourceCapsFilter))
             {
                 return false;
             }
@@ -1771,6 +1782,7 @@ namespace DSL
         
         // x86_64
         m_pSourceElement->UnlinkFromSink();
+        m_pSourceCapsFilter->UnlinkFromSink();
 
         if (!m_cudaDeviceProp.integrated)
         {
