@@ -183,13 +183,12 @@ namespace DSL
         {  
             GstState currentState;
             GetState(currentState, 0);
-            LOG_INFO("current state of Demuxer '" << GetName() 
-                << "' = " << currentState);
+            LOG_INFO("MultiBranchesBintr '" << GetName() << "' is in the state '" 
+                << currentState << "' while removing branch '" 
+                << pChildComponent->GetName() << "'");
+                
             if (currentState == GST_STATE_PLAYING)
             {
-                LOG_INFO("Child component '" << GetName() 
-                    << "' is in a state of PLAYING - setting up async remove");
-
                 AsyncData asyncData;
                 asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
         
@@ -205,7 +204,6 @@ namespace DSL
                     (GstPadProbeCallback)unlink_from_source_tee_cb, 
                     &asyncData, NULL);
 
-                LOG_INFO("***************** Probe-id = " << probeId);
                 g_cond_wait(&asyncData.asyncCond, &asyncData.asynMutex);
                 
                 gst_object_unref(pStaticSinkPad);
@@ -363,10 +361,16 @@ namespace DSL
         AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
         
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
-        LOG_WARN("In link_to_source_tee_cb");
+        
+        LOG_INFO("Synchronizing branch '" 
+            << pAsyncData->pChildComponent->GetName() 
+            << "' with Parent Demuxer");
+
         gst_element_sync_state_with_parent(
             pAsyncData->pChildComponent->GetGstElement());
 
+        // Signal the blocked service (_completeAddChild) that the add 
+        // process is now complete.
         g_cond_signal(&(pAsyncData->asyncCond));
 
         return GST_PAD_PROBE_REMOVE;
@@ -394,7 +398,8 @@ namespace DSL
 
         // find the next available unused stream-id
         uint streamId(0);
-        auto ivec = find(m_usedRequestPadIds.begin(), m_usedRequestPadIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), 
+            m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
         if (ivec != m_usedRequestPadIds.end())
@@ -433,7 +438,7 @@ namespace DSL
             return false;
         }
 
-        // If the streamId has been used since bintr creation
+        // If the streamId has been used "ever", since bintr creation
         if ((streamId+1) <= m_usedRequestPadIds.size())
         {
             // Ensure that the stream-id is not currently linked
@@ -505,13 +510,13 @@ namespace DSL
             }
             GstState currentState;
             GetState(currentState, 0);
-            LOG_INFO("current state of Demuxer '" << GetName() 
-                << "' = " << currentState);
+            LOG_INFO("Demuxer '" << GetName() << "' is in the state '" << currentState 
+                << "' while adding branch '" << pChildComponent->GetName() << "'");
+                
             if (currentState == GST_STATE_PLAYING)
             {
-                LOG_INFO("Child component '" << GetName() 
-                    << "' is in a state of PLAYING - setting up async add");
-
+                // When in a playing state, we need to do the final sync with the
+                // parent state in the context of a PPH while blocking downstream.
                 AsyncData asyncData;
                 asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
         
@@ -528,10 +533,13 @@ namespace DSL
             }
             else
             {
-                // Sync component up with the parent state
+                // Else, we must be in a PAUSED or READY state so we can
+                // Sync the branch with the parent (this demuxer) state now.
+                LOG_INFO("Synchronizing branch '" << pChildComponent->GetName() 
+                    << "' with Parent Demuxer");
+                
                 return gst_element_sync_state_with_parent(
                     pChildComponent->GetGstElement());
-                
             }
         }
         return true;

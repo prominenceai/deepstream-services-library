@@ -275,7 +275,7 @@ SCENARIO( "A Pipeline can remove a Source and Overlay-Sink dynamically",
     }
 }
 SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically multiple times", 
-    "[work]")
+    "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sink" ) 
     {

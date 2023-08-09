@@ -902,7 +902,11 @@ namespace DSL
             return false;
         }
         
+        // Do a conditional reset, i.e. a reconstruction of the Sink element
+        // This is a workaround for the fact that the nveglglessink plugin
+        // fails to work correctly once its state is set to NULL.
         Reset();
+        
         // register this Window-Sink's nveglglessink plugin.
         Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
             m_pSink->GetGstObject());
