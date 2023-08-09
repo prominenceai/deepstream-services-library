@@ -267,6 +267,14 @@ namespace DSL
         bool SetMaxBranches(uint maxBranches);
 
     private:
+
+        /**
+         * @brief Common code to complete the add child ComponentBintr process.
+         * @param[in] pChildComponent shared pointer to ComponentBintr to add
+         * @param[in] stream_id the stream-id and demuxer source pad to link to.
+         * @return true if the ComponentBintr was added correctly, false otherwise
+         */
+        bool _completeAddChild(DSL_BINTR_PTR pChildComponent, uint streamId);
     
         /**
          * @brief maximum number of branches this DemuxerBintr can connect.

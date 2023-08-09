@@ -275,7 +275,7 @@ SCENARIO( "A Pipeline can remove a Source and Overlay-Sink dynamically",
     }
 }
 SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically multiple times", 
-    "[demuxer-behavior]")
+    "[work]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sink" ) 
     {
@@ -326,35 +326,43 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+            
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name2.c_str()) == DSL_RESULT_SUCCESS );
             
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
-                source_name2.c_str()) == DSL_RESULT_SUCCESS );
-            
             REQUIRE( dsl_tee_branch_remove(demuxer_name.c_str(), 
                 sink_name2.c_str()) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
+                source_name2.c_str()) == DSL_RESULT_SUCCESS );
             
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name2.c_str()) == DSL_RESULT_SUCCESS );
             
-            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
-                source_name1.c_str()) == DSL_RESULT_SUCCESS );
-            
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
             REQUIRE( dsl_tee_branch_remove(demuxer_name.c_str(), 
                 sink_name1.c_str()) == DSL_RESULT_SUCCESS );
             
+            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
+                source_name1.c_str()) == DSL_RESULT_SUCCESS );
+            
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name1.c_str()) == DSL_RESULT_SUCCESS );
@@ -435,6 +443,8 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name2.c_str()) == DSL_RESULT_SUCCESS );
             
@@ -442,6 +452,8 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
             
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name3.c_str()) == DSL_RESULT_SUCCESS );
+
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name3.c_str()) == DSL_RESULT_SUCCESS );
@@ -456,24 +468,26 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
 //            
 //            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
-                source_name1.c_str()) == DSL_RESULT_SUCCESS );
-            
             REQUIRE( dsl_tee_branch_remove(demuxer_name.c_str(), 
                 sink_name1.c_str()) == DSL_RESULT_SUCCESS );
             
+            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
+                source_name1.c_str()) == DSL_RESULT_SUCCESS );
+            
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
-            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
-                source_name3.c_str()) == DSL_RESULT_SUCCESS );
-            
             REQUIRE( dsl_tee_branch_remove(demuxer_name.c_str(), 
                 sink_name3.c_str()) == DSL_RESULT_SUCCESS );
                 
+            REQUIRE( dsl_pipeline_component_remove(pipeline_name.c_str(), 
+                source_name3.c_str()) == DSL_RESULT_SUCCESS );
+            
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name3.c_str()) == DSL_RESULT_SUCCESS );
+
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name3.c_str()) == DSL_RESULT_SUCCESS );
@@ -482,6 +496,8 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
 
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
             REQUIRE( dsl_tee_branch_add(demuxer_name.c_str(), 
                 sink_name1.c_str()) == DSL_RESULT_SUCCESS );

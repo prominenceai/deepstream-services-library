@@ -756,6 +756,24 @@ namespace DSL
 {
         LOG_FUNC();
 
+        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("async", &m_async);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
@@ -789,13 +807,6 @@ namespace DSL
             m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
         }
         
-        // Reset to create m_pSink
-        if (!Reset())
-        {
-            LOG_ERROR("Failed to create Window element for SinkBintr '" 
-                << GetName() << "'");
-            throw;
-        }
         LOG_INFO("");
         LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
         LOG_INFO("  offset-x           : " << offsetX);
@@ -810,7 +821,8 @@ namespace DSL
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
         AddChild(m_pTransform);
-    }
+        AddChild(m_pSink);
+}
     
     WindowSinkBintr::~WindowSinkBintr()
     {
@@ -851,22 +863,19 @@ namespace DSL
             return false;
         }
 
-        // If not  a first time call from the constructor
+        // We only reset if the pointer to the sink element is null
         if (m_pSink != nullptr)
-        {
-            // Remove the existing element from the objects bin
-            gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
-            RemoveChild(m_pSink);
-            m_pSink = nullptr;
+        {    
+            return false;
         }
         
         m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
         
-        // Get the property defaults
-        m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+        // Set the property defaults
+        m_pSink->SetAttribute("sync", m_sync);
+        m_pSink->SetAttribute("async", m_async);
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+        m_pSink->SetAttribute("qos", m_qos);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -938,7 +947,7 @@ namespace DSL
         {
             m_pCapsFilter->UnlinkFromSink();
         }
-        // register this Window-Sink's nveglglessink plugin.
+        // unregister this Window-Sink's nveglglessink plugin.
         DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
 
         m_isLinked = false;
@@ -947,6 +956,12 @@ namespace DSL
         {
             XUnmapWindow(m_pXDisplay, m_pXWindow);
         }
+
+        // Remove the existing element from the objects bin
+        // this ensures that we can recreate the Sink if linked-up again
+        gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
+        RemoveChild(m_pSink);
+        m_pSink = nullptr;
     }
     
     void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
