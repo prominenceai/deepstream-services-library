@@ -101,8 +101,6 @@ namespace DSL
         {    
             UnlinkAll();
         }
-        
-        Services::GetServices()->_sourceNameErase(GetCStrName());
     }
 
     bool SourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)

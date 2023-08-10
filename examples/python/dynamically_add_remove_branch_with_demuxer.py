@@ -81,6 +81,14 @@ def xwindow_key_event_handler(key_string, client_data):
         # we then call the Demuxer service to add it back at the specified stream-id
         retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', int(key_string))
 
+##
+# Function to be called on End-of-Stream (EOS) event
+##
+def eos_event_listener(client_data):
+    print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
+
 
 def main(args):
 
@@ -88,25 +96,25 @@ def main(args):
     while True:
 
         # First new Streaming Image Source
-#        retval = dsl_source_file_new('source-0', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-0', image_0, False, 1, 1, 0)
+        retval = dsl_source_file_new('source-0', uri_h265, True)
+#        retval = dsl_source_image_stream_new('source-0', image_0, False, 15, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-#        retval = dsl_source_file_new('source-1', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-1', image_1, False, 1, 1, 0)
+        retval = dsl_source_file_new('source-1', uri_h265, True)
+#        retval = dsl_source_image_stream_new('source-1', image_1, False, 15, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-#        retval = dsl_source_file_new('source-2', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-2', image_2, False, 1, 1, 0)
+        retval = dsl_source_file_new('source-2', uri_h265, True)
+#        retval = dsl_source_image_stream_new('source-2', image_2, False, 15, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-#        retval = dsl_source_file_new('source-3', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-3', image_3, False, 1, 1, 0)
+        retval = dsl_source_file_new('source-3', uri_h265, True)
+#        retval = dsl_source_image_stream_new('source-3', image_3, False, 15, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-#        retval = dsl_source_file_new('source-4', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-4', image_4, False, 1, 1, 0)
+        retval = dsl_source_file_new('source-4', uri_h265, True)
+#        retval = dsl_source_image_stream_new('source-4', image_4, False, 15, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -145,6 +153,14 @@ def main(args):
         retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
+        retval = dsl_sink_max_lateness_set('window-sink', -1)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_qos_enabled_set('window-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval, qos = dsl_sink_qos_enabled_get('window-sink')
+        print("qos =", qos)
             
         # New Fake Sink
         retval = dsl_sink_fake_new('fake-sink')
@@ -189,6 +205,10 @@ def main(args):
             'primary-gie', 'iou-tracker', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         cur_source_count = 1
 
         # Play the pipeline

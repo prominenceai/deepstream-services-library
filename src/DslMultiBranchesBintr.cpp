@@ -183,13 +183,12 @@ namespace DSL
         {  
             GstState currentState;
             GetState(currentState, 0);
-            LOG_INFO("current state of Demuxer '" << GetName() 
-                << "' = " << currentState);
+            LOG_INFO("MultiBranchesBintr '" << GetName() << "' is in the state '" 
+                << currentState << "' while removing branch '" 
+                << pChildComponent->GetName() << "'");
+                
             if (currentState == GST_STATE_PLAYING)
             {
-                LOG_INFO("Child component '" << GetName() 
-                    << "' is in a state of PLAYING - setting up async remove");
-
                 AsyncData asyncData;
                 asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
         
@@ -205,10 +204,7 @@ namespace DSL
                     (GstPadProbeCallback)unlink_from_source_tee_cb, 
                     &asyncData, NULL);
 
-                LOG_INFO("***************** Probe-id = " << probeId);
                 g_cond_wait(&asyncData.asyncCond, &asyncData.asynMutex);
-                
-                g_usleep(100000);
                 
                 gst_object_unref(pStaticSinkPad);
                 gst_object_unref(pRequestedSrcPad);
@@ -359,6 +355,27 @@ namespace DSL
             AddDemuxerBintr(shared_from_this());
     }
 
+    static GstPadProbeReturn link_to_source_tee_cb(GstPad* pad, 
+        GstPadProbeInfo *info, gpointer pData)
+    {
+        AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
+        
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
+        
+        LOG_INFO("Synchronizing branch '" 
+            << pAsyncData->pChildComponent->GetName() 
+            << "' with Parent Demuxer");
+
+        gst_element_sync_state_with_parent(
+            pAsyncData->pChildComponent->GetGstElement());
+
+        // Signal the blocked service (_completeAddChild) that the add 
+        // process is now complete.
+        g_cond_signal(&(pAsyncData->asyncCond));
+
+        return GST_PAD_PROBE_REMOVE;
+    }
+
     bool DemuxerBintr::AddChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
@@ -381,7 +398,8 @@ namespace DSL
 
         // find the next available unused stream-id
         uint streamId(0);
-        auto ivec = find(m_usedRequestPadIds.begin(), m_usedRequestPadIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), 
+            m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
         if (ivec != m_usedRequestPadIds.end())
@@ -395,43 +413,9 @@ namespace DSL
             streamId = m_usedRequestPadIds.size();
             m_usedRequestPadIds.push_back(true);
         }
-        // Set the branches unique id to the available stream-id
-        pChildComponent->SetRequestPadId(streamId);
-
-        // Add the branch to the Demuxers collection of children mapped by name 
-        m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
-        
-        // Add the branch to the Demuxers collection of children mapped by stream-id 
-        m_pChildBranchesIndexed[streamId] = pChildComponent;
-        
-        // call the parent class to complete the add
-        if (!Bintr::AddChild(pChildComponent))
-        {
-            LOG_ERROR("Failed to add Branch '" << pChildComponent->GetName() 
-                << "' as a child to '" << GetName() << "'");
-            return false;
-        }
-        
-        // If the Pipeline is currently in a linked state, 
-        // linkAll Elementrs now and Link with the Stream
-        if (IsLinked())
-        {
-            // link back upstream to the Tee - now the src for the child branch.
-            if (!pChildComponent->LinkAll() or 
-                !pChildComponent->LinkToSourceTee(m_pTee, 
-                    m_requestedSrcPads[streamId]))
-            {
-                LOG_ERROR("DemuxerBintr '" << GetName() 
-                    << "' failed to Link Child Component '" 
-                    << pChildComponent->GetName() << "'");
-                return false;
-            }
-
-            // Sync component up with the parent state
-            return gst_element_sync_state_with_parent(
-                pChildComponent->GetGstElement());
-        }
-        return true;
+        // Call the private helper to complete the common add functionality
+        // now that we have the streamId
+        return _completeAddChild(pChildComponent, streamId);
     }
 
     bool DemuxerBintr::AddChildAt(DSL_BINTR_PTR pChildComponent, uint streamId)
@@ -454,7 +438,7 @@ namespace DSL
             return false;
         }
 
-        // If the streamId has every been used since bintr creation
+        // If the streamId has been used "ever", since bintr creation
         if ((streamId+1) <= m_usedRequestPadIds.size())
         {
             // Ensure that the stream-id is not currently linked
@@ -483,6 +467,15 @@ namespace DSL
             // We can now push a true (currently used) entry at position stream-id.
             m_usedRequestPadIds.push_back(true);
         }
+        // Call the private helper to complete the common add functionality
+        // now that we have the streamId
+        return _completeAddChild(pChildComponent, streamId);
+    }
+
+    
+    bool DemuxerBintr::_completeAddChild(DSL_BINTR_PTR pChildComponent, uint streamId)
+    {
+        LOG_FUNC();
 
         // Set the branches unique id to the available stream-id
         pChildComponent->SetRequestPadId(streamId);
@@ -515,13 +508,43 @@ namespace DSL
                     << pChildComponent->GetName() << "'");
                 return false;
             }
+            GstState currentState;
+            GetState(currentState, 0);
+            LOG_INFO("Demuxer '" << GetName() << "' is in the state '" << currentState 
+                << "' while adding branch '" << pChildComponent->GetName() << "'");
+                
+            if (currentState == GST_STATE_PLAYING)
+            {
+                // When in a playing state, we need to do the final sync with the
+                // parent state in the context of a PPH while blocking downstream.
+                AsyncData asyncData;
+                asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
+        
+                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncData.asynMutex);
+                
+                gulong probeId = gst_pad_add_probe(m_requestedSrcPads[streamId], 
+                    GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
+                    (GstPadProbeCallback)link_to_source_tee_cb, 
+                    &asyncData, NULL);
 
-            // Sync component up with the parent state
-            return gst_element_sync_state_with_parent(
-                pChildComponent->GetGstElement());
+                g_cond_wait(&asyncData.asyncCond, &asyncData.asynMutex);
+
+                return true;
+            }
+            else
+            {
+                // Else, we must be in a PAUSED or READY state so we can
+                // Sync the branch with the parent (this demuxer) state now.
+                LOG_INFO("Synchronizing branch '" << pChildComponent->GetName() 
+                    << "' with Parent Demuxer");
+                
+                return gst_element_sync_state_with_parent(
+                    pChildComponent->GetGstElement());
+            }
         }
         return true;
     }
+    
     bool DemuxerBintr::LinkAll()
     {
         LOG_FUNC();
