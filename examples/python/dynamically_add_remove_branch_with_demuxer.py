@@ -49,7 +49,7 @@ modelEngineFile = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-current_stream_id=0
+stream_id = 0
 
 # Function to be called on XWindow Delete event
 ## 
@@ -72,15 +72,6 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
 
-    # if one of the unique soure Ids, show source
-    elif key_string >= '0' and key_string <= '3':
-
-        # we first call the TEE base class service to remove the branch.
-        retval = dsl_tee_branch_remove('demuxer', 'branch-0')
-
-        # we then call the Demuxer service to add it back at the specified stream-id
-        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', int(key_string))
-
 ##
 # Function to be called on End-of-Stream (EOS) event
 ##
@@ -89,12 +80,29 @@ def eos_event_listener(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+class RepeatTimer(Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
+
+def change_branch():
+    global stream_id
+    
+    # we first call the TEE base class service to remove the branch.
+    retval = dsl_tee_branch_remove('demuxer', 'branch-0')
+
+    stream_id = (stream_id+1)%4
+    
+    # we then call the Demuxer service to add it back at the specified stream-id
+    retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', stream_id)
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
+        global stream_id
+        
         # First new Streaming Image Source
         retval = dsl_source_file_new('source-0', uri_h265, True)
 #        retval = dsl_source_image_stream_new('source-0', image_0, False, 15, 1, 0)
@@ -113,13 +121,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_source_file_new('source-4', uri_h265, True)
-#        retval = dsl_source_image_stream_new('source-4', image_4, False, 15, 1, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            inferConfigFile, modelEngineFile, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -159,34 +163,6 @@ def main(args):
         retval = dsl_sink_qos_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval, qos = dsl_sink_qos_enabled_get('window-sink')
-        print("qos =", qos)
-            
-        # New Fake Sink
-        retval = dsl_sink_fake_new('fake-sink')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_sink_sync_enabled_set('overlay-sink', False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_branch_new_component_add_many('branch-0',
-            ['on-screen-display', 'overlay-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', stream_id=3)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'window-sink', stream_id=4)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-       
 
         # Add the XWindow event handler functions defined above to the Window Sink
         retval = dsl_sink_window_key_event_handler_add('window-sink', 
@@ -198,10 +174,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create the branch with the OSD and Window Sink.
+        retval = dsl_branch_new_component_add_many('branch-0',
+            ['on-screen-display', 'window-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the branch to the Demuxer at stream_id=0
+        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', stream_id)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['source-0', 'source-1', 'source-2', 'source-3', 'source-4', 
+            ['source-0', 'source-1', 'source-2', 'source-3', 
             'primary-gie', 'iou-tracker', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -209,15 +195,18 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        cur_source_count = 1
-
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        timer = RepeatTimer(5, change_branch)
+        timer.start()
+        
         # blocking call
         dsl_main_loop_run()
+        
+        timer.cancel()
 
         retval = DSL_RETURN_SUCCESS
         break

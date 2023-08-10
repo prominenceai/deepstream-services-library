@@ -208,6 +208,13 @@ namespace DSL
                 
                 gst_object_unref(pStaticSinkPad);
                 gst_object_unref(pRequestedSrcPad);
+                
+                // TODO: need to revisit.  It seems to help if we pause the current
+                // process and allow other processes to run before we unlink the 
+                // child branch. This seems to prevent an issue when the branch
+                // is immediately relinked and added back to the MultiBranchesBintr
+                // May only be an issue if a Window Sink is downstream??? 
+                g_usleep(1);
             }
             else
             {
@@ -510,7 +517,7 @@ namespace DSL
             }
             GstState currentState;
             GetState(currentState, 0);
-            LOG_INFO("Demuxer '" << GetName() << "' is in the state '" << currentState 
+            LOG_INFO("Demuxer '" << GetName() << "' is in state '" << currentState 
                 << "' while adding branch '" << pChildComponent->GetName() << "'");
                 
             if (currentState == GST_STATE_PLAYING)
