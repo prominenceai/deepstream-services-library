@@ -534,9 +534,9 @@ namespace DSL
                     (GstPadProbeCallback)link_to_source_tee_cb, 
                     &asyncData, NULL);
 
-                g_cond_wait(&asyncData.asyncCond, &asyncData.asynMutex);
-
-                return true;
+                gint64 endTime = g_get_monotonic_time() + G_TIME_SPAN_SECOND;
+                return g_cond_wait_until(&asyncData.asyncCond, 
+                    &asyncData.asynMutex, endTime);
             }
             else
             {
