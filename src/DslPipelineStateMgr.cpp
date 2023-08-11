@@ -279,26 +279,73 @@ namespace DSL
     bool PipelineStateMgr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
-        
+
+        GstClockTime clockTime;
+        GstStreamStatusType statusType;
+        GstElement* element(NULL);
+        GstFormat format(GST_FORMAT_UNDEFINED);
+        guint64 processed(0);
+        guint64 dropped(0);
+        GError* error(NULL);
+        gchar* debugInfo(NULL);
+        gint percent(0);
+
         switch (GST_MESSAGE_TYPE(pMessage))
         {
-        case GST_MESSAGE_ELEMENT:
-        case GST_MESSAGE_STREAM_STATUS:
-        case GST_MESSAGE_DURATION_CHANGED:
-        case GST_MESSAGE_QOS:
-        case GST_MESSAGE_NEW_CLOCK:
         case GST_MESSAGE_ASYNC_DONE:
-            LOG_INFO("Message type:: " 
+            gst_message_parse_async_done(pMessage, &clockTime);
+            LOG_INFO("Message type : " 
                 << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   time      : " << clockTime);
             break;
-        case GST_MESSAGE_TAG:
+            
+        case GST_MESSAGE_STREAM_STATUS:
+            gst_message_parse_stream_status(pMessage, &statusType, &element);
+            LOG_INFO("Message type : "
+                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   type      : " << statusType);
+            LOG_INFO("   element   : " << GST_ELEMENT_NAME(element));
             break;
+            
+        case GST_MESSAGE_QOS:
+            gst_message_parse_qos_stats(pMessage, &format, &processed, &dropped);
+            LOG_INFO("Message type : "
+                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   format    : " << gst_format_get_name(format));
+            LOG_INFO("   processed : " << processed);
+            LOG_INFO("   dropped   : " << dropped);
+            break;
+            
+        case GST_MESSAGE_BUFFERING:
+            gst_message_parse_buffering(pMessage, &percent);
+            LOG_INFO("Message type : "
+                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   percent   : " << percent);
+            break;
+            
+        case GST_MESSAGE_INFO:
+            gst_message_parse_info(pMessage, &error, &debugInfo);
+            LOG_INFO("Message type : "
+                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   info      : " << error->message);
+            if(debugInfo)
+                LOG_INFO("   debug     : " << debugInfo);
+            break;
+
+        case GST_MESSAGE_WARNING:
+            gst_message_parse_warning(pMessage, &error, &debugInfo);
+            LOG_INFO("Message type : "
+                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   warning   : " << error->message);
+            if(debugInfo)
+                LOG_INFO("   debug     : " << debugInfo);
+            break;
+            
         case GST_MESSAGE_EOS:
             HandleEosMessage(pMessage);
-            break;
-        case GST_MESSAGE_INFO:
-            break;
-        case GST_MESSAGE_WARNING:
             break;
         case GST_MESSAGE_ERROR:
             HandleErrorMessage(pMessage);            
@@ -308,6 +355,12 @@ namespace DSL
             break;
         case GST_MESSAGE_APPLICATION:
             HandleApplicationMessage(pMessage);
+            break;
+
+        case GST_MESSAGE_ELEMENT:
+        case GST_MESSAGE_DURATION_CHANGED:
+        case GST_MESSAGE_NEW_CLOCK:
+        case GST_MESSAGE_TAG:
             break;
         default:
             LOG_INFO("Unhandled message type:: " 
