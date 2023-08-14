@@ -2218,7 +2218,7 @@ namespace DSL
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
-            if (!pSourceBintr->SetUri(uri));
+            if (!pSourceBintr->SetUri(uri))
             {
                 LOG_ERROR("Failed to Set URI '" << uri 
                     << "' for URI Source '" << name << "'");

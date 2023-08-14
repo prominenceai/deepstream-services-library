@@ -318,6 +318,7 @@
       <File Name="../examples/python/smart_record_tap_start_session_on_user_demand.py"/>
       <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window.py"/>
       <File Name="../examples/python/dynamically_add_remove_branch_with_demuxer.py"/>
+      <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
