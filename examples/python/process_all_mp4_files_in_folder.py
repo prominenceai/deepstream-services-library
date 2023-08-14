@@ -33,7 +33,6 @@
 #   - IOU Tracker
 #   - On-Screen Display (OSD)
 #   - Window Sink
-# ...and how to add them to a new Pipeline and play
 # 
 # A Custom Pad-Probe-Handler is added to the Sink-Pad of the OSD
 # to process the frame and object meta-data for each buffer received
@@ -44,7 +43,7 @@
 #   - end-of-stream EOS events
 #   - Pipeline change-of-state events.
 #
-# NOTE! it is the end-of-stream (EOS) listener "eos_event_listener"
+# IMPORTANT! it is the end-of-stream (EOS) listener "eos_event_listener"
 # that stops the Pipeline on EOS, sets the URI to the next file in 
 # the list, and starts the Pipeline again.
 #  
@@ -59,6 +58,7 @@ import os
 # Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
 from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
 
+# path to the directory that hold the mp4 files to process.
 dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
@@ -78,6 +78,7 @@ iou_tracker_config_file = \
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
+# List of files to process... populated at the top of main. 
 file_list = []
 
 ## 
@@ -132,6 +133,7 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
+        global file_list
         
         for file in os.listdir(dir_path):
             if file.endswith(".mp4"):
