@@ -834,41 +834,43 @@ namespace DSL
             gst_object_unref(pStaticSinkPad);
             gst_object_unref(pRequestedSrcPad);
 
-            // Set the state of this GstNotetr to NULL - regarless of current state
-            GstStateChangeReturn changeResult = gst_element_set_state(
-                GetGstElement(), GST_STATE_NULL);
+            return Nodetr::UnlinkFromSource();
 
-            switch (changeResult)
-            {
-            case GST_STATE_CHANGE_FAILURE:
-                LOG_ERROR("GstNotetr '" << GetName() 
-                    << "' failed to set state to NULL");
-                return false;
-
-            case GST_STATE_CHANGE_ASYNC:
-                LOG_INFO("GstNotetr '" << GetName() 
-                    << "' changing state to NULL async");
-                    
-                // block on get state until change completes. 
-                if (gst_element_get_state(GetGstElement(), 
-                    NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
-                {
-                    LOG_ERROR("GstNotetr '" << GetName() 
-                        << "' failed to set state to NULL");
-                    return false;
-                }
-                // drop through on success - DO NOT BREAK
-
-            case GST_STATE_CHANGE_SUCCESS:
-                LOG_INFO("GstNotetr '" << GetName() 
-                    << "' changed state to NULL successfully");
-                    
-                return Nodetr::UnlinkFromSource();
-            default:
-                break;
-            }
-            LOG_ERROR("Unknown state change for GstNotetr '" << GetName() << "'");
-            return false;
+//            // Set the state of this GstNotetr to NULL - regarless of current state
+//            GstStateChangeReturn changeResult = gst_element_set_state(
+//                GetGstElement(), GST_STATE_NULL);
+//
+//            switch (changeResult)
+//            {
+//            case GST_STATE_CHANGE_FAILURE:
+//                LOG_ERROR("GstNotetr '" << GetName() 
+//                    << "' failed to set state to NULL");
+//                return false;
+//
+//            case GST_STATE_CHANGE_ASYNC:
+//                LOG_INFO("GstNotetr '" << GetName() 
+//                    << "' changing state to NULL async");
+//                    
+//                // block on get state until change completes. 
+//                if (gst_element_get_state(GetGstElement(), 
+//                    NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
+//                {
+//                    LOG_ERROR("GstNotetr '" << GetName() 
+//                        << "' failed to set state to NULL");
+//                    return false;
+//                }
+//                // drop through on success - DO NOT BREAK
+//
+//            case GST_STATE_CHANGE_SUCCESS:
+//                LOG_INFO("GstNotetr '" << GetName() 
+//                    << "' changed state to NULL successfully");
+//                    
+//                return Nodetr::UnlinkFromSource();
+//            default:
+//                break;
+//            }
+//            LOG_ERROR("Unknown state change for GstNotetr '" << GetName() << "'");
+//            return false;
         }
         
         /**

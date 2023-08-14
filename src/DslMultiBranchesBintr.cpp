@@ -90,7 +90,7 @@ namespace DSL
             padId = ivec - m_usedRequestPadIds.begin();
             m_usedRequestPadIds[padId] = true;
         }
-        // Else we're adding to the end of th indexed map
+        // Else we're adding to the end of the indexed map
         else
         {
             padId = m_usedRequestPadIds.size();
@@ -155,6 +155,7 @@ namespace DSL
         DslMutex asynMutex;
         DslCond asyncCond;
         GstNodetr* pChildComponent;
+        GstPad* pSinkPad;
     } AsyncData;
     
     static GstPadProbeReturn unlink_from_source_tee_cb(GstPad* pad, 
@@ -164,6 +165,10 @@ namespace DSL
         
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
         pAsyncData->pChildComponent->UnlinkFromSourceTee();
+        
+        gst_pad_send_event(pAsyncData->pSinkPad, 
+            gst_event_new_eos());
+
         g_cond_signal(&(pAsyncData->asyncCond));
 
         return GST_PAD_PROBE_REMOVE;
@@ -185,7 +190,8 @@ namespace DSL
             GetState(currentState, 0);
             LOG_INFO("MultiBranchesBintr '" << GetName() << "' is in the state '" 
                 << currentState << "' while removing branch '" 
-                << pChildComponent->GetName() << "'");
+                << pChildComponent->GetName() 
+                << "' from stream-id = " << pChildComponent->GetRequestPadId());
                 
             if (currentState == GST_STATE_PLAYING)
             {
@@ -196,6 +202,8 @@ namespace DSL
                 
                 GstPad* pStaticSinkPad = gst_element_get_static_pad(
                     pChildComponent->GetGstElement(), "sink");
+
+                asyncData.pSinkPad = pStaticSinkPad;
                     
                 GstPad* pRequestedSrcPad = gst_pad_get_peer(pStaticSinkPad);
                     
@@ -204,7 +212,26 @@ namespace DSL
                     (GstPadProbeCallback)unlink_from_source_tee_cb, 
                     &asyncData, NULL);
 
-                g_cond_wait(&asyncData.asyncCond, &asyncData.asynMutex);
+                gint64 endTime = g_get_monotonic_time() + G_TIME_SPAN_SECOND;
+                if (!g_cond_wait_until(&asyncData.asyncCond, 
+                    &asyncData.asynMutex, endTime))
+                {
+                    // timeout - individual source must be paused or not linked.
+                    
+                    LOG_WARN("Timout waiting for blocking pad probe removing branch '" 
+                        << pChildComponent->GetName() << "' from Parent Demuxer");
+                    LOG_WARN("Upstream source must be in a non-playing state");
+
+                    if (!pChildComponent->UnlinkFromSourceTee())
+                    {   
+                        LOG_ERROR("MultiBranchesBintr '" << GetName() 
+                            << "' failed to Unlink Child Branch '" 
+                            << pChildComponent->GetName() << "'");
+                        return false;
+                    }                
+                    // remove the probe since it timed out.
+                    gst_pad_remove_probe(pRequestedSrcPad, probeId);
+                }
                 
                 gst_object_unref(pStaticSinkPad);
                 gst_object_unref(pRequestedSrcPad);
@@ -214,7 +241,9 @@ namespace DSL
                 // child branch. This seems to prevent an issue when the branch
                 // is immediately relinked and added back to the MultiBranchesBintr
                 // May only be an issue if a Window Sink is downstream??? 
-                g_usleep(1);
+                g_usleep(100000);
+                pChildComponent->SetState(GST_STATE_NULL, 
+                    DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
             }
             else
             {
@@ -368,7 +397,7 @@ namespace DSL
         AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
         
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
-        
+
         LOG_INFO("Synchronizing branch '" 
             << pAsyncData->pChildComponent->GetName() 
             << "' with Parent Demuxer");
@@ -505,20 +534,11 @@ namespace DSL
         // linkAll Elementrs now and Link with the Stream
         if (IsLinked())
         {
-            // link back upstream to the Tee - now the src for the child branch.
-            if (!pChildComponent->LinkAll() or 
-                !pChildComponent->LinkToSourceTee(m_pTee, 
-                    m_requestedSrcPads[streamId]))
-            {
-                LOG_ERROR("DemuxerBintr '" << GetName() 
-                    << "' failed to Link Child Component '" 
-                    << pChildComponent->GetName() << "'");
-                return false;
-            }
             GstState currentState;
             GetState(currentState, 0);
             LOG_INFO("Demuxer '" << GetName() << "' is in state '" << currentState 
-                << "' while adding branch '" << pChildComponent->GetName() << "'");
+                << "' while adding branch '" << pChildComponent->GetName() 
+                << "' to stream-id = " << streamId);
                 
             if (currentState == GST_STATE_PLAYING)
             {
@@ -528,19 +548,61 @@ namespace DSL
                 asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
         
                 LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncData.asynMutex);
-                
+
+                // IMPORTANT: we need to install the blocking probe before we link
+                // pads so that it can block the first buffer once linked.
                 gulong probeId = gst_pad_add_probe(m_requestedSrcPads[streamId], 
                     GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
                     (GstPadProbeCallback)link_to_source_tee_cb, 
                     &asyncData, NULL);
 
+                // link back upstream to the Tee - now the src for the child branch.
+                if (!pChildComponent->LinkAll() or 
+                    !pChildComponent->LinkToSourceTee(m_pTee, 
+                        m_requestedSrcPads[streamId]))
+                {
+                    LOG_ERROR("DemuxerBintr '" << GetName() 
+                        << "' failed to Link Child Component '" 
+                        << pChildComponent->GetName() << "'");
+                    return false;
+                }
+
                 gint64 endTime = g_get_monotonic_time() + G_TIME_SPAN_SECOND;
-                return g_cond_wait_until(&asyncData.asyncCond, 
-                    &asyncData.asynMutex, endTime);
+                if (!g_cond_wait_until(&asyncData.asyncCond, 
+                    &asyncData.asynMutex, endTime))
+                {
+                    // timeout - individual source must be paused or not linked.
+                    
+                    LOG_ERROR("Timout waiting for blocking pad probe adding branch '" 
+                        << pChildComponent->GetName() << "' to Parent Demuxer");
+                    LOG_ERROR("Upstream source must be in a non-playing state");
+                    
+                    pChildComponent->UnlinkFromSourceTee();
+                    pChildComponent->UnlinkAll();
+                    // remove the probe since it timed out.
+                    gst_pad_remove_probe(m_requestedSrcPads[streamId], probeId);
+                    return false;
+                }
+                else
+                {
+                    // branch has been succcessfully added while the Pipeline 
+                    // and individual source stream were both playing.
+                    return true;
+                }
             }
             else
             {
-                // Else, we must be in a PAUSED or READY state so we can
+                // Else, we must be in a READY, or PAUSED state so we can
+                // link back upstream to the Tee now.
+                if (!pChildComponent->LinkAll() or 
+                    !pChildComponent->LinkToSourceTee(m_pTee, 
+                        m_requestedSrcPads[streamId]))
+                {
+                    LOG_ERROR("DemuxerBintr '" << GetName() 
+                        << "' failed to Link Child Component '" 
+                        << pChildComponent->GetName() << "'");
+                    return false;
+                }
                 // Sync the branch with the parent (this demuxer) state now.
                 LOG_INFO("Synchronizing branch '" << pChildComponent->GetName() 
                     << "' with Parent Demuxer");

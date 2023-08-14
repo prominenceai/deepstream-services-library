@@ -3504,6 +3504,26 @@ def dsl_source_name_get(unique_id):
     return int(result), name.value 
 
 ##
+## dsl_source_pause()
+##
+_dsl.dsl_source_pause.argtypes = [c_wchar_p]
+_dsl.dsl_source_pause.restype = c_uint
+def dsl_source_pause(name):
+    global _dsl
+    result = _dsl.dsl_source_pause(name)
+    return int(result)
+
+##
+## dsl_source_resume()
+##
+_dsl.dsl_source_resume.argtypes = [c_wchar_p]
+_dsl.dsl_source_resume.restype = c_uint
+def dsl_source_resume(name):
+    global _dsl
+    result = _dsl.dsl_source_resume(name)
+    return int(result)
+
+##
 ## dsl_source_pph_add()
 ##
 _dsl.dsl_source_pph_add.argtypes = [c_wchar_p, c_wchar_p]
