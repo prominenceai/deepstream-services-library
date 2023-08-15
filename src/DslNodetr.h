@@ -195,8 +195,8 @@ namespace DSL
         }
         
         /**
-         * @brief returns the currently linked to Sink Nodetr
-         * @return shared pointer to Sink Nodetr, nullptr if Unlinked to sink
+         * @brief returns the Sink Nodetr that this Nodetr is.urrently linked to
+         * @return shared pointer to Sink Nodetr, nullptr if Unlinked from Sink
          */
         DSL_NODETR_PTR GetSink()
         {
@@ -205,6 +205,10 @@ namespace DSL
             return m_pSink;
         }
         
+        /**
+         * @brief returns this Nodetr's GStreamer bin as a GST_OBJECT
+         * @return this Nodetr's bin cast to GST_OBJECT
+         */
         GstObject* GetGstObject()
         {
             LOG_FUNC();
@@ -212,6 +216,10 @@ namespace DSL
             return GST_OBJECT(m_pGstObj);
         }
         
+        /**
+         * @brief returns this Nodetr's GStreamer bin as a GST_ELEMENT
+         * @return this Nodetr's bin cast to GST_ELEMENT
+         */
         GstElement* GetGstElement()
         {
             LOG_FUNC();
@@ -219,6 +227,10 @@ namespace DSL
             return GST_ELEMENT(m_pGstObj);
         }
         
+        /**
+         * @brief returns this Nodetr's GStreamer bin as a G_OBJECT
+         * @return this Nodetr's bin cast to G_OBJECT
+         */
         GObject* GetGObject()
         {
             LOG_FUNC();
@@ -226,6 +238,10 @@ namespace DSL
             return G_OBJECT(m_pGstObj);
         }
 
+        /**
+         * @brief returns this Nodetr's Parent's GStreamer bin as a GST_OBJECT
+         * @return this Nodetr's Parent's bin cast to GST_OBJECT
+         */
         GstObject* GetParentGstObject()
         {
             LOG_FUNC();
@@ -233,6 +249,10 @@ namespace DSL
             return GST_OBJECT(m_pParentGstObj);
         }
 
+        /**
+         * @brief returns this Nodetr's Parent's GStreamer bin as a GST_OBJECT
+         * @return this Nodetr's Parent's bin cast to GST_OBJECT
+         */
         GstElement* GetParentGstElement()
         {
             LOG_FUNC();
@@ -240,6 +260,9 @@ namespace DSL
             return GST_ELEMENT(m_pParentGstObj);
         }
         
+        /**
+         * @brief Sets this Nodetr's GStreamer bin to a new GST_OBJECT
+         */
         void SetGstObject(GstObject* pGstObj)
         {
             LOG_FUNC();
@@ -316,7 +339,8 @@ namespace DSL
             }
             else
             {
-                // Set the State to NULL to free up all resource before removing childern
+                // Set the State to NULL to free up all resource before 
+                // removing childern
                 LOG_DEBUG("Setting GstElement for GstNodetr '" 
                     << GetName() << "' to GST_STATE_NULL");
                 gst_element_set_state(GetGstElement(), GST_STATE_NULL);
@@ -326,7 +350,7 @@ namespace DSL
                 
                 if (!m_pParentGstObj)
                 {
-                    LOG_DEBUG("Unreferencing GST Object contained by this GstNotetr '" 
+                    LOG_DEBUG("Unreferencing GST Object contained by this GstNodetr '" 
                         << GetName() << "'");
                     gst_object_unref(m_pGstObj);
                 }
@@ -335,7 +359,7 @@ namespace DSL
         }
 
         /**
-         * @brief adds a child GstNotetr to this parent Bintr
+         * @brief adds a child GstNodetr to this parent Bintr
          * @param[in] pChild to add. Once added, calling InUse()
          *  on the Child Bintr will return true
          * @return true if pChild was added successfully, false otherwise
@@ -357,7 +381,7 @@ namespace DSL
         }
         
         /**
-         * @brief removes a child from this parent GstNotetr
+         * @brief removes a child from this parent GstNodetr
          * @param[in] pChild to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
@@ -426,8 +450,9 @@ namespace DSL
         {
             LOG_FUNC();
 
-            // create a new ghost pad with the static Sink pad retrieved from this Elementr's 
-            // pGstObj and adds it to the the Elementr's Parent Bintr's pGstObj.
+            // create a new ghost pad with the static Sink pad retrieved from 
+            // this Elementr's pGstObj and adds it to the the Elementr's Parent 
+            // Bintr's pGstObj.
             if (!gst_element_add_pad(GST_ELEMENT(GetParentGstObject()), 
                 gst_ghost_pad_new(padname, 
                     gst_element_get_static_pad(GetGstElement(), padname))))
@@ -550,34 +575,34 @@ namespace DSL
         {
             LOG_FUNC();
             
-            // Get a reference to this GstNotetr's source pad
+            // Get a reference to this GstNodetr's source pad
             GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), 
                 "src");
             if (!pStaticSrcPad)
             {
-                LOG_ERROR("Failed to get Static Src Pad for GstNotetr '" 
+                LOG_ERROR("Failed to get Static Src Pad for GstNodetr '" 
                     << GetName() << "'");
                 return false;
             }
 
             // Request a new sink pad from the Muxer to connect to this 
-            // GstNotetr's source pad
+            // GstNodetr's source pad
             GstPad* pRequestedSinkPad = gst_element_get_request_pad(
                 pMuxer->GetGstElement(), padName);
             if (!pRequestedSinkPad)
             {
-                LOG_ERROR("Failed to get requested Tee Sink Pad for GstNotetr '" 
+                LOG_ERROR("Failed to get requested Tee Sink Pad for GstNodetr '" 
                     << GetName() <<"'");
                 return false;
             }
             
             LOG_INFO("Linking requested Sink Pad'" << pRequestedSinkPad 
-                << "' for GstNotetr '" << GetName() << "'");
+                << "' for GstNodetr '" << GetName() << "'");
                 
             if (gst_pad_link(pStaticSrcPad, 
                 pRequestedSinkPad) != GST_PAD_LINK_OK)
             {
-                LOG_ERROR("GstNotetr '" << GetName() 
+                LOG_ERROR("GstNodetr '" << GetName() 
                     << "' failed to link to Muxer");
                 return false;
             }
@@ -614,49 +639,49 @@ namespace DSL
             switch (changeResult)
             {
             case GST_STATE_CHANGE_FAILURE:
-                LOG_ERROR("GstNotetr '" << GetName() 
+                LOG_ERROR("GstNodetr '" << GetName() 
                     << "' failed to set state to NULL");
                 return false;
 
             case GST_STATE_CHANGE_ASYNC:
-                LOG_INFO("GstNotetr '" << GetName() 
+                LOG_INFO("GstNodetr '" << GetName() 
                     << "' changing state to NULL async");
                     
                 // block on get state until change completes. 
                 if (gst_element_get_state(GetGstElement(), 
                     NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
                 {
-                    LOG_ERROR("GstNotetr '" << GetName() 
+                    LOG_ERROR("GstNodetr '" << GetName() 
                         << "' failed to set state to NULL");
                     return false;
                 }
                 // drop through on success - DO NOT BREAK
 
             case GST_STATE_CHANGE_SUCCESS:
-                LOG_INFO("GstNotetr '" << GetName() 
+                LOG_INFO("GstNodetr '" << GetName() 
                     << "' changed state to NULL successfully");
                     
-                // Get a reference to this GstNotetr's source pad
+                // Get a reference to this GstNodetr's source pad
                 pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
                 if (!pStaticSrcPad)
                 {
-                    LOG_ERROR("Failed to get static source pad for GstNotetr '" 
+                    LOG_ERROR("Failed to get static source pad for GstNodetr '" 
                         << GetName() << "'");
                     return false;
                 }
                 
                 // Get a reference to the Muxer's sink pad that is connected
-                // to this GstNotetr's source pad
+                // to this GstNodetr's source pad
                 pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
                 if (!pRequestedSinkPad)
                 {
-                    LOG_ERROR("Failed to get requested sink pad peer for GstNotetr '" 
+                    LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
                         << GetName() << "'");
                     return false;
                 }
 
                 // Send a flush-stop event upstream to all elements and
-                // downstream to the stream-muxer for this GstNodetr's stream
+                // downstream to the muxer for this GstNodetr's stream
                 gst_pad_send_event(pStaticSrcPad, 
                     gst_event_new_flush_stop(FALSE));
                 gst_pad_send_event(pRequestedSinkPad, 
@@ -665,12 +690,12 @@ namespace DSL
                     gst_event_new_eos());
 
                 LOG_INFO("Unlinking and releasing requested sink pad '" 
-                    << pRequestedSinkPad << "' for GstNotetr '" << GetName() << "'");
+                    << pRequestedSinkPad << "' for GstNodetr '" << GetName() << "'");
 
-                // It should now be safe to unlink this GstNotetr from the Muxer
+                // It should now be safe to unlink this GstNodetr from the Muxer
                 if (!gst_pad_unlink(pStaticSrcPad, pRequestedSinkPad))
                 {
-                    LOG_ERROR("GstNotetr '" << GetName() 
+                    LOG_ERROR("GstNodetr '" << GetName() 
                         << "' failed to unlink from Muxer");
                     Nodetr::UnlinkFromSink();
                     return false;
@@ -703,12 +728,12 @@ namespace DSL
         {
             LOG_FUNC();
             
-            // Get a reference to the static sink pad for this GstNotetr
+            // Get a reference to the static sink pad for this GstNodetr
             GstPad* pStaticSinkPad = gst_element_get_static_pad(
                 GetGstElement(), "sink");
             if (!pStaticSinkPad)
             {
-                LOG_ERROR("Failed to get static sink pad for GstNotetr '" 
+                LOG_ERROR("Failed to get static sink pad for GstNodetr '" 
                     << GetName() << "'");
                 return false;
             }
@@ -725,11 +750,11 @@ namespace DSL
             m_releaseRequestedPadOnUnlink = true;
 
             LOG_INFO("Linking requested source pad'" << pRequestedSrcPad 
-                << "' for GstNotetr '" << GetName() << "'");
+                << "' for GstNodetr '" << GetName() << "'");
 
             if (gst_pad_link(pRequestedSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK)
             {
-                LOG_ERROR("GstNotetr '" << GetName() 
+                LOG_ERROR("GstNodetr '" << GetName() 
                     << "' failed to link to Source Tee");
                 return false;
             }
@@ -753,22 +778,22 @@ namespace DSL
             LOG_FUNC();
             m_releaseRequestedPadOnUnlink = false;
             
-            // Get a reference to the static sink pad for this GstNotetr
+            // Get a reference to the static sink pad for this GstNodetr
             GstPad* pStaticSinkPad = gst_element_get_static_pad(
                 GetGstElement(), "sink");
             if (!pStaticSinkPad)
             {
-                LOG_ERROR("Failed to get static sink pad for GstNotetr '" 
+                LOG_ERROR("Failed to get static sink pad for GstNodetr '" 
                     << GetName() << "'");
                 return false;
             }
 
             LOG_INFO("Linking requested source pad'" << pRequestedSrcPad 
-                << "' for GstNotetr '" << GetName() << "'");
+                << "' for GstNodetr '" << GetName() << "'");
 
             if (gst_pad_link(pRequestedSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK)
             {
-                LOG_ERROR("GstNotetr '" << GetName() 
+                LOG_ERROR("GstNodetr '" << GetName() 
                     << "' failed to link to Source Tee");
                 return false;
             }
@@ -793,32 +818,32 @@ namespace DSL
                 return false;
             }
 
-            // Get a reference to this GstNotetr's sink pad
+            // Get a reference to this GstNodetr's sink pad
             GstPad* pStaticSinkPad = gst_element_get_static_pad(GetGstElement(), "sink");
             if (!pStaticSinkPad)
             {
-                LOG_ERROR("Failed to get static sink pad for GstNotetr '" 
+                LOG_ERROR("Failed to get static sink pad for GstNodetr '" 
                     << GetName() << "'");
                 return false;
             }
             
             // Get a reference to the Tee's source pad that is connected
-            // to this GstNotetr's sink pad
+            // to this GstNodetr's sink pad
             GstPad* pRequestedSrcPad = gst_pad_get_peer(pStaticSinkPad);
             if (!pRequestedSrcPad)
             {
-                LOG_ERROR("Failed to get requested source pad peer for GstNotetr '"
+                LOG_ERROR("Failed to get requested source pad peer for GstNodetr '"
                     << GetName() << "'");
                 return false;
             }
 
             LOG_INFO("Unlinking requested source pad '" 
-                << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
+                << pRequestedSrcPad << "' for GstNodetr '" << GetName() << "'");
 
-            // It should now be safe to unlink this GstNotetr from the Muxer
+            // It should now be safe to unlink this GstNodetr from the Muxer
             if (!gst_pad_unlink(pRequestedSrcPad, pStaticSinkPad))
             {
-                LOG_ERROR("GstNotetr '" << GetName() 
+                LOG_ERROR("GstNodetr '" << GetName() 
                     << "' failed to unlink from source Tee");
                 Nodetr::UnlinkFromSource();
                 return false;
@@ -826,7 +851,7 @@ namespace DSL
             if (m_releaseRequestedPadOnUnlink)
             {
                 LOG_INFO("Releasing requested source pad '" 
-                    << pRequestedSrcPad << "' for GstNotetr '" << GetName() << "'");
+                    << pRequestedSrcPad << "' for GstNodetr '" << GetName() << "'");
                 // Need to release the previously requested sink pad
                 gst_element_release_request_pad(GetSource()->GetGstElement(), 
                     pRequestedSrcPad);
@@ -835,46 +860,10 @@ namespace DSL
             gst_object_unref(pRequestedSrcPad);
 
             return Nodetr::UnlinkFromSource();
-
-//            // Set the state of this GstNotetr to NULL - regarless of current state
-//            GstStateChangeReturn changeResult = gst_element_set_state(
-//                GetGstElement(), GST_STATE_NULL);
-//
-//            switch (changeResult)
-//            {
-//            case GST_STATE_CHANGE_FAILURE:
-//                LOG_ERROR("GstNotetr '" << GetName() 
-//                    << "' failed to set state to NULL");
-//                return false;
-//
-//            case GST_STATE_CHANGE_ASYNC:
-//                LOG_INFO("GstNotetr '" << GetName() 
-//                    << "' changing state to NULL async");
-//                    
-//                // block on get state until change completes. 
-//                if (gst_element_get_state(GetGstElement(), 
-//                    NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
-//                {
-//                    LOG_ERROR("GstNotetr '" << GetName() 
-//                        << "' failed to set state to NULL");
-//                    return false;
-//                }
-//                // drop through on success - DO NOT BREAK
-//
-//            case GST_STATE_CHANGE_SUCCESS:
-//                LOG_INFO("GstNotetr '" << GetName() 
-//                    << "' changed state to NULL successfully");
-//                    
-//                return Nodetr::UnlinkFromSource();
-//            default:
-//                break;
-//            }
-//            LOG_ERROR("Unknown state change for GstNotetr '" << GetName() << "'");
-//            return false;
         }
         
         /**
-         * @brief Returns the current State of this GstNotetr's Parent
+         * @brief Returns the current State of this GstNodetr's Parent
          * @return the current state of the Parenet, GST_STATE_NULL if the
          * GstNodetr is currently an orphen. 
          */
@@ -892,7 +881,7 @@ namespace DSL
             
             LOG_DEBUG("Returning a state of '" 
                 << gst_element_state_get_name(currentState) 
-                << "' for GstNotetr '" << GetName());
+                << "' for GstNodetr '" << GetName());
             
             return currentState;
         }
@@ -911,40 +900,40 @@ namespace DSL
             uint retval = gst_element_get_state(GetGstElement(), 
                 &state, NULL, timeout);
             LOG_DEBUG("Get state returned '" << gst_element_state_get_name(state) 
-                << "' for GstNotetr '" << GetName() << "'");
+                << "' for GstNodetr '" << GetName() << "'");
             
             return retval;
         }
         
         /**
-         * @brief Attempts to set the state of this GstNotetr's GST Element
+         * @brief Attempts to set the state of this GstNodetr's GST Element
          * @return true if successful transition, false on failure
          */
         bool SetState(GstState state, GstClockTime timeout)
         {
             LOG_FUNC();
             LOG_INFO("Changing state to '" << gst_element_state_get_name(state) 
-                << "' for GstNotetr '" << GetName() << "'");
+                << "' for GstNodetr '" << GetName() << "'");
 
             GstStateChangeReturn returnVal = gst_element_set_state(GetGstElement(), 
                 state);
             switch (returnVal) 
             {
                 case GST_STATE_CHANGE_SUCCESS:
-                    LOG_INFO("State change completed synchronously for GstNotetr'" 
+                    LOG_INFO("State change completed synchronously for GstNodetr'" 
                         << GetName() << "'");
                     return true;
                 case GST_STATE_CHANGE_FAILURE:
                     LOG_ERROR("FAILURE occured when trying to change state to '" 
-                        << gst_element_state_get_name(state) << "' for GstNotetr '" 
+                        << gst_element_state_get_name(state) << "' for GstNodetr '" 
                         << GetName() << "'");
                     return false;
                 case GST_STATE_CHANGE_NO_PREROLL:
-                    LOG_INFO("Set state for GstNotetr '" << GetName() 
+                    LOG_INFO("Set state for GstNodetr '" << GetName() 
                         << "' returned GST_STATE_CHANGE_NO_PREROLL");
                     return true;
                 case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for GstNotetr '" 
+                    LOG_INFO("State change will complete asynchronously for GstNodetr '" 
                         << GetName() << "'");
                     break;
                 default:
@@ -957,10 +946,10 @@ namespace DSL
             {
                 LOG_ERROR("FAILURE occured waiting for state to change to '" 
                     << gst_element_state_get_name(state) 
-                        << "' for GstNotetr '" << GetName() << "'");
+                        << "' for GstNodetr '" << GetName() << "'");
                 return false;
             }
-            LOG_INFO("State change completed asynchronously for GstNotetr'" 
+            LOG_INFO("State change completed asynchronously for GstNodetr'" 
                 << GetName() << "'");
             return true;
         }
@@ -974,19 +963,19 @@ namespace DSL
             switch (returnVal) 
             {
                 case GST_STATE_CHANGE_SUCCESS:
-                    LOG_INFO("State change completed synchronously for GstNotetr'" 
+                    LOG_INFO("State change completed synchronously for GstNodetr'" 
                         << GetName() << "'");
                     return returnVal;
                 case GST_STATE_CHANGE_FAILURE:
-                    LOG_ERROR("FAILURE occured when trying to sync state with Parent for GstNotetr '" 
+                    LOG_ERROR("FAILURE occured when trying to sync state with Parent for GstNodetr '" 
                         << GetName() << "'");
                     return returnVal;
                 case GST_STATE_CHANGE_NO_PREROLL:
-                    LOG_INFO("Set state for GstNotetr '" << GetName() 
+                    LOG_INFO("Set state for GstNodetr '" << GetName() 
                         << "' return GST_STATE_CHANGE_NO_PREROLL");
                     return returnVal;
                 case GST_STATE_CHANGE_ASYNC:
-                    LOG_INFO("State change will complete asynchronously for GstNotetr '" 
+                    LOG_INFO("State change will complete asynchronously for GstNodetr '" 
                         << GetName() << "'");
                     break;
                 default:
@@ -995,7 +984,7 @@ namespace DSL
             uint retval = gst_element_get_state(GST_ELEMENT_PARENT(GetGstElement()), 
                 &parentState, NULL, timeout);
             LOG_INFO("Get state returned '" << gst_element_state_get_name(parentState) 
-                << "' for Parent of GstNotetr '" << GetName() << "'");
+                << "' for Parent of GstNodetr '" << GetName() << "'");
             return retval;
         }
         

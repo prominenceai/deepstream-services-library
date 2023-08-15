@@ -259,7 +259,7 @@ SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is ma
             
         WHEN( "When we attempt to add the BranchBintr that would exceed max-branches" )
         {
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr0), maxBranchces) == false );
 
             THEN( "The BranchBintr fails to add" )
@@ -271,9 +271,9 @@ SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is ma
         }
         WHEN( "When we attempt to add the BranchBintr at the same stream_id twice" )
         {
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr0), 0) == true );
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr1), 0) == false );
 
             THEN( "The BranchBintrs are updated correctly" )
@@ -287,11 +287,11 @@ SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is ma
         }
         WHEN( "When we add the multple BranchBintrs in the order of stream_id" )
         {
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr0), 0) == true );
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr1), 1) == true );
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr2), 2) == true );
 
             THEN( "The BranchBintrs are updated correctly" )
@@ -307,11 +307,11 @@ SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is ma
         }
         WHEN( "When we add the multple BranchBintrs in the reverse-order of stream_id" )
         {
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr0), 2) == true );
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr1), 1) == true );
-            REQUIRE( pDemuxerBintr->AddChildAt(std::dynamic_pointer_cast<Bintr>(
+            REQUIRE( pDemuxerBintr->AddChildTo(std::dynamic_pointer_cast<Bintr>(
                 pBranchBintr2), 0) == true );
 
             THEN( "The BranchBintrs are updated correctly" )

@@ -81,7 +81,7 @@ namespace DSL
          * @param[in] pChildComponent a shared pointer to ComponentBintr to remove
          * @return true if the ComponentBintr was removed correctly, false otherwise
          */
-        bool RemoveChild(DSL_BINTR_PTR pChildComponent);
+        bool RemoveChild(DSL_BINTR_PTR pChildComponent, bool unlinkAll=true);
 
         /**
          * @brief overrides the base method and checks in m_pChildBranches only.
@@ -237,7 +237,17 @@ namespace DSL
          * @param[in] stream_id the stream-id and demuxer source pad to link to.
          * @return true if the ComponentBintr was added correctly, false otherwise
          */
-        bool AddChildAt(DSL_BINTR_PTR pChildComponent, uint streamId);
+        bool AddChildTo(DSL_BINTR_PTR pChildComponent, uint streamId);
+        
+        /**
+         * @brief Moves a child ComponentBintr, owned by this DemuxerBintr, from its
+         * current stream to a new stream.
+         * stream-id and Demuxer source pd.
+         * @param[in] pChildComponent shared pointer to ComponentBintr to move
+         * @param[in] stream_id the destination stream-id to move to.
+         * @return true if the ComponentBintr was moved correctly, false otherwise
+         */
+        bool MoveChildTo(DSL_BINTR_PTR pChildComponent, uint streamId);
         
         /** 
          * @brief links all child Component Bintrs and their elements. We need to 

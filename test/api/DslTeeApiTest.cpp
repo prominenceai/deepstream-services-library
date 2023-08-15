@@ -138,7 +138,7 @@ SCENARIO( "A Demuxer can add and remove Branches at a specific stream-id", "[tee
 
         WHEN( "We attempt to add a Branch to the Demuxer beyond max_branches" ) 
         {
-            REQUIRE( dsl_tee_demuxer_branch_add_at(demuxerName.c_str(), 
+            REQUIRE( dsl_tee_demuxer_branch_add_to(demuxerName.c_str(), 
                 branchName0.c_str(), 3) == DSL_RESULT_TEE_BRANCH_ADD_FAILED );
 
             THEN( "The branch should fail to add" ) 
@@ -153,14 +153,14 @@ SCENARIO( "A Demuxer can add and remove Branches at a specific stream-id", "[tee
         }
         WHEN( "We add a Branch to the Demuxer witin max_branches" ) 
         {
-            REQUIRE( dsl_tee_demuxer_branch_add_at(demuxerName.c_str(), 
+            REQUIRE( dsl_tee_demuxer_branch_add_to(demuxerName.c_str(), 
                 branchName0.c_str(), 2) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), 
                 &count) == DSL_RESULT_SUCCESS );
             REQUIRE( count == 1 );
 
             // adding the same branch twice must fail
-            REQUIRE( dsl_tee_demuxer_branch_add_at(demuxerName.c_str(), 
+            REQUIRE( dsl_tee_demuxer_branch_add_to(demuxerName.c_str(), 
                 branchName0.c_str(), 2) == DSL_RESULT_COMPONENT_IN_USE );
             REQUIRE( dsl_tee_branch_count_get(demuxerName.c_str(), 
                 &count) == DSL_RESULT_SUCCESS );
@@ -358,9 +358,9 @@ SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
                 REQUIRE( dsl_tee_demuxer_max_branches_set(NULL, 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tee_demuxer_branch_add_at(NULL, 
+                REQUIRE( dsl_tee_demuxer_branch_add_to(NULL, 
                     NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_demuxer_branch_add_at(teeName.c_str(), 
+                REQUIRE( dsl_tee_demuxer_branch_add_to(teeName.c_str(), 
                     NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tee_splitter_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

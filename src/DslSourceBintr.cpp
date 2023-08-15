@@ -2703,6 +2703,7 @@ namespace DSL
         m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "source");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", name); 
 
+        m_pSourceElement->SetAttribute("is-live", m_isLive); 
         m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
         
         if(uri and !SetUri(uri))

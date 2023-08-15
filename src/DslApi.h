@@ -211,10 +211,11 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0006
 #define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0007
 #define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0008
-#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0009
-#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000A
-#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000B
-#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000C
+#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A0009
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A000A
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000B
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000C
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000D
 
 /**
  * Tile API Return Values
@@ -5987,7 +5988,18 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
  */
-DslReturnType dsl_tee_demuxer_branch_add_at(const wchar_t* name, 
+DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+
+/**
+ * @brief Moves a single Branch to a specific stream of a named Demuxer Tee.
+ * This service will fail if the Branch is not currently added to the Demuxer.
+ * @param[in] name name of the Dumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ */
+DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
 
 /**

@@ -6048,7 +6048,7 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_tee_demuxer_branch_add_at(const wchar_t* name, 
+DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6059,7 +6059,22 @@ DslReturnType dsl_tee_demuxer_branch_add_at(const wchar_t* name,
     std::wstring wstrBranch(branch);
     std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
 
-    return DSL::Services::GetServices()->TeeDemuxerBranchAddAt(cstrName.c_str(),
+    return DSL::Services::GetServices()->TeeDemuxerBranchAddTo(cstrName.c_str(),
+        cstrBranch.c_str(), stream_id);
+}
+    
+DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerBranchMoveTo(cstrName.c_str(),
         cstrBranch.c_str(), stream_id);
 }
     
