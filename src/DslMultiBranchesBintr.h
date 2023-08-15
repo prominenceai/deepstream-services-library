@@ -81,7 +81,7 @@ namespace DSL
          * @param[in] pChildComponent a shared pointer to ComponentBintr to remove
          * @return true if the ComponentBintr was removed correctly, false otherwise
          */
-        bool RemoveChild(DSL_BINTR_PTR pChildComponent, bool unlinkAll=true);
+        bool RemoveChild(DSL_BINTR_PTR pChildComponent);
 
         /**
          * @brief overrides the base method and checks in m_pChildBranches only.

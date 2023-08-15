@@ -71,9 +71,11 @@ def xwindow_delete_event_handler(client_data):
 def xwindow_key_event_handler(key_string, client_data):
     global MAX_SOURCE_COUNT, cur_source_count
     print('key released = ', key_string)
-    if key_string.upper() == 'C':
+    
+    if key_string.upper() == 'C':  # only if using frame-capture-sink
         print ('Initiate capture returned', dsl_return_value_to_string(
             dsl_sink_frame_capture_initiate('dynamic-sink')))
+            
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
@@ -99,22 +101,6 @@ class RepeatTimer(Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
-
-##
-# Callback function to move the dynamic branch (branch-0) from
-# its current stream to next stream-id in the cycle.
-def remove_add_branch():
-    global stream_id
-    
-    print("dsl_tee_branch_remove() returned", 
-        dsl_tee_branch_remove('demuxer', 'branch-0'))
-
-    # set the stream-id to the next stream in the cycle of 4.
-    stream_id = (stream_id+1)%4
-    
-    # we then call the Demuxer service to add it back at the specified stream-id
-    print("dsl_tee_demuxer_branch_move_to() returned", 
-        dsl_tee_demuxer_branch_add_to('demuxer', 'branch-0', stream_id))
 
 ##
 # Callback function to move the dynamic branch (branch-0) from
@@ -199,21 +185,23 @@ def main(args):
         # New Overlay Sink, 0 x/y offsets
 #        retval = dsl_sink_rtsp_new('dynamic-sink', 
 #            '0.0.0.0', 5400, 8554, DSL_CODEC_H264, 4000000,0)
-#         retval = dsl_sink_overlay_new('dynamic-sink', 0, 0, 
+#        retval = dsl_sink_overlay_new('dynamic-sink', 0, 0, 
 #            300, 300, 1280, 720)
-#        retval = dsl_sink_window_new('dynamic-sink',
-#            300, 300, 1280, 720)
+        retval = dsl_sink_window_new('dynamic-sink',
+            300, 300, 1280, 720)
 #        retval = dsl_sink_fake_new('dynamic-sink')
 #        retval = dsl_sink_image_multi_new('dynamic-sink', 
 #            './frame_%04d.jpg', 640, 360, 1, 10)
-        retval = dsl_ode_action_capture_frame_new('frame-capture-action',
-            outdir = "./")
-        if retval != DSL_RETURN_SUCCESS:
-            break
+
+#        retval = dsl_ode_action_capture_frame_new('frame-capture-action',
+#            outdir = "./")
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
 
         ## New Frame-Capture Sink created with the new Capture Action.
-        retval = dsl_sink_frame_capture_new('dynamic-sink', 
-            'frame-capture-action')
+#        retval = dsl_sink_frame_capture_new('dynamic-sink', 
+#            'frame-capture-action')
+
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -274,9 +262,9 @@ def main(args):
 
         # IMPORTANT! when creating the Demuxer, we need to set the maximum number
         # of branches equal to the number of Source Streams, even though we will 
-        # only be using a single branch. The Demuxer needs to allocate a source-
-        # pad for each stream prior to playing so that the Branch can be moved from 
-        # stream to stream while the Pipeline is in a state of PLAYING.
+        # only be using two branches. The Demuxer needs to allocate a source-pad
+        # for each stream prior to playing so that the one dynamic Branch can be 
+        # moved from stream to stream while the Pipeline is in a state of PLAYING.
         retval = dsl_tee_demuxer_new('demuxer', max_branches=5)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -304,7 +292,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #timer = RepeatTimer(20, remove_add_branch)
         timer = RepeatTimer(5, move_branch)
         timer.start()
         

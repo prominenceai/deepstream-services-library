@@ -162,17 +162,26 @@ namespace DSL
         GstPadProbeInfo *info, gpointer pData)
     {
         AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
-        
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
+
+        LOG_INFO("Unlinking and EOS'ing branch '" 
+            << pAsyncData->pChildComponent->GetName() << "'");
+        
         pAsyncData->pChildComponent->UnlinkFromSourceTee();
         
+//        gst_pad_send_event(pAsyncData->pSinkPad, 
+//            gst_event_new_flush_start());
+//        gst_pad_send_event(pAsyncData->pSinkPad, 
+//            gst_event_new_flush_stop(FALSE));
+        gst_pad_send_event(pAsyncData->pSinkPad, 
+            gst_event_new_eos());
+
         g_cond_signal(&(pAsyncData->asyncCond));
 
         return GST_PAD_PROBE_REMOVE;
     }
 
-    bool MultiBranchesBintr::RemoveChild(DSL_BINTR_PTR pChildComponent,
-        bool unlinkAll)
+    bool MultiBranchesBintr::RemoveChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
 
@@ -230,28 +239,17 @@ namespace DSL
                     // remove the probe since it timed out.
                     gst_pad_remove_probe(pRequestedSrcPad, probeId);
                 }
-                if (unlinkAll)
-                {
-                    gst_pad_send_event(pStaticSinkPad, 
-                        gst_event_new_eos());
-                    
-                    gst_object_unref(pStaticSinkPad);
-                    gst_object_unref(pRequestedSrcPad);
-                    
-                    // TODO: need to revisit.  It seems to help if we pause the current
-                    // process and allow other processes to run before we unlink the 
-                    // child branch. This seems to prevent an issue when the branch
-                    // is immediately relinked and added back to the MultiBranchesBintr
-                    // May only be an issue if a Window Sink is downstream??? 
-                    g_usleep(100000);
-//                    pChildComponent->SetState(GST_STATE_NULL, 
-//                        DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);                        
-                }
-                else
-                {
-//                    pChildComponent->SetState(GST_STATE_PAUSED, 
-//                        GST_SECOND);                        
-                }
+                
+                gst_object_unref(pStaticSinkPad);
+                gst_object_unref(pRequestedSrcPad);
+                
+                // TODO: need to revisit.  Need to wait on EOS event to be
+                // received by final sink... not yet implemented.
+                // interim solution is to sleep this process and give the branch 
+                // enough time to complete the EOS process. 
+                g_usleep(100000);
+                pChildComponent->SetState(GST_STATE_NULL, 
+                    DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
             }
             else
             {
@@ -263,12 +261,7 @@ namespace DSL
                     return false;
                 }                
             }
-            if (unlinkAll)
-            {
-                pChildComponent->SetState(GST_STATE_NULL, 
-                    DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC);
-                pChildComponent->UnlinkAll();
-            }
+            pChildComponent->UnlinkAll();
         }
         // unreference and remove from the child-branch collections
         m_pChildBranches.erase(pChildComponent->GetName());
@@ -525,7 +518,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        return (RemoveChild(pChildComponent, false) and
+        return (RemoveChild(pChildComponent) and
             AddChildTo(pChildComponent, streamId));
     }
 
@@ -576,22 +569,10 @@ namespace DSL
                     GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
                     (GstPadProbeCallback)link_to_source_tee_cb, 
                     &asyncData, NULL);
-                
-                // Branches that are moved will be linked, branches added will not.
-                if (!pChildComponent->IsLinked())
-                {
-                    LOG_WARN("******************************************");
-                    if (!pChildComponent->LinkAll())
-                    {
-                        LOG_ERROR("DemuxerBintr '" << GetName() 
-                            << "' failed to Link Child Component '" 
-                            << pChildComponent->GetName() << "'");
-                        return false;
-                    }
-                }
-                // We've ensured that the branch is linked, so now we can link
-                // back the to the upstream Tee.
-                if (!pChildComponent->LinkToSourceTee(m_pTee, 
+
+                // link back upstream to the Tee - now the src for the child branch.
+                if (!pChildComponent->LinkAll() or 
+                    !pChildComponent->LinkToSourceTee(m_pTee, 
                         m_requestedSrcPads[streamId]))
                 {
                     LOG_ERROR("DemuxerBintr '" << GetName() 
@@ -600,8 +581,6 @@ namespace DSL
                     return false;
                 }
 
-                // Now that the pads are linked we wait for the blocking pad-probe
-                // to synchronize the branch with the parnet state.
                 gint64 endTime = g_get_monotonic_time() + G_TIME_SPAN_SECOND;
                 if (!g_cond_wait_until(&asyncData.asyncCond, 
                     &asyncData.asynMutex, endTime))
@@ -612,10 +591,7 @@ namespace DSL
                         << pChildComponent->GetName() << "' to Parent Demuxer");
                     LOG_ERROR("Upstream source must be in a non-playing state");
                     
-                    // Need unlink the branch from the Demuxer and set its state to NULL.
                     pChildComponent->UnlinkFromSourceTee();
-                    pChildComponent->SetState(GST_STATE_NULL, 
-                        DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC);
                     pChildComponent->UnlinkAll();
                     // remove the probe since it timed out.
                     gst_pad_remove_probe(m_requestedSrcPads[streamId], probeId);
