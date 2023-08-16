@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,33 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example shows how to use a single dynamic demuxer branch with a 
+# multi-source Pipeline. The Pipeline trunk consists of:
+#   - 5 Streaming Images Sources - each streams a single image at a given 
+#       frame-rate with a number overlayed representing the stream-id.
+#   - The Pipeline's built-in streammuxer muxes the streams into a
+#       batched stream as input to the Inference Engine.
+#   - Primary GST Inference Engine (PGIE).
+#   - IOU Tracker.
+#
+# The dynamic branch will consist of:
+#   - On-Screen Display (OSD)
+#   - Window Sink - with window-delete and key-release event handlers.
+# 
+# The branch is added to one of the Streams when the Pipeline is constructed
+# by calling:
+#
+#    dsl_tee_demuxer_branch_add_to('demuxer', 'branch-0', stream_id)
+#
+# Once the Pipeline is playing, the example uses a simple periodic timer to 
+# call a callback function which advances/cycles the current stream_id 
+# variable and moves the branch by calling.
+#
+#    dsl_tee_demuxer_branch_move_to('demuxer', 'branch-0', stream_id)
+#  
+################################################################################
 #!/usr/bin/env python
 
 import sys
@@ -31,19 +58,23 @@ from threading import Timer, Thread
 
 from dsl import *
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
-
+# Each png file has a unique id [0..4] overlayed on the picture
+# This makes it easy to see which stream the branch is connected to.
 image_0 = "../../test/streams/sample_720p.0.png"
 image_1 = "../../test/streams/sample_720p.1.png"
 image_2 = "../../test/streams/sample_720p.2.png"
 image_3 = "../../test/streams/sample_720p.3.png"
 image_4 = "../../test/streams/sample_720p.4.png"
 
-# Filespecs for the Primary GIE
-inferConfigFile = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-modelEngineFile = \
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -51,12 +82,17 @@ iou_tracker_config_file = \
 
 ##
 # Global variable - indicates the current stream_id for the 
-# single branch (branch-0). The varaible will be updated as
-#     stream_id = (stream_id+1)%4
-# to cycle through the first 4 streams. The other branch,
+# single branch (branch-0). The variable will be updated as
+#     stream_id = (stream_id+1)%num_streams
+# to cycle through each of the source 4 streams. The other branch,
 # which is a sole window sink, is connected to the 5th stream
 # (stream_id=4) at all times.
 stream_id = 0
+
+##
+# Number of Source streams for the Pipeline
+##
+num_streams = 5
 
 # Function to be called on XWindow Delete event
 ## 
@@ -75,17 +111,9 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
-
-##
-# Function to be called on End-of-Stream (EOS) event
-##
-def eos_event_listener(client_data):
-    print('Pipeline EOS event')
-    dsl_pipeline_stop('pipeline')
-    dsl_main_loop_quit()
 
 ##
 # Supper class derived from Timer to implement a simple
@@ -98,22 +126,17 @@ class RepeatTimer(Timer):
             self.function(*self.args, **self.kwargs)
 
 ##
-# Callback function to remove the dynamic branch (branch-0) from
-# the its current stream, update the stream-id, and then add the
-# branch back at the new stream-is
-def change_branch():
-    global stream_id
+# Callback function to move the dynamic branch (branch-0) from
+# its current stream to next stream-id in the cycle.
+def move_branch():
+    global stream_id, num_streams
     
-    # we first call the TEE base class service to remove the branch.
-    print("dsl_tee_branch_remove() returned", 
-        dsl_tee_branch_remove('demuxer', 'branch-0'))
-
-    # set the stream-id to the next stream in the cycle of 4.
-    stream_id = (stream_id+1)%4
+    # set the stream-id to the next stream in the cycle of 5.
+    stream_id = (stream_id+1)%num_streams
     
     # we then call the Demuxer service to add it back at the specified stream-id
-    print("dsl_tee_demuxer_branch_add_at() returned", 
-        dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', stream_id))
+    print("dsl_tee_demuxer_branch_move_to() returned", 
+        dsl_tee_demuxer_branch_move_to('demuxer', 'branch-0', stream_id))
 
 def main(args):
 
@@ -122,54 +145,50 @@ def main(args):
 
         global stream_id
         
-        # -------------------------------------------------------------
-        # The first four sources will provide streams for the dynamic branch 
-        
-#        retval = dsl_source_file_new('source-0', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-0', image_0, False, 15, 1, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-#        retval = dsl_source_file_new('source-1', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-1', image_1, False, 15, 1, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-#        retval = dsl_source_file_new('source-2', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-2', image_2, False, 15, 1, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-#        retval = dsl_source_file_new('source-3', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-3', image_3, False, 15, 1, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # ----------------------------------------------------------------------------
-        # The fith sources will provide the steady stream for the second
-        # static branch that will consist of a single Window Sink
+        # Create the five streaming-image sources that will provide the streams for 
+        # the single dynamic branch.
         
-#        retval = dsl_source_file_new('source-4', uri_h265, True)
-        retval = dsl_source_image_stream_new('source-4', image_4, False, 15, 1, 0)
+        retval = dsl_source_image_stream_new('source-0', image_0, True, 10, 1, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_source_image_stream_new('source-1', image_1, True, 10, 1, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_source_image_stream_new('source-2', image_2, True, 10, 1, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_source_image_stream_new('source-3', image_3, True, 10, 1, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break       
+        retval = dsl_source_image_stream_new('source-4', image_4, True, 15, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # ----------------------------------------------------------------------------
         # Create the PGIE and Tracker components that will become the
-        # fixed truck to process all batched sources. The Demuxer will
+        # fixed pipeline-trunk to process all batched sources. The Demuxer will
+        # demux/split the batched streams back to individual source streams.
         
-        # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            inferConfigFile, modelEngineFile, 4)
+        ## New Primary GIE using the filespecs above with interval = 0
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New IOU Tracker, setting operational width and hieght
+        # New IOU Tracker, setting operational width and height
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # ----------------------------------------------------------------------------
         # Next, create the OSD and Overlay-Sink. These two components will make up
-        # the dynamic branch. The dynamic branch will be moved from
-        # Source-0 t
+        # the dynamic branch. The dynamic branch will be moved from stream to stream
+        # i.e. from demuxer pad to pad.
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
@@ -178,85 +197,54 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # IMPORTANT! the default Window-Sink and Overlay-Sink settings must by
-        # udated to support dynamic Pipeline updates... specifically, we need to 
+        # IMPORTANT! the default Window-Sink (and Overlay-Sink) settings must by
+        # updated to support dynamic Pipeline updates... specifically, we need to 
         # disable the "sync", "max-lateness", and "qos" properties.
-        
-        # New Overlay Sink, 0 x/y offsets
-        retval = dsl_sink_overlay_new('overlay-sink-2', 0, 0, 
+        retval = dsl_sink_window_new('window-sink',
             300, 300, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
+
         # Disable the "sync" setting    
-        retval = dsl_sink_sync_enabled_set('overlay-sink-2', False)
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Disable the "max-lateness" setting
-        retval = dsl_sink_max_lateness_set('overlay-sink-2', -1)
+        retval = dsl_sink_max_lateness_set('window-sink', -1)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Disable the "qos" setting
-        retval = dsl_sink_qos_enabled_set('overlay-sink-2', False)
+        retval = dsl_sink_qos_enabled_set('window-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create the dynamic branch with the OSD and Window Sink.
         retval = dsl_branch_new_component_add_many('branch-0',
-            ['on-screen-display', 'overlay-sink-2', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # ----------------------------------------------------------------------------
-        # Create a Window Sink that will be added to the demuxer as a second branch
-        # which will remain linked to stream-id=4 for the life of the Pipeline
-        
-        # New Window Sink, 0 x/y offsets
-        retval = dsl_sink_window_new('window-sink-1', 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Disable the "sync" setting    
-        retval = dsl_sink_sync_enabled_set('window-sink-1', False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Disable the "max-lateness" setting    
-        retval = dsl_sink_max_lateness_set('window-sink-1', -1)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Disable the "qos" processing
-        retval = dsl_sink_qos_enabled_set('window-sink-1', False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink-1', 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink-1', 
-            xwindow_delete_event_handler, None)
+            ['on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # IMPORTANT! when creating the Demuxer, we need to set the maximum number
         # of branches equal to the number of Source Streams, even though we will 
-        # only be using a single branch. The Demuxer needs to allocate a source-
-        # pad for each stream prior to playing so that the Branch can be moved from 
-        # stream to stream while the Pipeline is in a state of PLAYING.
+        # only be using one branch. The Demuxer needs to allocate a source-pad
+        # for each stream prior to playing so that the dynamic Branch can be 
+        # moved from stream to stream while the Pipeline is in a state of PLAYING.
         retval = dsl_tee_demuxer_new('demuxer', max_branches=5)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the branchs to the Demuxer at stream_id=0
-        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'branch-0', stream_id)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_tee_demuxer_branch_add_at('demuxer', 'window-sink-1', 4)
+        # Add the branch to the Demuxer at stream_id=0
+        retval = dsl_tee_demuxer_branch_add_to('demuxer', 'branch-0', stream_id)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -266,16 +254,13 @@ def main(args):
             'primary-gie', 'iou-tracker', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        timer = RepeatTimer(2, change_branch)
+        timer = RepeatTimer(5, move_branch)
         timer.start()
         
         # blocking call

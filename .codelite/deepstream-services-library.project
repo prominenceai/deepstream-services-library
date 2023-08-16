@@ -257,6 +257,8 @@
       <File Name="../examples/cpp/smart_record_sink_start_session_on_user_demand.cpp"/>
       <File Name="../examples/cpp/smart_record_sink_start_session_on_ode_occurrence.cpp"/>
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
+      <File Name="../examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp"/>
+      <File Name="../examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
@@ -316,9 +318,9 @@
       <File Name="../examples/python/smart_record_sink_start_session_on_user_demand.py"/>
       <File Name="../examples/python/smart_record_tap_start_session_on_ode_occurrence.py"/>
       <File Name="../examples/python/smart_record_tap_start_session_on_user_demand.py"/>
-      <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window.py"/>
-      <File Name="../examples/python/dynamically_add_remove_branch_with_demuxer.py"/>
       <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
+      <File Name="../examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py"/>
+      <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

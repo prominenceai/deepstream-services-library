@@ -1053,7 +1053,10 @@ namespace DSL {
         
         DslReturnType TeeSplitterNew(const char* name);
         
-        DslReturnType TeeDemuxerBranchAddAt(const char* name, 
+        DslReturnType TeeDemuxerBranchAddTo(const char* name, 
+            const char* branch, uint stream_id);
+
+        DslReturnType TeeDemuxerBranchMoveTo(const char* name, 
             const char* branch, uint stream_id);
 
         DslReturnType TeeBranchAdd(const char* name, const char* branch);

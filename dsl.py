@@ -4795,13 +4795,23 @@ def dsl_tee_splitter_new_branch_add_many(name, branches):
     return int(result)
 
 ##
-## dsl_tee_demuxer_branch_add_at()
+## dsl_tee_demuxer_branch_add_to()
 ##
-_dsl.dsl_tee_demuxer_branch_add_at.argtypes = [c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_tee_demuxer_branch_add_at.restype = c_uint
-def dsl_tee_demuxer_branch_add_at(name, branch, stream_id):
+_dsl.dsl_tee_demuxer_branch_add_to.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_tee_demuxer_branch_add_to.restype = c_uint
+def dsl_tee_demuxer_branch_add_to(name, branch, stream_id):
     global _dsl
-    result =_dsl.dsl_tee_demuxer_branch_add_at(name, branch, stream_id)
+    result =_dsl.dsl_tee_demuxer_branch_add_to(name, branch, stream_id)
+    return int(result)
+    
+##
+## dsl_tee_demuxer_branch_move_to()
+##
+_dsl.dsl_tee_demuxer_branch_move_to.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_tee_demuxer_branch_move_to.restype = c_uint
+def dsl_tee_demuxer_branch_move_to(name, branch, stream_id):
+    global _dsl
+    result =_dsl.dsl_tee_demuxer_branch_move_to(name, branch, stream_id)
     return int(result)
     
 ##

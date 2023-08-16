@@ -162,10 +162,17 @@ namespace DSL
         GstPadProbeInfo *info, gpointer pData)
     {
         AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
-        
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
+
+        LOG_INFO("Unlinking and EOS'ing branch '" 
+            << pAsyncData->pChildComponent->GetName() << "'");
+        
         pAsyncData->pChildComponent->UnlinkFromSourceTee();
         
+//        gst_pad_send_event(pAsyncData->pSinkPad, 
+//            gst_event_new_flush_start());
+//        gst_pad_send_event(pAsyncData->pSinkPad, 
+//            gst_event_new_flush_stop(FALSE));
         gst_pad_send_event(pAsyncData->pSinkPad, 
             gst_event_new_eos());
 
@@ -236,11 +243,10 @@ namespace DSL
                 gst_object_unref(pStaticSinkPad);
                 gst_object_unref(pRequestedSrcPad);
                 
-                // TODO: need to revisit.  It seems to help if we pause the current
-                // process and allow other processes to run before we unlink the 
-                // child branch. This seems to prevent an issue when the branch
-                // is immediately relinked and added back to the MultiBranchesBintr
-                // May only be an issue if a Window Sink is downstream??? 
+                // TODO: need to revisit.  Need to wait on EOS event to be
+                // received by final sink... not yet implemented.
+                // interim solution is to sleep this process and give the branch 
+                // enough time to complete the EOS process. 
                 g_usleep(100000);
                 pChildComponent->SetState(GST_STATE_NULL, 
                     DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
@@ -454,7 +460,7 @@ namespace DSL
         return _completeAddChild(pChildComponent, streamId);
     }
 
-    bool DemuxerBintr::AddChildAt(DSL_BINTR_PTR pChildComponent, uint streamId)
+    bool DemuxerBintr::AddChildTo(DSL_BINTR_PTR pChildComponent, uint streamId)
     {
         LOG_FUNC();
         
@@ -506,6 +512,14 @@ namespace DSL
         // Call the private helper to complete the common add functionality
         // now that we have the streamId
         return _completeAddChild(pChildComponent, streamId);
+    }
+
+    bool DemuxerBintr::MoveChildTo(DSL_BINTR_PTR pChildComponent, uint streamId)
+    {
+        LOG_FUNC();
+        
+        return (RemoveChild(pChildComponent) and
+            AddChildTo(pChildComponent, streamId));
     }
 
     

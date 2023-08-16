@@ -40,8 +40,8 @@ import sys
 import time
 from dsl import *
 
-# update host URL to 
-host_uri = 'username-desktop.local'
+# Host uri of 0.0.0.0 means "use any available network interface"
+host_uri = '0.0.0.0'
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -67,7 +67,8 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -75,13 +76,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
+        retVal = dsl_sink_rtsp_new('rtsp-sink', 
+            host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['csi-source', 'primary-gie', 'on-screen-display', 'overlay-sink', 'rtsp-sink', None])
+            ['csi-source', 'primary-gie', 'on-screen-display', 
+            'overlay-sink', 'rtsp-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

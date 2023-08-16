@@ -149,7 +149,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TeeDemuxerBranchAddAt(const char* name, 
+    DslReturnType Services::TeeDemuxerBranchAddTo(const char* name, 
         const char* branch, uint streamId)
     {
         LOG_FUNC();
@@ -175,7 +175,7 @@ namespace DSL
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
 
             if (!std::dynamic_pointer_cast<DemuxerBintr>(
-                    m_components[name])->AddChildAt(pBranchBintr, streamId))
+                    m_components[name])->AddChildTo(pBranchBintr, streamId))
             {
                 LOG_ERROR("Demuxer '" << name << 
                     "' failed to add branch '" << branch 
@@ -196,7 +196,47 @@ namespace DSL
         }
     }    
 
-    
+    DslReturnType Services::TeeDemuxerBranchMoveTo(const char* name, 
+        const char* branch, uint streamId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+            
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            if (!std::dynamic_pointer_cast<DemuxerBintr>(
+                    m_components[name])->MoveChildTo(pBranchBintr, streamId))
+            {
+                LOG_ERROR("Demuxer '" << name << 
+                    "' failed to move branch '" << branch 
+                    << "' to stream-id = " << streamId);
+                return DSL_RESULT_TEE_BRANCH_MOVE_FAILED;
+            }
+                
+            LOG_INFO("Branch '" << branch 
+                << "' was moved to stream-id = " << streamId 
+                <<  " for Demuxer Tee '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Demuxer Tee '" << name 
+                << "' threw an exception moving branch '" << branch << "'");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }    
+
+   
     DslReturnType Services::TeeBranchAdd(const char* name, 
         const char* branch)
     {

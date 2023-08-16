@@ -22,6 +22,35 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example shows how to dynamically add and remove Source components
+# while the Pipeline is playing. The Pipeline must have at least once source
+# while playing. The Pipeline consists of:
+#   - A variable number of File Sources. The Source are created/added and 
+#       removed/deleted on user key-input.
+#   - The Pipeline's built-in streammuxer muxes the streams into a
+#       batched stream as input to the Inference Engine.
+#   - Primary GST Inference Engine (PGIE).
+#   - IOU Tracker.
+#   - Multi-stream 2D Tiler - created with rows/cols to support max-sources.
+#   - On-Screen Display (OSD)
+#   - Window Sink - with window-delete and key-release event handlers.
+# 
+# A Source component is created and added to the Pipeline by pressing the 
+#  "+" key which calls the following services:
+#
+#    dsl_source_uri_new(source_name, uri_h265, True, 0, 0)
+#    dsl_pipeline_component_add('pipeline', source_name)
+#
+# A Source component (last added) is removed from the Pipeline and deleted by 
+# pressing the "-" key which calls the following services
+#
+#    dsl_pipeline_component_remove('pipeline', source_name)
+#    dsl_component_delete(source_name)
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -32,18 +61,34 @@ from dsl import *
 
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
-# Filespecs for the Primary GIE
-inferConfigFile = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-modelEngineFile = \
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+##
+# Maximum number of sources that can be added to the Pipeline
+##
 MAX_SOURCE_COUNT = 4
+
+##
+# Current number of sources added to the Pipeline
+##
 cur_source_count = 0
+
+##
+# Number of rows and columns for the Multi-stream 2D Tiler
+TILER_COLS = 2
+TILER_ROWS = 2
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
@@ -78,7 +123,7 @@ def xwindow_key_event_handler(key_string, client_data):
             cur_source_count += 1
             source_name = 'source-' + str(cur_source_count)
             print('adding source ', source_name)
-            dsl_source_file_new(source_name, uri_h265, True)
+            dsl_source_uri_new(source_name, uri_h265, False, 0, 0)
             dsl_pipeline_component_add('pipeline', source_name)
 
     # Remove the last source added
@@ -99,12 +144,17 @@ def main(args):
     while True:
 
         # First new URI File Source
-        retval = dsl_source_file_new('source-1', uri_h265, True)
+        retval = dsl_source_uri_new('source-1', uri_h265, False, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)
+        ## New Primary GIE using the filespecs above with interval = 0
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -119,7 +169,7 @@ def main(args):
             break
 
         # Set the Tiled Displays tiles to accommodate max sources.
-        retval = dsl_tiler_tiles_set('tiler', columns=2, rows=2)
+        retval = dsl_tiler_tiles_set('tiler', columns=TILER_COLS, rows=TILER_ROWS)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -131,7 +181,25 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # IMPORTANT! the default Window-Sink (and Overlay-Sink) settings must by
+        # updated to support dynamic Pipeline updates... specifically, we need to 
+        # disable the "sync", "max-lateness", and "qos" properties.
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Disable the "sync" setting    
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Disable the "max-lateness" setting
+        retval = dsl_sink_max_lateness_set('window-sink', -1)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Disable the "qos" setting
+        retval = dsl_sink_qos_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -147,9 +215,12 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['source-1' , 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+            ['source-1' , 'primary-gie', 'iou-tracker', 'tiler', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
+            
+        # Update the current source count
         cur_source_count = 1
 
         ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, 

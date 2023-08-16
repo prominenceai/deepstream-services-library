@@ -381,7 +381,7 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
 }
 
 SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks", 
-    "[seg-fault]")
+    "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sink" ) 
     {
@@ -543,7 +543,7 @@ SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynami
         REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str(), 4) == DSL_RESULT_SUCCESS );
         
         //
-        REQUIRE( dsl_tee_demuxer_branch_add_at(demuxer_name.c_str(), 
+        REQUIRE( dsl_tee_demuxer_branch_add_to(demuxer_name.c_str(), 
             sink_name1.c_str(), 3) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {
@@ -567,7 +567,7 @@ SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynami
 
                 g_usleep(1000);
 
-                REQUIRE( dsl_tee_demuxer_branch_add_at(demuxer_name.c_str(), 
+                REQUIRE( dsl_tee_demuxer_branch_add_to(demuxer_name.c_str(), 
                     sink_name1.c_str(), 2) == DSL_RESULT_SUCCESS );
 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -577,7 +577,7 @@ SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynami
 
                 g_usleep(1000);
 
-                REQUIRE( dsl_tee_demuxer_branch_add_at(demuxer_name.c_str(), 
+                REQUIRE( dsl_tee_demuxer_branch_add_to(demuxer_name.c_str(), 
                     sink_name1.c_str(), 1) == DSL_RESULT_SUCCESS );
 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -587,7 +587,7 @@ SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynami
 
                 g_usleep(1000);
 
-                REQUIRE( dsl_tee_demuxer_branch_add_at(demuxer_name.c_str(), 
+                REQUIRE( dsl_tee_demuxer_branch_add_to(demuxer_name.c_str(), 
                     sink_name1.c_str(), 0) == DSL_RESULT_SUCCESS );
 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
