@@ -58,8 +58,7 @@ from threading import Timer, Thread
 
 from dsl import *
 
-
-# Each png file has a unique id [1..4] overlayed on the picture
+# Each png file has a unique id [0..4] overlayed on the picture
 # This makes it easy to see which stream the branch is connected to.
 image_0 = "../../test/streams/sample_720p.0.png"
 image_1 = "../../test/streams/sample_720p.1.png"
@@ -67,11 +66,15 @@ image_2 = "../../test/streams/sample_720p.2.png"
 image_3 = "../../test/streams/sample_720p.3.png"
 image_4 = "../../test/streams/sample_720p.4.png"
 
-# Filespecs for the Primary GIE
-inferConfigFile = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-modelEngineFile = \
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file_jetson = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+primary_infer_config_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_dgpu = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -88,6 +91,7 @@ stream_id = 0
 
 ##
 # Number of Source streams for the Pipeline
+##
 num_streams = 5
 
 # Function to be called on XWindow Delete event
@@ -166,9 +170,13 @@ def main(args):
         # fixed pipeline-trunk to process all batched sources. The Demuxer will
         # demux/split the batched streams back to individual source streams.
         
-        # New Primary GIE using the filespecs above, with infer interval
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            inferConfigFile, modelEngineFile, 4)
+        ## New Primary GIE using the filespecs above with interval = 0
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
+        else:
+            retval = dsl_infer_gie_primary_new('primary-gie', 
+                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -192,37 +200,37 @@ def main(args):
         # IMPORTANT! the default Window-Sink (and Overlay-Sink) settings must by
         # updated to support dynamic Pipeline updates... specifically, we need to 
         # disable the "sync", "max-lateness", and "qos" properties.
-        retval = dsl_sink_window_new('dynamic-sink',
+        retval = dsl_sink_window_new('window-sink',
             300, 300, 1280, 720)
 
         # Disable the "sync" setting    
-        retval = dsl_sink_sync_enabled_set('dynamic-sink', False)
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Disable the "max-lateness" setting
-        retval = dsl_sink_max_lateness_set('dynamic-sink', -1)
+        retval = dsl_sink_max_lateness_set('window-sink', -1)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Disable the "qos" setting
-        retval = dsl_sink_qos_enabled_set('dynamic-sink', False)
+        retval = dsl_sink_qos_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('dynamic-sink', 
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('dynamic-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create the dynamic branch with the OSD and Window Sink.
         retval = dsl_branch_new_component_add_many('branch-0',
-            ['on-screen-display', 'dynamic-sink', None])
+            ['on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

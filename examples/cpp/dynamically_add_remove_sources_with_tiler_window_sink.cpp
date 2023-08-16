@@ -25,30 +25,31 @@ THE SOFTWARE.
 /*
 ################################################################################
 #
-# This example shows how to use a single dynamic demuxer branch with a 
-# multi-source Pipeline. The Pipeline trunk consists of:
-#   - 5 Streaming Images Sources - each streams a single image at a given 
-#       frame-rate with a number overlayed representing the stream-id.
+# This example shows how to dynamically add and remove Source components
+# while the Pipeline is playing. The Pipeline must have at least once source
+# while playing. The Pipeline consists of:
+#   - A variable number of File Sources. The Source are created/added and 
+#       removed/deleted on user key-input.
 #   - The Pipeline's built-in streammuxer muxes the streams into a
 #       batched stream as input to the Inference Engine.
 #   - Primary GST Inference Engine (PGIE).
 #   - IOU Tracker.
-#
-# The dynamic branch will consist of:
+#   - Multi-stream 2D Tiler - created with rows/cols to support max-sources.
 #   - On-Screen Display (OSD)
 #   - Window Sink - with window-delete and key-release event handlers.
 # 
-# The branch is added to one of the Streams when the Pipeline is constructed
-# by calling:
+# A Source component is created and added to the Pipeline by pressing the 
+#  "+" key which calls the following services:
 #
-#    dsl_tee_demuxer_branch_add_to('demuxer', 'branch-0', stream_id)
+#    dsl_source_uri_new(source_name, uri_h265, True, 0, 0)
+#    dsl_pipeline_component_add('pipeline', source_name)
 #
-# Once the Pipeline is playing, the example uses a simple periodic timer to 
-# call a callback function which advances/cycles the current stream_id 
-# variable and moves the branch by calling.
+# A Source component (last added) is removed from the Pipeline and deleted by 
+# pressing the "-" key which calls the following services
 #
-#    dsl_tee_demuxer_branch_move_to('demuxer', 'branch-0', stream_id)
-#
+#    dsl_pipeline_component_remove('pipeline', source_name)
+#    dsl_component_delete(source_name)
+#  
 ################################################################################
 */
 
@@ -59,13 +60,7 @@ THE SOFTWARE.
 
 #include "DslApi.h"
 
-// Each png file has a unique id [0..4] overlayed on the picture
-// This makes it easy to see which stream the branch is connected to.
-std::wstring image_0(L"../../test/streams/sample_720p.0.png");
-std::wstring image_1(L"../../test/streams/sample_720p.1.png");
-std::wstring image_2(L"../../test/streams/sample_720p.2.png");
-std::wstring image_3(L"../../test/streams/sample_720p.3.png");
-std::wstring image_4(L"../../test/streams/sample_720p.4.png");
+std::wstring uri_h265(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
 // Config and model-engine files - Jetson and dGPU
 std::wstring primary_infer_config_file_jetson(
@@ -81,20 +76,21 @@ std::wstring primary_model_engine_file_dgpu(
 std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
-/*
-# Global variable - indicates the current stream_id for the 
-# single branch (branch-0). The variable will be updated as
-#     stream_id = (stream_id+1)%num_streams
-# to cycle through each of the source 4 streams. The other branch,
-# which is a sole window sink, is connected to the 5th stream
-# (stream_id=4) at all times.
-*/
-static uint stream_id(0);
+//
+// Maximum number of sources that can be added to the Pipeline
+//
+uint MAX_SOURCE_COUNT = 4;
 
-/*
-# Number of Source streams for the Pipeline
-*/
-static uint num_streams(5);
+//
+// Current number of sources added to the Pipeline
+//
+uint cur_source_count = 0;
+
+//
+// Number of rows and columns for the Multi-stream 2D Tiler
+//
+uint TILER_COLS = 2;
+uint TILER_ROWS = 2;
 
 // 
 // Function to be called on XWindow Delete event
@@ -122,23 +118,38 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
         std::cout << "Main Loop Quit" << std::endl;
         dsl_pipeline_stop(L"pipeline");
         dsl_main_loop_quit();
+
+    // Add a new source
+    } else if (key == "+"){
+        if (cur_source_count < MAX_SOURCE_COUNT) {
+            cur_source_count += 1;
+            std::wstring source_name = L"source-" + std::to_wstring(cur_source_count);
+            std::wcout << "adding source '" << source_name << "'" << std::endl;
+            dsl_source_uri_new(source_name.c_str(), uri_h265.c_str(), FALSE, 0, 0);
+            dsl_pipeline_component_add(L"pipeline", source_name.c_str());
+        }
+    // Remove the last source added
+    } else if (key == "-"){
+        if (cur_source_count > 1){
+            std::wstring source_name = L"source-" + std::to_wstring(cur_source_count);
+            std::wcout << "removing source '" << source_name << "'" << std::endl;
+            dsl_pipeline_component_remove(L"pipeline", source_name.c_str());
+            dsl_component_delete(source_name.c_str());
+            cur_source_count -= 1;
+        }
     }
 }
-//
-// Callback function to move the dynamic branch (branch-0) from
-// its current stream to next stream-id in the cycle.
-//
-static int move_branch(void* user_data)
+
+// 
+// Function to be called on End-of-Stream (EOS) event
+// 
+void eos_event_listener(void* client_data)
 {
-    // set the stream-id to the next stream in the cycle of 5.
-    stream_id = (stream_id+1)%num_streams;
-    
-    // we then call the Demuxer service to add it back at the specified stream-id
-    std::wcout << L"dsl_tee_demuxer_branch_move_to() returned "
-    << dsl_return_value_to_string(
-        dsl_tee_demuxer_branch_move_to(L"demuxer", L"branch-0", stream_id)) 
-        << std::endl;
-}
+    std::cout<<"Pipeline EOS event"<<std::endl;
+    dsl_pipeline_stop(L"pipeline");
+    dsl_main_loop_quit();
+}    
+
 
 int main(int argc, char** argv)
 {
@@ -148,35 +159,10 @@ int main(int argc, char** argv)
     while(true) 
     {    
 
-        // ----------------------------------------------------------------------------
-        // Create the five streaming-image sources that will provide the streams for 
-        // the single dynamic branch.
-        
-        retval = dsl_source_image_stream_new(L"source-0", 
-            image_0.c_str(), TRUE, 10, 1, 0);
+        // First new URI File Source
+        retval = dsl_source_uri_new(L"source-1", uri_h265.c_str(), FALSE, 0, 0);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_source_image_stream_new(L"source-1", 
-            image_1.c_str(), TRUE, 10, 1, 0);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_source_image_stream_new(L"source-2", 
-            image_2.c_str(), TRUE, 10, 1, 0);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_source_image_stream_new(L"source-3", 
-            image_3.c_str(), TRUE, 10, 1, 0);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_source_image_stream_new(L"source-4", 
-            image_4.c_str(), TRUE, 15, 1, 0);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // ----------------------------------------------------------------------------
-        // Create the PGIE and Tracker components that will become the
-        // fixed pipeline-trunk to process all batched sources. The Demuxer will
-        // demux/split the batched streams back to individual source streams.
-        
         // New Primary GIE using the filespecs defined above, with interval = 4
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
@@ -196,11 +182,14 @@ int main(int argc, char** argv)
         retval = dsl_tracker_new(L"iou-tracker", 
             iou_tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
+        
+        // New Tiled Display, setting width and height, 
+        retval = dsl_tiler_new(L"tiler", 1280, 720);
+        if (retval != DSL_RESULT_SUCCESS) break;
 
-        // ----------------------------------------------------------------------------
-        // Next, create the OSD and Overlay-Sink. These two components will make up
-        // the dynamic branch. The dynamic branch will be moved from stream to stream
-        // i.e. from demuxer pad to pad.
+        // Set the Tiled Displays tiles to accommodate max sources.
+        retval = dsl_tiler_tiles_set(L"tiler", TILER_COLS, TILER_ROWS);
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         // New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new(L"on-screen-display", TRUE, TRUE, TRUE, FALSE);
@@ -234,43 +223,33 @@ int main(int argc, char** argv)
         retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Create a list of dynamic branch components.
-       const wchar_t* branch_components[] = {
-            L"on-screen-display", L"window-sink", NULL};
-            
-        // Add the branch components to a new branch
-        retval = dsl_branch_new_component_add_many(L"branch-0",
-            branch_components);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // IMPORTANT! when creating the Demuxer, we need to set the maximum number
-        // of branches equal to the number of Source Streams, even though we will 
-        // only be using one branch. The Demuxer needs to allocate a source-pad
-        // for each stream prior to playing so that the dynamic Branch can be 
-        // moved from stream to stream while the Pipeline is in a state of PLAYING.
-        retval = dsl_tee_demuxer_new(L"demuxer", num_streams);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the branch to the Demuxer at stream_id=0
-        retval = dsl_tee_demuxer_branch_add_to(L"demuxer", L"branch-0", stream_id);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
+        
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* pipeline_components[] = {
-            L"source-0", L"source-1", L"source-2", L"source-3", L"source-4",
-            L"primary-gie", L"iou-tracker", L"demuxer", NULL};
+            L"source-1", L"primary-gie", L"iou-tracker", L"tiler", 
+            L"on-screen-display", L"window-sink", NULL};
 
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline",
             pipeline_components);
         if (retval != DSL_RESULT_SUCCESS) break;
+            
+        // Update the current source count
+        cur_source_count = 1;
+
+        // IMPORTANT: we need to explicitely set the stream-muxer Batch properties,
+        // otherwise the Pipeline will use the current number of Sources when set to 
+        // Playing, which would be 1 and too small
+        retval = dsl_pipeline_streammux_batch_properties_set(L"pipeline",
+            MAX_SOURCE_COUNT, 40000);
+
+        retval = dsl_pipeline_eos_listener_add(L"pipeline", 
+            eos_event_listener, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         // Play the pipeline
         retval = dsl_pipeline_play(L"pipeline"); 
         if (retval != DSL_RESULT_SUCCESS) break;
-
-        g_timeout_add(4000, move_branch, NULL);
 
         // Start and join the main-loop
         dsl_main_loop_run();
@@ -287,4 +266,3 @@ int main(int argc, char** argv)
     std::cout<<"Goodbye!"<<std::endl;  
     return 0;
 }
-            

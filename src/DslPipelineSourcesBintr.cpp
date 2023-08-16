@@ -52,7 +52,7 @@ namespace DSL
         m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", name);
         
         // RJH Temp
-        m_pStreamMux->SetAttribute("sync-inputs", TRUE);
+//        m_pStreamMux->SetAttribute("sync-inputs", TRUE);
 
         // Must update the default dimensions of 0x0 or the Pipeline
         // will fail to play;
