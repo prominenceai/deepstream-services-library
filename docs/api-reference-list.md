@@ -352,6 +352,10 @@
 * [dsl_tee_branch_count_get](/docs/api-tee.md#dsl_tee_branch_count_get).
 * [dsl_tee_pph_add](/docs/api-tee.md#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](/docs/api-tee.md#dsl_tee_pph_remove).
+* [dsl_tee_demuxer_branch_add_to](/docs/api-tee.md#dsl_tee_demuxer_branch_add_to)
+* [dsl_tee_demuxer_branch_move_to](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to)
+* [dsl_tee_demuxer_max_branches_get](/docs/api-tee.md#dsl_tee_demuxer_max_branches_get)
+* [dsl_tee_demuxer_max_branches_set](/docs/api-tee.md#dsl_tee_demuxer_max_branches_set)
 
 ## Sink:
 * [Overview](/docs/api-sink.md)
@@ -373,6 +377,8 @@
 * [dsl_sink_async_enabled_set](/docs/api-sink.md#dsl_sink_async_enabled_set)
 * [dsl_sink_max_lateness_get](/docs/api-sink.md#dsl_sink_max_lateness_get)
 * [dsl_sink_max_lateness_set](/docs/api-sink.md#dsl_sink_max_lateness_set)
+* [dsl_sink_qos_enabled_get](/docs/api-sink.md#dsl_sink_qos_enabled_get)
+* [dsl_sink_qos_enabled_set](/docs/api-sink.md#dsl_sink_qos_enabled_set)
 * [dsl_sink_pph_add](/docs/api-sink.md#dsl_sink_pph_add)
 * [dsl_sink_pph_remove](/docs/api-sink.md#dsl_sink_pph_remove)
 * [dsl_sink_app_data_type_get](/docs/api-sink.md#dsl_sink_app_data_type_get)
