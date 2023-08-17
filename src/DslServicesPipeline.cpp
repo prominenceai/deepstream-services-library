@@ -243,7 +243,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreamMuxBatchPropertiesGet(const char* name,
-        uint* batchSize, uint* batchTimeout)    
+        uint* batchSize, int* batchTimeout)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -268,7 +268,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreamMuxBatchPropertiesSet(const char* name,
-        uint batchSize, uint batchTimeout)    
+        uint batchSize, int batchTimeout)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

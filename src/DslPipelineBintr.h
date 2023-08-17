@@ -147,7 +147,7 @@ namespace DSL
          * @param[out] batchTimeout current batch timeout
          * @return true if the batch properties could be read, false otherwise
          */
-        void GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
+        void GetStreamMuxBatchProperties(uint* batchSize, int* batchTimeout);
 
         /**
          * @brief Sets the current batch settings for the Pipeline's Stream-Muxer
@@ -155,7 +155,7 @@ namespace DSL
          * @param[in] batchTimeout timeout value to set in ms
          * @return true if the batch properties could be set, false otherwise
          */
-        bool SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout);
+        bool SetStreamMuxBatchProperties(uint batchSize, int batchTimeout);
 
         /**
          * @brief Gets the current dimensions for the Pipeline's Stream Muxer

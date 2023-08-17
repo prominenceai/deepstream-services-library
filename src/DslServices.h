@@ -1454,10 +1454,10 @@ namespace DSL {
             uint type);
 
         DslReturnType PipelineStreamMuxBatchPropertiesGet(const char* name,
-            uint* batchSize, uint* batchTimeout);
+            uint* batchSize, int* batchTimeout);
 
         DslReturnType PipelineStreamMuxBatchPropertiesSet(const char* name,
-            uint batchSize, uint batchTimeout);
+            uint batchSize, int batchTimeout);
 
         DslReturnType PipelineStreamMuxDimensionsGet(const char* name,
             uint* width, uint* height);

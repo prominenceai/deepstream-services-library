@@ -812,7 +812,6 @@ THE SOFTWARE.
 #define DSL_STREAMMUX_1K_HD_WIDTH                                   1920
 #define DSL_STREAMMUX_1K_HD_HEIGHT                                  1080
 
-#define DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT                         40000
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
 
@@ -7467,23 +7466,24 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
  * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
  * @param[in] name unique name of the Pipeline to query
  * @param[out] batch_size the current batch size in use.
- * @param[out] batch_timeout the current batch timeout in use.
+ * @param[out] batch_timeout the current batch timeout in use. 
+ * Default = -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout);
+    uint* batch_size, int* batch_timeout);
 
 /**
  * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
  * @param[in] name unique name of the Pipeline to update.
  * @param[out] batch_size the new batch size to use.
- * @param[out] batch_timeout the new batch timeout to use.
+ * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout);
+    uint batch_size, int batch_timeout);
 
 /**
  * @brief Queries the named Pipeline's stream-muxer for its current output dimensions.

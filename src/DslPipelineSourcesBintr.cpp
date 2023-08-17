@@ -38,8 +38,6 @@ namespace DSL
         , m_areSourcesLive(false)
         , m_streamMuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
         , m_streamMuxHeight(DSL_STREAMMUX_DEFAULT_HEIGHT)
-        , m_numSurfacesPerFrame(DSL_DEFAULT_NUM_EXTRA_SURFACES)
-        , m_batchTimeout(DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
     {
         LOG_FUNC();
 
@@ -51,15 +49,13 @@ namespace DSL
         // Single Stream Muxer element for all Sources 
         m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", name);
         
-        // RJH Temp
-//        m_pStreamMux->SetAttribute("sync-inputs", TRUE);
-
         // Must update the default dimensions of 0x0 or the Pipeline
         // will fail to play;
         SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
             DSL_STREAMMUX_DEFAULT_HEIGHT);
 
         // Get property defaults that aren't specifically set
+        m_pStreamMux->GetAttribute("batched-push-timeout", &m_batchTimeout);
         m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
         m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
         m_pStreamMux->GetAttribute("gpu-id", &m_gpuId);
@@ -76,6 +72,7 @@ namespace DSL
         LOG_INFO("Initial property values for Streammux '" << name << "'");
         LOG_INFO("  width                  : " << m_streamMuxWidth);
         LOG_INFO("  height                 : " << m_streamMuxHeight);
+        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
         LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
         LOG_INFO("  gpu-id                 : " << m_gpuId);
         LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
@@ -343,7 +340,6 @@ namespace DSL
         {
             m_batchSize = m_pChildSources.size();
             m_pStreamMux->SetAttribute("batch-size", m_batchSize);
-            m_pStreamMux->SetAttribute("batched-push-timeout", m_batchTimeout);
         }
         m_isLinked = true;
         
@@ -424,8 +420,8 @@ namespace DSL
         m_pStreamMux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
     }
 
-    void PipelineSourcesBintr::GetStreamMuxBatchProperties(guint* batchSize, 
-        guint* batchTimeout)
+    void PipelineSourcesBintr::GetStreamMuxBatchProperties(uint* batchSize, 
+        int* batchTimeout)
     {
         LOG_FUNC();
 
@@ -434,7 +430,7 @@ namespace DSL
     }
 
     void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, 
-        uint batchTimeout)
+        int batchTimeout)
     {
         LOG_FUNC();
 

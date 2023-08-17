@@ -8267,7 +8267,7 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout)
+    uint* batch_size, int* batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
@@ -8281,7 +8281,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name,
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout)
+    uint batch_size, int batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 

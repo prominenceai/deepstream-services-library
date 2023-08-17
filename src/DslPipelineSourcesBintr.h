@@ -104,42 +104,42 @@ namespace DSL
         void StreamMuxPlayTypeIsLiveSet(bool isLive);
 
         /**
-         * @brief Gets the current Streammuxer NVIDIA buffer memory type
-         * @return one of the DSL_NVBUF_MEM_TYPE constant values
+         * @brief Gets the current Streammuxer NVIDIA buffer memory type.
+         * @return one of the DSL_NVBUF_MEM_TYPE constant values.
          */
         uint GetStreamMuxNvbufMemType();
 
         /**
-         * @brief Sets the Streammuxer's NVIDIA buffer memory type
+         * @brief Sets the Streammuxer's NVIDIA buffer memory type.
          * @param[in] type one of the DSL_NVBUF_MEM_TYPE constant values.
          */
         void SetStreamMuxNvbufMemType(uint type);
         
         /**
-         * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer
-         * @param[out] batchSize current batchSize, default == the number of source
-         * @param[out] batchTimeout current batch timeout
+         * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer.
+         * @param[out] batchSize current batchSize, default == the number of source.
+         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
          */
-        void GetStreamMuxBatchProperties(uint* batchSize, uint* batchTimeout);
+        void GetStreamMuxBatchProperties(uint* batchSize, int* batchTimeout);
 
         /**
-         * @brief Sets the current batch settings for the SourcesBintr's Stream Muxer
-         * @param[in] batchSize new batchSize to set, default == the number of sources
-         * @param[in] batchTimeout timeout value to set in ms
+         * @brief Sets the current batch settings for the SourcesBintr's Stream Muxer.
+         * @param[in] batchSize new batchSize to set, default == the number of sources.
+         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
          */
-        void SetStreamMuxBatchProperties(uint batchSize, uint batchTimeout);
+        void SetStreamMuxBatchProperties(uint batchSize, int batchTimeout);
 
         /**
-         * @brief Gets the current dimensions for the SourcesBintr's Stream Muxer
-         * @param[out] width width in pixels for the current setting
-         * @param[out] height height in pixels for the curren setting
+         * @brief Gets the current dimensions for the SourcesBintr's Stream Muxer.
+         * @param[out] width width in pixels for the current setting.
+         * @param[out] height height in pixels for the curren setting.
          */
         void GetStreamMuxDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the SourcesBintr's StreamMuxer
-         * @param width width in pixels to set the streamMux Output
-         * @param height height in pixels to set the StreamMux output
+         * @brief Set the dimensions for the SourcesBintr's StreamMuxer.
+         * @param width width in pixels to set the streamMux Output.
+         * @param height height in pixels to set the StreamMux output.
          */
         void SetStreamMuxDimensions(uint width, uint height);
         

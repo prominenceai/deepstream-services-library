@@ -129,8 +129,8 @@ namespace DSL
         return true;
     }
 
-    void PipelineBintr::GetStreamMuxBatchProperties(guint* batchSize, 
-        uint* batchTimeout)
+    void PipelineBintr::GetStreamMuxBatchProperties(uint* batchSize, 
+        int* batchTimeout)
     {
         LOG_FUNC();
 
@@ -139,7 +139,7 @@ namespace DSL
     }
 
     bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, 
-        uint batchTimeout)
+        int batchTimeout)
     {
         LOG_FUNC();
 
@@ -271,7 +271,7 @@ namespace DSL
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
-        uint batchTimeout(0);
+        int batchTimeout(0); // we don't care about batch-timeout
         GetStreamMuxBatchProperties(&m_batchSize, &batchTimeout);
 
         if (m_pStreamMuxTilerBintr)

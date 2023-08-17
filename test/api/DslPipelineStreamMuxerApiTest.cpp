@@ -71,15 +71,17 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
 
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
-        uint batch_size(0), batch_timeout(0);
+        uint batch_size(0); 
+        int batch_timeout(0);
         
         dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
         REQUIRE( batch_size == 0 );
-        REQUIRE( batch_timeout == DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT );
+        REQUIRE( batch_timeout == -1 ); // default for plugin
         
         WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
         {
-            uint new_batch_size(6), new_batch_timeout(50000);
+            uint new_batch_size(6); 
+            int new_batch_timeout(50000);
             REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
             dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
             REQUIRE( batch_size == new_batch_size );
@@ -150,11 +152,12 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
 
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
-        uint batch_size(0), batch_timeout(0);
+        uint batch_size(0); 
+        int batch_timeout(0);
         
         dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
         REQUIRE( batch_size == 0 );
-        REQUIRE( batch_timeout == DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT );
+        REQUIRE( batch_timeout == -1 );
         
         WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
         {
