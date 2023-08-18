@@ -7507,7 +7507,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name,
  * @brief returns the current setting - enabled/disabled - for the Streammux padding
  * property for the named Pipeline.
  * @param[in] name name of the Display to query
- * @param[out] enable true if the aspect ration is fixed, false if not
+ * @param[out] enable true if the padding property is enabled, false if not
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
@@ -7517,7 +7517,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name,
  * @brief updates the current setting - enabled/disabled - for Streammux padding
  * property for the name Pipeline.
  * @param[in] name name of the Pipeline to update
- * @param[out] enable set true to fix the aspect ratio, false to disable
+ * @param[out] enable set true to enable the padding property, false to disable.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
@@ -7547,6 +7547,27 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
     const wchar_t* name, uint num);
 
 /**
+ * @brief Returns the current setting - enabled/disabled - for the Streammux
+ * sync-inputs property for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the sync-inputs property is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current setting - enabled/disabled - for Streammux
+ * sync-inputs property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
  * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
  * @param[in] name name of the Pipeline to query
  * @param[out] gpuid current GPU ID setting
@@ -7563,6 +7584,27 @@ DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+
+/**
+ * @brief Returns the current setting - enabled/disabled - for the Streammux
+ * sync-inputs property for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the sync-inputs property is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current setting - enabled/disabled - for Streammux
+ * sync-inputs property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled);
 
 /**
  * @brief adds a named Tiler to a named Pipeline's Stream-Muxer output.

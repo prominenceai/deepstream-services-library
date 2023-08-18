@@ -47,26 +47,26 @@ namespace DSL
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
   
         // Single Stream Muxer element for all Sources 
-        m_pStreamMux = DSL_ELEMENT_NEW("nvstreammux", name);
+        m_pStreammux = DSL_ELEMENT_NEW("nvstreammux", name);
         
         // Must update the default dimensions of 0x0 or the Pipeline
         // will fail to play;
-        SetStreamMuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
+        SetStreammuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
             DSL_STREAMMUX_DEFAULT_HEIGHT);
 
         // Get property defaults that aren't specifically set
-        m_pStreamMux->GetAttribute("batched-push-timeout", &m_batchTimeout);
-        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        m_pStreamMux->GetAttribute("enable-padding", &m_isPaddingEnabled);
-        m_pStreamMux->GetAttribute("gpu-id", &m_gpuId);
-        m_pStreamMux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
-        m_pStreamMux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
-        m_pStreamMux->GetAttribute("attach-sys-ts", &m_attachSysTs);
-        m_pStreamMux->GetAttribute("interpolation-method", &m_interpolationMethod);
-        m_pStreamMux->GetAttribute("sync-inputs", &m_syncInputs);
+        m_pStreammux->GetAttribute("batched-push-timeout", &m_batchTimeout);
+        m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
+        m_pStreammux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+        m_pStreammux->GetAttribute("gpu-id", &m_gpuId);
+        m_pStreammux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        m_pStreammux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
+        m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
+        m_pStreammux->GetAttribute("interpolation-method", &m_interpolationMethod);
+        m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
         
         // DS 6.1 ??
-        // m_pStreamMux->GetAttribute("frame-duration", &m_frameDuration);
+        // m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for Streammux '" << name << "'");
@@ -83,10 +83,10 @@ namespace DSL
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
         // LOG_INFO("  frame-duration         : " << m_frameDuration);
 
-        AddChild(m_pStreamMux);
+        AddChild(m_pStreammux);
 
-        // Float the StreamMux as a src Ghost Pad for this PipelineSourcesBintr
-        m_pStreamMux->AddGhostPadToParent("src");
+        // Float the Streammux as a src Ghost Pad for this PipelineSourcesBintr
+        m_pStreammux->AddGhostPadToParent("src");
         
         // If the unqiue pipeline-id is greater than 0, then we need to add the
         // SourceIdOffsetterPadProbeHandler to offset every source-id found in
@@ -99,7 +99,7 @@ namespace DSL
             // streammuxer's source pad. 
             std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
             m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
-                padBufferProbeName.c_str(), "src", m_pStreamMux);
+                padBufferProbeName.c_str(), "src", m_pStreammux);
 
             // Create the specialized pad-probe-handler to offset all source-ids'
             std::string bufferHandlerName = GetName() + "-source-id-offsetter";
@@ -144,13 +144,13 @@ namespace DSL
         // Set the play type based on the first source added
         if (m_pChildSources.size() == 0)
         {
-            StreamMuxPlayTypeIsLiveSet(pChildSource->IsLive());
+            StreammuxPlayTypeIsLiveSet(pChildSource->IsLive());
         }
-        else if (pChildSource->IsLive() != StreamMuxPlayTypeIsLiveGet())
+        else if (pChildSource->IsLive() != StreammuxPlayTypeIsLiveGet())
         {
             LOG_ERROR("Can't add Source '" << pChildSource->GetName() 
                 << "' with IsLive=" << pChildSource->IsLive()  << " to streamuxer '" 
-                << GetName() << "' with IsLive=" << StreamMuxPlayTypeIsLiveGet());
+                << GetName() << "' with IsLive=" << StreammuxPlayTypeIsLiveGet());
             return false;
         }
         // If we're adding an RTSP Source, determine if EOS consumer 
@@ -177,7 +177,7 @@ namespace DSL
 
                 std::string padEventProbeName = GetName() + "-src-pad-event-probe";
                 m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(
-                    padEventProbeName.c_str(), "src", m_pStreamMux);
+                    padEventProbeName.c_str(), "src", m_pStreammux);
                 m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
             }
         }
@@ -235,7 +235,7 @@ namespace DSL
             std::string sinkPadName = "sink_" + std::to_string(padId);
             
             if (!pChildSource->LinkAll() or 
-                !pChildSource->LinkToSinkMuxer(m_pStreamMux, sinkPadName.c_str()))
+                !pChildSource->LinkToSinkMuxer(m_pStreammux, sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" 
@@ -279,7 +279,7 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_INFO("Unlinking " << m_pStreamMux->GetName() << " from " 
+            LOG_INFO("Unlinking " << m_pStreammux->GetName() << " from " 
                 << pChildSource->GetName());
                 
             // unlink the source from the Streammuxer
@@ -326,7 +326,7 @@ namespace DSL
                 "sink_" + std::to_string(imap.second->GetRequestPadId());
             
             if (!imap.second->LinkAll() or 
-                !imap.second->LinkToSinkMuxer(m_pStreamMux,
+                !imap.second->LinkToSinkMuxer(m_pStreammux,
                     sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
@@ -339,7 +339,7 @@ namespace DSL
         if (!m_batchSize)
         {
             m_batchSize = m_pChildSources.size();
-            m_pStreamMux->SetAttribute("batch-size", m_batchSize);
+            m_pStreammux->SetAttribute("batch-size", m_batchSize);
         }
         m_isLinked = true;
         
@@ -358,7 +358,7 @@ namespace DSL
         for (auto const& imap: m_pChildSources)
         {
             // unlink from the Streammuxer
-            LOG_INFO("Unlinking " << m_pStreamMux->GetName() 
+            LOG_INFO("Unlinking " << m_pStreammux->GetName() 
                 << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSinkMuxer())
             {   
@@ -387,40 +387,57 @@ namespace DSL
     }
     
     
-    bool PipelineSourcesBintr::StreamMuxPlayTypeIsLiveGet()
+    bool PipelineSourcesBintr::StreammuxPlayTypeIsLiveGet()
     {
         LOG_FUNC();
         
         return m_areSourcesLive;
     }
     
-    void PipelineSourcesBintr::StreamMuxPlayTypeIsLiveSet(bool isLive)
+    bool PipelineSourcesBintr::StreammuxPlayTypeIsLiveSet(bool isLive)
     {
         LOG_FUNC();
         
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update live-source property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
         m_areSourcesLive = isLive;
         
         LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
             << "' for Streammuxer '" << GetName() << "'");
-        m_pStreamMux->SetAttribute("live-source", m_areSourcesLive);
+        m_pStreammux->SetAttribute("live-source", m_areSourcesLive);
+        
+        return true;
     }
 
-    uint PipelineSourcesBintr::GetStreamMuxNvbufMemType()
+    uint PipelineSourcesBintr::GetStreammuxNvbufMemType()
     {
         LOG_FUNC();
 
         return m_nvbufMemType;
     }
 
-    void PipelineSourcesBintr::SetStreamMuxNvbufMemType(uint type)
+    bool PipelineSourcesBintr::SetStreammuxNvbufMemType(uint type)
     {
         LOG_FUNC();
 
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update nvbuf-memory-type for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
         m_nvbufMemType = type;
-        m_pStreamMux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        m_pStreammux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        
+        return true;
     }
 
-    void PipelineSourcesBintr::GetStreamMuxBatchProperties(uint* batchSize, 
+    void PipelineSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
         int* batchTimeout)
     {
         LOG_FUNC();
@@ -429,22 +446,28 @@ namespace DSL
         *batchTimeout = m_batchTimeout;
     }
 
-    void PipelineSourcesBintr::SetStreamMuxBatchProperties(uint batchSize, 
+    bool PipelineSourcesBintr::SetStreammuxBatchProperties(uint batchSize, 
         int batchTimeout)
     {
         LOG_FUNC();
 
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update batch properties for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
         m_batchSize = batchSize;
         m_batchTimeout = batchTimeout;
 
-        LOG_INFO("Setting StreamMux batch properties: batch-size = " << m_batchSize 
-            << ", batch-timeout = " << m_batchTimeout);
-
-        m_pStreamMux->SetAttribute("batch-size", m_batchSize);
-        m_pStreamMux->SetAttribute("batched-push-timeout", m_batchTimeout);
+        m_pStreammux->SetAttribute("batch-size", m_batchSize);
+        m_pStreammux->SetAttribute("batched-push-timeout", m_batchTimeout);
+        
+        return true;
     }
     
-    void PipelineSourcesBintr::GetStreamMuxDimensions(uint* width, uint* height)
+    void PipelineSourcesBintr::GetStreammuxDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -452,57 +475,96 @@ namespace DSL
         *height = m_streamMuxHeight;
     }
 
-    void PipelineSourcesBintr::SetStreamMuxDimensions(uint width, uint height)
+    bool PipelineSourcesBintr::SetStreammuxDimensions(uint width, uint height)
     {
         LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update Streammux dimensions for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
 
         m_streamMuxWidth = width;
         m_streamMuxHeight = height;
 
-        LOG_INFO("Setting StreamMux dimensions: width = " << m_streamMuxWidth 
-            << ", height = " << m_streamMuxHeight);
+        m_pStreammux->SetAttribute("width", m_streamMuxWidth);
+        m_pStreammux->SetAttribute("height", m_streamMuxHeight);
+        
+        return true;
+    }
+    
+    boolean PipelineSourcesBintr::GetStreammuxPaddingEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_isPaddingEnabled;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxPaddingEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
 
-        m_pStreamMux->SetAttribute("width", m_streamMuxWidth);
-        m_pStreamMux->SetAttribute("height", m_streamMuxHeight);
-    }
-    
-    void PipelineSourcesBintr::GetStreamMuxPadding(boolean* enabled)
-    {
-        LOG_FUNC();
-        
-        *enabled = m_isPaddingEnabled;
-    }
-    
-    void PipelineSourcesBintr::SetStreamMuxPadding(boolean enabled)
-    {
-        LOG_FUNC();
-        
         m_isPaddingEnabled = enabled;
         
-        LOG_INFO("Setting StreamMux attribute: enable-padding = " 
-            << m_isPaddingEnabled); 
-        
-        m_pStreamMux->SetAttribute("enable-padding", m_isPaddingEnabled);
+        m_pStreammux->SetAttribute("enable-padding", m_isPaddingEnabled);
+        return true;
     }
 
-    void PipelineSourcesBintr::GetStreamMuxNumSurfacesPerFrame(uint* num)
+    uint PipelineSourcesBintr::GetStreammuxNumSurfacesPerFrame()
     {
         LOG_FUNC();
         
-        m_pStreamMux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        *num = m_numSurfacesPerFrame;
+        return m_numSurfacesPerFrame;
     }
     
-    void PipelineSourcesBintr::SetStreamMuxNumSurfacesPerFrame(uint num)
+    bool PipelineSourcesBintr::SetStreammuxNumSurfacesPerFrame(uint num)
     {
         LOG_FUNC();
         
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update num-surfaces-per-frame property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
         m_numSurfacesPerFrame = num;
+        m_pStreammux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
         
-        LOG_INFO("Setting StreamMux attribute: num-surfaces-per-frame = " 
-            << m_numSurfacesPerFrame); 
+        return true;
+    }
+
+    boolean PipelineSourcesBintr::GetStreammuxSyncInputsEnabled()
+    {
+        LOG_FUNC();
         
-        m_pStreamMux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
+        return m_syncInputs;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_syncInputs = enabled;
+        m_pStreammux->SetAttribute("enable-padding", m_syncInputs);
+        
+        return true;
     }
 
     bool PipelineSourcesBintr::SetGpuId(uint gpuId)
@@ -516,7 +578,7 @@ namespace DSL
             return false;
         }
         m_gpuId = gpuId;
-        m_pStreamMux->SetAttribute("gpu-id", m_gpuId);
+        m_pStreammux->SetAttribute("gpu-id", m_gpuId);
         
         LOG_INFO("PipelineSourcesBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );

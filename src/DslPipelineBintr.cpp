@@ -106,107 +106,97 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    uint PipelineBintr::GetStreamMuxNvbufMemType()
+    uint PipelineBintr::GetStreammuxNvbufMemType()
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreamMuxNvbufMemType();
+        return m_pPipelineSourcesBintr->GetStreammuxNvbufMemType();
     }
 
-    bool PipelineBintr::SetStreamMuxNvbufMemType(uint type)
+    bool PipelineBintr::SetStreammuxNvbufMemType(uint type)
     {
         LOG_FUNC();
 
-        if (IsLinked())
-        {
-            LOG_ERROR("Pipeline '" << GetName() 
-                << "' is currently Linked - cudadec memory type can not be updated");
-            return false;
-            
-        }
-        m_pPipelineSourcesBintr->SetStreamMuxNvbufMemType(type);
-        
-        return true;
+        return m_pPipelineSourcesBintr->SetStreammuxNvbufMemType(type);
     }
 
-    void PipelineBintr::GetStreamMuxBatchProperties(uint* batchSize, 
+    void PipelineBintr::GetStreammuxBatchProperties(uint* batchSize, 
         int* batchTimeout)
     {
         LOG_FUNC();
 
         m_pPipelineSourcesBintr->
-            GetStreamMuxBatchProperties(batchSize, batchTimeout);
+            GetStreammuxBatchProperties(batchSize, batchTimeout);
     }
 
-    bool PipelineBintr::SetStreamMuxBatchProperties(uint batchSize, 
+    bool PipelineBintr::SetStreammuxBatchProperties(uint batchSize, 
         int batchTimeout)
     {
         LOG_FUNC();
 
-        if (IsLinked())
-        {
-            LOG_ERROR("Pipeline '" << GetName() 
-                << "' is currently Linked - batch properties can not be updated");
-            return false;
-            
-        }
-        m_pPipelineSourcesBintr->
-            SetStreamMuxBatchProperties(batchSize, batchTimeout);
-        
-        return true;
+        return m_pPipelineSourcesBintr->
+            SetStreammuxBatchProperties(batchSize, batchTimeout);
     }
 
-    bool PipelineBintr::GetStreamMuxDimensions(uint* width, uint* height)
+    void PipelineBintr::GetStreammuxDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->GetStreamMuxDimensions(width, height);
-        return true;
+        m_pPipelineSourcesBintr->GetStreammuxDimensions(width, height);
     }
 
-    bool PipelineBintr::SetStreamMuxDimensions(uint width, uint height)
+    bool PipelineBintr::SetStreammuxDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->SetStreamMuxDimensions(width, height);
-        return true;
+        return m_pPipelineSourcesBintr->SetStreammuxDimensions(width, height);
     }
     
-    bool PipelineBintr::GetStreamMuxPadding(boolean* enabled)
+    bool PipelineBintr::GetStreammuxPadding()
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->GetStreamMuxPadding(enabled);
-        return true;
+        return m_pPipelineSourcesBintr->GetStreammuxPaddingEnabled();
     }
     
-    bool PipelineBintr::SetStreamMuxPadding(boolean enabled)
+    bool PipelineBintr::SetStreammuxPadding(boolean enabled)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->SetStreamMuxPadding(enabled);
-        return true;
+        return m_pPipelineSourcesBintr->SetStreammuxPaddingEnabled(enabled);
     }
     
-    bool PipelineBintr::GetStreamMuxNumSurfacesPerFrame(uint* num)
+    uint PipelineBintr::GetStreammuxNumSurfacesPerFrame()
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(num);
-        return true;
+        return m_pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame();
     }
     
-    bool PipelineBintr::SetStreamMuxNumSurfacesPerFrame(uint num)
+    bool PipelineBintr::SetStreammuxNumSurfacesPerFrame(uint num)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(num);
-        return true;
+        return m_pPipelineSourcesBintr->SetStreammuxNumSurfacesPerFrame(num);
     }
     
-    bool PipelineBintr::AddStreamMuxTiler(DSL_BASE_PTR pTilerBintr)
+    bool PipelineBintr::GetStreammuxSyncInputsEnabled()
     {
-        if (m_pStreamMuxTilerBintr)
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled();
+    }
+    
+    bool PipelineBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxSyncInputsEnabled(enabled);
+    }
+    
+    bool PipelineBintr::AddStreammuxTiler(DSL_BASE_PTR pTilerBintr)
+    {
+        if (m_pStreammuxTilerBintr)
         {
             LOG_INFO("Pipeline '" << GetName() 
                 << "' already has a Tiler attached to the Stream-Muxer's ouput");
@@ -218,13 +208,13 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        m_pStreamMuxTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
-        return AddChild(m_pStreamMuxTilerBintr);
+        m_pStreammuxTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
+        return AddChild(m_pStreammuxTilerBintr);
     }
     
-    bool PipelineBintr::RemoveStreamMuxTiler()
+    bool PipelineBintr::RemoveStreammuxTiler()
     {
-        if (!m_pStreamMuxTilerBintr)
+        if (!m_pStreammuxTilerBintr)
         {
             LOG_INFO("Pipeline '" << GetName() 
                 << "' does not have a Tiler attached to the Stream-Muxer's ouput");
@@ -236,8 +226,8 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        RemoveChild(m_pStreamMuxTilerBintr);
-        m_pStreamMuxTilerBintr = nullptr;
+        RemoveChild(m_pStreammuxTilerBintr);
+        m_pStreammuxTilerBintr = nullptr;
         return true;
     }
     
@@ -260,7 +250,7 @@ namespace DSL
         // Start with an empty list of linked components
         m_linkedComponents.clear();
 
-        // Link all Source Elementrs (required component), and all Sources to the StreamMuxer
+        // Link all Source Elementrs (required component), and all Sources to the Streammuxer
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
         if (!m_pPipelineSourcesBintr->LinkAll())
         {
@@ -272,20 +262,20 @@ namespace DSL
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
         int batchTimeout(0); // we don't care about batch-timeout
-        GetStreamMuxBatchProperties(&m_batchSize, &batchTimeout);
+        GetStreammuxBatchProperties(&m_batchSize, &batchTimeout);
 
-        if (m_pStreamMuxTilerBintr)
+        if (m_pStreammuxTilerBintr)
         {
             // Link All Tiler Elementrs and add as the next component in the Branch
-            m_pStreamMuxTilerBintr->SetBatchSize(m_batchSize);
-            if (!m_pStreamMuxTilerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pStreamMuxTilerBintr))
+            m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
+            if (!m_pStreammuxTilerBintr->LinkAll() or
+                !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pStreamMuxTilerBintr);
+            m_linkedComponents.push_back(m_pStreammuxTilerBintr);
             LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
-                m_pStreamMuxTilerBintr->GetName() 
+                m_pStreammuxTilerBintr->GetName() 
                 << "' to the Streammuxer output successfully");
         }
 
@@ -307,7 +297,7 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet())
+            if (!m_pPipelineSourcesBintr->StreammuxPlayTypeIsLiveGet())
             {
                 if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
                 {
@@ -493,7 +483,7 @@ namespace DSL
                 << "' has no sources, therefore is-live = false");
             return false;
         }
-        return m_pPipelineSourcesBintr->StreamMuxPlayTypeIsLiveGet();
+        return m_pPipelineSourcesBintr->StreammuxPlayTypeIsLiveGet();
     }
     
     void PipelineBintr::DumpToDot(char* filename)

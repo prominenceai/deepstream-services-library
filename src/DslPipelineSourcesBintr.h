@@ -79,13 +79,13 @@ namespace DSL
 
         /**
          * @brief interates through the list of child source bintrs setting 
-         * their Sensor Id's and linking to the StreamMux
+         * their Sensor Id's and linking to the Streammux
          */
         bool LinkAll();
         
         /**
          * @brief interates through the list of child source bintrs unlinking
-         * them from the StreamMux and reseting their Sensor Id's
+         * them from the Streammux and reseting their Sensor Id's
          */
         void UnlinkAll();
 
@@ -95,82 +95,105 @@ namespace DSL
          * @brief Gets the current Streammuxer "play-type-is-live" setting
          * @return true if play-type is live, false otherwise
          */
-        bool StreamMuxPlayTypeIsLiveGet();
+        bool StreammuxPlayTypeIsLiveGet();
 
         /**
          * @brief Sets the current Streammuxer play type based on the first source added
          * @param isLive set to true if all sources are to be Live, and therefore live only.
+         * @return true if live-source is succesfully set, false otherwise
          */
-        void StreamMuxPlayTypeIsLiveSet(bool isLive);
+        bool StreammuxPlayTypeIsLiveSet(bool isLive);
 
         /**
          * @brief Gets the current Streammuxer NVIDIA buffer memory type.
          * @return one of the DSL_NVBUF_MEM_TYPE constant values.
          */
-        uint GetStreamMuxNvbufMemType();
+        uint GetStreammuxNvbufMemType();
 
         /**
          * @brief Sets the Streammuxer's NVIDIA buffer memory type.
          * @param[in] type one of the DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if nvbuf-memory-type is succesfully set, false otherwise
          */
-        void SetStreamMuxNvbufMemType(uint type);
+        bool SetStreammuxNvbufMemType(uint type);
         
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer.
          * @param[out] batchSize current batchSize, default == the number of source.
          * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
          */
-        void GetStreamMuxBatchProperties(uint* batchSize, int* batchTimeout);
+        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout);
 
         /**
          * @brief Sets the current batch settings for the SourcesBintr's Stream Muxer.
          * @param[in] batchSize new batchSize to set, default == the number of sources.
          * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
+         * @return true if batch-properties are succesfully set, false otherwise.
          */
-        void SetStreamMuxBatchProperties(uint batchSize, int batchTimeout);
+        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
 
         /**
          * @brief Gets the current dimensions for the SourcesBintr's Stream Muxer.
          * @param[out] width width in pixels for the current setting.
          * @param[out] height height in pixels for the curren setting.
          */
-        void GetStreamMuxDimensions(uint* width, uint* height);
+        void GetStreammuxDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the SourcesBintr's StreamMuxer.
+         * @brief Set the dimensions for the SourcesBintr's Streammuxer.
          * @param width width in pixels to set the streamMux Output.
-         * @param height height in pixels to set the StreamMux output.
+         * @param height height in pixels to set the Streammux output.
+         * @return true if dimensions are succesfully set, false otherwise.
          */
-        void SetStreamMuxDimensions(uint width, uint height);
+        bool SetStreammuxDimensions(uint width, uint height);
         
         /**
-         * @brief Gets the current setting for the PipelineSourcesBintr's Muxer padding
-         * @param enable true if enabled, false otherwise.
+         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * Streammuxer padding enabled property.
+         * @preturn true if enabled, false otherwise.
          */
-        void GetStreamMuxPadding(boolean* enabled);
+        boolean GetStreammuxPaddingEnabled();
 
         /**
-         * @brief Sets, enables/disables the PipelineSourcesBintr's StreamMuxer padding
-         * @param enabled set to true to enable padding
+         * @brief Sets the PipelineSourcesBintr's Streammuxer padding 
+         * enabled property.
+         * @param enabled set to true to enable padding, false otherwise.
+         * @return true if padding enabled was succesfully set, false otherwise.
          */
-        void SetStreamMuxPadding(boolean enabled);
+        bool SetStreammuxPaddingEnabled(boolean enabled);
 
         /**
-         * @brief Gets the current setting for the PipelineSourcesBintr's StreamMuxer
+         * @brief Gets the current setting for the PipelineSourcesBintr's Streammuxer
          * num-surfaces-per-frame seting
-         * @param[out] num current setting for the number of surfaces [1..4].
+         * @return current setting for the number of surfaces [1..4].
          */
-        void GetStreamMuxNumSurfacesPerFrame(uint* num);
+        uint GetStreammuxNumSurfacesPerFrame();
 
         /**
-         * @brief Sets the current setting for the PipelineSourcesBintr's StreamMuxer
-         * num-surfaces-per-frame seting
+         * @brief Sets the current setting for the PipelineSourcesBintr's 
+         * Streammuxer num-surfaces-per-frame seting.
          * @param[in] num new value for the number of surfaces [1..4].
+         * @return true if dimensions are succesfully set, false otherwise.
          */
-        void SetStreamMuxNumSurfacesPerFrame(uint num);
+        bool SetStreammuxNumSurfacesPerFrame(uint num);
         
         /**
-         * @brief Set the GPU ID for the PipelineSourcesBintr's StreamMuxer
+         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * Streammuxer sync-inputs enabled property.
+         * @preturn true if enabled, false otherwise.
+         */
+        boolean GetStreammuxSyncInputsEnabled();
+        
+        /**
+         * @brief Sets the PipelineSourcesBintr's Streammuxer sync-inputs 
+         * enabled property.
+         * @param enabled set to true to enable sync-inputs, false otherwise.
+         * @return true if padding enabled was succesfully set, false otherwise.
+         */
+        bool SetStreammuxSyncInputsEnabled(boolean enabled);
+        
+        /**
+         * @brief Set the GPU ID for the PipelineSourcesBintr's Streammuxer
          * @return true if successfully set, false otherwise.
          */
         bool SetGpuId(uint gpuId);
@@ -184,7 +207,8 @@ namespace DSL
         /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
-         * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
+         * @return a shared pointer to the Elementr if added correctly, 
+         * nullptr otherwise
          */
         bool AddChild(DSL_BASE_PTR pChildElement);
         
@@ -221,7 +245,7 @@ namespace DSL
 
     public:
 
-        DSL_ELEMENT_PTR m_pStreamMux;
+        DSL_ELEMENT_PTR m_pStreammux;
         
         /**
          * @brief container of all child sources mapped by their unique names

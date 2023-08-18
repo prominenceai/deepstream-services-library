@@ -132,14 +132,14 @@ namespace DSL
          * @brief Gets the current nvbuf memory type in use by the Stream-Muxer
          * @return one of DSL_NVBUF_MEM_TYPE constant values
          */
-        uint GetStreamMuxNvbufMemType();
+        uint GetStreammuxNvbufMemType();
 
         /**
          * @brief Sets the nvbuf memory type for the Stream-Muxer to use
          * @param[in] type one of DSL_NVBUF_MEM_TYPE constant values
          * @return true if the memory type could be set, false otherwise
          */
-        bool SetStreamMuxNvbufMemType(uint type);
+        bool SetStreammuxNvbufMemType(uint type);
 
         /**
          * @brief Gets the current batch settings for the Pipeline's Stream-Muxer
@@ -147,7 +147,7 @@ namespace DSL
          * @param[out] batchTimeout current batch timeout
          * @return true if the batch properties could be read, false otherwise
          */
-        void GetStreamMuxBatchProperties(uint* batchSize, int* batchTimeout);
+        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout);
 
         /**
          * @brief Sets the current batch settings for the Pipeline's Stream-Muxer
@@ -155,53 +155,63 @@ namespace DSL
          * @param[in] batchTimeout timeout value to set in ms
          * @return true if the batch properties could be set, false otherwise
          */
-        bool SetStreamMuxBatchProperties(uint batchSize, int batchTimeout);
+        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
 
         /**
          * @brief Gets the current dimensions for the Pipeline's Stream Muxer
          * @param[out] width width in pixels for the current setting
          * @param[out] height height in pixels for the curren setting
-         * @return true if the output dimensions could be read, false otherwise
          */
-        bool GetStreamMuxDimensions(uint* width, uint* height);
+        void GetStreammuxDimensions(uint* width, uint* height);
 
         /**
          * @brief Set the dimensions for the Pipeline's Stream Muxer
          * @param width width in pixels to set the streamMux Output
-         * @param height height in pixels to set the StreamMux output
+         * @param height height in pixels to set the Streammux output
          * @return true if the output dimensions could be set, false otherwise
          */
-        bool SetStreamMuxDimensions(uint width, uint height);
+        bool SetStreammuxDimensions(uint width, uint height);
         
         /**
          * @brief Gets the current setting for the Pipeline's Muxer padding
-         * @param enable true if enabled, false otherwise.
-         * @return true if the Padding enabled setting could be read, false otherwisee
+         * @return true if padding is enabled, false otherwisee
          */
-        bool GetStreamMuxPadding(boolean* enabled);
+        bool GetStreammuxPadding();
 
         /**
-         * @brief Sets, enables/disables the Pipeline's Stream Muxer padding
-         * @param enabled set to true to enable padding
+         * @brief Sets, enables/disables the Pipeline's Stream Muxer padding.
+         * @param enabled set to true to enable padding, false otherwise.
          * @return true if the Padding enabled setting could be set, false otherwise.
          */
-        bool SetStreamMuxPadding(boolean enabled);
+        bool SetStreammuxPadding(boolean enabled);
         
         /**
-         * @brief Gets the current setting for the Pipeline's StreamMuxer
+         * @brief Gets the current setting for the Pipeline's Streammuxer
          * num-surfaces-per-frame seting
-         * @param[out] num current setting for the number of surfaces [1..4].
-         * @return true if the number setting could be read, false otherwisee
+         * @return current setting for the number of surfaces [1..4].
          */
-        bool GetStreamMuxNumSurfacesPerFrame(uint* num);
+        uint GetStreammuxNumSurfacesPerFrame();
 
         /**
-         * @brief Sets the current setting for the PipelineSourcesBintr's StreamMuxer
+         * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
          * num-surfaces-per-frame seting
          * @param[in] num new value for the number of surfaces [1..4].
          * @return true if the number setting could be set, false otherwisee
          */
-        bool SetStreamMuxNumSurfacesPerFrame(uint num);
+        bool SetStreammuxNumSurfacesPerFrame(uint num);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's Muxer padding
+         * @return true if padding is enabled, false otherwisee
+         */
+        bool GetStreammuxSyncInputsEnabled();
+
+        /**
+         * @brief Sets the Pipeline's Streammuxer padding.
+         * @param enabled set to true to enable sync-inputs, false otherwise.
+         * @return true if the Padding enabled setting could be set, false otherwise.
+         */
+        bool SetStreammuxSyncInputsEnabled(boolean enabled);
         
         /**
          * @brief Adds a TilerBintr to be added to the Stream-muxers output
@@ -209,13 +219,13 @@ namespace DSL
          * @param[in] pTilerBintr shared pointer to the tiler to add.
          * @return true if the Tiler was successfully added, false otherwise.
          */
-        bool AddStreamMuxTiler(DSL_BASE_PTR pTilerBintr);
+        bool AddStreammuxTiler(DSL_BASE_PTR pTilerBintr);
         
         /**
-         * @brief Removes a TilerBintr previously added with AddStreamMuxTiler.
+         * @brief Removes a TilerBintr previously added with AddStreammuxTiler.
          * @return true if the TileBintr was successfully removed, false otherwise.
          */
-        bool RemoveStreamMuxTiler();
+        bool RemoveStreammuxTiler();
         
         /**
          * @brief dumps a Pipeline's graph to dot file.
@@ -258,7 +268,7 @@ namespace DSL
         /**
          * @brief optional Tiler for the Stream-muxer's output
          */
-        DSL_TILER_PTR m_pStreamMuxTilerBintr;
+        DSL_TILER_PTR m_pStreammuxTilerBintr;
         
         
     }; // Pipeline

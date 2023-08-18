@@ -182,7 +182,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::PipelineStreamMuxNvbufMemTypeGet(const char* name, 
+    DslReturnType Services::PipelineStreammuxNvbufMemTypeGet(const char* name, 
         uint* type)
     {
         LOG_FUNC();
@@ -192,7 +192,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *type = m_pipelines[name]->GetStreamMuxNvbufMemType();
+            *type = m_pipelines[name]->GetStreammuxNvbufMemType();
             
             LOG_INFO("Pipeline '" << name << "' returned nvbuf memory type = " 
                 << *type << " successfully");
@@ -202,12 +202,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception getting the Stream Muxer nvbuf memory type");
+                << "' threw an exception getting the Streammux nvbuf memory type");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreamMuxNvbufMemTypeSet(const char* name, 
+    DslReturnType Services::PipelineStreammuxNvbufMemTypeSet(const char* name, 
         uint type)
     {
         LOG_FUNC();
@@ -223,10 +223,11 @@ namespace DSL
                     " for Pipeline '" << name <<"'");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
-            if (!m_pipelines[name]->SetStreamMuxNvbufMemType(type))
+            if (!m_pipelines[name]->SetStreammuxNvbufMemType(type))
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Set the Stream Muxer nvbuf memory type");
+                    << "' failed to Set the Streammux nvbuf memory type = "
+                    << type);
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
             LOG_INFO("Pipeline '" << name << "' set nvbuf memeory type = " 
@@ -237,12 +238,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Stream Muxer nvbuf memory type");
+                << "' threw an exception setting the Streammux nvbuf memory type");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreamMuxBatchPropertiesGet(const char* name,
+    DslReturnType Services::PipelineStreammuxBatchPropertiesGet(const char* name,
         uint* batchSize, int* batchTimeout)    
     {
         LOG_FUNC();
@@ -252,22 +253,24 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            m_pipelines[name]->GetStreamMuxBatchProperties(batchSize, batchTimeout);
+            m_pipelines[name]->GetStreammuxBatchProperties(batchSize, batchTimeout);
             
-            LOG_INFO("Pipeline '" << name << "' returned Batch Size = " 
-                << *batchSize << " and Batch Timeout = " << *batchTimeout << "' successfully");
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammux batch-size = " 
+                << *batchSize << " and batch-timeout = " 
+                << *batchTimeout << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception getting the Stream Muxer Batch Properties");
+                << "' threw an exception getting the Streammux batch properties");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreamMuxBatchPropertiesSet(const char* name,
+    DslReturnType Services::PipelineStreammuxBatchPropertiesSet(const char* name,
         uint batchSize, int batchTimeout)    
     {
         LOG_FUNC();
@@ -277,26 +280,29 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreamMuxBatchProperties(batchSize, batchTimeout))
+            if (!m_pipelines[name]->SetStreammuxBatchProperties(batchSize, batchTimeout))
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Set the Stream Muxer Batch Properties");
+                    << "' failed to set Streammux batch-size = "
+                    << batchSize << " and batch-timeout = "
+                    << batchTimeout);
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
-            LOG_INFO("Pipeline '" << name << "' set Batch Size = " 
-                << batchSize << " and Batch Timeout = " << batchTimeout << "' successfully");
+            LOG_INFO("Pipeline '" << name << "' set batch-size = " 
+                << batchSize << " and batch-timeout = " 
+                << batchTimeout << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Stream Muxer Batch Properties");
+                << "' threw an exception setting the Streammux batch properties");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreamMuxDimensionsGet(const char* name,
+    DslReturnType Services::PipelineStreammuxDimensionsGet(const char* name,
         uint* width, uint* height)    
     {
         LOG_FUNC();
@@ -306,26 +312,22 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->GetStreamMuxDimensions(width, height))
-            {
-                LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Get the Stream Muxer Output Dimensions");
-                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
-            }
-            LOG_INFO("Pipeline '" << name << "' returned Streammux Width = " 
-                << *width << " and Streammux Height = " << *height << "' successfully");
+            m_pipelines[name]->GetStreammuxDimensions(width, height);
+            
+            LOG_INFO("Pipeline '" << name << "' returned Streammux width = " 
+                << *width << " and  height = " << *height << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Stream Muxer Output Dimensions");
+                << "' threw an exception setting the Streammux output dimensions");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
         
-    DslReturnType Services::PipelineStreamMuxDimensionsSet(const char* name,
+    DslReturnType Services::PipelineStreammuxDimensionsSet(const char* name,
         uint width, uint height)    
     {
         LOG_FUNC();
@@ -335,26 +337,26 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreamMuxDimensions(width, height))
+            if (!m_pipelines[name]->SetStreammuxDimensions(width, height))
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Set the Stream Muxer Output Dimensions");
+                    << "' failed to Set the Streammux output dimensions");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
-            LOG_INFO("Pipeline '" << name << "' set Streammux Width = " 
-                << width << " and Streammux Height = " << height << "' successfully");
+            LOG_INFO("Pipeline '" << name << "' set Streammux width = " 
+                << width << " and Streammux height = " << height << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Stream Muxer output size");
+                << "' threw an exception setting the Streammux output dimensions");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
         
-    DslReturnType Services::PipelineStreamMuxPaddingGet(const char* name,
+    DslReturnType Services::PipelineStreammuxPaddingGet(const char* name,
         boolean* enabled)    
     {
         LOG_FUNC();
@@ -364,13 +366,9 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->GetStreamMuxPadding(enabled))
-            {
-                LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Get the Stream Muxer is Padding enabled setting");
-                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
-            }
-            LOG_INFO("Pipeline '" << name << "' returned Padding Enabled = " 
+            *enabled = m_pipelines[name]->GetStreammuxPadding();
+
+            LOG_INFO("Pipeline '" << name << "' returned padding Enabled = " 
                 << *enabled << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -378,12 +376,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name
-                << "' threw an exception getting the Stream Muxer padding");
+                << "' threw an exception getting Streammux padding enabled");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
         
-    DslReturnType Services::PipelineStreamMuxPaddingSet(const char* name,
+    DslReturnType Services::PipelineStreammuxPaddingSet(const char* name,
         boolean enabled)    
     {
         LOG_FUNC();
@@ -393,23 +391,26 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreamMuxPadding(enabled))
+            if (!m_pipelines[name]->SetStreammuxPadding(enabled))
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Get the Stream Muxer is Padding enabled setting");
+                    << "' failed to Set the Streammux padding enabled setting");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
+            LOG_INFO("Pipeline '" << name << "' set Streammux padding enabled = " 
+                << enabled << "' successfully");
+                
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Stream Muxer padding");
+                << "' threw an exception setting Streammux padding enabled");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
         
-    DslReturnType Services::PipelineStreamMuxNumSurfacesPerFrameGet(const char* name,
+    DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameGet(const char* name,
         uint* num)    
     {
         LOG_FUNC();
@@ -419,26 +420,23 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->GetStreamMuxNumSurfacesPerFrame(num))
-            {
-                LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Get the Stream Muxer num-surfaces-per-frame setting");
-                return DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED;
-            }
-            LOG_INFO("Pipeline '" << name << "' returned number of surfaces-per-frame = " 
-                << *num << "' successfully");
+            *num = m_pipelines[name]->GetStreammuxNumSurfacesPerFrame();
 
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammux num-surfaces-per-frame = " << *num 
+                << "' successfully");
+                
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name
-                << "' threw an exception getting the Stream Muxer surfaces-per-frame");
+                << "' threw an exception getting Streammux num-surfaces-per-frame");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
         
-    DslReturnType Services::PipelineStreamMuxNumSurfacesPerFrameSet(const char* name,
+    DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameSet(const char* name,
         uint num)    
     {
         LOG_FUNC();
@@ -451,17 +449,18 @@ namespace DSL
             if (num > 4)
             {
                 LOG_ERROR("The value of '" << num 
-                    << "' is invalid for Stream Muxer num-surfaces-per-frame setting");
+                    << "' is invalid for Streammux num-surfaces-per-frame setting");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
             
-            if (!m_pipelines[name]->SetStreamMuxNumSurfacesPerFrame(num))
+            if (!m_pipelines[name]->SetStreammuxNumSurfacesPerFrame(num))
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Get the Stream Muxer is Padding enabled setting");
+                    << "' failed to set the Streammux num-surfaces-per-frame setting = "
+                    << num);
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
-            LOG_INFO("Pipeline '" << name << "' set the number of surfaces-per-frame = " 
+            LOG_INFO("Pipeline '" << name << "' set the num-surfaces-per-frame setting = " 
                 << num << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -469,12 +468,66 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Stream Muxer padding");
+                << "' threw an exception setting Streammux num-surfaces-per-frame");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreamMuxGpuIdGet(const char* name, uint* gpuid)
+    DslReturnType Services::PipelineStreammuxSyncInputsEnabledGet(const char* name,
+        boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *enabled = m_pipelines[name]->GetStreammuxSyncInputsEnabled();
+            
+            LOG_INFO("Pipeline '" << name << "' returned sync-inputs enabled = " 
+                << *enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Streammux sync-inputs enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxSyncInputsEnabledSet(const char* name,
+        boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetStreammuxSyncInputsEnabled(enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Streammux sync-inputs enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set the sync-inputs enabled setting = " 
+                << enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting Streammux sync-inputs enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxGpuIdGet(const char* name, uint* gpuid)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -498,7 +551,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::PipelineStreamMuxGpuIdSet(const char* name, uint gpuid)
+    DslReturnType Services::PipelineStreammuxGpuIdSet(const char* name, uint gpuid)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -527,7 +580,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::PipelineStreamMuxTilerAdd(const char* name,
+    DslReturnType Services::PipelineStreammuxTilerAdd(const char* name,
         const char* tiler)    
     {
         LOG_FUNC();
@@ -539,26 +592,26 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, tiler);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, tiler, TilerBintr)
             
-            if (!m_pipelines[name]->AddStreamMuxTiler(m_components[tiler]))
+            if (!m_pipelines[name]->AddStreammuxTiler(m_components[tiler]))
             {
                 LOG_ERROR("Pipeline '" << name << "' failed to add Tiler '" 
-                    << tiler << "' to the Stream-Muxer's output");
+                    << tiler << "' to the Streammux's output");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
             LOG_INFO("Pipeline '" << name << "' added Tiler '" 
-                << tiler << "' to the Stream-Muxer's output successfully");
+                << tiler << "' to the Streammux's output successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception adding a Tiler to Stream-Muxer's output");
+                << "' threw an exception adding a Tiler to Streammux's output");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::PipelineStreamMuxTilerRemove(const char* name)    
+    DslReturnType Services::PipelineStreammuxTilerRemove(const char* name)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -567,21 +620,21 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->RemoveStreamMuxTiler())
+            if (!m_pipelines[name]->RemoveStreammuxTiler())
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to remove a Tiler from the Stream-Muxer's output");
+                    << "' failed to remove a Tiler from the Streammux's output");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
             LOG_INFO("Pipeline '" << name 
-                << "' removed Tiler from to the Stream-Muxer's output successfully");
+                << "' removed Tiler from to the Streammux's output successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception removing a Tiler from Stream-Muxer's output");
+                << "' threw an exception removing a Tiler from Streammux's output");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
