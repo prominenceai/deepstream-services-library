@@ -430,6 +430,11 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             break    
 
+        # Syncronize all live input sources (buffers) at the Streammux
+        retval = dsl_pipeline_streammux_sync_inputs_enabled_set('pipeline', True)
+        if retval != DSL_RETURN_SUCCESS:    
+            break    
+        
         ## Add the listener callback functions defined above    
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)    

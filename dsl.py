@@ -6372,6 +6372,31 @@ def dsl_pipeline_streammux_num_surfaces_per_frame_set(name, num):
     return int(result)
 
 ##
+## dsl_pipeline_streammux_sync_inputs_enabled_get()
+##
+_dsl.dsl_pipeline_streammux_sync_inputs_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_streammux_sync_inputs_enabled_get.restype = c_uint
+def dsl_pipeline_streammux_sync_inputs_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_streammux_sync_inputs_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_streammux_sync_inputs_enabled_set()
+##
+_dsl.dsl_pipeline_streammux_sync_inputs_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_streammux_sync_inputs_enabled_set.restype = c_uint
+def dsl_pipeline_streammux_sync_inputs_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_sync_inputs_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
 ## dsl_pipeline_streammux_gpuid_get()
 ##
 _dsl.dsl_pipeline_streammux_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
