@@ -8250,7 +8250,7 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeGet(cstrName.c_str(),
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeGet(cstrName.c_str(),
         type);
 }
 
@@ -8262,12 +8262,12 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeSet(cstrName.c_str(),
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeSet(cstrName.c_str(),
         type);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout)
+    uint* batch_size, int* batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
@@ -8276,19 +8276,19 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(
+    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesGet(
         cstrName.c_str(), batch_size, batch_timeout);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout)
+    uint batch_size, int batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(
+    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesSet(
         cstrName.c_str(), batch_size, batch_timeout);
 }
 
@@ -8302,7 +8302,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsGet(
+    return DSL::Services::GetServices()->PipelineStreammuxDimensionsGet(
         cstrName.c_str(), width, height);
 }
 
@@ -8314,7 +8314,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsSet(
+    return DSL::Services::GetServices()->PipelineStreammuxDimensionsSet(
         cstrName.c_str(), width, height);
 }    
 
@@ -8327,7 +8327,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxPaddingGet(
+    return DSL::Services::GetServices()->PipelineStreammuxPaddingGet(
         cstrName.c_str(), enabled);
 }
 
@@ -8339,7 +8339,7 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(
+    return DSL::Services::GetServices()->PipelineStreammuxPaddingSet(
         cstrName.c_str(), enabled);
 }
 
@@ -8352,7 +8352,7 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameGet(
+    return DSL::Services::GetServices()->PipelineStreammuxNumSurfacesPerFrameGet(
         cstrName.c_str(), num);
 }
 
@@ -8364,8 +8364,33 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameSet(
+    return DSL::Services::GetServices()->PipelineStreammuxNumSurfacesPerFrameSet(
         cstrName.c_str(), num);
+}
+
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxSyncInputsEnabledGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxSyncInputsEnabledSet(
+        cstrName.c_str(), enabled);
 }
 
 DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
@@ -8376,7 +8401,7 @@ DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxGpuIdGet(
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdGet(
         cstrName.c_str(), gpuid);
 }
 
@@ -8387,7 +8412,7 @@ DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxGpuIdSet(
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdSet(
         cstrName.c_str(), gpuid);
 }
 
@@ -8402,7 +8427,7 @@ DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name,
     std::wstring wstrTiler(tiler);
     std::string cstrTiler(wstrTiler.begin(), wstrTiler.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxTilerAdd(
+    return DSL::Services::GetServices()->PipelineStreammuxTilerAdd(
         cstrName.c_str(), cstrTiler.c_str());
 }
     
@@ -8413,7 +8438,7 @@ DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxTilerRemove(
+    return DSL::Services::GetServices()->PipelineStreammuxTilerRemove(
         cstrName.c_str());
 }
  

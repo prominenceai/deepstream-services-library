@@ -60,7 +60,7 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
             {
                 REQUIRE( pPipelineSourcesBintr->GetName() == pipelineSourcesName );
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
-                REQUIRE( pPipelineSourcesBintr->m_pStreamMux != nullptr );
+                REQUIRE( pPipelineSourcesBintr->m_pStreammux != nullptr );
             }
         }
     }
@@ -133,7 +133,7 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
     }
 }
 
-SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly",  
+SCENARIO( "Linking a single Source to a Pipeline Streammux is managed correctly",  
     "[PipelineSourcesBintr]" )
 {
     GIVEN( "A new PipelineSourcesBintr with single SourceBintr" ) 
@@ -149,7 +149,7 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
         REQUIRE( pPipelineSourcesBintr->AddChild(
             std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
             
-        WHEN( "The Single Source is Linked to the StreamMux" )
+        WHEN( "The Single Source is Linked to the Streammux" )
         {
             REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
              
@@ -163,7 +163,7 @@ SCENARIO( "Linking a single Source to a Pipeline StreamMux is managed correctly"
 }
 
 
-SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly",
+SCENARIO( "Linking multiple Sources to a Streammux is managed correctly",
     "[PipelineSourcesBintr]" )
 {
     GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
@@ -192,7 +192,7 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly",
         
         REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
                     
-        WHEN( "All Sources are linked to the StreamMux" )
+        WHEN( "All Sources are linked to the Streammux" )
         {
             REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
             
@@ -212,10 +212,10 @@ SCENARIO( "Linking multiple Sources to a StreamMux is managed correctly",
     }
 }
 
-SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly", 
+SCENARIO( "Unlinking multiple Sources from a Streammux is managed correctly", 
     "[PipelineSourcesBintr]" )
 {
-    GIVEN( "A Pipeline Sources Bintr with multiple Sources a linked to the StreamMux" ) 
+    GIVEN( "A Pipeline Sources Bintr with multiple Sources a linked to the Streammux" ) 
     {
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
@@ -239,7 +239,7 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly",
                     
         REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
 
-        WHEN( "All Sources are unlinked from the StreamMux" )
+        WHEN( "All Sources are unlinked from the Streammux" )
         {
             pPipelineSourcesBintr->UnlinkAll();
             
@@ -253,7 +253,7 @@ SCENARIO( "Unlinking multiple Sources from a StreamMux is managed correctly",
     }
 }
 
-SCENARIO( "Linking and unlinking multiple Sources to multiple StreamMuxers is managed correctly", 
+SCENARIO( "Linking and unlinking multiple Sources to multiple Streammuxers is managed correctly", 
     "[PipelineSourcesBintr]" )
 {
     GIVEN( "Multiple Pipeline Sources Bintrs with multiple Sources in memory" ) 
@@ -315,7 +315,7 @@ SCENARIO( "Linking and unlinking multiple Sources to multiple StreamMuxers is ma
             std::dynamic_pointer_cast<SourceBintr>(pSourceBintr5)) == true );
         REQUIRE( pPipelineSourcesBintr2->GetNumChildren() == 2 );
         
-        WHEN( "All Sources are linked to the StreamMux" )
+        WHEN( "All Sources are linked to the Streammux" )
         {
             REQUIRE( pPipelineSourcesBintr0->LinkAll() == true );
             REQUIRE( pPipelineSourcesBintr1->LinkAll() == true );
@@ -442,30 +442,16 @@ SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and upd
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
-        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
-
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
-
-        REQUIRE( pPipelineSourcesBintr->AddChild(
-            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)) == true );
-        REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
-
-        uint num;
-        
-        pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
-        REQUIRE( num == 1 );
+        REQUIRE( pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame() == 1 );
             
         WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
         {
-            pPipelineSourcesBintr->SetStreamMuxNumSurfacesPerFrame(2);
+            pPipelineSourcesBintr->SetStreammuxNumSurfacesPerFrame(2);
              
             THEN( "The correct value is returned on get" )
             {
-                uint num;
-                
-                pPipelineSourcesBintr->GetStreamMuxNumSurfacesPerFrame(&num);
-                REQUIRE( num == 2 );
+                REQUIRE( pPipelineSourcesBintr->
+                    GetStreammuxNumSurfacesPerFrame() == 2 );
             }
         }
     }
@@ -481,12 +467,12 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
 
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() 
+            REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
                 == DSL_NVBUF_MEM_TYPE_DEFAULT );
         }
         else
         {
-            REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() 
+            REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
                 == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE );
         }
             
@@ -502,11 +488,11 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
                 newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
             }
         
-            pPipelineSourcesBintr->SetStreamMuxNvbufMemType(newNvbufMemType);
+            pPipelineSourcesBintr->SetStreammuxNvbufMemType(newNvbufMemType);
              
             THEN( "The correct value is returned on get" )
             {
-                REQUIRE( pPipelineSourcesBintr->GetStreamMuxNvbufMemType() == newNvbufMemType );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == newNvbufMemType );
             }
         }
     }
