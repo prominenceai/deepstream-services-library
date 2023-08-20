@@ -1,20 +1,41 @@
  # Pipeline API Reference
-Pipelines are the top level component in DSL. They manage and synchronize Child components when transitioning to states of `ready`, `paused`, and `playing`. There is no practical limit to the number of Pipelines that can be created, only the number of Sources, Secondary GIE's and Sinks in-use by one or more Pipelines at any one time; counts constrained by the Jetson Hardware in use.
+Pipelines are the top level component in DSL. They manage and synchronize Child components when transitioning to states of `READY`, `PAUSED`, and `PLAYING`. There is no practical limit to the number of Pipelines that can be created, only the number of Sources, Secondary GIE's and Sinks that are in-use by one or more Pipelines at any one time; numbers that are constrained by the Jetson/dGPU hardware in use. 
 
-#### Pipeline Construction and Destruction
-Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many). The current number of Pipelines in memory can be obtained by calling [dsl_pipeline_list_size](#dsl_pipeline_list_size).
+### Pipeline Streammuxer
+All DSL Pipelines are created with a built-in [NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-nvstreammux) providing the following critical services:
+* To enable multiple sources to be added to every Pipeline before and while playing, with the frame-buffers from each batched together for efficient processing downstream.
+* To create and add the basic batch level metadata structure [`NvDsBatchMeta`](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_metadata.html#metadata-in-the-deepstream-sdk) to each batched buffer required for downstream preprocessing, inference, tracking, on-screen-display, etc.
+
+**IMPORTANT!** The Pipeline's Streammuxer is created with the [default properties](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-properties) left unchanged except for the `batch-size` and the output dimensions; `width` and `height`. 
+
+#### Batch-Properties
+The two Streammuxer batch properties are defined as:
+* `batch-size` -- _the maximum number of frames in a batch_ -- which is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicity set by the client.
+* `batch-timeout` -- _the timeout in microseconds to wait after the first buffer is available to push the batch even if a complete batch is not formed._ -- which has a default value of `-1` disabling the timeout.
+
+Both the `batch-size` and `batch-timeout` settings can be updated while the Pipeline is stopped (in a state of NULL) by calling [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set). The current values can be obtained at anytime by calling [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get).
+
+**IMPORTANT!** 
+1. If dynamically adding/removing sources at runtime (i.e. while the Pipeline is playing), the `batch-size` should be set to the maximum number of Sources that can be added.
+2. If using dynamic or live sources, the `batch-timeout` should be set to accommodate the slowest source's frame-rate -- i.e. set to a value just greater than the longest expected period between frames.
+
+#### Output Dimensions
+The Streammuxer's output dimensions, initialized by the plugin to 0, are set by the Pipeline to `DSL_STREAMMUX_DEFAULT_WIDTH` and `DSL_STREAMMUX_DEFAULT_HEIGHT` as defined by the [Pipeline Streammuxer Constant Values](#pipeline-streammuxer-constant-values). The output dimensions can be updated by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set) while the Pipeline is stopped. The current dimensions can be obtained by calling [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
+
+### Pipeline Construction and Destruction
+Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many).
 
 Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete), [dsl_pipeline_delete_many](#dsl_pipeline_delete_many), or [dsl_pipeline_delete_all](#dsl_pipeline_delete_all). Deleting a pipeline will not delete its child component, but will unlink them and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
 
-#### Adding and Removing Components
+### Adding and Removing Components
 Child components -- Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks -- are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). A Pipeline's current number of child components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
 
 Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
-#### Playing, Pausing and Stopping a Pipeline
+### Playing, Pausing and Stopping a Pipeline
 
-Pipelines - with a minimum required set of components - can be `played` by calling [dsl_pipeline_play](#dsl_pipeline_play), `paused` by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and `stopped` by calling [dsl_pipeline_stop](#dsl_pipeline_stop).
+Pipelines - with a minimum required set of components - can be **played** by calling [dsl_pipeline_play](#dsl_pipeline_play), **paused** by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and **stopped** by calling [dsl_pipeline_stop](#dsl_pipeline_stop).
 
-#### Pipeline Client-Listener Notifications
+### Pipeline Client-Listener Notifications
 Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
 * **Change of State** - with [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add) / [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
 * **End of Stream (EOS)** - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) / [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
@@ -48,6 +69,10 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
 * [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
 * [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+* [dsl_pipeline_streammux_num_surfaces_per_frame_get](#dsl_pipeline_streammux_num_surfaces_per_frame_get)
+* [dsl_pipeline_streammux_num_surfaces_per_frame_set](#dsl_pipeline_streammux_num_surfaces_per_frame_set)
+* [dsl_pipeline_streammux_sync_inputs_enabled_get](#dsl_pipeline_streammux_sync_inputs_enabled_get)
+* [dsl_pipeline_streammux_sync_inputs_enabled_set](#dsl_pipeline_streammux_sync_inputs_enabled_set)
 * [dsl_pipeline_streammux_gpuid_get](#dsl_pipeline_streammux_gpuid_get)
 * [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
 * [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add)
@@ -104,6 +129,16 @@ The following return codes are used by the Pipeline API
 ```
 <br>
 
+## Pipeline Streammuxer Constant Values
+```C
+#define DSL_STREAMMUX_4K_UHD_WIDTH                                  3840
+#define DSL_STREAMMUX_4K_UHD_HEIGHT                                 2160
+#define DSL_STREAMMUX_1K_HD_WIDTH                                   1920
+#define DSL_STREAMMUX_1K_HD_HEIGHT                                  1080
+
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
+```
 ---
 
 ## Client Callback Typedefs
@@ -385,31 +420,11 @@ Removes all child components from a named Pipeline. The remove service will fail
 * `pipeline` - [in] unique name for the Pipeline to update.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
 retval = dsl_pipeline_component_remove_all('my-pipeline')
-```
-
-<br>
-
-### *dsl_pipeline_source_name_get*
-```C++
-DslReturnType dsl_pipeline_source_name_get(const wchar_t name uint source_id, const wchar_t** source);
-```
-This service returns the name of a Source component from a unique Source Id. The service will only return a Source that is currently `in-use` by a Pipeline in a Playing state.
-
-**Parameters**
-* `source_id` - [in] unique source id to query.
-* `name` - [out] unique name of the Source for the given Id. Name will be equal to Null if the source id is invalid.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful transition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, source = dsl_pipeline_source_name_get('my-source', 3)
 ```
 
 <br>
@@ -429,7 +444,7 @@ This service returns the current `batch_size` and `batch_timeout` for the named 
 * `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. Set to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT`.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful quesry. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
@@ -453,7 +468,7 @@ This service sets the `batch_size` and `batch_timeout` for the named Pipeline to
 * `batch_timeout` - [in] the new timeout in milliseconds before a batch meta push is forced.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
@@ -468,12 +483,12 @@ retval = dsl_pipeline_streammux_batch_properties_set('my-pipeline',
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
     uint* width, uint* height);
 ```
-This service returns the current Stream-Muxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can be changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+This service returns the current Streammuxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can be changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
-* `width` - [out] width of the Stream Muxer output in pixels.
-* `height` - [out] height of the Stream Muxer output in pixels.
+* `width` - [out] width of the Streammuxer output in pixels.
+* `height` - [out] height of the Streammuxer output in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -489,15 +504,15 @@ retval, width, height = dsl_pipeline_streammux_dimensions_get('my-pipeline')
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
     uint width, uint height);
 ```
-This service sets the current Stream-Muxer output dimensions for the uniquely named Pipeline. The dimensions cannot be updated while the Pipeline is in a state of `passed` or `playing`.
+This service sets the Streammuxer output dimensions for the uniquely named Pipeline. The dimensions cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
-* `width` - [in] new width for the Stream Muxer output in pixels.
-* `height` - [in] new height for the Stream Muxer output in pixels.
+* `width` - [in] new width for the Streammuxer output in pixels.
+* `height` - [in] new height for the Streammuxer output in pixels.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
@@ -505,11 +520,91 @@ retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
 ```
 <br>
 
+### *dsl_pipeline_streammux_num_surfaces_per_frame_get*
+```C++
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
+    const wchar_t* name, uint* num);
+```
+This service gets the current num-surfaces-per-frame Streammuxer setting for the named Pipeline.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `num` - [out] current number of surfaces per frame [1..4].
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, num_surfaces = dsl_pipeline_streammux_num_surfaces_per_frame_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_num_surfaces_per_frame_set*
+```C++
+DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
+    const wchar_t* name, uint num);
+```
+This service sets the num-surfaces-per-frame Streammuxer setting for the uniquely named Pipeline. The setting cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `num` - [in] new number of surfaces per frame [1..4].
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_num_surfaces_per_frame_set('my-pipeline', 2)
+```
+<br>
+
+### *dsl_pipeline_streammux_sync_inputs_enabled_get*
+```C++
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service gets the current setting - enabled/disabled - for the Streammuxer sync-inputs property for the named Pipeline..
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `enabled` - [out] true if the sync-inputs property is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_pipeline_streammux_sync_inputs_enabled_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_sync_inputs_enabled_set*
+```C++
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the sync-inputs Streammuxer setting for the named Pipeline. The setting cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`. This service is typically used with live Sources to synchronize the streams with the network time.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `enabled` - [in] set to true to enabled the sync-inputs property, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_sync_inputs_enabled_set('my-pipeline', True)
+```
+<br>
+
 ### *dsl_pipeline_streammux_gpuid_get*
 ```C++
 DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
 ```
-This service returns the current Stream-Muxer GPU ID for the uniquely named Pipeline. The default GPU ID is 0. The value can be changed by calling [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
+This service returns the current Streammuxer GPU ID for the uniquely named Pipeline. The default GPU ID is 0. The value can be changed by calling [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
@@ -528,11 +623,11 @@ retval, gpuid = dsl_pipeline_streammux_gpuid_get('my-pipeline')
 ```C++
 DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
 ```
-This service sets the Stream-Muxer GPU ID for the uniquely named Pipeline. The GPU ID cannot be updated while the Pipeline is linked and playing/paused.
+This service sets the Streammuxer GPU ID for the uniquely named Pipeline. The GPU ID cannot be updated while the Pipeline is linked and playing/paused.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
-* `gpuid` - [in] new GPU ID for the Stream Muxer.
+* `gpuid` - [in] new GPU ID for the Streammuxer.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -548,9 +643,9 @@ retval = dsl_pipeline_streammux_gpuid_set('my-pipeline', 1)
 DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
     const wchar_t* tiler);
 ```
-This service adds a named Tiler to a named Pipeline's Stream-Muxer output prior to any inference components added to the Pipeline.
+This service adds a named Tiler to a named Pipeline's Streammuxer output prior to any inference components added to the Pipeline.
 
-Note: A Stream-Muxer can have at most one Tiler.
+Note: A Streammuxer can have at most one Tiler.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -569,7 +664,7 @@ retval = dsl_pipeline_streammux_tiler_add('my-pipeline', 'my-tiler')
 ```C++
 DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name);
 ```
-This service removes a named Tiler from a named Pipeline's Stream-Muxer previously added with [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add).
+This service removes a named Tiler from a named Pipeline's Streammuxer previously added with [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add).
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -589,7 +684,7 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* pipeline,
     state_change_listener_cb listener, void* client_data);
 ```
 This service adds a callback function of type [dsl_state_change_listener_cb](#dsl_state_change_listener_cb) to a
-pipeline identified by it's unique name. The function will be called on every Pipeline change-of-state with `old_state`, `new_state`, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+pipeline identified by its unique name. The function will be called on every Pipeline change-of-state with `old_state`, `new_state`, and the client provided `client_data`. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -616,7 +711,7 @@ DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* pipeline,
     state_change_listener_cb listener);
 ```
 This service removes a callback function of type [state_change_listener_cb](#state_change_listener_cb) from a
-pipeline identified by it's unique name.
+pipeline identified by its unique name.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -637,7 +732,7 @@ retval = dsl_pipeline_state_change_listener_remove('my-pipeline', state_change_l
 DslReturnType dsl_pipeline_eos_listener_add(const wchar_t* pipeline,
     eos_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) to a Pipeline identified by it's unique name. The function will be called on a Pipeline `EOS` event. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+This service adds a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) to a Pipeline identified by its unique name. The function will be called on a Pipeline `EOS` event. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -661,7 +756,7 @@ retval = dsl_pipeline_eos_listener_add('my-pipeline', eos_listener, None)
 DslReturnType dsl_pipeline_eos_listener_remove(const wchar_t* pipeline,
     dsl_eos_listener_cb listener);
 ```
-This service removes a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) from a Pipeline identified by it's unique name.
+This service removes a callback function of type [dsl_eos_listener_cb](#dsl_eos_listener_cb) from a Pipeline identified by its unique name.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -683,7 +778,7 @@ retval = dsl_pipeline_eos_listener_remove('my-pipeline', eos_listener)
 DslReturnType dsl_pipeline_error_message_handler_add(const wchar_t* pipeline,
     dsl_error_message_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_error_message_handler_cb](#dsl_error_message_handler_cb) to a Pipeline identified by it's unique name. The function will be called when the Pipeline's bus-watcher receives an error message from one of the GST Objects. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+This service adds a callback function of type [dsl_error_message_handler_cb](#dsl_error_message_handler_cb) to a Pipeline identified by its unique name. The function will be called when the Pipeline's bus-watcher receives an error message from one of the GST Objects. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
@@ -708,7 +803,7 @@ retval = dsl_pipeline_error_message_handler_add('my-pipeline', error_message_han
 DslReturnType dsl_pipeline_error_message_handler_remove(const wchar_t* pipeline,
     dsl_error_message_handler_cb handler);
 ```
-This service remove a callback function of type [dsl_error_message_handler_cb](#dsl_error_message_handler_cb), previously added with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add), from a Pipeline identified by it's unique name.
+This service remove a callback function of type [dsl_error_message_handler_cb](#dsl_error_message_handler_cb), previously added with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add), from a Pipeline identified by its unique name.
 
 **Parameters**
 * `pipeline` - [in] unique name of the Pipeline to update.
