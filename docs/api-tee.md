@@ -25,6 +25,8 @@ Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_te
 * [dsl_tee_branch_remove](#dsl_tee_branch_remove)
 * [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many)
 * [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all).
+* [dsl_tee_blocking_timeout_get](#dsl_tee_blocking_timeout_get)
+* [dsl_tee_blocking_timeout_set](#dsl_tee_blocking_timeout_set)
 * [dsl_tee_pph_add](#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](#dsl_tee_pph_remove).
 
@@ -49,6 +51,13 @@ The following return codes are used by the Tiler API
 #define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A0009
 #define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
 ```
+
+## Constant Values
+The default blocking-timeout value used by both Splitter and Demuxer Tees. IMPORTANT! The timeout controls the amount of time the demuxer will wait for a blocking PPH to be called to dynamically link or unlink a branch at runtime while the Pipeline is playing. This value will need to be extended if the frame-rate for the stream is less than 2 fps.  The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad callback will never be called.
+```C
+#define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
+```
+
 
 ## Constructors
 
@@ -234,6 +243,49 @@ This service removes all child branches from a named Demuxer or Splitter Tee. Al
 retval = dsl_tee_branch_remove_all('my-splitter')
 ```
 
+<br>
+
+### *dsl_tee_blocking_timeout_get*
+```C++
+DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
+    uint* timeout);
+```
+This service gets the current [blocking-timeout](#constant-values) for the named Tee. 
+
+**Parameters**
+* `name` - [in] unique name of the Tee to query.
+* `timeout` - [out] current blocking-timeout in units of seconds. Default = [DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC](#constant-values).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, timeout = dsl_tee_blocking_timeout_get('my-demuxer')
+```
+
+<br>
+
+### *dsl_tee_blocking_timeout_set*
+```C++
+DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
+    uint timeout);
+```
+This service sets the [blocking-timeout](#constant-values) setting for the named Tee to use.
+
+**Parameters**
+* `name` - [in] unique name of the Tee to update.
+* `max_branches` - [in] new value for blocking-timeout in units of seconds. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_blocking_timeout_set('my-demuxer', 5)
+```
+
+<br>
 
 ### *dsl_tee_pph_add*
 ```C++
