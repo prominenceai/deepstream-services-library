@@ -47,6 +47,8 @@ SCENARIO( "A DemuxerBintr is created correctly", "[DemuxerBintr]" )
                 REQUIRE( pDemuxerBintr->GetName() == demuxerBintrName );
                 REQUIRE( pDemuxerBintr->GetNumChildren() == 0 );
                 REQUIRE( pDemuxerBintr->GetMaxBranches() == 1 );
+                REQUIRE( pDemuxerBintr->GetBlockingTimeout() 
+                    == DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC );
             }
         }
     }
@@ -76,7 +78,7 @@ SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[Dem
             {
                 REQUIRE( pDemuxerBintr->GetNumChildren() == 1 );
                 REQUIRE( pBranchBintr->IsInUse() == true );
-                REQUIRE( pBranchBintr->GetRequestPadId() == -1 );
+                REQUIRE( pBranchBintr->GetRequestPadId() == 0 );
             }
         }
     }

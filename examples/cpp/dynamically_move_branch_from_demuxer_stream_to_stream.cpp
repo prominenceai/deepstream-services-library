@@ -151,6 +151,8 @@ int main(int argc, char** argv)
         // ----------------------------------------------------------------------------
         // Create the five streaming-image sources that will provide the streams for 
         // the single dynamic branch.
+        // IMPORTANT! see Demuxer blocking-timeout notes below if setting a 
+        // frame-rate that is less than 2 fps.
         
         retval = dsl_source_image_stream_new(L"source-0", 
             image_0.c_str(), TRUE, 10, 1, 0);
@@ -252,6 +254,21 @@ int main(int argc, char** argv)
         retval = dsl_tee_demuxer_new(L"demuxer", num_streams);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // IMPORTANT! all tees use a blocking-timeout to manage the process of
+        // dynamically adding, removing, or moving (demuxer only) a branch.
+        // A blocking pad-probe is used block data at the Tee's source pad while 
+        // the branch is added or removed. The process requires the stream to be 
+        // in a state of Playing. If not, the pad-probe-handler (callback) to 
+        // complete this process would block indefinitely if not for the timeout. 
+        // This can occur if the source has been paused or dynamically removed.
+        // The default timeout is set to DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC(1)
+        // and must be increased if running at slow frame rates < 2fps or the 
+        // process may timeout before the blocking-pph-handler can be called.
+
+        // Update the default timeout if the sources are running at a slower fps.
+//        retval = dsl_tee_blocking_timeout_set(L"demuxer", 3);
+//        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Add the branch to the Demuxer at stream_id=0
         retval = dsl_tee_demuxer_branch_add_to(L"demuxer", L"branch-0", stream_id);
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -270,7 +287,7 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_play(L"pipeline"); 
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        g_timeout_add(4000, move_branch, NULL);
+        g_timeout_add(6000, move_branch, NULL);
 
         // Start and join the main-loop
         dsl_main_loop_run();

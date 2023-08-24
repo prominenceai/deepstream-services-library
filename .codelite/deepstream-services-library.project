@@ -180,7 +180,6 @@
       <File Name="../test/api/DslDemuxerBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
-      <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
       <File Name="../test/unit/DslDewarperUnitTest.cpp"/>
       <File Name="../test/unit/DslDisplayTypesUnitTest.cpp"/>
       <File Name="../test/unit/DslElementrUnitTest.cpp"/>
@@ -213,6 +212,7 @@
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
+      <File Name="../test/unit/DslDemuxerAndSplitterUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>

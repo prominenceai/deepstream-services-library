@@ -350,6 +350,38 @@ SCENARIO( "A Demuxer can update its max-branches correctly", "[tee-api]" )
     }
 }
 
+SCENARIO( "A Tee can update its blocking-timeout setting correctly", "[tee-api]" )
+{
+    GIVEN( "A Demuxer and three Branchs" ) 
+    {
+        std::wstring demuxerName(L"demuxer");
+        
+        REQUIRE( dsl_tee_demuxer_new(demuxerName.c_str(),
+            10) == DSL_RESULT_SUCCESS );
+
+        uint ret_blocking_timeout(99);
+        REQUIRE( dsl_tee_blocking_timeout_get(demuxerName.c_str(),
+            &ret_blocking_timeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_blocking_timeout == DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC );
+
+        WHEN( "When the blocking-timeout setting is updated" ) 
+        {
+            uint new_blocking_timeout(5);
+            REQUIRE( dsl_tee_blocking_timeout_set(demuxerName.c_str(),
+                new_blocking_timeout) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_tee_blocking_timeout_get(demuxerName.c_str(),
+                    &ret_blocking_timeout) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_blocking_timeout == new_blocking_timeout );
+                
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
 {
     return true;
@@ -450,6 +482,13 @@ SCENARIO( "The Tee API checks for NULL input parameters", "[tee-api]" )
                 REQUIRE( dsl_tee_pph_add(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_pph_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tee_pph_remove(teeName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tee_blocking_timeout_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_blocking_timeout_get(teeName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_blocking_timeout_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
