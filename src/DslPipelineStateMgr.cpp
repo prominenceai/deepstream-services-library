@@ -282,13 +282,17 @@ namespace DSL
 
         GstClockTime clockTime;
         GstStreamStatusType statusType;
-        GstElement* element(NULL);
+        GstElement* pElement(NULL);
         GstFormat format(GST_FORMAT_UNDEFINED);
         guint64 processed(0);
         guint64 dropped(0);
         GError* error(NULL);
         gchar* debugInfo(NULL);
         gint percent(0);
+        gchar* propertyName(NULL);
+        GstProgressType progressType(GST_PROGRESS_TYPE_ERROR);
+        gchar* code;
+        gchar* text;
 
         switch (GST_MESSAGE_TYPE(pMessage))
         {
@@ -301,12 +305,12 @@ namespace DSL
             break;
             
         case GST_MESSAGE_STREAM_STATUS:
-            gst_message_parse_stream_status(pMessage, &statusType, &element);
+            gst_message_parse_stream_status(pMessage, &statusType, &pElement);
             LOG_INFO("Message type : "
                 << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
             LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   type      : " << statusType);
-            LOG_INFO("   element   : " << GST_ELEMENT_NAME(element));
+            LOG_INFO("   element   : " << GST_ELEMENT_NAME(pElement));
             break;
             
         case GST_MESSAGE_QOS:
@@ -323,7 +327,19 @@ namespace DSL
             gst_message_parse_buffering(pMessage, &percent);
             LOG_INFO("Message type : "
                 << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   percent   : " << percent);
+            break;
+            
+        case GST_MESSAGE_PROGRESS:
+            gst_message_parse_progress (pMessage,
+                &progressType, &code, &text);
+            LOG_INFO("Message type : "
+                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   type      : " << progressType);
+            LOG_INFO("   code      : " << code);
+            LOG_INFO("   text      : " << text);
             break;
             
         case GST_MESSAGE_INFO:
