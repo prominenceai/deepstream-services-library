@@ -18,6 +18,7 @@
   * [ODE Areas](#ode-areas)
   * [ODE Line Crossing Analytics](#ode-line-crossing-analytics)
   * [ODE Heat Mapping](#ode-heat-mapping)
+* [Dynamic Pipelines](#dynamic-pipelines)
 * [Interpipe Services](#interpipe-services)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
@@ -691,6 +692,21 @@ The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py
 See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more information.
 
 ![](/Images/spectral-person-heat-map.png)
+
+---
+
+## Dynamic Pipelines
+### Dynamic Sources with a Tiler
+
+![](/Images/dynamic-source-with-tiler.png)
+
+### Fixed Sources with Demuxer and Dynamic Branches
+
+![](/Images/fixed-source-with-demuxer-and-dynamic-branch.png)
+
+### Dynamic Sources with Demuxer and Dynamic Branches
+
+![](/Images/dynamic-source-with-demuxer-and-dynamic-branch.png)
 
 ---
 
