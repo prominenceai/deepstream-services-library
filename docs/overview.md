@@ -697,16 +697,48 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 
 ## Dynamic Pipelines
 ### Dynamic Sources with a Tiler
+All Pipelines require at least one [Source component](/docs/api-source.md) in order to play. Once playing, additional Sources may be added and removed. The image below illustrates a typical inference pipeline -- with Sources, built-in Streammuxer, Primary Inference Engine, Object Tracker, 2D Tiler, On-Screen-Display, and Window Sink -- with three methods for dynamically added and removed sources; 1) by the Application, 2) by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services), and 3) by enabling the end-user/viewer through keyboard input. 
+
+**IMPORTANT!** The Tiler's `columns` and `rows` properties must be set to accommodate the maximum number of Sources that will be added to the Pipeline.
 
 ![](/Images/dynamic-source-with-tiler.png)
 
-### Fixed Sources with Demuxer and Dynamic Branches
+#### Dynamic Updates by the Application
+The application adds Source components by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) before, during, and after the Pipeline is played. The Application removes Source components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), as long as there is one Source while the Pipeline is in a state of PLAYING. 
+
+#### Dynamic Updates using ODE Services
+Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as show in the diagram above, or the sink-pad (input) of the Tiler to process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+
+#### Dynamic Updates by the End-User
+The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md). The callback function, called on every keyboard key-release, calls the appropriate Pipeline componet add/remove service as described above. 
+
+<br>
+
+### Pipeline or Branch with Dynamic Sinks
+
+![](/Images/dynamic-sinks-with-tiler.png)
+
+### Fixed Sources with a Demuxer and Dynamic Branches
+
+**IMPORTANT!** When using a [Demuxer Tee](/docs/api-tee.md) to demux the batched-stream into single-stream [Branches](/docs/api-branch.md), the maximum number of Branches must be specified prior to playing the Pipline, a requirement impossed by NVIDIA's [nvstreamdemux](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) plugin.
 
 ![](/Images/fixed-source-with-demuxer-and-dynamic-branch.png)
 
-### Dynamic Sources with Demuxer and Dynamic Branches
+#### Dynamic Updates by the Application
+With a Demuxer Tee, the Application
+* adds a Branch to the first available unlinked Stream by calling the base Tee service [`dsl_tee_branch_add`](/docs/api-tee.md#dsl_tee_branch_add)
+* adds a Branch to a specific Stream by Id by calling [`dsl_tee_demuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_add_to)
+* moves a Branch to a specific Stream by Id by calling [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to)
+* removes a Branch by calling [`dsl_tee_branch_remove`](/docs/api-tee.md#dsl_tee_branch_remove), [`dsl_tee_branch_remove_many`](/docs/api-tee.md#dsl_tee_branch_remove_many), or [`dsl_tee_branch_remove_all`](/docs/api-tee.md#dsl_tee_branch_remove_all)
 
-![](/Images/dynamic-source-with-demuxer-and-dynamic-branch.png)
+#### Dynamic Updates by the End-User
+The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
+
+### Dynamic Sources with a Demuxer and Dynamic Branches
+
+### Dynamic Tiler Output Stream
+
+![](/Images/dynamic-tiler-output.png)
 
 ---
 
