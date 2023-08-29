@@ -715,14 +715,35 @@ The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_
 <br>
 
 ### Pipeline or Branch with Dynamic Sinks
+When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as show in the image below, even if there is only one. This ensures that additional Sinks can be added (and removed) before, during or after the Pipeline is played.
+
+As with Sources, there are three methods of dynamically adding or removing Sinks -- using an IOT Message Sink for example, as depicted below; by the Application, by using ODE Services, and be enabling the end-user.
 
 ![](/Images/dynamic-sinks-with-tiler.png)
 
+#### Dynamic Updates by the Application
+The application adds Sink components to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) at any time. The Application removes Sink components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many).
+
+There are similar services for adding and removing Sinks to and from a Branch. See [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many)
+
+#### Dynamic Updates using ODE Services
+Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as show in the diagram above, or the sink-pad (input) of the Tiler to process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+
+#### Dynamic Updates by the End-User
+The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md). The callback function, called on every keyboard key-release, calls the appropriate Pipeline componet add/remove service as described above. 
+
+<br>
+
 ### Fixed Sources with a Demuxer and Dynamic Branches
+[Demuxer Tees](/docs/api-tee.md#demuxer-tee) demux the batched-stream - batched together by the Pipeline's built-in Streammuxer -- into single-stream [Branches](/docs/api-branch.md). The stream-id for each Branch matches the stream-id for the Source producing the stream.  The maximum number of Branches can be upto the maximum number of Sources. Branches can be added to the next available unconnected pad/stream, to a specific pad/stream specified by id, or moved from one pad/stream to another.
 
-**IMPORTANT!** When using a [Demuxer Tee](/docs/api-tee.md) to demux the batched-stream into single-stream [Branches](/docs/api-branch.md), the maximum number of Branches must be specified prior to playing the Pipline, a requirement impossed by NVIDIA's [nvstreamdemux](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) plugin.
+**IMPORTANT!** When using a [Demuxer Tee](/docs/api-tee.md) , the maximum number of Branches must be specified prior to playing the Pipline, a requirement impossed by NVIDIA's [nvstreamdemux](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) plugin. 
 
-![](/Images/fixed-source-with-demuxer-and-dynamic-branch.png)
+**IMPORTANT!** When adding a removing Branches, a blocking pad-probe is added to block data from flowing to the Branch while linking or unlinking with the Demuxer. A [blocking-timeout] value is used to control the maximum amount of time the demuxer will wait for the blocking pad-probe to call the handler callback function to dynamically link or unlink the Branch. This value will need to be extended if the frame-rate for the stream is less than 2 fps. The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad-probe callback will never be called. 
+
+As with Sources and Sinks, adding and removing Branches at runtime can be done by the Application, by using ODE Services, and be enabling the end-user.
+
+![](/Images/fixed-sources-with-demuxer-and-dynamic-branch.png)
 
 #### Dynamic Updates by the Application
 With a Demuxer Tee, the Application
@@ -733,6 +754,8 @@ With a Demuxer Tee, the Application
 
 #### Dynamic Updates by the End-User
 The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
+
+<br>
 
 ### Dynamic Sources with a Demuxer and Dynamic Branches
 
