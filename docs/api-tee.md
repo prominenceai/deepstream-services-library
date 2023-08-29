@@ -1,15 +1,28 @@
 # Demuxer and Splitter - Tee API
+There are currently two types of Tees -- Demuxer and Splitter -- each with a very specific use and purpose. Both types connect to downstream [Branches](/docs/api-branch.md). 
 
-#### Tee Construction and Destruction
-Demuxers and Splitters are created using a type specific constructor,  [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively
+### Demuxer Tee
+The Demuxer Tee is built-on NVIDIA's [Gst-nvstreamdemux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) which, according to the documentation, _"demuxes batched frames into individual buffers. It creates a separate Gst Buffer for each frame in the batch. It does not copy the video frames. Each Gst Buffer contains a pointer to the corresponding frame in the batch. The plugin pushes the unbatched Gst Buffer objects downstream on the pad corresponding to each frame’s source."_
 
-Pipelines use Tees to create Branches and Branches can use Tees to create more Branches. Therefore, Tees are added to Pipelines and Branches, while Branches are added to Tees.
+### Splitter Tee
+The Splitter Tee splits the stream -- batched or single frame -- to multiple source-pads, each connected to a unique Branch. The Tee does not copy the Gst Buffer, it simply pushes a pointer to the same buffer to each downstream Branch. 
+
+### Sink Components as Branches
+[Sink components](/docs/api-sinks.md) can be added as branches to both Demuxers and Splitters -- as long as the Splitter is splitting a non-batched single-frame stream.
+
+### Dynamic Branching
+With both Tee types, Sinks and Branches can be added and removed and runtime while the Pipeline is playing. Refer to the [Dynamic Pipelines](/docs/overview.md#dynamic-pipelines) section under the [DSL Overview](/docs/overview.md) for more information. 
+
+**IMPORTANT!** When using a Demuxer Tee, the maximum number of Branches must be specified prior to playing the Pipeline, a requirement imposed by NVIDIA's plugin.
+
+### Tee Construction and Destruction
+Demuxers and Splitters are created using a type specific constructor, [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively.
 
 The relationship between Pipeline/Branch and Tee is one to one with the Tee becoming the end component. The relationship between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can be used with another. 
 
 Tees and Branches are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
-#### Adding and removing Branches from a Tee
+### Adding and removing Branches from a Tee
 Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_tee_branch_add) or [dsl_tee_branch_add_many](api-branch.md#dsl_tee_branch_add_many) and removed with [dsl_tee_branch_remove](api-branch.md#dsl_tee_branch_remove), [dsl_tee_branch_remove_many](api-branch.md#dsl_tee_branch_remove_many), or [dsl_tee_branch_remove_all](api-branch.md#dsl_tee_branch_remove_all).
 
 ## Tee API
