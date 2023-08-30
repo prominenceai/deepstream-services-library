@@ -696,9 +696,9 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 ---
 
 ## Dynamic Pipelines
-DSL Pipelines are designed to be  _dynamic-pipelines_ meaning key components such as Sources, Branches, and Sinks may be added and removed while the Pipeline is playing -- as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. 
+All DSL Pipelines are designed to be _dynamic-pipelines_, where key components such as Sources, Branches, and Sinks may be added and removed while the Pipeline is playing -- as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. 
 
-This section covers the following ways in which DSL's _dynamic-pipelines_ may be updated.
+This section covers the following use cases for dynamically updating DSL Pipelines.
 
 * [Dynamic Source updates when using a Tiler](#dynamic-source-updates-when-using-a-tiler).
 * [Dynamic Sink updates with a Pipeline or Branch](#dynamic-sink-updates-with-a-pipeline-or-branch).
@@ -707,20 +707,20 @@ This section covers the following ways in which DSL's _dynamic-pipelines_ may be
 * [Dynamic Source Stream selection when using a Tiler](#dynamic-source-stream-selection-when-using-a-tiler).
 
 ### Dynamic Source updates when using a Tiler
-All Pipelines require at least one [Source component](/docs/api-source.md) in order to play. However, once playing, additional Sources may be added and removed. The image below illustrates a typical inference pipeline -- with _Sources_, _Streammuxer_, _Primary Inference Engine_, _IOU Tracker_, _2D Tiler_, _On-Screen-Display_, and _Window Sink_ -- with three methods for dynamically adding and removing sources: 
+All Pipelines require at least one [Source component](/docs/api-source.md) in order to play. Once playing, additional Sources may be added and removed. The image below illustrates a typical inference pipeline -- with _Sources_, _Streammuxer_, _Primary Inference Engine_, _IOU Tracker_, _2D Tiler_, _On-Screen-Display_, and _Window Sink_ -- with three methods for dynamically adding and removing sources: 
 1. by the Application using the DSL Services API.
 2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
-3. by enabling the end-user/viewer through keyboard input. 
+3. by enabling the end-user (Window-Sink viewer) through keyboard input. 
 
-**IMPORTANT!** The Tiler's `columns` and `rows` properties must be set to accommodate the maximum number of Sources that will be added to the Pipeline.
+**IMPORTANT!** The Tiler's `columns` and `rows` properties should be set to accommodate the maximum number of Sources that will be added to the Pipeline. However, the will auto-reconfigure if a new source is added and it exceeds the space allocated for tiles.
 
 ![](/Images/dynamic-source-with-tiler.png)
 
 #### Dynamic Source Updates by the Application
-The application adds Source components by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) before, during, and after the Pipeline is played. The Application removes Source components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), as long as there is one Source while the Pipeline is in a state of PLAYING. 
+The application adds Source components by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) While the Pipeline is in any state. The Application removes Source components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), as long as there is one Source while the Pipeline is in a state of PLAYING. 
 
 #### Dynamic Source Updates using ODE Services
-Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as show in the diagram above, or the sink-pad (input) of the Tiler to process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as shown in the diagram above, or the sink-pad (input) of the Tiler. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Source Updates by the End-User
 The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
@@ -747,7 +747,7 @@ The application adds Sink components to a Pipeline by calling [`dsl_pipeline_com
 There are similar services for adding and removing Sinks to and from a Branch. See [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many)
 
 #### Dynamic Sink Updates using ODE Services
-Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as show in the diagram above, or the sink-pad (input) of the Tiler to process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services).An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as shown in the diagram above, or the sink-pad (input) of the Tiler. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Sink Updates by the End-User
 The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
@@ -806,7 +806,7 @@ With a Tiler, the Application:
 * shows all Sources (tiled view) by calling [`dsl_tiler_source_show_all`](/docs/api-tiler.md#dsl_tiler_source_show_all)
 
 #### Dynamic Tiler Updates using ODE Services
-The Tiler's source-stream selection can be updated on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as show in the diagram above, or the sink-pad (input) of the Tiler to process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to trigger on specific events. a [Tiler-Show-Source](/docs/api-ode-action.md#dsl_ode_action_tiler_source_show_new) [ODE Action](/docs/api-ode-action.md) is added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+The Tiler's source-stream selection can be updated on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker, as shown in the diagram above, or the sink-pad (input) of the Tiler. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. a [Tiler-Show-Source](/docs/api-ode-action.md#dsl_ode_action_tiler_source_show_new) [ODE Action](/docs/api-ode-action.md) is added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Tiler Updates by the End-User
 The Application enables the end-user (Window-Sink viewer)
