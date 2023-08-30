@@ -102,6 +102,20 @@ namespace DSL
             return m_pChildBranches.size();
         }
 
+        /**
+         * @brief Gets the current blocking-timeout for the MultiBranchesBintr.
+         * @return current blocking-timeout. 
+         * Default = DSL_TEE_DEMUXER_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
+         */
+        uint GetBlockingTimeout();
+        
+        /**
+         * @brief Sets the blocking-timeout for this MultiBranchesBintr.
+         * @param timeout new timeout in units of seconds.
+         * @return True if set successfully, false otherwise. 
+         */
+        bool SetBlockingTimeout(uint timeout);
+
         /** 
          * @brief links all child Component Bintrs and their elements
          */ 
@@ -152,6 +166,13 @@ namespace DSL
         bool RemoveChild(DSL_BASE_PTR pChildElement);
 
         /**
+         * @brief current blocking-timeout for this MultiBranchesBintr. Controls
+         * how long the MultiBranchesBintr will block/wait for the blocking PPH
+         * callback to be called. Needs to be > seconds/frame for all streams.
+         */
+        uint m_blockingTimeout;
+    
+        /**
          * @brief queue element for this Bintr to create a new process 
          * for this Bintr to run in
          */
@@ -165,6 +186,8 @@ namespace DSL
         
 
     };
+
+    //-------------------------------------------------------------------------------
 
     /**
      * @class MultiSinksBintr
@@ -184,6 +207,8 @@ namespace DSL
 
     };
 
+    //-------------------------------------------------------------------------------
+
     class SplitterBintr : public MultiBranchesBintr
     {
     public: 
@@ -202,6 +227,8 @@ namespace DSL
 
     };
 
+    //-------------------------------------------------------------------------------
+    
     class DemuxerBintr : public MultiBranchesBintr
     {
     public: 
@@ -269,7 +296,7 @@ namespace DSL
         uint GetMaxBranches();
         
         /**
-         * @brief Set the max-branches setting for this DemuxerBintr
+         * @brief Set the max-branches setting for this DemuxerBintr.
          * @param[in] maxBranches the maximum number of branches that can be
          * added/connected to this Demuxer, before or during Pipeline play.
          * @return 
@@ -291,7 +318,7 @@ namespace DSL
          * Specifies the number of source pads to request prior to playing.
          */
         uint m_maxBranches;
-    
+        
         /**
          * @brief list of reguest pads -- maxBranches in length -- for the 
          * for the DemuxerBintr. The pads are preallocated on Bintr creation

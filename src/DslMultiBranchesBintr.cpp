@@ -32,6 +32,7 @@ namespace DSL
     MultiBranchesBintr::MultiBranchesBintr(const char* name, 
         const char* teeType)
         : Bintr(name)
+        , m_blockingTimeout(DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC)
     {
         LOG_FUNC();
         
@@ -150,6 +151,10 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
+    /**
+     * @class _asyncData
+     * @brief structure of data required for asynchronous linking and unlinking.
+     */
     typedef struct _asyncData
     {
         DslMutex asynMutex;
@@ -158,6 +163,13 @@ namespace DSL
         GstPad* pSinkPad;
     } AsyncData;
     
+    /**
+     * @brief Blocking PPH to unlink and EOS a branch
+     * @param pad unused
+     * @param info unused
+     * @param pData pointer to AsyncData structure
+     * @return GST_PAD_PROBE_REMOVE to remove the probe always.
+     */
     static GstPadProbeReturn unlink_from_source_tee_cb(GstPad* pad, 
         GstPadProbeInfo *info, gpointer pData)
     {
@@ -169,10 +181,6 @@ namespace DSL
         
         pAsyncData->pChildComponent->UnlinkFromSourceTee();
         
-//        gst_pad_send_event(pAsyncData->pSinkPad, 
-//            gst_event_new_flush_start());
-//        gst_pad_send_event(pAsyncData->pSinkPad, 
-//            gst_event_new_flush_stop(FALSE));
         gst_pad_send_event(pAsyncData->pSinkPad, 
             gst_event_new_eos());
 
@@ -219,7 +227,9 @@ namespace DSL
                     (GstPadProbeCallback)unlink_from_source_tee_cb, 
                     &asyncData, NULL);
 
-                gint64 endTime = g_get_monotonic_time() + G_TIME_SPAN_SECOND;
+                gint64 endTime = g_get_monotonic_time() + (G_TIME_SPAN_SECOND *
+                    m_blockingTimeout);
+                    
                 if (!g_cond_wait_until(&asyncData.asyncCond, 
                     &asyncData.asynMutex, endTime))
                 {
@@ -338,7 +348,7 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Batch size for Tee '" << GetName() 
+            LOG_ERROR("Unable to set batch-size for Tee '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -348,24 +358,58 @@ namespace DSL
             if (!imap.second->SetBatchSize(batchSize))
             {
                 LOG_ERROR("MultiBranchesBintr '" << GetName() 
-                    << "' failed to set batch size for Child Component '" 
+                    << "' failed to set batch-size for Child Component '" 
                     << imap.second->GetName() << "'");
                 return false;
             }
         }
         return Bintr::SetBatchSize(batchSize);
     }
+    
+    uint MultiBranchesBintr::GetBlockingTimeout()
+    {
+        LOG_FUNC();
+        
+        return m_blockingTimeout;
+    }
  
+    bool MultiBranchesBintr::SetBlockingTimeout(uint timeout)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set blocking-timeout for Tee '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_blockingTimeout = timeout;
+        
+        return true;
+    }
+    
+    //--------------------------------------------------------------------------------
+
     MultiSinksBintr::MultiSinksBintr(const char* name)
         : MultiBranchesBintr(name, "tee")
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for MultiSinksBintr '" << name << "'");
+        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
     }
     
+    //--------------------------------------------------------------------------------
+
     SplitterBintr::SplitterBintr(const char* name)
         : MultiBranchesBintr(name, "tee")
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for SplitterBintr '" << name << "'");
+        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
     }
 
     bool SplitterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -377,6 +421,8 @@ namespace DSL
             AddSplitterBintr(shared_from_this());
     }
 
+    //-------------------------------------------------------------------------------
+    
     DemuxerBintr::DemuxerBintr(const char* name, uint maxBranches)
         : MultiBranchesBintr(name, "nvstreamdemux")
         , m_maxBranches(maxBranches)
@@ -385,7 +431,8 @@ namespace DSL
         
         LOG_INFO("");
         LOG_INFO("Initial property values for DemuxerBintr '" << name << "'");
-        LOG_INFO("  max-branches : " << m_maxBranches);
+        LOG_INFO("  max-branches     : " << m_maxBranches);
+        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
     }
     
     bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -581,7 +628,9 @@ namespace DSL
                     return false;
                 }
 
-                gint64 endTime = g_get_monotonic_time() + G_TIME_SPAN_SECOND;
+                gint64 endTime = g_get_monotonic_time() + (G_TIME_SPAN_SECOND *
+                    m_blockingTimeout);
+                    
                 if (!g_cond_wait_until(&asyncData.asyncCond, 
                     &asyncData.asynMutex, endTime))
                 {
@@ -730,5 +779,4 @@ namespace DSL
         m_maxBranches = maxBranches;
         return true;
     }
-
 }

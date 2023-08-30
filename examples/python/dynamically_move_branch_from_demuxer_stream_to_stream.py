@@ -148,6 +148,8 @@ def main(args):
         # ----------------------------------------------------------------------------
         # Create the five streaming-image sources that will provide the streams for 
         # the single dynamic branch.
+        # IMPORTANT! see Demuxer blocking-timeout notes below if setting a 
+        # frame-rate that is less than 2 fps.
         
         retval = dsl_source_image_stream_new('source-0', image_0, True, 10, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
@@ -161,7 +163,7 @@ def main(args):
         retval = dsl_source_image_stream_new('source-3', image_3, True, 10, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break       
-        retval = dsl_source_image_stream_new('source-4', image_4, True, 15, 1, 0)
+        retval = dsl_source_image_stream_new('source-4', image_4, True, 10, 1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -243,6 +245,22 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # IMPORTANT! all tees use a blocking-timeout to manage the process of
+        # dynamically adding, removing, or moving (demuxer only) a branch.
+        # A blocking pad-probe is used block data at the Tee's source pad while 
+        # the branch is added or removed. The process requires the stream to be 
+        # in a state of Playing. If not, the pad-probe-handler (callback) to 
+        # complete this process would block indefinitely if not for the timeout. 
+        # This can occur if the source has been paused or dynamically removed.
+        # The default timeout is set to DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC(1)
+        # and must be increased if running at slow frame rates < 2fps or the 
+        # process may timeout before the blocking-pph-handler can be called.
+
+        # Update the default timeout if the sources are running at a slower fps.
+#        retval = dsl_tee_blocking_timeout_set('demuxer', 3)
+#        if retval != DSL_RETURN_SUCCESS:
+#            break
+
         # Add the branch to the Demuxer at stream_id=0
         retval = dsl_tee_demuxer_branch_add_to('demuxer', 'branch-0', stream_id)
         if retval != DSL_RETURN_SUCCESS:
@@ -260,7 +278,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        timer = RepeatTimer(5, move_branch)
+        timer = RepeatTimer(6, move_branch)
         timer.start()
         
         # blocking call

@@ -824,6 +824,8 @@ THE SOFTWARE.
 #define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
 #define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
 
+#define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
+
 #define DSL_BBOX_POINT_CENTER                                       0
 #define DSL_BBOX_POINT_NORTH_WEST                                   1
 #define DSL_BBOX_POINT_NORTH                                        2
@@ -6002,7 +6004,7 @@ DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name,
     const wchar_t* branch, uint stream_id);
 
 /**
- * @brief Gets the current max-branches setting for the name Deumuxer Tee
+ * @brief Gets the current max-branches setting for the named Deumuxer Tee
  * @param[in] name name of the Demuxer Tee to query
  * @param[out] max_branches current setting for max-branches
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
@@ -6011,7 +6013,7 @@ DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name,
     uint* max_branches);
 
 /**
- * @brief Sets the max-branches setting for the name Deumuxer Tee to use.
+ * @brief Sets the max-branches setting for the named Deumuxer Tee to use.
  * @param[in] name name of the Demuxer Tee to update
  * @param[in] max_branches new setting for max-branches
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
@@ -6081,6 +6083,37 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
 DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
+
+/**
+ * @brief Gets the current blocking-timeout for the named Demuxer Tee. 
+ * The timeout controls the amount of time the demuxer will wait for a 
+ * blocking PPH to be called to dynamically link or unlink a branch at
+ * runtime while the Pipeline is playing. The default = 1s. This value
+ * will need to be extended it he frame-rate for the stream is less than 1 fps.
+ * The timeout is needed in case the Source upstream has been removed or is in
+ * a bad state in which case the pad callback will never be called.
+ * @param[in] name name of the Demuxer Tee to query
+ * @param[out] timeout current timeout value in units of seconds. 
+ * Default = DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
+    uint* timeout);
+
+/**
+ * @brief Sets the blocking-timeout for the named Demuxer Tee to use. 
+ * The timeout controls the amount of time the demuxer will wait for a 
+ * blocking PPH to be called to dynamically link or unlink a branch at
+ * runtime while the Pipeline is playing. The default = 1s. This value
+ * will need to be extended it he frame-rate for the stream is less than 1 fps.
+ * The timeout is needed in case the Source upstream has been removed or is in
+ * a bad state in which case the pad callback will never be called.
+ * @param[in] name name of the Demuxer Tee to query
+ * @param[in] timeout new timeout value in units of seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
+    uint timeout);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.

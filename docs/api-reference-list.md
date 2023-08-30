@@ -354,6 +354,8 @@
 * [dsl_tee_branch_remove_many](/docs/api-tee.md#dsl_tee_branch_remove_many)
 * [dsl_tee_branch_remove_all](/docs/api-tee.md#dsl_tee_branch_remove_all).
 * [dsl_tee_branch_count_get](/docs/api-tee.md#dsl_tee_branch_count_get).
+* [dsl_tee_blocking_timeout_get](/docs/api-tee.md#dsl_tee_blocking_timeout_get)
+* [dsl_tee_blocking_timeout_set](/docs/api-tee.md#dsl_tee_blocking_timeout_set)
 * [dsl_tee_pph_add](/docs/api-tee.md#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](/docs/api-tee.md#dsl_tee_pph_remove).
 * [dsl_tee_demuxer_branch_add_to](/docs/api-tee.md#dsl_tee_demuxer_branch_add_to)

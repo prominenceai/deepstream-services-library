@@ -388,6 +388,72 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TeeBlockingTimeoutGet(const char* name, 
+        uint* timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                DemuxerBintr);
+            
+            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
+            
+            *timeout = pTeeBintr->GetBlockingTimeout();
+                
+            LOG_INFO("Tee '" << name 
+                << "' returned blocking-timeout = " << *timeout 
+                << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tee '" << name 
+                << "' threw an exception getting blocking-timeout");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }    
+    
+    DslReturnType Services::TeeBlockingTimeoutSet(const char* name, 
+        uint timeout)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                DemuxerBintr);
+            
+            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
+            
+            if (!pTeeBintr->SetBlockingTimeout(timeout))
+            {
+                LOG_ERROR("Tee '" << name << 
+                    "' failed to set blocking-timeout = " << timeout);
+                return DSL_RESULT_TEE_SET_FAILED;
+            }
+                
+            LOG_INFO("Tee '" << name 
+                << "' set blocking-timeout = " << timeout << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tee '" << name 
+                << "' threw an exception setting blocking-timeout");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }    
+
     DslReturnType Services::TeePphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();

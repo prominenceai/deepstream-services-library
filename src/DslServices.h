@@ -1067,6 +1067,10 @@ namespace DSL {
 
         DslReturnType TeeBranchCountGet(const char* name, uint* count);
 
+        DslReturnType TeeBlockingTimeoutGet(const char* name, uint* timeout);
+        
+        DslReturnType TeeBlockingTimeoutSet(const char* name, uint timeout);
+        
         DslReturnType TeePphAdd(const char* name, const char* handler);
 
         DslReturnType TeePphRemove(const char* name, const char* handler);
@@ -1087,12 +1091,15 @@ namespace DSL {
         DslReturnType TilerFrameNumberingEnabledSet(const char* name,
             boolean enabled);
             
-        DslReturnType TilerSourceShowGet(const char* name, const char** source, uint* timeout);
+        DslReturnType TilerSourceShowGet(const char* name, 
+            const char** source, uint* timeout);
 
-        DslReturnType TilerSourceShowSet(const char* name, const char* source, uint timeout, bool hasPrecedence);
+        DslReturnType TilerSourceShowSet(const char* name, 
+            const char* source, uint timeout, bool hasPrecedence);
 
         // called by the Show Source Action only. 
-        DslReturnType TilerSourceShowSet(const char* name, uint sourceId, uint timeout, bool hasPrecedence);
+        DslReturnType TilerSourceShowSet(const char* name, 
+            uint sourceId, uint timeout, bool hasPrecedence);
 
         DslReturnType TilerSourceShowSelect(const char* name, 
             int xPos, int yPos, uint windowWidth, uint windowHeight, uint timeout);

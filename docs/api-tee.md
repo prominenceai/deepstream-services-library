@@ -1,15 +1,28 @@
 # Demuxer and Splitter - Tee API
+There are currently two types of Tees -- Demuxer and Splitter -- each with a very specific use and purpose. Both types connect to downstream [Branches](/docs/api-branch.md). 
 
-#### Tee Construction and Destruction
-Demuxers and Splitters are created using a type specific constructor,  [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively
+### Demuxer Tee
+The Demuxer Tee is built-on NVIDIA's [Gst-nvstreamdemux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) which, according to the documentation, _"demuxes batched frames into individual buffers. It creates a separate Gst Buffer for each frame in the batch. It does not copy the video frames. Each Gst Buffer contains a pointer to the corresponding frame in the batch. The plugin pushes the unbatched Gst Buffer objects downstream on the pad corresponding to each frame’s source."_
 
-Pipelines use Tees to create Branches and Branches can use Tees to create more Branches. Therefore, Tees are added to Pipelines and Branches, while Branches are added to Tees.
+### Splitter Tee
+The Splitter Tee splits the stream -- batched or single frame -- to multiple source-pads, each connected to a unique Branch. The Tee does not copy the Gst Buffer, it simply pushes a pointer to the same buffer to each downstream Branch. 
+
+### Sink Components as Branches
+[Sink components](/docs/api-sinks.md) can be added as branches to both Demuxers and Splitters -- as long as the Splitter is splitting a non-batched single-frame stream.
+
+### Dynamic Branching
+With both Tee types, Sinks and Branches can be added and removed and runtime while the Pipeline is playing. Refer to the [Dynamic Pipelines](/docs/overview.md#dynamic-pipelines) section under the [DSL Overview](/docs/overview.md) for more information. 
+
+**IMPORTANT!** When using a Demuxer Tee, the maximum number of Branches must be specified prior to playing the Pipeline, a requirement imposed by NVIDIA's plugin.
+
+### Tee Construction and Destruction
+Demuxers and Splitters are created using a type specific constructor, [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively.
 
 The relationship between Pipeline/Branch and Tee is one to one with the Tee becoming the end component. The relationship between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can be used with another. 
 
 Tees and Branches are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
-#### Adding and removing Branches from a Tee
+### Adding and removing Branches from a Tee
 Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_tee_branch_add) or [dsl_tee_branch_add_many](api-branch.md#dsl_tee_branch_add_many) and removed with [dsl_tee_branch_remove](api-branch.md#dsl_tee_branch_remove), [dsl_tee_branch_remove_many](api-branch.md#dsl_tee_branch_remove_many), or [dsl_tee_branch_remove_all](api-branch.md#dsl_tee_branch_remove_all).
 
 ## Tee API
@@ -25,6 +38,8 @@ Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_te
 * [dsl_tee_branch_remove](#dsl_tee_branch_remove)
 * [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many)
 * [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all).
+* [dsl_tee_blocking_timeout_get](#dsl_tee_blocking_timeout_get)
+* [dsl_tee_blocking_timeout_set](#dsl_tee_blocking_timeout_set)
 * [dsl_tee_pph_add](#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](#dsl_tee_pph_remove).
 
@@ -49,6 +64,13 @@ The following return codes are used by the Tiler API
 #define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A0009
 #define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
 ```
+
+## Constant Values
+The default blocking-timeout value used by both Splitter and Demuxer Tees. IMPORTANT! The timeout controls the amount of time the demuxer will wait for a blocking PPH to be called to dynamically link or unlink a branch at runtime while the Pipeline is playing. This value will need to be extended if the frame-rate for the stream is less than 2 fps.  The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad callback will never be called.
+```C
+#define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
+```
+
 
 ## Constructors
 
@@ -234,6 +256,49 @@ This service removes all child branches from a named Demuxer or Splitter Tee. Al
 retval = dsl_tee_branch_remove_all('my-splitter')
 ```
 
+<br>
+
+### *dsl_tee_blocking_timeout_get*
+```C++
+DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
+    uint* timeout);
+```
+This service gets the current [blocking-timeout](#constant-values) for the named Tee. 
+
+**Parameters**
+* `name` - [in] unique name of the Tee to query.
+* `timeout` - [out] current blocking-timeout in units of seconds. Default = [DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC](#constant-values).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, timeout = dsl_tee_blocking_timeout_get('my-demuxer')
+```
+
+<br>
+
+### *dsl_tee_blocking_timeout_set*
+```C++
+DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
+    uint timeout);
+```
+This service sets the [blocking-timeout](#constant-values) setting for the named Tee to use.
+
+**Parameters**
+* `name` - [in] unique name of the Tee to update.
+* `max_branches` - [in] new value for blocking-timeout in units of seconds. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_blocking_timeout_set('my-demuxer', 5)
+```
+
+<br>
 
 ### *dsl_tee_pph_add*
 ```C++
