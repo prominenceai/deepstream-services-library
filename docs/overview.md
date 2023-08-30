@@ -696,7 +696,9 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 ---
 
 ## Dynamic Pipelines
-All DSL Pipelines are _dynamic-pipelines_, meaning key components -- such as Sources, Branches, and Sinks -- may be added and removed at runtime while the Pipeline is playing, as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. This section covers the following ways in which a _dynamic-pipeline_ may be updated.
+DSL Pipelines are designed to be  _dynamic-pipelines_ meaning key components such as Sources, Branches, and Sinks may be added and removed while the Pipeline is playing -- as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. 
+
+This section covers the following ways in which DSL's _dynamic-pipelines_ may be updated.
 
 * [Dynamic Source updates when using a Tiler](#dynamic-source-updates-when-using-a-tiler).
 * [Dynamic Sink updates with a Pipeline or Branch](#dynamic-sink-updates-with-a-pipeline-or-branch).
@@ -705,7 +707,10 @@ All DSL Pipelines are _dynamic-pipelines_, meaning key components -- such as Sou
 * [Dynamic Source Stream selection when using a Tiler](#dynamic-source-stream-selection-when-using-a-tiler).
 
 ### Dynamic Source updates when using a Tiler
-All Pipelines require at least one [Source component](/docs/api-source.md) in order to play. However, once playing, additional Sources may be added and removed. The image below illustrates a typical inference pipeline -- with Sources, built-in Streammuxer, Primary Inference Engine, Object Tracker, 2D Tiler, On-Screen-Display, and Window Sink -- with three methods for dynamically added and removed sources; 1) by the Application, 2) by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services), and 3) by enabling the end-user/viewer through keyboard input. 
+All Pipelines require at least one [Source component](/docs/api-source.md) in order to play. However, once playing, additional Sources may be added and removed. The image below illustrates a typical inference pipeline -- with _Sources_, _Streammuxer_, _Primary Inference Engine_, _IOU Tracker_, _2D Tiler_, _On-Screen-Display_, and _Window Sink_ -- with three methods for dynamically adding and removing sources: 
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user/viewer through keyboard input. 
 
 **IMPORTANT!** The Tiler's `columns` and `rows` properties must be set to accommodate the maximum number of Sources that will be added to the Pipeline.
 
@@ -720,12 +725,19 @@ Source components can be added or removed on the occurrence of an [Object Detect
 #### Dynamic Source Updates by the End-User
 The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
 
+The following example demonstrates how to add and remove Sources on keyboard input.
+* [`dynamically_add_remove_sources_with_tiler_window_sink.py`](/examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py)
+* [`dynamically_add_remove_sources_with_tiler_window_sink.cpp`](/examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp)
+
 <br>
 
 ### Dynamic Sink updates with a Pipeline or Branch
 When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as shown in the image below, even if there is only one. This ensures that additional Sinks can be added (and removed) before, during or after the Pipeline is played.
 
-As with Sources, there are three methods of dynamically adding or removing Sinks -- using an IOT Message Sink for example, as depicted below; by the Application, by using ODE Services, and by enabling the end-user.
+As with Sources, there are three methods of dynamically adding or removing Sinks. 
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user/viewer through keyboard input. 
 
 ![](/Images/dynamic-sinks-with-tiler.png)
 
@@ -749,7 +761,10 @@ The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_
 
 **IMPORTANT!** When adding a removing Branches, a blocking pad-probe is added to block data from flowing to the Branch while linking or unlinking with the Demuxer. A [blocking-timeout] value is used to control the maximum amount of time the demuxer will wait for the blocking pad-probe to call the handler callback function to dynamically link or unlink the Branch. This value will need to be extended if the frame-rate for the stream is less than 2 fps. The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad-probe callback will never be called. 
 
-As with Sources and Sinks, adding and removing Branches at runtime can be done by the Application, by using ODE Services, and by enabling the end-user.
+As with Sources and Sinks, adding and removing Branches at runtime can be done
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user/viewer through keyboard input.
 
 ![](/Images/fixed-sources-with-demuxer-and-dynamic-branch.png)
 
@@ -759,6 +774,10 @@ With a Demuxer Tee, the Application:
 * adds a Branch to a specific Stream by Id by calling [`dsl_tee_demuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_add_to).
 * moves a Branch to a specific Stream by Id by calling [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to).
 * removes a Branch by calling [`dsl_tee_branch_remove`](/docs/api-tee.md#dsl_tee_branch_remove), [`dsl_tee_branch_remove_many`](/docs/api-tee.md#dsl_tee_branch_remove_many), or [`dsl_tee_branch_remove_all`](/docs/api-tee.md#dsl_tee_branch_remove_all).
+
+The following examples demonstrate how to move a Branch using the [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to) services from a simple periodic timer function to mimic the application.
+* [`dynamically_move_branch_from_demuxer_stream_to_stream.py`](/examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py)
+* [`dynamically_move_branch_from_demuxer_stream_to_stream.cpp`](/examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp)
 
 #### Dynamic Branch Updates by the End-User
 The Application enables the end-user -- Window-Sink viewer -- by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
@@ -773,7 +792,10 @@ This use case is a combination of the above cases, [Dynamic Source updates when 
 **IMPORTANT!** When removing a Source and Branch, the Branch must be removed first while the Source is still in a state of playing. If the Source stream is in a bad state or removed, the dynamic Branch removal will fail and the Branch will be "forcefully" removed.
 
 ###  Dynamic Source Stream selection when using a Tiler
-The function of the Tiler is to compose a two-dimensional tiled frame from batched buffers based on stream-id. The Tiler is also capable of showing frames from a single source or all sources on demand. The following diagram shows a typical Inference Pipeline with a Tiler and the three methods of controlling the Tiler's Source stream selection; by the Application, by using ODE Services, and by enabling the end-user. 
+The function of the Tiler is to compose a two-dimensional tiled frame from batched buffers based on stream-id. The Tiler is also capable of showing frames from a single source or all sources on demand. The following diagram shows a typical Inference Pipeline with a Tiler and the three methods of controlling the Tiler's Source stream selection: 
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user/viewer through keyboard input. 
 
 ![](/Images/dynamic-tiler-output.png)
 
@@ -793,7 +815,7 @@ The Application enables the end-user (Window-Sink viewer)
    2. [`dsl_tiler_source_show_select`](/docs/api-tiler.md#dsl_tiler_source_show_select) to show the Source corresponding to the X and Y coordinates from the mouse-click.
 2. by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the Window Sink by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
 
-The following examples are based on this use case:
+The following examples cover this use case:
 * [`4uri_file_tiler_show_source_control.py`](/examples/python/4uri_file_tiler_show_source_control.py)
 * [`4uri_file_tiler_show_source_control.cpp`](/examples/cpp/4uri_file_tiler_show_source_control.cpp)
 
