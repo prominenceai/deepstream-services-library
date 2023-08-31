@@ -2604,7 +2604,7 @@ namespace DSL
         }
     }
 
-
+    // ********************************************************************
 
     AddAreaOdeAction::AddAreaOdeAction(const char* name, 
         const char* trigger, const char* area)
@@ -2783,6 +2783,7 @@ namespace DSL
             std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession(false);
         }
     }
+    
     // ********************************************************************
 
     TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, 
@@ -2808,10 +2809,237 @@ namespace DSL
 
         if (m_enabled)
         {
+            // Get the stream-id from the frame source-id which has the 
+            // unique Pipeline-id or'ed in by the Streammuxer
+            uint streamId = pFrameMeta->source_id &
+                DSL_PIPELINE_SOURCE_STREAM_ID_MASK;
+
             // Ignore the return value,
             Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), 
-                pFrameMeta->source_id, m_timeout, m_hasPrecedence);
+                streamId, m_timeout, m_hasPrecedence);
+        }
+    }    
+
+    AsyncOdeAction::AsyncOdeAction(const char* name) 
+        : OdeAction(name)
+        , m_timerId(0)
+    {
+        LOG_FUNC();
+        
+    };
+    
+    AsyncOdeAction::~AsyncOdeAction()
+    {
+        LOG_FUNC();
+        
+        if (m_timerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            g_source_remove(m_timerId);
         }
     }
-}    
 
+    static int do_async_action(gpointer pAction)
+    {
+        return static_cast<AsyncOdeAction*>(pAction)->
+            DoAsyncAction();
+    }
+
+    // ********************************************************************
+
+    AddBranchOdeAction::AddBranchOdeAction(const char* name, 
+        const char* tee, const char* branch)
+        : AsyncOdeAction(name)
+        , m_tee(tee)
+        , m_branch(branch)
+    {
+        LOG_FUNC();
+    }
+
+    AddBranchOdeAction::~AddBranchOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddBranchOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    int AddBranchOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeBranchAdd(m_tee.c_str(), 
+            m_branch.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+        
+        // One shot timer
+        return 1;
+    }
+
+    // ********************************************************************
+
+    AddBranchToOdeAction::AddBranchToOdeAction(const char* name, 
+        const char* demuxer, const char* branch)
+        : AsyncOdeAction(name)
+        , m_demuxer(demuxer)
+        , m_branch(branch)
+        , m_destStreamId(-1)
+    {
+        LOG_FUNC();
+    }
+
+    AddBranchToOdeAction::~AddBranchToOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddBranchToOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Get the stream-id from the frame source-id which has the 
+            // unique Pipeline-id or'ed in by the Streammuxer
+            m_destStreamId = pFrameMeta->source_id &
+                DSL_PIPELINE_SOURCE_STREAM_ID_MASK;
+            
+            // Schedule the do_async_action to remove the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    int AddBranchToOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeDemuxerBranchAddTo(m_demuxer.c_str(), 
+            m_branch.c_str(), m_destStreamId);
+
+        // reset the timer resource id.
+        m_timerId = 0;
+        
+        m_destStreamId = -1;
+
+        // One shot timer
+        return 1;
+    }
+
+    // ********************************************************************
+
+    MoveBranchToOdeAction::MoveBranchToOdeAction(const char* name, 
+        const char* demuxer, const char* branch)
+        : AsyncOdeAction(name)
+        , m_demuxer(demuxer)
+        , m_branch(branch)
+        , m_destStreamId(-1)
+    {
+        LOG_FUNC();
+    }
+
+    MoveBranchToOdeAction::~MoveBranchToOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void MoveBranchToOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Get the stream-id from the frame source-id which has the 
+            // unique Pipeline-id or'ed in by the Streammuxer
+            m_destStreamId = pFrameMeta->source_id &
+                DSL_PIPELINE_SOURCE_STREAM_ID_MASK;
+
+            // Schedule the do_async_action to remove the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+    
+    int MoveBranchToOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeDemuxerBranchMoveTo(m_demuxer.c_str(), 
+            m_branch.c_str(), m_destStreamId);
+
+        // reset the timer resource id.
+        m_timerId = 0;
+        
+        m_destStreamId = -1;
+
+        // One shot timer
+        return 1;
+    }
+    
+    // ********************************************************************
+
+    RemoveBranchOdeAction::RemoveBranchOdeAction(const char* name, 
+        const char* tee, const char* branch)
+        : AsyncOdeAction(name)
+        , m_tee(tee)
+        , m_branch(branch)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveBranchOdeAction::~RemoveBranchOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveBranchOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to remove the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    int RemoveBranchOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeBranchRemove(m_tee.c_str(), 
+            m_branch.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+        
+        // One shot timer
+        return 1;
+    }
+
+}

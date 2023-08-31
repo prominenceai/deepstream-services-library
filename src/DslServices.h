@@ -282,6 +282,18 @@ namespace DSL {
 
         DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
 
+        DslReturnType OdeActionBranchAddNew(const char* name, 
+            const char* tee, const char* branch);
+
+        DslReturnType OdeActionBranchAddToNew(const char* name, 
+            const char* demuxer, const char* branch);
+
+        DslReturnType OdeActionBranchMoveToNew(const char* name, 
+            const char* demuxer, const char* branch);
+
+        DslReturnType OdeActionBranchRemoveNew(const char* name, 
+            const char* tee, const char* branch);
+
         DslReturnType OdeActionEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);

@@ -2583,6 +2583,52 @@ DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name,
     const wchar_t* tiler, uint timeout, boolean has_precedence);
 
 /**
+ * @brief Creates a uniquely named Add Branch Action that adds a named Branch
+ * (or Sink) to a named Demuxer or Splitter Tee.
+ * @param[in] name unique name for the ODE Add Branch Action 
+ * @param[in] tee unique name of the Demuxer or Splitter to add the Branch to.
+ * @param[in] Branch unique name of the Branch to add to the Tee
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_add_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named "Add-Branch-To" Action that adds a named Branch
+ * (or Sink) to a named Demuxer Tee at the current stream-id of the frame-metadata/
+ * object/meta-data that Triggered the Object Detection Event.
+ * @param[in] name unique name for the ODE "Add-Branch-To" Action 
+ * @param[in] tee unique name of the Demuxer to add the Branch to.
+ * @param[in] Branch unique name of the Branch to add to the Demuxer.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_add_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named "Move-Branch-To" Action that moves a named Branch
+ * (or Sink) connected to a Demuxer to the current stream-id of the frame-metadata/
+ * object/meta-data that Triggered the Object Detection Event -- of the same Demuxer.
+ * @param[in] name unique name for the ODE "Move-Branch-To" Action 
+ * @param[in] tee unique name of the Demuxer to Move the Branch within.
+ * @param[in] Branch unique name of the Branch to move within the Demuxer.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_move_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named Remove Branch Action that removes a named Branch
+ * (or Sink) from a named Demuxer or Splitter Tee.
+ * @param[in] name unique name for the ODE Remove Action 
+ * @param[in] tee unique name of the Demuxer or Splitter to remove from the Branch from.
+ * @param[in] Branch unique name of the Branch to add to the Tee.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
+
+/**
  * @brief Gets the current enabled setting for the ODE Action
  * @param[in] name unique name of the ODE Action to query
  * @param[out] enabled true if the ODE Action is currently enabled, false otherwise
