@@ -2,110 +2,117 @@
 ODE Actions implement their own "action-specific" event-handler that gets invoked by an [ODE Trigger](/docs/api-ode-trigger.md) or [ODE Accumulator](/docs/api-ode-accumulator.md) on the occurrence of an Object Detection Event (ODE). The relationship between ODE Triggers and ODE Actions is many-to-many. Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple ODE Triggers. The same is true for ODE Accumulators.
 
 #### Actions on Metadata
-Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [dsl_ode_action_object_remove_new](#dsl_ode_action_object_remove_new), [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new), [dsl_ode_action_bbox_scale_new](#dsl_ode_action_bbox_scale_new), [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new),  [dsl_ode_action_label_customize_new](#dsl_ode_action_label_customize_new), [dsl_ode_action_label_offset_new](#dsl_ode_action_label_offset_new).
+Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [`dsl_ode_action_object_remove_new`](#dsl_ode_action_object_remove_new), [`dsl_ode_action_bbox_format_new`](#dsl_ode_action_bbox_format_new), [`dsl_ode_action_bbox_scale_new`](#dsl_ode_action_bbox_scale_new), [`dsl_ode_action_label_format_new`](#dsl_ode_action_label_format_new),  [`dsl_ode_action_label_customize_new`](#dsl_ode_action_label_customize_new), [`dsl_ode_action_label_offset_new`](#dsl_ode_action_label_offset_new).
 
-NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new).
+NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See `[dsl_ode_action_message_meta_add_new`](#dsl_ode_action_message_meta_add_new).
 
 #### Actions on Record Components
-There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
+There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [`dsl_ode_action_sink_record_start_new`](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [`dsl_ode_action_tap_record_start_new`](#dsl_ode_action_tap_record_start_new)
 
 #### Actions on Actions
-Actions can be created to Disable other Actions on invocation. See [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new) and [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new).
+Actions can be created to Disable other Actions on invocation. See [`dsl_ode_action_action_disable_new`](#dsl_ode_action_action_disable_new) and [`dsl_ode_action_action_enable_new`](#dsl_ode_action_action_enable_new).
 
 #### Actions with ODE Occurrence Data
-Actions performed with the ODE occurrence data include  [dsl_ode_action_custom_new](#dsl_ode_action_custom_new), [dsl_ode_action_display_new](#dsl_ode_action_display_new), [dsl_ode_action_log_new](#dsl_ode_action_log_new), [dsl_ode_action_email_new](dsl_ode_action_email_new), [dsl_ode_action_file_new](#dsl_ode_action_file_new), [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new), and [dsl_ode_action_print_new](#dsl_ode_action_print_new)
+Actions performed with the ODE occurrence data include  [`dsl_ode_action_custom_new`](#dsl_ode_action_custom_new), [`dsl_ode_action_display_new`](#dsl_ode_action_display_new), [`dsl_ode_action_log_new`](#dsl_ode_action_log_new), [`dsl_ode_action_email_new`](dsl_ode_action_email_new), [`dsl_ode_action_file_new`](#dsl_ode_action_file_new), [`dsl_ode_action_monitor_new`](#dsl_ode_action_monitor_new), and [`dsl_ode_action_print_new`](#dsl_ode_action_print_new)
 
 #### Actions on Areas
-Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new).
+Actions can be used to Add and Remove Areas to/from a Trigger on invocation. See [`dsl_ode_action_area_add_new`](#dsl_ode_action_area_add_new) and [`dsl_ode_action_area_remove_new`](#dsl_ode_action_area_remove_new).
 
 #### Actions on Triggers
-Actions can be created to Disable, Enable or Reset a Trigger on invocation. See [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new), [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new), and [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new).
+Actions can be created to Disable, Enable or Reset a Trigger on invocation. See [`dsl_ode_action_trigger_reset_new`](#dsl_ode_action_trigger_reset_new), [`dsl_ode_action_trigger_disable_new`](#dsl_ode_action_trigger_disable_new), and [`dsl_ode_action_trigger_enable_new`](#dsl_ode_action_trigger_enable_new).
 
 #### Actions on Pipelines
-There are a number of Actions that dynamically update the state or components in a Pipeline. [dsl_ode_action_pause_new](#dsl_ode_action_pause_new), [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new), [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new), [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new), [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new).
+There are a number of Actions that dynamically update the state or components in a Pipeline. [`dsl_ode_action_pause_new`](#dsl_ode_action_pause_new), [`dsl_ode_action_sink_add_new`](#dsl_ode_action_sink_add_new), [`dsl_ode_action_sink_remove_new`](#dsl_ode_action_sink_remove_new), [`dsl_ode_action_source_add_new`](#dsl_ode_action_source_add_new), [`dsl_ode_action_source_remove_new`](#dsl_ode_action_source_remove_new).
+
+#### Actions on Branches
+There are actions to dynamically add and remove [Branches](/docs/api-branch.md) to and from the next available stream of a [Demuxer](/docs/api-tee.md#demuxer-tee) or [Splitter](/docs/api-te.md#splitter-tee). See [`dsl_ode_action_branch_add_new`](#dsl_ode_action_branch_add_new) and [`dsl_ode_action_branch_remove_new`](#dsl_ode_action_branch_remove_new). When using a Demuxer, Branches can be "added-to" or "moved-to" the current stream identified by the frame-metatdata that triggered the ODE occurrence. See [`dsl_ode_action_branch_add_to_new`](#dsl_ode_action_branch_add_to_new) and [`dsl_ode_action_branch_move_to_new`](#dsl_ode_action_branch_move_to_new)
 
 #### ODE Action Construction and Destruction
-ODE Actions are created by calling one of the type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name from all other Actions. Once created, Actions are deleted by calling [dsl_ode_action_delete](#dsl_ode_action_delete), [dsl_ode_action_delete_many](#dsl_ode_action_delete_many), or [dsl_ode_action_delete_all](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by an ODE Trigger or ODE Accumulator will fail.
+ODE Actions are created by calling one of the type specific [constructors](#ode-action-api) defined below. Each constructor must have a unique name from all other Actions. Once created, Actions are deleted by calling [`dsl_ode_action_delete`](#dsl_ode_action_delete), [`dsl_ode_action_delete_many`](#dsl_ode_action_delete_many), or [`dsl_ode_action_delete_all`](#dsl_ode_action_delete_all). Attempting to delete an Action in-use by an ODE Trigger or ODE Accumulator will fail.
 
 #### Adding/Removing Actions
-ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](docs/api-ode-trigger.md#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](docs/api-ode-trigger.md#dsl_ode_trigger_action_add_many) and removed with [dsl_ode_trigger_action_remove](docs/api-ode-trigger.md#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](docs/api-ode-traigger.md#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](docs/api-ode-trigger.md#dsl_ode_trigger_action_remove_all).
+ODE Actions are added to an ODE Trigger by calling [`dsl_ode_trigger_action_add`](docs/api-ode-trigger.md#dsl_ode_trigger_action_add) and [`dsl_ode_trigger_action_add_many`](docs/api-ode-trigger.md#dsl_ode_trigger_action_add_many) and removed with [`dsl_ode_trigger_action_remove`](docs/api-ode-trigger.md#dsl_ode_trigger_action_remove), [`dsl_ode_trigger_action_remove_many`](docs/api-ode-traigger.md#dsl_ode_trigger_action_remove_many), and [`dsl_ode_trigger_action_remove_all`](docs/api-ode-trigger.md#dsl_ode_trigger_action_remove_all).
 
-ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_action_add](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add) and [dsl_ode_accumulator_action_add_many](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add_many) and removed with [dsl_ode_accumulator_action_remove](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove), [dsl_ode_accumulator_action_remove_many](docs/api-ode-accumulator.md#dsl_ode_trigger_action_remove_many), and [dsl_ode_accumulator_action_remove_all](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_all).
+ODE Actions are added to an ODE Accumulator by calling [`dsl_ode_accumulator_action_add`](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add) and [`dsl_ode_accumulator_action_add_many`](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_add_many) and removed with [`dsl_ode_accumulator_action_remove`](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove), [`dsl_ode_accumulator_action_remove_many`](docs/api-ode-accumulator.md#dsl_ode_trigger_action_remove_many), and [`dsl_ode_accumulator_action_remove_all`](docs/api-ode-accumulator.md#dsl_ode_accumulator_action_remove_all).
 
 
 ## ODE Action API
 **Types:**
-* [dsl_capture_info](#dsl_capture_info)
-* [dsl_ode_occurrence_source_info](#dsl_ode_occurrence_source_info)
-* [dsl_ode_occurrence_object_info](#dsl_ode_occurrence_object_info)
-* [dsl_ode_occurrence_accumulative_info](#dsl_ode_occurrence_accumulative_info)
-* [dsl_ode_occurrence_criteria_info](#dsl_ode_occurrence_criteria_info)
-* [dsl_ode_occurrence_info](#dsl_ode_occurrence_info)
+* [`dsl_capture_info`](#dsl_capture_info)
+* [`dsl_ode_occurrence_source_info`](#dsl_ode_occurrence_source_info)
+* [`dsl_ode_occurrence_object_info`](#dsl_ode_occurrence_object_info)
+* [`dsl_ode_occurrence_accumulative_info`](#dsl_ode_occurrence_accumulative_info)
+* [`dsl_ode_occurrence_criteria_info`](#dsl_ode_occurrence_criteria_info)
+* [`dsl_ode_occurrence_info`](#dsl_ode_occurrence_info)
 
 **Callback Types:**
-* [dsl_capture_complete_listener_cb](#dsl_capture_complete_listener_cb)
-* [dsl_ode_handle_occurrence_cb](#dsl_ode_handle_occurrence_cb)
-* [dsl_ode_monitor_occurrence_cb](#dsl_ode_monitor_occurrence_cb)
-* [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb)
+* [`dsl_capture_complete_listener_cb`](#dsl_capture_complete_listener_cb)
+* [`dsl_ode_handle_occurrence_cb`](#dsl_ode_handle_occurrence_cb)
+* [`dsl_ode_monitor_occurrence_cb`](#dsl_ode_monitor_occurrence_cb)
+* [`dsl_ode_enabled_state_change_listener_cb`](#dsl_ode_enabled_state_change_listener_cb)
 
 **Constructors:**
-* [dsl_ode_action_action_disable_new](#dsl_ode_action_action_disable_new)
-* [dsl_ode_action_action_enable_new](#dsl_ode_action_action_enable_new)
-* [dsl_ode_action_area_add_new](#dsl_ode_action_area_add_new)
-* [dsl_ode_action_area_remove_new](#dsl_ode_action_area_remove_new)
-* [dsl_ode_action_bbox_format_new](#dsl_ode_action_bbox_format_new)
-* [dsl_ode_action_bbox_scale_new](#dsl_ode_action_bbox_scale_new)
-* [dsl_ode_action_capture_frame_new](#dsl_ode_action_capture_frame_new)
-* [dsl_ode_action_capture_object_new](#dsl_ode_action_capture_object_new)
-* [dsl_ode_action_custom_new](#dsl_ode_action_custom_new)
-* [dsl_ode_action_display_new](#dsl_ode_action_display_new)
-* [dsl_ode_action_display_meta_add_new](#dsl_ode_action_display_meta_add_new)
-* [dsl_ode_action_display_meta_add_many_new](#dsl_ode_action_display_meta_add_many_new)
-* [dsl_ode_action_email_new](#dsl_ode_action_email_new)
-* [dsl_ode_action_file_new](#dsl_ode_action_file_new)
-* [dsl_ode_action_fill_frame_new](#dsl_ode_action_fill_frame_new)
-* [dsl_ode_action_fill_surroundings_new](#dsl_ode_action_fill_surroundings_new)
-* [dsl_ode_action_label_customize_new](#dsl_ode_action_label_customize_new)
-* [dsl_ode_action_label_format_new](#dsl_ode_action_label_format_new)
-* [dsl_ode_action_label_offset_new](#dsl_ode_action_label_offset_new)
-* [dsl_ode_action_handler_disable_new](#dsl_ode_action_handler_disable_new)
-* [dsl_ode_action_log_new](#dsl_ode_action_log_new)
-* [dsl_ode_action_message_meta_add_new](#dsl_ode_action_message_meta_add_new)
-* [dsl_ode_action_monitor_new](#dsl_ode_action_monitor_new)
-* [dsl_ode_action_object_remove_new](#dsl_ode_action_object_remove_new)
-* [dsl_ode_action_pause_new](#dsl_ode_action_pause_new)
-* [dsl_ode_action_print_new](#dsl_ode_action_print_new)
-* [dsl_ode_action_redact_new](#dsl_ode_action_redact_new)
-* [dsl_ode_action_sink_add_new](#dsl_ode_action_sink_add_new)
-* [dsl_ode_action_sink_remove_new](#dsl_ode_action_sink_remove_new)
-* [dsl_ode_action_sink_record_start_new](#dsl_ode_action_sink_record_start_new)
-* [dsl_ode_action_source_add_new](#dsl_ode_action_source_add_new)
-* [dsl_ode_action_source_remove_new](#dsl_ode_action_source_remove_new)
-* [dsl_ode_action_tap_record_start_new](#dsl_ode_action_tap_record_start_new)
-* [dsl_ode_action_tiler_source_show_new](#dsl_ode_action_tiler_source_show_new)
-* [dsl_ode_action_trigger_reset_new](#dsl_ode_action_trigger_reset_new)
-* [dsl_ode_action_trigger_disable_new](#dsl_ode_action_trigger_disable_new)
-* [dsl_ode_action_trigger_enable_new](#dsl_ode_action_trigger_enable_new)
+* [`dsl_ode_action_action_disable_new`](#dsl_ode_action_action_disable_new)
+* [`dsl_ode_action_action_enable_new`](#dsl_ode_action_action_enable_new)
+* [`dsl_ode_action_area_add_new`](#dsl_ode_action_area_add_new)
+* [`dsl_ode_action_area_remove_new`](#dsl_ode_action_area_remove_new)
+* [`dsl_ode_action_bbox_format_new`](#dsl_ode_action_bbox_format_new)
+* [`dsl_ode_action_bbox_scale_new`](#dsl_ode_action_bbox_scale_new)
+* [`dsl_ode_action_branch_add_new`](#dsl_ode_action_branch_add_new)
+* [`dsl_ode_action_branch_add_to_new`](#dsl_ode_action_branch_add_to_new)
+* [`dsl_ode_action_branch_move_to_new`](#dsl_ode_action_branch_move_to_new)
+* [`dsl_ode_action_branch_remove_new`](#dsl_ode_action_branch_remove_new)
+* [`dsl_ode_action_capture_frame_new`](#dsl_ode_action_capture_frame_new)
+* [`dsl_ode_action_capture_object_new`](#dsl_ode_action_capture_object_new)
+* [`dsl_ode_action_custom_new`](#dsl_ode_action_custom_new)
+* [`dsl_ode_action_display_new`](#dsl_ode_action_display_new)
+* [`dsl_ode_action_display_meta_add_new`](#dsl_ode_action_display_meta_add_new)
+* [`dsl_ode_action_display_meta_add_many_new`](#dsl_ode_action_display_meta_add_many_new)
+* [`dsl_ode_action_email_new`](#dsl_ode_action_email_new)
+* [`dsl_ode_action_file_new`](#dsl_ode_action_file_new)
+* [`dsl_ode_action_fill_frame_new`](#dsl_ode_action_fill_frame_new)
+* [`dsl_ode_action_fill_surroundings_new`](#dsl_ode_action_fill_surroundings_new)
+* [`dsl_ode_action_label_customize_new`](#dsl_ode_action_label_customize_new)
+* [`dsl_ode_action_label_format_new`](#dsl_ode_action_label_format_new)
+* [`dsl_ode_action_label_offset_new`](#dsl_ode_action_label_offset_new)
+* [`dsl_ode_action_handler_disable_new`](#dsl_ode_action_handler_disable_new)
+* [`dsl_ode_action_log_new`](#dsl_ode_action_log_new)
+* [`dsl_ode_action_message_meta_add_new`](#dsl_ode_action_message_meta_add_new)
+* [`dsl_ode_action_monitor_new`](#dsl_ode_action_monitor_new)
+* [`dsl_ode_action_object_remove_new`](#dsl_ode_action_object_remove_new)
+* [`dsl_ode_action_pause_new`](#dsl_ode_action_pause_new)
+* [`dsl_ode_action_print_new`](#dsl_ode_action_print_new)
+* [`dsl_ode_action_redact_new`](#dsl_ode_action_redact_new)
+* [`dsl_ode_action_sink_add_new`](#dsl_ode_action_sink_add_new)
+* [`dsl_ode_action_sink_remove_new`](#dsl_ode_action_sink_remove_new)
+* [`dsl_ode_action_sink_record_start_new`](#dsl_ode_action_sink_record_start_new)
+* [`dsl_ode_action_source_add_new`](#dsl_ode_action_source_add_new)
+* [`dsl_ode_action_source_remove_new`](#dsl_ode_action_source_remove_new)
+* [`dsl_ode_action_tap_record_start_new`](#dsl_ode_action_tap_record_start_new)
+* [`dsl_ode_action_tiler_source_show_new`](#dsl_ode_action_tiler_source_show_new)
+* [`dsl_ode_action_trigger_reset_new`](#dsl_ode_action_trigger_reset_new)
+* [`dsl_ode_action_trigger_disable_new`](#dsl_ode_action_trigger_disable_new)
+* [`dsl_ode_action_trigger_enable_new`](#dsl_ode_action_trigger_enable_new)
 
 **Destructors:**
-* [dsl_ode_action_delete](#dsl_ode_action_delete)
-* [dsl_ode_action_delete_many](#dsl_ode_action_delete_many)
-* [dsl_ode_action_delete_all](#dsl_ode_action_delete_all)
+* [`dsl_ode_action_delete`](#dsl_ode_action_delete)
+* [`dsl_ode_action_delete_many`](#dsl_ode_action_delete_many)
+* [`dsl_ode_action_delete_all`](#dsl_ode_action_delete_all)
 
 **Methods:**
-* [dsl_ode_action_capture_complete_listener_add](#dsl_ode_action_capture_complete_listener_add)
-* [dsl_ode_action_capture_complete_listener_remove](#dsl_ode_action_capture_complete_listener_remove)
-* [dsl_ode_action_capture_image_player_add](#dsl_ode_action_capture_image_player_add)
-* [dsl_ode_action_capture_image_player_remove](#dsl_ode_action_capture_image_player_remove)
-* [dsl_ode_action_capture_mailer_add](#dsl_ode_action_capture_mailer_add)
-* [dsl_ode_action_capture_mailer_remove](#dsl_ode_action_capture_mailer_remove)
-* [dsl_ode_action_label_customize_get](#dsl_ode_action_label_customize_get)
-* [dsl_ode_action_label_customize_set](#dsl_ode_action_label_customize_set)
-* [dsl_ode_action_enabled_get](#dsl_ode_action_enabled_get)
-* [dsl_ode_action_enabled_set](#dsl_ode_action_enabled_set)
-* [dsl_ode_action_enabled_state_change_listener_add](#dsl_ode_action_enabled_state_change_listener_add)
-* [dsl_ode_action_enabled_state_change_listener_remove](#dsl_ode_action_enabled_state_change_listener_remove)
-* [dsl_ode_action_list_size](#dsl_ode_action_list_size)
+* [`dsl_ode_action_capture_complete_listener_add`](#dsl_ode_action_capture_complete_listener_add)
+* [`dsl_ode_action_capture_complete_listener_remove`](#dsl_ode_action_capture_complete_listener_remove)
+* [`dsl_ode_action_capture_image_player_add`](#dsl_ode_action_capture_image_player_add)
+* [`dsl_ode_action_capture_image_player_remove`](#dsl_ode_action_capture_image_player_remove)
+* [`dsl_ode_action_capture_mailer_add`](#dsl_ode_action_capture_mailer_add)
+* [`dsl_ode_action_capture_mailer_remove`](#dsl_ode_action_capture_mailer_remove)
+* [`dsl_ode_action_label_customize_get`](#dsl_ode_action_label_customize_get)
+* [`dsl_ode_action_label_customize_set`](#dsl_ode_action_label_customize_set)
+* [`dsl_ode_action_enabled_get`](#dsl_ode_action_enabled_get)
+* [`dsl_ode_action_enabled_set`](#dsl_ode_action_enabled_set)
+* [`dsl_ode_action_enabled_state_change_listener_add`](#dsl_ode_action_enabled_state_change_listener_add)
+* [`dsl_ode_action_enabled_state_change_listener_remove`](#dsl_ode_action_enabled_state_change_listener_remove)
+* [`dsl_ode_action_list_size`](#dsl_ode_action_list_size)
 
 ---
 
@@ -541,6 +548,106 @@ The constructor creates a uniquely named **Scale Bounding Box** ODE Action. When
 **Python Example**
 ```Python
 retval = dsl_ode_action_bbox_scale_new('my-scale-bbox-action', 120)
+```
+
+<br>
+
+### *dsl_ode_action_branch_add_new*
+```C++
+DslReturnType dsl_ode_action_branch_add_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
+```
+The constructor creates a uniquely named **Add Branch** ODE Action. When invoked, this Action will attempt to add a named Branch to a named Demuxer or Splitter Tee. The Action will produce an error message if either the Branch or Tee do not exist at the time of invocation.
+
+When adding a Branch to a Demuxer, this Action will add the branch to the first available stream-id.
+
+**Important!** Any Sink component can be added as a Branch - becoming a branch of one component.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `tee` - [in] unique name for the Demuxer or Splitter to add the Branch to.
+* `branch` - [in] unique name of the Branch to add to the Tee.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_branch_add_new('my-add-branch-action', 'my-splitter', 'my-branch-1')
+```
+
+<br>
+
+### *dsl_ode_action_branch_add_to_new*
+```C++
+DslReturnType dsl_ode_action_branch_add_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+```
+The constructor creates a uniquely named **Add Branch To** ODE Action. When invoked, this Action will attempt to add a named Branch to the current stream -- as identified by the frame-metadata/object-metadata that triggered the ODE occurrence -- of a named Demuxer. The Action will produce an error message if either the Branch or Demuxer do not exist at the time of invocation.
+
+**Important!** Any Sink component can be added as a Branch - becoming a branch of one component.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `demuxer` - [in] unique name for the Demuxer to add the Branch to.
+* `branch` - [in] unique name of the Branch to add to the Demuxer.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_branch_add_to_new('my-add-branch-action', 'my-demuxer', 'my-branch-1')
+```
+
+<br>
+
+### *dsl_ode_action_branch_move_to_new*
+```C++
+DslReturnType dsl_ode_action_branch_move_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+```
+The constructor creates a uniquely named **Move Branch To** ODE Action. When invoked, this Action will attempt to move a named Branch from its connected stream to the current stream -- as identified by the frame-metadata/object-metadata that triggered the ODE occurrence -- of a named Demuxer. The Action will produce an error message if either the Branch or Demuxer do not exist at the time of invocation.
+
+**Important!** Any Sink component can be added as a Branch - becoming a branch of one component.
+
+**Important!** An End-of-Stream (EOS) event will be sent to the branch when moved from one stream to another to close any file-recording or stream broadcasting in progress, with a new file or session opened when reconnected. 
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `demuxer` - [in] unique name for the Demuxer to move the Branch within.
+* `branch` - [in] unique name of the Branch to move within the Demuxer.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_branch_move_to_new('my-add-branch-action', 'my-demuxer', 'my-branch-1')
+```
+
+<br>
+
+### *dsl_ode_action_branch_remove_new*
+```C++
+DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
+```
+The constructor creates a uniquely named **Remove Branch** ODE Action. When invoked, this Action will attempt to remove a named Branch (or Sink) from a named Demuxer or Splitter Tee. The Action will produce an error log message if either the Branch or Tee do not exist at the time of invocation.
+
+**Important!** An End-of-Stream (EOS) event will be sent to the branch when removed to close any file-recording or stream broadcasting in progress. 
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `tee` - [in] unique name for the Demuxer or Splitter to remove the Branch from.
+* `branch` - [in] unique name of the Branch to remove from the Tee.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_branch_remove_new('my-remove-branch-action', 'my-splitter', 'my-branch-1')
 ```
 
 <br>
