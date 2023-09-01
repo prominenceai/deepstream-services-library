@@ -1347,7 +1347,47 @@ def dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence):
     global _dsl
     result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence)
     return int(result)
-    
+
+##
+## dsl_ode_action_branch_add_new()
+##
+_dsl.dsl_ode_action_branch_add_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_branch_add_new.restype = c_uint
+def dsl_ode_action_branch_add_new(name, tee, branch):
+    global _dsl
+    result =_dsl.dsl_ode_action_branch_add_new(name, tee, branch)
+    return int(result)
+
+##
+## dsl_ode_action_branch_add_to_new()
+##
+_dsl.dsl_ode_action_branch_add_to_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_branch_add_to_new.restype = c_uint
+def dsl_ode_action_branch_add_to_new(name, demuxer, branch):
+    global _dsl
+    result =_dsl.dsl_ode_action_branch_add_to_new(name, demuxer, branch)
+    return int(result)
+
+##
+## dsl_ode_action_branch_move_to_new()
+##
+_dsl.dsl_ode_action_branch_move_to_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_branch_move_to_new.restype = c_uint
+def dsl_ode_action_branch_move_to_new(name, demuxer, branch):
+    global _dsl
+    result =_dsl.dsl_ode_action_branch_move_to_new(name, demuxer, branch)
+    return int(result)
+
+##
+## dsl_ode_action_branch_remove_new()
+##
+_dsl.dsl_ode_action_branch_remove_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_branch_remove_new.restype = c_uint
+def dsl_ode_action_branch_remove_new(name, tee, branch):
+    global _dsl
+    result =_dsl.dsl_ode_action_branch_remove_new(name, tee, branch)
+    return int(result)
+
 ##
 ## dsl_ode_action_enabled_get()
 ##
