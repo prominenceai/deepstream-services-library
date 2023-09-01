@@ -4,7 +4,7 @@ ODE Actions implement their own "action-specific" event-handler that gets invoke
 #### Actions on Metadata
 Several ODE Actions can be created to update the Frame and object Metadata to be rendered by a downstream [On-Screen-Display](/docs/api-osd.md) if added.  See [`dsl_ode_action_object_remove_new`](#dsl_ode_action_object_remove_new), [`dsl_ode_action_bbox_format_new`](#dsl_ode_action_bbox_format_new), [`dsl_ode_action_bbox_scale_new`](#dsl_ode_action_bbox_scale_new), [`dsl_ode_action_label_format_new`](#dsl_ode_action_label_format_new),  [`dsl_ode_action_label_customize_new`](#dsl_ode_action_label_customize_new), [`dsl_ode_action_label_offset_new`](#dsl_ode_action_label_offset_new).
 
-NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See `[dsl_ode_action_message_meta_add_new`](#dsl_ode_action_message_meta_add_new).
+NVDS_EVENT_MSG_META data can be added on ODE occurrence to be converted to an IoT message and sent to an IoT hub by a downstream [Message-Sink](/docs/api-sink.md). See [`dsl_ode_action_message_meta_add_new`](#dsl_ode_action_message_meta_add_new).
 
 #### Actions on Record Components
 There are two actions that start a new recording session, one for the [Record-Sink](/docs/api-sink.md) created with [`dsl_ode_action_sink_record_start_new`](#dsl_ode_action_sink_record_start_new) and the other for the [Record-Tap](/docs/api-tap.md) created with [`dsl_ode_action_tap_record_start_new`](#dsl_ode_action_tap_record_start_new)
