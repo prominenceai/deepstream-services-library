@@ -80,7 +80,12 @@ ODE Actions are added to an ODE Accumulator by calling [`dsl_ode_accumulator_act
 * [`dsl_ode_action_message_meta_add_new`](#dsl_ode_action_message_meta_add_new)
 * [`dsl_ode_action_monitor_new`](#dsl_ode_action_monitor_new)
 * [`dsl_ode_action_object_remove_new`](#dsl_ode_action_object_remove_new)
-* [`dsl_ode_action_pause_new`](#dsl_ode_action_pause_new)
+* [`dsl_ode_action_pipeline_pause_new`](#dsl_ode_action_pipeline_pause_new)
+* [`dsl_ode_action_pipeline_play_new`](#dsl_ode_action_pipeline_play_new)
+* [`dsl_ode_action_pipeline_stop_new`](#dsl_ode_action_pipeline_stop_new)
+* [`dsl_ode_action_player_pause_new`](#dsl_ode_action_player_pause_new)
+* [`dsl_ode_action_player_play_new`](#dsl_ode_action_player_play_new)
+* [`dsl_ode_action_player_stop_new`](#dsl_ode_action_player_stop_new)
 * [`dsl_ode_action_print_new`](#dsl_ode_action_print_new)
 * [`dsl_ode_action_redact_new`](#dsl_ode_action_redact_new)
 * [`dsl_ode_action_sink_add_new`](#dsl_ode_action_sink_add_new)
@@ -1076,22 +1081,122 @@ retval = dsl_ode_action_object_remove_new('my-remove-object-action')
 
 <br>
 
-### *dsl_ode_action_pause_new*
+### *dsl_ode_action_pipeline_pause_new*
 ```C++
-DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline);
+DslReturnType dsl_ode_action_pipeline_pause_new(const wchar_t* name, const wchar_t* pipeline);
 ```
-The constructor creates a uniquely named **Pause Pipeline** ODE Action. When invoked, this Action will pause a named Pipeline. The action will produce an error log message if the Pipeline does not exist at the time of invocation.
+The constructor creates a uniquely named **Pause Pipeline** ODE Action. When invoked, this Action will attempt to pause a named Pipeline. The action will produce an error log message if the Pipeline does not exist at the time of invocation.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Action to create.
-* `pipeline` - [in] the unique name for the Pipeline to pause on ODE occurrence
+* `pipeline` - [in] the unique name of the Pipeline to pause on ODE occurrence.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_ode_action_pause_new('my-pause-action', 'my-pipeline')
+retval = dsl_ode_action_pipeline_pause_new('my-pipeline-pause-action', 'my-pipeline')
+```
+
+<br>
+
+### *dsl_ode_action_pipeline_play_new*
+```C++
+DslReturnType dsl_ode_action_pipeline_play_new(const wchar_t* name, const wchar_t* pipeline);
+```
+The constructor creates a uniquely named **Play Pipeline** ODE Action. When invoked, this Action will attempt to play a named Pipeline. The action will produce an error log message if the Pipeline does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `pipeline` - [in] the unique name of the Pipeline to play on ODE occurrence.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_pipeline_play_new('my-pipeline-play-action', 'my-pipeline')
+```
+
+<br>
+
+### *dsl_ode_action_pipeline_stop_new*
+```C++
+DslReturnType dsl_ode_action_pipeline_stop_new(const wchar_t* name, const wchar_t* pipeline);
+```
+The constructor creates a uniquely named **Stop Pipeline** ODE Action. When invoked, this Action will attempt to stop a named Pipeline. The action will produce an error log message if the Pipeline does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `pipeline` - [in] the unique name of the Pipeline to stop on ODE occurrence.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_pipeline_stop_new('my-pipeline-stop-action', 'my-pipeline')
+```
+
+<br>
+
+### *dsl_ode_action_player_pause_new*
+```C++
+DslReturnType dsl_ode_action_player_pause_new(const wchar_t* name, const wchar_t* player);
+```
+The constructor creates a uniquely named **Pause Player** ODE Action. When invoked, this Action will attempt to pause a named Player. The action will produce an error log message if the Player does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `player` - [in] the unique name of the Player to pause on ODE occurrence.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_player_pause_new('my-player-pause-action', 'my-player')
+```
+
+<br>
+
+### *dsl_ode_action_player_play_new*
+```C++
+DslReturnType dsl_ode_action_player_play_new(const wchar_t* name, const wchar_t* player);
+```
+The constructor creates a uniquely named **Play Player** ODE Action. When invoked, this Action will attempt to play a named Player. The action will produce an error log message if the Player does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `player` - [in] the unique name of the Player to play on ODE occurrence.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_player_play_new('my-player-play-action', 'my-player')
+```
+
+<br>
+
+### *dsl_ode_action_player_stop_new*
+```C++
+DslReturnType dsl_ode_action_player_stop_new(const wchar_t* name, const wchar_t* player);
+```
+The constructor creates a uniquely named **Stop Player** ODE Action. When invoked, this Action will attempt to stop a named Player. The action will produce an error log message if the Player does not exist at the time of invocation.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `player` - [in] the unique name of the Player to stop on ODE occurrence.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_pipeline_stop_new('my-player-stop-action', 'my-player')
 ```
 
 <br>
