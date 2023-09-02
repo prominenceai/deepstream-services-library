@@ -66,6 +66,40 @@ namespace DSL
 
     // ********************************************************************
 
+    AsyncOdeAction::AsyncOdeAction(const char* name) 
+        : OdeAction(name)
+        , m_timerId(0)
+    {
+        LOG_FUNC();
+    };
+    
+    AsyncOdeAction::~AsyncOdeAction()
+    {
+        LOG_FUNC();
+        
+        if (m_timerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            LOG_WARN("Removing scheduled asynchronous action on dtor of '"
+                << GetName() << "'");
+                
+            g_source_remove(m_timerId);
+        }
+    }
+
+    static int do_async_action(gpointer pAction)
+    {
+        static_cast<AsyncOdeAction*>(pAction)->
+            DoAsyncAction();
+            
+        // on-shot timer always
+        return false;
+    }
+
+
+    // ********************************************************************
+
     FormatBBoxOdeAction::FormatBBoxOdeAction(const char* name, uint borderWidth,
         DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : OdeAction(name)
@@ -2147,19 +2181,20 @@ namespace DSL
 
     // ********************************************************************
 
-    PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
-        : OdeAction(name)
+    PipelinePauseOdeAction::PipelinePauseOdeAction(const char* name, 
+        const char* pipeline)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
     {
         LOG_FUNC();
     }
 
-    PauseOdeAction::~PauseOdeAction()
+    PipelinePauseOdeAction::~PipelinePauseOdeAction()
     {
         LOG_FUNC();
     }
     
-    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+    void PipelinePauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
         GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
     {
@@ -2167,9 +2202,221 @@ namespace DSL
 
         if (m_enabled)
         {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelinePause(m_pipeline.c_str());
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
         }
+    }
+
+    void PipelinePauseOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelinePause(m_pipeline.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PipelinePlayOdeAction::PipelinePlayOdeAction(const char* name, 
+        const char* pipeline)
+        : AsyncOdeAction(name)
+        , m_pipeline(pipeline)
+    {
+        LOG_FUNC();
+    }
+
+    PipelinePlayOdeAction::~PipelinePlayOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PipelinePlayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    void PipelinePlayOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelinePlay(m_pipeline.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PipelineStopOdeAction::PipelineStopOdeAction(const char* name, 
+        const char* pipeline)
+        : AsyncOdeAction(name)
+        , m_pipeline(pipeline)
+    {
+        LOG_FUNC();
+    }
+
+    PipelineStopOdeAction::~PipelineStopOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PipelineStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    void PipelineStopOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineStop(m_pipeline.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PlayerPauseOdeAction::PlayerPauseOdeAction(const char* name, 
+        const char* player)
+        : AsyncOdeAction(name)
+        , m_player(player)
+    {
+        LOG_FUNC();
+    }
+
+    PlayerPauseOdeAction::~PlayerPauseOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PlayerPauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    void PlayerPauseOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PlayerPause(m_player.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PlayerPlayOdeAction::PlayerPlayOdeAction(const char* name, 
+        const char* player)
+        : AsyncOdeAction(name)
+        , m_player(player)
+    {
+        LOG_FUNC();
+    }
+
+    PlayerPlayOdeAction::~PlayerPlayOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PlayerPlayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    void PlayerPlayOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PlayerPlay(m_player.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PlayerStopOdeAction::PlayerStopOdeAction(const char* name, 
+        const char* player)
+        : AsyncOdeAction(name)
+        , m_player(player)
+    {
+        LOG_FUNC();
+    }
+
+    PlayerStopOdeAction::~PlayerStopOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PlayerStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    void PlayerStopOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PlayerStop(m_player.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
@@ -2820,32 +3067,6 @@ namespace DSL
         }
     }    
 
-    AsyncOdeAction::AsyncOdeAction(const char* name) 
-        : OdeAction(name)
-        , m_timerId(0)
-    {
-        LOG_FUNC();
-        
-    };
-    
-    AsyncOdeAction::~AsyncOdeAction()
-    {
-        LOG_FUNC();
-        
-        if (m_timerId)
-        {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-            
-            g_source_remove(m_timerId);
-        }
-    }
-
-    static int do_async_action(gpointer pAction)
-    {
-        return static_cast<AsyncOdeAction*>(pAction)->
-            DoAsyncAction();
-    }
-
     // ********************************************************************
 
     AddBranchOdeAction::AddBranchOdeAction(const char* name, 
@@ -2876,7 +3097,7 @@ namespace DSL
         }
     }
 
-    int AddBranchOdeAction::DoAsyncAction()
+    void AddBranchOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
@@ -2886,9 +3107,6 @@ namespace DSL
 
         // reset the timer resource id.
         m_timerId = 0;
-        
-        // One shot timer
-        return 1;
     }
 
     // ********************************************************************
@@ -2927,7 +3145,7 @@ namespace DSL
         }
     }
 
-    int AddBranchToOdeAction::DoAsyncAction()
+    void AddBranchToOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
@@ -2939,9 +3157,6 @@ namespace DSL
         m_timerId = 0;
         
         m_destStreamId = -1;
-
-        // One shot timer
-        return 1;
     }
 
     // ********************************************************************
@@ -2980,7 +3195,7 @@ namespace DSL
         }
     }
     
-    int MoveBranchToOdeAction::DoAsyncAction()
+    void MoveBranchToOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
@@ -2992,9 +3207,6 @@ namespace DSL
         m_timerId = 0;
         
         m_destStreamId = -1;
-
-        // One shot timer
-        return 1;
     }
     
     // ********************************************************************
@@ -3027,7 +3239,7 @@ namespace DSL
         }
     }
 
-    int RemoveBranchOdeAction::DoAsyncAction()
+    void RemoveBranchOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
             
@@ -3037,9 +3249,6 @@ namespace DSL
 
         // reset the timer resource id.
         m_timerId = 0;
-        
-        // One shot timer
-        return 1;
     }
 
 }

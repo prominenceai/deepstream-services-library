@@ -2388,12 +2388,58 @@ DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
 DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Pause ODE Action
- * @param[in] name unique name for the Pause ODE Action 
+ * @brief Creates a uniquely named Pause Pipeline ODE Action
+ * @param[in] name unique name for the Pause Pipeline ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline);
+DslReturnType dsl_ode_action_pipeline_pause_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Play Pipeline ODE Action
+ * @param[in] name unique name for the Play Pipeline ODE Action 
+ * @param[in] pipeline unique name of the Pipeline to Play on ODE occurrence.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pipeline_play_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Stop Pipeline ODE Action
+ * @param[in] name unique name for the Stop Pipeline ODE Action 
+ * @param[in] pipeline unique name of the Pipeline to Stop on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pipeline_stop_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Pause Player ODE Action
+ * @param[in] name unique name for the Pause Player ODE Action 
+ * @param[in] player unique name of the Player to Pause on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_pause_new(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
+ * @brief Creates a uniquely named Play Player ODE Action
+ * @param[in] name unique name for the Play Player ODE Action 
+ * @param[in] player unique name of the Player to Play on ODE occurrence.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_play_new(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
+ * @brief Creates a uniquely named Stop Player ODE Action
+ * @param[in] name unique name for the Stop Player ODE Action 
+ * @param[in] player unique name of the Player to Stop on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_stop_new(const wchar_t* name, 
+    const wchar_t* player);
 
 /**
  * @brief Creates a uniquely named Print ODE Action

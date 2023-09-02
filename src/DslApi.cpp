@@ -1051,7 +1051,8 @@ DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionObjectRemoveNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
+DslReturnType dsl_ode_action_pipeline_pause_new(const wchar_t* name, 
+    const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(pipeline);
@@ -1061,8 +1062,83 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
-    return DSL::Services::GetServices()->OdeActionPauseNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeActionPipelinePauseNew(cstrName.c_str(), 
         cstrPipeline.c_str());
+}
+
+DslReturnType dsl_ode_action_pipeline_play_new(const wchar_t* name, 
+    const wchar_t* pipeline)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->OdeActionPipelinePlayNew(cstrName.c_str(), 
+        cstrPipeline.c_str());
+}
+
+DslReturnType dsl_ode_action_pipeline_stop_new(const wchar_t* name, 
+    const wchar_t* pipeline)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->OdeActionPipelineStopNew(cstrName.c_str(), 
+        cstrPipeline.c_str());
+}
+
+DslReturnType dsl_ode_action_player_pause_new(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->OdeActionPlayerPauseNew(cstrName.c_str(), 
+        cstrPlayer.c_str());
+}
+
+DslReturnType dsl_ode_action_player_play_new(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->OdeActionPlayerPlayNew(cstrName.c_str(), 
+        cstrPlayer.c_str());
+}
+
+DslReturnType dsl_ode_action_player_stop_new(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->OdeActionPlayerStopNew(cstrName.c_str(), 
+        cstrPlayer.c_str());
 }
 
 DslReturnType dsl_ode_action_print_new(const wchar_t* name, 

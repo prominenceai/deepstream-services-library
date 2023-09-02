@@ -431,7 +431,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
 //        REQUIRE( dsl_ode_trigger_occurrence_new(first_person_occurrence_name.c_str(), 
 //            NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
 //        
-//        REQUIRE( dsl_ode_action_pause_new(pauseActionName.c_str(), 
+//        REQUIRE( dsl_ode_action_player_pause_new(pauseActionName.c_str(), 
 //            pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 //        
 //        REQUIRE( dsl_ode_trigger_action_add(first_person_occurrence_name.c_str(), 

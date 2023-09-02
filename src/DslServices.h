@@ -233,7 +233,23 @@ namespace DSL {
         
         DslReturnType OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType);
 
-        DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
+        DslReturnType OdeActionPipelinePauseNew(const char* name, 
+            const char* pipeline);
+
+        DslReturnType OdeActionPipelinePlayNew(const char* name, 
+            const char* pipeline);
+
+        DslReturnType OdeActionPipelineStopNew(const char* name, 
+            const char* pipeline);
+
+        DslReturnType OdeActionPlayerPauseNew(const char* name, 
+            const char* player);
+
+        DslReturnType OdeActionPlayerPlayNew(const char* name, 
+            const char* player);
+
+        DslReturnType OdeActionPlayerStopNew(const char* name, 
+            const char* player);
 
         DslReturnType OdeActionPrintNew(const char* name, boolean forceFlush);
         

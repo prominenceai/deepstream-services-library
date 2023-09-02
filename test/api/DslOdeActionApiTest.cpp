@@ -1315,7 +1315,8 @@ SCENARIO( "A new Pause ODE Action can be created and deleted", "[ode-action-api]
 
         WHEN( "A new Pause Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_pause_new(action_name.c_str(), pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
+                pipelineName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Pause Action can be deleted" ) 
             {
@@ -1325,11 +1326,13 @@ SCENARIO( "A new Pause ODE Action can be created and deleted", "[ode-action-api]
         }
         WHEN( "A new Pause Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_pause_new(action_name.c_str(), pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
+                pipelineName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Pause Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_pause_new(action_name.c_str(), pipelineName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
+                    pipelineName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -2012,8 +2015,10 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
                 REQUIRE( dsl_ode_action_display_meta_add_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_display_meta_add_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_pause_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_pause_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_pipeline_pause_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_print_new(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_redact_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
