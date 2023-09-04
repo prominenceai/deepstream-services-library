@@ -1305,37 +1305,199 @@ SCENARIO( "A new Log ODE Action can be created and deleted", "[ode-action-api]" 
     }
 }
 
-SCENARIO( "A new Pause ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Play Pipeline ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
-    GIVEN( "Attributes for a new Pause ODE Action" ) 
+    GIVEN( "Attributes for a new Play Pipeline ODE Action" ) 
     {
-        std::wstring action_name(L"pause-action");
+        std::wstring action_name(L"play-pipeline-action");
         std::wstring pipelineName(L"pipeline");
         boolean offsetY_with_classId(true);
 
-        WHEN( "A new Pause Action is created" ) 
+        WHEN( "A new Play Pipeline Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
+            REQUIRE( dsl_ode_action_pipeline_play_new(action_name.c_str(), 
                 pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_pipeline_play_new(action_name.c_str(), 
+                pipelineName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
             
-            THEN( "The Pause Action can be deleted" ) 
+            THEN( "The Play Pipeline Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
             }
         }
-        WHEN( "A new Pause Action is created" ) 
+    }
+}
+
+SCENARIO( "A new Pause Pipeline ODE Action can be created and deleted", 
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Pause Pipeline ODE Action" ) 
+    {
+        std::wstring action_name(L"pause-pipeline-action");
+        std::wstring pipelineName(L"pipeline");
+        boolean offsetY_with_classId(true);
+
+        WHEN( "A new Pause Pipeline Action is created" ) 
         {
             REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
                 pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
+                pipelineName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
             
-            THEN( "A second Pause Action of the same names fails to create" ) 
+            THEN( "The Pause Pipeline Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
-                    pipelineName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Stop Pipeline ODE Action can be created and deleted", 
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Stop Pipeline ODE Action" ) 
+    {
+        std::wstring action_name(L"stop-pipeline-action");
+        std::wstring pipelineName(L"pipeline");
+        boolean offsetY_with_classId(true);
+
+        WHEN( "A new Stop Pipeline Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_pipeline_stop_new(action_name.c_str(), 
+                pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_pipeline_stop_new(action_name.c_str(), 
+                pipelineName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Stop Pipeline Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Play Player ODE Action can be created and deleted", 
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Play Player ODE Action" ) 
+    {
+        std::wstring action_name(L"play-player-action");
+        std::wstring playerName(L"player");
+        boolean offsetY_with_classId(true);
+
+        WHEN( "A new Play Player Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_player_play_new(action_name.c_str(), 
+                playerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_player_play_new(action_name.c_str(), 
+                playerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Play Player Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pause Player ODE Action can be created and deleted", 
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Pause Player ODE Action" ) 
+    {
+        std::wstring action_name(L"pause-player-action");
+        std::wstring playerName(L"player");
+        boolean offsetY_with_classId(true);
+
+        WHEN( "A new Pause Player Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_player_pause_new(action_name.c_str(), 
+                playerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_player_pause_new(action_name.c_str(), 
+                playerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Pause Player Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Stop Player ODE Action can be created and deleted", 
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Stop Player ODE Action" ) 
+    {
+        std::wstring action_name(L"stop-player-action");
+        std::wstring playerName(L"player");
+        boolean offsetY_with_classId(true);
+
+        WHEN( "A new Stop Player Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_player_stop_new(action_name.c_str(), 
+                playerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_player_stop_new(action_name.c_str(), 
+                playerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Stop Player Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
             }
         }
     }
@@ -1436,7 +1598,8 @@ SCENARIO( "A new Add Sink ODE Action can be created and deleted", "[ode-action-a
     }
 }
 
-SCENARIO( "A new Remove Sink ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Remove Sink ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Remove Sink ODE Action" ) 
     {
@@ -1446,63 +1609,77 @@ SCENARIO( "A new Remove Sink ODE Action can be created and deleted", "[ode-actio
 
         WHEN( "A new Remove Sink Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), pipelineName.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), 
+                pipelineName.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Remove Sink Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Remove Sink Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), pipelineName.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), 
+                pipelineName.c_str(), sinkName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Remove Sink Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), pipelineName.c_str(), sinkName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), 
+                    pipelineName.c_str(), sinkName.c_str()) 
+                        == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
     }
 }
 
-SCENARIO( "A new Add Source ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Add Source ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Add Source ODE Action" ) 
     {
-        std::wstring action_name(L"source_add-action");
+        std::wstring action_name(L"source-add-action");
         std::wstring pipelineName(L"pipeline");
         std::wstring sourceName(L"source");
 
         WHEN( "A new Add Source Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), 
+                pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Add Source Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Add Source Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), 
+                pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Add Source Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), 
+                    pipelineName.c_str(), sourceName.c_str()) 
+                        == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
     }
 }
 
-SCENARIO( "A new Remove Source ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Remove Source ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Remove Source ODE Action" ) 
     {
@@ -1512,30 +1689,37 @@ SCENARIO( "A new Remove Source ODE Action can be created and deleted", "[ode-act
 
         WHEN( "A new Remove Source Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), 
+                pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Remove Source Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Remove Source Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), 
+                pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Remove Source Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), pipelineName.c_str(), sourceName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), 
+                    pipelineName.c_str(), sourceName.c_str()) 
+                        == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
     }
 }
 
-SCENARIO( "A new Reset Trigger ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Reset Trigger ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Reset Trigger ODE Action" ) 
     {
@@ -1544,21 +1728,25 @@ SCENARIO( "A new Reset Trigger ODE Action can be created and deleted", "[ode-act
 
         WHEN( "A new Reset Trigger Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), 
+                triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Reset Trigger Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Reset Trigger Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), 
+                triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Reset Trigger Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), 
+                    triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -1567,7 +1755,8 @@ SCENARIO( "A new Reset Trigger ODE Action can be created and deleted", "[ode-act
     }
 }
 
-SCENARIO( "A new Disable Trigger ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Disable Trigger ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Disable Trigger ODE Action" ) 
     {
@@ -1576,30 +1765,36 @@ SCENARIO( "A new Disable Trigger ODE Action can be created and deleted", "[ode-a
 
         WHEN( "A new Disable Trigger Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), 
+                triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Disable Trigger Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Disable Trigger Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), 
+                triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Disable Trigger Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), 
+                    triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
     }
 }
 
-SCENARIO( "A new Enable Trigger ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Enable Trigger ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Enable Trigger ODE Action" ) 
     {
@@ -1608,30 +1803,36 @@ SCENARIO( "A new Enable Trigger ODE Action can be created and deleted", "[ode-ac
 
         WHEN( "A new Enable Trigger Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), 
+                triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Enable Trigger Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Enable Trigger Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), 
+                triggerName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Enable Trigger Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), 
+                    triggerName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
     }
 }
 
-SCENARIO( "A new Disable Action ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Disable Action ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Disable Action ODE Action" ) 
     {
@@ -1640,21 +1841,25 @@ SCENARIO( "A new Disable Action ODE Action can be created and deleted", "[ode-ac
 
         WHEN( "A new Disable Action Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), 
+                slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Disable Action Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
             }
         }
         WHEN( "A new Disable Action Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), 
+                slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Disable Action Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), slaveActionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), 
+                    slaveActionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -1663,7 +1868,8 @@ SCENARIO( "A new Disable Action ODE Action can be created and deleted", "[ode-ac
     }
 }
 
-SCENARIO( "A new Enable Action ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Enable Action ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Enable Action ODE Action" ) 
     {
@@ -1672,7 +1878,8 @@ SCENARIO( "A new Enable Action ODE Action can be created and deleted", "[ode-act
 
         WHEN( "A new Enable Action Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), 
+                slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "The Enable Action Action can be deleted" ) 
             {
@@ -1682,11 +1889,13 @@ SCENARIO( "A new Enable Action ODE Action can be created and deleted", "[ode-act
         }
         WHEN( "A new Enable Action Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), 
+                slaveActionName.c_str()) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Enable Action Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), slaveActionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), 
+                    slaveActionName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
@@ -1695,7 +1904,8 @@ SCENARIO( "A new Enable Action ODE Action can be created and deleted", "[ode-act
     }
 }
 
-SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Start Record Sink ODE Action" ) 
     {
@@ -1711,7 +1921,8 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode
         dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+            codec, container, bitrate, interval, client_listener) 
+                == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Start Record Sink Action is created" ) 
         {
@@ -1720,20 +1931,25 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode
             
             THEN( "The Start Record Sink Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A new Start Record Action is created" ) 
         {
-            REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), 
+                recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             
             THEN( "A second Start Record Action of the same names fails to create" ) 
             {
-                REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), recordSinkName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), 
+                    recordSinkName.c_str(), 1, 1, NULL) 
+                        == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -1741,7 +1957,8 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted", "[ode
     }
 }
 
-SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Stop Record Sink ODE Action" ) 
     {
@@ -1757,7 +1974,8 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-
         dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            codec, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+            codec, container, bitrate, interval, client_listener) 
+                == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Stop Record Sink Action is created" ) 
         {
@@ -1766,7 +1984,8 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-
             
             THEN( "The Stop Record Sink Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -1781,7 +2000,8 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted", "[ode-
                 REQUIRE( dsl_ode_action_sink_record_stop_new(action_name.c_str(), 
                     recordSinkName.c_str()) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
                     
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -1854,34 +2074,30 @@ SCENARIO( "A new Stop Record Tap ODE Action can be created and deleted", "[ode-a
             REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
                 recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
+                recordTapName.c_str(), 1, 1, NULL) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Stop Record Tap Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
-        WHEN( "A new Stop Record Tap Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
-                recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_ode_action_list_size() == 1 );
-            
-            THEN( "A second Stop Record Tap Action of the same names fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
-                    recordTapName.c_str(), 1, 1, NULL) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                    
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second call must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
 
-SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode-action-api]" )
+SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", 
+    "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Tiler Show Source ODE Action" ) 
     {
@@ -1894,29 +2110,162 @@ SCENARIO( "A new Tiler Show Source ODE Action can be created and deleted", "[ode
         {
             REQUIRE( dsl_ode_action_tiler_source_show_new(action_name.c_str(), 
                 tilerName.c_str(), timeout, has_precedence) == DSL_RESULT_SUCCESS );
+
+            // second call must faile
+            REQUIRE( dsl_ode_action_tiler_source_show_new(action_name.c_str(), 
+                tilerName.c_str(), timeout, has_precedence) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Tiler Show Source Action can be deleted" ) 
             {
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );
-            }
-        }
-        WHEN( "A new Tiler Source Show Action is created" ) 
-        {
-            REQUIRE( dsl_ode_action_tiler_source_show_new(action_name.c_str(), 
-                tilerName.c_str(), timeout, has_precedence) == DSL_RESULT_SUCCESS );
-            
-            THEN( "A second Enable Action Action of the same names fails to create" ) 
-            {
-                REQUIRE( dsl_ode_action_tiler_source_show_new(action_name.c_str(), 
-                    tilerName.c_str(), timeout, has_precedence) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
-                
-                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second call must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
             }
         }
     }
 }
+
+SCENARIO( "A new Add Branch ODE Action can be created and deleted",
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Add Branch ODE Action" ) 
+    {
+        std::wstring action_name(L"add-branch-action");
+        std::wstring tee_name(L"tee");
+        std::wstring branch_name(L"branch-1");
+
+        WHEN( "A new Add Branch Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_branch_add_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_branch_add_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Add Branch Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Add Branch To ODE Action can be created and deleted",
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Add Branch To ODE Action" ) 
+    {
+        std::wstring action_name(L"add-branch-action");
+        std::wstring tee_name(L"tee");
+        std::wstring branch_name(L"branch-1");
+
+        WHEN( "A new Add Branch To Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_branch_add_to_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_branch_add_to_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Add Branch To Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Move Branch To ODE Action can be created and deleted",
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Move Branch To ODE Action" ) 
+    {
+        std::wstring action_name(L"add-branch-action");
+        std::wstring tee_name(L"tee");
+        std::wstring branch_name(L"branch-1");
+
+        WHEN( "A new Move Branch To Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_branch_move_to_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_branch_move_to_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+            
+            THEN( "The Move Branch To Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second call must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Remove Branch ODE Action can be created and deleted",
+    "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Remove Branch ODE Action" ) 
+    {
+        std::wstring action_name(L"add-branch-action");
+        std::wstring tee_name(L"tee");
+        std::wstring branch_name(L"branch-1");
+
+        WHEN( "A new Remove Branch Action is created" ) 
+        {
+            REQUIRE( dsl_ode_action_branch_remove_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_ode_action_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_ode_action_branch_remove_new(action_name.c_str(), 
+                tee_name.c_str(), branch_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Remove Branch Action can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+            }
+        }
+    }
+}
+
 
 static void enabled_state_change_listener(boolean enabled, void* client_data)
 {
@@ -1974,102 +2323,186 @@ SCENARIO( "The ODE Action API checks for NULL input parameters", "[ode-action-ap
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_ode_action_custom_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_custom_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_custom_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_monitor_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_monitor_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_monitor_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_frame_new(NULL, NULL) 
-                    == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), NULL) 
-                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_frame_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_capture_object_new(NULL, NULL) 
-                    == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), NULL) 
-                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_capture_object_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_label_customize_new(NULL,
                     NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_display_new(NULL, 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_display_new(NULL, 
+                    0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_display_new(action_name.c_str(), 
+                    0, 0, false, NULL, false, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_file_new(NULL, NULL, DSL_WRITE_MODE_APPEND, 
-                    DSL_EVENT_FILE_FORMAT_TEXT, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), NULL, DSL_WRITE_MODE_APPEND,
-                    DSL_EVENT_FILE_FORMAT_TEXT, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_file_new(NULL, 
+                    NULL, DSL_WRITE_MODE_APPEND, DSL_EVENT_FILE_FORMAT_TEXT, 
+                        false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_file_new(action_name.c_str(), 
+                    NULL, DSL_WRITE_MODE_APPEND, DSL_EVENT_FILE_FORMAT_TEXT, 
+                        false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_fill_frame_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_fill_frame_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_frame_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_frame_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_fill_surroundings_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_fill_surroundings_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_surroundings_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_fill_surroundings_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_handler_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_handler_disable_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_handler_disable_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_handler_disable_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_ode_action_log_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_log_new(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_display_meta_add_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_display_meta_add_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_display_meta_add_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_display_meta_add_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_ode_action_pipeline_pause_new(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_ode_action_pipeline_pause_new(action_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_print_new(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_redact_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_print_new(NULL, 
+                    false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_redact_new(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_sink_add_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_sink_add_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_sink_add_new(action_name.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_sink_remove_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_add_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_add_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_add_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_remove_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_remove_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_sink_record_start_new(NULL, NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_record_start_new(NULL, 
+                    NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_sink_record_start_new(action_name.c_str(), 
+                    NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_source_add_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_source_remove_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_add_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_add_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_remove_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_source_remove_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_tap_record_start_new(NULL, NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tap_record_start_new(NULL, 
+                    NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tap_record_start_new(action_name.c_str(), 
+                    NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_area_add_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_area_add_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_area_add_new(action_name.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_area_remove_new(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_area_remove_new(action_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_area_remove_new(action_name.c_str(), otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_add_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_add_new(action_name.c_str(), 
+                NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_add_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_remove_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_remove_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_area_remove_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_trigger_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_trigger_enable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_trigger_reset_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_disable_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_disable_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_enable_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_enable_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_reset_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_trigger_reset_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_action_disable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_action_enable_new(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_disable_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_disable_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_enable_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_action_enable_new(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_tiler_source_show_new(NULL, NULL, 1, true) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_tiler_source_show_new(action_name.c_str(), NULL, 1, true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_add_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_add_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_add_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_add_to_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_add_to_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_add_to_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_move_to_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_move_to_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_move_to_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_remove_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_remove_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_branch_remove_new(action_name.c_str(), 
+                    otherName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_enabled_set(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tiler_source_show_new(NULL, 
+                    NULL, 1, true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_tiler_source_show_new(action_name.c_str(), 
+                    NULL, 1, true) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_ode_action_delete(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_ode_action_delete_many(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_enabled_get(NULL, 
+                    &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_enabled_get(action_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_enabled_set(NULL, 
+                    false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_ode_action_delete(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_ode_action_delete_many(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

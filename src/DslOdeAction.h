@@ -334,6 +334,22 @@ namespace DSL
         ~AsyncOdeAction();
         
         /**
+         * @brief Handles the ODE occurrence by scheduling the DoAsyncAction 
+         * timer callback.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered 
+         * the event.
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered 
+         * the event.
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered 
+         * the event.
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          */
         virtual void DoAsyncAction() = 0;
@@ -1415,18 +1431,6 @@ namespace DSL
         ~PipelinePauseOdeAction();
         
         /**
-         * @brief Handles the ODE occurrence by pausing a named Pipeline
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * Callback function is called in the main-loop context.
          */
@@ -1460,18 +1464,6 @@ namespace DSL
          */
         ~PipelinePlayOdeAction();
         
-        /**
-         * @brief Handles the ODE occurrence by playing a named Pipeline
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
         /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * Callback function is called in the main-loop context.
@@ -1507,18 +1499,6 @@ namespace DSL
         ~PipelineStopOdeAction();
         
         /**
-         * @brief Handles the ODE occurrence by stopping a named Pipeline.
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event.
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event.
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event.
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * Callback function is called in the main-loop context.
          */
@@ -1552,18 +1532,6 @@ namespace DSL
          */
         ~PlayerPauseOdeAction();
         
-        /**
-         * @brief Handles the ODE occurrence by pausing a named Player
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
         /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * Callback function is called in the main-loop context.
@@ -1599,18 +1567,6 @@ namespace DSL
         ~PlayerPlayOdeAction();
         
         /**
-         * @brief Handles the ODE occurrence by playing a named Player
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * Callback function is called in the main-loop context.
          */
@@ -1644,18 +1600,6 @@ namespace DSL
          */
         ~PlayerStopOdeAction();
         
-        /**
-         * @brief Handles the ODE occurrence by stopping a named Player.
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event.
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event.
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event.
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
         /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * Callback function is called in the main-loop context.
@@ -1956,7 +1900,7 @@ namespace DSL
      * @class AddSinkOdeAction
      * @brief Add Sink ODE Action class
      */
-    class AddSinkOdeAction : public OdeAction
+    class AddSinkOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -1974,16 +1918,10 @@ namespace DSL
         ~AddSinkOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding a named Sink to a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
         
     private:
     
@@ -2005,7 +1943,7 @@ namespace DSL
      * @class RemoveSinkOdeAction
      * @brief Remove Sink ODE Action class
      */
-    class RemoveSinkOdeAction : public OdeAction
+    class RemoveSinkOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -2023,16 +1961,10 @@ namespace DSL
         ~RemoveSinkOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by removing a named Sink from a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
         
     private:
     
@@ -2054,7 +1986,7 @@ namespace DSL
      * @class AddSourceOdeAction
      * @brief Add Source ODE Action class
      */
-    class AddSourceOdeAction : public OdeAction
+    class AddSourceOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -2072,17 +2004,11 @@ namespace DSL
         ~AddSourceOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding a named Source to a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
+        void DoAsyncAction();
+
     private:
     
         /**
@@ -2103,7 +2029,7 @@ namespace DSL
      * @class RemoveSourceOdeAction
      * @brief Remove Source ODE Action class
      */
-    class RemoveSourceOdeAction : public OdeAction
+    class RemoveSourceOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -2121,16 +2047,10 @@ namespace DSL
         ~RemoveSourceOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by removing a named Soure from a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
         
     private:
     
@@ -2747,18 +2667,6 @@ namespace DSL
         ~AddBranchOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding a named Branch to a named Tee
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-
-        /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * @return int return 1 always to execute only once.
          */
@@ -2927,18 +2835,6 @@ namespace DSL
          */
         ~RemoveBranchOdeAction();
 
-        /**
-         * @brief Handles the ODE occurrence by adding a named Branch to a named Tee
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
-         */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
         /**
          * @brief Function to perform the Action asynchronously as a Timer callback.
          * @return int return 1 always to execute only once.

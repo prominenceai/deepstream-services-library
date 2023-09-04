@@ -59,7 +59,8 @@ static const boolean mask_enabled(false);
         
 static const std::wstring ode_pph_name(L"ode-handler");
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name1(L"window-sink-1");
+static const std::wstring window_sink_name2(L"window-sink-2");
 static const uint offsetX(100);
 static const uint offsetY(140);
 static const uint sinkW(1280);
@@ -148,10 +149,10 @@ SCENARIO( "A new Pipeline with an ODE Handler without any child ODE Triggers can
         
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"tiler", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"tiler", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -205,10 +206,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -279,10 +280,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers, each
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -366,10 +367,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             first_person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -440,11 +441,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Two Occurrence ODE Triggers shari
 //        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
 //            first_person_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
 //        
-//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
 //            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 //
 //        const wchar_t* components[] = {L"uri-source", 
-//            L"primary-gie", L"iou-tracker", L"tiler", L"window-sink", NULL};
+//            L"primary-gie", L"iou-tracker", L"tiler", L"window-sink-1", NULL};
 //        
 //        WHEN( "When the Pipeline is Assembled" ) 
 //        {
@@ -547,11 +548,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, four Summation ODE Triggers, each
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker",L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker",L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -674,11 +675,11 @@ an ODE Accumlator, each with an ODE Display Action can play", "[ode-behavior]" )
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -841,11 +842,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Four Summation ODE Triggers with 
         REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -910,7 +911,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
@@ -938,7 +939,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
             bicycle_occurrence_name.c_str()) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", 
-            L"osd", L"window-sink", L"record-sink", NULL};
+            L"osd", L"window-sink-1", L"record-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1033,11 +1034,11 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Line Area 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1131,11 +1132,11 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Inclussion
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1230,11 +1231,11 @@ SCENARIO( "A new Pipeline with an Occurrence ODE Trigger using an ODE Exclusion 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1313,11 +1314,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1402,11 +1403,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker",L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker",L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1476,11 +1477,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1546,11 +1547,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1614,11 +1615,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale
         REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1721,11 +1722,11 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
             false, false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1834,11 +1835,11 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area
         REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
             false, false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1950,11 +1951,11 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
             true, false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker",L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker",L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -2032,11 +2033,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Print ODE
         REQUIRE( dsl_osd_new(osd_name.c_str(), false, false,
             true, false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker",
-            L"osd", L"window-sink", NULL};
+            L"osd", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -2097,10 +2098,10 @@ SCENARIO( "A Tiler can add the frame number to the framemeta correctly", "[ode-b
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"tiler", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source", L"primary-gie", L"iou-tracker", L"tiler", L"window-sink-1", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -2114,6 +2115,175 @@ SCENARIO( "A Tiler can add the frame number to the framemeta correctly", "[ode-b
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+static void* main_loop_thread_func(void *data)
+{
+    // blocking call
+    dsl_main_loop_run();
+
+    return NULL;
+}
+
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add Sink Action can play", 
+    "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Costomize Label Action" ) 
+    {
+        std::wstring ode_action_name(L"add-sink-action");
+
+       // Window Sink to add
+        REQUIRE( dsl_sink_window_new(window_sink_name2.c_str(),
+            offsetX+50, offsetY+50, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_sink_add_new(ode_action_name.c_str(),  
+            pipeline_name.c_str(), window_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
+            NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
+            ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                
+                main_loop_thread_1 = g_thread_new("main-loop-1", 
+                    main_loop_thread_func, NULL);
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*3);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_main_loop_quit();
+                g_thread_join(main_loop_thread_1);
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remove Sink Action can play", 
+    "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Costomize Label Action" ) 
+    {
+        std::wstring ode_action_name(L"add-sink-action");
+
+       // Window Sink to add
+        REQUIRE( dsl_sink_window_new(window_sink_name2.c_str(),
+            offsetX+50, offsetY+50, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_action_sink_remove_new(ode_action_name.c_str(),  
+            pipeline_name.c_str(), window_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
+            NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
+            ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source", 
+            L"primary-gie", L"iou-tracker", L"osd", L"window-sink-1", 
+            L"window-sink-2", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                
+                main_loop_thread_1 = g_thread_new("main-loop-1", 
+                    main_loop_thread_func, NULL);
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*3);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_main_loop_quit();
+                g_thread_join(main_loop_thread_1);
+                
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );

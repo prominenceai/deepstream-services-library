@@ -950,6 +950,7 @@ DslReturnType dsl_ode_action_message_meta_type_get(const wchar_t* name,
     uint* meta_type)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(meta_type);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1491,6 +1492,7 @@ DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1882,6 +1884,8 @@ DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name,
     uint* minimum, uint* maximum)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(minimum);
+    RETURN_IF_PARAM_IS_NULL(maximum);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1925,6 +1929,8 @@ DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name,
     uint* minimum, uint* maximum)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(minimum);
+    RETURN_IF_PARAM_IS_NULL(maximum);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1949,6 +1955,8 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
     uint* test_point, uint* test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(test_point);
+    RETURN_IF_PARAM_IS_NULL(test_method);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

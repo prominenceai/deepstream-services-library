@@ -819,7 +819,7 @@ THE SOFTWARE.
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
-#define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     1
+#define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
 
 #define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
 #define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30

@@ -88,6 +88,20 @@ namespace DSL
         }
     }
 
+    void AsyncOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
     static int do_async_action(gpointer pAction)
     {
         static_cast<AsyncOdeAction*>(pAction)->
@@ -1082,15 +1096,18 @@ namespace DSL
                     DSL_FRAME_INFO_OCCURRENCES)
                 {
                     body.push_back(std::string("    Occurrences     : " 
-                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]) + "<br>"));
+                        +  std::to_string(pFrameMeta->
+                            misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]) + "<br>"));
                 }
                 else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
                     DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
                 {
                     body.push_back(std::string("    Occurrences In  : " 
-                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]) + "<br>"));
+                        +  std::to_string(pFrameMeta->
+                            misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]) + "<br>"));
                     body.push_back(std::string("    Occurrences Out : " 
-                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]) + "<br>"));
+                        +  std::to_string(pFrameMeta->
+                            misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]) + "<br>"));
                 }
 
             }
@@ -1622,7 +1639,8 @@ namespace DSL
             
             DSL_RGBA_RECTANGLE_PTR pLeftRect = 
                 DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
-                0, 0, x1, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+                    0, 0, x1, pFrameMeta->source_frame_height, 
+                    0, m_pColor, true, m_pColor);
                 
             pLeftRect->AddMeta(displayMetaData, pFrameMeta);
 
@@ -1630,22 +1648,25 @@ namespace DSL
             
             DSL_RGBA_RECTANGLE_PTR pRightRect = 
                 DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
-                x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 
+                    x2, 0, pFrameMeta->source_frame_width, 
+                    pFrameMeta->source_frame_height, 
                     0, m_pColor, true, m_pColor);
     
             pRightRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string topRectName("top-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(topRectName.c_str(), 
-                x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
+            DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(
+                topRectName.c_str(), x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
                 
             pTopRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string bottomRectName("bottom-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(bottomRectName.c_str(), 
-                x1, y2, rWidth, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+            DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(
+                bottomRectName.c_str(), x1, y2, rWidth, 
+                pFrameMeta->source_frame_height, 
+                0, m_pColor, true, m_pColor);
                 
             pBottomRect->AddMeta(displayMetaData, pFrameMeta);
         }
@@ -1653,7 +1674,8 @@ namespace DSL
 
     // ********************************************************************
 
-    FillFrameOdeAction::FillFrameOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
+    FillFrameOdeAction::FillFrameOdeAction(const char* name, 
+        DSL_RGBA_COLOR_PTR pColor)
         : OdeAction(name)
         , m_pColor(pColor)
     {
@@ -1684,7 +1706,8 @@ namespace DSL
             rectParams.has_bg_color = true;
             rectParams.bg_color = *m_pColor;
             
-            displayMetaData.at(0)->rect_params[displayMetaData.at(0)->num_rects++] = rectParams;
+            displayMetaData.at(0)->rect_params[displayMetaData.at(0)->
+                num_rects++] = rectParams;
         }
     }
 
@@ -2194,20 +2217,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PipelinePauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void PipelinePauseOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2234,20 +2243,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PipelinePlayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void PipelinePlayOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2274,20 +2269,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PipelineStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void PipelineStopOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2314,20 +2295,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PlayerPauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void PlayerPauseOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2354,20 +2321,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PlayerPlayOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void PlayerPlayOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2394,20 +2347,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void PlayerStopOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void PlayerStopOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -2597,7 +2536,7 @@ namespace DSL
 
     AddSinkOdeAction::AddSinkOdeAction(const char* name, 
         const char* pipeline, const char* sink)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_sink(sink)
     {
@@ -2609,24 +2548,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void AddSinkOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+            m_sink.c_str());
 
-        if (m_enabled)
-        {
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
-                m_sink.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
 
     RemoveSinkOdeAction::RemoveSinkOdeAction(const char* name, 
         const char* pipeline, const char* sink)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_sink(sink)
     {
@@ -2638,25 +2576,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void RemoveSinkOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+            m_sink.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
-                m_sink.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
 
     AddSourceOdeAction::AddSourceOdeAction(const char* name, 
         const char* pipeline, const char* source)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_source(source)
     {
@@ -2668,25 +2604,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void AddSourceOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+            m_source.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
-                m_source.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
 
     RemoveSourceOdeAction::RemoveSourceOdeAction(const char* name, 
         const char* pipeline, const char* source)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_source(source)
     {
@@ -2698,18 +2632,16 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void RemoveSourceOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+            m_source.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
-                m_source.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
@@ -3083,20 +3015,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddBranchOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to add the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void AddBranchOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -3225,20 +3143,6 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveBranchOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
-    {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_enabled)
-        {
-            // Schedule the do_async_action to remove the branch in 
-            // the main-loop context.
-            m_timerId = g_timeout_add(1, do_async_action, this);
-        }
-    }
-
     void RemoveBranchOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
