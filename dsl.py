@@ -1165,13 +1165,63 @@ def dsl_ode_action_print_new(name, force_flush):
     return int(result)
 
 ##
-## dsl_ode_action_pause_new()
+## dsl_ode_action_pipeline_pause_new()
 ##
-_dsl.dsl_ode_action_pause_new.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_pause_new.restype = c_uint
-def dsl_ode_action_pause_new(name, pipeline):
+_dsl.dsl_ode_action_pipeline_pause_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_pipeline_pause_new.restype = c_uint
+def dsl_ode_action_pipeline_pause_new(name, pipeline):
     global _dsl
-    result =_dsl.dsl_ode_action_pause_new(name, pipeline)
+    result =_dsl.dsl_ode_action_pipeline_pause_new(name, pipeline)
+    return int(result)
+
+##
+## dsl_ode_action_pipeline_play_new()
+##
+_dsl.dsl_ode_action_pipeline_play_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_pipeline_play_new.restype = c_uint
+def dsl_ode_action_pipeline_play_new(name, pipeline):
+    global _dsl
+    result =_dsl.dsl_ode_action_pipeline_play_new(name, pipeline)
+    return int(result)
+
+##
+## dsl_ode_action_pipeline_stop_new()
+##
+_dsl.dsl_ode_action_pipeline_stop_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_pipeline_stop_new.restype = c_uint
+def dsl_ode_action_pipeline_stop_new(name, pipeline):
+    global _dsl
+    result =_dsl.dsl_ode_action_pipeline_stop_new(name, pipeline)
+    return int(result)
+
+##
+## dsl_ode_action_player_pause_new()
+##
+_dsl.dsl_ode_action_player_pause_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_player_pause_new.restype = c_uint
+def dsl_ode_action_player_pause_new(name, player):
+    global _dsl
+    result =_dsl.dsl_ode_action_player_pause_new(name, player)
+    return int(result)
+
+##
+## dsl_ode_action_player_play_new()
+##
+_dsl.dsl_ode_action_player_play_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_player_play_new.restype = c_uint
+def dsl_ode_action_player_play_new(name, player):
+    global _dsl
+    result =_dsl.dsl_ode_action_player_play_new(name, player)
+    return int(result)
+
+##
+## dsl_ode_action_player_stop_new()
+##
+_dsl.dsl_ode_action_player_stop_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_ode_action_player_stop_new.restype = c_uint
+def dsl_ode_action_player_stop_new(name, player):
+    global _dsl
+    result =_dsl.dsl_ode_action_player_stop_new(name, player)
     return int(result)
 
 ##
