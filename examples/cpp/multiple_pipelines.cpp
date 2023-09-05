@@ -147,6 +147,10 @@ DslReturnType create_pipeline(ClientData* client_data)
     retval = dsl_sink_window_new(client_data->window_sink.c_str(),
         0, 0, sink_width, sink_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
+    
+    // Disable the sync property - which will disable QOS as well.
+    retval = dsl_sink_sync_enabled_set(client_data->window_sink.c_str(), false);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Add the XWindow event handler functions defined above
     retval = dsl_sink_window_key_event_handler_add(client_data->window_sink.c_str(), 
