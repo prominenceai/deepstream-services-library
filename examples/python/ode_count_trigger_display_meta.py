@@ -96,33 +96,37 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example is used to demonstrate the Use of Minimum, Maximum, and Range Triggers.
-        # The triggers, upon meeting all criteria, will fill a rectangle Area on the Frame 
-        # with color indicating: 
+        # This example is used to demonstrate the Use of Minimum, Maximum, and 
+        # Range Triggers. The triggers, upon meeting all criteria, will fill a 
+        # rectangle Area on the Frame with color indicating: 
         #    Yellow = object count below Minimum
         #    Red = object count above Maximum 
         #    Green = object count in range of Minimim to Maximum.
         
-        # A secondary indicatory of filling the full Frame with a shade of red will be used
-        # to stress that the object count within the frame has exceeded the Maximum
+        # A secondary indicatory of filling the full Frame with a shade of red 
+        # will be used to stress that the object count within the frame has 
+        # exceeded the Maximum
         
-        # An additional Summation Trigger with Display Action will display the total number of objects 
-        # next to the colored/filled area-indicator
+        # An additional Summation Trigger with Display Action will display the 
+        # total number of objects next to the colored/filled area-indicator
         
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         
         # New RGBA color types to be used for our object count indicator
-        retval = dsl_display_type_rgba_color_custom_new('full-green', red=.0, green=1.0, blue=0.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('full-green', 
+            red=.0, green=1.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_custom_new('full-yellow', red=1.0, green=1.0, blue=0.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('full-yellow', 
+            red=1.0, green=1.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_custom_new('full-red', red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('full-red', 
+            red=1.0, green=0.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         # Next, create all Display Types and Actions for our object count indicators
             
 
@@ -131,7 +135,8 @@ def main(args):
         ind_width=33
         ind_height=ind_width
         
-        # Three new RGBA Rectangles, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
+        # Three new RGBA Rectangles, one for each of our Minumum/Maximum/Range 
+        # ODE Trigger occurrences.
         retval = dsl_display_type_rgba_rectangle_new('green-rectangle', 
             left=ind_left, top=ind_top, width=ind_width, height=ind_height, border_width=0, 
             color='full-green', has_bg_color=True, bg_color='full-green')
@@ -148,27 +153,35 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Three new Display Meta Actions, one for each of our Minumum/Maximum/Range ODE Trigger occurrences
-        retval = dsl_ode_action_display_meta_add_new('add-green-rectangle', display_type='green-rectangle')
+        # Three new Display Meta Actions, one for each of our Minumum/Maximum/Range 
+        # ODE Trigger occurrences
+        retval = dsl_ode_action_display_meta_add_new('add-green-rectangle', 
+            display_type='green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_display_meta_add_new('add-yellow-rectangle', display_type='yellow-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-yellow-rectangle', 
+            display_type='yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_action_display_meta_add_new('add-red-rectangle', display_type='red-rectangle')
+        retval = dsl_ode_action_display_meta_add_new('add-red-rectangle', 
+            display_type='red-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, new colors, fonts, rectangles and display action for displaying our object counts on the screen 
+        #`````````````````````````````````````````````````````````````````````````````
+        # Next, new colors, fonts, rectangles and display action for displaying our 
+        # object counts on the screen 
 
-        retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        retval = dsl_display_type_rgba_color_custom_new('full-white', 
+            red=1.0, green=1.0, blue=1.0, alpha = 1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_color_custom_new('full-black', red=0.0, green=0.0, blue=0.0, alpha = 1.0)
+        retval = dsl_display_type_rgba_color_custom_new('full-black', 
+            red=0.0, green=0.0, blue=0.0, alpha = 1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_font_new('arial-16-white', font='arial', size=16, color='full-white')
+        retval = dsl_display_type_rgba_font_new('arial-16-white', 
+            font='arial', size=16, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -191,43 +204,54 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         # Create three new Count triggers while adding their corresponding Fill colors
 
-        # First Count trigger with range of 0 to 5, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_count_new('r1-object-count', source=DSL_ODE_ANY_SOURCE,
+        # First Count trigger with range of 0 to 5, and with no limit on the number 
+        # of occurrences
+        retval = dsl_ode_trigger_count_new('r1-object-count', 
+            source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
             minimum=0, maximum=T1_OBJECT_COUNT)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('r1-object-count', action='add-green-rectangle')
+        retval = dsl_ode_trigger_action_add('r1-object-count', 
+            action='add-green-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Secound Count trigger with range of 6 to 8, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_count_new('r2-object-count', source=DSL_ODE_ANY_SOURCE,
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
+        # Secound Count trigger with range of 6 to 8, and with no limit on the 
+        # number of occurrences
+        retval = dsl_ode_trigger_count_new('r2-object-count', 
+            source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
             minimum=T1_OBJECT_COUNT+1, maximum=T2_OBJECT_COUNT)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('r2-object-count', action='add-yellow-rectangle')
+        retval = dsl_ode_trigger_action_add('r2-object-count', 
+            action='add-yellow-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Third Count trigger with range of 9 to 0 (no-max), and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_count_new('r3-object-count', source=DSL_ODE_ANY_SOURCE,
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
+        # Third Count trigger with range of 9 to 0 (no-max), and with no limit on the 
+        # number of occurrences3
+        retval = dsl_ode_trigger_count_new('r3-object-count', 
+            source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE, 
             minimum=T2_OBJECT_COUNT, maximum=0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add('r3-object-count', action='add-red-rectangle')
+        retval = dsl_ode_trigger_action_add('r3-object-count', 
+            action='add-red-rectangle')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Summation and Occurrence Triggers to display the Object Count and Hide each Object's Display Text
+        #`````````````````````````````````````````````````````````````````````````````
+        # Next, create the Summation and Occurrence Triggers to display the Object Count 
+        # and Hide each Object's Display Text
         
-        # New ODE Trigger for Object summation - i.e. new ODE occurrence on detection summation for each frame.
+        # New ODE Trigger for Object summation - i.e. new ODE occurrence on detection 
+        # summation for each frame.
         retval = dsl_ode_trigger_summation_new('objects', source=DSL_ODE_ANY_SOURCE, 
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
@@ -245,7 +269,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
@@ -262,7 +286,7 @@ def main(args):
             break
         
         
-        ############################################################################################
+        ##############################################################################
         #
         # Create the remaining Pipeline components
         
@@ -282,19 +306,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
+         # Add our ODE Pad Probe Handler to the Source (output) pad of the Tracker
+        retval = dsl_tracker_pph_add('iou-tracker', 
+            handler='ode-handler', pad=DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -303,22 +324,26 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+        # Add all the components to our pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
+            ['uri-source', 'primary-gie', 'iou-tracker', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

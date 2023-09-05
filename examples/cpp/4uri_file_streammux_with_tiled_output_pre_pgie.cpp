@@ -114,7 +114,7 @@ void xwindow_button_event_handler(uint button,
         // get the current XWindow dimensions - the XWindow was overlayed with our Window Sink
         uint width(0), height(0);
         
-        if (dsl_pipeline_xwindow_dimensions_get(L"pipeline", 
+        if (dsl_sink_render_dimensions_get(L"window-sink", 
             &width, &height) == DSL_RESULT_SUCCESS)
             
             // call the Tiler to show the source based on the x and y button cooridantes
@@ -195,6 +195,23 @@ int main(int argc, char** argv)
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Enabled the XWindow for full-screen-mode
+        retval = dsl_sink_window_fullscreen_enabled_set(L"window-sink", true);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_button_event_handler_add(L"window-sink", 
+            xwindow_button_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+            xwindow_key_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+            xwindow_delete_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source-1", L"uri-source-2", 
             L"uri-source-3", L"uri-source-4", L"primary-gie", L"iou-tracker", 
@@ -214,24 +231,8 @@ int main(int argc, char** argv)
         retval = dsl_infer_batch_size_set(L"primary-gie", 1);
         if (retval != DSL_RESULT_SUCCESS) break;
             
-        // Enabled the XWindow for full-screen-mode
-        retval = dsl_pipeline_xwindow_fullscreen_enabled_set(L"pipeline", true);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the EOS listener and XWindow event handler functions defined above
+        // Add the EOS listener function defined above
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
-            xwindow_key_event_handler, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_button_event_handler_add(L"pipeline", 
-            xwindow_button_event_handler, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", 
-            xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Play the pipeline

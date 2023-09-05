@@ -2,11 +2,11 @@
 <CodeLite_Workspace Name="deepstream-services-library" Database="" Version="10.0.0">
   <Project Name="deepstream-services-library" Path="deepstream-services-library.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="deepstream-services-library" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
       <Project Name="deepstream-services-library" ConfigName="Release"/>
     </WorkspaceConfiguration>

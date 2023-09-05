@@ -131,12 +131,15 @@ def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
     global SHOW_SOURCE_TIMEOUT
 
     if (button == Button1):
-        # get the current XWindow dimensions - the XWindow was overlayed with our Window Sink
-        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        # Get the current XWindow dimensions from our Window Sink
+        # The Window Sink is derived from Render Sink parent class so  
+        # use the Render Sink API to get the dimensions.
+        retval, width, height = dsl_sink_render_dimensions_get('window-sink')
         
         # call the Tiler to show the source based on the x and y button cooridantes
         # and the current window dimensions obtained from the XWindow
-        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+        dsl_tiler_source_show_select('tiler', 
+            x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 
 def main(args):
 
@@ -160,9 +163,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        # Create a new "source-number" display-type using the new RGBA
+        # Create a new "source-stream-id" display-type using the new RGBA
         # colors and font created above.
-        retval = dsl_display_type_source_number_new('source-number', 
+        retval = dsl_display_type_source_stream_id_new('source-stream-id', 
             x_offset=15, y_offset=20, font='arial-18-white', 
             has_bg_color=True, bg_color='full-black')
         if retval != DSL_RETURN_SUCCESS:
@@ -170,20 +173,20 @@ def main(args):
             
         # Create a new Action to add the display-type's metadata
         # to a frame's meta on invocation.
-        retval = dsl_ode_action_display_meta_add_new('add-souce-number', 
-            display_type='source-number')
+        retval = dsl_ode_action_display_meta_add_new('add-souce-stream-id', 
+            display_type='source-stream-id')
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
         # Create an ODE Always triger to call the "add-meta" Action to display
-        # the source number on every frame for each source. 
+        # the source stream-id on every frame for each source. 
         retval = dsl_ode_trigger_always_new('always-trigger', 
             source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
         retval = dsl_ode_trigger_action_add('always-trigger', 
-            action='add-souce-number')
+            action='add-souce-stream-id')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
@@ -201,13 +204,13 @@ def main(args):
         retval = dsl_source_file_new('file-source-1', file_path1, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_file_new('file-source-2', file_path2, True)
+        retval = dsl_source_file_new('file-source-2', file_path2, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_file_new('file-source-3', file_path3, True)
+        retval = dsl_source_file_new('file-source-3', file_path3, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_file_new('file-source-4', file_path4, True)
+        retval = dsl_source_file_new('file-source-4', file_path4, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -248,8 +251,27 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Enabled full-screen-mode for our Window Sink
+        retval = dsl_sink_window_fullscreen_enabled_set('window-sink', enabled=True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_button_event_handler_add('window-sink', 
+            xwindow_button_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -260,28 +282,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Enabled the XWindow for full-screen-mode
-        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the EOS listener and XWindow event handler functions defined above
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', 
-            xwindow_button_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:

@@ -359,12 +359,12 @@ int test()
         // Add all Client callback functions to the Pipeline.
         
         // Add the XWindow key event handler callback function.
-        retval = dsl_pipeline_xwindow_key_event_handler_add(pipeline_name.c_str(), 
+        retval = dsl_sink_window_key_event_handler_add(window_sink_name.c_str(), 
             xwindow_key_event_handler, nullptr);    
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow delete window event handler function.
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(pipeline_name.c_str(), 
+        retval = dsl_sink_window_delete_event_handler_add(window_sink_name.c_str(), 
             xwindow_delete_event_handler, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 

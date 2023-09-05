@@ -82,8 +82,6 @@ namespace DSL
         std::string adderName("___"); 
         adderName += name;
         m_pFrameNumberAdder = DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderName.c_str());
-    
-        g_mutex_init(&m_showSourceMutex);
     }
 
     TilerBintr::~TilerBintr()
@@ -100,7 +98,6 @@ namespace DSL
             
             g_source_remove(m_showSourceTimerId);
         }
-        g_mutex_clear(&m_showSourceMutex);
     }
 
     bool TilerBintr::AddToParent(DSL_BASE_PTR pParentBintr)

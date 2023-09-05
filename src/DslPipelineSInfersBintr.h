@@ -166,12 +166,12 @@ namespace DSL
         /**
          * @brief mutex for sink (Tee) Pad Probe handler
          */
-        GMutex m_sinkPadProbeMutex;
+        DslMutex m_sinkPadProbeMutex;
         
         /**
          * @brief mutex fo the src (Queue) Pad Probe handler
          */
-        GMutex m_srcPadProbeMutex;
+        DslMutex m_srcPadProbeMutex;
         
         /**
          * @brief sink pad, Tee elementr, probe handle

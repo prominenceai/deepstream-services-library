@@ -160,13 +160,28 @@ namespace DSL
         /**
          * @brief Mutex to prevent bus-watch callback re-entry
          */
-        GMutex m_busWatchMutex;
+        DslMutex m_busWatchMutex;
 
         /**
          * @brief set to true by the bus-watch function on EOS
          * and cleared by the Pipeline on transition to NULL state.
          */
         bool m_eosFlag;
+        
+        /**
+         * @brief Mutex to protect the async GCond used to synchronize
+         * the Application thread with the mainloop context on
+         * asynchronous stop.
+         */
+        DslMutex m_asyncCommsMutex;
+        
+        /**
+         * @brief Condition used to block the application context while waiting
+         * for a Pipeline/Player change of state to be completed in the 
+         * mainloop context
+         */
+        DslCond m_asyncCommsCond;
+        
 
         /**
          * @brief Pointer to the Pipelines own g_main_context if one has 
@@ -186,13 +201,13 @@ namespace DSL
          * @brief mutex used to synchronize the threads calling dsl_pipeline_main_loop_run
          * and dsl_pipeline_main_loop_quit
          */
-        GMutex m_mainLoopMutex;
+        DslMutex m_mainLoopMutex;
         
         /**
          * @brief conding used to synchronize the threads calling dsl_pipeline_main_loop_run
          * and dsl_pipeline_main_loop_quit
          */
-        GCond m_mainLoopCond;
+        DslCond m_mainLoopCond;
 
         /**
          * @brief Private helper function to handle a Pipeline state-change message.
@@ -259,7 +274,7 @@ namespace DSL
         /**
          * @brief mutex to protect multiple threads from accessing/updating last error message information
          */
-        GMutex m_lastErrorMutex;
+        DslMutex m_lastErrorMutex;
         
         /**
          * @brief timer used to execute the error notification thread

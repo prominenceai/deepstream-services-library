@@ -45,8 +45,8 @@ static const uint displayId(0);
 static const uint depth(0);
 static uint offsetX(100);
 static uint offsetY(140);
-static uint sinkW(0);
-static uint sinkH(0);
+static uint sinkW(1280);
+static uint sinkH(720);
 
 
 using namespace DSL;

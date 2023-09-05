@@ -18,7 +18,6 @@
     <File Name="../src/DslInferBintr.cpp"/>
     <File Name="../src/DslMailer.cpp"/>
     <File Name="../src/DslMessageBroker.cpp"/>
-    <File Name="../src/DslMultiComponentsBintr.cpp"/>
     <File Name="../src/DslOdeAction.cpp"/>
     <File Name="../src/DslOdeArea.cpp"/>
     <File Name="../src/DslOdeTrigger.cpp"/>
@@ -29,7 +28,6 @@
     <File Name="../src/DslPipelineSInfersBintr.cpp"/>
     <File Name="../src/DslPipelineSourcesBintr.cpp"/>
     <File Name="../src/DslPipelineStateMgr.cpp"/>
-    <File Name="../src/DslPipelineXWinMgr.cpp"/>
     <File Name="../src/DslPlayerBintr.cpp"/>
     <File Name="../src/DslRecordMgr.cpp"/>
     <File Name="../src/DslSegVisualBintr.cpp"/>
@@ -69,8 +67,6 @@
     <File Name="../src/DslLogGst.h"/>
     <File Name="../src/DslMailer.h"/>
     <File Name="../src/DslMessageBroker.h"/>
-    <File Name="../src/DslMultiComponentsBintr.h"/>
-    <File Name="../src/DslMutex.h"/>
     <File Name="../src/DslNodetr.h"/>
     <File Name="../src/DslOdeAction.h"/>
     <File Name="../src/DslOdeArea.h"/>
@@ -83,7 +79,6 @@
     <File Name="../src/DslPipelineSInfersBintr.h"/>
     <File Name="../src/DslPipelineSourcesBintr.h"/>
     <File Name="../src/DslPipelineStateMgr.h"/>
-    <File Name="../src/DslPipelineXWinMgr.h"/>
     <File Name="../src/DslPlayerBintr.h"/>
     <File Name="../src/DslRecordMgr.h"/>
     <File Name="../src/DslSegVisualBintr.h"/>
@@ -124,6 +119,13 @@
       <File Name="../src/webrtc/DslSoupServerMgr.cpp"/>
       <File Name="../src/webrtc/DslSoupServerMgr.h"/>
     </VirtualDirectory>
+    <File Name="../src/DslMultiBranchesBintr.h"/>
+    <File Name="../src/DslMultiBranchesBintr.cpp"/>
+    <File Name="../src/DslPipelineBusSyncMgr.h"/>
+    <File Name="../src/DslPipelineBusSyncMgr.cpp"/>
+    <File Name="../src/DslMutex.h"/>
+    <File Name="../src/DslCond.h"/>
+    <File Name="../src/DslUtilities.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">
@@ -152,7 +154,6 @@
       <File Name="../test/api/DslPipelineStateMgt.cpp"/>
       <File Name="../test/api/DslPipelineStreamMuxerApiTest.cpp"/>
       <File Name="../test/api/DslPipelineTilerApiTest.cpp"/>
-      <File Name="../test/api/DslPipelineXWindowApiTest.cpp"/>
       <File Name="../test/api/DslPlayerApiTest.cpp"/>
       <File Name="../test/api/DslPphApiTest.cpp"/>
       <File Name="../test/api/DslSegVisualApiTest.cpp"/>
@@ -176,9 +177,9 @@
       <File Name="../test/api/DslDewarperBehaviorTest.cpp"/>
       <File Name="../test/api/DslDewarperApiTest.cpp"/>
       <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
+      <File Name="../test/api/DslDemuxerBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
-      <File Name="../test/unit/DslDemuxerAndTeeUnitTest.cpp"/>
       <File Name="../test/unit/DslDewarperUnitTest.cpp"/>
       <File Name="../test/unit/DslDisplayTypesUnitTest.cpp"/>
       <File Name="../test/unit/DslElementrUnitTest.cpp"/>
@@ -211,6 +212,7 @@
       <File Name="../test/unit/DslOdeHeatMapperUnitTest.cpp"/>
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
+      <File Name="../test/unit/DslDemuxerAndSplitterUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
@@ -234,7 +236,6 @@
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
       <File Name="../examples/cpp/multiple_pipelines.cpp"/>
-      <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
       <File Name="../examples/cpp/ode_cross_polygon_border_print_event.cpp"/>
       <File Name="../examples/cpp/README"/>
@@ -255,6 +256,9 @@
       <File Name="../examples/cpp/smart_record_tap_start_session_on_user_demand.cpp"/>
       <File Name="../examples/cpp/smart_record_sink_start_session_on_user_demand.cpp"/>
       <File Name="../examples/cpp/smart_record_sink_start_session_on_ode_occurrence.cpp"/>
+      <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
+      <File Name="../examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp"/>
+      <File Name="../examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
@@ -300,7 +304,6 @@
       <File Name="../examples/python/1uri_https_window_dynamic_overlay.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_3sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_demuxer_1osd_1overlay_1window.py"/>
-      <File Name="../examples/python/dyn_uri_file_pgie_iou_tracker_tiler_osd_window.py"/>
       <File Name="../examples/python/segmentation_industrial.py"/>
       <File Name="../examples/python/segmentation_semantic.py"/>
       <File Name="../examples/python/video_dewarper_360.py"/>
@@ -315,6 +318,9 @@
       <File Name="../examples/python/smart_record_sink_start_session_on_user_demand.py"/>
       <File Name="../examples/python/smart_record_tap_start_session_on_ode_occurrence.py"/>
       <File Name="../examples/python/smart_record_tap_start_session_on_user_demand.py"/>
+      <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
+      <File Name="../examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py"/>
+      <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

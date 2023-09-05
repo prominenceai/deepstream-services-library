@@ -62,6 +62,7 @@ def xwindow_key_event_handler(key_string, client_data):
             print('adding sink ', sink_name)
             dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 
                 100*cur_overlay_count, 360, 180)
+            dsl_sink_sync_enabled_set(sink_name, False)
             dsl_pipeline_component_add('pipeline', sink_name)
 
     # Remove the last sink added
@@ -116,19 +117,19 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
-        retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'window-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
             xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add all the components to a new pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
+            ['uri-source', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

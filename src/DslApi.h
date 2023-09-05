@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -207,13 +207,15 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_NAME_NOT_FOUND                               0x000A0002
 #define DSL_RESULT_TEE_NAME_BAD_FORMAT                              0x000A0003
 #define DSL_RESULT_TEE_THREW_EXCEPTION                              0x000A0004
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0005
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0006
-#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0007
-#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0008
-#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0009
-#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000A
-#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000B
+#define DSL_RESULT_TEE_SET_FAILED                                   0x000A0005
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0006
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0007
+#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0008
+#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A0009
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A000A
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000B
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000C
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000D
 
 /**
  * Tile API Return Values
@@ -244,14 +246,12 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
 #define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
-#define DSL_RESULT_PIPELINE_XWINDOW_GET_FAILED                      0x0008000B
-#define DSL_RESULT_PIPELINE_XWINDOW_SET_FAILED                      0x0008000C
-#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000D
-#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000E
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000F
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080010
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080011
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080012
+#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000B
+#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000C
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000D
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x0008000E
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x0008000F
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080010
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -375,15 +375,13 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
 #define DSL_RESULT_PLAYER_IN_USE                                    0x00400008
-#define DSL_RESULT_PLAYER_XWINDOW_GET_FAILED                        0x00400009
-#define DSL_RESULT_PLAYER_XWINDOW_SET_FAILED                        0x0040000A
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x0040000B
-#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000C
-#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000D
-#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000E
-#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000F
-#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x00400010
-#define DSL_RESULT_PLAYER_SET_FAILED                                0x00400011
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x00400009
+#define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000A
+#define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000B
+#define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000C
+#define DSL_RESULT_PLAYER_FAILED_TO_STOP                            0x0040000D
+#define DSL_RESULT_PLAYER_RENDER_FAILED_TO_PLAY_NEXT                0x0040000E
+#define DSL_RESULT_PLAYER_SET_FAILED                                0x0040000F
 
 /**
  * SMTP Mailer API Return Values
@@ -650,6 +648,11 @@ THE SOFTWARE.
 #define DSL_TLS_CERTIFICATE_VALIDATE_ALL                            0x0000007f
 
 /**
+ @brief default UDP buffer size for RTSP Media Factory launc settings
+  */
+#define DSL_DEFAULT_UDP_BUFER_SIZE                                  (512*1024)
+
+/**
  * @brief Predefined Color Constants - rows 1 and 2.
  */
 #define DSL_COLOR_PREDEFINED_BLACK                                  0
@@ -809,15 +812,19 @@ THE SOFTWARE.
 #define DSL_STREAMMUX_1K_HD_WIDTH                                   1920
 #define DSL_STREAMMUX_1K_HD_HEIGHT                                  1080
 
-#define DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT                         40000
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
+
+#define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
+#define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
 
 #define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
 #define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
+
+#define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
 
 #define DSL_BBOX_POINT_CENTER                                       0
 #define DSL_BBOX_POINT_NORTH_WEST                                   1
@@ -1533,32 +1540,32 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
 
 /**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. 
- * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow KeyRelease events.
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_key_event_handler_cb)(const wchar_t* key, void* client_data);
+typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. 
- * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow ButtonPress events.
  * @param[in] button button 1 through 5 including scroll wheel up and down
  * @param[in] xpos from the top left corner of the window
  * @param[in] ypos from the top left corner of the window
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_button_event_handler_cb)(uint button, 
+typedef void (*dsl_sink_window_button_event_handler_cb)(uint button, 
     int xpos, int ypos, void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow Delete Message event handler function. 
- * Once added to a Pipeline, the function will be called when the Pipeline receives 
+ * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow Delete Message event.
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_xwindow_delete_event_handler_cb)(void* client_data);
+typedef void (*dsl_sink_window_delete_event_handler_cb)(void* client_data);
 
 
 /**
@@ -1953,7 +1960,7 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
     const wchar_t* bg_color);
 
 /**
- * @brief Creates a uniquely named Source Number Display Type.
+ * @brief Creates a uniquely named Source Unique-Id Display Type.
  * @param[in] name unique name of the Display Type.
  * @param[in] x_offset starting x positional offset.
  * @param[in] y_offset starting y positional offset.
@@ -1963,9 +1970,24 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on successful creation, one of 
  * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
  */
-DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
+DslReturnType dsl_display_type_source_unique_id_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color);
+    
+/**
+ * @brief Creates a uniquely named Source Stream-Id Display Type.
+ * @param[in] name unique name of the Display Type.
+ * @param[in] x_offset starting x positional offset.
+ * @param[in] y_offset starting y positional offset.
+ * @param[in] font RGBA font to use for the display text.
+ * @param[in] hasBgColor set to true to enable bacground color, false otherwise.
+ * @param[in] bg_color RGBA Color for the Text background if set.
+ * @return DSL_RESULT_SUCCESS on successful creation, one of 
+ * DSL_RESULT_DISPLAY_TYPE_RESULT otherwise.
+ */
+DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color); 
     
 /**
  * @brief Creates a uniquely named Source Name Display Type.
@@ -2366,12 +2388,58 @@ DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
 DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Pause ODE Action
- * @param[in] name unique name for the Pause ODE Action 
+ * @brief Creates a uniquely named Pause Pipeline ODE Action
+ * @param[in] name unique name for the Pause Pipeline ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline);
+DslReturnType dsl_ode_action_pipeline_pause_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Play Pipeline ODE Action
+ * @param[in] name unique name for the Play Pipeline ODE Action 
+ * @param[in] pipeline unique name of the Pipeline to Play on ODE occurrence.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pipeline_play_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Stop Pipeline ODE Action
+ * @param[in] name unique name for the Stop Pipeline ODE Action 
+ * @param[in] pipeline unique name of the Pipeline to Stop on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pipeline_stop_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Pause Player ODE Action
+ * @param[in] name unique name for the Pause Player ODE Action 
+ * @param[in] player unique name of the Player to Pause on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_pause_new(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
+ * @brief Creates a uniquely named Play Player ODE Action
+ * @param[in] name unique name for the Play Player ODE Action 
+ * @param[in] player unique name of the Player to Play on ODE occurrence.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_play_new(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
+ * @brief Creates a uniquely named Stop Player ODE Action
+ * @param[in] name unique name for the Stop Player ODE Action 
+ * @param[in] player unique name of the Player to Stop on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_stop_new(const wchar_t* name, 
+    const wchar_t* player);
 
 /**
  * @brief Creates a uniquely named Print ODE Action
@@ -2559,6 +2627,52 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
  */
 DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
     const wchar_t* tiler, uint timeout, boolean has_precedence);
+
+/**
+ * @brief Creates a uniquely named Add Branch Action that adds a named Branch
+ * (or Sink) to a named Demuxer or Splitter Tee.
+ * @param[in] name unique name for the ODE Add Branch Action 
+ * @param[in] tee unique name of the Demuxer or Splitter to add the Branch to.
+ * @param[in] Branch unique name of the Branch to add to the Tee
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_add_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named "Add-Branch-To" Action that adds a named Branch
+ * (or Sink) to a named Demuxer Tee at the current stream-id of the frame-metadata/
+ * object/meta-data that Triggered the Object Detection Event.
+ * @param[in] name unique name for the ODE "Add-Branch-To" Action 
+ * @param[in] tee unique name of the Demuxer to add the Branch to.
+ * @param[in] Branch unique name of the Branch to add to the Demuxer.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_add_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named "Move-Branch-To" Action that moves a named Branch
+ * (or Sink) connected to a Demuxer to the current stream-id of the frame-metadata/
+ * object/meta-data that Triggered the Object Detection Event -- of the same Demuxer.
+ * @param[in] name unique name for the ODE "Move-Branch-To" Action 
+ * @param[in] tee unique name of the Demuxer to Move the Branch within.
+ * @param[in] Branch unique name of the Branch to move within the Demuxer.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_move_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named Remove Branch Action that removes a named Branch
+ * (or Sink) from a named Demuxer or Splitter Tee.
+ * @param[in] name unique name for the ODE Remove Action 
+ * @param[in] tee unique name of the Demuxer or Splitter to remove from the Branch from.
+ * @param[in] Branch unique name of the Branch to add to the Tee.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
 
 /**
  * @brief Gets the current enabled setting for the ODE Action
@@ -4657,8 +4771,45 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
  * connection is lost. Set to 0 to disable timeout.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
-    uint skip_frames, uint drop_frame_interval, uint latency, uint timeout);
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
+    const wchar_t* uri, uint protocol, uint skip_frames, uint drop_frame_interval, 
+    uint latency, uint timeout);
+
+/**
+ * @brief Creates a new, uniquely name Duplicate Source used to duplicate the stream 
+ * of another named Video Source. Both the Duplicate Source and the Original Source
+ * must be added to the same Pipeline. The Duplicate Source will be Tee'd into the
+ * Original Source prior to the source's output-buffer video converter and caps filter.
+ * (built into every Video Source). The Duplicate Source, as a Video Source, will have
+ * its own buffer-out video converter and caps filter as well. Meaning both sources
+ * have independent control over their buffer-out formatting, dimensions, frame-rate, 
+ * orientation, and cropping.
+ * @param name unique name for the new Duplicate Source
+ * @param original unique name of the Original Source to duplicate.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original);
+
+/**
+ * @brief Gets the unique name of the Original Source for the named Duplicate Source
+ * @param[in] name unique name of the Duplicate Source to query
+ * @param[out] original unique name of the current Original Source in use by the
+ * named Duplicate Source
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
+    const wchar_t** original);
+
+/**
+ * @brief Sets the Original Source, unique name, for the named Duplicate Source 
+ * to use.
+ * @param[in] name unique name of the Duplicate Source to query
+ * @param[in] original unique name of the new Original Source for this Duplicate 
+ * Source to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_duplicate_original_set(const wchar_t* name, 
+    const wchar_t* original);
 
 /**
  * @brief Adds a pad-probe-handler to the Source Pad of a named Source. 
@@ -4988,12 +5139,42 @@ DslReturnType dsl_source_rtsp_tap_add(const wchar_t* name, const wchar_t* tap);
 DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name);
 
 /**
+ * @brief Gets the unique-id assigned to the Source component once added
+ * to a Pipeline. The unique source-id will be derived from the 
+ * (unique pipeline-id << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) | 
+ *      unique Streammuxer stream-id (stream-id == pad-id) for the named source.
+ * @param[in] name unique name of the Source component to query
+ * @param[out] unique_id unique Source Id as assigned by the Pipeline.
+ * The Source's unique id will be set to -1 when unassigned (i.e. not added 
+ * to a Pipeline).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id);
+
+/**
+ * @brief Gets the stream-id assigned to the Source component once added
+ * to a Pipeline. The 0-based stream-id is assigned to each Source by the 
+ * Pipeline according to the order they are added.
+ * Note: the stream-id will be equal to the Streammuxer sink pad-id connected
+ * to the Source Component once linked-up and playing.
+ * IMPORTANT: If a source is dynamically removed (while the Pipeline is playing)
+ * and a new Source is added, the stream-id (and sink-pad) will be reused.
+ * @param[in] name unique name of the Source component to query.
+ * @param[out] stream_id stream-id as assigned by the Pipeline.
+ * The Source's stream id will be set to -1 when unassigned (i.e. not added 
+ * to a Pipeline).
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_stream_id_get(const wchar_t* name, int* stream_id);
+
+/**
  * @brief returns the name of a Source component from a unique Source Id
- * @param[in] source_id unique Source Id to check for
+ * @param[in] unique_id unique source-id to check for. Must be a valid
+ * assigned source-id and not -1.
  * @param[out] name the name of Source component if found
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name);
+DslReturnType dsl_source_name_get(uint unique_id, const wchar_t** name);
 
 /**
  * @brief pauses a single Source object if the Source is 
@@ -5878,9 +6059,11 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
  * @param[in] name unique name for the new Stream Demuxer Tee
+ * @param[in] max_branches maximum number of branches that can be
+ * added/connected to this Demuxer, before or during Pipeline play.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
-DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
@@ -5888,8 +6071,47 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
+    uint max_branches, const wchar_t** branches);
 
+/**
+ * @brief Adds a single Branch to a specific stream of a named Demuxer Tee 
+ * @param[in] name name of the Dumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ */
+DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+
+/**
+ * @brief Moves a single Branch to a specific stream of a named Demuxer Tee.
+ * This service will fail if the Branch is not currently added to the Demuxer.
+ * @param[in] name name of the Dumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ */
+DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+
+/**
+ * @brief Gets the current max-branches setting for the named Deumuxer Tee
+ * @param[in] name name of the Demuxer Tee to query
+ * @param[out] max_branches current setting for max-branches
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
+    uint* max_branches);
+
+/**
+ * @brief Sets the max-branches setting for the named Deumuxer Tee to use.
+ * @param[in] name name of the Demuxer Tee to update
+ * @param[in] max_branches new setting for max-branches
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
+    uint max_branches);
 
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
@@ -5904,7 +6126,8 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name);
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
-DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches);
 
 /**
  * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
@@ -5952,6 +6175,37 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
  */
 DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
+
+/**
+ * @brief Gets the current blocking-timeout for the named Demuxer Tee. 
+ * The timeout controls the amount of time the demuxer will wait for a 
+ * blocking PPH to be called to dynamically link or unlink a branch at
+ * runtime while the Pipeline is playing. The default = 1s. This value
+ * will need to be extended it he frame-rate for the stream is less than 1 fps.
+ * The timeout is needed in case the Source upstream has been removed or is in
+ * a bad state in which case the pad callback will never be called.
+ * @param[in] name name of the Demuxer Tee to query
+ * @param[out] timeout current timeout value in units of seconds. 
+ * Default = DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
+    uint* timeout);
+
+/**
+ * @brief Sets the blocking-timeout for the named Demuxer Tee to use. 
+ * The timeout controls the amount of time the demuxer will wait for a 
+ * blocking PPH to be called to dynamically link or unlink a branch at
+ * runtime while the Pipeline is playing. The default = 1s. This value
+ * will need to be extended it he frame-rate for the stream is less than 1 fps.
+ * The timeout is needed in case the Source upstream has been removed or is in
+ * a bad state in which case the pad callback will never be called.
+ * @param[in] name name of the Demuxer Tee to query
+ * @param[in] timeout new timeout value in units of seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ */
+DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
+    uint timeout);
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
@@ -6157,7 +6411,7 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
 /**
  * @brief creates a new, uniquely named Ovelay Sink component
  * @param[in] name unique component name for the new Overlay Sink
- * @param[in] display_id unique display ID for this Overlay Sink
+ * @param[in] display_id Id of the display to overlay, 0 = main display
  * @param[in] depth overlay depth for this Overlay Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels
@@ -6169,7 +6423,7 @@ DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
     uint depth, uint offset_x, uint offset_y, uint width, uint height);
 
 /**
- * @brief creates a new, uniquely named Window Sink component
+ * @brief Creates a new, uniquely named Window Sink component
  * @param[in] name unique component name for the new Overlay Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels
@@ -6181,11 +6435,38 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
     uint offset_x, uint offset_y, uint width, uint height);
 
 /**
+ * @brief Gets the named Window Sinks's current XWindow handle. The handle will 
+ * be NULL until one is created on Pipeline play, or provided prior to play by 
+ * calling dsl_sink_window_handle_set.
+ * @param[in] name name of the Window Sink to query
+ * @param[out] handle XWindow handle currently in use. NULL if none 
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
+
+/**
+ * @brief Sets the named Window Sink's current XWindow handle. The handle will 
+ * be NULL until one is created on Pipeline play, or provided prior to play by 
+ * calling this services.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] handle XWindow handle to use on Pipeline play.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
+
+/**
+ * @brief clears the named Window Sinks's XWindow.
+ * @param[in] name name of the Window Sink to update.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_clear(const wchar_t* name);
+
+/**
  * @brief Gets the current "force-aspect-ration" property setting for the 
- * named Window Sink
- * @param[in] name unique name of the Window Sink to query
- * @param[out] force true if the apect ratio is forced, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * named Window Sink.
+ * @param[in] name unique name of the Window Sink to query.
+ * @param[out] force true if the apect ratio is forced, false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force);
@@ -6194,10 +6475,92 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
  * @brief Sets the "force-aspect-ration" property for the named Window Sink
  * @param[in] name unique name of the Window Sink to update
  * @param[in] force set to true to force the apect ratio, false otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
     boolean force);
+
+/**
+ * @brief Gets the current full-screen-enabled setting for the named Window Sink
+ * @param[in] name name of the Window Sink to query
+ * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
+  * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+*/
+DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the full-screen-enabled setting for the named Window Sink to use.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] enabled if true, sets the XWindow to full-screen on creation.
+ * The service will fail if called after the XWindow has been created.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief adds a callback to a named Window Sink to be notified on Window 
+ * KeyRelease events.
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to handle Window key events.
+ * @param[in] client_data pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback from a named Window Sink previously added with 
+ * dsl_sink_window_key_event_handler_add.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] handler pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler);
+
+/**
+ * @brief Adds a callback to a named Window Sink be notified on Window 
+ * ButtonPress Event
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to handle Window button events.
+ * @param[in] client_data pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback from a named Window Sink previously added with 
+ * dsl_sink_window_button_event_handler_add
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */ 
+DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler);
+
+/**
+ * @brief Adds a callback to a named Window Sink to be notified on Window 
+ * Delete message event
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to handle a Window Delete event.
+ * @param[in] client_data pointer to client data passed back to the handler function.
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler, void* client_data);
+
+/**
+ * @brief removes a callback from a named Window Sink previously added with 
+ * dsl_sink_window_delete_event_handler_add
+ * @param[in] name name of the Window Sink to update
+ * @param[in] handler pointer to the client's function to remove
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler);
 
 /**
  * @brief returns the current X and Y offsets for the Render Sink
@@ -6880,6 +7243,84 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     const wchar_t* connection_string, const wchar_t* topic);
 
 /**
+ * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
+ * the Sink will synchronize on the clock.
+ * @param[in] name unique name of the Sink to query
+ * @param[out] enabled the current setting for the Sink's "sync" property
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "sync" enabled setting for the named Sink. If enabled
+ * the Sink will synchronize on the clock.
+ * @param[in] name unique name of the Sink to update.
+ * @param[in] enabled set to true to enable the Sink's "sync" property, 
+ * false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Gets the current "async" enabled setting for the named Sink. If enabled
+ * the Sink will go asynchronously to PAUSED,
+ * @param[in] name unique name of the Sink to query.
+ * @param[out] enabled the current setting for the Sink's "async" property.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "async" enabled setting for the named Sink. If enabled
+ * the Sink will go asynchronously to PAUSED,
+ * @param[in] name unique name of the Sink to update.
+ * @param[in] enabled set to true to enable the Sink's "async" property, 
+ * false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Gets the current "max-lateness" setting for the named Sink.
+ * Max-lateness == the maximum number of nanoseconds that a buffer can be late before
+ * it is dropped (-1 unlimited).
+ * @param[in] name unique name of the Sink to query.
+ * @param[out] max_lateness the current setting for the Sink's "max-lateness" property.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_max_lateness_get(const wchar_t* name, int64_t* max_lateness);
+
+/**
+ * @brief Sets the "max-lateness" setting for the named Sink
+ * Max-lateness == the maximum number of nanoseconds that a buffer can be late before
+ * it is dropped (-1 unlimited).
+ * @param[in] name unique name of the Sink to update
+ * @param[in] max_lateness the maximum number of nanoseconds a buffer can be late.
+ * Set to -1 for unlimited lateness.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_max_lateness_set(const wchar_t* name, int64_t max_lateness);
+
+/**
+ * @brief Gets the current "qos" enabled setting for the named Sink. If enabled, the
+ * sink will generate Quality-of-Service events upstream.
+ * @param[in] name unique name of the Sink to query.
+ * @param[out] enabled the current setting for the Sink's "qos" property.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the "qos" enabled setting for the named Sink.  If enabled, the
+ * sink will generate Quality-of-Service events upstream.
+ * @param[in] name unique name of the Sink to update
+ * @param[in] enabled set to true to enable the Sink's "qos" property, 
+ * false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
  * @param[in] name unique name of the Sink to update
@@ -6895,22 +7336,6 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
-
-/**
- * @brief Gets the current settings for the "sync" attribute for the named Sink
- * @param[in] name unique name of the Sink to query
- * @param[out] enabled the current setting for the Sink's "sync" attribute
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled);
-
-/**
- * @brief Sets the "sync" attribute for the named Sink
- * @param[in] name unique name of the Sink to update
- * @param[in] enabled set to true to enable the Sink's "sync" attribute, false otherwise.
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
  * @brief deletes a Component object by name
@@ -7166,23 +7591,24 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
  * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
  * @param[in] name unique name of the Pipeline to query
  * @param[out] batch_size the current batch size in use.
- * @param[out] batch_timeout the current batch timeout in use.
+ * @param[out] batch_timeout the current batch timeout in use. 
+ * Default = -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout);
+    uint* batch_size, int* batch_timeout);
 
 /**
  * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
  * @param[in] name unique name of the Pipeline to update.
  * @param[out] batch_size the new batch size to use.
- * @param[out] batch_timeout the new batch timeout to use.
+ * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout);
+    uint batch_size, int batch_timeout);
 
 /**
  * @brief Queries the named Pipeline's stream-muxer for its current output dimensions.
@@ -7206,7 +7632,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name,
  * @brief returns the current setting - enabled/disabled - for the Streammux padding
  * property for the named Pipeline.
  * @param[in] name name of the Display to query
- * @param[out] enable true if the aspect ration is fixed, false if not
+ * @param[out] enable true if the padding property is enabled, false if not
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
  */
 DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
@@ -7216,7 +7642,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name,
  * @brief updates the current setting - enabled/disabled - for Streammux padding
  * property for the name Pipeline.
  * @param[in] name name of the Pipeline to update
- * @param[out] enable set true to fix the aspect ratio, false to disable
+ * @param[out] enable set true to enable the padding property, false to disable.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
@@ -7246,6 +7672,27 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
     const wchar_t* name, uint num);
 
 /**
+ * @brief Returns the current setting - enabled/disabled - for the Streammux
+ * sync-inputs property for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the sync-inputs property is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current setting - enabled/disabled - for Streammux
+ * sync-inputs property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
  * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
  * @param[in] name name of the Pipeline to query
  * @param[out] gpuid current GPU ID setting
@@ -7262,6 +7709,27 @@ DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+
+/**
+ * @brief Returns the current setting - enabled/disabled - for the Streammux
+ * sync-inputs property for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the sync-inputs property is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current setting - enabled/disabled - for Streammux
+ * sync-inputs property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled);
 
 /**
  * @brief adds a named Tiler to a named Pipeline's Stream-Muxer output.
@@ -7412,136 +7880,6 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener);
-
-/**
- * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
- * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Pipeline to query
- * @param[out] xwindow XWindow handle currently in use. NULL if none 
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
-
-/**
- * @brief gets the Pipeline's current XWindow handle. The handle will be NULL until one
- * is created on Pipeline play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Pipeline to update
- * @param[in] xwindow XWindow handle to use on Pipeline play. Requires a Window Sink
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* name, uint64_t window);
-
-/**
- * @brief clears the Pipeline's XWindow
- * @param[in] name name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* name);
-
-/**
- * @brief destroys the Pipeline's XWindow if one exists and was not provided by the
- * client with an earlier call to dsl_pipeline_xwindow_handle_set
- * @param[in] name name of the pipeline to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* name);
-
-/**
- * @brief gets the current Pipeline XWindow Offsets. X and Y offsets will return 0
- * prior to window creation which occurs when the Pipeline is played. 
- * @param[in] name name of the pipeline to query
- * @param[out] x_offset offset in the x direction of the XWindow in pixels
- * @param[out] x_offset offset in the Y direction of the XWindow in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* name, 
-    uint* x_offset, uint* y_offset);
-
-/**
- * @brief gets the current Pipeline XWindow dimensions. 
- * @param[in] name name of the pipeline to query
- * @param[out] width width of the XWindow in pixels
- * @param[out] heigth height of the Window in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
-
-/**
- * @brief gets the current full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] name name of the pipeline to query
- * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* name, 
-    boolean* enabled);
-
-/**
- * @brief sets the full-screen-enabled setting for the Pipeline's XWindow
- * @param[in] name name of the pipeline to update
- * @param[in] enabled if true, sets the XWindow to full-screen on creation.
- * The service will fail if called after the XWindow has been created.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
- */
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* name, 
-    boolean enabled);
-
-/**
- * @brief adds a callback to be notified on XWindow KeyRelease Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to handle XWindow key events.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler);
-
-/**
- * @brief adds a callback to be notified on XWindow ButtonPress Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to call to handle XWindow button events.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_button_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_button_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_button_event_handler_cb handler);
-
-/**
- * @brief adds a callback to be notified on XWindow Delete Message Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to call to handle XWindow Delete event.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_delete_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_delete_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
- */
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_delete_event_handler_cb handler);
 
 /**
  * @brief Creates a new main-context and main-loop for a named Pipeline. This service
@@ -7745,43 +8083,6 @@ DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name, 
     dsl_player_termination_event_listener_cb listener);
-
-/**
- * @brief gets the Player's current XWindow handle. The handle will be NULL until one
- * is created on Player play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Player to query
- * @param[out] xwindow XWindow handle currently in use. NULL if none 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
-
-/**
- * @brief gets the Players's current XWindow handle. The handle will be NULL until one
- * is created on Player play, or provided prior to play by calling xwindow handle set.
- * @param[in] name name of the Player to update
- * @param[in] xwindow XWindow handle to use on Player play. Requires a Window Sink
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_handle_set(const wchar_t* name, uint64_t window);
-
-/**
- * @brief adds a callback to be notified on XWindow KeyRelease Event
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to handle XWindow key events.
- * @param[in] client_data opaque pointer to client data passed into the handler function.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data);
-
-/**
- * @brief removes a callback previously added with dsl_pipeline_xwindow_key_event_handler_add
- * @param[in] name name of the pipeline to update
- * @param[in] handler pointer to the client's function to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PLAYER_RESULT otherwise.
- */
-DslReturnType dsl_player_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler);
 
 /**
  * @brief Plays a Player if in a state of NULL or Paused

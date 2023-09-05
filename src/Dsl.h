@@ -63,8 +63,10 @@ THE SOFTWARE.
 #include <geos_c.h>
 #include <curl/curl.h>
 
+#include "DslUtilities.h"
 #include "DslLog.h"
 #include "DslMutex.h"
+#include "DslCond.h"
 
 
 #endif // _DSL_H

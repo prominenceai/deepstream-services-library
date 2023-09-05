@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslBintr.h"
 #include "DslPipelineStateMgr.h"
-#include "DslPipelineXWinMgr.h"
+#include "DslPipelineBusSyncMgr.h"
 
 namespace DSL
 {
@@ -56,7 +56,7 @@ namespace DSL
             filePath, renderType, offsetX, offsetY, zoom, timeout))    
     
     class PlayerBintr : public Bintr, public PipelineStateMgr,
-        public PipelineXWinMgr
+        public PipelineBusSyncMgr
     {
     public: 
     
@@ -191,16 +191,9 @@ namespace DSL
         DSL_BINTR_PTR m_pSink;
     
         /**
-         * @brief Mutex to protect the async GCond used to synchronize
-         * the Application thread with the mainloop context on
-         * asynchronous change of pipeline state.
-         */
-        GMutex m_asyncCommMutex;
-        
-        /**
          * @brief Mutex to support reentrency of the Play-Next process
          */
-        GMutex m_playNextMutex;
+        DslMutex m_playNextMutex;
         
         /**
          * @brief flag to tell the HandlePlay function to clear the Play-Next
@@ -359,7 +352,7 @@ namespace DSL
         /**
          * @brief mutual exclusion over the file path queue.
          */
-        GMutex m_filePathQueueMutex;
+        DslMutex m_filePathQueueMutex;
         
     };
 

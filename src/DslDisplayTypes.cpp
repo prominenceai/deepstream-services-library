@@ -27,28 +27,6 @@ THE SOFTWARE.
 
 namespace DSL
 {
-
-//            name='Black', red=0, green= 0, blue=0, 
-//            name='Gray-50%', red=127, green= 127, blue=127, 
-//            name='Dark-red', red=136, green= 0, blue=21, 
-//            name='Red', red=237, green= 28, blue=36, 
-//            name='Orange', red=255, green= 127, blue=39, 
-//            name='Yellow', red=255, green=242, blue=0, 
-//            name='Green', red=34, green=177, blue=76, 
-//            name='Turquoise', red=0, green=162, blue=232, 
-//            name='Indigo', red=63, green=72, blue=204, 
-//            name='Purple', red=163, green=73, blue=164, 
-//            name='White', red=255, green=255, blue=255, 
-//            name='Gray-25', red=195, green=195, blue=195, 
-//            name='Brown', red=185, green=122, blue=87, 
-//            name='Rose', red=255, green=174, blue=201, 
-//            name='Gold', red=255, green=201, blue=14, 
-//            name='Light yellow', red=239, green=228, blue=176, 
-//            name='Lime', red=181, green= 230, blue=29, 
-//            name='Light turquoise', red=153, green= 217, blue=234, 
-//            name='Blue-gray', red=112, green=146, blue=190, 
-//            name='Lavender', red=200, green=191, blue=231, 
-
     std::map<uint, NvOSD_ColorParams> RgbaPredefinedColor::s_predefinedColors = {
         {DSL_COLOR_PREDEFINED_BLACK,            {0.0,   0.0,   0.0,   0.0}},
         {DSL_COLOR_PREDEFINED_GRAY_50,          {0.498, 0.498, 0.498, 0.0}},
@@ -143,24 +121,18 @@ namespace DSL
                 }
             }
         };
-
  
    // ********************************************************************
-
     
     DisplayType::DisplayType(const char* name)
         : Base(name)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_propertyMutex);
     }
 
     DisplayType::~DisplayType()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_propertyMutex);
     }
 
     inline void DisplayType::Lock()
@@ -870,7 +842,7 @@ namespace DSL
     
     // ********************************************************************
 
-    SourceNumber::SourceNumber(const char* name, 
+    SourceUniqueId::SourceUniqueId(const char* name, 
         uint x_offset, uint y_offset, DSL_RGBA_FONT_PTR pFont, 
         bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : RgbaText(name, "", x_offset, y_offset, pFont, hasBgColor, pBgColor)
@@ -878,17 +850,43 @@ namespace DSL
         LOG_FUNC();
     }
 
-    SourceNumber::~SourceNumber()
+    SourceUniqueId::~SourceUniqueId()
     {
         LOG_FUNC();
     }
 
-    void SourceNumber::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+    void SourceUniqueId::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
         NvDsFrameMeta* pFrameMeta) 
     {
 //        LOG_FUNC();
 
-        m_text = std::to_string(pFrameMeta->source_id);
+        m_text = int_to_hex(pFrameMeta->source_id);
+
+        RgbaText::AddMeta(displayMetaData, pFrameMeta);
+    }
+
+    // ********************************************************************
+
+    SourceStreamId::SourceStreamId(const char* name, 
+        uint x_offset, uint y_offset, DSL_RGBA_FONT_PTR pFont, 
+        bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
+        : RgbaText(name, "", x_offset, y_offset, pFont, hasBgColor, pBgColor)
+    {
+        LOG_FUNC();
+    }
+
+    SourceStreamId::~SourceStreamId()
+    {
+        LOG_FUNC();
+    }
+
+    void SourceStreamId::AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta) 
+    {
+//        LOG_FUNC();
+
+        m_text = std::to_string(pFrameMeta->source_id & 
+            DSL_PIPELINE_SOURCE_STREAM_ID_MASK);
 
         RgbaText::AddMeta(displayMetaData, pFrameMeta);
     }

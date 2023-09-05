@@ -232,7 +232,7 @@ protected:
          * @brief Mutex to protect Start and Stop Session services that can
          * be called by multiple threads; Actions, Users, Callbacks, etc.
          */
-        GMutex m_recordMgrMutex;
+        DslMutex m_recordMgrMutex;
         
         /**
          * @brief gnome timer Id for the asynchronous "start-session" client notification.

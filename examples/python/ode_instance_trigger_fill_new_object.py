@@ -97,7 +97,7 @@ def main(args):
         # the new Object will filled with a color for a (brief) visual indication,
         # with event data printed to the console for each
         
-        #```````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         # Create a Format Label Action to remove the Object Label from view
         # Note: the label can be disabled with the OSD API as well. 
         retval = dsl_ode_action_label_format_new('remove-label', 
@@ -112,8 +112,9 @@ def main(args):
             break
 
         # Create an Any-Class Occurrence Trigger for our Hide Action
-        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
+            source='uri-source-1', class_id=DSL_ODE_ANY_CLASS, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
@@ -121,19 +122,21 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         # Create two new RGBA fill colors to fill the bounding boxes of new objects
-        retval = dsl_display_type_rgba_color_custom_new('solid-red', red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('solid-red', 
+            red=1.0, green=0.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_custom_new('solid-white', red=1.0, green=1.0, blue=1.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('solid-white', 
+            red=1.0, green=1.0, blue=1.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        #```````````````````````````````````````````````````````````````````````````````````
-        # Create two new Actions to fill the bounding boxes, one for the PERSON class, the
-        # other for the VEHICLE class.
+        #`````````````````````````````````````````````````````````````````````````````
+        # Create two new Actions to fill the bounding boxes, one for the PERSON class, 
+        # the other for the VEHICLE class.
         retval = dsl_ode_action_bbox_format_new('fill-person-action',
             border_width = 0,
             border_color = None,
@@ -155,28 +158,31 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````
-        # Create two new Instance triggers, one for the PERSON class, the other for the VEHICLE class.
-        retval = dsl_ode_trigger_instance_new('person-instance-trigger', source='uri-source-1',
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        #`````````````````````````````````````````````````````````````````````````````
+        # Create two new Instance triggers, one for the PERSON class, the other 
+        # for the VEHICLE class.
+        retval = dsl_ode_trigger_instance_new('person-instance-trigger', 
+            source='uri-source-1', class_id=PGIE_CLASS_ID_PERSON, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', source='uri-source-1',
-            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', 
+            source='uri-source-1', class_id=PGIE_CLASS_ID_VEHICLE, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Override the default behavior of the instance triggers to trigger for 10 consecutive 
-        # ODE occurrences... suppression-count=0 (defualt) means suppress indefinitely once 
-        # the instance-count has been reached. 
+        # Override the default behavior of the instance triggers to trigger for 
+        # 10 consecutive ODE occurrences... suppression-count=0 (defualt) means 
+        # suppress indefinitely once the instance-count has been reached. 
         retval = dsl_ode_trigger_instance_count_settings_set('person-instance-trigger', 
             instance_count=10, suppression_count=0)
 
         retval = dsl_ode_trigger_instance_count_settings_set('person-instance-trigger', 
             instance_count=10, suppression_count=0)
 
-        #```````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         # Next, we add our Actions to our Triggers
         retval = dsl_ode_trigger_action_add_many('person-instance-trigger',
             actions=['fill-person-action', 'print-data', None])
@@ -187,7 +193,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         # New ODE Handler to handle all ODE Triggers    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
@@ -198,7 +204,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        ####################################################################################
+        ##############################################################################
         #
         # Create the remaining Pipeline components
         
@@ -218,49 +224,48 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # Add our ODE Pad Probe Handler to the source pad of the Tracker
+        retval = dsl_osd_pph_add('on-screen-display', 
+            handler='ode-handler', pad=DSL_PAD_SRC)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Window Sink, 0 x/y offsets and dimensions definded
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'primary-gie', 'iou-tracker', 'tiler', 
+            ['uri-source-1', 'primary-gie', 'iou-tracker', 
             'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

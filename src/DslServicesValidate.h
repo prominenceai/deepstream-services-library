@@ -187,7 +187,8 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
         !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
-        !components[name]->IsType(typeid(RtspSourceBintr))) \
+        !components[name]->IsType(typeid(RtspSourceBintr)) and \
+        !components[name]->IsType(typeid(DuplicateSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Source"); \
         return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
@@ -307,8 +308,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
-        !components[name]->IsType(typeid(BranchBintr)) and \
-        !components[name]->IsType(typeid(DemuxerBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Branch type"); \
@@ -350,6 +350,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Sink"); \
@@ -415,7 +416,8 @@ THE SOFTWARE.
 { \
     if (!types[name]->IsType(typeid(RgbaText)) and \
         !types[name]->IsType(typeid(SourceDimensions)) and \
-        !types[name]->IsType(typeid(SourceNumber)) and \
+        !types[name]->IsType(typeid(SourceUniqueId)) and \
+        !types[name]->IsType(typeid(SourceStreamId)) and \
         !types[name]->IsType(typeid(SourceName))) \
     { \
         LOG_ERROR("Display Type '" << name << "' is not color type"); \

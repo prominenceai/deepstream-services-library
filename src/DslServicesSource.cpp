@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2032, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -12,6 +12,7 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in-
 all copies or substantial portions of the Software.
+
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -1526,11 +1527,160 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New RTSP Source '" << name << "' threw exception on create");
+            LOG_ERROR("New RTSP Source '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
 
+    DslReturnType Services::SourceDuplicateNew(const char* name, 
+        const char* original)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, original);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, original);
+
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            DSL_VIDEO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(m_components[original]);
+
+            // create the new Duplicate Source with is-live set to same
+            // value as the original source.
+            DSL_DUPLICATE_SOURCE_PTR pDuplicateSource = DSL_DUPLICATE_SOURCE_NEW(
+                name, original, pSourceBintr->IsLive());
+         
+            // add the Duplicate Source to the original Video Sour
+            if (!pSourceBintr->AddDuplicateSource(pDuplicateSource))
+            {
+                LOG_ERROR("Failed to add Duplicate Source  '" << name
+                    << " to Original Source '" << original << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            m_components[name] = pDuplicateSource;
+                
+            LOG_INFO("New Duplicate Source '" << name 
+                << "' added to Original Source '"
+                << original << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Duplicate Source '" << name 
+                << "' threw an exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceDuplicateOriginalGet(const char* name, 
+        const char** original)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                DuplicateSourceBintr);
+
+            DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr =
+                std::dynamic_pointer_cast<DuplicateSourceBintr>(
+                    m_components[name]);
+            *original = pDuplicateSourceBintr->GetOriginal();
+            
+            LOG_INFO("Duplicate Source '" << name 
+                << "' returned Original Source '" << *original 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Duplicate Source '" << name 
+                << "' threw an exception getting Original Source");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceDuplicateOriginalSet(const char* name, 
+        const char* original)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                DuplicateSourceBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, original);
+
+            DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr =
+                std::dynamic_pointer_cast<DuplicateSourceBintr>(
+                    m_components[name]);
+                
+            std::string oldOriginalSourceName = pDuplicateSourceBintr->
+                GetOriginal();
+                
+            // The only reason that original source name would be blank
+            // is if the original source was deleted. 
+            if (oldOriginalSourceName.size())
+            {
+                // This will always be true, but no harm in checking.
+                DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components,
+                    oldOriginalSourceName.c_str());
+                
+                DSL_VIDEO_SOURCE_PTR pOldOriginalSourceBintr = 
+                    std::dynamic_pointer_cast<VideoSourceBintr>(
+                        m_components[oldOriginalSourceName.c_str()]);
+                        
+                // Need to first remove the duplicate from the old-original
+                if (!pOldOriginalSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr))
+                {
+                    LOG_ERROR("Failed to remove Duplicate Source  '" << name
+                        << " from Original Source '" << oldOriginalSourceName << "'");
+                    return DSL_RESULT_SOURCE_SET_FAILED;
+                }
+            }
+            
+            DSL_VIDEO_SOURCE_PTR pNewOriginalSourceBintr = 
+                std::dynamic_pointer_cast<VideoSourceBintr>(
+                    m_components[original]);
+                
+            // add the Duplicate Source to the new original Video Source
+            if (!pNewOriginalSourceBintr->AddDuplicateSource(pDuplicateSourceBintr))
+            {
+                LOG_ERROR("Failed to add Duplicate Source  '" << name
+                    << " to Original Source '" << original << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            pDuplicateSourceBintr->SetOriginal(original);
+            
+            LOG_INFO("Duplicate Source '" << name 
+                << "' was updated with new Original Source '" << original 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Duplicate Source '" << name 
+                << "' threw an exception setting Original Source");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+   
     DslReturnType Services::SourcePphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
@@ -2068,7 +2218,7 @@ namespace DSL
             DSL_URI_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<UriSourceBintr>(m_components[name]);
 
-            if (!pSourceBintr->SetUri(uri));
+            if (!pSourceBintr->SetUri(uri))
             {
                 LOG_ERROR("Failed to Set URI '" << uri 
                     << "' for URI Source '" << name << "'");
@@ -2594,58 +2744,85 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::SourceNameGet(int sourceId, const char** name)
+    DslReturnType Services::SourceUniqueIdGet(const char* name, int* uniqueId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+
+            *uniqueId = pSourceBintr->GetUniqueId();
+            
+            LOG_INFO("Source '" << name 
+                << "' returned source-id = " << int_to_hex(*uniqueId));
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting unique source-id");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceStreamIdGet(const char* name, int* streamId)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+
+            DSL_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
+
+            // streammux source pad-id == stream-id for all sources
+            *streamId = pSourceBintr->GetRequestPadId();
+            
+            LOG_INFO("Source '" << name 
+                << "' returned stream-id = " << *streamId);
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting unique source-id");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceNameGet(int uniqueId, const char** name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_sourceNamesById.find(sourceId) != m_sourceNamesById.end())
+        if (m_sourceNamesById.find(uniqueId) != m_sourceNamesById.end())
         {
-            *name = m_sourceNamesById[sourceId].c_str();
+            *name = m_sourceNamesById[uniqueId].c_str();
             return DSL_RESULT_SUCCESS;
         }
         *name = NULL;
         return DSL_RESULT_SOURCE_NOT_FOUND;
     }
 
-    DslReturnType Services::SourceIdGet(const char* name, int* sourceId)
+    void Services::_sourceNameSet(const char* name, uint uniqueId)
     {
         LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        if (m_sourceIdsByName.find(name) != m_sourceIdsByName.end())
-        {
-            *sourceId = m_sourceIdsByName[name];
-            return DSL_RESULT_SUCCESS;
-        }
-        *sourceId = -1;
-        return DSL_RESULT_SOURCE_NOT_FOUND;
-    }
 
-    uint Services::_sourceNameSet(const char* name)
-    {
-        LOG_FUNC();
+        // called internally, do not lock mutex
         
-        
-       uint sourceId(0);
-        
-        // find the next available unused source-id
-        auto ivec = find(m_usedSourceIds.begin(), m_usedSourceIds.end(), false);
-        if (ivec != m_usedSourceIds.end())
-        {
-            sourceId = ivec - m_usedSourceIds.begin();
-            m_usedSourceIds[sourceId] = true;
-        }
-        else
-        {
-            sourceId = m_usedSourceIds.size();
-            m_usedSourceIds.push_back(true);
-        }            
-        
-        m_sourceNamesById[sourceId] = name;
-        m_sourceIdsByName[name] = sourceId;
-        
-        return sourceId;
+        m_sourceNamesById[uniqueId] = name;
+        m_sourceIdsByName[name] = uniqueId;
     }
 
     bool Services::_sourceNameErase(const char* name)
@@ -2659,10 +2836,9 @@ namespace DSL
             LOG_ERROR("Source '" << name << "' not found ");
             return false;
         }
-        
-        m_usedSourceIds[m_sourceIdsByName[name]] = false;
         m_sourceNamesById.erase(m_sourceIdsByName[name]);
         m_sourceIdsByName.erase(name);
+
         return true;
     }
 
@@ -2763,7 +2939,7 @@ namespace DSL
                 (m_components[name])->IsLive();
 
             LOG_INFO("Source '" << name << "' returned Is-Live = " << isLive );
-            return DSL_RESULT_SUCCESS;
+            return isLive;
         }
         catch(...)
         {

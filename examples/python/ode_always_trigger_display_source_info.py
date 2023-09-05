@@ -97,14 +97,6 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
         
-## 
-# Meter Sink client callback funtion
-## 
-def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
-    print('Meter Sink Callback called')
-    if new_state == DSL_STATE_PLAYING:
-        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-        
 
 def main(args):
 
@@ -112,37 +104,43 @@ def main(args):
     while True:
     
     
-        retval = dsl_display_type_rgba_color_custom_new('full-white', red=1.0, green=1.0, blue=1.0, alpha = 1.0)
+        retval = dsl_display_type_rgba_color_custom_new('full-white', 
+            red=1.0, green=1.0, blue=1.0, alpha = 1.0)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
-        retval = dsl_display_type_rgba_font_new('arial-14-white', font='arial', size=14, color='full-white')
+        retval = dsl_display_type_rgba_font_new('arial-14-white', 
+            font='arial', size=14, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
-        retval = dsl_display_type_source_number_new('source-number', 
-            x_offset=15, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+        retval = dsl_display_type_source_stream_id_new('souce-stream-id', 
+            x_offset=15, y_offset=20, font='arial-14-white', has_bg_color=False, 
+            bg_color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
         retval = dsl_display_type_source_name_new('source-name', 
-            x_offset=40, y_offset=20, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+            x_offset=40, y_offset=20, font='arial-14-white', has_bg_color=False, 
+            bg_color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
         retval = dsl_display_type_source_dimensions_new('dimensions', 
-            x_offset=15, y_offset=50, font='arial-14-white', has_bg_color=False, bg_color='full-white')
+            x_offset=15, y_offset=50, font='arial-14-white', has_bg_color=False, 
+            bg_color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
         # Create a new Action to display all the Source Info
         retval = dsl_ode_action_display_meta_add_many_new('add-source-info', display_types=
-            ['source-number', 'source-name', 'dimensions', None])
+            ['souce-stream-id', 'source-name', 'dimensions', None])
         if retval != DSL_RETURN_SUCCESS:
             return retval
             
         # Create an Always triger to overlay our Display Info on every frame
-        retval = dsl_ode_trigger_always_new('always-trigger', source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
+        retval = dsl_ode_trigger_always_new('always-trigger', 
+            source=DSL_ODE_ANY_SOURCE, when=DSL_ODE_PRE_OCCURRENCE_CHECK)
         if retval != DSL_RETURN_SUCCESS:
             return retval
 
@@ -159,7 +157,7 @@ def main(args):
             break
             
 
-        ############################################################################################
+        ##############################################################################
         #
         # Create the remaining Pipeline components
         # Four New URI File Sources
@@ -171,7 +169,8 @@ def main(args):
         dsl_source_uri_new('West Camera', uri_h265, False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', inferConfigFile, modelEngineFile, 4)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            inferConfigFile, modelEngineFile, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -201,6 +200,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['North Camera', 'South Camera', 'East Camera', 'West Camera', 
@@ -208,16 +217,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

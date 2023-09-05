@@ -87,6 +87,7 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play(components.pipeline)
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop(components.pipeline)
         dsl_pipeline_main_loop_quit(components.pipeline)
  
 ## 
@@ -98,6 +99,7 @@ def xwindow_delete_event_handler(client_data):
     components = cast(client_data, POINTER(py_object)).contents.value
 
     print('Pipeline EOS event received for', components.pipeline)
+    dsl_pipeline_stop(components.pipeline)
     dsl_pipeline_main_loop_quit(components.pipeline)
     
 
@@ -108,6 +110,7 @@ def eos_event_listener(client_data):
     components = cast(client_data, POINTER(py_object)).contents.value
 
     print('Pipeline EOS event received for', components.pipeline)
+    dsl_pipeline_stop(components.pipeline)
     dsl_pipeline_main_loop_quit(components.pipeline)
 
 ## 
@@ -136,6 +139,21 @@ def create_pipeline(client_data):
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
+    # Disable the sync property - which will disable QOS as well.
+    retval = dsl_sink_sync_enabled_set(client_data.sink, False)
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
+
+    # Add the XWindow event handler functions defined above to the Window Sink
+    retval = dsl_sink_window_key_event_handler_add(client_data.sink, 
+        xwindow_key_event_handler, client_data)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval    
+    retval = dsl_sink_window_delete_event_handler_add(client_data.sink, 
+        xwindow_delete_event_handler, client_data)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval    
+
     retval = dsl_pipeline_new_component_add_many(client_data.pipeline,
         components=[client_data.source, client_data.sink, None]);
     if (retval != DSL_RETURN_SUCCESS):    
@@ -145,16 +163,6 @@ def create_pipeline(client_data):
     retval = dsl_pipeline_streammux_dimensions_set(client_data.pipeline,
         source_width, source_height)
     if retval != DSL_RETURN_SUCCESS:
-        return retval    
-
-    # Add the XWindow event handler functions defined above
-    retval = dsl_pipeline_xwindow_key_event_handler_add(client_data.pipeline, 
-        xwindow_key_event_handler, client_data)
-    if (retval != DSL_RETURN_SUCCESS):    
-        return retval    
-    retval = dsl_pipeline_xwindow_delete_event_handler_add(client_data.pipeline, 
-        xwindow_delete_event_handler, client_data);
-    if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
     # Add the listener callback functions defined above
@@ -176,13 +184,6 @@ def create_pipeline(client_data):
 
 def delete_pipeline(client_data):
     global g_num_active_pipelines
-
-    print('stoping and deleting Pipeline', client_data.pipeline)
-        
-    # Stop the pipeline
-    retval = dsl_pipeline_stop(client_data.pipeline)
-    if (retval != DSL_RETURN_SUCCESS):    
-        return retval    
 
     print('deleting Pipeline', client_data.pipeline)
 

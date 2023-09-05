@@ -18,6 +18,7 @@
   * [ODE Areas](#ode-areas)
   * [ODE Line Crossing Analytics](#ode-line-crossing-analytics)
   * [ODE Heat Mapping](#ode-heat-mapping)
+* [Dynamic Pipelines](#dynamic-pipelines)
 * [Interpipe Services](#interpipe-services)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
@@ -121,17 +122,18 @@ There are seven categories of Components that can be added to a Pipeline, automa
 ## Sources
 Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of PLAYING. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream-Muxer -- as long as all Sources are of the same play-type; live vs. non-live with the ability to Pause. 
 
-There are ten (10) types of Source components supported, all are currently Video ony. Audio-Video and Video only Sources are in development.  
-* **App Source** - allows the application to insert raw samples or buffers into a DSL Pipeline.
+There are eleven (11) types of Source components supported, all are currently Video ony. Audio-Video and Audo only Sources are in development.  
+* **App Source** - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * **CSI Source** - Camera Serial Interface (CSI) Source - Jetson platform only.
 * **USB Source** - Universal Serial Bus (USB) Source.
 * **URI Source** - Uniform Resource Identifier ( URI ) Source.
 * **File Source** - Derived from URI Source with fixed inputs.
 * **RTSP Source** - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
-* **Interpipe Source** - receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
-* **Single Image Source** - single frame to EOS.
-* **Multi Image Source** - streamed at one image file per frame.
-* **Streaming Image Source** - single image streamed at a given frame rate.
+* **Interpipe Source** - Receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
+* **Single Image Source** - Single frame to EOS.
+* **Multi Image Source** - Streamed at one image file per frame.
+* **Streaming Image Source** - Single image streamed at a given frame rate.
+* **Duplicate Source** - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 
 All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components supports multiple codec formats, including H.264, H.265, and JPEG. 
 
@@ -693,6 +695,149 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 
 ---
 
+## Dynamic Pipelines
+All DSL Pipelines are designed to be _dynamic-pipelines_, where key components such as Sources, Branches, and Sinks can be added and removed while the Pipeline is playing -- as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. 
+
+This section covers the following use cases for dynamically updating DSL Pipelines.
+
+* [Dynamic Source updates when using a Tiler](#dynamic-source-updates-when-using-a-tiler).
+* [Dynamic Sink updates with a Pipeline or Branch](#dynamic-sink-updates-with-a-pipeline-or-branch).
+* [Dynamic Branch updates when using a Demuxer](#dynamic-branch-updates-when-using-a-demuxer).
+* [Dynamic Source and Branch updates when using a Demuxer](#dynamic-source-and-branch-updates-when-using-a-demuxer).
+* [Dynamic Source Stream selection when using a Tiler](#dynamic-source-stream-selection-when-using-a-tiler).
+* [Dynamic Pipeline and Player Automation using ODE Services](#dynamic-pipeline-and-player-automation-using-ode-services)
+
+### Dynamic Source updates when using a Tiler
+All Pipelines require at least one [Source component](/docs/api-source.md) in order to play. Once playing, additional Sources may be added and removed. The image below illustrates a typical inference pipeline -- with _Sources_, _Streammuxer_, _Primary Inference Engine_, _IOU Tracker_, _2D Tiler_, _On-Screen-Display_, and _Window Sink_ -- with three methods for dynamically adding and removing sources: 
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user (Window-Sink viewer) through keyboard input. 
+
+**IMPORTANT!** The Tiler's `columns` and `rows` properties should be set to accommodate the maximum number of Sources that will be added to the Pipeline. However, the Tiler will auto-reconfigure if a new source is added and it exceeds the space allocated for tiles.
+
+![](/Images/dynamic-source-with-tiler.png)
+
+#### Dynamic Source Updates by the Application
+The application adds Source components to the Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) in any Pipeline state: STOPPED, PLAYING, or PAUSED. The Application removes Source components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), as long as there is one Source while the Pipeline is in a state of PLAYING. 
+
+#### Dynamic Source Updates using ODE Services
+Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+
+#### Dynamic Source Updates by the End-User
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
+
+The following examples demonstrate how to add and remove Sources on keyboard input.
+* [`dynamically_add_remove_sources_with_tiler_window_sink.py`](/examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py)
+* [`dynamically_add_remove_sources_with_tiler_window_sink.cpp`](/examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp)
+
+<br>
+
+### Dynamic Sink updates with a Pipeline or Branch
+When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as shown in the image below, even if there is only one. This ensures that additional Sinks can be added (and removed) before, during or after the Pipeline is played (i.e. in any state).
+
+As with Sources, there are three methods of dynamically adding or removing Sinks. 
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user (Window-Sink viewer) through keyboard input. 
+
+![](/Images/dynamic-sinks-with-tiler.png)
+
+#### Dynamic Sink Updates by the Application
+The application adds Sink components to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) at any time. The Application removes Sink components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many).
+
+There are similar services for adding and removing Sinks to and from a Branch. See [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many)
+
+#### Dynamic Sink Updates using ODE Services
+Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services).An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+
+#### Dynamic Sink Updates by the End-User
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
+
+<br>
+
+### Dynamic Branch updates when using a Demuxer
+[Demuxer Tees](/docs/api-tee.md#demuxer-tee) demux the batched-stream -- batched together by the Pipeline's built-in Streammuxer -- into single-stream [Branches](/docs/api-branch.md). The stream-id for each Branch matches the [stream-id for the Source](/docs/api-source.md#stream-id) producing the stream.  The maximum number of Branches can be up to the maximum number of Sources. Branches can be added to the next available unconnected pad/stream, to a specific pad/stream specified by id, or moved from one pad/stream to another.
+
+**IMPORTANT!** When using a [Demuxer Tee](/docs/api-tee.md) , the maximum number of Branches must be specified prior to playing the Pipeline, a requirement imposed by NVIDIA's [nvstreamdemux](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) plugin. 
+
+**IMPORTANT!** When adding and removing Branches, a blocking pad-probe is added to block data from flowing to the Branch while linking or unlinking with the Demuxer. A [blocking-timeout](/docs/api-tee.md#constant-values) value is used to control the maximum amount of time the demuxer will wait for blocking pad-probe handler function to dynamically link or unlink the Branch. This value will need to be extended if the frame-rate for the stream is less than 2 fps. Refer to [`dsl_tee_blocking_timeout_set`](/docs/api-tee.md#dsl_tee_blocking_timeout_set) for more information. The timeout is required in case the Source upstream has been removed or is in a bad state in which case the pad-probe callback will never be called.
+
+As with Sources and Sinks, adding and removing Branches at runtime can be done using the following three methods.
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user (Window-Sink viewer) through keyboard input. 
+
+![](/Images/fixed-sources-with-demuxer-and-dynamic-branch.png)
+
+#### Dynamic Branch Updates by the Application
+With a Demuxer Tee, the Application can perform following:
+* add a Branch to the first available unlinked stream by calling the base Tee service [`dsl_tee_branch_add`](/docs/api-tee.md#dsl_tee_branch_add).
+* add a Branch to a specific stream by calling [`dsl_tee_demuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_add_to).
+* move a Branch to a specific stream by calling [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to).
+* remove a Branch by calling the base Tee services [`dsl_tee_branch_remove`](/docs/api-tee.md#dsl_tee_branch_remove), [`dsl_tee_branch_remove_many`](/docs/api-tee.md#dsl_tee_branch_remove_many), or [`dsl_tee_branch_remove_all`](/docs/api-tee.md#dsl_tee_branch_remove_all).
+
+The following examples demonstrate how to move a Branch using the [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to) services using a simple periodic timer function to mimic the on-demand behavior of an application.
+* [`dynamically_move_branch_from_demuxer_stream_to_stream.py`](/examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py)
+* [`dynamically_move_branch_from_demuxer_stream_to_stream.cpp`](/examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp)
+
+#### Dynamic Branch Updates by the End-User
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
+
+<br>
+
+### Dynamic Source and Branch updates when using a Demuxer
+This use case is a combination of the above cases, [Dynamic Source updates when using a Tiler](#dynamic-source-updates-when-using-a-tiler) and  [Dynamic Branch updates when using a Demuxer](#dynamic-branch-updates-when-using-a-demuxer), with some important steps to follow to ensure that both Sources and Branches can be added and removed together while the Pipeline is playing.
+
+**IMPORTANT!** When adding a new Source and Branch, the Source must be added to the Pipeline first and allowed to fully transition to a state of Playing before adding the Branch to the Demuxer. Otherwise, adding the Branch will fail.
+
+**IMPORTANT!** When removing a Source and Branch, the Branch must be removed from the Pipeline first while the Source is still in a state of playing. If the Source stream is in a bad state or removed first, the dynamic Branch removal will fail and the Branch will be "forcefully" removed.
+
+<br>
+
+###  Dynamic Source Stream selection when using a Tiler
+The function of the Tiler is to compose a two-dimensional tiled frame from batched buffers based on stream-id. The Tiler is also capable of showing frames from a single source or all sources on demand. The following diagram shows a typical Inference Pipeline with a Tiler and the three methods of controlling the Tiler's Source stream selection: 
+1. by the Application using the DSL Services API.
+2. by using [Object Detection Event (ODE) Services](#object-detection-event-ode-services),
+3. by enabling the end-user (Window-Sink viewer) through keyboard input. 
+
+![](/Images/dynamic-tiler-output.png)
+
+#### Dynamic Tiler Updates by the Application
+With a Tiler, the Application can perform the following dynamic updates:
+* show a single Source by calling [`dsl_tiler_source_show_set`](/docs/api-tiler.md#dsl_tiler_source_show_set).
+* cycle through each Source by calling [`dsl_tiler_source_show_cycle`](/docs/api-tiler.md#dsl_tiler_source_show_cycle).
+* show all Sources (tiled view) by calling [`dsl_tiler_source_show_all`](/docs/api-tiler.md#dsl_tiler_source_show_all)
+
+#### Dynamic Tiler Updates using ODE Services
+The Tiler's source-stream selection can be updated on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. a [Tiler-Show-Source](/docs/api-ode-action.md#dsl_ode_action_tiler_source_show_new) [ODE Action](/docs/api-ode-action.md) is added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+
+#### Dynamic Tiler Updates by the End-User
+The Application enables the end-user (Window-Sink viewer)
+1. by adding a [`dsl_sink_window_button_event_handler_cb`](/docs/api-sink.md##dsl_sink_window_button_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_button_event_handler_add`](/docs/api-sink.md#dsl_sink_window_button_event_handler_add) The callback function, called on every mouse-button event with the current X and Y coordinates within the Window Sink, calls:
+   1. [`dsl_sink_render_dimensions_get`](/docs/api-sink.md#dsl_sink_render_dimensions_get) to get the current dimensions of the Window Sink (user may have resized).
+   2. [`dsl_tiler_source_show_select`](/docs/api-tiler.md#dsl_tiler_source_show_select) to show the Source corresponding to the X and Y coordinates from the mouse-click.
+2. by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the Window Sink by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
+
+The following examples cover this use case:
+* [`4uri_file_tiler_show_source_control.py`](/examples/python/4uri_file_tiler_show_source_control.py)
+* [`4uri_file_tiler_show_source_control.cpp`](/examples/cpp/4uri_file_tiler_show_source_control.cpp)
+
+<br>
+
+### Dynamic Pipeline and Player Automation using ODE Services
+Pipelines and Players may be _**played**_, _**paused**_, and _**stopped**_ on the occurrence of Object Detection Event (ODE). The image below details how an Inference Pipeline -- with _RTSP Source_, built-in _Streammuxer_, _Primary Inference Engine_, _Multi-Object Tracker_, and _Fake Sink_ -- can be used to playback a recording on detection of a Person or Face.
+
+![](/Images/person-detection-play-player-action.png)
+
+From the image above:
+* A simple [Player](/docs/api-player.md) with _File Source_ and _Window Sink_ is setup to play a recorded video on demand.
+* An [ODE Trigger](/docs/api-ode-trigger.md) with a **limit of one occurrence** is used to trigger on the detection of a Person or Face just once. Minimum Trigger criteria -- such as  dimensions or inference confidence -- can be used to minimize false positives.
+* A [Play Player ODE Action](/docs/api-ode-action.md#dsl_ode_action_player_play_new) added to the ODE Trigger is used to play the Player on ODE occurrence.
+* The application registers a [`dsl_eos_listener_cb`](/docs/api-pipeline.md#dsl_eos_listener_cb) callback function with the Player to be called on end-of-stream (EOS); i.e. when the video has finished playing.
+* The EOS Listener function, calls [`dsl_ode_trigger_reset`](/docs/api-ode-trigger.md#dsl_ode_trigger_reset) to reset the Trigger enabling the process to repeat on the next ODE occurrence.
+
+---
+
 ## Interpipe Services
 DSL supports services for [RidgeRun's]() [Interpipe plugins](https://developer.ridgerun.com/wiki/index.php?title=GstInterpipe). From their website ***"GstInterpipe is a RidgeRun open source GStreamer plug-in that enables pipeline buffers and events to flow between two or more independent pipelines. It consists of two elements: interpipesink and interpipesrc. The interpipesrc connects with an interpipesink, from which it receives buffers and events.***
 
@@ -1081,7 +1226,7 @@ Refer to the [Source API](/docs/api-source.md) documentation for more informatio
 ---
 
 ## X11 Window Services
-DSL provides X11 Window Services for Pipelines that use a Window Sink. An Application can create an XWindow - using GTK+ for example - and pass the window handle to the Pipeline prior to playing, or let the Pipeline create the XWindow to use by default. 
+DSL provides X11 Window Services for Pipelines that use Window Sinks. An Application can create an XWindow - using GTK+ for example - and pass the window handle to a Window Sink prior to playing, or let each Window Sink create their own XWindow to use by default.
 
 The client application can register callback functions to handle window events -- `ButtonPress`, `KeyRelease`, and `WindowDelete` -- caused by user interaction. 
 
@@ -1105,12 +1250,15 @@ def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
     global SHOW_SOURCE_TIMEOUT
 
     if (button == Button1):
-        # get the current XWindow dimensions as the User may have resized it. 
-        retval, width, height = dsl_pipeline_xwindow_dimensions_get('pipeline')
+        # get the Window Sink's current XWindow dimensions as the User may have resized it.
+        # The Window Sink is derived from the Render Sink class - use the Render Sink
+        # service to get the current width and height of Window Sink's XWindow.
+        retval, width, height = dsl_sink_render_dimensions_get('my-window-sink')
         
         # call the Tiler to show the source based on the x and y button coordinates relative
         # to the current window dimensions obtained from the XWindow.
-        dsl_tiler_source_show_select('tiler', x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+        dsl_tiler_source_show_select('my-tiler',
+            x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
 ```
 The second callback, called on KeyRelease, allows the user to
 1. show a single source, or all
@@ -1132,18 +1280,20 @@ def XWindowKeyReleaseEventHandler(key_string, client_data):
     elif key_string >= '0' and key_string <= '3':
         retval, source = dsl_source_name_get(int(key_string))
         if retval == DSL_RETURN_SUCCESS:
-            dsl_tiler_source_show_set('tiler', source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
+            dsl_tiler_source_show_set('my-tiler',
+                source=source, timeout=SHOW_SOURCE_TIMEOUT, has_precedence=True)
             
     # C = cycle All sources
     elif key_string.upper() == 'C':
-        dsl_tiler_source_show_cycle('tiler', timeout=SHOW_SOURCE_TIMEOUT)
+        dsl_tiler_source_show_cycle('my-tiler', timeout=SHOW_SOURCE_TIMEOUT)
 
     # A = show All sources
     elif key_string.upper() == 'A':
-        dsl_tiler_source_show_all('tiler')
+        dsl_tiler_source_show_all('my-tiler')
 
     # Q or Esc = quit application
     if key_string.upper() == 'Q' or key_string == '':
+        dsl_pipeline_quit('my-pipeline')
         dsl_main_loop_quit()
 ```
 The third callback is called when the user closes/deletes the XWindow allowing the application to exit from the main-loop and delete all resources
@@ -1152,10 +1302,11 @@ The third callback is called when the user closes/deletes the XWindow allowing t
 # Function to be called on XWindow Delete event
 def XWindowDeleteEventHandler(client_data):
     print('delete window event')
+    dsl_pipeline_quit('my-pipeline')
     dsl_main_loop_quit()
 
 ```
-The callback functions are added to the Pipeline after creation. The XWindow, in this example, is set into `full-screen` mode before the Pipeline is played.
+The callback functions are added to one or more Window Sinks after creation. The XWindow, in this example, is set into `full-screen` mode before the Pipeline is played.
 
 ```Python
 while True:
@@ -1165,22 +1316,22 @@ while True:
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
+    retval = dsl_sink_window_new('my-window-sink', 0, 0, width=1280, height=720)
     if (retval != DSL_RETURN_SUCCESS):
         break
     # Add the XWindow event handler functions defined above
-    retval = dsl_pipeline_xwindow_button_event_handler_add('pipeline', XWindowButtonEventHandler, None)
+    retval = dsl_sink_window_button_event_handler_add('my-window-sink', XWindowButtonEventHandler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
-    retval = dsl_pipeline_xwindow_key_event_handler_add('pipeline', XWindowKeyReleaseEventHandler, None)
+    retval = dsl_sink_window_key_event_handler_add('my-window-sink', XWindowKeyReleaseEventHandler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
-    retval = dsl_pipeline_xwindow_delete_event_handler_add('pipeline', XWindowDeleteEventHandler, None)
+    retval = dsl_sink_window_delete_event_handler_add('my-window-sink', XWindowDeleteEventHandler, None)
     if retval != DSL_RETURN_SUCCESS:
         break
 
     # Set the XWindow into 'full-screen' mode for a kiosk look and feel.         
-    retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', enabled=True)
+    retval = dsl_sink_window_fullscreen_enabled_set('my-window-sink', enabled=True)
     if retval != DSL_RETURN_SUCCESS:
         break
         

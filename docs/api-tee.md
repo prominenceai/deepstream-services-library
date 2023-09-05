@@ -1,15 +1,28 @@
 # Demuxer and Splitter - Tee API
+There are currently two types of Tees -- Demuxer and Splitter -- each with a very specific use and purpose. Both types connect to downstream [Branches](/docs/api-branch.md). 
 
-#### Tee Construction and Destruction
-Demuxers and Splitters are created using a type specific constructor,  [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively
+### Demuxer Tee
+The Demuxer Tee is built-on NVIDIA's [Gst-nvstreamdemux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) which, according to the documentation, _"demuxes batched frames into individual buffers. It creates a separate Gst Buffer for each frame in the batch. It does not copy the video frames. Each Gst Buffer contains a pointer to the corresponding frame in the batch. The plugin pushes the unbatched Gst Buffer objects downstream on the pad corresponding to each frame’s source."_
 
-Pipelines use Tees to create Branches and Branches can use Tees to create more Branches. Therefore, Tees are added to Pipelines and Branches, while Branches are added to Tees.
+### Splitter Tee
+The Splitter Tee splits the stream -- batched or single frame -- to multiple source-pads, each connected to a unique Branch. The Tee does not copy the Gst Buffer, it simply pushes a pointer to the same buffer to each downstream Branch. 
 
-The relationship between Pipline/Branch and Tee is one to one with the Tee becoming the end component. The relationship between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can used with another. 
+### Sink Components as Branches
+[Sink components](/docs/api-sinks.md) can be added as branches to both Demuxers and Splitters -- as long as the Splitter is splitting a non-batched single-frame stream.
+
+### Dynamic Branching
+With both Tee types, Sinks and Branches can be added and removed and runtime while the Pipeline is playing. Refer to the [Dynamic Pipelines](/docs/overview.md#dynamic-pipelines) section under the [DSL Overview](/docs/overview.md) for more information. 
+
+**IMPORTANT!** When using a Demuxer Tee, the maximum number of Branches must be specified prior to playing the Pipeline, a requirement imposed by NVIDIA's plugin.
+
+### Tee Construction and Destruction
+Demuxers and Splitters are created using a type specific constructor, [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively.
+
+The relationship between Pipeline/Branch and Tee is one to one with the Tee becoming the end component. The relationship between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can be used with another. 
 
 Tees and Branches are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
 
-#### Adding and removing Branches from a Tee
+### Adding and removing Branches from a Tee
 Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_tee_branch_add) or [dsl_tee_branch_add_many](api-branch.md#dsl_tee_branch_add_many) and removed with [dsl_tee_branch_remove](api-branch.md#dsl_tee_branch_remove), [dsl_tee_branch_remove_many](api-branch.md#dsl_tee_branch_remove_many), or [dsl_tee_branch_remove_all](api-branch.md#dsl_tee_branch_remove_all).
 
 ## Tee API
@@ -19,14 +32,22 @@ Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_te
 * [dsl_tee_splitter_new](#dsl_tee_splitter_new) 
 * [dsl_tee_splitter_new_branch_add_many](#dsl_tee_demuxer_new_branch_add_many)
 
-**Methods**
+**Tee Methods**
 * [dsl_tee_branch_add](#dsl_tee_branch_add)
 * [dsl_tee_branch_add_many](#dsl_tee_branch_add_many)
 * [dsl_tee_branch_remove](#dsl_tee_branch_remove)
 * [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many)
 * [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all).
+* [dsl_tee_blocking_timeout_get](#dsl_tee_blocking_timeout_get)
+* [dsl_tee_blocking_timeout_set](#dsl_tee_blocking_timeout_set)
 * [dsl_tee_pph_add](#dsl_tee_pph_add).
 * [dsl_tee_pph_remove](#dsl_tee_pph_remove).
+
+**Demuxer Tee Methods**
+* [dsl_tee_demuxer_branch_add_to](#dsl_tee_demuxer_branch_add_to)
+* [dsl_tee_demuxer_branch_move_to](#dsl_tee_demuxer_branch_move_to)
+* [dsl_tee_demuxer_max_branches_get](#dsl_tee_demuxer_max_branches_get)
+* [dsl_tee_demuxer_max_branches_set](#dsl_tee_demuxer_max_branches_set)
 
 ## Return Values
 The following return codes are used by the Tiler API
@@ -44,43 +65,53 @@ The following return codes are used by the Tiler API
 #define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
 ```
 
+## Constant Values
+The default blocking-timeout value used by both Splitter and Demuxer Tees. IMPORTANT! The timeout controls the amount of time the demuxer will wait for a blocking PPH to be called to dynamically link or unlink a branch at runtime while the Pipeline is playing. This value will need to be extended if the frame-rate for the stream is less than 2 fps.  The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad callback will never be called.
+```C
+#define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
+```
+
+
 ## Constructors
 
 ### *dsl_tee_demuxer_new*
 ```C++
-DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
 ```
 The constructor creates a uniquely named Demuxer Tee. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the Demuxer to create.
+* `max_branches` - [in] maximum number of branches that can be added/connected to this Demuxer, before or during Pipeline play.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_tee_demuxer_new('my-demuxer')
+retval = dsl_tee_demuxer_new('my-demuxer', 8)
 ```
 
 <br>
 
 ### *dsl_tee_demuxer_new_branch_add_many*
 ```C++
-DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches);
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
+    uint max_branches, const wchar_t** branches);
 ```
 The constructor creates a uniquely named Demuxer Tee and adds a list of branches to it. Construction will fail if the name is currently in use. 
 
 **Parameters**
 * `name` - [in] unique name for the Demuxer to create.
-* `branches` [in] Null terminated listed of unique branch names to add.
+* `max_branches` - [in] maximum number of branches that can be added/connected to this Demuxer, before or during Pipeline play.
+* `branches` [in] Null terminated list of unique branch names to add.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval = dsl_tee_demuxer_new_branch_add_many('my-demuxer', 
+retval = dsl_tee_demuxer_new_branch_add_many('my-demuxer', 2, 
     ['my-branch-1', 'my-branch-2', None])
 ```
 
@@ -113,7 +144,7 @@ The constructor creates a uniquely named Splitter Tee and adds a list of Branche
 
 **Parameters**
 * `name` - [in] unique name for the Splitter to create.
-* `branches` [in] Null terminated listed of unique branch names to add.
+* `branches` [in] Null terminated list of unique branch names to add.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -131,7 +162,7 @@ retval = dsl_tee_splitter_new_branch_add_many('my-demuxer',
 ```C++
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 ```
-This service adds a single branch to a named Spliter or Demuxer Tee. The add service will fail if the branch is currently `in-use`. The branches `in-use` state will be set to `true` on successful add. 
+This service adds a single branch to a named Splitter or Demuxer Tee. The add service will fail if the branch is currently `in-use`. The branches `in-use` state will be set to `true` on successful add. 
 
 **Parameters**
 * `branch` - [in] unique name for the Branch to update.
@@ -151,10 +182,10 @@ retval = dsl_tee_branch_add('my-splitter', 'my-branch’)
 ```C++
 DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches);
 ```
-This service adds a list of named Branches to a Null termainted list of branches to a named Splitter or Demuxer Tee.  Each of the branches `in-use` state will be set to true on successful add. 
+This service adds a list of named Branches to a Null terminated list of branches to a named Splitter or Demuxer Tee.  Each of the branches `in-use` state will be set to true on successful add. 
 
 **Parameters**
-* `name` - [in] unique name for the Spliter to update.
+* `name` - [in] unique name for the Splitter to update.
 * `branches` - [in] a NULL terminated array of uniquely named Components to add.
 
 **Returns**
@@ -175,7 +206,7 @@ DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
 This service removes a single named Branch from a Demuxer or Splitter Tee. The remove service will fail if the Branch is not currently `in-use` by the Tee. The branches' `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
-* `name` - [in] unique name for the Demuxer or Spltter Tee to update.
+* `name` - [in] unique name for the Demuxer or Splitter Tee to update.
 * `branch` - [in] unique name of the Branch to remove.
 
 **Returns**
@@ -191,11 +222,11 @@ retval = dsl_tee_branch_remove('my-splitter', 'my-branch')
 ```C++
 DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches);
 ```
-This service removes a list of named components from a named Branch. The remove service will fail if any of branches are currently `not-in-use` by the named Branch.  All of the removed branches' `in-use` state will be set to `false` on successful removal. 
+This service removes a list of named components from a named Branch. The remove service will fail if any of the branches are currently `not-in-use` by the named Branch.  All of the removed branches' `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
 * `name` - [in] unique name for the Demuxer or Splitter Tee to update.
-* `components` - [in] a NULL terminated array of uniquely named Brances to remove.
+* `components` - [in] a NULL terminated array of uniquely named Branches to remove.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
@@ -225,16 +256,59 @@ This service removes all child branches from a named Demuxer or Splitter Tee. Al
 retval = dsl_tee_branch_remove_all('my-splitter')
 ```
 
+<br>
+
+### *dsl_tee_blocking_timeout_get*
+```C++
+DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
+    uint* timeout);
+```
+This service gets the current [blocking-timeout](#constant-values) for the named Tee. 
+
+**Parameters**
+* `name` - [in] unique name of the Tee to query.
+* `timeout` - [out] current blocking-timeout in units of seconds. Default = [DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC](#constant-values).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, timeout = dsl_tee_blocking_timeout_get('my-demuxer')
+```
+
+<br>
+
+### *dsl_tee_blocking_timeout_set*
+```C++
+DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
+    uint timeout);
+```
+This service sets the [blocking-timeout](#constant-values) setting for the named Tee to use.
+
+**Parameters**
+* `name` - [in] unique name of the Tee to update.
+* `max_branches` - [in] new value for blocking-timeout in units of seconds. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_blocking_timeout_set('my-demuxer', 5)
+```
+
+<br>
 
 ### *dsl_tee_pph_add*
 ```C++
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 ```
-This services adds a named Pad-Probe-Handler to the sink pad (only) of the Named Tee component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Tee Component.
+This service adds a named Pad-Probe-Handler to the sink pad (only) of the Named Tee component. The PPH will be invoked on every buffer-ready event for the sink pad. More than one PPH can be added to a single Tee Component.
 
 **Parameters**
  * `name` [in] unique name of the Tee to update
- * `handler` [in] uninque name of the PPH to add
+ * `handler` [in] unique name of the PPH to add
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
@@ -250,7 +324,7 @@ retval = dsl_tee_pph_add('my-demuxer-tee', 'my-meter-pph')
 ```C++
 DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
 ```
-This services removes a named Pad-Probe-Handler from a named Tee. The services will fail if the handler is not a child of the Tee
+This service removes a named Pad-Probe-Handler from a named Tee. The services will fail if the handler is not a child of the Tee
 
 **Parameters**
  * `name` [in] unique name of the Tee to update.
@@ -262,6 +336,97 @@ This services removes a named Pad-Probe-Handler from a named Tee. The services w
 **Python Example**
 ```Python
 retval = dsl_tee_pph_remove('my-demuxer-tee', 'my-meter-pph')
+```
+
+<br>
+
+## Demuxer Tee Methods
+### *dsl_tee_demuxer_branch_add_to*
+```C++
+DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+```
+This service adds a single [Branch component](/docs/api-branch.md) or [Sink component](/docs/api-sink.md) to a specific output stream (pad) of a named Demuxer Tee. 
+
+**IMPORTANT!** This service may be called at runtime (while the Pipeline is playing) if there is an active/playing Source component for the specified stream.
+
+**Parameters**
+* `name` - [in] unique name of the Deuxer to update.
+* `branch` - [in] unique name of the Branch to add. This may be a [Branch component](/docs/api-branch.md) or [Sink component](/docs/api-sink.md).
+* `stream_id` - [in] 0-based unique id of the Demuxer output stream to add the branch to.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_demuxer_branch_add_to('my-demuxer', 'my-branch’, 2)
+```
+
+<br>
+
+### *dsl_tee_demuxer_branch_move_to*
+```C++
+DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id);
+```
+This service moves a single [Branch component](/docs/api-branch.md) or [Sink component](/docs/api-sink.md) to a specific output stream (pad) of a named Demuxer Tee. The Branch must be a child of the Demuxer when this service is called.
+
+**IMPORTANT!** This service may be called at runtime (while the Pipeline is playing) if there is an active/playing Source component for the specified stream.
+
+**Parameters**
+* `name` - [in] unique name of the Deuxer to update.
+* `branch` - [in] unique name of the Branch to move. This may be a [Branch component](/docs/api-branch.md) or [Sink component](/docs/api-sink.md).
+* `stream_id` - [in] 0-based unique id of the Demuxer output stream to move the branch to.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_demuxer_branch_move_to('my-demuxer', 'my-branch’, 2)
+```
+
+<br>
+
+### *dsl_tee_demuxer_max_branches_get*
+```C++
+DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
+    uint* max_branches);
+```
+This service gets the current max-branches setting for the named Deumuxer Tee.
+
+**Parameters**
+* `name` - [in] unique name of the Deuxer to query.
+* `max_branches` - [out] current setting for max-branches, the maximum number of branches that can be added to the Demuxer in any state. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, max_branches = dsl_tee_demuxer_max_branches_get('my-demuxer')
+```
+
+<br>
+
+### *dsl_tee_demuxer_max_branches_set*
+```C++
+DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
+    uint max_branches);
+```
+This service sets the max-branches setting for the named Deumuxer Tee to use.
+
+**Parameters**
+* `name` - [in] unique name of the Deuxer to update.
+* `max_branches` - [in] new setting for max-branches, the maximum number of branches that can be added to the Demuxer in any state. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_demuxer_max_branches_set('my-demuxer', 10)
 ```
 
 <br>
