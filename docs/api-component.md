@@ -15,16 +15,16 @@ The Pipeline Component API provides the common services that apply to multiple P
 
 ## Component API
 **Methods**
-* [dsl_component_delete](#dsl_component_delete)
-* [dsl_component_delete_many](#dsl_component_delete_many)
-* [dsl_component_delete_all](#dsl_component_delete_all)
-* [dsl_component_list_size](#dsl_component_list_size)
-* [dsl_component_gpuid_get](#dsl_component_gpuid_get)
-* [dsl_component_gpuid_set](#dsl_component_gpuid_set)
-* [dsl_component_gpuid_set_many](#dsl_component_gpuid_set_many)
-* [dsl_component_nvbuf_mem_type_get](#dsl_component_nvbuf_mem_type_get)
-* [dsl_component_nvbuf_mem_type_set](#dsl_component_nvbuf_mem_type_set)
-* [dsl_component_nvbuf_mem_type_set_many](#dsl_component_nvbuf_mem_type_set_many)
+* [`dsl_component_delete`](#dsl_component_delete)
+* [`dsl_component_delete_many`](#dsl_component_delete_many)
+* [`dsl_component_delete_all`](#dsl_component_delete_all)
+* [`dsl_component_list_size`](#dsl_component_list_size)
+* [`dsl_component_gpuid_get`](#dsl_component_gpuid_get)
+* [`dsl_component_gpuid_set`](#dsl_component_gpuid_set)
+* [`dsl_component_gpuid_set_many`](#dsl_component_gpuid_set_many)
+* [`dsl_component_nvbuf_mem_type_get`](#dsl_component_nvbuf_mem_type_get)
+* [`dsl_component_nvbuf_mem_type_set`](#dsl_component_nvbuf_mem_type_set)
+* [`dsl_component_nvbuf_mem_type_set_many`](#dsl_component_nvbuf_mem_type_set_many)
 
 ## Return Values
 The following return codes are used by the Component API
