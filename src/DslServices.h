@@ -233,7 +233,23 @@ namespace DSL {
         
         DslReturnType OdeActionDisplayMetaAddDisplayType(const char* name, const char* displayType);
 
-        DslReturnType OdeActionPauseNew(const char* name, const char* pipeline);
+        DslReturnType OdeActionPipelinePauseNew(const char* name, 
+            const char* pipeline);
+
+        DslReturnType OdeActionPipelinePlayNew(const char* name, 
+            const char* pipeline);
+
+        DslReturnType OdeActionPipelineStopNew(const char* name, 
+            const char* pipeline);
+
+        DslReturnType OdeActionPlayerPauseNew(const char* name, 
+            const char* player);
+
+        DslReturnType OdeActionPlayerPlayNew(const char* name, 
+            const char* player);
+
+        DslReturnType OdeActionPlayerStopNew(const char* name, 
+            const char* player);
 
         DslReturnType OdeActionPrintNew(const char* name, boolean forceFlush);
         
@@ -281,6 +297,18 @@ namespace DSL {
         DslReturnType OdeActionTriggerEnableNew(const char* name, const char* trigger);
 
         DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
+
+        DslReturnType OdeActionBranchAddNew(const char* name, 
+            const char* tee, const char* branch);
+
+        DslReturnType OdeActionBranchAddToNew(const char* name, 
+            const char* demuxer, const char* branch);
+
+        DslReturnType OdeActionBranchMoveToNew(const char* name, 
+            const char* demuxer, const char* branch);
+
+        DslReturnType OdeActionBranchRemoveNew(const char* name, 
+            const char* tee, const char* branch);
 
         DslReturnType OdeActionEnabledGet(const char* name, boolean* enabled);
 

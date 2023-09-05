@@ -145,13 +145,33 @@ namespace DSL
         std::shared_ptr<MonitorOdeAction>(new MonitorOdeAction(name, \
             clientMonitor, clientData))
 
-    #define DSL_ODE_ACTION_OBJECT_REMOVE_PTR std::shared_ptr<PauseOdeAction>
+    #define DSL_ODE_ACTION_OBJECT_REMOVE_PTR std::shared_ptr<RemoveObjectOdeAction>
     #define DSL_ODE_ACTION_OBJECT_REMOVE_NEW(name) \
         std::shared_ptr<RemoveObjectOdeAction>(new RemoveObjectOdeAction(name))
         
-    #define DSL_ODE_ACTION_PAUSE_PTR std::shared_ptr<PauseOdeAction>
-    #define DSL_ODE_ACTION_PAUSE_NEW(name, pipeline) \
-        std::shared_ptr<PauseOdeAction>(new PauseOdeAction(name, pipeline))
+    #define DSL_ODE_ACTION_PIPELINE_PAUSE_PTR std::shared_ptr<PipelinePauseOdeAction>
+    #define DSL_ODE_ACTION_PIPELINE_PAUSE_NEW(name, pipeline) \
+        std::shared_ptr<PipelinePauseOdeAction>(new PipelinePauseOdeAction(name, pipeline))
+        
+    #define DSL_ODE_ACTION_PIPELINE_PLAY_PTR std::shared_ptr<PipelinePlayOdeAction>
+    #define DSL_ODE_ACTION_PIPELINE_PLAY_NEW(name, pipeline) \
+        std::shared_ptr<PipelinePlayOdeAction>(new PipelinePlayOdeAction(name, pipeline))
+        
+    #define DSL_ODE_ACTION_PIPELINE_STOP_PTR std::shared_ptr<PipelineStopOdeAction>
+    #define DSL_ODE_ACTION_PIPELINE_STOP_NEW(name, pipeline) \
+        std::shared_ptr<PipelineStopOdeAction>(new PipelineStopOdeAction(name, pipeline))
+        
+    #define DSL_ODE_ACTION_PLAYER_PAUSE_PTR std::shared_ptr<PlayerPauseOdeAction>
+    #define DSL_ODE_ACTION_PLAYER_PAUSE_NEW(name, player) \
+        std::shared_ptr<PlayerPauseOdeAction>(new PlayerPauseOdeAction(name, player))
+        
+    #define DSL_ODE_ACTION_PLAYER_PLAY_PTR std::shared_ptr<PlayerPlayOdeAction>
+    #define DSL_ODE_ACTION_PLAYER_PLAY_NEW(name, player) \
+        std::shared_ptr<PlayerPlayOdeAction>(new PlayerPlayOdeAction(name, player))
+        
+    #define DSL_ODE_ACTION_PLAYER_STOP_PTR std::shared_ptr<PlayerStopOdeAction>
+    #define DSL_ODE_ACTION_PLAYER_STOP_NEW(name, player) \
+        std::shared_ptr<PlayerStopOdeAction>(new PlayerStopOdeAction(name, player))
         
     #define DSL_ODE_ACTION_PRINT_PTR std::shared_ptr<PrintOdeAction>
     #define DSL_ODE_ACTION_PRINT_NEW(name, forceFlush) \
@@ -243,6 +263,21 @@ namespace DSL
         std::shared_ptr<TilerShowSourceOdeAction>(new TilerShowSourceOdeAction(name, \
             tiler, timeout, hasPrecedence))
         
+    #define DSL_ODE_ACTION_BRANCH_ADD_PTR std::shared_ptr<AddBranchOdeAction>
+    #define DSL_ODE_ACTION_BRANCH_ADD_NEW(name, tee, branch) \
+        std::shared_ptr<AddBranchOdeAction>(new AddBranchOdeAction(name, tee, branch))
+        
+    #define DSL_ODE_ACTION_BRANCH_ADD_TO_PTR std::shared_ptr<AddBranchToOdeAction>
+    #define DSL_ODE_ACTION_BRANCH_ADD_TO_NEW(name, tee, branch) \
+        std::shared_ptr<AddBranchToOdeAction>(new AddBranchToOdeAction(name, tee, branch))
+        
+    #define DSL_ODE_ACTION_BRANCH_MOVE_TO_PTR std::shared_ptr<MoveBranchToOdeAction>
+    #define DSL_ODE_ACTION_BRANCH_MOVE_TO_NEW(name, tee, branch) \
+        std::shared_ptr<MoveBranchToOdeAction>(new MoveBranchToOdeAction(name, tee, branch))
+        
+    #define DSL_ODE_ACTION_BRANCH_REMOVE_PTR std::shared_ptr<RemoveBranchOdeAction>
+    #define DSL_ODE_ACTION_BRANCH_REMOVE_NEW(name, tee, branch) \
+        std::shared_ptr<RemoveBranchOdeAction>(new RemoveBranchOdeAction(name, tee, branch))
         
         
     // ********************************************************************
@@ -278,6 +313,63 @@ namespace DSL
 
     };
 
+    // ********************************************************************
+    
+    /**
+     * @class AsyncOdeAction
+     * @brief Virtual class for an Asynchronous ODE Action
+     */
+    class AsyncOdeAction : public OdeAction
+    {
+    public:
+        /**
+         * @brief ctor for the AsynOdeAction virtual class
+         * @param[in] name unique name for the ODE Action
+         */
+        AsyncOdeAction(const char* name); 
+        
+        /**
+         * @brief dtor for the AsynOdeAction virtual class
+         */
+        ~AsyncOdeAction();
+        
+        /**
+         * @brief Handles the ODE occurrence by scheduling the DoAsyncAction 
+         * timer callback.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered 
+         * the event.
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered 
+         * the event.
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered 
+         * the event.
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         */
+        virtual void DoAsyncAction() = 0;
+        
+    protected:
+    
+        /**
+         * @brief g_timer_add event source.
+         */ 
+        uint m_timerId;
+    };
+
+    /**
+     * @brief timer callback function to call an AsyncOdeAction in the context
+     * of the main-loop. 
+     * @param pAction asynchronous action to invoke - call DoAsyncAction().
+     * @return False always - one shot timer.
+     */
+    static int do_async_action(gpointer pAction);
+    
     // ********************************************************************
 
     /**
@@ -547,10 +639,6 @@ namespace DSL
          * Timer/tread will be restarted on next Image Capture
          */
         int convertCapturedImage();
-
-//         * by saving the image to file, notifying all client listeners, and 
-//         * sending email all in the main loop context.
-//         * @return false always to self remove timer once clients have been notified. 
 
     protected:
         
@@ -1318,48 +1406,209 @@ namespace DSL
         void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
             GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
             NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+    };
+        
+    // ********************************************************************
+
+    /**
+     * @class PipelinePauseOdeAction
+     * @brief Pause ODE Action class
+     */
+    class PipelinePauseOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Pipeline Pause ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pipeline unique name of the pipeline to pause on ODE occurrence
+         */
+        PipelinePauseOdeAction(const char* name, const char* pipeline);
+        
+        /**
+         * @brief dtor for the Pause ODE Action class
+         */
+        ~PipelinePauseOdeAction();
+        
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * Callback function is called in the main-loop context.
+         */
+        void DoAsyncAction();
 
     private:
+    
+        std::string m_pipeline;
     
     };
         
     // ********************************************************************
 
     /**
-     * @class PauseOdeAction
-     * @brief Pause ODE Action class
+     * @class PipelinePlayOdeAction
+     * @brief Pipeline Play ODE Action class
      */
-    class PauseOdeAction : public OdeAction
+    class PipelinePlayOdeAction : public AsyncOdeAction
     {
     public:
     
         /**
-         * @brief ctor for the Pause ODE Action class
+         * @brief ctor for the Pipeline Play ODE Action class
          * @param[in] name unique name for the ODE Action
-         * @param[in] pipeline unique name of the pipeline to pause on ODE occurrence
+         * @param[in] pipeline unique name of the pipeline to play on ODE occurrence
          */
-        PauseOdeAction(const char* name, const char* pipeline);
+        PipelinePlayOdeAction(const char* name, const char* pipeline);
         
         /**
-         * @brief dtor for the Pause ODE Action class
+         * @brief dtor for the Pipeline ODE Action class
          */
-        ~PauseOdeAction();
+        ~PipelinePlayOdeAction();
         
         /**
-         * @brief Handles the ODE occurrence by pausing a named Pipeline
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * Callback function is called in the main-loop context.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
 
     private:
     
         std::string m_pipeline;
+    
+    };
+        
+    // ********************************************************************
+
+    /**
+     * @class PipelineStopOdeAction
+     * @brief Pipeline Play ODE Action class
+     */
+    class PipelineStopOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Pipeline Stop ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pipeline unique name of the pipeline to stop on ODE occurrence
+         */
+        PipelineStopOdeAction(const char* name, const char* pipeline);
+        
+        /**
+         * @brief dtor for the Pipeline Stop ODE Action class
+         */
+        ~PipelineStopOdeAction();
+        
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * Callback function is called in the main-loop context.
+         */
+        void DoAsyncAction();
+
+    private:
+    
+        std::string m_pipeline;
+    
+    };
+        
+    // ********************************************************************
+
+    /**
+     * @class PlayerPauseOdeAction
+     * @brief Pause ODE Action class
+     */
+    class PlayerPauseOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Player Pause ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pipeline unique name of the pipeline to pause on ODE occurrence
+         */
+        PlayerPauseOdeAction(const char* name, const char* pipeline);
+        
+        /**
+         * @brief dtor for the Pause ODE Action class
+         */
+        ~PlayerPauseOdeAction();
+        
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * Callback function is called in the main-loop context.
+         */
+        void DoAsyncAction();
+
+    private:
+    
+        std::string m_player;
+    
+    };
+        
+    // ********************************************************************
+
+    /**
+     * @class PlayerPlayOdeAction
+     * @brief Player Play ODE Action class
+     */
+    class PlayerPlayOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Player Play ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pipeline unique name of the pipeline to play on ODE occurrence
+         */
+        PlayerPlayOdeAction(const char* name, const char* pipeline);
+        
+        /**
+         * @brief dtor for the Player ODE Action class
+         */
+        ~PlayerPlayOdeAction();
+        
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * Callback function is called in the main-loop context.
+         */
+        void DoAsyncAction();
+
+    private:
+    
+        std::string m_player;
+    
+    };
+        
+    // ********************************************************************
+
+    /**
+     * @class PlayerStopOdeAction
+     * @brief Player Play ODE Action class
+     */
+    class PlayerStopOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Player Stop ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pipeline unique name of the pipeline to stop on ODE occurrence
+         */
+        PlayerStopOdeAction(const char* name, const char* pipeline);
+        
+        /**
+         * @brief dtor for the Player Stop ODE Action class
+         */
+        ~PlayerStopOdeAction();
+        
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * Callback function is called in the main-loop context.
+         */
+        void DoAsyncAction();
+
+    private:
+    
+        std::string m_player;
     
     };
         
@@ -1651,7 +1900,7 @@ namespace DSL
      * @class AddSinkOdeAction
      * @brief Add Sink ODE Action class
      */
-    class AddSinkOdeAction : public OdeAction
+    class AddSinkOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -1669,16 +1918,10 @@ namespace DSL
         ~AddSinkOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding a named Sink to a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
         
     private:
     
@@ -1700,7 +1943,7 @@ namespace DSL
      * @class RemoveSinkOdeAction
      * @brief Remove Sink ODE Action class
      */
-    class RemoveSinkOdeAction : public OdeAction
+    class RemoveSinkOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -1718,16 +1961,10 @@ namespace DSL
         ~RemoveSinkOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by removing a named Sink from a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
         
     private:
     
@@ -1743,13 +1980,13 @@ namespace DSL
 
     };
     
-        // ********************************************************************
+    // ********************************************************************
 
     /**
      * @class AddSourceOdeAction
      * @brief Add Source ODE Action class
      */
-    class AddSourceOdeAction : public OdeAction
+    class AddSourceOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -1767,17 +2004,11 @@ namespace DSL
         ~AddSourceOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by adding a named Source to a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
-        
+        void DoAsyncAction();
+
     private:
     
         /**
@@ -1798,7 +2029,7 @@ namespace DSL
      * @class RemoveSourceOdeAction
      * @brief Remove Source ODE Action class
      */
-    class RemoveSourceOdeAction : public OdeAction
+    class RemoveSourceOdeAction : public AsyncOdeAction
     {
     public:
     
@@ -1816,16 +2047,10 @@ namespace DSL
         ~RemoveSourceOdeAction();
 
         /**
-         * @brief Handles the ODE occurrence by removing a named Soure from a named Pipeline
-         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
-         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
-         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
-         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
-         * NULL if Frame level absence, total, min, max, etc. events.
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
          */
-        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
-            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        void DoAsyncAction();
         
     private:
     
@@ -2415,6 +2640,222 @@ namespace DSL
         bool m_hasPrecedence;
 
     };
+
+    // ********************************************************************
+
+    /**
+     * @class AddBranchOdeAction
+     * @brief Add Branch ODE Action class
+     */
+    class AddBranchOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Add Branch ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] tee unique name of the Splitter or Demuxer Tee to add 
+         * the Branch to
+         * @param[in] branch unique name of the Branch to add to the Tee
+         */
+        AddBranchOdeAction(const char* name, 
+            const char* tee, const char* branch);
+        
+        /**
+         * @brief dtor for the Add Branch ODE Action class
+         */
+        ~AddBranchOdeAction();
+
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
+         */
+        void DoAsyncAction();
+        
+    private:
+    
+        /**
+         * @brief Demuxer or Splitter Tee to add the Branch to on ODE occurrence.
+         */
+        std::string m_tee;
+        
+        /**
+         * @brief Branch to add to the Tee on ODE occurrence
+         */ 
+        std::string m_branch;
+
+    };
+    
+    
+    // ********************************************************************
+
+    /**
+     * @class AddBranchToOdeAction
+     * @brief Add Branch-to ODE Action class
+     */
+    class AddBranchToOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Add-Branch-To ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] demuxer unique name of the Demuxer to add 
+         * the Branch to.
+         * @param[in] branch unique name of the Branch to add to the Demuxer
+         */
+        AddBranchToOdeAction(const char* name, 
+            const char* demuxer, const char* branch);
+        
+        /**
+         * @brief dtor for the Add-Branch-To ODE Action class
+         */
+        ~AddBranchToOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by adding a named Branch to a named Demuxer
+         * at the current stream-id, as indicated by the pFrameMeta.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
+         */
+        void DoAsyncAction();
+        
+    private:
+    
+        /**
+         * @brief Demuxer Tee to update on ODE occurrence.
+         */
+        std::string m_demuxer;
+        
+        /**
+         * @brief Branch to add to the Tee on ODE occurrence
+         */ 
+        std::string m_branch;
+        
+        /**
+         * @brief Destination stream-id to add the branch to
+         */ 
+        int m_destStreamId;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class MoveBranchToOdeAction
+     * @brief Move-Branch-To ODE Action class
+     */
+    class MoveBranchToOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Move-Branch-To ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] demuxer unique name of the demuxer to update.
+         * @param[in] branch unique name of the Branch to move-to.
+         */
+        MoveBranchToOdeAction(const char* name, const char* tee, const char* branch);
+        
+        /**
+         * @brief dtor for the Move Branch-To ODE Action class
+         */
+        ~MoveBranchToOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by moving a named Branch connected to a 
+         * named Demuxer to the current stream-id, as indicated by the pFrameMeta.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
+         */
+        void DoAsyncAction();
+
+    private:
+    
+        /**
+         * @brief Demuxer Tee to update on ODE occurrence.
+         */
+        std::string m_demuxer;
+        
+        /**
+         * @brief Branch to move on ODE occurrence
+         */ 
+        std::string m_branch;
+        
+        /**
+         * @brief Destination stream-id to move the branch to.
+         */
+        int m_destStreamId;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class RemvoeBranchOdeAction
+     * @brief Remove Branch ODE Action class
+     */
+    class RemoveBranchOdeAction : public AsyncOdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Remove Branch ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] tee unique name of the Splitter or Demuxer Tee to add 
+         * the Branch to
+         * @param[in] branch unique name of the Branch to add to the Tee
+         */
+        RemoveBranchOdeAction(const char* name, const char* tee, const char* branch);
+        
+        /**
+         * @brief dtor for the Remove Branch ODE Action class
+         */
+        ~RemoveBranchOdeAction();
+
+        /**
+         * @brief Function to perform the Action asynchronously as a Timer callback.
+         * @return int return 1 always to execute only once.
+         */
+        void DoAsyncAction();
+
+    private:
+    
+        /**
+         * @brief Demuxer or Splitter Tee to Remove from the Branch on ODE occurrence.
+         */
+        std::string m_tee;
+        
+        /**
+         * @brief Branch to add to the Tee on ODE occurrence
+         */ 
+        std::string m_branch;
+
+    };
+    
+    // ********************************************************************
 
 }
 

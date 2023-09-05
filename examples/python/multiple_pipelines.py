@@ -139,6 +139,11 @@ def create_pipeline(client_data):
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
+    # Disable the sync property - which will disable QOS as well.
+    retval = dsl_sink_sync_enabled_set(client_data.sink, False)
+    if (retval != DSL_RETURN_SUCCESS):    
+        return retval    
+
     # Add the XWindow event handler functions defined above to the Window Sink
     retval = dsl_sink_window_key_event_handler_add(client_data.sink, 
         xwindow_key_event_handler, client_data)

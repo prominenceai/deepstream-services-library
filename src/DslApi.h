@@ -819,7 +819,7 @@ THE SOFTWARE.
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
-#define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     1
+#define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
 
 #define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
 #define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
@@ -2388,12 +2388,58 @@ DslReturnType dsl_ode_action_monitor_new(const wchar_t* name,
 DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name);
 
 /**
- * @brief Creates a uniquely named Pause ODE Action
- * @param[in] name unique name for the Pause ODE Action 
+ * @brief Creates a uniquely named Pause Pipeline ODE Action
+ * @param[in] name unique name for the Pause Pipeline ODE Action 
  * @param[in] pipeline unique name of the Pipeline to Pause on ODE occurrence
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
-DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline);
+DslReturnType dsl_ode_action_pipeline_pause_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Play Pipeline ODE Action
+ * @param[in] name unique name for the Play Pipeline ODE Action 
+ * @param[in] pipeline unique name of the Pipeline to Play on ODE occurrence.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pipeline_play_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Stop Pipeline ODE Action
+ * @param[in] name unique name for the Stop Pipeline ODE Action 
+ * @param[in] pipeline unique name of the Pipeline to Stop on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_pipeline_stop_new(const wchar_t* name, 
+    const wchar_t* pipeline);
+
+/**
+ * @brief Creates a uniquely named Pause Player ODE Action
+ * @param[in] name unique name for the Pause Player ODE Action 
+ * @param[in] player unique name of the Player to Pause on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_pause_new(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
+ * @brief Creates a uniquely named Play Player ODE Action
+ * @param[in] name unique name for the Play Player ODE Action 
+ * @param[in] player unique name of the Player to Play on ODE occurrence.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_play_new(const wchar_t* name, 
+    const wchar_t* player);
+
+/**
+ * @brief Creates a uniquely named Stop Player ODE Action
+ * @param[in] name unique name for the Stop Player ODE Action 
+ * @param[in] player unique name of the Player to Stop on ODE occurrence
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_player_stop_new(const wchar_t* name, 
+    const wchar_t* player);
 
 /**
  * @brief Creates a uniquely named Print ODE Action
@@ -2581,6 +2627,52 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
  */
 DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
     const wchar_t* tiler, uint timeout, boolean has_precedence);
+
+/**
+ * @brief Creates a uniquely named Add Branch Action that adds a named Branch
+ * (or Sink) to a named Demuxer or Splitter Tee.
+ * @param[in] name unique name for the ODE Add Branch Action 
+ * @param[in] tee unique name of the Demuxer or Splitter to add the Branch to.
+ * @param[in] Branch unique name of the Branch to add to the Tee
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_add_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named "Add-Branch-To" Action that adds a named Branch
+ * (or Sink) to a named Demuxer Tee at the current stream-id of the frame-metadata/
+ * object/meta-data that Triggered the Object Detection Event.
+ * @param[in] name unique name for the ODE "Add-Branch-To" Action 
+ * @param[in] tee unique name of the Demuxer to add the Branch to.
+ * @param[in] Branch unique name of the Branch to add to the Demuxer.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_add_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named "Move-Branch-To" Action that moves a named Branch
+ * (or Sink) connected to a Demuxer to the current stream-id of the frame-metadata/
+ * object/meta-data that Triggered the Object Detection Event -- of the same Demuxer.
+ * @param[in] name unique name for the ODE "Move-Branch-To" Action 
+ * @param[in] tee unique name of the Demuxer to Move the Branch within.
+ * @param[in] Branch unique name of the Branch to move within the Demuxer.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_move_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch);
+
+/**
+ * @brief Creates a uniquely named Remove Branch Action that removes a named Branch
+ * (or Sink) from a named Demuxer or Splitter Tee.
+ * @param[in] name unique name for the ODE Remove Action 
+ * @param[in] tee unique name of the Demuxer or Splitter to remove from the Branch from.
+ * @param[in] Branch unique name of the Branch to add to the Tee.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch);
 
 /**
  * @brief Gets the current enabled setting for the ODE Action

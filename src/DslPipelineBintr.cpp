@@ -400,7 +400,7 @@ namespace DSL
                     
             // We need a timeout in case the condition is never met/cleared
             gint64 endtime = g_get_monotonic_time () + 
-                (DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC * G_TIME_SPAN_SECOND);
+                (DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC *2 * G_TIME_SPAN_SECOND);
             if (!g_cond_wait_until(&m_asyncCommsCond, &m_asyncCommsMutex, endtime))
             {
                 LOG_WARN("Pipeline '" << GetName() 
