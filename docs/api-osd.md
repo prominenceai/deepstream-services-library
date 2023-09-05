@@ -3,42 +3,40 @@ The On-Screen Display (OSD) component provides visualization of object detection
 
 As with all components, OSDs must be uniquely named from all other components created.
 
-![on-screen-display-graph](/Images/on-screen-display-graph.png)
-
 #### OSD Construction and Destruction
-The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The constructor [`dsl_osd_new`](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
 
 #### Adding and Removing
-A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [`dsl_pipeline_component_add`](api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+A similar set of Services are used when adding/removing an OSD to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
 Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another.
 
 ---
 ## On-Screen API
 **Constructors:**
-* [dsl_osd_new](#dsl_osd_new)
+* [`dsl_osd_new`](#dsl_osd_new)
 
 **Methods:**
-* [dsl_osd_text_enabled_get](#dsl_osd_text_enabled_get)
-* [dsl_osd_text_enabled_set](#dsl_osd_text_enabled_set)
-* [dsl_osd_clock_enabled_get](#dsl_osd_clock_enabled_get)
-* [dsl_osd_clock_enabled_set](#dsl_osd_clock_enabled_set)
-* [dsl_osd_clock_offsets_get](#dsl_osd_clock_offsets_get)
-* [dsl_osd_clock_offsets_set](#dsl_osd_clock_offsets_set)
-* [dsl_osd_clock_font_get](#dsl_osd_clock_font_get)
-* [dsl_osd_clock_font_set](#dsl_osd_clock_font_set)
-* [dsl_osd_clock_color_get](#dsl_osd_clock_color_get)
-* [dsl_osd_clock_color_set](#dsl_osd_clock_color_set)
-* [dsl_osd_bbox_enabled_get](#dsl_osd_bbox_enabled_get)
-* [dsl_osd_bbox_enabled_set](#dsl_osd_bbox_enabled_set)
-* [dsl_osd_mask_enabled_get](#dsl_osd_mask_enabled_get)
-* [dsl_osd_mask_enabled_set](#dsl_osd_mask_enabled_set)
-* [dsl_osd_process_mode_get](#dsl_osd_process_mode_get)
-* [dsl_osd_process_mode_set](#dsl_osd_process_mode_set)
-* [dsl_osd_pph_add](#dsl_osd_pph_add)
-* [dsl_osd_pph_remove](#dsl_osd_pph_remove)
+* [`dsl_osd_text_enabled_get`](#dsl_osd_text_enabled_get)
+* [`dsl_osd_text_enabled_set`](#dsl_osd_text_enabled_set)
+* [`dsl_osd_clock_enabled_get`](#dsl_osd_clock_enabled_get)
+* [`dsl_osd_clock_enabled_set`](#dsl_osd_clock_enabled_set)
+* [`dsl_osd_clock_offsets_get`](#dsl_osd_clock_offsets_get)
+* [`dsl_osd_clock_offsets_set`](#dsl_osd_clock_offsets_set)
+* [`dsl_osd_clock_font_get`](#dsl_osd_clock_font_get)
+* [`dsl_osd_clock_font_set`](#dsl_osd_clock_font_set)
+* [`dsl_osd_clock_color_get`](#dsl_osd_clock_color_get)
+* [`dsl_osd_clock_color_set`](#dsl_osd_clock_color_set)
+* [`dsl_osd_bbox_enabled_get`](#dsl_osd_bbox_enabled_get)
+* [`dsl_osd_bbox_enabled_set`](#dsl_osd_bbox_enabled_set)
+* [`dsl_osd_mask_enabled_get`](#dsl_osd_mask_enabled_get)
+* [`dsl_osd_mask_enabled_set`](#dsl_osd_mask_enabled_set)
+* [`dsl_osd_process_mode_get`](#dsl_osd_process_mode_get)
+* [`dsl_osd_process_mode_set`](#dsl_osd_process_mode_set)
+* [`dsl_osd_pph_add`](#dsl_osd_pph_add)
+* [`dsl_osd_pph_remove`](#dsl_osd_pph_remove)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
