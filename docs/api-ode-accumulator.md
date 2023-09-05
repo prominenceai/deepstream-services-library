@@ -4,32 +4,32 @@ An Object Detection Event (ODE) Accumulator -- once added to an ODE Trigger -- a
 One example is to add a [Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) to an Accumulator added to a [Cross Trigger](/docs/api-ode-trigger-md#dsl_ode_trigger_cross_new) with an [ODE Area](/docs/api-ode-area.md). The Cross Trigger will call the Accumlator with the count of `IN` and `OUT` occurrences after each frame. The Accumlator will update the running totals and call the Display Action. The Display Action will format the data into RGBA Display Meta and add it to the current frame for a downstream [On-Screen Display (OSD)](/docs/api-osd.md) to display.
 
 #### Construction and Destruction
-An Accumulator is created by calling [dsl_ode_accumulator_new](#dsl_ode_accumulator_new). Accumulators are deleted by calling [dsl_ode_accumulator_delete](#dsl_ode_accumulator_delete), [dsl_ode_accumulator_delete_many](#dsl_ode_accumulator_delete_many), or [dsl_ode_accumulator_delete_all](#dsl_ode_accumulator_delete_all).
+An Accumulator is created by calling [`dsl_ode_accumulator_new`](#dsl_ode_accumulator_new). Accumulators are deleted by calling [`dsl_ode_accumulator_delete`](#dsl_ode_accumulator_delete), [`dsl_ode_accumulator_delete_many`](#dsl_ode_accumulator_delete_many), or [`dsl_ode_accumulator_delete_all`](#dsl_ode_accumulator_delete_all).
 
 #### Adding and Removing Accumulators
-The relationship between ODE Triggers and ODE Accumulators is many-to-one. A Trigger can have at most one Accumlator and one Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [dsl_ode_trigger_accumulator add](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add) and removed with [dsl_ode_trigger_accumulator_remove](docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_remove).
+The relationship between ODE Triggers and ODE Accumulators is many-to-one. A Trigger can have at most one Accumlator and one Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [`dsl_ode_trigger_accumulator_add`](/docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_add) and removed with [`dsl_ode_trigger_accumulator_remove`](docs/api-ode-trigger.md#dsl_ode_trigger_accumulator_remove).
 
 #### Adding and Removing Actions
-Multiple ODE Actions can be added to an ODE Accumulator and the same ODE Action can be added to multiple ODE Accumulators. ODE Actions are added to an ODE Accumulator by calling [dsl_ode_accumulator_action_add](#dsl_ode_accumulator_action_add) and [dsl_ode_accumulator_action_add_many](#dsl_ode_accumulator_action_add_many), and removed with [dsl_ode_accumulator_action_remove](#dsl_ode_accumulator_action_remove), [dsl_ode_accumulator_action_remove_many](#dsl_ode_accumulator_action_remove_many), and [dsl_ode_accumulator_action_remove_all](#dsl_ode_accumulator_action_remove_all).
+Multiple ODE Actions can be added to an ODE Accumulator and the same ODE Action can be added to multiple ODE Accumulators. ODE Actions are added to an ODE Accumulator by calling [`dsl_ode_accumulator_action_add`](#dsl_ode_accumulator_action_add) and [`dsl_ode_accumulator_action_add_many`](#dsl_ode_accumulator_action_add_many), and removed with [`dsl_ode_accumulator_action_remove`](#dsl_ode_accumulator_action_remove), [`dsl_ode_accumulator_action_remove_many`](#dsl_ode_accumulator_action_remove_many), and [`dsl_ode_accumulator_action_remove_all`](#dsl_ode_accumulator_action_remove_all).
 
 ---
 
 ## ODE Accumulator API
 **Constructors:**
-* [dsl_ode_accumulator_new](#dsl_ode_accumulator_new)
+* [`dsl_ode_accumulator_new`](#dsl_ode_accumulator_new)
 
 **Destructors:**
-* [dsl_ode_accumulator_delete](#dsl_ode_accumulator_delete)
-* [dsl_ode_accumulator_delete_many](#dsl_ode_accumulator_delete_many)
-* [dsl_ode_accumulator_delete_all](#dsl_ode_accumulator_delete_all)
+* [`dsl_ode_accumulator_delete`](#dsl_ode_accumulator_delete)
+* [`dsl_ode_accumulator_delete_many`](#dsl_ode_accumulator_delete_many)
+* [`dsl_ode_accumulator_delete_all`](#dsl_ode_accumulator_delete_all)
 
 **Methods:**
-* [dsl_ode_accumulator_action_add](#dsl_ode_accumulator_action_add)
-* [dsl_ode_accumulator_action_add_many](#dsl_ode_accumulator_action_remove_many)
-* [dsl_ode_accumulator_action_remove](#dsl_ode_accumulator_action_remove)
-* [dsl_ode_accumulator_action_remove_many](#dsl_ode_accumulator_action_remove_many)
-* [dsl_ode_accumulator_action_remove_all](#dsl_ode_accumulator_action_remove_all)
-* [dsl_ode_accumulator_list_size](#dsl_ode_accumulator_list_size)
+* [`dsl_ode_accumulator_action_add`](#dsl_ode_accumulator_action_add)
+* [`dsl_ode_accumulator_action_add_many`](#dsl_ode_accumulator_action_remove_many)
+* [`dsl_ode_accumulator_action_remove`](#dsl_ode_accumulator_action_remove)
+* [`dsl_ode_accumulator_action_remove_many`](#dsl_ode_accumulator_action_remove_many)
+* [`dsl_ode_accumulator_action_remove_all`](#dsl_ode_accumulator_action_remove_all)
+* [`dsl_ode_accumulator_list_size`](#dsl_ode_accumulator_list_size)
 
 ---
 
