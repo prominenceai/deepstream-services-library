@@ -17,28 +17,28 @@ Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must ha
 ### Sink Construction and Destruction
 Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created. 
 
-The relationship between [Pipelines](/docs/api-pipeline.md) and Sinks is one-to-many. The same relationship exists between [Branches](/docs/api-branch.md) and Sinks. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The relationship between [Pipelines](/docs/api-pipeline.md) and Sinks is one-to-many. The same relationship exists between [Branches](/docs/api-branch.md) and Sinks. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
 
 ### Adding and Removing
 When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as show in the image below, even if there is only one.  This ensures that additional Sinks can be added (and removed) once the Pipeline is playing. 
 
 <img src="/Images/multi-sink-splitter-tee.png"/>
 
-Sinks are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+Sinks are added to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing a to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+A similar set of Services are used when adding/removing a to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
 **IMPORTANT!:** A Sink Component can be added as a branch to either a [Splitter or Demuxer Tee](/docs/api-tee.md).
 
 ### Common Sink Properties
 All Sinks<sup id="a1">[1](#f1)</sup> support the following common properties accessible through corresponding get/set base [Sink Methods](#sink-methods). (_Note: the follow bullets are quotes from the [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/base/gstbasesink.html?gi-language=c)_)
-* **`sync`** : Each Sink sets a timestamp for when a frame should be played, if `sync=true` it will block the pipeline and only play the frame after that time. This is useful for playing from a video file, or other non-live sources. If you play a video file with `sync=false` it will play back as fast as it can be read and processed. See [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get) and [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set).
+* **`sync`** : Each Sink sets a timestamp for when a frame should be played, if `sync=true` it will block the pipeline and only play the frame after that time. This is useful for playing from a video file, or other non-live sources. If you play a video file with `sync=false` it will play back as fast as it can be read and processed. See [`dsl_sink_sync_enabled_get`](#dsl_sink_sync_enabled_get) and [`dsl_sink_sync_enabled_set`](#dsl_sink_sync_enabled_set).
 As a general rule
    * Set `sync=true` if using non-live sources and/or if the stream is to be rendered and viewed.
    * Set `sync=false` if using live sources and/or if significantly processing the stream.
-* **`async`** : If `async=true`, the Sink will perform asynchronous state changes. When `async=false`, the Sink will not signal the parent when it prerolls. Use this option when dealing with sparse streams or when synchronization is not required. See [dsl_sink_async_enabled_get](#dsl_sink_async_enabled_get) and [dsl_sink_async_enabled_set](#dsl_sink_async_enabled_set).
-* **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`. See [dsl_sink_max_lateness_get](#dsl_sink_max_lateness_get) and [dsl_sink_max_lateness_set](#dsl_sink_max_lateness_set).
-* **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronization. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example. See [dsl_sink_qos_enabled_get](#dsl_sink_qos_enabled_get) and [dsl_sink_qos_enabled_set](#dsl_sink_qos_enabled_set).
+* **`async`** : If `async=true`, the Sink will perform asynchronous state changes. When `async=false`, the Sink will not signal the parent when it prerolls. Use this option when dealing with sparse streams or when synchronization is not required. See [`dsl_sink_async_enabled_get`](#dsl_sink_async_enabled_get) and [`dsl_sink_async_enabled_set`](#dsl_sink_async_enabled_set).
+* **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`. See [`dsl_sink_max_lateness_get`](#dsl_sink_max_lateness_get) and [`dsl_sink_max_lateness_se`t](#dsl_sink_max_lateness_set).
+* **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronization. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example. See [`dsl_sink_qos_enabled_get`](#dsl_sink_qos_enabled_get) and [`dsl_sink_qos_enabled_set`](#dsl_sink_qos_enabled_set).
 
 **IMPORTANT!** All DSL Sink Components use the default property values assigned to their GStreamer (GST) Sink Plugin as defined in the table below.
 
@@ -62,122 +62,122 @@ As a general rule
 
 ## Sink API
 **Types:**
-* [dsl_recording_info](#dsl_recording_info)
+* [`dsl_recording_info](#dsl_recording_info)
 
 **Callback Types:**
-* [dsl_sink_app_new_data_handler_cb](#dsl_sink_app_new_data_handler_cb)
-* [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb)
-* [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb)
-* [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb)
-* [dsl_record_client_listener_cb](#dsl_record_client_listener_cb)
-* [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb)
+* [`dsl_sink_app_new_data_handler_cb`](#dsl_sink_app_new_data_handler_cb)
+* [`dsl_sink_window_key_event_handler_cb`](#dsl_sink_window_key_event_handler_cb)
+* [`dsl_sink_window_button_event_handler_cb`](#dsl_sink_window_button_event_handler_cb)
+* [`dsl_sink_window_delete_event_handler_cb`](#dsl_sink_window_delete_event_handler_cb)
+* [`dsl_record_client_listener_cb`](#dsl_record_client_listener_cb)
+* [`dsl_sink_webrtc_client_listener_cb`](#dsl_sink_webrtc_client_listener_cb)
 
 **Constructors:**
-* [dsl_sink_app_new](#dsl_sink_app_new)
-* [dsl_sink_overlay_new](#dsl_sink_overlay_new)
-* [dsl_sink_window_new](#dsl_sink_window_new)
-* [dsl_sink_file_new](#dsl_sink_file_new)
-* [dsl_sink_record_new](#dsl_sink_record_new)
-* [dsl_sink_rtsp_new](#dsl_sink_rtsp_new)
-* [dsl_sink_webrtc_new](#dsl_sink_webrtc_new)
-* [dsl_sink_message_new](#dsl_sink_message_new)
-* [dsl_sink_interpipe_new](#dsl_sink_interpipe_new)
-* [dsl_sink_image_multi_new](#dsl_sink_image_multi_new)
-* [dsl_sink_frame_capture_new](#dsl_sink_frame_capture_new)
-* [dsl_sink_fake_new](#dsl_sink_fake_new)
+* [`dsl_sink_app_new`](#dsl_sink_app_new)
+* [`dsl_sink_overlay_new`](#dsl_sink_overlay_new)
+* [`dsl_sink_window_new`](#dsl_sink_window_new)
+* [`dsl_sink_file_new`](#dsl_sink_file_new)
+* [`dsl_sink_record_new`](#dsl_sink_record_new)
+* [`dsl_sink_rtsp_new`](#dsl_sink_rtsp_new)
+* [`dsl_sink_webrtc_new`](#dsl_sink_webrtc_new)
+* [`dsl_sink_message_new`](#dsl_sink_message_new)
+* [`dsl_sink_interpipe_new`](#dsl_sink_interpipe_new)
+* [`dsl_sink_image_multi_new`](#dsl_sink_image_multi_new)
+* [`dsl_sink_frame_capture_new`](#dsl_sink_frame_capture_new)
+* [`dsl_sink_fake_new`](#dsl_sink_fake_new)
 
 **Sink Methods**
-* [dsl_sink_sync_enabled_get](#dsl_sink_sync_enabled_get)
-* [dsl_sink_sync_enabled_set](#dsl_sink_sync_enabled_set)
-* [dsl_sink_async_enabled_get](#dsl_sink_async_enabled_get)
-* [dsl_sink_async_enabled_set](#dsl_sink_async_enabled_set)
-* [dsl_sink_max_lateness_get](#dsl_sink_max_lateness_get)
-* [dsl_sink_max_lateness_set](#dsl_sink_max_lateness_set)
-* [dsl_sink_qos_enabled_get](#dsl_sink_qos_enabled_get)
-* [dsl_sink_qos_enabled_set](#dsl_sink_qos_enabled_set)
-* [dsl_sink_pph_add](#dsl_sink_pph_add)
-* [dsl_sink_pph_remove](#dsl_sink_pph_remove)
+* [`dsl_sink_sync_enabled_get`](#dsl_sink_sync_enabled_get)
+* [`dsl_sink_sync_enabled_set`](#dsl_sink_sync_enabled_set)
+* [`dsl_sink_async_enabled_get`](#dsl_sink_async_enabled_get)
+* [`dsl_sink_async_enabled_set`](#dsl_sink_async_enabled_set)
+* [`dsl_sink_max_lateness_get`](#dsl_sink_max_lateness_get)
+* [`dsl_sink_max_lateness_set`](#dsl_sink_max_lateness_set)
+* [`dsl_sink_qos_enabled_get`](#dsl_sink_qos_enabled_get)
+* [`dsl_sink_qos_enabled_set`](#dsl_sink_qos_enabled_set)
+* [`dsl_sink_pph_add`](#dsl_sink_pph_add)
+* [`dsl_sink_pph_remove`](#dsl_sink_pph_remove)
 
 **App Sink Methods**
-* [dsl_sink_app_data_type_get](#dsl_sink_app_data_type_get)
-* [dsl_sink_app_data_type_set](#dsl_sink_app_data_type_set)
+* [`dsl_sink_app_data_type_get`](#dsl_sink_app_data_type_get)
+* [`dsl_sink_app_data_type_set`](#dsl_sink_app_data_type_set)
 
 **Render Sink Methods**
-* [dsl_sink_render_offsets_get](#dsl_sink_render_offsets_get)
-* [dsl_sink_render_offsets_set](#dsl_sink_render_offsets_set)
-* [dsl_sink_render_dimensions_get](#dsl_sink_render_dimensions_get)
-* [dsl_sink_render_dimensions_set](#dsl_sink_render_dimensions_set)
+* [`dsl_sink_render_offsets_get`](#dsl_sink_render_offsets_get)
+* [`dsl_sink_render_offsets_set`](#dsl_sink_render_offsets_set)
+* [`dsl_sink_render_dimensions_get`](#dsl_sink_render_dimensions_get)
+* [`dsl_sink_render_dimensions_set`](#dsl_sink_render_dimensions_set)
 
 **Window Sink Methods**
-* [dsl_sink_window_handle_get](#dsl_sink_window_handle_get)
-* [dsl_sink_window_handle_set](#dsl_sink_window_handle_set)
-* [dsl_sink_window_force_aspect_ratio_get](#dsl_sink_window_force_aspect_ratio_get)
-* [dsl_sink_window_force_aspect_ratio_set](#dsl_sink_window_force_aspect_ratio_set)
-* [dsl_sink_window_fullscreen_enabled_get](#dsl_sink_window_fullscreen_enabled_get)
-* [dsl_sink_window_fullscreen_enabled_set](#dsl_sink_window_fullscreen_enabled_set)
-* [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add)
-* [dsl_sink_window_key_event_handler_remove](#dsl_sink_window_key_event_handler_remove)
-* [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add)
-* [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove)
-* [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add)
-* [dsl_sink_window_delete_event_handler_remove](#dsl_sink_window_delete_event_handler_remove)
+* [`dsl_sink_window_handle_get`](#dsl_sink_window_handle_get)
+* [`dsl_sink_window_handle_set`](#dsl_sink_window_handle_set)
+* [`dsl_sink_window_force_aspect_ratio_get`](#dsl_sink_window_force_aspect_ratio_get)
+* [`dsl_sink_window_force_aspect_ratio_set`](#dsl_sink_window_force_aspect_ratio_set)
+* [`dsl_sink_window_fullscreen_enabled_get`](#dsl_sink_window_fullscreen_enabled_get)
+* [`dsl_sink_window_fullscreen_enabled_set`](#dsl_sink_window_fullscreen_enabled_set)
+* [`dsl_sink_window_key_event_handler_add`](#dsl_sink_window_key_event_handler_add)
+* [`dsl_sink_window_key_event_handler_remove`](#dsl_sink_window_key_event_handler_remove)
+* [`dsl_sink_window_button_event_handler_add`](#dsl_sink_window_button_event_handler_add)
+* [`dsl_sink_window_button_event_handler_remove`](#dsl_sink_window_button_event_handler_remove)
+* [`dsl_sink_window_delete_event_handler_add`](#dsl_sink_window_delete_event_handler_add)
+* [`dsl_sink_window_delete_event_handler_remove`](#dsl_sink_window_delete_event_handler_remove)
 
 **Encode Sink Methods**
-* [dsl_sink_encode_settings_get](#dsl_sink_encode_settings_get)
-* [dsl_sink_encode_settings_set](#dsl_sink_encode_settings_set)
-* [dsl_sink_encode_dimensions_get](#dsl_sink_encode_dimensions_get)
-* [dsl_sink_encode_dimensions_set](#dsl_sink_encode_dimensions_set)
+* [`dsl_sink_encode_settings_get`](#dsl_sink_encode_settings_get)
+* [`dsl_sink_encode_settings_set`](#dsl_sink_encode_settings_set)
+* [`dsl_sink_encode_dimensions_get`](#dsl_sink_encode_dimensions_get)
+* [`dsl_sink_encode_dimensions_set`](#dsl_sink_encode_dimensions_set)
 
 **Smart-Record Sink Methods**
-* [dsl_sink_record_session_start](#dsl_sink_record_session_start)
-* [dsl_sink_record_session_stop](#dsl_sink_record_session_stop)
-* [dsl_sink_record_outdir_get](#dsl_sink_record_outdir_get)
-* [dsl_sink_record_outdir_set](#dsl_sink_record_outdir_set)
-* [dsl_sink_record_container_get](#dsl_sink_record_container_get)
-* [dsl_sink_record_container_set](#dsl_sink_record_container_set)
-* [dsl_sink_record_cache_size_get](#dsl_sink_record_cache_size_get)
-* [dsl_sink_record_cache_size_set](#dsl_sink_record_cache_size_set)
-* [dsl_sink_record_dimensions_get](#dsl_sink_record_dimensions_get)
-* [dsl_sink_record_dimensions_set](#dsl_sink_record_dimensions_set)
-* [dsl_sink_record_is_on_get](#dsl_sink_record_is_on_get)
-* [dsl_sink_record_video_player_add](#dsl_sink_record_video_player_add)
-* [dsl_sink_record_video_player_remove](#dsl_sink_record_video_player_remove)
-* [dsl_sink_record_mailer_add](#dsl_sink_record_mailer_add)
-* [dsl_sink_record_mailer_remove](#dsl_sink_record_mailer_remove)
-* [dsl_sink_record_reset_done_get](#dsl_sink_record_reset_done_get)
+* [`dsl_sink_record_session_start`](#dsl_sink_record_session_start)
+* [`dsl_sink_record_session_stop`](#dsl_sink_record_session_stop)
+* [`dsl_sink_record_outdir_get`](#dsl_sink_record_outdir_get)
+* [`dsl_sink_record_outdir_set`](#dsl_sink_record_outdir_set)
+* [`dsl_sink_record_container_get`](#dsl_sink_record_container_get)
+* [`dsl_sink_record_container_set`](#dsl_sink_record_container_set)
+* [`dsl_sink_record_cache_size_get`](#dsl_sink_record_cache_size_get)
+* [`dsl_sink_record_cache_size_set`](#dsl_sink_record_cache_size_set)
+* [`dsl_sink_record_dimensions_get`](#dsl_sink_record_dimensions_get)
+* [`dsl_sink_record_dimensions_set`](#dsl_sink_record_dimensions_set)
+* [`dsl_sink_record_is_on_get`](#dsl_sink_record_is_on_get)
+* [`dsl_sink_record_video_player_add`](#dsl_sink_record_video_player_add)
+* [`dsl_sink_record_video_player_remove`](#dsl_sink_record_video_player_remove)
+* [`dsl_sink_record_mailer_add`](#dsl_sink_record_mailer_add)
+* [`dsl_sink_record_mailer_remove`](#dsl_sink_record_mailer_remove)
+* [`dsl_sink_record_reset_done_get`](#dsl_sink_record_reset_done_get)
 
 **RTSP Sink Methods**
-* [dsl_sink_rtsp_server_settings_get](#dsl_sink_rtsp_server_settings_get)
+* [`dsl_sink_rtsp_server_settings_get`](#dsl_sink_rtsp_server_settings_get)
 
 **WebRTC Sink Methods**
-* [dsl_sink_webrtc_connection_close](#dsl_sink_webrtc_connection_close)
-* [dsl_sink_webrtc_servers_get](#dsl_sink_webrtc_servers_get)
-* [dsl_sink_webrtc_servers_set](#dsl_sink_webrtc_servers_set)
-* [dsl_sink_webrtc_client_listener_add](#dsl_sink_webrtc_client_listener_add)
-* [dsl_sink_webrtc_client_listener_remove](#dsl_sink_webrtc_client_listener_remove)
+* [`dsl_sink_webrtc_connection_close`](#dsl_sink_webrtc_connection_close)
+* [`dsl_sink_webrtc_servers_get`](#dsl_sink_webrtc_servers_get)
+* [`dsl_sink_webrtc_servers_set`](#dsl_sink_webrtc_servers_set)
+* [`dsl_sink_webrtc_client_listener_add`](#dsl_sink_webrtc_client_listener_add)
+* [`dsl_sink_webrtc_client_listener_remove`](#dsl_sink_webrtc_client_listener_remove)
 
 **IOT Message Converter Sink Methods**
-* [dsl_sink_message_converter_settings_get](#dsl_sink_message_converter_settings_get)
-* [dsl_sink_message_converter_settings_set](#dsl_sink_message_converter_settings_set)
-* [dsl_sink_message_broker_settings_get](#dsl_sink_message_broker_settings_get)
-* [dsl_sink_message_broker_settings_set](#dsl_sink_message_broker_settings_set)
+* [`dsl_sink_message_converter_settings_get`](#dsl_sink_message_converter_settings_get)
+* [`dsl_sink_message_converter_settings_set`](#dsl_sink_message_converter_settings_set)
+* [`dsl_sink_message_broker_settings_get`](#dsl_sink_message_broker_settings_get)
+* [`dsl_sink_message_broker_settings_set`](#dsl_sink_message_broker_settings_set)
 
 **Interpipe Sink Methods**
-* [dsl_sink_interpipe_forward_settings_get](#dsl_sink_interpipe_forward_settings_get)
-* [dsl_sink_interpipe_forward_settings_set](#dsl_sink_interpipe_forward_settings_set)
-* [dsl_sink_interpipe_num_listeners_get](#dsl_sink_interpipe_num_listeners_get)
+* [`dsl_sink_interpipe_forward_settings_get`](#dsl_sink_interpipe_forward_settings_get)
+* [`dsl_sink_interpipe_forward_settings_set`](#dsl_sink_interpipe_forward_settings_set)
+* [`dsl_sink_interpipe_num_listeners_get`](#dsl_sink_interpipe_num_listeners_get)
 
 **Multi-Image Sink Methods**
-* [dsl_sink_image_multi_file_path_get](#dsl_sink_image_multi_file_path_get)
-* [dsl_sink_image_multi_file_path_set](#dsl_sink_image_multi_file_path_set)
-* [dsl_sink_image_multi_dimensions_get](#dsl_sink_image_multi_dimensions_get)
-* [dsl_sink_image_multi_dimensions_set](#dsl_sink_image_multi_dimensions_set)
-* [dsl_sink_image_multi_frame_rate_get](#dsl_sink_image_multi_frame_rate_get)
-* [dsl_sink_image_multi_frame_rate_set](#dsl_sink_image_multi_frame_rate_set)
-* [dsl_sink_image_multi_file_max_get](#dsl_sink_image_multi_file_max_get)
+* [`dsl_sink_image_multi_file_path_get`](#dsl_sink_image_multi_file_path_get)
+* [`dsl_sink_image_multi_file_path_set`](#dsl_sink_image_multi_file_path_set)
+* [`dsl_sink_image_multi_dimensions_get`](#dsl_sink_image_multi_dimensions_get)
+* [`dsl_sink_image_multi_dimensions_set`](#dsl_sink_image_multi_dimensions_set)
+* [`dsl_sink_image_multi_frame_rate_get`](#dsl_sink_image_multi_frame_rate_get)
+* [`dsl_sink_image_multi_frame_rate_set`](#dsl_sink_image_multi_frame_rate_set)
+* [`dsl_sink_image_multi_file_max_get`](#dsl_sink_image_multi_file_max_get)
 
 **Frame-Capture Sink Methods**
-* [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate)
+* [`dsl_sink_frame_capture_initiate`](#dsl_sink_frame_capture_initiate)
 
 ## Return Values
 The following return codes are used by the Sink API
