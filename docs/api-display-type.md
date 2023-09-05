@@ -39,27 +39,27 @@ The image below provides examples of the Display Types listed above.
 
 Display Types are created by calling their type specific [constructor](#constructors).
 
-Display Types are deleted by calling [dsl_display_type_delete](#dsl_display_type_delete), [dsl_display_type_delete_many](#dsl_display_type_delete_many), or [dsl_display_type_delete_all](#dsl_display_type_delete_all).
+Display Types are deleted by calling [`dsl_display_type_delete`](#dsl_display_type_delete), [`dsl_display_type_delete_many`](#dsl_display_type_delete_many), or [`dsl_display_type_delete_all`](#dsl_display_type_delete_all).
 
 ### Adding to an ODE Action
-Display Types are added to a Display Action when the action is created by calling [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) or [dsl_ode_action_display_meta_add_many_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_many_new)
+Display Types are added to a Display Action when the action is created by calling [`dsl_ode_action_display_meta_add_new`](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) or [`dsl_ode_action_display_meta_add_many_new`](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_many_new)
 
 Note: Adding a Base Display Type to an ODE Action will fail.
 
 ### Using Lines and Polygons to define ODE Areas
-RGBA Lines and Polygons are used to define [ODE Areas](/docs/api-ode-area.md) as event criteria for one or more [ODE Triggers](/docs/api-ode-trigger.md). RGBA Lines are used when calling [dsl_ode_area_line_new](/docs/api-od-area.md#dsl_ode_area_line_new) and [dsl_ode_area_line_multi_new](/docs/api-od-area.md#dsl_ode_area_line_multi_new). RGBA Polygons are used when calling [dsl_ode_area_inclusion_new](/docs/api-ode-area#dsl_ode_area_inclusion_new) and calling [dsl_ode_area_exclusion_new](/docs/api-ode-area#dsl_ode_area_exclusion_new)
+RGBA Lines and Polygons are used to define [ODE Areas](/docs/api-ode-area.md) as event criteria for one or more [ODE Triggers](/docs/api-ode-trigger.md). RGBA Lines are used when calling [`dsl_ode_area_line_new`](/docs/api-od-area.md#dsl_ode_area_line_new) and [`dsl_ode_area_line_multi_new`](/docs/api-od-area.md#dsl_ode_area_line_multi_new). RGBA Polygons are used when calling [`dsl_ode_area_inclusion_new`](/docs/api-ode-area#dsl_ode_area_inclusion_new) and calling [`dsl_ode_area_exclusion_new`](/docs/api-ode-area#dsl_ode_area_exclusion_new)
 
-**Important:** The line width defined for the RGBA Lines and Polygons is used as hysteresis when tracking objects to determine if they cross over one of the Area's lines when used with an ODE Cross Trigger. A client specified point on the Object's bounding box must fully cross the line to trigger an ODE occurrence. See [dsl_ode_trigger_cross_new](/docs/api-ode-trigger-api.md#dsl_ode_trigger_cross_new) for more information.
+**Important:** The line width defined for the RGBA Lines and Polygons is used as hysteresis when tracking objects to determine if they cross over one of the Area's lines when used with an ODE Cross Trigger. A client specified point on the Object's bounding box must fully cross the line to trigger an ODE occurrence. See [`dsl_ode_trigger_cross_new`](/docs/api-ode-trigger-api.md#dsl_ode_trigger_cross_new) for more information.
 
 ### Coloring Tracked Objects
-Dynamic RGBA colors can be used to uniquely color the bounding box and object trace of tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [ODE Trigger API Reference](/docs/api-ode-trigger.md) and the [dsl_ode_trigger_cross_new](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) and [dsl_ode_trigger_cross_view_settings_set](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
+Dynamic RGBA colors can be used to uniquely color the bounding box and object trace of tracked objects as identified by a [Multi-object Tracker](/docs/api-tracker.md) when using an ODE Cross Trigger. See the [`ODE Trigger API Reference`](/docs/api-ode-trigger.md) and the [`dsl_ode_trigger_cross_new`](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) and [`dsl_ode_trigger_cross_view_settings_set`](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_view_settings_set) services for more information.
 
 ### Display Meta Memory Allocation
-Display meta structures, allocated from pool memory, are used to attach the Display Type's metadata to a frame's metadata. Each display meta structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc. Note: polygons require a line for each segment). The default allocation size is one structure per frame.  See [dsl_pph_ode_display_meta_alloc_size_set](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) if more than one structure per frame is required. Meta data will be discarded if sufficient memory has not allocated.
+Display meta structures, allocated from pool memory, are used to attach the Display Type's metadata to a frame's metadata. Each display meta structure can hold up to 16 display elements for each display type (lines, arrows, rectangles, etc. Note: polygons require a line for each segment). The default allocation size is one structure per frame.  See [`dsl_pph_ode_display_meta_alloc_size_set`](/docs/api-pph.md#dsl_pph_ode_display_meta_alloc_size_set) if more than one structure per frame is required. Meta data will be discarded if sufficient memory has not allocated.
 
 ## Using Display Types
 ### For display on every frame:
-To add static Display types to every frame, use a Display Meta Action -- [dsl_ode_action_display_meta_add_new](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) -- added to an [Always ODE Trigger](/docs/api-ode-trigger.md).
+To add static Display types to every frame, use a Display Meta Action -- [`dsl_ode_action_display_meta_add_new`](/docs/api-ode-action.md#dsl_ode_action_display_meta_add_new) -- added to an [Always ODE Trigger](/docs/api-ode-trigger.md).
 
 Using Python for example
 ```Python
@@ -110,44 +110,44 @@ retval = dsl_ode_trigger_action_add('max-trigger', action='overlay-warning')
 ### Display Type API
 
 **Types:**
-* [dsl_coordinate](#dsl_coordinate)
+* [`dsl_coordinate`](#dsl_coordinate)
 
 **Client Callback Typedefs:**
-* [dsl_display_type_rgba_color_provider_cb](#dsl_display_type_rgba_color_provider_cb)
+* [`dsl_display_type_rgba_color_provider_cb`](#dsl_display_type_rgba_color_provider_cb)
 
 **Constructors:**
-* [dsl_display_type_rgba_color_custom_new](#dsl_display_type_rgba_color_custom_new)
-* [dsl_display_type_rgba_color_predefined_new](#dsl_display_type_rgba_color_predefined_new)
-* [dsl_display_type_rgba_color_random_new](#dsl_display_type_rgba_color_random_new)
-* [dsl_display_type_rgba_color_on_demand_new](#dsl_display_type_rgba_color_on_demand_new)
-* [dsl_display_type_rgba_color_palette_new](#dsl_display_type_rgba_color_palette_new)
-* [dsl_display_type_rgba_color_palette_predefined_new](#dsl_display_type_rgba_color_palette_predefined_new)
-* [dsl_display_type_rgba_color_palette_random_new](#dsl_display_type_rgba_color_palette_random_new)
-* [dsl_display_type_rgba_font_new](#dsl_display_type_rgba_font_new)
-* [dsl_display_type_rgba_text_new](#dsl_display_type_rgba_text_new)
-* [dsl_display_type_rgba_line_new](#dsl_display_type_rgba_line_new)
-* [dsl_display_type_rgba_line_multi_new](#dsl_display_type_rgba_line_multi_new)
-* [dsl_display_type_rgba_arrow_new](#dsl_display_type_rgba_arrow_new)
-* [dsl_display_type_rgba_rectangle_new](#dsl_display_type_rgba_rectangle_new)
-* [dsl_display_type_rgba_polygon_new](#dsl_display_type_rgba_polygon_new)
-* [dsl_display_type_rgba_circle_new](#dsl_display_type_rgba_circle_new)
-* [dsl_display_type_source_stream_id_new](#dsl_display_type_source_stream_id_new)
-* [dsl_display_type_source_unique_id_new](#dsl_display_type_source_unique_id_new)
-* [dsl_display_type_source_name_new](#dsl_display_type_source_name_new)
-* [dsl_display_type_source_dimensions_new](#dsl_display_type_source_dimensions_new)
+* [`dsl_display_type_rgba_color_custom_new`](#dsl_display_type_rgba_color_custom_new)
+* [`dsl_display_type_rgba_color_predefined_new`](#dsl_display_type_rgba_color_predefined_new)
+* [`dsl_display_type_rgba_color_random_new`](#dsl_display_type_rgba_color_random_new)
+* [`dsl_display_type_rgba_color_on_demand_new`](#dsl_display_type_rgba_color_on_demand_new)
+* [`dsl_display_type_rgba_color_palette_new`](#dsl_display_type_rgba_color_palette_new)
+* [`dsl_display_type_rgba_color_palette_predefined_new`](#dsl_display_type_rgba_color_palette_predefined_new)
+* [`dsl_display_type_rgba_color_palette_random_new`](#dsl_display_type_rgba_color_palette_random_new)
+* [`dsl_display_type_rgba_font_new`](#dsl_display_type_rgba_font_new)
+* [`dsl_display_type_rgba_text_new`](#dsl_display_type_rgba_text_new)
+* [`dsl_display_type_rgba_line_new`](#dsl_display_type_rgba_line_new)
+* [`dsl_display_type_rgba_line_multi_new`](#dsl_display_type_rgba_line_multi_new)
+* [`dsl_display_type_rgba_arrow_new`](#dsl_display_type_rgba_arrow_new)
+* [`dsl_display_type_rgba_rectangle_new`](#dsl_display_type_rgba_rectangle_new)
+* [`dsl_display_type_rgba_polygon_new`](#dsl_display_type_rgba_polygon_new)
+* [`dsl_display_type_rgba_circle_new`](#dsl_display_type_rgba_circle_new)
+* [`dsl_display_type_source_stream_id_new`](#dsl_display_type_source_stream_id_new)
+* [`dsl_display_type_source_unique_id_new`](#dsl_display_type_source_unique_id_new)
+* [`dsl_display_type_source_name_new`](#dsl_display_type_source_name_new)
+* [`dsl_display_type_source_dimensions_new`](#dsl_display_type_source_dimensions_new)
 
 **Destructors:**
-* [dsl_display_type_delete](#dsl_display_type_delete)
-* [dsl_display_type_delete_many](#dsl_display_type_delete_many)
-* [dsl_display_type_delete_all](#dsl_display_type_delete_all)
+* [`dsl_display_type_delete`](#dsl_display_type_delete)
+* [`dsl_display_type_delete_many`](#dsl_display_type_delete_many)
+* [`dsl_display_type_delete_all`](#dsl_display_type_delete_all)
 
 **Methods:**
-* [dsl_display_type_rgba_color_palette_index_get](#dsl_display_type_rgba_color_palette_index_get)
-* [dsl_display_type_rgba_color_palette_index_set](#dsl_display_type_rgba_color_palette_index_set)
-* [dsl_display_type_rgba_color_next_set](#dsl_display_type_rgba_color_next_set)
-* [dsl_display_type_rgba_text_shadow_add](#dsl_display_type_rgba_text_shadow_add)
-* [dsl_display_type_list_size](#dsl_display_type_list_size)
-* [dsl_display_type_meta_add](#dsl_display_type_meta_add)
+* [`dsl_display_type_rgba_color_palette_index_get`](#dsl_display_type_rgba_color_palette_index_get)
+* [`dsl_display_type_rgba_color_palette_index_set`](#dsl_display_type_rgba_color_palette_index_set)
+* [`dsl_display_type_rgba_color_next_set`](#dsl_display_type_rgba_color_next_set)
+* [`dsl_display_type_rgba_text_shadow_add`](#dsl_display_type_rgba_text_shadow_add)
+* [`dsl_display_type_list_size`](#dsl_display_type_list_size)
+* [`dsl_display_type_meta_add`](#dsl_display_type_meta_add)
 
 ---
 ## Return Values
