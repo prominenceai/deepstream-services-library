@@ -4,51 +4,51 @@ The DeepStream Services Library (DSL) provides services for Nvidia's two Inferen
 Pipelines can have multiple Primary GIE or TIS -- linked in succession to operate on the full frame -- with any number of corresponding Secondary GIEs or TISs (only limited by hardware). Pipelines cannot be created with a mix of GIEs and TISs. Pipelines that have secondary GIEs/TISs but no Primary GIE/TIS will fail to Link and Play. Secondary GIEs/TISs can `infer-on` both Primary and Secondary GIEs/TISs creating multiple levels of inference. **IMPORTANT**: the current release supports up to two levels of secondary inference.
 
 ### Construction and Destruction
-Primary GIEs and TISs are constructed by calling [dsl_infer_gie_primary_new](#dsl_infer_gie_primary_new) and [dsl_infer_tis_primary_new](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [dsl_infer_gie_secondary_new](#dsl_gie_secondary_new) and [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created. All GIEs and TIEs are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all).
+Primary GIEs and TISs are constructed by calling [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new) and [`dsl_infer_tis_primary_new`](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [`dsl_infer_gie_secondary_new`](#dsl_gie_secondary_new) and [`dsl_infer_tis_secondary_new`](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created. All GIEs and TIEs are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all).
 
 ### Inference Configuration
-Both GIEs and TIEs require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [dsl_infer_config_file_get](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [dsl_infer_config_file_set](#dsl_infer_config_file_set).
+Both GIEs and TIEs require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [`dsl_infer_config_file_get`](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [`dsl_infer_config_file_set`](#dsl_infer_config_file_set).
 
 ### Model Engine Files
-GIEs support the specification of a pre-built **Model Engine File**, or one can allow the Plugin to create the model engine based on the configuration. The file in use can be queried by calling [dsl_infer_gie_model_engine_file_get](#dsl_infer_gie_model_engine_file_get) or changed with [dsl_infer_gie_model_engine_file_set](#dsl_infer_gie_model_engine_file_set).
+GIEs support the specification of a pre-built **Model Engine File**, or one can allow the Plugin to create the model engine based on the configuration. The file in use can be queried by calling [`dsl_infer_gie_model_engine_file_get`](#dsl_infer_gie_model_engine_file_get) or changed with [`dsl_infer_gie_model_engine_file_set`](#dsl_infer_gie_model_engine_file_set).
 
 ### Unique Id
-**IMPORTANT!** DSL explicitly assigns each GIE or TISs a unique component id overriding the (optional) parameter in the inference config file. The unique component id is derived from the first available unused id starting with 1, meaning the first component will be assigned id 1, the second id 2 and so on. The id will be reused if the inference component is deleted and a new one created. The value assigned to the GIE or TIS can be queried by calling [dsl_infer_unique_id_get](#dsl_infer_unique_id_get). All Object metadata structures created by the named GIE/TIE will include a `unique_component_id` field assigned with this id.
+**IMPORTANT!** DSL explicitly assigns each GIE or TISs a unique component id overriding the (optional) parameter in the inference config file. The unique component id is derived from the first available unused id starting with 1, meaning the first component will be assigned id 1, the second id 2 and so on. The id will be reused if the inference component is deleted and a new one created. The value assigned to the GIE or TIS can be queried by calling [`dsl_infer_unique_id_get`](#dsl_infer_unique_id_get). All Object metadata structures created by the named GIE/TIE will include a `unique_component_id` field assigned with this id.
 
 ### Inference Interval
-**IMPORTANT!** DSL sets the inference interval with the input parameter provided on construction overriding the (optional) parameter in the inference config file. The interval for inferencing -- or the number of frames to skip between inferencing -- is set as an unsigned integer with `0 = every frame`, `1 = every other frame`, `2 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can be queried by calling [dsl_infer_interval_get](#dsl_infer_interval_get), and changed by calling [dsl_infer_interval_set](#dsl_infer_interval_set).
+**IMPORTANT!** DSL sets the inference interval with the input parameter provided on construction overriding the (optional) parameter in the inference config file. The interval for inferencing -- or the number of frames to skip between inferencing -- is set as an unsigned integer with `0 = every frame`, `1 = every other frame`, `2 = every 3rd frame`, etc., when created.  The current interval in-use by any GIE/TIS can be queried by calling [`dsl_infer_interval_get`](#dsl_infer_interval_get), and changed by calling [`dsl_infer_interval_set`](#dsl_infer_interval_set).
 
 ### Inference Batch Size
-**IMPORTANT!** DSL sets the inference batch size overriding the parameter in the inference config file. The batch size for each GIE/TIS can be set explicitly by calling [dsl_infer_batch_size_set](#dsl_infer_batch_size_set). If not set (0-default), the Pipeline will set the batch-size to the same value as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [dsl_pipeline_streammux_batch_properties_set](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
+**IMPORTANT!** DSL sets the inference batch size overriding the parameter in the inference config file. The batch size for each GIE/TIS can be set explicitly by calling [`dsl_infer_batch_size_set`](#dsl_infer_batch_size_set). If not set (0-default), the Pipeline will set the batch-size to the same value as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [`dsl_pipeline_streammux_batch_properties_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
 
 ### Adding and Removing
-GIEs/TISs are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed by calling [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove) and [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many).
+GIEs/TISs are added to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) and [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) and [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many).
 
-A similar set of Services are used when adding/removing a GIE/TIS to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+A similar set of Services are used when adding/removing a GIE/TIS to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
-Primary and Secondary GIEs/TISs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_delete_all](/docs/overview.md#dsl_delete_all).
+Primary and Secondary GIEs/TISs are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_delete_all`](/docs/overview.md#dsl_delete_all).
 
 ## Primary and Secondary Inference API
 **Constructors**
-* [dsl_infer_gie_primary_new](#dsl_infer_gie_primary_new)
-* [dsl_infer_gie_secondary_new](#dsl_infer_gie_secondary_new)
-* [dsl_infer_tis_primary_new](#dsl_infer_tis_primary_new)
-* [dsl_infer_tis_secondary_new](#dsl_infer_tis_secondary_new)
+* [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new)
+* [`dsl_infer_gie_secondary_new`](#dsl_infer_gie_secondary_new)
+* [`dsl_infer_tis_primary_new`](#dsl_infer_tis_primary_new)
+* [`dsl_infer_tis_secondary_new`](#dsl_infer_tis_secondary_new)
 
 **Methods**
-* [dsl_infer_batch_size_get](#dsl_infer_batch_size_get)
-* [dsl_infer_batch_size_set](#dsl_infer_batch_size_set)
-* [dsl_infer_unique_id_get](#dsl_infer_unique_id_get)
-* [dsl_infer_gie_model_engine_file_get](#dsl_infer_gie_model_engine_file_get)
-* [dsl_infer_gie_model_engine_file_set](#dsl_infer_gie_model_engine_file_set)
-* [dsl_infer_gie_tensor_meta_settings_get](#dsl_infer_gie_tensor_meta_settings_get)
-* [dsl_infer_gie_tensor_meta_settings_set](#dsl_infer_gie_tensor_meta_settings_set)
-* [dsl_infer_config_file_get](#dsl_infer_config_file_get)
-* [dsl_infer_config_file_set](#dsl_infer_config_file_set)
-* [dsl_infer_interval_get](#dsl_infer_interval_get)
-* [dsl_infer_interval_set](#dsl_infer_interval_set)
-* [dsl_infer_primary_pph_add](#dsl_infer_primary_pph_add)
-* [dsl_infer_primary_pph_remove](#dsl_infer_primary_pph_remove)
+* [`dsl_infer_batch_size_get`](#dsl_infer_batch_size_get)
+* [`dsl_infer_batch_size_set`](#dsl_infer_batch_size_set)
+* [`dsl_infer_unique_id_get`](#dsl_infer_unique_id_get)
+* [`dsl_infer_gie_model_engine_file_get`](#dsl_infer_gie_model_engine_file_get)
+* [`dsl_infer_gie_model_engine_file_set`](#dsl_infer_gie_model_engine_file_set)
+* [`dsl_infer_gie_tensor_meta_settings_get`](#dsl_infer_gie_tensor_meta_settings_get)
+* [`dsl_infer_gie_tensor_meta_settings_set`](#dsl_infer_gie_tensor_meta_settings_set)
+* [`dsl_infer_config_file_get`](#dsl_infer_config_file_get)
+* [`dsl_infer_config_file_set`](#dsl_infer_config_file_set)
+* [`dsl_infer_interval_get`](#dsl_infer_interval_get)
+* [`dsl_infer_interval_set`](#dsl_infer_interval_set)
+* [`dsl_infer_primary_pph_add`](#dsl_infer_primary_pph_add)
+* [`dsl_infer_primary_pph_remove`](#dsl_infer_primary_pph_remove)
 
 ---
 ## Return Values
@@ -205,7 +205,7 @@ retval = dsl_infer_tis_seondary_new('my-stis', stis_config_file, 0, 'my-ptis')
 ```C++
 DslReturnType dsl_infer_batch_size_get(const wchar_t* name, uint* size);
 ```
-This service gets the client defined batch-size setting for the named GIE or TIS. If not set (0-default), the Pipeline will set the batch-size to the same as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [dsl_pipeline_streammux_batch_properties_set](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
+This service gets the client defined batch-size setting for the named GIE or TIS. If not set (0-default), the Pipeline will set the batch-size to the same as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [`dsl_pipeline_streammux_batch_properties_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
 
 **Parameters**
 * `name` - [in] unique name of the Primary or Secondary GIE or TIS to query.
@@ -225,7 +225,7 @@ retval, batch_size = dsl_infer_batch_size_get('my-pgie')
 ```C++
 DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size);
 ```
-This service sets the client defined batch-size setting for the named GIE or TIS. If not set (0-default), the Pipeline will set the batch-size to the same as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [dsl_pipeline_streammux_batch_properties_set](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
+This service sets the client defined batch-size setting for the named GIE or TIS. If not set (0-default), the Pipeline will set the batch-size to the same as the Streammux batch-size which - by default - is derived from the number of sources when the Pipeline is called to play. The Streammux batch-size can be set (overridden) by calling [`dsl_pipeline_streammux_batch_properties_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_properties_set).
 
 **Parameters**
 * `name` - [in] unique name of the Primary or Secondary GIE or TIS to query.
