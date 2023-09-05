@@ -1,25 +1,25 @@
 # Info API Reference
-The Informational Services API provides runtime access to the current DSL version by calling [dsl_info_version_get](#dsl_info_version_get) and GPU type by calling [dsl_info_gpu_type_get](#dsl_info_gpu_type_get).
+The Informational Services API provides runtime access to the current DSL version by calling [`dsl_info_version_get`](#dsl_info_version_get) and GPU type by calling [`dsl_info_gpu_type_get`](#dsl_info_gpu_type_get).
 
-The standard output stream (stdout) can be redirected to a file by calling [dsl_info_stdout_redirect](#dsl_info_stdout_redirect) or [dsl_info_stdout_redirect_with_ts](#dsl_info_stdout_redirect_with_ts). The current filename, if redirection is active, can be queried by calling [dsl_info_stdout_get](#dsl_info_stdout_get). The standard output stream can be restored by calling [dsl_info_stdout_restore](#dsl_info_stdout_restore)
+The standard output stream (stdout) can be redirected to a file by calling [`dsl_info_stdout_redirect`](#dsl_info_stdout_redirect) or [`dsl_info_stdout_redirect_with_ts`](#dsl_info_stdout_redirect_with_ts). The current filename, if redirection is active, can be queried by calling [`dsl_info_stdout_get`](#dsl_info_stdout_get). The standard output stream can be restored by calling [`dsl_info_stdout_restore`](#dsl_info_stdout_restore)
 
-Applications can control the GStreamer debug log level - by calling [dsl_info_log_level_set](#dsl_info_log_level_set) - and the debug log file - by calling [dsl_info_log_file_set](#dsl_info_log_file_set) or [dsl_info_log_file_set_with_ts](#dsl_info_log_file_set). The `level` and `file_path` values can be queried by calling [dsl_info_log_level_get](#dsl_info_log_level_get) and [dsl_info_log_file_get](#dsl_info_log_file_get) respectively. The default logging function can be restored by calling [dsl_info_log_function_restore](#dsl_info_log_file_set).
+Applications can control the GStreamer debug log level - by calling [`dsl_info_log_level_set`](#dsl_info_log_level_set) - and the debug log file - by calling [`dsl_info_log_file_set`](#dsl_info_log_file_set) or [`dsl_info_log_file_set_with_ts`](#dsl_info_log_file_set). The `level` and `file_path` values can be queried by calling [`dsl_info_log_level_get`](#dsl_info_log_level_get) and [`dsl_info_log_file_get`](#dsl_info_log_file_get) respectively. The default logging function can be restored by calling [`dsl_info_log_function_restore`](#dsl_info_log_file_set).
 
 ---
 ## Info API
 **Methods**
-* [dsl_info_version_get](#dsl_info_version_get)
-* [dsl_info_gpu_type_get](#dsl_info_gpu_type_get)
-* [dsl_info_stdout_get](#dsl_info_stdout_get)
-* [dsl_info_stdout_redirect](#dsl_info_stdout_redirect)
-* [dsl_info_stdout_redirect_with_ts](#dsl_info_stdout_redirect_with_ts)
-* [dsl_info_stdout_restore](#dsl_info_stdout_restore)
-* [dsl_info_log_level_get](#dsl_info_log_level_get)
-* [dsl_info_log_level_set](#dsl_info_log_level_set)
-* [dsl_info_log_file_get](#dsl_info_log_file_get)
-* [dsl_info_log_file_set](#dsl_info_log_file_set)
-* [dsl_info_log_file_set_with_ts](#dsl_info_log_file_set)
-* [dsl_info_log_function_restore](#dsl_info_log_file_set)
+* [`dsl_info_version_get`](#dsl_info_version_get)
+* [`dsl_info_gpu_type_get`](#dsl_info_gpu_type_get)
+* [`dsl_info_stdout_get`](#dsl_info_stdout_get)
+* [`dsl_info_stdout_redirect`](#dsl_info_stdout_redirect)
+* [`dsl_info_stdout_redirect_with_ts`](#dsl_info_stdout_redirect_with_ts)
+* [`dsl_info_stdout_restore`](#dsl_info_stdout_restore)
+* [`dsl_info_log_level_get`](#dsl_info_log_level_get)
+* [`dsl_info_log_level_set`](#dsl_info_log_level_set)
+* [`dsl_info_log_file_get`](#dsl_info_log_file_get)
+* [`dsl_info_log_file_set`](#dsl_info_log_file_set)
+* [`dsl_info_log_file_set_with_ts`](#dsl_info_log_file_set)
+* [`dsl_info_log_function_restore`](#dsl_info_log_file_set)
 
 ---
 
