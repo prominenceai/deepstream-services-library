@@ -10,7 +10,7 @@ Data flowing over a Pipeline Component’s Pads – link points between componen
 The Custom PPH allows the client to add a custom callback function to a Pipeline Component's sink or source pad. The custom callback will be called with each buffer that crosses over the Component's pad.
 
 ### New Buffer Timeout Pad Probe Handler
-The Buffer Timeout PPH allows the client to add a callback function to a Component's Pad to be notified in the event that a new buffer is not received within a specified time limit. When using multiple Source Components, you can add a PPH to each Source's sink pad to be notified of individual Source stream timeouts. See [dsl_source_pph_add](/docs/api-source.md#dsl_source_pph_add).
+The Buffer Timeout PPH allows the client to add a callback function to a Component's Pad to be notified in the event that a new buffer is not received within a specified time limit. When using multiple Source Components, you can add a PPH to each Source's sink pad to be notified of individual Source stream timeouts. See [`dsl_source_pph_add`](/docs/api-source.md#dsl_source_pph_add).
 
 ### Pipeline Meter Pad Probe Handler
 The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Adding the Meter to the Tiler's sink-pad -- or any pad after the Stream-muxer and before the Tiler -- will measure all sources. Adding the Meter to the Tiler's source-pad -- or any component downstream of the Tiler -- will measure the throughput of the single tiled stream.
@@ -56,55 +56,55 @@ Steps to include in DSL:
 3. set the makefile path variable to the NumCpp `/include` folder - `NUM_CPP_PATH:=<path-to-numcpp-include-folder>`
 
 ### Pad Probe Handler Construction and Destruction
-Pad Probe Handlers are created by calling their type specific constructor.  Handlers are deleted by calling [dsl_pph_delete](#dsl_pph_delete), [dsl_pph_delete_many](#dsl_pph_delete_many), or [dsl_pph_delete_all](#dsl_pph_delete_all).
+Pad Probe Handlers are created by calling their type specific constructor.  Handlers are deleted by calling [`dsl_pph_delete`](#dsl_pph_delete), [`dsl_pph_delete_many`](#dsl_pph_delete_many), or [`dsl_pph_delete_all`](#dsl_pph_delete_all).
 
 The Pad Probe Handler's name must be unique from all other components. The relationship between Pipeline Components and Pad Probe Handlers is one-to-many and a Handler must be removed from a Pipeline/Branch before it can be used with another.
 
 ### Adding to a Pipeline Component
-Pad Probe handlers are added to a Pipeline Component by calling the component's `dsl_<component>_pph_add` service and removed with `dsl_<component>_pph_remove`. Using the Tracker component for example; [dsl_tracker_pph_add](/docs/api-tracker.md#dsl_tracker_pph_add) and [dsl_tracker_pph_remove](/docs/api-tracker.md#dsl_tracker_pph_remove)
+Pad Probe handlers are added to a Pipeline Component by calling the component's `dsl_<component>_pph_add` service and removed with `dsl_<component>_pph_remove`. Using the Tracker component for example; [`dsl_tracker_pph_add`](/docs/api-tracker.md#dsl_tracker_pph_add) and [`dsl_tracker_pph_remove`](/docs/api-tracker.md#dsl_tracker_pph_remove)
 
 ### Adding and Removing Triggers to/from an ODE Pad Probe handler
-ODE Triggers are added to an ODE Pad Probe Handler by calling [dsl_pph_ode_trigger_add](#dsl_pph_ode_trigger_add) or [dsl_pph_ode_trigger_add_many](#dsl_pph_ode_trigger_add_many) and removed with [dsl_pph_ode_trigger_remove](#dsl_pph_ode_trigger_remove), [dsl_pph_ode_trigger_remove_many](#dsl_pph_ode_trigger_remove_many), or [dsl_pph_ode_trigger_remove_all](#dsl_pph_ode_trigger_remove_all).
+ODE Triggers are added to an ODE Pad Probe Handler by calling [`dsl_pph_ode_trigger_add`](#dsl_pph_ode_trigger_add) or [`dsl_pph_ode_trigger_add_many`](#dsl_pph_ode_trigger_add_many) and removed with [`dsl_pph_ode_trigger_remove`](#dsl_pph_ode_trigger_remove), [`dsl_pph_ode_trigger_remove_many`](#dsl_pph_ode_trigger_remove_many), or [`dsl_pph_ode_trigger_remove_all`](#dsl_pph_ode_trigger_remove_all).
 
 ---
 
 ## ODE Handler API
 **Callback Types:**
-* [dsl_pph_custom_client_handler_cb](#dsl_pph_custom_client_handler_cb)
-* [dsl_pph_buffer_timeout_handler_cb](#dsl_pph_buffer_timeout_handler_cb)
-* [dsl_pph_meter_client_handler_cb](#dsl_pph_meter_client_handler_cb)
+* [`dsl_pph_custom_client_handler_cb`](#dsl_pph_custom_client_handler_cb)
+* [`dsl_pph_buffer_timeout_handler_cb`](#dsl_pph_buffer_timeout_handler_cb)
+* [`dsl_pph_meter_client_handler_cb`](#dsl_pph_meter_client_handler_cb)
 
 **Constructors:**
-* [dsl_pph_custom_new](#dsl_pph_custom_new)
-* [dsl_pph_buffer_timeout_new](#dsl_pph_buffer_timeout_new)
-* [dsl_pph_meter_new](#dsl_pph_meter_new)
-* [dsl_pph_ode_new](#dsl_pph_ode_new)
-* [dsl_pph_nmp_new](#dsl_pph_nmp_new)
+* [`dsl_pph_custom_new`](#dsl_pph_custom_new)
+* [`dsl_pph_buffer_timeout_new`](#dsl_pph_buffer_timeout_new)
+* [`dsl_pph_meter_new`](#dsl_pph_meter_new)
+* [`dsl_pph_ode_new`](#dsl_pph_ode_new)
+* [`dsl_pph_nmp_new`](#dsl_pph_nmp_new)
 
 **Destructors:**
-* [dsl_pph_delete](#dsl_pph_delete)
-* [dsl_pph_delete_many](#dsl_pph_delete_many)
-* [dsl_pph_delete_all](#dsl_pph_delete_all)
+* [`dsl_pph_delete`](#dsl_pph_delete)
+* [`dsl_pph_delete_many`](#dsl_pph_delete_many)
+* [`dsl_pph_delete_all`](#dsl_pph_delete_all)
 
 **Methods:**
-* [dsl_pph_meter_interval_get](#dsl_pph_meter_interval_get)
-* [dsl_pph_meter_interval_set](#dsl_pph_meter_interval_set)
-* [dsl_pph_ode_trigger_add](#dsl_pph_ode_trigger_add)
-* [dsl_pph_ode_trigger_add_many](#dsl_pph_ode_trigger_add_many)
-* [dsl_pph_ode_trigger_remove](#dsl_pph_ode_trigger_remove)
-* [dsl_pph_ode_trigger_remove_many](#dsl_pph_ode_trigger_remove_many)
-* [dsl_pph_ode_trigger_remove_all](#dsl_pph_ode_trigger_remove_all)
-* [dsl_pph_ode_display_meta_alloc_size_get](#dsl_pph_ode_display_meta_alloc_size_get)
-* [dsl_pph_ode_display_meta_alloc_size_set](#dsl_pph_ode_display_meta_alloc_size_set)
-* [dsl_pph_nmp_label_file_get](#dsl_pph_nmp_label_file_get)
-* [dsl_pph_nmp_label_file_set](#dsl_pph_nmp_label_file_set)
-* [dsl_pph_nmp_process_method_get](#dsl_pph_nmp_process_method_get)
-* [dsl_pph_nmp_process_method_set](#dsl_pph_nmp_process_method_set)
-* [dsl_pph_nmp_match_settings_get](#dsl_pph_nmp_match_settings_get)
-* [dsl_pph_nmp_match_settings_set](#dsl_pph_nmp_match_settings_set)
-* [dsl_pph_enabled_get](#dsl_pph_enabled_get)
-* [dsl_pph_enabled_set](#dsl_pph_enabled_set)
-* [dsl_pph_list_size](#dsl_pph_list_size)
+* [`dsl_pph_meter_interval_get`](#dsl_pph_meter_interval_get)
+* [`dsl_pph_meter_interval_set`](#dsl_pph_meter_interval_set)
+* [`dsl_pph_ode_trigger_add`](#dsl_pph_ode_trigger_add)
+* [`dsl_pph_ode_trigger_add_many`](#dsl_pph_ode_trigger_add_many)
+* [`dsl_pph_ode_trigger_remove`](#dsl_pph_ode_trigger_remove)
+* [`dsl_pph_ode_trigger_remove_many`](#dsl_pph_ode_trigger_remove_many)
+* [`dsl_pph_ode_trigger_remove_all`](#dsl_pph_ode_trigger_remove_all)
+* [`dsl_pph_ode_display_meta_alloc_size_get`](#dsl_pph_ode_display_meta_alloc_size_get)
+* [`dsl_pph_ode_display_meta_alloc_size_set`](#dsl_pph_ode_display_meta_alloc_size_set)
+* [`dsl_pph_nmp_label_file_get`](#dsl_pph_nmp_label_file_get)
+* [`dsl_pph_nmp_label_file_set`](#dsl_pph_nmp_label_file_set)
+* [`dsl_pph_nmp_process_method_get`](#dsl_pph_nmp_process_method_get)
+* [`dsl_pph_nmp_process_method_set`](#dsl_pph_nmp_process_method_set)
+* [`dsl_pph_nmp_match_settings_get`](#dsl_pph_nmp_match_settings_get)
+* [`dsl_pph_nmp_match_settings_set`](#dsl_pph_nmp_match_settings_set)
+* [`dsl_pph_enabled_get`](#dsl_pph_enabled_get)
+* [`dsl_pph_enabled_set`](#dsl_pph_enabled_set)
+* [`dsl_pph_list_size`](#dsl_pph_list_size)
 
 ## Return Values
 The following return codes are used by the Pad Probe Handler API
