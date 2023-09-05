@@ -8,16 +8,16 @@ Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) a
 ### Source Construction and Destruction
 Sources are created by calling one of the type-specific [source constructors](#constructors). As with all components, Sources must be uniquely named from all other Pipeline components created.
 
-Sources are added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+Sources are added to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-When adding multiple sources to a Pipeline, all must have the same `is_live` setting; `true` or `false`. The add services will fail on the first exception. A Source's `is_live` setting can be queried by calling [dsl_source_is_live](#dsl_source_is_live).
+When adding multiple sources to a Pipeline, all must have the same `is_live` setting; `true` or `false`. The add services will fail on the first exception. A Source's `is_live` setting can be queried by calling [`dsl_source_is_live`](#dsl_source_is_live).
 
-The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can be used with another. All sources are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
+The relationship between Pipelines and Sources is one-to-many. Once added to a Pipeline, a Source must be removed before it can be used with another. All sources are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all). Calling a delete service on a Source `in-use` by a Pipeline will fail.
 
 ### Source Stream-Ids and Unique-Ids
 All Sources are assigned two identifiers when added to a Pipeline.
 #### **`stream-id`**
-The stream-id identifies the Source's stream within a unique Pipeline. Stream-ids are assigned to the Sources in the order they are added to the Pipeline starting with 0. The stream-id identifies the Streammuxer sink (input) pad-id the Source will connect with when the Pipeline transitions to a state of PLAYING. When using multiple Pipelines, the first source added to each Pipeline will be given same stream-id=0, meaning that stream-ids are only unique for a given Pipeline. A source's stream-id can be queried by calling [dsl_source_stream_id_get](#dsl_source_stream_id_get). 
+The stream-id identifies the Source's stream within a unique Pipeline. Stream-ids are assigned to the Sources in the order they are added to the Pipeline starting with 0. The stream-id identifies the Streammuxer sink (input) pad-id the Source will connect with when the Pipeline transitions to a state of PLAYING. When using multiple Pipelines, the first source added to each Pipeline will be given same stream-id=0, meaning that stream-ids are only unique for a given Pipeline. A source's stream-id can be queried by calling [`dsl_source_stream_id_get`](#dsl_source_stream_id_get). 
 
 When not added to a Pipeline, a Source's `stream-id` will be set to `-1`. 
 
@@ -36,15 +36,15 @@ unique-id    | description
 0x00010000   | pipeline-id:1, stream-id:0
 0x00030002   | pipeline-id:3, stream-id:2
 ```
-A source's unique-id can be queried by calling [dsl_source_unique_id_get](#dsl_source_unique_id_get). A Source's unique name can be obtained by calling [dsl_source_name_get](#dsl_source_name_get) with a unique source-id. This can be important when reading source-id's while processing frame-metadata in a [Custom PPH](/docs/api-pph.md#custom-pad-probe-handler).
+A source's unique-id can be queried by calling [`dsl_source_unique_id_get`](#dsl_source_unique_id_get). A Source's unique name can be obtained by calling [`dsl_source_name_get`](#dsl_source_name_get) with a unique source-id. This can be important when reading source-id's while processing frame-metadata in a [Custom PPH](/docs/api-pph.md#custom-pad-probe-handler).
 
 When not added to a Pipeline, a Source's `unique-id` will be set to `-1`. 
 
 ### Source Services
-A Source can be queried for it's media type -- `video/x-raw`, `audio/x-raw`, or both -- by calling [dsl_source_media_type_get](#dsl_source_media_type_get). A Source's framerate can be queried by calling [dsl_source_framerate get](#dsl_source_framerate_get). Some Sources need to transition to a state of `PLAYING` before their framerate is known.
+A Source can be queried for it's media type -- `video/x-raw`, `audio/x-raw`, or both -- by calling [`dsl_source_media_type_get`](#dsl_source_media_type_get). A Source's framerate can be queried by calling [`dsl_source_framerate get`](#dsl_source_framerate_get). Some Sources need to transition to a state of `PLAYING` before their framerate is known.
 
 ### New Buffer Timeout
-A Source's production of new buffers can be monitored for timeout by adding a [New Buffer Timeout Pad Probe Handler (PPH)](/docs/api-pph.md#new-buffer-timeout-pad-probe-handler) to the Source's src-pad -- as shown in the image below -- by calling [dsl_source_pph_add](#dsl_source_pph_add). The handler will call the client provided callback function on timeout. 
+A Source's production of new buffers can be monitored for timeout by adding a [New Buffer Timeout Pad Probe Handler (PPH)](/docs/api-pph.md#new-buffer-timeout-pad-probe-handler) to the Source's src-pad -- as shown in the image below -- by calling [`dsl_source_pph_add`](#dsl_source_pph_add). The handler will call the client provided callback function on timeout. 
 
 <img src="/Images/new-buffer-timeout.png" width="600" />
 
@@ -79,35 +79,35 @@ All Video Sources are derived from the base "Source" class (as show in the hiera
 All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
 
 #### buffer-out-format
-All Video Source's set their buffer-out-format to `DSL_VIDEO_FORMAT_NV12` by default. The format can be set to any one of the [DSL Video Format Types](#dsl-video-format-types) by calling [dsl_source_video_buffer_out_format_set](#dsl_source_video_buffer_out_format_set) when the Source is not PLAYING. The current setting can be read at any time by calling [dsl_source_video_buffer_out_format_get](#dsl_source_video_buffer_out_format_get). 
+All Video Source's set their buffer-out-format to `DSL_VIDEO_FORMAT_NV12` by default. The format can be set to any one of the [DSL Video Format Types](#dsl-video-format-types) by calling [`dsl_source_video_buffer_out_format_set`](#dsl_source_video_buffer_out_format_set) when the Source is not PLAYING. The current setting can be read at any time by calling [`dsl_source_video_buffer_out_format_get`](#dsl_source_video_buffer_out_format_get). 
 
 **Note:** NVIDIA's nvstreammux plugin, which is linked to each source in a Pipeline, limits the format types that can be used to `"I420"`, `"NV12"`, and `"RGBA"`.  (`"I420"` is identical to `"IYUV"`).
 
 **Important!** A Video Source will automatically set/fix its buffer-out-format to `DSL_VIDEO_FORMAT_RGBA` if a [Dewarper](#video-dewarping) component is added. 
  
 #### buffer-out-dimensions 
-The output dimensions (width and height) can be scaled by calling [dsl_source_video_buffer_out_dimensions_set](#dsl_source_video_buffer_out_dimensions_set) when the Source is not PLAYING. The default values are set to 0, i.e. "no scaling". The current values can be read at any time by calling [dsl_source_video_buffer_out_dimensions_get](#dsl_source_video_buffer_out_dimensions_get).
+The output dimensions (width and height) can be scaled by calling [`dsl_source_video_buffer_out_dimensions_set`](#dsl_source_video_buffer_out_dimensions_set) when the Source is not PLAYING. The default values are set to 0, i.e. "no scaling". The current values can be read at any time by calling [`dsl_source_video_buffer_out_dimensions_get`](#dsl_source_video_buffer_out_dimensions_get).
 
 #### buffer-out-frame-rate
-The output frame-rate can be scaled up or down by calling [dsl_source_video_buffer_out_frame_rate_set](#dsl_source_video_buffer_out_frame_rate_set) when the Source is not PLAYING. The default values are set to 0, i.e. "no scaling". The current values can be read at any time by calling [dsl_source_video_buffer_out_frame_rate_get](#dsl_source_video_buffer_out_frame_rate_get). 
+The output frame-rate can be scaled up or down by calling [`dsl_source_video_buffer_out_frame_rate_set`](#dsl_source_video_buffer_out_frame_rate_set) when the Source is not PLAYING. The default values are set to 0, i.e. "no scaling". The current values can be read at any time by calling [`dsl_source_video_buffer_out_frame_rate_get`](#dsl_source_video_buffer_out_frame_rate_get). 
 
 #### buffer-out-crop-rectangles
-Each buffer can be cropped in two different ways by calling [dsl_source_video_buffer_out_crop_rectangle_set](#dsl_source_video_buffer_out_crop_rectangle_set) when the source is not PLAYING. The method of cropping is specified by the `crop_at` parameter to one of the [crop constant values](#video-source-buffer-out-crop-constants):
+Each buffer can be cropped in two different ways by calling [`dsl_source_video_buffer_out_crop_rectangle_set`](#dsl_source_video_buffer_out_crop_rectangle_set) when the source is not PLAYING. The method of cropping is specified by the `crop_at` parameter to one of the [crop constant values](#video-source-buffer-out-crop-constants):
 * `DSL_VIDEO_CROP_AT_SRC ` = left, top, width, and height of the input image which will be cropped and transformed into the output buffer.  
 * `DSL_VIDEO_CROP_AT_DEST` = left, top, width, and height as the location in the output buffer where the input image will be transformed to.
 
 <img src="/Images/video-crop-at-types.png" width="600" />
 
-The current values can read at any time by calling [dsl_source_video_buffer_out_crop_rectangle_get](#dsl_source_video_buffer_out_crop_rectangle_get).
+The current values can read at any time by calling [`dsl_source_video_buffer_out_crop_rectangle_get`](#dsl_source_video_buffer_out_crop_rectangle_get).
 
 #### buffer-out-orientation
-There are seven different [video orientation constants](#dsl-video-source-buffer-out-orientation-constants) that can be used to rotate or flip a Video Source's output by calling [dsl_source_video_buffer_out_orientation_set](#dsl_source_video_buffer_out_orientation_set) when the Source is not PLAYING. The default setting is `DSL_VIDEO_ORIENTATION_NONE`. The current setting can be read by calling [dsl_source_video_buffer_out_orientation_get](#dsl_source_video_buffer_out_orientation_get) at any time.
+There are seven different [video orientation constants](#dsl-video-source-buffer-out-orientation-constants) that can be used to rotate or flip a Video Source's output by calling [`dsl_source_video_buffer_out_orientation_set`](#dsl_source_video_buffer_out_orientation_set) when the Source is not PLAYING. The default setting is `DSL_VIDEO_ORIENTATION_NONE`. The current setting can be read by calling [`dsl_source_video_buffer_out_orientation_get`](#dsl_source_video_buffer_out_orientation_get) at any time.
 
 #### Video Sources and Demuxers
 When using a [Demuxer](/docs/api-tiler.md), vs. a Tiler component, each demuxed source stream must have one or more downstream [Sink](/docs/api-sink) components to end the stream.
 
 ### Video Dewarping
-A [Video Dewarper](/docs/api-dewarper.md), capable of 360 degree and perspective dewarping, can be added to a Video Source by calling [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add) and removed with [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove).
+A [Video Dewarper](/docs/api-dewarper.md), capable of 360 degree and perspective dewarping, can be added to a Video Source by calling [`dsl_source_video_dewarper_add`](#dsl_source_video_dewarper_add) and removed with [`dsl_source_video_dewarper_remove`](#dsl_source_video_dewarper_remove).
 
 ### Image Video Sources
 Image Video Sources are used to decode JPEG image files into `video/x-raw' buffers. PNG files will be supported in a future release. Derived from the "Video Source" class, Image Video Sources can be called with any [Video Source Method](#video-source-methods)
@@ -120,126 +120,126 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 
 ## Source API
 **Typedefs**
-* [dsl_rtsp_connection_data](#dsl_rtsp_connection_data)
+* [`dsl_rtsp_connection_data`](#dsl_rtsp_connection_data)
 
 **Client Callback Typedefs**
-* [dsl_source_app_need_data_handler_cb](#dsl_source_app_need_data_handler_cb)
-* [dsl_source_app_enough_data_handler_cb](#dsl_source_app_enough_data_handler_cb)
-* [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
+* [`dsl_source_app_need_data_handler_cb`](#dsl_source_app_need_data_handler_cb)
+* [`dsl_source_app_enough_data_handler_cb`](#dsl_source_app_enough_data_handler_cb)
+* [`dsl_state_change_listener_cb`](#dsl_state_change_listener_cb)
 
 **Constructors:**
-* [dsl_source_app_new](#dsl_source_app_new)
-* [dsl_source_csi_new](#dsl_source_csi_new)
-* [dsl_source_usb_new](#dsl_source_usb_new)
-* [dsl_source_uri_new](#dsl_source_uri_new)
-* [dsl_source_file_new](#dsl_source_file_new)
-* [dsl_source_rtsp_new](#dsl_source_rtsp_new)
-* [dsl_source_interpipe_new](#dsl_source_interpipe_new)
-* [dsl_source_image_single_new](#dsl_source_image_single_new)
-* [dsl_source_image_multi_new](#dsl_source_image_multi_new)
-* [dsl_source_image_stream_new](#dsl_source_image_stream_new)
-* [dsl_source_duplicate_new](#dsl_source_duplicate_new)
+* [`dsl_source_app_new`](#dsl_source_app_new)
+* [`dsl_source_csi_new`](#dsl_source_csi_new)
+* [`dsl_source_usb_new`](#dsl_source_usb_new)
+* [`dsl_source_uri_new`](#dsl_source_uri_new)
+* [`dsl_source_file_new`](#dsl_source_file_new)
+* [`dsl_source_rtsp_new`](#dsl_source_rtsp_new)
+* [`dsl_source_interpipe_new`](#dsl_source_interpipe_new)
+* [`dsl_source_image_single_new`](#dsl_source_image_single_new)
+* [`dsl_source_image_multi_new`](#dsl_source_image_multi_new)
+* [`dsl_source_image_stream_new`](#dsl_source_image_stream_new)
+* [`dsl_source_duplicate_new`](#dsl_source_duplicate_new)
 
 **Source Methods:**
-* [dsl_source_unique_id_get](#dsl_source_unique_id_get)
-* [dsl_source_stream_id_get](#dsl_source_stream_id_get)
-* [dsl_source_name_get](#dsl_source_name_get)
-* [dsl_source_media_type_get](#dsl_source_media_type_get)
-* [dsl_source_framerate get](#dsl_source_framerate_get)
-* [dsl_source_is_live](#dsl_source_is_live)
-* [dsl_source_pause](#dsl_source_pause)
-* [dsl_source_resume](#dsl_source_resume)
-* [dsl_source_pph_add](#dsl_source_pph_add)
-* [dsl_source_pph_remove](#dsl_source_pph_remove)
+* [`dsl_source_unique_id_get`](#dsl_source_unique_id_get)
+* [`dsl_source_stream_id_get`](#dsl_source_stream_id_get)
+* [`dsl_source_name_get`](#dsl_source_name_get)
+* [`dsl_source_media_type_get`](#dsl_source_media_type_get)
+* [`dsl_source_framerate get`](#dsl_source_framerate_get)
+* [`dsl_source_is_live`](#dsl_source_is_live)
+* [`dsl_source_pause`](#dsl_source_pause)
+* [`dsl_source_resume`](#dsl_source_resume)
+* [`dsl_source_pph_add`](#dsl_source_pph_add)
+* [`dsl_source_pph_remove`](#dsl_source_pph_remove)
 
 **Video Source Methods:**
-* [dsl_source_video_dimensions_get](#dsl_source_video_dimensions_get)
-* [dsl_source_video_buffer_out_format_get](#dsl_source_video_buffer_out_format_get)
-* [dsl_source_video_buffer_out_format_set](#dsl_source_video_buffer_out_format_set)
-* [dsl_source_video_buffer_out_dimensions_get](#dsl_source_video_buffer_out_dimensions_get)
-* [dsl_source_video_buffer_out_dimensions_set](#dsl_source_video_buffer_out_dimensions_set)
-* [dsl_source_video_buffer_out_frame_rate_get](#dsl_source_video_buffer_out_frame_rate_get)
-* [dsl_source_video_buffer_out_frame_rate_set](#dsl_source_video_buffer_out_frame_rate_set)
-* [dsl_source_video_buffer_out_crop_rectangle_get](#dsl_source_video_buffer_out_crop_rectangle_get)
-* [dsl_source_video_buffer_out_crop_rectangle_set](#dsl_source_video_buffer_out_crop_rectangle_set)
-* [dsl_source_video_buffer_out_orientation_get](#dsl_source_video_buffer_out_orientation_get)
-* [dsl_source_video_buffer_out_orientation_set](#dsl_source_video_buffer_out_orientation_set)
-* [dsl_source_video_dewarper_add](#dsl_source_video_dewarper_add)
-* [dsl_source_video_dewarper_remove](#dsl_source_video_dewarper_remove)
+* [`dsl_source_video_dimensions_get`](#dsl_source_video_dimensions_get)
+* [`dsl_source_video_buffer_out_format_get`](#dsl_source_video_buffer_out_format_get)
+* [`dsl_source_video_buffer_out_format_set`](#dsl_source_video_buffer_out_format_set)
+* [`dsl_source_video_buffer_out_dimensions_get`](#dsl_source_video_buffer_out_dimensions_get)
+* [`dsl_source_video_buffer_out_dimensions_set`](#dsl_source_video_buffer_out_dimensions_set)
+* [`dsl_source_video_buffer_out_frame_rate_get`](#dsl_source_video_buffer_out_frame_rate_get)
+* [`dsl_source_video_buffer_out_frame_rate_set`](#dsl_source_video_buffer_out_frame_rate_set)
+* [`dsl_source_video_buffer_out_crop_rectangle_get`](#dsl_source_video_buffer_out_crop_rectangle_get)
+* [`dsl_source_video_buffer_out_crop_rectangle_set`](#dsl_source_video_buffer_out_crop_rectangle_set)
+* [`dsl_source_video_buffer_out_orientation_get`](#dsl_source_video_buffer_out_orientation_get)
+* [`dsl_source_video_buffer_out_orientation_set`](#dsl_source_video_buffer_out_orientation_set)
+* [`dsl_source_video_dewarper_add`](#dsl_source_video_dewarper_add)
+* [`dsl_source_video_dewarper_remove`](#dsl_source_video_dewarper_remove)
 
 **App Source Methods:**
-* [dsl_source_app_data_handlers_add](#dsl_source_app_data_handlers_add)
-* [dsl_source_app_data_handlers_remove](#dsl_source_app_data_handlers_remove)
-* [dsl_source_app_buffer_push](#dsl_source_app_buffer_push)
-* [dsl_source_app_sample_push](#dsl_source_app_sample_push)
-* [dsl_source_app_eos](#dsl_source_app_eos)
-* [dsl_source_app_stream_format_get](#dsl_source_app_stream_format_get)
-* [dsl_source_app_stream_format_set](#dsl_source_app_stream_format_set)
-* [dsl_source_app_block_enabled_get](#dsl_source_app_block_enabled_get)
-* [dsl_source_app_block_enabled_set](#dsl_source_app_block_enabled_set)
-* [dsl_source_app_current_level_bytes_get](#dsl_source_app_current_level_bytes_get)
-* [dsl_source_app_max_level_bytes_get](#dsl_source_app_max_level_bytes_get)
-* [dsl_source_app_max_level_bytes_set](#dsl_source_app_max_level_bytes_set)
-* [dsl_source_app_do_timestamp_get](#dsl_source_app_do_timestamp_get)
-* [dsl_source_app_do_timestamp_set](#dsl_source_app_do_timestamp_set)
+* [`dsl_source_app_data_handlers_add`](#dsl_source_app_data_handlers_add)
+* [`dsl_source_app_data_handlers_remove`](#dsl_source_app_data_handlers_remove)
+* [`dsl_source_app_buffer_push`](#dsl_source_app_buffer_push)
+* [`dsl_source_app_sample_push`](#dsl_source_app_sample_push)
+* [`dsl_source_app_eos`](#dsl_source_app_eos)
+* [`dsl_source_app_stream_format_get`](#dsl_source_app_stream_format_get)
+* [`dsl_source_app_stream_format_set`](#dsl_source_app_stream_format_set)
+* [`dsl_source_app_block_enabled_get`](#dsl_source_app_block_enabled_get)
+* [`dsl_source_app_block_enabled_set`](#dsl_source_app_block_enabled_set)
+* [`dsl_source_app_current_level_bytes_get`](#dsl_source_app_current_level_bytes_get)
+* [`dsl_source_app_max_level_bytes_get`](#dsl_source_app_max_level_bytes_get)
+* [`dsl_source_app_max_level_bytes_set`](#dsl_source_app_max_level_bytes_set)
+* [`dsl_source_app_do_timestamp_get`](#dsl_source_app_do_timestamp_get)
+* [`dsl_source_app_do_timestamp_set`](#dsl_source_app_do_timestamp_set)
 
 **CSI Source Methods**
-* [dsl_source_csi_sensor_id_get](#dsl_source_csi_sensor_id_get)
-* [dsl_source_csi_sensor_id_set](#dsl_source_csi_sensor_id_set)
+* [`dsl_source_csi_sensor_id_get`](#dsl_source_csi_sensor_id_get)
+* [`dsl_source_csi_sensor_id_set`](#dsl_source_csi_sensor_id_set)
 
 **USB Source Methods**
-* [dsl_source_usb_device_location_get](#dsl_source_usb_device_location_get)
-* [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set)
+* [`dsl_source_usb_device_location_get`](#dsl_source_usb_device_location_get)
+* [`dsl_source_usb_device_location_set`](#dsl_source_usb_device_location_set)
 
 **URI Source Methods**
-* [dsl_source_uri_uri_get](#dsl_source_uri_uri_get)
-* [dsl_source_uri_uri_set](#dsl_source_uri_uri_set)
+* [`dsl_source_uri_uri_get`](#dsl_source_uri_uri_get)
+* [`dsl_source_uri_uri_set`](#dsl_source_uri_uri_set)
 
 **File Source Methods**
-* [dsl_source_file_file_path_get](#dsl_source_file_file_path_get)
-* [dsl_source_file_file_path_set](#dsl_source_file_file_path_set)
-* [dsl_source_file_repeat_enabled_get](#dsl_source_file_repeat_enabled_get)
-* [dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
+* [`dsl_source_file_file_path_get`](#dsl_source_file_file_path_get)
+* [`dsl_source_file_file_path_set`](#dsl_source_file_file_path_set)
+* [`dsl_source_file_repeat_enabled_get`](#dsl_source_file_repeat_enabled_get)
+* [`dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
 
 **RTSP Source Methods**
-* [dsl_source_rtsp_uri_get](#dsl_source_rtsp_uri_get)
-* [dsl_source_rtsp_uri_set](#dsl_source_rtsp_uri_set)
-* [dsl_source_rtsp_timeout_get](#dsl_source_rtsp_timeout_get)
-* [dsl_source_rtsp_timeout_set](#dsl_source_rtsp_timeout_set)
-* [dsl_source_rtsp_reconnection_params_get](#dsl_source_rtsp_reconnection_params_get)
-* [dsl_source_rtsp_reconnection_params_set](#dsl_source_rtsp_reconnection_params_set)
-* [dsl_source_rtsp_connection_data_get](#dsl_source_rtsp_connection_data_get)
-* [dsl_source_rtsp_connection_stats_clear](#dsl_source_rtsp_connection_stats_clear)
-* [dsl_source_rtsp_tls_validation_flags_get](#dsl_source_rtsp_tls_validation_flags_get)
-* [dsl_source_rtsp_tls_validation_flags_set](#dsl_source_rtsp_tls_validation_flags_set)
-* [dsl_source_rtsp_state_change_listener_add](#dsl_source_rtsp_state_change_listener_add)
-* [dsl_source_rtsp_state_change_listener_remove](#dsl_source_rtsp_state_change_listener_remove)
-* [dsl_source_rtsp_tap_add](#dsl_source_rtsp_tap_add)
-* [dsl_source_rtsp_tap_remove](#dsl_source_rtsp_tap_remove)
+* [`dsl_source_rtsp_uri_get`](#dsl_source_rtsp_uri_get)
+* [`dsl_source_rtsp_uri_set`](#dsl_source_rtsp_uri_set)
+* [`dsl_source_rtsp_timeout_get`](#dsl_source_rtsp_timeout_get)
+* [`dsl_source_rtsp_timeout_set`](#dsl_source_rtsp_timeout_set)
+* [`dsl_source_rtsp_reconnection_params_get`](#dsl_source_rtsp_reconnection_params_get)
+* [`dsl_source_rtsp_reconnection_params_set`](#dsl_source_rtsp_reconnection_params_set)
+* [`dsl_source_rtsp_connection_data_get`](#dsl_source_rtsp_connection_data_get)
+* [`dsl_source_rtsp_connection_stats_clear`](#dsl_source_rtsp_connection_stats_clear)
+* [`dsl_source_rtsp_tls_validation_flags_get`](#dsl_source_rtsp_tls_validation_flags_get)
+* [`dsl_source_rtsp_tls_validation_flags_set`](#dsl_source_rtsp_tls_validation_flags_set)
+* [`dsl_source_rtsp_state_change_listener_add`](#dsl_source_rtsp_state_change_listener_add)
+* [`dsl_source_rtsp_state_change_listener_remove`](#dsl_source_rtsp_state_change_listener_remove)
+* [`dsl_source_rtsp_tap_add`](#dsl_source_rtsp_tap_add)
+* [`dsl_source_rtsp_tap_remove`](#dsl_source_rtsp_tap_remove)
 
 **Interpipe Source Methods**
-* [dsl_source_interpipe_listen_to_get](#dsl_source_interpipe_listen_to_get)
-* [dsl_source_interpipe_listen_to_set](#dsl_source_interpipe_listen_to_set)
-* [dsl_source_interpipe_accept_settings_get](#dsl_source_interpipe_accept_settings_get)
-* [dsl_source_interpipe_accept_settings_set](#dsl_source_interpipe_accept_settings_set)
+* [`dsl_source_interpipe_listen_to_get`](#dsl_source_interpipe_listen_to_get)
+* [`dsl_source_interpipe_listen_to_set`](#dsl_source_interpipe_listen_to_set)
+* [`dsl_source_interpipe_accept_settings_get`](#dsl_source_interpipe_accept_settings_get)
+* [`dsl_source_interpipe_accept_settings_set`](#dsl_source_interpipe_accept_settings_set)
 
 **Single Image Source Methods**
-* [dsl_source_image_file_path_get](#dsl_source_image_file_path_get)
-* [dsl_source_image_file_path_set](#dsl_source_image_file_path_set)
+* [`dsl_source_image_file_path_get`](#dsl_source_image_file_path_get)
+* [`dsl_source_image_file_path_set`](#dsl_source_image_file_path_set)
 
 **Multi Image Source Methods**
-* [dsl_source_image_multi_loop_enabled_get](#dsl_source_image_multi_loop_enabled_get)
-* [dsl_source_image_multi_loop_enabled_set](#dsl_source_image_multi_loop_enabled_set)
-* [dsl_source_image_multi_indices_get](#dsl_source_image_multi_indices_get)
-* [dsl_source_image_multi_indices_set](#dsl_source_image_multi_indices_set)
+* [`dsl_source_image_multi_loop_enabled_get`](#dsl_source_image_multi_loop_enabled_get)
+* [`dsl_source_image_multi_loop_enabled_set`](#dsl_source_image_multi_loop_enabled_set)
+* [`dsl_source_image_multi_indices_get`](#dsl_source_image_multi_indices_get)
+* [`dsl_source_image_multi_indices_set`](#dsl_source_image_multi_indices_set)
 
 **Image Stream Methods**
-* [dsl_source_image_stream_timeout_get](#dsl_source_image_stream_timeout_get)
-* [dsl_source_image_stream_timeout_set](#dsl_source_image_stream_timeout_get)
+* [`dsl_source_image_stream_timeout_get`](#dsl_source_image_stream_timeout_get)
+* [`dsl_source_image_stream_timeout_set`](#dsl_source_image_stream_timeout_get)
 
 **Duplicate Source Methods**
-* [dsl_source_duplicate_original_get](#dsl_source_duplicate_original_get)
-* [dsl_source_duplicate_original_set](#dsl_source_duplicate_original_set)
+* [`dsl_source_duplicate_original_get`](#dsl_source_duplicate_original_get)
+* [`dsl_source_duplicate_original_set`](#dsl_source_duplicate_original_set)
 
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
