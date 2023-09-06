@@ -14,44 +14,44 @@ The four reference implementations are provided in a single low-level library `l
 ```
 
 ## Construction and Destruction
-A Tracker component is created by calling [dsl_tracker_new](#dsl_tracker_new) with a type specific configuration file.
+A Tracker component is created by calling [`dsl_tracker_new`](#dsl_tracker_new) with a type specific configuration file.
 
 **Important!** NVIDIA® provides reference configuration files for the four Tracker implementations under
 ```bash
 /opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/
 ```
 
-Tracker components are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Tracker `in-use` by a Pipeline will fail.
+Tracker components are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all). Calling a delete service on a Tracker `in-use` by a Pipeline will fail.
 
 
 ## Adding and Removing
 The relationship between Pipelines/Branches and Trackers is one-to-one. Once added to a Pipeline or Branch, a Tracker must be removed before it can be used with another.
-A Tracker is added to a Pipeline by calling [dsl_pipeline_component_add](/docs/api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+A Tracker is added to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing a Tracker to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+A similar set of Services are used when adding/removing a to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
 Pipelines with a Tracker component require a [Primary GIE/TIS](/docs/api-infer.md) component in order to Play.
 
 ## Adding/Removing Pad-Probe-handlers
-Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Tracker by calling [dsl_tracker_pph_add](#dsl_tracker_pph_add) and removed with [dsl_tracker_pph_remove](#dsl_tracker_pph_remove).
+Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Tracker by calling [`dsl_tracker_pph_add`](#dsl_tracker_pph_add) and removed with [`dsl_tracker_pph_remove`](#dsl_tracker_pph_remove).
 
 ## Tracker API
 **Constructors:**
-* [dsl_tracker_new](#dsl_tracker_new)
+* [`dsl_tracker_new`](#dsl_tracker_new)
 
 **Methods:**
-* [dsl_tracker_lib_file_get](#dsl_tracker_lib_file_get)
-* [dsl_tracker_lib_file_set](#dsl_tracker_lib_file_set)
-* [dsl_tracker_config_file_get](#dsl_tracker_config_file_get)
-* [dsl_tracker_config_file_set](#dsl_tracker_config_file_set)
-* [dsl_tracker_dimensions_get](#dsl_tracker_dimensions_get)
-* [dsl_tracker_dimensions_set](#dsl_tracker_dimensions_set)
-* [dsl_tracker_batch_processing_enabled_get](#dsl_tracker_batch_processing_enabled_get)
-* [dsl_tracker_batch_processing_enabled_set](#dsl_tracker_batch_processing_enabled_set)
-* [dsl_tracker_past_frame_reporting_enabled_get](#dsl_tracker_past_frame_reporting_enabled_get)
-* [dsl_tracker_past_frame_reporting_enabled_set](#dsl_tracker_past_frame_reporting_enabled_set)
-* [dsl_tracker_pph_add](#dsl_tracker_pph_add)
-* [dsl_tracker_pph_remove](#dsl_tracker_pph_remove)
+* [`dsl_tracker_lib_file_get`](#dsl_tracker_lib_file_get)
+* [`dsl_tracker_lib_file_set`](#dsl_tracker_lib_file_set)
+* [`dsl_tracker_config_file_get`](#dsl_tracker_config_file_get)
+* [`dsl_tracker_config_file_set`](#dsl_tracker_config_file_set)
+* [`dsl_tracker_dimensions_get`](#dsl_tracker_dimensions_get)
+* [`dsl_tracker_dimensions_set`](#dsl_tracker_dimensions_set)
+* [`dsl_tracker_batch_processing_enabled_get`](#dsl_tracker_batch_processing_enabled_get)
+* [`dsl_tracker_batch_processing_enabled_set`](#dsl_tracker_batch_processing_enabled_set)
+* [`dsl_tracker_past_frame_reporting_enabled_get`](#dsl_tracker_past_frame_reporting_enabled_get)
+* [`dsl_tracker_past_frame_reporting_enabled_set`](#dsl_tracker_past_frame_reporting_enabled_set)
+* [`dsl_tracker_pph_add`](#dsl_tracker_pph_add)
+* [`dsl_tracker_pph_remove`](#dsl_tracker_pph_remove)
 
 <br>
 
