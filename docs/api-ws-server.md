@@ -25,15 +25,15 @@ Client Applications use the WebSocket Server to listen on a specified port for i
 
 ## WebSocket Server API
 **Client Callback Typedefs**
-* [dsl_websocket_server_client_listener_cb](#dsl_websocket_server_client_listener_cb)
+* [`dsl_websocket_server_client_listener_cb`](#dsl_websocket_server_client_listener_cb)
 
 **Methods**
-* [dsl_websocket_server_path_add](#dsl_websocket_server_path_add)
-* [dsl_websocket_server_listening_start](#dsl_websocket_server_listening_start)
-* [dsl_websocket_server_listening_stop](#dsl_websocket_server_listening_stop)
-* [dsl_websocket_server_listening_state_get](#dsl_websocket_server_listening_state_get)
-* [dsl_websocket_server_client_listener_add](#dsl_websocket_server_client_listener_add)
-* [dsl_websocket_server_client_listener_remove](#dsl_websocket_server_client_listener_remove)
+* [`dsl_websocket_server_path_add`](#dsl_websocket_server_path_add)
+* [`dsl_websocket_server_listening_start`](#dsl_websocket_server_listening_start)
+* [`dsl_websocket_server_listening_stop`](#dsl_websocket_server_listening_stop)
+* [`dsl_websocket_server_listening_state_get`](#dsl_websocket_server_listening_state_get)
+* [`dsl_websocket_server_client_listener_add`](#dsl_websocket_server_client_listener_add)
+* [`dsl_websocket_server_client_listener_remove`](#dsl_websocket_server_client_listener_remove)
 
 ---
 ## Return Values
