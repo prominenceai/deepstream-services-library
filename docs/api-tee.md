@@ -16,38 +16,38 @@ With both Tee types, Sinks and Branches can be added and removed and runtime whi
 **IMPORTANT!** When using a Demuxer Tee, the maximum number of Branches must be specified prior to playing the Pipeline, a requirement imposed by NVIDIA's plugin.
 
 ### Tee Construction and Destruction
-Demuxers and Splitters are created using a type specific constructor, [dsl_tee_demuxer_new](#dsl_tee_demuxer_new) and [dsl_tee_splitter_new](#dsl_tee_splitter_new) respectively.
+Demuxers and Splitters are created using a type specific constructor, [`dsl_tee_demuxer_new`](#dsl_tee_demuxer_new) and [`dsl_tee_splitter_new`](#dsl_tee_splitter_new) respectively.
 
 The relationship between Pipeline/Branch and Tee is one to one with the Tee becoming the end component. The relationship between Tees and Branches is one-to-many. Once added to a Pipeline or Branch, a Tee must be removed before it can be used with another. 
 
-Tees and Branches are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+Tees and Branches are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all)
 
 ### Adding and removing Branches from a Tee
-Branches are added to a Tee by calling [dsl_tee_branch_add](api-branch.md#dsl_tee_branch_add) or [dsl_tee_branch_add_many](api-branch.md#dsl_tee_branch_add_many) and removed with [dsl_tee_branch_remove](api-branch.md#dsl_tee_branch_remove), [dsl_tee_branch_remove_many](api-branch.md#dsl_tee_branch_remove_many), or [dsl_tee_branch_remove_all](api-branch.md#dsl_tee_branch_remove_all).
+Branches are added to a Tee by calling [`dsl_tee_branch_add`](api-branch.md#dsl_tee_branch_add) or [`dsl_tee_branch_add_many`](api-branch.md#dsl_tee_branch_add_many) and removed with [`dsl_tee_branch_remove`](api-branch.md#dsl_tee_branch_remove), [`dsl_tee_branch_remove_many`](api-branch.md#dsl_tee_branch_remove_many), or [`dsl_tee_branch_remove_all`](api-branch.md#dsl_tee_branch_remove_all).
 
 ## Tee API
 **Constructors**
-* [dsl_tee_demuxer_new](#dsl_tee_demuxer_new)
-* [dsl_tee_demuxer_new_branch_add_many](#dsl_tee_demuxer_new_branch_add_many)
-* [dsl_tee_splitter_new](#dsl_tee_splitter_new) 
-* [dsl_tee_splitter_new_branch_add_many](#dsl_tee_demuxer_new_branch_add_many)
+* [`dsl_tee_demuxer_new`](#dsl_tee_demuxer_new)
+* [`dsl_tee_demuxer_new_branch_add_many`](#dsl_tee_demuxer_new_branch_add_many)
+* [`dsl_tee_splitter_new`](#dsl_tee_splitter_new) 
+* [`dsl_tee_splitter_new_branch_add_many`](#dsl_tee_demuxer_new_branch_add_many)
 
 **Tee Methods**
-* [dsl_tee_branch_add](#dsl_tee_branch_add)
-* [dsl_tee_branch_add_many](#dsl_tee_branch_add_many)
-* [dsl_tee_branch_remove](#dsl_tee_branch_remove)
-* [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many)
-* [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all).
-* [dsl_tee_blocking_timeout_get](#dsl_tee_blocking_timeout_get)
-* [dsl_tee_blocking_timeout_set](#dsl_tee_blocking_timeout_set)
-* [dsl_tee_pph_add](#dsl_tee_pph_add).
-* [dsl_tee_pph_remove](#dsl_tee_pph_remove).
+* [`dsl_tee_branch_add`](#dsl_tee_branch_add)
+* [`dsl_tee_branch_add_many`](#dsl_tee_branch_add_many)
+* [`dsl_tee_branch_remove`](#dsl_tee_branch_remove)
+* [`dsl_tee_branch_remove_many`](#dsl_tee_branch_remove_many)
+* [`dsl_tee_branch_remove_all`](#dsl_tee_branch_remove_all)
+* [`dsl_tee_blocking_timeout_get`](#dsl_tee_blocking_timeout_get)
+* [`dsl_tee_blocking_timeout_set`](#dsl_tee_blocking_timeout_set)
+* [`dsl_tee_pph_add`](#dsl_tee_pph_add)
+* [`dsl_tee_pph_remove`](#dsl_tee_pph_remove)
 
 **Demuxer Tee Methods**
-* [dsl_tee_demuxer_branch_add_to](#dsl_tee_demuxer_branch_add_to)
-* [dsl_tee_demuxer_branch_move_to](#dsl_tee_demuxer_branch_move_to)
-* [dsl_tee_demuxer_max_branches_get](#dsl_tee_demuxer_max_branches_get)
-* [dsl_tee_demuxer_max_branches_set](#dsl_tee_demuxer_max_branches_set)
+* [`dsl_tee_demuxer_branch_add_to`](#dsl_tee_demuxer_branch_add_to)
+* [`dsl_tee_demuxer_branch_move_to`](#dsl_tee_demuxer_branch_move_to)
+* [`dsl_tee_demuxer_max_branches_get`](#dsl_tee_demuxer_max_branches_get)
+* [`dsl_tee_demuxer_max_branches_set`](#dsl_tee_demuxer_max_branches_set)
 
 ## Return Values
 The following return codes are used by the Tiler API
