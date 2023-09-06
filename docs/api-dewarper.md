@@ -9,14 +9,14 @@ The first two are used for dewarping 360° camera input. See the [NVIDIA Gst-nvd
 NVIDA provides two sample configuration files located under `/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/`.
 
 ## Construction and Destruction
-A Dewarper component is created by calling [dsl_dewarper_new](#dsl_dewarper_new) with a type specific configuration file. 
+A Dewarper component is created by calling [`dsl_dewarper_new`](#dsl_dewarper_new) with a type specific configuration file. 
 
-Dewarper components are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Calling a delete service on a Dewarper `in-use` by a Source will fail.
+Dewarper components are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all). Calling a delete service on a Dewarper `in-use` by a Source will fail.
 
 ## Adding and Removing
 The relationship between Sources and Dewarpers is one-to-one. Once added to a Source, a Dewarper must be removed before it can be used with another.
 
-A Dewarper is added to a Source by calling [dsl_source_dewarper_add](/docs/api-source.md#dsl_source_dewarper_add) and removed with [dsl_source_dewarper_remove](/docs/api-source.md#dsl_source_dewarper_remove)
+A Dewarper is added to a Source by calling [`dsl_source_dewarper_add`](/docs/api-source.md#dsl_source_dewarper_add) and removed with [`dsl_source_dewarper_remove`](/docs/api-source.md#dsl_source_dewarper_remove)
 
 ## Relavent Examples:
 There are two simple examples that use the configuration files and sample videos provided by NVIDIA.
@@ -26,15 +26,15 @@ There are two simple examples that use the configuration files and sample videos
 
 ## Dewarper API
 **Constructors:**
-* [dsl_dewarper_new](#dsl_dewarper_new)
+* [`dsl_dewarper_new`](#dsl_dewarper_new)
 
 **Methods:**
-* [dsl_dewarper_config_file_get](#dsl_dewarper_config_file_get)
-* [dsl_dewarper_config_file_set](#dsl_dewarper_config_file_set)
-* [dsl_dewarper_camera_id_get](#dsl_dewarper_camera_id_get)
-* [dsl_dewarper_camera_id_set](#dsl_dewarper_camera_id_set)
-* [dsl_dewarper_num_batch_buffers_get](#dsl_dewarper_num_batch_buffers_get)
-* [dsl_dewarper_num_batch_buffers_set](#dsl_dewarper_num_batch_buffers_set)
+* [`dsl_dewarper_config_file_get`](#dsl_dewarper_config_file_get)
+* [`dsl_dewarper_config_file_set`](#dsl_dewarper_config_file_set)
+* [`dsl_dewarper_camera_id_get`](#dsl_dewarper_camera_id_get)
+* [`dsl_dewarper_camera_id_set`](#dsl_dewarper_camera_id_set)
+* [`dsl_dewarper_num_batch_buffers_get`](#dsl_dewarper_num_batch_buffers_get)
+* [`dsl_dewarper_num_batch_buffers_set`](#dsl_dewarper_num_batch_buffers_set)
 
 <br>
 

@@ -5,32 +5,32 @@ The DeepStream Services Library (DSL) provides services for NVIDIA's Gst-nvdspre
 
 **Note:​** The Gst-nvdsprerocessor plugin released with DeepStream 6.0 is in an "alpha" state and only the Primary GST Inference component can process input-tensor-meta from the Preprocessor.
  
-**IMPORTANT!** Raw tensor from the scaled & converted ROIs are passed to the downstream Primary GST Inference Engine (PGIE) via user metadata. You must enable the PGIE's `input-tensor-meta` setting by calling [dsl_infer_gie_tensor_meta_settings_set](/docs/api-infer.md#dsl_infer_gie_tensor_meta_settings_set) when adding a Preprocessor to a Pipeline. Refer to the [Inference API Reference](/docs/api-infer.md)
+**IMPORTANT!** Raw tensor from the scaled & converted ROIs are passed to the downstream Primary GST Inference Engine (PGIE) via user metadata. You must enable the PGIE's `input-tensor-meta` setting by calling [`dsl_infer_gie_tensor_meta_settings_set`](/docs/api-infer.md#dsl_infer_gie_tensor_meta_settings_set) when adding a Preprocessor to a Pipeline. Refer to the [Inference API Reference](/docs/api-infer.md)
 
 ### Preprocessor Construction and Destruction
-The constructor [dsl_preproc_new](#dsl_preproc_new) is used to create a Preprocessor with input parameters for the config file and enabled setting. Once created, the Preprocessor's configuration file and enabled setting can be updated. Preprocessors are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The constructor [`dsl_preproc_new`](#dsl_preproc_new) is used to create a Preprocessor with input parameters for the config file and enabled setting. Once created, the Preprocessor's configuration file and enabled setting can be updated. Preprocessors are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
 
 ### Preprocessor Configuration
-Preprocessor components require a configuration file when constructed. Once created, clients can query the Preprocessor for the Config File in-use by calling  [dsl_preproc_config_file_get](#dsl_preproc_config_file_get) or change the Preprocessor's configuration by calling [dsl_preproc_config_file_set](#dsl_preproc_config_file_get).
+Preprocessor components require a configuration file when constructed. Once created, clients can query the Preprocessor for the Config File in-use by calling  [`dsl_preproc_config_file_get`](#dsl_preproc_config_file_get) or change the Preprocessor's configuration by calling [`dsl_preproc_config_file_set`](#dsl_preproc_config_file_get).
 
 ### Adding and Removing
-A single Preprocessor can be added to Pipeline trunk or individual Branch. A Preprocessor is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+A single Preprocessor can be added to Pipeline trunk or individual Branch. A Preprocessor is added to a Pipeline by calling [`dsl_pipeline_component_add`](api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing a Preprocess to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+A similar set of Services are used when adding/removing a Preprocess to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
 Once added to a Pipeline or Branch, a Preprocessor must be removed before it can be used with another.
 
 ---
 ## Preprocessor API
 **Constructors:**
-* [dsl_preproc_new](#dsl_preproc_new)
+* [`dsl_preproc_new`](#dsl_preproc_new)
 
 **Methods:**
-* [dsl_preproc_config_file_get](#dsl_preproc_config_file_get)
-* [dsl_preproc_config_file_set](#dsl_preproc_config_file_get)
-* [dsl_preproc_enabled_get](#dsl_preproc_enabled_get)
-* [dsl_preproc_enabled_set](#dsl_preproc_enabled_set)
-* [dsl_preproc_unique_id_get](#dsl_preproc_unique_id_get)
+* [`dsl_preproc_config_file_get`](#dsl_preproc_config_file_get)
+* [`dsl_preproc_config_file_set`](#dsl_preproc_config_file_get)
+* [`dsl_preproc_enabled_get`](#dsl_preproc_enabled_get)
+* [`dsl_preproc_enabled_set`](#dsl_preproc_enabled_set)
+* [`dsl_preproc_unique_id_get`](#dsl_preproc_unique_id_get)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
@@ -50,7 +50,7 @@ The following return codes are used by the On-Screen Display API
 ```c++
 DslReturnType dsl_preproc_new(const wchar_t* name, const wchar_t* config_file);
 ```
-The constructor creates a uniquely named Preprocessor. Construction will fail if the name is currently in use. The Preprocessor is enabled by default. It can be disabled by calling [dsl_preproc_enabled_set](#dsl_preproc_enabled_set).
+The constructor creates a uniquely named Preprocessor. Construction will fail if the name is currently in use. The Preprocessor is enabled by default. It can be disabled by calling [`dsl_preproc_enabled_set`](#dsl_preproc_enabled_set).
 
 **Parameters**
 * `name` - [in] unique name for the Preprocessor to create.
@@ -153,7 +153,7 @@ retval = dsl_preproc_enabled_set('my-preprocessor', False)
 
 <br>
 
-### *dsl_preproc_enabled_get*
+### *dsl_preproc_unique_id_get*
 ```c++
 DslReturnType dsl_preproc_unique_id_get(const wchar_t* name,
     uint* id);

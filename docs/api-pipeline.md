@@ -20,81 +20,82 @@ Both the `batch-size` and `batch-timeout` settings can be updated while the Pipe
 2. If using dynamic or live sources, the `batch-timeout` should be set to accommodate the slowest source's frame-rate -- i.e. set to a value just greater than the longest expected period between frames.
 
 #### Output Dimensions
-The Streammuxer's output dimensions, initialized by the plugin to 0, are set by the Pipeline to `DSL_STREAMMUX_DEFAULT_WIDTH` and `DSL_STREAMMUX_DEFAULT_HEIGHT` as defined by the [Pipeline Streammuxer Constant Values](#pipeline-streammuxer-constant-values). The output dimensions can be updated by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set) while the Pipeline is stopped. The current dimensions can be obtained by calling [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
+The Streammuxer's output dimensions, initialized by the plugin to 0, are set by the Pipeline to `DSL_STREAMMUX_DEFAULT_WIDTH` and `DSL_STREAMMUX_DEFAULT_HEIGHT` as defined by the [Pipeline Streammuxer Constant Values](#pipeline-streammuxer-constant-values). The output dimensions can be updated by calling [`dsl_pipeline_streammux_dimensions_set`](#dsl_pipeline_streammux_dimensions_set) while the Pipeline is stopped. The current dimensions can be obtained by calling [`dsl_pipeline_streammux_dimensions_get`](#dsl_pipeline_streammux_dimensions_get)
 
 ### Pipeline Construction and Destruction
-Pipelines are constructed by calling [dsl_pipeline_new](#dsl_pipeline_new) or [dsl_pipeline_new_many](#dsl_pipeline_new_many).
+Pipelines are constructed by calling [`dsl_pipeline_new`](#dsl_pipeline_new) or [`dsl_pipeline_new_many`](#dsl_pipeline_new_many).
 
-Pipelines are destructed by calling [dsl_pipeline_delete](#dsl_pipeline_delete), [dsl_pipeline_delete_many](#dsl_pipeline_delete_many), or [dsl_pipeline_delete_all](#dsl_pipeline_delete_all). Deleting a pipeline will not delete its child component, but will unlink them and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all).
+Pipelines are destructed by calling [`dsl_pipeline_delete`](#dsl_pipeline_delete), [`dsl_pipeline_delete_many`](#dsl_pipeline_delete_many), or [`dsl_pipeline_delete_all`](#dsl_pipeline_delete_all). Deleting a pipeline will not delete its child component, but will unlink them and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all).
 
 ### Adding and Removing Components
-Child components -- Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks -- are added to a Pipeline by calling [dsl_pipeline_component_add](#dsl_pipeline_component_add) and [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many). A Pipeline's current number of child components can be obtained by calling [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
+Child components -- Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks -- are added to a Pipeline by calling [`dsl_pipeline_component_add`](#dsl_pipeline_component_add) and [`dsl_pipeline_component_add_many`](#dsl_pipeline_component_add_many). A Pipeline's current number of child components can be obtained by calling [`dsl_pipeline_component_list_size`](#dsl_pipeline_component_list_size)
 
-Child components can be removed from their Parent Pipeline by calling [dsl_pipeline_component_remove](#dsl_pipeline_componet_remove), [dsl_pipeline_component_remove_many](#dsl_pipeline_componet_remove_many), and [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
+Child components can be removed from their Parent Pipeline by calling [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many), and [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
+
 ### Playing, Pausing and Stopping a Pipeline
 
-Pipelines - with a minimum required set of components - can be **played** by calling [dsl_pipeline_play](#dsl_pipeline_play), **paused** by calling [dsl_pipeline_pause](#dsl_pipeline_pause) and **stopped** by calling [dsl_pipeline_stop](#dsl_pipeline_stop).
+Pipelines - with a minimum required set of components - can be **played** by calling [`dsl_pipeline_play`](#dsl_pipeline_play), **paused** by calling [`dsl_pipeline_pause`](#dsl_pipeline_pause) and **stopped** by calling [`dsl_pipeline_stop`](#dsl_pipeline_stop).
 
 ### Pipeline Client-Listener Notifications
 Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
-* **Change of State** - with [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add) / [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
-* **End of Stream (EOS)** - with [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add) / [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove).
-* **Error Message Received** - with [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add) / [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove).
+* _Change of State_ - with [`dsl_pipeline_state_change_listener_add`](#dsl_pipeline_state_change_listener_add) / [`dsl_pipeline_state_change_listener_remove`](#dsl_pipeline_state_change_listener_remove).
+* _End of Stream (EOS)_ - with [`dsl_pipeline_eos_listener_add`](#dsl_pipeline_eos_listener_add) / [`dsl_pipeline_eos_listener_remove`](#dsl_pipeline_eos_listener_remove).
+* _Error Message Received_ - with [`dsl_pipeline_error_message_handler_add`](#dsl_pipeline_error_message_handler_add) / [`dsl_pipeline_error_message_handler_remove`](#dsl_pipeline_error_message_handler_remove).
 
 ---
 ## Pipeline API
 **Client Callback Typedefs**
-* [dsl_state_change_listener_cb](#dsl_state_change_listener_cb)
-* [dsl_eos_listener_cb](#dsl_eos_listener_cb)
-* [dsl_error_message_handler_cb](#dsl_error_message_handler_cb)
+* [`dsl_state_change_listener_cb`](#dsl_state_change_listener_cb)
+* [`dsl_eos_listener_cb`](#dsl_eos_listener_cb)
+* [`dsl_error_message_handler_cb`](#dsl_error_message_handler_cb)
 
 **Constructors**
-* [dsl_pipeline_new](#dsl_pipeline_new)
-* [dsl_pipeline_new_many](#dsl_pipeline_new_many)
-* [dsl_pipeline_new_component_add_many](#dsl_pipeline_new_component_add_many)
+* [`dsl_pipeline_new`](#dsl_pipeline_new)
+* [`dsl_pipeline_new_many`](#dsl_pipeline_new_many)
+* [`dsl_pipeline_new_component_add_many`](#dsl_pipeline_new_component_add_many)
 
 **Destructors**
-* [dsl_pipeline_delete](#dsl_pipeline_delete)
-* [dsl_pipeline_delete_many](#dsl_pipeline_delete_many)
-* [dsl_pipeline_delete_all](#dsl_pipeline_delete_all)
+* [`dsl_pipeline_delete`](#dsl_pipeline_delete)
+* [`dsl_pipeline_delete_many`](#dsl_pipeline_delete_many)
+* [`dsl_pipeline_delete_all`](#dsl_pipeline_delete_all)
 
 **Methods**
-* [dsl_pipeline_component_add](#dsl_pipeline_component_add)
-* [dsl_pipeline_component_add_many](#dsl_pipeline_component_add_many)
-* [dsl_pipeline_component_list_size](#dsl_pipeline_component_list_size)
-* [dsl_pipeline_component_remove](#dsl_pipeline_component_remove)
-* [dsl_pipeline_component_remove_many](#dsl_pipeline_component_remove_many)
-* [dsl_pipeline_component_remove_all](#dsl_pipeline_component_remove_all)
-* [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get)
-* [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set)
-* [dsl_pipeline_streammux_dimensions_get](#dsl_pipeline_streammux_dimensions_get)
-* [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
-* [dsl_pipeline_streammux_num_surfaces_per_frame_get](#dsl_pipeline_streammux_num_surfaces_per_frame_get)
-* [dsl_pipeline_streammux_num_surfaces_per_frame_set](#dsl_pipeline_streammux_num_surfaces_per_frame_set)
-* [dsl_pipeline_streammux_sync_inputs_enabled_get](#dsl_pipeline_streammux_sync_inputs_enabled_get)
-* [dsl_pipeline_streammux_sync_inputs_enabled_set](#dsl_pipeline_streammux_sync_inputs_enabled_set)
-* [dsl_pipeline_streammux_gpuid_get](#dsl_pipeline_streammux_gpuid_get)
-* [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
-* [dsl_pipeline_streammux_tiler_add](#dsl_pipeline_streammux_tiler_add)
-* [dsl_pipeline_streammux_tiler_remove](#dsl_pipeline_streammux_tiler_remove)
-* [dsl_pipeline_state_get](#dsl_pipeline_state_get)
-* [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add)
-* [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove)
-* [dsl_pipeline_eos_listener_add](#dsl_pipeline_eos_listener_add)
-* [dsl_pipeline_eos_listener_remove](#dsl_pipeline_eos_listener_remove)
-* [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add)
-* [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove)
-* [dsl_pipeline_error_message_last_get](#dsl_pipeline_error_message_last_get)
-* [dsl_pipeline_play](#dsl_pipeline_play)
-* [dsl_pipeline_pause](#dsl_pipeline_pause)
-* [dsl_pipeline_stop](#dsl_pipeline_stop)
-* [dsl_pipeline_main_loop_new](#dsl_pipeline_main_loop_new)
-* [dsl_pipeline_main_loop_run](#dsl_pipeline_main_loop_run)
-* [dsl_pipeline_main_loop_quit](#dsl_pipeline_main_loop_quit)
-* [dsl_pipeline_main_loop_delete](#dsl_pipeline_main_loop_delete)
-* [dsl_pipeline_list_size](#dsl_pipeline_list_size)
-* [dsl_pipeline_dump_to_dot](#dsl_pipeline_dump_to_dot)
-* [dsl_pipeline_dump_to_dot_with_ts](#dsl_pipeline_dump_to_dot_with_ts)
+* [`dsl_pipeline_component_add`](#dsl_pipeline_component_add)
+* [`dsl_pipeline_component_add_many`](#dsl_pipeline_component_add_many)
+* [`dsl_pipeline_component_list_size`](#dsl_pipeline_component_list_size)
+* [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove)
+* [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many)
+* [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
+* [`dsl_pipeline_streammux_batch_properties_get`](#dsl_pipeline_streammux_batch_properties_get)
+* [`dsl_pipeline_streammux_batch_properties_set`](#dsl_pipeline_streammux_batch_properties_set)
+* [`dsl_pipeline_streammux_dimensions_get`](#dsl_pipeline_streammux_dimensions_get)
+* [`dsl_pipeline_streammux_dimensions_set`](#dsl_pipeline_streammux_dimensions_set)
+* [`dsl_pipeline_streammux_num_surfaces_per_frame_get`](#dsl_pipeline_streammux_num_surfaces_per_frame_get)
+* [`dsl_pipeline_streammux_num_surfaces_per_frame_set`](#dsl_pipeline_streammux_num_surfaces_per_frame_set)
+* [`dsl_pipeline_streammux_sync_inputs_enabled_get`](#dsl_pipeline_streammux_sync_inputs_enabled_get)
+* [`dsl_pipeline_streammux_sync_inputs_enabled_set`](#dsl_pipeline_streammux_sync_inputs_enabled_set)
+* [`dsl_pipeline_streammux_gpuid_get`](#dsl_pipeline_streammux_gpuid_get)
+* [`dsl_pipeline_streammux_gpuid_set`](#dsl_pipeline_streammux_gpuid_set)
+* [`dsl_pipeline_streammux_tiler_add`](#dsl_pipeline_streammux_tiler_add)
+* [`dsl_pipeline_streammux_tiler_remove`](#dsl_pipeline_streammux_tiler_remove)
+* [`dsl_pipeline_state_get`](#dsl_pipeline_state_get)
+* [`dsl_pipeline_state_change_listener_add`](#dsl_pipeline_state_change_listener_add)
+* [`dsl_pipeline_state_change_listener_remove`](#dsl_pipeline_state_change_listener_remove)
+* [`dsl_pipeline_eos_listener_add`](#dsl_pipeline_eos_listener_add)
+* [`dsl_pipeline_eos_listener_remove`](#dsl_pipeline_eos_listener_remove)
+* [`dsl_pipeline_error_message_handler_add`](#dsl_pipeline_error_message_handler_add)
+* [`dsl_pipeline_error_message_handler_remove`](#dsl_pipeline_error_message_handler_remove)
+* [`dsl_pipeline_error_message_last_get`](#dsl_pipeline_error_message_last_get)
+* [`dsl_pipeline_play`](#dsl_pipeline_play)
+* [`dsl_pipeline_pause`](#dsl_pipeline_pause)
+* [`dsl_pipeline_stop`](#dsl_pipeline_stop)
+* [`dsl_pipeline_main_loop_new`](#dsl_pipeline_main_loop_new)
+* [`dsl_pipeline_main_loop_run`](#dsl_pipeline_main_loop_run)
+* [`dsl_pipeline_main_loop_quit`](#dsl_pipeline_main_loop_quit)
+* [`dsl_pipeline_main_loop_delete`](#dsl_pipeline_main_loop_delete)
+* [`dsl_pipeline_list_size`](#dsl_pipeline_list_size)
+* [`dsl_pipeline_dump_to_dot`](#dsl_pipeline_dump_to_dot)
+* [`dsl_pipeline_dump_to_dot_with_ts`](#dsl_pipeline_dump_to_dot_with_ts)
 
 ---
 ## Return Values

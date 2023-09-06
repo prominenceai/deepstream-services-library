@@ -10,29 +10,29 @@ The relationship between Triggers and Areas is many-to-many as multiple Areas ca
 
 If both Areas of Inclusion and Exclusion are added to an ODE Trigger, the order of addition determines the order of precedence.
 
-ODE Actions can be used to update a Trigger's container of ODE Areas on ODE occurrence. See [dsl_ode_action_area_add_new](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [dsl_ode_action_area_remove_new](/docs/api-ode-action.md#dsl_ode_action_area_remove_new).
+ODE Actions can be used to update a Trigger's container of ODE Areas on ODE occurrence. See [`dsl_ode_action_area_add_new`](/docs/api-ode-action.md#dsl_ode_action_area_add_new) and [`dsl_ode_action_area_remove_new`](/docs/api-ode-action.md#dsl_ode_action_area_remove_new).
 
 #### ODE Area Construction and Destruction
-Areas are created by calling one of four (4) type specific constructors: [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new), [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new), [dsl_ode_area_line_new](#dsl_ode_area_line_new), and [dsl_ode_area_line_multi_new](#dsl_ode_area_line_multi_new).
+Areas are created by calling one of four (4) type specific constructors: [`dsl_ode_area_inclusion_new`](#dsl_ode_area_inclusion_new), [`dsl_ode_area_exclusion_new`](#dsl_ode_area_exclusion_new), [`dsl_ode_area_line_new`](#dsl_ode_area_line_new), and [`dsl_ode_area_line_multi_new`](#dsl_ode_area_line_multi_new).
 
 #### Adding/Removing ODE Areas
-ODE Areas are added to to ODE Triggers by calling [dsl_ode_trigger_area_add](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add) or [dsl_ode_trigger_area_add_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and removed by [dsl_ode_trigger_area_remove](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_many), or [dsl_ode_trigger_area_remove_all](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all).
+ODE Areas are added to to ODE Triggers by calling [`dsl_ode_trigger_area_add`](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add) or [`dsl_ode_trigger_area_add_many`](/docs/api-ode-trigger.md#dsl_ode_trigger_area_add_many) and removed by [`dsl_ode_trigger_area_remove`](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove), [`dsl_ode_trigger_area_remove_many`](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_many), or [`dsl_ode_trigger_area_remove_all`](/docs/api-ode-trigger.md#dsl_ode_trigger_area_remove_all).
 
 ## ODE Area Services API
 
 **Constructors:**
-* [dsl_ode_area_inclusion_new](#dsl_ode_area_inclusion_new)
-* [dsl_ode_area_exclusion_new](#dsl_ode_area_exclusion_new)
-* [dsl_ode_area_line_new](#dsl_ode_area_line_new)
-* [dsl_ode_area_line_multi_new](#dsl_ode_area_line_multi_new)
+* [`dsl_ode_area_inclusion_new`](#dsl_ode_area_inclusion_new)
+* [`dsl_ode_area_exclusion_new`](#dsl_ode_area_exclusion_new)
+* [`dsl_ode_area_line_new`](#dsl_ode_area_line_new)
+* [`dsl_ode_area_line_multi_new`](#dsl_ode_area_line_multi_new)
 
 **Destructors:**
-* [dsl_ode_area_delete](#dsl_ode_area_delete)
-* [dsl_ode_area_delete_many](#dsl_ode_area_delete_many)
-* [dsl_ode_area_delete_all](#dsl_ode_area_delete_all)
+* [`dsl_ode_area_delete`](#dsl_ode_area_delete)
+* [`dsl_ode_area_delete_many`](#dsl_ode_area_delete_many)
+* [`dsl_ode_area_delete_all`](#dsl_ode_area_delete_all)
 
 **Methods:**
-* [dsl_ode_area_list_size](#dsl_ode_area_list_size)
+* [`dsl_ode_area_list_size`](#dsl_ode_area_list_size)
 
 ---
 

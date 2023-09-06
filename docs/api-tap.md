@@ -2,41 +2,41 @@
 Taps are used to "Tap" into a single RTSP source pre-decode so that the original source stream can be preserved. As with all components, Taps must be uniquely named from all other components created. There is only one Tap type at this time, a Record Tap -- similar in operation to the [Record Sink](/docs/api-sink.md) -- with Start/Stop/Duration control and a cache for pre-start buffering. 
 
 ### Tap Construction and Destruction
-Taps are created by calling a type-specific constructor. Taps are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all). Attempting to delete a Tap while in use will fail. 
+Taps are created by calling a type-specific constructor. Taps are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all) Attempting to delete a Tap while in use will fail. 
 
 ### Adding/removing a Tap
-Taps are added to an RTSP Source by calling [dsl_source_rtsp_tap_add](/docs/api-source-md#dsl_source_rtsp_tap_add) and removed with [dsl_source_rtsp_tap_remove](/docs/api-source-md#dsl_source_rtsp_tap_remove).  The relationship between Taps and RTSP Sources is one-to-one. Once added to a Source, a Tap must be removed before it can used with another.
+Taps are added to an RTSP Source by calling [`dsl_source_rtsp_tap_add`](/docs/api-source-md#dsl_source_rtsp_tap_add) and removed with [`dsl_source_rtsp_tap_remove`](/docs/api-source-md#dsl_source_rtsp_tap_remove).  The relationship between Taps and RTSP Sources is one-to-one. Once added to a Source, a Tap must be removed before it can used with another.
 
 Note: Adding a Tap component to a Pipeline or Branch directly will fail.
 
 
 ## Tap API
 **Types:**
-* [dsl_recording_info](#dsl_recording_info)
+* [`dsl_recording_info`](#dsl_recording_info)
 
 **Callback Types:**
-* [dsl_record_client_listner_cb](#dsl_record_client_listner_cb)
+* [`dsl_record_client_listner_cb`](#dsl_record_client_listner_cb)
 
 **Constructors:**
-* [dsl_tap_record_new](#dsl_tap_record_new)
+* [`dsl_tap_record_new`](#dsl_tap_record_new)
 
 **Methods**
-* [dsl_tap_record_session_start](#dsl_tap_record_session_start)
-* [dsl_tap_record_session_stop](#dsl_tap_record_session_stop)
-* [dsl_tap_record_outdir_get](#dsl_tap_record_outdir_get)
-* [dsl_tap_record_outdir_set](#dsl_tap_record_outdir_set)
-* [dsl_tap_record_container_get](#dsl_tap_record_container_get)
-* [dsl_tap_record_container_set](#dsl_tap_record_container_set)
-* [dsl_tap_record_cache_size_get](#dsl_tap_record_cache_size_get)
-* [dsl_tap_record_cache_size_set](#dsl_tap_record_cache_size_set)
-* [dsl_tap_record_dimensions_get](#dsl_tap_record_dimensions_get)
-* [dsl_tap_record_dimensions_set](#dsl_tap_record_dimensions_set)
-* [dsl_tap_record_is_on_get](#dsl_tap_record_is_on_get)
-* [dsl_tap_record_reset_done_get](#dsl_tap_record_reset_done_get)
-* [dsl_tap_record_video_player_add](#dsl_tap_record_video_player_add)
-* [dsl_tap_record_video_player_remove](#dsl_tap_record_video_player_remove)
-* [dsl_tap_record_mailer_add](#dsl_tap_record_mailer_add)
-* [dsl_tap_record_mailer_remove](#dsl_tap_record_mailer_remove)
+* [`dsl_tap_record_session_start`](#dsl_tap_record_session_start)
+* [`dsl_tap_record_session_stop`](#dsl_tap_record_session_stop)
+* [`dsl_tap_record_outdir_get`](#dsl_tap_record_outdir_get)
+* [`dsl_tap_record_outdir_set`](#dsl_tap_record_outdir_set)
+* [`dsl_tap_record_container_get`](#dsl_tap_record_container_get)
+* [`dsl_tap_record_container_set`](#dsl_tap_record_container_set)
+* [`dsl_tap_record_cache_size_get`](#dsl_tap_record_cache_size_get)
+* [`dsl_tap_record_cache_size_set`](#dsl_tap_record_cache_size_set)
+* [`dsl_tap_record_dimensions_get`](#dsl_tap_record_dimensions_get)
+* [`dsl_tap_record_dimensions_set`](#dsl_tap_record_dimensions_set)
+* [`dsl_tap_record_is_on_get`](#dsl_tap_record_is_on_get)
+* [`dsl_tap_record_reset_done_get`](#dsl_tap_record_reset_done_get)
+* [`dsl_tap_record_video_player_add`](#dsl_tap_record_video_player_add)
+* [`dsl_tap_record_video_player_remove`](#dsl_tap_record_video_player_remove)
+* [`dsl_tap_record_mailer_add`](#dsl_tap_record_mailer_add)
+* [`dsl_tap_record_mailer_remove`](#dsl_tap_record_mailer_remove)
 
 
 ## Return Values

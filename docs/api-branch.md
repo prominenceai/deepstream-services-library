@@ -2,30 +2,30 @@
 Branch components are similar to Pipelines in the way they're used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Unlike Pipelines, Branches can not contain Source components, and must be added to a [Demuxer or Splitter Tee](/docs/api-tee.md). 
 
 #### Branch Construction and Destruction
-Branches are constructed by calling [dsl_branch_new](#dsl_branch_new),[dsl_branch_new_many](#dsl_branch_new_many),  [dsl_branch_new_component_add_many](#dsl_branch_new_component_add_many), and destructed by calling [dsl_branch_delete](#dsl_branch_delete), [dsl_branch_delete_many](#dsl_branch_delete_many), or [dsl_branch_delete_all](#dsl_branch_delete_all). Deleting a Branch will not delete its child components but will unlink then and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all), or [dsl_delete_all](/docs/overview.md#dsl-delete-all).
+Branches are constructed by calling [`dsl_branch_new`](#dsl_branch_new),[`dsl_branch_new_many`](#dsl_branch_new_many),  [`dsl_branch_new_component_add_many`](#dsl_branch_new_component_add_many), and destructed by calling `[dsl_branch_delete`](#dsl_branch_delete), `[dsl_branch_delete_many`](#dsl_branch_delete_many), or [`dsl_branch_delete_all`](#dsl_branch_delete_all). Deleting a Branch will not delete its child components but will unlink then and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all), or [`dsl_delete_all`](/docs/overview.md#dsl-delete-all).
 #### Adding and Removing Components
-Child components -- Inference Engines, Trackers, Tilers, Demuxers, Splitters, On Screen-Displays, and Sinks -- are added to a Branch by calling [dsl_branch_component_add](#dsl_branch_component_add) and [dsl_branch_component_add_many](#dsl_branch_component_add_many).
+Child components -- Inference Engines, Trackers, Tilers, Demuxers, Splitters, On Screen-Displays, and Sinks -- are added to a Branch by calling [`dsl_branch_component_add`](#dsl_branch_component_add) and [`dsl_branch_component_add_many`](#dsl_branch_component_add_many).
 
-Child components can be removed from their Parent Branch by calling [dsl_branch_component_remove](#dsl_branch_componet_remove), [dsl_branch_component_remove_many](#dsl_branch_componet_remove_many), and [dsl_branch_component_remove_all](#dsl_branch_component_remove_all).
+Child components can be removed from their Parent Branch by calling [`dsl_branch_component_remove`](#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](#dsl_branch_component_remove_all).
 
 #### Adding and Removing Branches from Tees
-Once created, Branches are added to a Demuxer or Splitter (Tees) by calling [dsl_tee_branch_add](#dsl_tee_branch_add) and [dsl_tee_branch_add_many](#dsl_tee_branch_add_many). A Tee's current number of child components can be obtained by calling [dsl_tee_branch_list_size](#dsl_tee_branch_list_size).
+Once created, Branches are added to a Demuxer or Splitter (Tees) by calling [`dsl_tee_branch_add`](/docs/api-tee.md#dsl_tee_branch_add) and [`dsl_tee_branch_add_many`](/docs/api-tee.md#dsl_tee_branch_add_many). A Tee's current number of child components can be obtained by calling [`dsl_tee_branch_list_size`](/docs/api-tee.md#dsl_tee_branch_list_size).
 
-Branches can be removed from their Parent Tee by calling [dsl_tee_branch_remove](#dsl_tee_branch_remove), [dsl_tee_branch_remove_many](#dsl_tee_branch_remove_many), and [dsl_tee_branch_remove_all](#dsl_tee_branch_remove_all)
+Branches can be removed from their Parent Tee by calling [`dsl_tee_branch_remove`](/docs/api-tee.md#dsl_tee_branch_remove), [`dsl_tee_branch_remove_many`](/docs/api-tee.md#dsl_tee_branch_remove_many), and [`dsl_tee_branch_remove_all`](/docs/api-tee.md#dsl_tee_branch_remove_all)
 
 --
 ## Branch API
 **Constructors**
-* [dsl_branch_new](#dsl_branch_new)
-* [dsl_branch_new_many](#dsl_branch_new_many)
-* [dsl_branch_new_component_add_many](#dsl_branch_new_component_add_many)
+* [`dsl_branch_new`](#dsl_branch_new)
+* [`dsl_branch_new_many`](#dsl_branch_new_many)
+* [`dsl_branch_new_component_add_many`](#dsl_branch_new_component_add_many)
 
 **Methods**
-* [dsl_branch_component_add](#dsl_branch_component_add)
-* [dsl_branch_component_add_many](#dsl_branch_component_add_many)
-* [dsl_branch_component_remove](#dsl_branch_component_remove)
-* [dsl_branch_component_remove_many](#dsl_branch_component_remove_many)
-* [dsl_branch_component_remove_all](#dsl_branch_component_remove_all)
+* [`dsl_branch_component_add`](#dsl_branch_component_add)
+* [`dsl_branch_component_add_many`](#dsl_branch_component_add_many)
+* [`dsl_branch_component_remove`](#dsl_branch_component_remove)
+* [`dsl_branch_component_remove_many`](#dsl_branch_component_remove_many)
+* [`dsl_branch_component_remove_all`](#dsl_branch_component_remove_all)
 
 ---
 ## Return Values

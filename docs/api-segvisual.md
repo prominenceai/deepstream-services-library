@@ -5,18 +5,18 @@ From Nivida's [Gst-nvsegvisual](https://docs.nvidia.com/metropolis/deepstream/5.
 Please refer to the plugin manual for more information.
 
 #### Segmentation Visualizer Construction and Destruction
-Segmentation Visualizers are created by calling the constructor [dsl_segvisual_new](#dsl_segvisual_new). Segmentation Visualizers are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all)
+Segmentation Visualizers are created by calling the constructor [`dsl_segvisual_new`](#dsl_segvisual_new). Segmentation Visualizers are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all)
 
 #### Adding to a Pipeline
 The relationship between Pipelines/Branches and Segmentation Visualizers is one-to-one. Once added to a Pipeline or Branch, a Segmentation Visualizer must be removed before it can used with another.
 
-Segmentation Visualizers are added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [dsl_pipeline_component_remove](api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](api-pipeline.md#dsl_pipeline_component_remove_all).
+Segmentation Visualizers are added to a Pipeline by calling [`dsl_pipeline_component_add`](api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](api-pipeline.md#dsl_pipeline_component_add_many) (when adding with other components) and removed with [`dsl_pipeline_component_remove`](api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](api-pipeline.md#dsl_pipeline_component_remove_all).
 
 #### Adding to a Branch
-Segmentation Visualizers are added to Branches by calling [dsl_branch_component_add](api-branch.md#dsl_branch_component_add) or [dsl_branch_component_add_many](api-branch.md#dsl_branch_component_add_many) (when adding with other components) and removed with [dsl_branch_component_remove](api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](api-branch.md#dsl_branch_component_remove_many), or [dsl_branch_component_remove_all](api-branch.md#dsl_branch_component_remove_all).
+Segmentation Visualizers are added to Branches by calling [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add) or [`dsl_branch_component_add_many`](api-branch.md#dsl_branch_component_add_many) (when adding with other components) and removed with [`dsl_branch_component_remove`](api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](api-branch.md#dsl_branch_component_remove_many), or [`dsl_branch_component_remove_all`](api-branch.md#dsl_branch_component_remove_all).
 
 #### Adding/Removing Pad-Probe-handlers
-Multiple Source [Pad-Probe Handlers](/docs/api-pph/md) can be added to a Segmentation Visualizer by calling [dsl_segvisual_pph_add](#dsl_segvisual_pph_add) and removed with [dsl_segvisual_pph_remove](#dsl_segvisual_pph_remove).
+Multiple Source [Pad-Probe Handlers](/docs/api-pph/md) can be added to a Segmentation Visualizer by calling [`dsl_segvisual_pph_add`](#dsl_segvisual_pph_add) and removed with [`dsl_segvisual_pph_remove`](#dsl_segvisual_pph_remove).
 
 ## Relevant Examples
 * [industrial_segmentation.py](/examples/python/industrial_segmentation.py)
@@ -24,13 +24,13 @@ Multiple Source [Pad-Probe Handlers](/docs/api-pph/md) can be added to a Segment
 
 ## Segmentation Visualizer API
 **Constructors**
-* [dsl_segvisual_new](#dsl_segvisual_new)
+* [`dsl_segvisual_new`](#dsl_segvisual_new)
 
 **Methods**
-* [dsl_segvisual_dimensions_get](#dsl_segvisual_dimensions_get)
-* [dsl_segvisual_dimensions_set](#dsl_segvisual_dimensions_set)
-* [dsl_segvisual_pph_add](#dsl_segvisual_pph_add).
-* [dsl_segvisual_pph_remove](#dsl_segvisual_pph_remove).
+* [`dsl_segvisual_dimensions_get`](#dsl_segvisual_dimensions_get)
+* [`dsl_segvisual_dimensions_set`](#dsl_segvisual_dimensions_set)
+* [`dsl_segvisual_pph_add`](#dsl_segvisual_pph_add)
+* [`dsl_segvisual_pph_remove`](#dsl_segvisual_pph_remove)
 
 ## Return Values
 The following return codes are used by the Segmentation Visualizer API

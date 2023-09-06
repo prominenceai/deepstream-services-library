@@ -8,41 +8,41 @@ palette-index = round( vector[i][j] * (palette-size - 1) / most-occurrences )
 ```
 
 #### Construction and Destruction
-An ODE Heat-Mapper is created by calling [dsl_ode_heat_mapper_new](#dsl_ode_heat_mapper_new). Accumulators are deleted by calling [dsl_ode_heat_mapper_delete](#dsl_ode_heat_mapper_delete), [dsl_ode_heat_mapper_delete_many](#dsl_ode_heat_mapper_delete_many), or [dsl_ode_heat_mapper_delete_all](#dsl_ode_accumulator_delete_all).
+An ODE Heat-Mapper is created by calling [`dsl_ode_heat_mapper_new`](#dsl_ode_heat_mapper_new). Accumulators are deleted by calling [`dsl_ode_heat_mapper_delete`](#dsl_ode_heat_mapper_delete), [`dsl_ode_heat_mapper_delete_many`](#dsl_ode_heat_mapper_delete_many), or [`dsl_ode_heat_mapper_delete_all`](#dsl_ode_heat_mapper_delete_all).
 
 #### Displaying a Map Legend
-The Heat-Mapper can display a map legend derived from the RGBA Color Palette by calling [dsl_ode_heat_mapper_legend_settings_set](#dsl_ode_heat_mapper_legend_settings_set)
+The Heat-Mapper can display a map legend derived from the RGBA Color Palette by calling [`dsl_ode_heat_mapper_legend_settings_set`](#dsl_ode_heat_mapper_legend_settings_set)
 
 #### Adding and Removing Heat-Mappers
-The relationship between ODE Triggers and ODE Heat-Mappers is one-to-one. A Trigger can have at most one Heat-Mapper and one Heat-mapper can be added to only on Trigger. An ODE Heat Mapper is added to an ODE Trigger by calling [dsl_ode_trigger_heat_mapper add](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_add) and removed with [dsl_ode_trigger_heat_mapper_remove](docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove).
+The relationship between ODE Triggers and ODE Heat-Mappers is one-to-one. A Trigger can have at most one Heat-Mapper and one Heat-mapper can be added to only on Trigger. An ODE Heat Mapper is added to an ODE Trigger by calling [`dsl_ode_trigger_heat_mapper add`](/docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_add) and removed with [`dsl_ode_trigger_heat_mapper_remove`](docs/api-ode-trigger.md#dsl_ode_trigger_heat_mapper_remove).
 
 ---
 ## Examples
-* [ode_occurrence_trigger_with_heat_mapper.py](/examples/python/ode_occurrence_trigger_with_heat_mapper.py) - a simple example that creates an [ODE Occurrence Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new) to trigger on each occurrence of an object with a `person` class Id and [minimum inference confidence](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_set).  An ODE Heat-Mapper, created with a [Predefined Spectral RGBA Color Palette](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_predefined_new), is added to the ODE Occurrence Trigger producing a heat-map overlay as shown in the screen shot below. The example creates a set of predefined color palettes which can be cycled through by selecting the `N` key while the Pipeline is playing. The XWindow key handler function calls [dsl_ode_heat_mapper_color_palette_set](#dsl_ode_heat_mapper_color_palette_set) to change the Heat-Mapper's Palette.
+* [ode_occurrence_trigger_with_heat_mapper.py](/examples/python/ode_occurrence_trigger_with_heat_mapper.py) - a simple example that creates an [ODE Occurrence Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_occurrence_new) to trigger on each occurrence of an object with a `person` class Id and [minimum inference confidence](/docs/api-ode-trigger.md#dsl_ode_trigger_confidence_min_set).  An ODE Heat-Mapper, created with a [Predefined Spectral RGBA Color Palette](/docs/api-display-type.md#dsl_display_type_rgba_color_palette_predefined_new), is added to the ODE Occurrence Trigger producing a heat-map overlay as shown in the screen shot below. The example creates a set of predefined color palettes which can be cycled through by selecting the `N` key while the Pipeline is playing. The XWindow key handler function calls [`dsl_ode_heat_mapper_color_palette_set`](#dsl_ode_heat_mapper_color_palette_set) to change the Heat-Mapper's Palette.
 
 ![](/Images/spectral-person-heat-map.png)
 ---
 
 ## ODE Accumulator API
 **Constructors:**
-* [dsl_ode_heat_mapper_new](#dsl_ode_heat_mapper_new)
+* [`dsl_ode_heat_mapper_new`](#dsl_ode_heat_mapper_new)
 
 **Destructors:**
-* [dsl_ode_heat_mapper_delete](#dsl_ode_heat_mapper_delete)
-* [dsl_ode_heat_mapper_delete_many](#dsl_ode_heat_mapper_delete_many)
-* [dsl_ode_heat_mapper_delete_all](#dsl_ode_heat_mapper_delete_all)
+* [`dsl_ode_heat_mapper_delete`](#dsl_ode_heat_mapper_delete)
+* [`dsl_ode_heat_mapper_delete_many`](#dsl_ode_heat_mapper_delete_many)
+* [`dsl_ode_heat_mapper_delete_all`](#dsl_ode_heat_mapper_delete_all)
 
 **Methods:**
-* [dsl_ode_heat_mapper_color_palette_get](#dsl_ode_heat_mapper_color_palette_get)
-* [dsl_ode_heat_mapper_color_palette_set](#dsl_ode_heat_mapper_color_palette_set)
-* [dsl_ode_heat_mapper_legend_settings_get](#dsl_ode_heat_mapper_legend_settings_get)
-* [dsl_ode_heat_mapper_legend_settings_set](#dsl_ode_heat_mapper_legend_settings_set)
-* [dsl_ode_heat_mapper_metrics_clear](#dsl_ode_heat_mapper_metrics_clear)
-* [dsl_ode_heat_mapper_metrics_get](#dsl_ode_heat_mapper_metrics_get)
-* [dsl_ode_heat_mapper_metrics_print](#dsl_ode_heat_mapper_metrics_print)
-* [dsl_ode_heat_mapper_metrics_log](#dsl_ode_heat_mapper_metrics_log)
-* [dsl_ode_heat_mapper_metrics_file](#dsl_ode_heat_mapper_metrics_file)
-* [dsl_ode_heat_mapper_list_size](#dsl_ode_heat_mapper_list_size)
+* [`dsl_ode_heat_mapper_color_palette_get`](#dsl_ode_heat_mapper_color_palette_get)
+* [`dsl_ode_heat_mapper_color_palette_set`](#dsl_ode_heat_mapper_color_palette_set)
+* [`dsl_ode_heat_mapper_legend_settings_get`](#dsl_ode_heat_mapper_legend_settings_get)
+* [`dsl_ode_heat_mapper_legend_settings_set`](#dsl_ode_heat_mapper_legend_settings_set)
+* [`dsl_ode_heat_mapper_metrics_clear`](#dsl_ode_heat_mapper_metrics_clear)
+* [`dsl_ode_heat_mapper_metrics_get`](#dsl_ode_heat_mapper_metrics_get)
+* [`dsl_ode_heat_mapper_metrics_print`](#dsl_ode_heat_mapper_metrics_print)
+* [`dsl_ode_heat_mapper_metrics_log`](#dsl_ode_heat_mapper_metrics_log)
+* [`dsl_ode_heat_mapper_metrics_file`](#dsl_ode_heat_mapper_metrics_file)
+* [`dsl_ode_heat_mapper_list_size`](#dsl_ode_heat_mapper_list_size)
 
 ---
 

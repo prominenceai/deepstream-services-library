@@ -3,65 +3,61 @@ Players are simplified/specialized Pipelines, created with a single [Source](/do
 
 #### Player Construction and Destruction
 There are three types of Players that can be created. 
-* The **Basic Player**, created with any one Source and Sink by calling [dsl_player_new](#dsl_player_new). The Source and Sink components must exists at the time of Player construction
+* The **Basic Player**, created with any one Source and Sink by calling [`dsl_player_new`](#dsl_player_new). The Source and Sink components must exists at the time of Player construction
 * Two Render Players that create and manage their own Sink and Source Components
-  * An **Image Render Player**, created by calling  [dsl_player_render_image_new](#dsl_player_render_image_new), that creates an Image Source and Render Sink; Overlay or Window as specified.
-  * A **Video Render Player**, created by calling  [dsl_player_render_video_new](#dsl_player_render_video_new), that creates a Video File Source and Render Sink as specified.
+  * An **Image Render Player**, created by calling  [`dsl_player_render_image_new`](#dsl_player_render_image_new), that creates an Image Source and Render Sink; Overlay or Window as specified.
+  * A **Video Render Player**, created by calling  [`dsl_player_render_video_new`](#dsl_player_render_video_new), that creates a Video File Source and Render Sink as specified.
 
-Players are destructed by calling [dsl_player_delete](#dsl_player_delete) or [dsl_player_delete_all](#dsl_player_delete_all).
+Players are destructed by calling [`dsl_player_delete`](#dsl_player_delete) or [`dsl_player_delete_all`](#dsl_player_delete_all).
 
 #### Adding an Image Render Player to an ODE Capture Action
-Images Players can be added to either a Frame or Object Capture Action for auto-play on ODE occurrence by calling [dsl_ode_action_capture_image_player_add](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_add) and removed by calling [dsl_ode_action_capture_image_player_remove](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
+Images Players can be added to either a Frame or Object Capture Action for auto-play on ODE occurrence by calling [`dsl_ode_action_capture_image_player_add`](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_add) and removed by calling [`dsl_ode_action_capture_image_player_remove`](/docs/api-ode-action.md#dsl_ode_action_capture_image_player_remove)
 
 #### Adding a Video Render Player to a Smart Recording Tap or Sink
-Video Players can be added to Smart Recording Taps and Sinks for auto-play on recording complete by calling [dsl_tap_record_video_player_add](/docs/api-tap.md#dsl_tap_record_video_player_add) and [dsl_sink_record_video_player_add](/docs/api-sink.md#dsl_sink_record_video_player_add) respectively and removed by calling [dsl_tap_record_video_player_remove](/docs/api-tap.md#dsl_tap_record_video_player_remove) and [dsl_sink_record_video_player_remove](/docs/api-sink.md#dsl_sink_record_video_player_remove)
+Video Players can be added to Smart Recording Taps and Sinks for auto-play on recording complete by calling [`dsl_tap_record_video_player_add`](/docs/api-tap.md#dsl_tap_record_video_player_add) and `[dsl_sink_record_video_player_add`](/docs/api-sink.md#dsl_sink_record_video_player_add) respectively and removed by calling [`dsl_tap_record_video_player_remove`](/docs/api-tap.md#dsl_tap_record_video_player_remove) and [`dsl_sink_record_video_player_remove`](/docs/api-sink.md#dsl_sink_record_video_player_remove)
 
 #### Playing, Pausing and Stopping Players
-Players can be played by calling [dsl_player_play](#dsl_player_play), paused (non-live sources only) by calling [dsl_player_pause](#dsl_player_pause), and stopped by calling [dsl_player_stop](#dsl_player_stop).
+Players can be played by calling [`dsl_player_play`](#dsl_player_play), paused (non-live sources only) by calling [`dsl_player_pause`](#dsl_player_pause), and stopped by calling [`dsl_player_stop`](#dsl_player_stop).
 
 #### Player Client-Listener Notifications
-Clients can be notified of **Player Termination** on **End-of-Stream** and **Window Deletion** events by registering/deregistering one or more callback functions with [dsl_player_termination_event_listener_add](#dsl_player_termination_event_listener_add) / [dsl_player_termination_event_listener_remove](#dsl_player_termination_event_listener_remove). 
+Clients can be notified of **Player Termination** on **End-of-Stream** events by registering/deregistering one or more callback functions with [`dsl_player_termination_event_listener_add`](#dsl_player_termination_event_listener_add) / [`dsl_player_termination_event_listener_remove`](#dsl_player_termination_event_listener_remove). 
 
 ---
 ## Player API
 **Client CallBack Typedefs**
-* [dsl_player_termination_event_listener_cb](#dsl_player_termination_event_listener_cb)
+* [`dsl_player_termination_event_listener_cb`](#dsl_player_termination_event_listener_cb)
 
 **Constructors**
-* [dsl_player_new](#dsl_player_new)
-* [dsl_player_render_image_new](#dsl_player_render_image_new)
-* [dsl_player_render_video_new](#dsl_player_render_video_new)
+* [`dsl_player_new`](#dsl_player_new)
+* [`dsl_player_render_image_new`](#dsl_player_render_image_new)
+* [`dsl_player_render_video_new`](#dsl_player_render_video_new)
 
 **Destructors**
-* [dsl_player_delete](#dsl_player_delete)
-* [dsl_player_delete_all](#dsl_player_delete_all)
+* [`dsl_player_delete`](#dsl_player_delete)
+* [`dsl_player_delete_all`](#dsl_player_delete_all)
 
 **Methods**
-* [dsl_player_render_file_path_get](#dsl_player_render_file_path_get)
-* [dsl_player_render_file_path_set](#dsl_player_render_file_path_set)
-* [dsl_player_render_file_path_queue](#dsl_player_render_file_path_queue)
-* [dsl_player_render_offsets_get](#dsl_player_render_offsets_get)
-* [dsl_player_render_offsets_set](#dsl_player_render_offsets_set)
-* [dsl_player_render_zoom_get](#dsl_player_render_zoom_get)
-* [dsl_player_render_zoom_set](#dsl_player_render_zoom_set)
-* [dsl_player_render_reset](#dsl_player_render_reset)
-* [dsl_player_render_image_timeout_get](#dsl_player_render_image_timeout_get)
-* [dsl_player_render_image_timeout_set](#dsl_player_render_image_timeout_set)
-* [dsl_player_render_video_repeat_enabled_get](#dsl_player_render_video_repeat_enabled_get)
-* [dsl_player_render_video_repeat_enabled_set](#dsl_player_render_video_repeat_enabled_set)
-* [dsl_player_termination_event_listener_add](#dsl_player_termination_event_listener_add)
-* [dsl_player_termination_event_listener_remove](#dsl_player_termination_event_listener_remove)
-* [dsl_player_xwindow_handle_get](#dsl_player_xwindow_handle_get)
-* [dsl_player_xwindow_handle_set](#dsl_player_xwindow_handle_set)
-* [dsl_player_xwindow_key_event_handler_add](#dsl_player_xwindow_key_event_handler_add)
-* [dsl_player_xwindow_key_event_handler_remove](#dsl_player_xwindow_key_event_handler_remove)
-* [dsl_player_play](#dsl_player_play)
-* [dsl_player_pause](#dsl_player_pause)
-* [dsl_player_stop](#dsl_player_stop)
-* [dsl_player_render_next](#dsl_player_render_next)
-* [dsl_player_state_get](#dsl_player_state_get)
-* [dsl_player_exists](#dsl_player_exists)
-* [dsl_player_list_size](#dsl_player_list_size)
+* [`dsl_player_render_file_path_get`](#dsl_player_render_file_path_get)
+* [`dsl_player_render_file_path_set`](#dsl_player_render_file_path_set)
+* [`dsl_player_render_file_path_queue`](#dsl_player_render_file_path_queue)
+* [`dsl_player_render_offsets_get`](#dsl_player_render_offsets_get)
+* [`dsl_player_render_offsets_set`](#dsl_player_render_offsets_set)
+* [`dsl_player_render_zoom_get`](#dsl_player_render_zoom_get)
+* [`dsl_player_render_zoom_set`](#dsl_player_render_zoom_set)
+* [`dsl_player_render_reset`](#dsl_player_render_reset)
+* [`dsl_player_render_image_timeout_get`](#dsl_player_render_image_timeout_get)
+* [`dsl_player_render_image_timeout_set`](#dsl_player_render_image_timeout_set)
+* [`dsl_player_render_video_repeat_enabled_get`](#dsl_player_render_video_repeat_enabled_get)
+* [`dsl_player_render_video_repeat_enabled_set`](#dsl_player_render_video_repeat_enabled_set)
+* [`dsl_player_termination_event_listener_add`](#dsl_player_termination_event_listener_add)
+* [`dsl_player_termination_event_listener_remove`](#dsl_player_termination_event_listener_remove)
+* [`dsl_player_play`](#dsl_player_play)
+* [`dsl_player_pause`](#dsl_player_pause)
+* [`dsl_player_stop`](#dsl_player_stop)
+* [`dsl_player_render_next`](#dsl_player_render_next)
+* [`dsl_player_state_get`](#dsl_player_state_get)
+* [`dsl_player_exists`](#dsl_player_exists)
+* [`dsl_player_list_size`](#dsl_player_list_size)
 
 ---
 ## Return Values
@@ -111,7 +107,7 @@ The following symbolic constants are used by the ODE Trigger API.
 ```C++
 typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
 ```
-Callback typedef for a client termination event listener function. Functions of this type are added to a Player by calling [dsl_player_termination_event_listener_add](#dsl_player_termination_event_listener_add). Once added, the function will be called on the event of Player end-of-stream (EOS) or Window Deletion. The listener function is removed by calling [dsl_player_termination_event_listener_remove](#dsl_pipeline_eos_listener_remove) . 
+Callback typedef for a client termination event listener function. Functions of this type are added to a Player by calling [`dsl_player_termination_event_listener_add`](#dsl_player_termination_event_listener_add). Once added, the function will be called on the event of Player end-of-stream (EOS). The listener function is removed by calling [`dsl_player_termination_event_listener_remove`](#dsl_player_termination_event_listener_remove)
 
 **Parameters**
 * `client_data` - [in] opaque pointer to client's user data, passed into the Player on callback add
@@ -488,7 +484,7 @@ retval = dsl_player_render_video_repeat_enabled_set('my-video-render-player', 30
 DslReturnType dsl_player_termination_event_listener_add(const wchar_t* name, 
     dsl_player_termination_event_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_player_termination_event_listener_cb](#dsl_player_termination_event_listener_cb) to a Player identified by its unique name. The function will be called on a Player Termination event, either end-of-stream (eos) or Window Delete. Multiple callback functions can be registered with one Player, and one callback function can be registered with multiple Players.
+This service adds a callback function of type [`dsl_player_termination_event_listener_cb`](#dsl_player_termination_event_listener_cb) to a Player identified by its unique name. The function will be called on a Player Termination event, either end-of-stream (eos) or Window Delete. Multiple callback functions can be registered with one Player, and one callback function can be registered with multiple Players.
 
 **Parameters**
 * `name` - [in] unique name of the Player to update.
@@ -509,7 +505,7 @@ retval = dsl_player_termination_event_listener_add('my-player', listener_cb, Non
 DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name, 
     dsl_player_termination_event_listener_cb listener);
 ```
-This service removes a callback function of type [dsl_player_termination_event_listener_cb](#dsl_player_termination_event_listener_cb) from a Player identified by it's unique name.
+This service removes a callback function of type [`dsl_player_termination_event_listener_cb`](#dsl_player_termination_event_listener_cb) from a Player identified by it's unique name.
 
 **Parameters**
 * `name` - [in] unique name of the Player to update.
@@ -521,94 +517,6 @@ This service removes a callback function of type [dsl_player_termination_event_l
 **Python Example**
 ```Python
 retval = dsl_player_termination_event_listener_remove('my-player', listener_cb)
-```
-
-<br>
-
-### *dsl_player_xwindow_handle_get*
-```C++
-DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow);
-```
-This service returns the current XWindow handle in use by the named Player. The handle is set to `Null` on Player creation and will remain `Null` until,
-1. The Player creates an internal XWindow synchronized with a Window-Sink on Transition to a state of playing, or
-2. The Client Application passes an XWindow handle into the Player by calling [dsl_player_xwindow_handle_set](#dsl_player_xwindow_handle_set).
-
-**Parameters**
-* `name` - [in] unique name for the Player to query.
-* `handle` - [out] XWindow handle in use by the named Player.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, x_window = dsl_player_xwindow_handle_get('my-player')
-```
-<br>
-
-### *dsl_player_xwindow_handle_set*
-```C++
-DslReturnType dsl_player_xwindow_handle_set(const wchar_t* name, uint64_t window);
-```
-This service sets the the XWindow for the named Player to use. Must be called prior to playing the Player
-
-**Parameters**
-* `name` - [in] unique name for the Player to update.
-* `handle` - [in] XWindow handle to use by the Window-Sink in use by this Pipeline.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_player_xwindow_handle_set('my-player', x_window)
-```
-<br>
-
-### *dsl_player_xwindow_key_event_handler_add*
-```C++
-DslReturnType dsl_player_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data);
-```
-This service adds a callback function of type [dsl_xwindow_key_event_handler_cb](#dsl_xwindow_key_event_handler_cb) to a Player identified by it's unique name. The function will be called on every Player XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Player, and one callback function can be registered with multiple Players.
-
-**Note** Client XWindow Callback functions will only be called if the Player owns an XWindow, which requires a Window Sink component.
-
-**Parameters**
-* `name` - [in] unique name of the Player to update.
-* `handler` - [in] XWindow event handler callback function to add.
-* `client_data` - [in] opaque pointer to user data returned to the handler when called back
-
-**Returns** 
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-def key_event_handler(key_string, client_data):
-    print('key pressed = ', key_string)
-    
-retval = dsl_player_xwindow_key_event_handler_add('my-pipeline', key_event_handler, None)
-```
-
-<br>
-
-### *dsl_player_xwindow_key_event_handler_remove*
-```C++
-DslReturnType dsl_player_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler);
-```
-This service removes a Client XWindow key event handler callback that was added previously with [dsl_player_xwindow_key_event_handler_add](#dsl_player_xwindow_key_event_handler_add)
-
-**Parameters**
-* `name` - [in] unique name of the Player to update
-* `handler` - [in] XWindow event handler callback function to remove.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_xwindow_key_event_handler_remove('my-pipeline', key_event_handler)
 ```
 
 <br>

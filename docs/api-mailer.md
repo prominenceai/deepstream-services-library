@@ -6,21 +6,21 @@ Mailer objects are added to [ODE Actions](/docs/api-ode-action.md) and Recording
 The relationship between Mailers and Actions/Components is many to many as multiple Mailers can be added to a single Action/Component and the same Mailer can be added to multiple Actions/Components. 
 
 #### Mailer Construction and Destruction
-Mailers are created by calling the constructor [dsl_mailer_new](#dsl_mailer_new). Once created, they must be set up with a Server URL, Credentials, etc., prior to use. Mailers are destructured by calling [dsl_mailer_delete](#dsl_mailer_delete) or [dsl_mailer_delete_all](#dsl_mailer_delete_all).
+Mailers are created by calling the constructor [`dsl_mailer_new`](#dsl_mailer_new). Once created, they must be set up with a Server URL, Credentials, etc., prior to use. Mailers are destructured by calling [`dsl_mailer_delet`e](#dsl_mailer_delete) or [`dsl_mailer_delete_all`](#dsl_mailer_delete_all).
 
 #### Adding Mailers to ODE Actions and Recording Components
 
-* **Email Action** - added to the Action on construction with [dsl_ode_action_email_new](/docs/api-ode-action.md/#dsl_ode_action_email_new).
-* **Image Capture Actions** - added to both Frame and Object Capture Actions with [dsl_ode_action_capture_mailer_add](/docs/api-ode-action.md#dsl_ode_action_capture_mailer_add) and removed with [dsl_ode_action_capture_mailer_remove](/docs/api-ode-action.md#dsl_ode_action_capture_mailer_remove).
-* **Smart Recording Tap** - added with [dsl_tap_record_mailer_add](/docs/api-tap.md#dsl_tap_record_mailer_add) and removed with [dsl_tap_record_mailer_remove](/docs/api-tap.md#dsl_tap_record_mailer_remove).
-* **Smart Recording Sink** - added with [dsl_sink_record_mailer_add](/docs/api-sink.md#dsl_sink_record_mailer_add) and removed with [dsl_sink_record_mailer_remove](/docs/api-sink.md#dsl_sink_record_mailer_remove)
+* **Email Action** - added to the Action on construction with [`dsl_ode_action_email_new`](/docs/api-ode-action.md/#dsl_ode_action_email_new).
+* **Image Capture Actions** - added to both Frame and Object Capture Actions with [`dsl_ode_action_capture_mailer_add`](/docs/api-ode-action.md#dsl_ode_action_capture_mailer_add) and removed with [`dsl_ode_action_capture_mailer_remove`](/docs/api-ode-action.md#dsl_ode_action_capture_mailer_remove).
+* **Smart Recording Tap** - added with [`dsl_tap_record_mailer_add`](/docs/api-tap.md#dsl_tap_record_mailer_add) and removed with [`dsl_tap_record_mailer_remove`](/docs/api-tap.md#dsl_tap_record_mailer_remove).
+* **Smart Recording Sink** - added with [`dsl_sink_record_mailer_add`](/docs/api-sink.md#dsl_sink_record_mailer_add) and removed with [`dsl_sink_record_mailer_remove`](/docs/api-sink.md#dsl_sink_record_mailer_remove)
 
 ## Using GMAIL's SMTP server
 **IMPORTANT!** if using GMAIL, it is STRONGLY advised that you create a new, free [Gmail account](https://support.google.com/mail/answer/56256?hl=en) -- that is separate/unlinked from all your other email accounts -- strictly for the purpose of sending ODE Event data uploaded from DSL.  Then, add your Personal email address as a `To` address to receive the emails. 
 
 Gmail considers regular email programs (i.e Outlook, etc.) and non-registered third-party apps to be "less secure". The email account used for sending email must have the "Allow less secure apps" option turned on. Once you've created this new account, you can go to the account settings and enable [Less secure app access](https://myaccount.google.com/lesssecureapps).
 
-The Gmail secure SMTP server URL is `smtps://smtp.gmail.com:465`. Port `465` requires SSL to be enabled which is set by default. See [dsl_smtp_ssl_enabled_get](#dsl_smtp_ssl_enabled_get) and [dsl_smtp_ssl_enabled_set](#dsl_smtp_ssl_enabled_set)
+The Gmail secure SMTP server URL is `smtps://smtp.gmail.com:465`. Port `465` requires SSL to be enabled which is set by default. See [`dsl_smtp_ssl_enabled_get`](#dsl_smtp_ssl_enabled_get) and [`dsl_smtp_ssl_enabled_set`](#dsl_smtp_ssl_enabled_set)
 
 ### Example setup using Python: 
 The following example assumes that all `retval` values are checked before proceeding to the next call.
@@ -47,29 +47,29 @@ retval = dsl_mailer_test_message_send('my-mailer')
 
 ## SMTP API
 **Constructors:**
-* [dsl_mailer_new](#dsl_mailer_new)
+* [`dsl_mailer_new`](#dsl_mailer_new)
 
 **Destructors:**
-* [dsl_mailer_delete](#dsl_mailer_delete)
-* [dsl_mailer_delete_all](#dsl_mailer_delete_all)
+* [`dsl_mailer_delete`](#dsl_mailer_delete)
+* [`dsl_mailer_delete_all`](#dsl_mailer_delete_all)
  
 **Methods**
-* [dsl_mailer_enabled_get](#dsl_mailer_enabled_get)
-* [dsl_mailer_enabled_set](#dsl_mailer_enabled_set)
-* [dsl_mailer_credentials_set](#dsl_mailer_credentials_set)
-* [dsl_mailer_server_url_get](#dsl_mailer_server_url_get)
-* [dsl_mailer_server_url_set](#dsl_mailer_server_url_set)
-* [dsl_mailer_ssl_enabled_get](#dsl_mailer_ssl_enabled_get)
-* [dsl_mailer_ssl_enabled_set](#dsl_mailer_ssl_enabled_set)
-* [dsl_mailer_address_from_get](#dsl_mailer_address_from_get)
-* [dsl_mailer_address_from_set](#dsl_mailer_address_from_set)
-* [dsl_mailer_address_to_add](#dsl_mailer_address_to_add)
-* [dsl_mailer_address_to_remove_all](#dsl_mailer_address_to_remove_all)
-* [dsl_mailer_address_cc_add](#dsl_mailer_address_cc_add)
-* [dsl_mailer_address_cc_remove_all](#dsl_mailer_address_cc_remove_all)
-* [dsl_mailer_test_message_send](#dsl_mailer_test_message_send)
-* [dsl_mailer_exists](#dsl_mailer_exists)
-* [dsl_mailer_list_size](#dsl_mailer_list_size)
+* [`dsl_mailer_enabled_get`](#dsl_mailer_enabled_get)
+* [`dsl_mailer_enabled_set`](#dsl_mailer_enabled_set)
+* [`dsl_mailer_credentials_set`](#dsl_mailer_credentials_set)
+* [`dsl_mailer_server_url_get`](#dsl_mailer_server_url_get)
+* [`dsl_mailer_server_url_set`](#dsl_mailer_server_url_set)
+* [`dsl_mailer_ssl_enabled_get`](#dsl_mailer_ssl_enabled_get)
+* [`dsl_mailer_ssl_enabled_set`](#dsl_mailer_ssl_enabled_set)
+* [`dsl_mailer_address_from_get`](#dsl_mailer_address_from_get)
+* [`dsl_mailer_address_from_set`](#dsl_mailer_address_from_set)
+* [`dsl_mailer_address_to_add`](#dsl_mailer_address_to_add)
+* [`dsl_mailer_address_to_remove_all`](#dsl_mailer_address_to_remove_all)
+* [`dsl_mailer_address_cc_add`](#dsl_mailer_address_cc_add)
+* [`dsl_mailer_address_cc_remove_all`](#dsl_mailer_address_cc_remove_all)
+* [`dsl_mailer_test_message_send`](#dsl_mailer_test_message_send)
+* [`dsl_mailer_exists`](#dsl_mailer_exists)
+* [`dsl_mailer_list_size`](#dsl_mailer_list_size)
 
 ## Return Values
 The following return codes are used by the SMTP API
