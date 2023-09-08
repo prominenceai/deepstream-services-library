@@ -69,7 +69,7 @@ def main(args):
             protocol = DSL_RTP_ALL,     
             skip_frames = 0,     
             drop_frame_interval = 0,     
-            latency=100,
+            latency=1000,
             timeout=2)    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    

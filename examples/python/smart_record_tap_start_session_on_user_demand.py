@@ -228,8 +228,8 @@ def main(args):
             protocol = DSL_RTP_ALL,     
             skip_frames = 0,     
             drop_frame_interval = 0,     
-            latency=100,
-            timeout=2)    
+            latency = 1000, # jitter-buffer size based on latency of 1 second
+            timeout = 2 )    # new-buffer timeout of 2 seconds    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
