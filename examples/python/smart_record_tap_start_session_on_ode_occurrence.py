@@ -265,7 +265,7 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
         protocol = DSL_RTP_ALL,     
         skip_frames = 0,     
         drop_frame_interval = 0,     
-        latency = 100,
+        latency = 1000, # jitter-buffer size based on latency of 1 sec. 
         timeout = 2)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    

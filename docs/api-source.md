@@ -636,7 +636,7 @@ This service creates a new, uniquely named RTSP Source component. The RTSP Sourc
 **Python Example**
 ```Python
 retval = dsl_source_rtsp_new('dsl_source_uri_new',
-    'rtsp://username:password@192.168.0.17:554/rtsp-camera-1', True, 200, 2)
+    'rtsp://username:password@192.168.0.17:554/rtsp-camera-1', True, 1000, 2)
 ```
 
 <br>
