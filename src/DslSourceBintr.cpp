@@ -3049,6 +3049,27 @@ namespace DSL
         , m_previousState(GST_STATE_NULL)
         , m_listenerNotifierTimerId(0)
     {
+        // ---------------------------------------------------------------------------
+        // The RTSP Source is linked in one of two ways depending on whether
+        // A tap-bintr has been added or not.
+        //
+        // With tap-bintr, the parser is added between the depay and the recordbin
+        // as discussed here: https://forums.developer.nvidia.com/t/questions-re-differences-between-rtsp-source-in-deepstream-source-bin-c-deepstream-test-sr-app-c/245307/6
+        // The decoder will do its own parsing in this case.
+        //
+        //                           |->queue->decoder->[common-elements]->
+        //        rtcpsrc->depay->tee
+        //                           |->parser->tap-bintr
+        //
+        // Without tap-bintr, we add capsfilter->parser to main stream. This is to 
+        // support RTSP Sources that are forwarded trough streaming services. These
+        // sources will NOT be able to connect with a tap-bintr as above.
+        //
+        //        rtcpsrc->depay->capsfilter->parser->decoder->[common-elements]->
+        //
+        // ---------------------------------------------------------------------------
+        
+        // update the is-live variable (initiated as false)
         m_isLive = true;
 
         // New RTSP Specific Elementrs for this Source
