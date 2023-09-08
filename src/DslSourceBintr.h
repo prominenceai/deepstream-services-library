@@ -1903,6 +1903,11 @@ namespace DSL
         DSL_ELEMENT_PTR m_pDepay;
 
         /**
+         * @brief Depay capsfilter for the RtspSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pDepayCapsfilter;
+        
+        /**
          * @brief Pre-parser queue 
          */
         DSL_ELEMENT_PTR m_pPreParserQueue;
