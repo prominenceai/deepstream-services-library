@@ -199,7 +199,7 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [`dsl_source_file_file_path_get`](#dsl_source_file_file_path_get)
 * [`dsl_source_file_file_path_set`](#dsl_source_file_file_path_set)
 * [`dsl_source_file_repeat_enabled_get`](#dsl_source_file_repeat_enabled_get)
-* [`dsl_source_file_repeat_enabled_set](#dsl_source_file_repeat_enabled_set)
+* [`dsl_source_file_repeat_enabled_set`](#dsl_source_file_repeat_enabled_set)
 
 **RTSP Source Methods**
 * [`dsl_source_rtsp_uri_get`](#dsl_source_rtsp_uri_get)
@@ -210,6 +210,10 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [`dsl_source_rtsp_reconnection_params_set`](#dsl_source_rtsp_reconnection_params_set)
 * [`dsl_source_rtsp_connection_data_get`](#dsl_source_rtsp_connection_data_get)
 * [`dsl_source_rtsp_connection_stats_clear`](#dsl_source_rtsp_connection_stats_clear)
+* [`dsl_source_rtsp_latency_get`](#dsl_source_rtsp_latency_get)
+* [`dsl_source_rtsp_latency_set`](#dsl_source_rtsp_latency_set)
+* [`dsl_source_rtsp_drop_on_latency_enabled_get`](#dsl_source_rtsp_drop_on_latency_enabled_get)
+* [`dsl_source_rtsp_drop_on_latency_enabled_set`](#dsl_source_rtsp_drop_on_latency_enabled_set)
 * [`dsl_source_rtsp_tls_validation_flags_get`](#dsl_source_rtsp_tls_validation_flags_get)
 * [`dsl_source_rtsp_tls_validation_flags_set`](#dsl_source_rtsp_tls_validation_flags_set)
 * [`dsl_source_rtsp_state_change_listener_add`](#dsl_source_rtsp_state_change_listener_add)
@@ -1973,6 +1977,87 @@ This service clears the current reconnection stats for the named RTSP Source.
 ```Python
 retval = dsl_source_rtsp_connection_stats_clear('my-rtsp-source')
 ```
+
+<br>
+
+### *dsl_source_rtsp_latency_get*
+```C
+DslReturnType dsl_source_rtsp_latency_get(const wchar_t* name, uint* latency);
+```
+This service gets the current latency setting for the named RTSP Source.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query.
+ * `latency` - [out] current latency setting = amount of data to buffer in ms.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, latency = dsl_source_rtsp_latency_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_latency_set*
+```C
+DslReturnType dsl_source_rtsp_latency_set(const wchar_t* name, uint latency);
+```
+This service sets the latency setting for the named RTSP Source to use.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to update
+ * `latency` - [in] new latency setting = amount of data to buffer in ms. 
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_latency_set('my-rtsp-source', 2000)
+```
+
+<br>
+
+### *dsl_source_rtsp_drop_on_latency_enabled_get*
+```C
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service gets the current drop-on-latency setting for the named RTSP Source.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query.
+ * `enabled` - [out] If true, tells the jitterbuffer to never exceed the given latency in size.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, enabled = dsl_source_rtsp_drop_on_latency_enabled_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_drop_on_latency_enabled_set*
+```C
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the drop-on-latency setting for the named RTSP Source to use.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to update
+ * `enabled` - [in] Set to true to tell the jitterbuffer to never exceed the given latency in size.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_drop_on_latency_enabled_set('my-rtsp-source', True)
+```
+
 <br>
 
 ### *dsl_source_rtsp_tls_validation_flags_get*

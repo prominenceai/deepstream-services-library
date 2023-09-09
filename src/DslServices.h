@@ -870,6 +870,18 @@ namespace DSL {
             dsl_rtsp_connection_data* data);
         
         DslReturnType SourceRtspConnectionStatsClear(const char* name);
+
+        DslReturnType SourceRtspLatencyGet(const char* name, 
+            uint* latency);
+
+        DslReturnType SourceRtspLatencySet(const char* name, 
+            uint latency);
+        
+        DslReturnType SourceRtspDropOnLatencyEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType SourceRtspDropOnLatencyEnabledSet(const char* name, 
+            boolean enabled);
         
         DslReturnType SourceRtspTlsValidationFlagsGet(const char* name, 
             uint* flags);

@@ -1803,11 +1803,39 @@ namespace DSL
         int NotifyClientListeners();
         
         /**
-         * @brief NOTE: Used for test purposes only, allows access to the Source's Timestamp PPH which 
-         * is used to maintain a timestamp of the last buffer received for the source. 
+         * @brief NOTE: Used for test purposes only, allows access to the 
+         * Source's Timestamp PPH which 
+         * is used to maintain a timestamp of the last buffer received for 
+         * the source. 
          * @return 
          */
         DSL_PPH_TIMESTAMP_PTR _getTimestampPph(){return m_TimestampPph;};
+
+        /**
+         * @brief Gets the current latency setting for the RtspSourceBintr.
+         * @return latency in units of ms.
+         */
+        uint GetLatency();
+        
+        /**
+         * @brief Sets the latency setting for the RtspSourceBintr.
+         * @param latency new latency setting in units of ms.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetLatency(uint latency);
+        
+        /**
+         * @brief Gets the current drop-on-latency enabled setting for the 
+         * RspSourceBintr.
+         * @return true if enabled, false otherwise.
+         */
+        boolean GetDropOnLatencyEnabled();
+        
+        /**
+         * @brief Sets the drop-on-latency enabled setting for the RtspSourceBintr.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDropOnLatencyEnabled(boolean dropOnLatency);
         
         /**
          * @brief Gets the current tls-validation-flags for the RtspSourceBintr.
@@ -1859,7 +1887,13 @@ namespace DSL
         /**
          * @brief Amount of data to buffer in ms.
          */
-        guint m_latency;
+        uint m_latency;
+        
+        /**
+         * @brief If true, tells the jitterbuffer to never exceed the given 
+         * latency in size.
+         */
+        boolean m_dropOnLatency;
     
         /**
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)

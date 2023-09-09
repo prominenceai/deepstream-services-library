@@ -2529,6 +2529,140 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceRtspLatencyGet(const char* name, 
+        uint* latency)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            *latency = pSourceBintr->GetLatency();
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' returned latency = " << *latency 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception getting latency");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceRtspLatencySet(const char* name, 
+        uint latency)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetLatency(latency))
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to set latency = " << latency);
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' set latency = " << latency 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception setting latency");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::SourceRtspDropOnLatencyEnabledGet(const char* name, 
+        boolean* enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            *enabled = pSourceBintr->GetDropOnLatencyEnabled();
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' returned drop-on-latency enabled = " << *enabled 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception getting drop-on-latnecy enabled setting");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceRtspDropOnLatencyEnabledSet(const char* name, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetDropOnLatencyEnabled(enabled))
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to set drop-on-latency enabled = " << enabled);
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' set drop-on-latency enabled = " << enabled
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception setting latency");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::SourceRtspTlsValidationFlagsGet(const char* name, 
         uint* flags)
     {
