@@ -76,7 +76,7 @@ SCENARIO( "Adding a single Sink to a MultiSinksBintr is managed correctly", "[Mu
             {
                 REQUIRE( pMultiSinksBintr->GetNumChildren() == 1 );
                 REQUIRE( pSinkBintr->IsInUse() == true );
-                REQUIRE( pSinkBintr->GetRequestPadId() == -1 );
+                REQUIRE( pSinkBintr->GetRequestPadId() == 0 );
             }
         }
     }
@@ -99,7 +99,7 @@ SCENARIO( "Removing a single Sink from a MultiSinksBintr is managed correctly", 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pSinkBintr)) == true );
-        REQUIRE( pSinkBintr->GetRequestPadId() == -1 );
+        REQUIRE( pSinkBintr->GetRequestPadId() == 0 );
             
         WHEN( "The Sink Bintr is removed from the MultiSinksBintr" )
         {
@@ -208,16 +208,26 @@ SCENARIO( "Multiple sinks linked to a MultiSinksBintr Tee can be unlinked correc
         REQUIRE( pSinkBintr2->IsLinkedToSource() == true );
         REQUIRE( pSinkBintr2->GetRequestPadId() == 2 );
 
-        WHEN( "The MultiSinksBintr and child SinkBintrs are unlinked" )
+        WHEN( "The MultiSinksBintr and child SinkBintrs are unlinked and removed" )
         {
             pMultiSinksBintr->UnlinkAll();
-            THEN( "The MultiSinksBintr is updated correctly" )
+            THEN( "The MultiSinksBintr and Sinks are updated correctly" )
             {
                 REQUIRE( pSinkBintr0->IsLinkedToSource() == false );
-                REQUIRE( pSinkBintr0->GetRequestPadId() == -1 );
+                REQUIRE( pSinkBintr0->GetRequestPadId() == 0 );
                 REQUIRE( pSinkBintr1->IsLinkedToSource() == false );
-                REQUIRE( pSinkBintr1->GetRequestPadId() == -1 );
+                REQUIRE( pSinkBintr1->GetRequestPadId() == 1 );
                 REQUIRE( pSinkBintr2->IsLinkedToSource() == false );
+                REQUIRE( pSinkBintr2->GetRequestPadId() == 2 );
+
+                REQUIRE( pMultiSinksBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pSinkBintr0)) == true );
+                REQUIRE( pSinkBintr0->GetRequestPadId() == -1 );
+                REQUIRE( pMultiSinksBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pSinkBintr1)) == true );
+                REQUIRE( pSinkBintr1->GetRequestPadId() == -1 );
+                REQUIRE( pMultiSinksBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pSinkBintr2)) == true );
                 REQUIRE( pSinkBintr2->GetRequestPadId() == -1 );
             }
         }

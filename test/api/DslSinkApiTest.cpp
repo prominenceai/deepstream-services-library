@@ -1259,7 +1259,7 @@ SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ",
    
 
 SCENARIO( "Window Sink Button Event Handler are added and removded correctly", 
-    "[pipeline-cb-api]" )
+    "[sink-api]" )
 {
     GIVEN( "A Pipeline in memory" ) 
     {
@@ -1296,7 +1296,7 @@ SCENARIO( "Window Sink Button Event Handler are added and removded correctly",
     }
 }
    
-SCENARIO( "A XWindow Delete Event Handler must be unique", "[pipeline-cb-api]" )
+SCENARIO( "A XWindow Delete Event Handler must be unique", "[sink-api]" )
 {
     GIVEN( "A Pipeline in memory" ) 
     {

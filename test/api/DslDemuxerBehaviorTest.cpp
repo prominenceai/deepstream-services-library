@@ -516,7 +516,7 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
 }
 
 SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynamic Branch", 
-    "[rjh]")
+    "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sinks" ) 
     {
