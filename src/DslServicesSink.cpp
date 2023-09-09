@@ -587,7 +587,7 @@ namespace DSL
             {
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to add Button Event Handler");
-                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+                return DSL_RESULT_SINK_HANDLER_ADD_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
                 << "' added Button Event Handler successfully");
@@ -621,7 +621,7 @@ namespace DSL
             {
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to remove Button Event Handler");
-                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
                 << "' removed Button Event Handler successfully");
@@ -655,7 +655,7 @@ namespace DSL
             {
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to add Delete Event Handler");
-                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+                return DSL_RESULT_SINK_HANDLER_ADD_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
                 << "' added Delete Event Handler successfully");
@@ -689,7 +689,7 @@ namespace DSL
             {
                 LOG_ERROR("Window Sink '" << name 
                     << "' failed to remove Delete Event Handler");
-                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+                return DSL_RESULT_SINK_HANDLER_REMOVE_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
                 << "' removed Delete Event Handler successfully");

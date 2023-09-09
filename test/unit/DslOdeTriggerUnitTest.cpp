@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static std::wstring w_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+
 static std::vector<NvDsDisplayMeta*> displayMetaData;
 
 static boolean ode_check_for_occurrence_cb(void* buffer,
@@ -867,6 +869,11 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
         uint limit(0);
         
         std::string source("source-1");
+        std::wstring wsource(L"source-1");
+        
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
         
         uint sourceId(0x10001);
         Services::GetServices()->_sourceNameSet(source.c_str(), sourceId);
@@ -909,6 +916,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == true );
                 Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The Source ID matches the filter" )
@@ -920,6 +928,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == true );
                 Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The Source ID does not match the filter" )
@@ -931,6 +940,7 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == false );
                 Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
