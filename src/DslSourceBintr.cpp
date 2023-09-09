@@ -3085,13 +3085,13 @@ namespace DSL
         // Get the default properties
         m_pSourceElement->GetAttribute("tls-validation-flags", 
             &m_tlsValidationFlags);
+        m_pSourceElement->GetAttribute("drop-on-latency", &m_dropOnLatency);
         
         // Configure the source to generate NTP sync values
         configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
 
         m_pSourceElement->SetAttribute("latency", m_latency);
-        m_pSourceElement->SetAttribute("drop-on-latency", TRUE);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
 
         g_signal_connect (m_pSourceElement->GetGObject(), "select-stream",
@@ -3122,7 +3122,7 @@ namespace DSL
         LOG_INFO("  is-live              : " << m_isLive);
         LOG_INFO("  skip-frames          : " << m_skipFrames);
         LOG_INFO("  latency              : " << m_latency);
-        LOG_INFO("  drop-on-latency      : " << TRUE);
+        LOG_INFO("  drop-on-latency      : " << m_dropOnLatency);
         LOG_INFO("  drop-frame-interval  : " << m_dropFrameInterval);
         LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
         LOG_INFO("  width                : " << m_width);
@@ -3388,7 +3388,53 @@ namespace DSL
         m_connectionData.retries = 0;
     }
     
-    uint RtspSourceBintr::GetTlsValidationFlags()
+    uint RtspSourceBintr::GetLatency()
+    {
+        LOG_FUNC();
+
+        return m_latency;
+    }
+
+    bool RtspSourceBintr::SetLatency(uint latency)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_latency = latency;
+        m_pSourceElement->SetAttribute("latency", m_latency);
+    
+        return true;
+    }
+    
+    boolean RtspSourceBintr::GetDropOnLatencyEnabled()
+    {
+        LOG_FUNC();
+
+        return m_dropOnLatency;
+    }
+
+    bool RtspSourceBintr::SetDropOnLatencyEnabled(boolean dropOnLatency)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_dropOnLatency = dropOnLatency;
+        m_pSourceElement->GetAttribute("drop-on-latency", &m_dropOnLatency);
+    
+        return true;
+    }
+    
+    guint RtspSourceBintr::GetTlsValidationFlags()
     {
         LOG_FUNC();
 
@@ -3401,8 +3447,8 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set Uri for RtspSourceBintr '" << GetName() 
-                << "' as it's currently in use");
+            LOG_ERROR("Unable to set tls-validation-flags for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
             return false;
         }
         m_tlsValidationFlags = flags;
@@ -3411,10 +3457,9 @@ namespace DSL
     
         return true;
     }
-    
 
-    bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, 
-        void* userdata)
+    bool RtspSourceBintr::AddStateChangeListener(
+        dsl_state_change_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);

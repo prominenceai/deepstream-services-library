@@ -5086,6 +5086,42 @@ DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name,
 DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name); 
 
 /**
+ * @brief Gets the current latency setting for the named RTSP Source.
+ * @param name[in] name of the RTSP Source to query.
+ * @param latency[out] current latency setting = amount of data to buffer in ms.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_latency_get(const wchar_t* name, uint* latency);
+
+/**
+ * @brief Sets the latency setting for the named RTSP Source to use.
+ * @param name[in] name of the RTSP Source to update.
+ * @param latency[in] new latency setting = amount of data to buffer in ms.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_latency_set(const wchar_t* name, uint latency);
+
+/**
+ * @brief Gets the current drop-on-latency enabled setting for the named RTSP Source.
+ * @param name[in] name of the RTSP Source to query.
+ * @param enabled[out] If true, tells the jitterbuffer to never exceed the given 
+ * latency in size.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Sets the drop-on-latency enabled setting for the named RTSP Source.
+ * @param name[in] name of the RTSP Source to update.
+ * @param enabled[in] Set to true to tell the jitterbuffer to never exceed the given 
+ * latency in size.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
  * @brief Gets the current connection validation flags for the named RTSP Source
  * @param[in] name name of the source object to query
  * @param[out] flags mask of DSL_TLS_CERTIFICATE constant values. 

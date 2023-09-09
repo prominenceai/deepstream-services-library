@@ -4797,6 +4797,54 @@ DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name)
         cstrName.c_str());
 }
 
+DslReturnType dsl_source_rtsp_latency_get(const wchar_t* name, uint* latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(latency);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspLatencyGet(
+        cstrName.c_str(), latency);
+}
+
+DslReturnType dsl_source_rtsp_latency_set(const wchar_t* name, uint latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspLatencySet(
+        cstrName.c_str(), latency);
+}
+
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspDropOnLatencyEnabledGet(
+        cstrName.c_str(), enabled);
+}
+    
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_set(const wchar_t* name, 
+    boolean enabled)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspDropOnLatencyEnabledSet(
+        cstrName.c_str(), enabled);
+}
+
 DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
     uint* flags)
 {
