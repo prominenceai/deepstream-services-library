@@ -3900,6 +3900,56 @@ def dsl_source_rtsp_connection_stats_clear(name):
     return int(result)
 
 ##
+## dsl_source_rtsp_latency_get()
+##
+_dsl.dsl_source_rtsp_latency_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_rtsp_latency_get.restype = c_uint
+def dsl_source_rtsp_latency_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_source_rtsp_latency_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value
+
+##
+## dsl_source_rtsp_latency_set()
+##
+_dsl.dsl_source_rtsp_latency_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_source_rtsp_latency_set.restype = c_uint
+def dsl_source_rtsp_latency_set(name, flags):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_latency_set(name, 
+        flags)
+    return int(result)
+
+##
+## dsl_source_rtsp_drop_on_latency_enabled_get()
+##
+_dsl.dsl_source_rtsp_drop_on_latency_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_source_rtsp_drop_on_latency_enabled_get.restype = c_uint
+def dsl_source_rtsp_drop_on_latency_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_source_rtsp_drop_on_latency_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_source_rtsp_drop_on_latency_enabled_set()
+##
+_dsl.dsl_source_rtsp_drop_on_latency_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_source_rtsp_drop_on_latency_enabled_set.restype = c_uint
+def dsl_source_rtsp_drop_on_latency_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_drop_on_latency_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
 ## dsl_source_rtsp_tls_validation_flags_get()
 ##
 _dsl.dsl_source_rtsp_tls_validation_flags_get.argtypes = [c_wchar_p, 

@@ -789,6 +789,8 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
+                REQUIRE( pSourceBintr->GetLatency() ==  latency );
+                REQUIRE( pSourceBintr->GetDropOnLatencyEnabled() == false );
                 REQUIRE( pSourceBintr->GetTlsValidationFlags() == 
                     DSL_TLS_CERTIFICATE_VALIDATE_ALL );
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );

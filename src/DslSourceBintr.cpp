@@ -3429,7 +3429,7 @@ namespace DSL
             return false;
         }
         m_dropOnLatency = dropOnLatency;
-        m_pSourceElement->GetAttribute("drop-on-latency", &m_dropOnLatency);
+        m_pSourceElement->SetAttribute("drop-on-latency", m_dropOnLatency);
     
         return true;
     }

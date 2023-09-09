@@ -1110,6 +1110,72 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
     }
 }
 
+SCENARIO( "An RTSP Source's latency setting can be updated correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        uint ret_latency(0);
+        
+        REQUIRE( dsl_source_rtsp_latency_get(source_name.c_str(), 
+            &ret_latency) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_latency == latency );
+
+        WHEN( "The RTSP Source's latency is updated" ) 
+        {
+            uint new_latency(1234);
+                
+            REQUIRE( dsl_source_rtsp_latency_set(source_name.c_str(), 
+                new_latency) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_latency_get(source_name.c_str(), 
+                    &ret_latency) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_latency == new_latency );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTSP Source's drop-on-latency enabled setting can be updated correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        boolean ret_drop_on_latency(true);
+        
+        REQUIRE( dsl_source_rtsp_drop_on_latency_enabled_get(source_name.c_str(), 
+            &ret_drop_on_latency) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_drop_on_latency == false );
+
+        WHEN( "The RTSP Source's latency is updated" ) 
+        {
+            boolean new_drop_on_latency(true);
+                
+            REQUIRE( dsl_source_rtsp_drop_on_latency_enabled_set(source_name.c_str(), 
+                new_drop_on_latency) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_drop_on_latency_enabled_get(source_name.c_str(), 
+                    &ret_drop_on_latency) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_drop_on_latency == new_drop_on_latency );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "An RTSP Source's tls-validation-flags can be updated correctly", "[source-api]" )
 {
     GIVEN( "A new RTSP Source" )
@@ -1158,7 +1224,6 @@ SCENARIO( "An RTSP Source's tls-validation-flags can be updated correctly", "[so
         }
     }
 }
-
 
 static void source_state_change_listener_cb1(uint prev_state, uint curr_state, void* user_data)
 {
