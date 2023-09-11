@@ -135,11 +135,11 @@ There are eleven (11) types of Source components supported, all are currently Vi
 * **Streaming Image Source** - Single image streamed at a given frame rate.
 * **Duplicate Source** - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 
-All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components supports multiple codec formats, including H.264, H.265, and JPEG. 
+All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components support multiple codec formats, including H.264, H.265, and JPEG. 
 
-A [Dewarper Component](/docs/api-dewarper.md) (not shown in the image above) capable of 360 degee and perspective dewarping can be added to any Video Source. 
+A [Dewarper Component](/docs/api-dewarper.md) (not shown in the image above) capable of 360 degree and perspective dewarping can be added to any Video Source. 
 
-All Video Sources provide programmatic control over the **formatting**, **scaling**, **cropping**, **and **orienting** of the their output-buffers.
+All Video Sources provide programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of their output-buffers.
 
 A [Record-Tap](#smart-recording) (not show in the image above) can be added to a RTSP Source for cached pre-decode recording, triggered on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-pad-probe-handler) or end-user demand.
 
@@ -156,7 +156,7 @@ NVIDIA's® plugin implementation and reference library (currently in Alpha) prov
 See the [Preprocessor API](/docs/api-preproc.md) reference section for more information.
 
 ## Inference Engines and Servers
-NVIDIA's® GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs) perform inferencing on the input data stream. A Pipeline can have:
+NVIDIA® GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs) perform inferencing on the input data stream. A Pipeline can have:
 * multiple Primary Gst Inference Engines (PGIE) or Primary Triton Inference Servers (PTIS) linked in succession to operate on the full frame
 * multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either Primary or other Secondary GIEs/TISs. 
 
@@ -166,7 +166,7 @@ With Primary GIEs and TISs, applications can add/remove [Pad Probe Handlers](#pa
 
 See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
 
-DSL supports NVIDIA's® [Segmentation Visualizer plugin](https://docs.nvidia.com/metropolis/deepstream/5.0DP/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.11.html#wwpID0E0WT0HA) for viewing segmentation results produced from either a Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (TIS).
+DSL supports NVIDIA's [Segmentation Visualizer plugin](https://docs.nvidia.com/metropolis/deepstream/5.0DP/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.11.html#wwpID0E0WT0HA) for viewing segmentation results produced from either a Primary Gst Inference Engine (PGIE) or Primary Triton Inference Server (TIS).
 
 See the [Segmentation Visualizer API](/docs/api-segvisual.md) reference section for more information.
 
@@ -179,7 +179,7 @@ The DeepStream Services Library (DSL) supports NVIDIA's® four low-level tracker
 
 Any custom library that implements the [NvDsTracker API](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#how-to-implement-a-custom-low-level-tracker-library) can be used as well.
 
-Applications using Tracker components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metatdata for each frame and detected-object.
+Applications using Tracker components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
 
@@ -194,16 +194,16 @@ retval = dsl_pipeline_component_add_many('my-pipeline',
 ```
 Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
 
-Applications using Tiler components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metatdata for eacn frame and detected-object.
+Applications using Tiler components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
 ## On-Screen Display
-On-Screen Display (OSD) components, using the generated object-metatdata, highlight detected objects with colored bounding boxes and labels. A Clock with Positional offsets, colors and fonts can be enabled for Display. ODE Actions can be used to add/update Frame and Object metadata for the OSD to display. 
+On-Screen Display (OSD) components, using the generated object-metadata, highlight detected objects with colored bounding boxes and labels. A Clock with Positional offsets, colors and fonts can be enabled for Display. ODE Actions can be used to add/update Frame and Object metadata for the OSD to display. 
 
 See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
-Applications using On-Screen Display components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metatdata for each frame and detected-object.
+Applications using On-Screen Display components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 ##  Sinks
 Sinks are the end components in each Pipeline or Branch. All Pipelines or Branches require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- a case where the `batch-meta-data` produced from the components in the Pipeline are the only data of interest. There are currently twelve (12) types of Sink Components that can be added.
@@ -226,7 +226,7 @@ The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H
 
 **RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
 
-With Sinks, clients can add one or more [Pad Probe Handlers](#pad-probe-handlers) to process the batched stream buffers and metatdata for each frame and detected-object -- on the input (sink pad) only.
+With Sinks, clients can add one or more [Pad Probe Handlers](#pad-probe-handlers) to process the batched stream buffers and metadata for each frame and detected-object -- on the input (sink pad) only.
 
 See the [Sink API](/docs/api-sink.md) reference section for more information.
 
@@ -252,7 +252,7 @@ See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for m
 Pipeline components are linked together using directional ["pads"](https://gstreamer.freedesktop.org/documentation/gstreamer/gstpad.html?gi-language=c) with a Source Pad from one component as the producer of data connected to the Sink Pad of the next component as the consumer. Data flowing over the component’s pads can be monitored, inspected and updated using a Pad-Probe with a specific Handler function.
 
 There are three Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Sources, Taps and Secondary GIE's.
-1. New Buffer Timeout Pad Probe Handler - informs the client that a new buffer has not received within a specified time limit.
+1. New Buffer Timeout Pad Probe Handler - informs the client that a new buffer has not been received within a specified time limit.
 1. Pipeline Meter - measures the throughput for each source in the Pipeline.
 2. Object Detection Event Handler - manages a collection of [Triggers](/docs/api-ode-trigger.md) that invoke [Actions](/docs/api-ode-action.md) on the occurrence of specific frame and object metadata. 
 3. Custom Handler- allows the client to install a callback with custom behavior. 
@@ -260,7 +260,7 @@ There are three Pad Probe Handlers that can be created and added to either a Sin
 See the [Pad Probe Handler API](/docs/api-pph.md) reference section for additional information.
 
 ### New Buffer Timeout Pad Probe Handler
-It can be import for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applicatons, in the event of new-buffer-timeout, can take informative and/or corrective action.
+It can be important for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applications, in the event of new-buffer-timeout, can take informative and/or corrective action.
 
 ### Pipeline Meter Pad Probe Handler
 The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with a new session started at any time. 
@@ -323,7 +323,8 @@ There are seven types for displaying text and shapes.
 * RGBA Circle
 
 And three types for displaying source information specific to each frame. 
-* Source Number
+* Source Stream-id
+* Source Unique-id
 * Source Name
 * Source Dimensions
 
@@ -422,13 +423,16 @@ retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
     border_color=None, has_bg_color=False, bg_color=None)
 
 # Create an Any-Class Occurrence Trigger for our Hide Action
-retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
-    class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger',
+    source='uri-source-1',
+    class_id=DSL_ODE_ANY_CLASS,
+    limit=DSL_ODE_TRIGGER_LIMIT_NONE)
 retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
     actions=['remove-label', 'remove-border', None])
 
 # Create the opaque red RGBA Color and "fill-object" Action to fill the bounding box
-retval = dsl_display_type_rgba_color_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+retval = dsl_display_type_rgba_color_new('opaque-red',
+    red=1.0, green=0.0, blue=0.0, alpha=0.3)
 retval = dsl_ode_action_fill_object_new('fill-action', color='opaque-red')
 
 # create a list of X,Y coordinates defining the points of the Polygon.
@@ -438,16 +442,20 @@ coordinates = [dsl_coordinate(365,600), dsl_coordinate(580,620),
 
 # Create the Polygon display type using the same red RGBA Color
 retval = dsl_display_type_rgba_polygon_new('polygon1', 
-    coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+    coordinates=coordinates, num_coordinates=len(coordinates),
+    border_width=4, color='opaque-red')
     
 # New "Area of Inclusion" to use as criteria for ODE Occurrence using the Polygon object
 # Test point DSL_BBOX_POINT_SOUTH = center of rectangle bottom edge must be within Polygon.
 retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
     show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
 
-# New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
-retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source="East Cam 1",
-    class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+# New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the
+# number of occurrences
+retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger',
+    source="East Cam 1",
+    class_id=PGIE_CLASS_ID_PERSON,
+    limit=DSL_ODE_TRIGGER_LIMIT_NONE)
 
 # Add the Polygon Area and Fill Object Action to the new Occurrence Trigger
 retval = dsl_ode_trigger_area_add('person-occurrence-trigger', area='polygon-area')
@@ -485,7 +493,7 @@ An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](
 
 The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to print each line-crossing occurrence to the console and to capture the object to an image file and display the image as an overlay, respectively.  
 
-**Important Note:** A reminder that other actions such as the [ODE File Action](/docs/api-ode-action.md#dsl_ode_action_file_new), [ODE Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new), and the [ODE Add IOT Message Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) can be leveraged with the ODE Cross Trigger as well.
+**Important Note:** A reminder that other actions such as the [File Action](/docs/api-ode-action.md#dsl_ode_action_file_new), [Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new), and the [IOT Message Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) can be leveraged with the ODE Cross Trigger as well.
 
 ![](/Images/line-cross-capture-overlay-object-image.png)
 
@@ -508,7 +516,7 @@ The ODE Cross Trigger is created with a `min_frame_count` and `max_trace_points`
 # objects that fully cross the line. The person must be tracked for a minimum
 # of 5 frames prior to crossing the line to trigger an ODE occurrence.
 # The trigger can save/use up to a maximum of 200 frames of history to create
-# the object's historical trace to test for line-crossing. retval = dsl_ode_trigger_cross_new('person-crossing-line',
+# the object's historical trace to test for line-crossing. 
 retval = dsl_ode_trigger_cross_new('person-crossing-line',
     source = DSL_ODE_ANY_SOURCE,
     class_id = PGIE_CLASS_ID_PERSON,
@@ -534,7 +542,7 @@ retval = dsl_display_type_rgba_color_random_new('random-color',
 retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
     enabled=True, color='random-color', line_width=4)
 ```
-The example creates a new ODE Display Action and adds it to a new ODE Accumulator. It then adds the Accumulator to the Trigger to complete the setup.
+The example creates a new [Display Action](/docs/api-ode-action.mddsl_ode_action_display_new) and adds it to a new [ODE Accumulator](/docs/api-ode-accumulator.md). It then adds the Accumulator to the Trigger to complete the setup.
 ```Python
 # Create a new Display Action used to display the Accumulated ODE Occurrences.
 # Format the display string using the occurrences in and out tokens.
@@ -567,7 +575,7 @@ See the [complete example](/examples/python/ode_line_cross_object_capture_overla
 ---
 
 ### ODE Heat Mapping
-[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE Occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within the corresponding area within the source frame.
+[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within the corresponding area within the source frame.
 
 The client application can `get`, `print`, `log`, `file`, and `clear` the metric occurrence data at any time.
 
@@ -580,7 +588,7 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 ---
 
 ## Dynamic Pipelines
-All DSL Pipelines are designed to be _dynamic-pipelines_, where key components such as Sources, Branches, and Sinks can be added and removed while the Pipeline is playing -- as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. 
+All DSL Pipelines are designed to be _dynamic-pipelines_, where key components such as Sources, Branches, and Sinks can be added and removed while the Pipeline is playing. This is as opposed to _monolithic-pipelines_ that must be fully defined at the beginning of the application. 
 
 This section covers the following use cases for dynamically updating DSL Pipelines.
 
@@ -605,10 +613,10 @@ All Pipelines require at least one [Source component](/docs/api-source.md) in or
 The application adds Source components to the Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) in any Pipeline state: STOPPED, PLAYING, or PAUSED. The Application removes Source components from the Pipeline by calling [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove) or [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), as long as there is one Source while the Pipeline is in a state of PLAYING. 
 
 #### Dynamic Source Updates using ODE Services
-Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). In the example above, an [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Source Updates by the End-User
-The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Pipeline component add/remove service as described above. 
 
 The following examples demonstrate how to add and remove Sources on keyboard input.
 * [`dynamically_add_remove_sources_with_tiler_window_sink.py`](/examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py)
@@ -617,7 +625,7 @@ The following examples demonstrate how to add and remove Sources on keyboard inp
 <br>
 
 ### Dynamic Sink updates with a Pipeline or Branch
-When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as shown in the image below, even if there is only one. This ensures that additional Sinks can be added (and removed) before, during or after the Pipeline is played (i.e. in any state).
+When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as shown in the image below, even if there is only one. This ensures that additional Sinks can be added (and removed) before, during or after the Pipeline is played.
 
 As with Sources, there are three methods of dynamically adding or removing Sinks. 
 1. by the Application using the DSL Services API.
@@ -632,10 +640,10 @@ The application adds Sink components to a Pipeline by calling [`dsl_pipeline_com
 There are similar services for adding and removing Sinks to and from a Branch. See [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many)
 
 #### Dynamic Sink Updates using ODE Services
-Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services).An [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) can be added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). In the example above, an [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Sink Updates by the End-User
-The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Pipeline component add/remove service as described above. 
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Pipeline component add/remove service as described above. 
 
 <br>
 
@@ -665,7 +673,7 @@ The following examples demonstrate how to move a Branch using the [`dsl_tee_demu
 * [`dynamically_move_branch_from_demuxer_stream_to_stream.cpp`](/examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp)
 
 #### Dynamic Branch Updates by the End-User
-The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Tee add/remove service as described above. 
 
 <br>
 
@@ -714,11 +722,11 @@ Pipelines and Players may be _**played**_, _**paused**_, and _**stopped**_ on th
 ![](/Images/person-detection-play-player-action.png)
 
 From the image above:
-* A simple [Player](/docs/api-player.md) with _File Source_ and _Window Sink_ is setup to play a recorded video on demand.
+* A simple [Player](/docs/api-player.md) with _File Source_ and _Window Sink_ is set up to play a recorded video on demand.
 * An [ODE Trigger](/docs/api-ode-trigger.md) with a **limit of one occurrence** is used to trigger on the detection of a Person or Face just once. Minimum Trigger criteria -- such as  dimensions or inference confidence -- can be used to minimize false positives.
 * A [Play Player ODE Action](/docs/api-ode-action.md#dsl_ode_action_player_play_new) added to the ODE Trigger is used to play the Player on ODE occurrence.
-* The application registers a [`dsl_eos_listener_cb`](/docs/api-pipeline.md#dsl_eos_listener_cb) callback function with the Player to be called on end-of-stream (EOS); i.e. when the video has finished playing.
-* The EOS Listener function, calls [`dsl_ode_trigger_reset`](/docs/api-ode-trigger.md#dsl_ode_trigger_reset) to reset the Trigger enabling the process to repeat on the next ODE occurrence.
+* The application registers a [`dsl_player_termination_event_listener_cb`](/docs/api-player.md#dsl_player_termination_event_listener_cb) callback function with the Player to be called when the video has finished playing.
+* The callback function calls [`dsl_ode_trigger_reset`](/docs/api-ode-trigger.md#dsl_ode_trigger_reset) to reset the Trigger enabling the process to repeat on the next ODE occurrence.
 
 ---
 
