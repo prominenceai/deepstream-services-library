@@ -71,12 +71,14 @@ static void PrgItrSigIsrUninstall(void)
 void dsl_main_loop_run()
 {
     PrgItrSigIsrInstall();
+    LOG_INFO("---------- starting main-loop --------------");
     g_main_loop_run(DSL::Services::GetServices()->GetMainLoopHandle());
 }
 
 void dsl_main_loop_quit()
 {
     PrgItrSigIsrUninstall();
+    LOG_INFO("---------- quiting main-loop --------------");
     g_main_loop_quit(DSL::Services::GetServices()->GetMainLoopHandle());
 }
 
