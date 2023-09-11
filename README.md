@@ -16,8 +16,8 @@ A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `
 ```C++
 #include <DslApi.h>
 
-// New CSI Live Camera Source
-uint retval = dsl_source_csi_new("csi-source", 1280, 720, 30, 1);
+// New USB Camera Source
+uint retval = dsl_source_usb_new("my-usb-source", 1280, 720, 30, 1);
 ```
 
 ### Python3
@@ -25,8 +25,8 @@ uint retval = dsl_source_csi_new("csi-source", 1280, 720, 30, 1);
 ```Python
 from dsl import *
 
-# New CSI Live Camera Source
-retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
+# New USB Camera Source
+retval = dsl_source_usb_new('my-usb-source', 1280, 720, 30, 1)
 ```
 
 DSL is built on the NVIDIA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_,
@@ -38,6 +38,10 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
 
 ***Please report issues!***
+
+---
+
+### _IMPORANT! There are breaking changes in the most recent release. Please read the [Release Notes](/Release%20Notes/v0.27.alpha.md) carefully._
 
 ## DSL Branching Workflow
 
