@@ -93,6 +93,7 @@ static void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
 
         // quiting the main loop will allow the pipeline thread to 
         // stop and delete the pipeline and its components
+        dsl_pipeline_stop(c_data->pipeline.c_str());
         dsl_pipeline_main_loop_quit(c_data->pipeline.c_str());
     }
 }
@@ -108,6 +109,7 @@ static void xwindow_delete_event_handler(void* client_data)
 
     // quiting the main loop will allow the pipeline thread to 
     // stop and delete the pipeline and its components
+    dsl_pipeline_stop(c_data->pipeline.c_str());
     dsl_pipeline_main_loop_quit(c_data->pipeline.c_str());
 }
 
@@ -122,6 +124,7 @@ static void eos_event_listener(void* client_data)
 
     // quiting the main loop will allow the pipeline thread to 
     // stop and delete the pipeline and its components
+    dsl_pipeline_stop(c_data->pipeline.c_str());
     dsl_pipeline_main_loop_quit(c_data->pipeline.c_str());
 }    
 

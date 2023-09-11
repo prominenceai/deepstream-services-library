@@ -321,13 +321,13 @@ def main(args):
 
         # Create the remaining Pipeline components
         
-        # New RTSP Source
+        # New RTSP Source, latency = 2000ms, timeout=2s.
         retval = dsl_source_rtsp_new('rtsp-source',     
             uri = hikvision_rtsp_uri,     
             protocol = DSL_RTP_ALL,     
             skip_frames = 0,     
             drop_frame_interval = 0,     
-            latency=100,
+            latency=2000,
             timeout=2)    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
@@ -362,6 +362,11 @@ def main(args):
 
         # New Window Sink, 0 x/y offsets and dimensions.
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

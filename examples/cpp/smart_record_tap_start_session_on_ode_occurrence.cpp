@@ -294,9 +294,10 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
     // ComponentNames components(source); 
     void* ptrClientData = reinterpret_cast<void*>(clientdata);   
     
-    // For each camera, create a new RTSP Source for the specific RTSP URI    
+    // For each camera, create a new RTSP Source for the specific RTSP URI
+    // latency = 2000ms, timeout=2s.
     retval = dsl_source_rtsp_new(clientdata->source.c_str(), clientdata->url.c_str(), 
-        DSL_RTP_ALL, false, 0, 100, 2);    
+        DSL_RTP_ALL, false, 0, 2000, 2);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // New record tap created with our common RecordComplete callback
@@ -418,6 +419,10 @@ int main(int argc, char** argv)
         // New Overlay Sink, 0 x/y offsets and dimensions.    
         retval = dsl_sink_window_new(L"window-sink",
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
