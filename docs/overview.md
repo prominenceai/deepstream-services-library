@@ -37,7 +37,7 @@ The DeepStream Services Library (DSL) is best described as "the NVIDIA® DeepStr
 
 [NVIDIA’s® DeepStream SDK](https://developer.nvidia.com/deepstream-sdk) -- built on the open source [GStreamer](https://gstreamer.freedesktop.org/) "*an extremely powerful and versatile framework*<sup id="a1">[1](#f1)</sup>" -- enables experienced software developers to "*Seamlessly Develop Complex Stream Processing Pipelines*<sup id="a2">[2](#f2)</sup>". 
 
-For those new to DeepStream, however, GStreamer comes with a learning curve that can be steep or lengthy for some. 
+However, for those new to DeepStream, GStreamer comes with a learning curve that can be steep or lengthy for many. 
 
 The core function of DSL is to provide a [simple and intuitive API](/docs/api-reference-list.md) for building, playing, and dynamically modifying NVIDIA® DeepStream Pipelines. Modifications made: (1) based on the results of the real-time video analysis, and: (2) by the application end-user through external input. An example of each:
 1. Automatically starting a pre-cached recording session based on the occurrence of specific objects.
@@ -100,7 +100,7 @@ retval = dsl_sink_window_delete_event_handler_add('my-pipeline',
     xwindow_delete_event_handler, None)
 ```
 
-Transition the Pipeline to a state of Playing and start/join the main loop
+Transition the Pipeline to a state of `PLAYING` and start/join the main loop
 
 ```python
 retval = dsl_pipeline_play('my-pipeline')
@@ -120,7 +120,7 @@ There are nine primary classes of [Components](/docs/api-component.md) that can 
 ![DSL Pipeline Components](/Images/dsl-pipeline-components.png)
 
 ## Sources
-[Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of PLAYING. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Streammuxer -- as long as all Sources are of the same play-type; live vs. non-live. 
+[Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source (and one [Sink](/docs/api-sink.md)) to transition to a state of `PLAYING`. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Streammuxer -- as long as all Sources are of the same play-type; live vs. non-live. 
 
 There are eleven (11) types of Source components supported, all are currently Video ony. Audio-Video and Audo only Sources are currently in development.
 * **App Source** - Allows the application to insert raw samples or buffers into a DSL Pipeline.
@@ -157,12 +157,12 @@ See the [Preprocessor API](/docs/api-preproc.md) reference section for more info
 
 ## Inference Engines and Servers
 NVIDIA® GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs) perform inferencing on the input data stream. A Pipeline can have:
-* multiple Primary Gst Inference Engines (PGIE) or Primary Triton Inference Servers (PTIS) linked in succession to operate on the full frame
-* multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either Primary or other Secondary GIEs/TISs. 
+* Multiple Primary Gst Inference Engines (PGIE) or Primary Triton Inference Servers (PTIS) linked in succession to operate on the full frame
+* Multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either Primary or other Secondary GIEs/TISs. 
 
 After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
 
-With Primary GIEs and TISs, applications can add/remove [Pad Probe Handlers](#pad-probe-handlers) to process batched stream buffers with Metadata for each Frame and Detected-Object found within.
+With Primary GIEs and TISs, applications can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 See the [Inference Engine and Server API](/docs/api-infer.md) reference section for more information.
 
@@ -184,7 +184,7 @@ Applications using Tracker components can add one or more [Pad Probe Handlers](#
 See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
 
 ## Multi-Source Tiler
-All Source components connect to the Pipeline's internal Stream-Muxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the muxed-batched-stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
+All Source components connect to the Pipeline's internal Streammuxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the muxed-batched-stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
 
 Tiler components transform the batched-streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler, the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
@@ -192,14 +192,14 @@ Tiler components transform the batched-streams into a 2D grid array of tiles, on
 retval = dsl_pipeline_component_add_many('my-pipeline', 
     ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink', 'window-sink', None])
 ```
-Tilers have dimensions, width and height in pixels, and rows and columns settings that can be updated at any time. The Tiler API provides services to show a single source with [dsl_tiler_source_show_set](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [dsl_tiler_source_show_all](/docs/api-tiler.md#dsl_tiler_source_show_all). The source shown can be controlled manually with operator input, and automatically using [Object Detection Event](#)
+Tilers have dimensions, width and height in pixels, and rows and columns settings. The Tiler API provides services to show a single source with [`dsl_tiler_source_show_set`](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [`dsl_tiler_source_show_all`](/docs/api-tiler.md#dsl_tiler_source_show_all). Refer to the section on [Dynamic Pipelines](#dynamic-pipelines) for more information.
 
 Applications using Tiler components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 See the [Multi-Source Tiler](/docs/api-tiler.md) reference section for additional information.
 
 ## On-Screen Display
-On-Screen Display (OSD) components, using the generated object-metadata, highlight detected objects with colored bounding boxes and labels. A Clock with Positional offsets, colors and fonts can be enabled for Display. ODE Actions can be used to add/update Frame and Object metadata for the OSD to display. 
+On-Screen Display (OSD) components, using the generated object-metadata, highlight detected objects with colored bounding boxes and labels. A Clock with Positional offsets, colors and fonts can be enabled for Display. [ODE Actions](/docs/api-ode-action.md) can be used to add/update Frame and Object metadata for the OSD to display. 
 
 See the [On-Screen Display API](/docs/api-osd.md) reference section for more information. 
 
@@ -224,7 +224,7 @@ Sinks are the end components in each Pipeline or Branch. All Pipelines or Branch
 
 The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H.265 with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
 
-**RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the Main Loop context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
+**RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the `main-loop` context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
 
 With Sinks, clients can add one or more [Pad Probe Handlers](#pad-probe-handlers) to process the batched stream buffers and metadata for each frame and detected-object -- on the input (sink pad) only.
 
@@ -235,9 +235,9 @@ See the [Sink API](/docs/api-sink.md) reference section for more information.
 ## Tees and Branches
 There are two types of Tees that can be added to a Pipeline: Demuxer and Splitter.
 1. **Demuxer** - used to demux the single batched frames from the Stream-muxer back into individual buffers.  
-2. **Splitter** - used to split the stream, batched or otherwise, into multiple streams. It does not copy each buffer, but pushes a pointer to the buffer to each output pad/stream. 
+2. **Splitter** - used to split the stream, batched or otherwise, into multiple streams. It does not copy each buffer, but pushes a pointer to the same buffer to each output pad/stream. 
 
-Branches connect to the downstream/output pads of the Tee, either as a single component in the case of a Sink or another Tee, or as multiple linked components as in the case of **Branch 1** shown below. 
+Branches connect to the downstream/output pads of the Tee, either as a single component in the case of a Sink or another Tee (becoming a branch), or as multiple linked components as in the case of an actual Branch. 
 
 Important Notes: 
 * Single component Branches can be added to a Tee directly, while multi-component Branches must be added to a new Branch component first.
@@ -292,7 +292,8 @@ def handle_buffer(buffer, client_data)
 
 ```Python
 # Create a new Custom PPH and add the client-callback above.
-retval = dsl_pph_custom_new('custom-handler', client_handler=handle_buffer, client_data=my_client_data)
+retval = dsl_pph_custom_new('custom-handler',
+    client_handler=handle_buffer, client_data=my_client_data)
 ```
 
 See the [complete example](/examples/python/1uri_file_pgie_iou_tracker_osd_custom_pph_window.py).
@@ -339,7 +340,7 @@ Refer to the [Display Type API Reference](/docs/api-display-type.md) for more in
 ---
 
 ## Object Detection Event (ODE) Services
-DSL Provides an extensive set of ODE Triggers -- to Trigger on specific detection events -- and ODE Actions -- to perform specific action when a detection event occurs. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
+DSL Provides an extensive set of ODE Triggers -- to Trigger on specific detection events -- and ODE Actions -- to perform specific actions when a detection event occurs. Triggers use settable criteria to process the Frame and Object metadata produced by the Primary and Secondary GIE's looking for specific detection events. When the criteria for the Trigger is met, the Trigger invokes all Actions in its ordered collection. Each unique Area and Action created can be added to multiple Triggers as shown in the diagram below. The ODE Handler has n Triggers, each Trigger has one shared Area and one unique Area, and one shared Action and one unique Action.
 
 <img src="/Images/ode-services.png" alt="ODE Services" width="75%" height="75%">
 
@@ -368,12 +369,12 @@ Triggers have optional, settable criteria and filters:
 * **Class Id** - filters on a specified GIE Class Id when checking detected objects. Use `DSL_ODE_ANY_CLASS` to disable the filter
 * **Source** - filters on a unique Source name. Use `DSL_ODE_ANY_SOURCE` or NULL to disabled the filter
 * **Dimensions** - filters on an object's dimensions ensuring both width and height minimums and/or maximums are met. 
-* **Confidence** - filters on an object's GIE confidence requiring a minimum value.
+* **Confidence** - filters on an object's Inference confidence or Tracker confidence requiring a minimum value.
 * **Inference Component** - filters on inference metadata from a specific inference component.
 * **Inference Done** - filtering on the Object's inference-done flag.
 * **In-frame Areas** - filters on specific areas (see ODE Areas below) within the frame, with both areas of inclusion and exclusion supported.
 
-Refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md) for more information.
+Triggers have definable event-limits and frame-limits which can be which can be set, reset when reached, and updated and anytime.  Refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md) for more information.
 
 ### ODE Actions
 **ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
@@ -401,10 +402,10 @@ Refer to the [ODE Action API Reference](/docs/api-ode-action.md) for more inform
 * **Polygon Areas** - criteria is met when a specific point of an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon 
 
 The following image was produced using: 
-* Occurrence Trigger filtering on Any Class Id to hide/exclude the Object Text and Bounding Boxes.
-* Occurrence Trigger filtering on Person Class Id as criteria, using:
-  * Polygon "Area of Inclusion" as additional criteria,
-  * Fill Object Action to fill the object's bounding-box with an opaque RGBA color on criteria met
+* An Occurrence Trigger to hide/exclude the Object Labels and Bounding Boxs for the detected objects. Note: Labels and Bounding Boxes may be disabled using the OSD API as well.
+* Occurrence Trigger filtering on Person Class-Id as criteria, using:
+  * A Polygon "Area of Inclusion" as additional criteria,
+  * A Fill Object Action to fill the object's bounding-box with an opaque RGBA color when the Trigger criteria is met.
 
 ![Polygon Area](/Images/polygon-screenshot.png)
 
@@ -491,7 +492,7 @@ Note that using `ALL` points will add overhead to the processing of each detecte
 
 An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) is added to the Cross Trigger to accumulate and display the number of line-crossing occurrences in the IN and OUT directions as shown in the image below.
 
-The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to print each line-crossing occurrence to the console and to capture the object to an image file and display the image as an overlay, respectively.  
+The example creates an [ODE Print Action](/docs/api-ode-action.md#dsl_ode_action_print_new) to print each line-crossing occurrence to the console and an [ODE Capture Object Action](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) with an [Image Render Player](/docs/api-player.md#dsl_player_render_image_new) to capture the object to an JPEG image file and to play/display the image.  
 
 **Important Note:** A reminder that other actions such as the [File Action](/docs/api-ode-action.md#dsl_ode_action_file_new), [Email Action](/docs/api-ode-action.md#dsl_ode_action_email_new), and the [IOT Message Action](/docs/api-ode-action.md#dsl_ode_action_message_meta_add_new) can be leveraged with the ODE Cross Trigger as well.
 
