@@ -265,7 +265,7 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
         protocol = DSL_RTP_ALL,     
         skip_frames = 0,     
         drop_frame_interval = 0,     
-        latency = 1000, # jitter-buffer size based on latency of 1 sec. 
+        latency = 2000, # jitter-buffer size based on latency of 2 sec. 
         timeout = 2)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
@@ -391,6 +391,11 @@ def main(args):
 
         # New Window Sink, 0 x/y offsets and dimensions.
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

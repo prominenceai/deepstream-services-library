@@ -240,9 +240,9 @@ int main(int argc, char** argv)
         
         // Create the remaining Pipeline components
         
-        // New RTSP Source: latency = 1000ms, timeout=2s
+        // New RTSP Source: latency = 2000ms, timeout=2s
         retval = dsl_source_rtsp_new(L"rtsp-source",
-            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 2);
+            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 2000, 2);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New record tap created with the record_event_listener callback function 
@@ -293,6 +293,10 @@ int main(int argc, char** argv)
         // New Overlay Sink, 0 x/y offsets and same dimensions as streammuxer    
         retval = dsl_sink_window_new(L"window-sink", 
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above

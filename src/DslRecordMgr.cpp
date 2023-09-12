@@ -360,13 +360,13 @@ namespace DSL
                 g_usleep(10000);
                 remainingTime -= 10;
             }
-            LOG_INFO("Reset done with remaining time = " << remainingTime);
             if (m_pContext->resetDone == false)
             {
                 LOG_ERROR("Waiting for reset-done exceeded timeout for RecordMgr'"
                     << m_name << "'");
                 return false;
             }
+            LOG_INFO("Reset done with remaining time = " << remainingTime);
         }
         return true;
     }

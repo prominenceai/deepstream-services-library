@@ -539,15 +539,19 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        WHEN( "A WindowSinkBintr is Reset" )
+        WHEN( "A WindowSinkBintr has been linked and unlinked" )
         {
-            REQUIRE( pSinkBintr->Reset() == true );
+            // A window Sink can only be reset after it has been linked/unlinked
+            REQUIRE( pSinkBintr->Reset() == false );
 
-            THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll correctly" )
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+            REQUIRE( pSinkBintr->IsLinked() == false );
+
+            THEN( "The WindowSinkBintr can be reset correctly" )
             {
-                REQUIRE( pSinkBintr->LinkAll() == true );
-                pSinkBintr->UnlinkAll();
-                REQUIRE( pSinkBintr->IsLinked() == false );
+                REQUIRE( pSinkBintr->Reset() == true );
+
             }
         }
     }

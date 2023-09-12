@@ -287,6 +287,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add the XWindow event handler functions defined above to the Window Sink
         retval = dsl_sink_window_key_event_handler_add('window-sink', 
             xwindow_key_event_handler, None)

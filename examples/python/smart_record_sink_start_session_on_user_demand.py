@@ -251,14 +251,14 @@ def main(args):
         
         # Create the remaining Pipeline components
         
-        # New RTSP Source
+        # New RTSP Source, latency = 2000ms, timeout=2s.
         retval = dsl_source_rtsp_new('rtsp-source',     
             uri = hikvision_rtsp_uri,     
             protocol = DSL_RTP_ALL,     
             skip_frames = 0,     
             drop_frame_interval = 0,     
-            latency=100,
-            timeout=2)    
+            latency = 2000,
+            timeout = 2)    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
@@ -271,7 +271,6 @@ def main(args):
                 primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
-
 
         # New IOU Tracker, setting operational width and hieght
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
@@ -300,6 +299,11 @@ def main(args):
 
         # New Window Sink, 0 x/y offsets and dimensions.
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
