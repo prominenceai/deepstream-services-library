@@ -2955,6 +2955,8 @@ namespace DSL
 
         // called internally, do not lock mutex
         
+        LOG_INFO("Setting Source name = " << name << " with id = " << uniqueId);
+        
         m_sourceNamesById[uniqueId] = name;
         m_sourceIdsByName[name] = uniqueId;
     }
