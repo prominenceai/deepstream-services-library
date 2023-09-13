@@ -8,6 +8,12 @@ The first two are used for dewarping 360° camera input. See the [NVIDIA Gst-nvd
 
 NVIDA provides two sample configuration files located under `/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/`.
 
+Dewarpers are derived from the "Component" class, therefore all [component methods](/docs/api-component.md) can be called with any Dewarper.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── `dewarper`
+
 ## Construction and Destruction
 A Dewarper component is created by calling [`dsl_dewarper_new`](#dsl_dewarper_new) with a type specific configuration file. 
 
@@ -52,11 +58,16 @@ The following return codes are used specifically by the Dewarper API
 
 ## Constructors
 ### *dsl_dewarper_new*
+
 ```C
 DslReturnType dsl_dewarper_new(const wchar_t* name, 
     const wchar_t* config_file, uint camera_id);
 ```
 This service creates a uniquely named Dewarper. Construction will fail if the name is currently in use. 
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── `dewarper`
 
 **Parameters**
 * `name` - [in] unique name for the Dewarper component to create.
