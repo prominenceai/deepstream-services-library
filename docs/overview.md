@@ -673,6 +673,15 @@ The following examples demonstrate how to move a Branch using the [`dsl_tee_demu
 * [`dynamically_move_branch_from_demuxer_stream_to_stream.py`](/examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py)
 * [`dynamically_move_branch_from_demuxer_stream_to_stream.cpp`](/examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp)
 
+#### Dynamic Branch Updates using ODE Services
+Branches can be added, moved, or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). In the example above, an [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. The following [ODE Actions](/docs/api-ode-action.md) can be added to the ODE Trigger(s) to be invoked on the occurrence of an event.
+* A Branch can be added to a Slpitter or Demuxer Tee using an [Add-Branch Action](/docs/api-ode-action.md#dsl_ode_action_branch_add_new).
+* A Branch can be added to the "current-stream" of a Demuxer with an [Add-Branch-to Action](/docs/api-ode-action.md#dsl_ode_action_branch_add_to_new)
+* A Branch can be movded to the "current-stream" of a Demuxer with a [Move-Branch-to Action](/docs/api-ode-action.md#dsl_ode_action_branch_move_to_new)
+* A Branch can be removed from a Splitter or Demuxer Tee using a [Remove-Branch Action](/docs/api-ode-action.md#dsl_ode_action_branch_remove_new)
+
+The "current-stream" == the stream with the frame and/or object metadata the caused the event.
+
 #### Dynamic Branch Updates by the End-User
 The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Tee add/remove service as described above. 
 
@@ -786,11 +795,11 @@ A smart recording can be started on the occurrence of an [Object Detection Event
 When using [Object Detection Events (ODE)](#object-detection-event-ode-services), "one-time" [ODE Triggers](/docs/api-ode-trigger.md) are defined to trigger on specific occurrences of Object Detection Events, such as a person entering a predefined [ODE Area](/docs/api-ode-area.md). Start-Record [ODE Actions]() are used to start the recording on ODE occurrence. Each "one-time" trigger can be reset in the client-callback when called after each recording has finished. 
 
 The follow example illustrates a Pipeline with multiple sources, each with a Record Tap and corresponding Occurrence Trigger with a Start-Record Action
-![Record Tap](/Images/tap-record.png)
+![Record Tap](/Images/smart-recording-tap.png)
 
 #### Using Python to implement the above.
 Each Camera requires: 
-* RTSP Source Component - to decode the streaming source to raw video and audio
+* RTSP Source Component - to decode the streaming source to raw video
 * Record Tap - with cache to capture pre-event video
 * Occurrence Trigger - to trigger ODE occurrence on detection of an object satisfying all criteria
 * Custom Action - for notification of ODE occurrence.
@@ -1186,7 +1195,7 @@ def XWindowKeyReleaseEventHandler(key_string, client_data):
 
     # Q or Esc = quit application
     if key_string.upper() == 'Q' or key_string == '':
-        dsl_pipeline_quit('my-pipeline')
+        dsl_pipeline_stop('my-pipeline')
         dsl_main_loop_quit()
 ```
 The third callback is called when the user closes/deletes the XWindow allowing the application to exit from the main-loop and delete all resources
@@ -1195,7 +1204,7 @@ The third callback is called when the user closes/deletes the XWindow allowing t
 # Function to be called on XWindow Delete event
 def XWindowDeleteEventHandler(client_data):
     print('delete window event')
-    dsl_pipeline_quit('my-pipeline')
+    dsl_pipeline_stop('my-pipeline')
     dsl_main_loop_quit()
 
 ```
