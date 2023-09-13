@@ -225,6 +225,8 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
 ```
 Defines a Callback typedef for a Custom ODE Trigger. Once registered, the function will be called on every object detected that meets the criteria for the Custom Trigger. The client, determining that **custom** criteria have been met, returns true signaling ODE occurrence. The Custom Trigger will then invoke all the client provided Actions.
 
+**IMPORTANT!** This callback typedef and the [Custom Trigger](#dsl_ode_trigger_custom_new) are available for use with C++ only and not Python at this time.
+
 **Parameters**
 * `buffer` - [in] pointer to frame buffer containing the Metadata for the object detected.
 * `frame_meta` - [in] opaque pointer to a frame_meta structure that triggered the ODE event.
@@ -324,6 +326,7 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
 
 The constructor creates a Uniquely named Custom Trigger that checks for the occurrence of Objects within a frame that meets the Triggers criteria and calls a Callback function that allows the client to customize the Trigger. The Callback function is called with the buffer
 
+**IMPORTANT!** This Trigger is only available for use with C++ and not with Python at this time.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -337,10 +340,7 @@ The constructor creates a Uniquely named Custom Trigger that checks for the occu
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
-```Python
-retval = dsl_ode_trigger_custom_new('my-custom-trigger',
-        DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, my_check_for_occurrence_cb, my_client_data)
-```
+_**not-supported**_
 
 <br>
 
