@@ -66,7 +66,7 @@ The following return codes are used by the Tiler API
 ```
 
 ## Constant Values
-The default blocking-timeout value used by both Splitter and Demuxer Tees. IMPORTANT! The timeout controls the amount of time the demuxer will wait for a blocking PPH to be called to dynamically link or unlink a branch at runtime while the Pipeline is playing. This value will need to be extended if the frame-rate for the stream is less than 2 fps.  The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad callback will never be called.
+The default blocking-timeout value used by both Splitter and Demuxer Tees. IMPORTANT! The timeout controls the amount of time the Tee will wait for a blocking PPH to be called to dynamically link or unlink a branch at runtime while the Pipeline is playing. This value will need to be extended if the frame-rate for the stream is less than 2 fps.  The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad callback will never be called.
 ```C
 #define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
 ```
