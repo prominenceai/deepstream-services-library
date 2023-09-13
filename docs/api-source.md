@@ -2,8 +2,8 @@
 Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source and one [Sink](/docs/api-sink.md) to transition to a state of PLAYING.  All Sources are derived from the "Component" class, therefore all [component methods](/docs/api-component.md) can be called with any Source.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── `source`
 
 ### Source Construction and Destruction
 Sources are created by calling one of the type-specific [source constructors](#constructors). As with all components, Sources must be uniquely named from all other Pipeline components created.
@@ -71,9 +71,9 @@ There are eleven Video Source components supported, three of which are [Image Vi
 All Video Sources are derived from the base "Source" class (as show in the hierarchy below), therefore all [source methods](#source-methods) can be called with any Video Source.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── video source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `video source`
 
 ### Video Buffer Conversion
 All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
@@ -113,10 +113,10 @@ A [Video Dewarper](/docs/api-dewarper.md), capable of 360 degree and perspective
 Image Video Sources are used to decode JPEG image files into `video/x-raw' buffers. PNG files will be supported in a future release. Derived from the "Video Source" class, Image Video Sources can be called with any [Video Source Method](#video-source-methods)
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── image source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `image source`
 
 ## Source API
 **Typedefs**
@@ -453,10 +453,10 @@ DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live,
 Creates a new, uniquely named App Source component to insert data -- buffers or samples -- into a DSL Pipeline.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── app source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `app source`
 
 **Parameters**
 * `source` - [in] unique name for the new Source
@@ -488,10 +488,10 @@ Creates a new, uniquely named CSI Camera Source component.
 **Important:** A unique sensor-id is assigned to each CSI Source on creation, starting with 0. The default setting can be overridden by calling [dsl_source_decode_uri_set](#dsl_source_decode_uri_set). The call will fail if the given sensor-id is not unique. If a source is deleted, the sensor-id will be re-assigned to a new CSI Source if one is created.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── csi source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `csi source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -520,10 +520,10 @@ Creates a new, uniquely named USB Camera Source component.
 **Important:** A unique device-location is assigned to each USB Source on creation, starting with `/dev/video0`, followed by `/dev/video1`, and so on. The default assignment can be overridden by calling [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set). The call will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── usb source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `usb source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -549,10 +549,10 @@ DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri,
 This service creates a new, uniquely named URI Source component.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── uri source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `uri source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -586,11 +586,11 @@ This service creates a new, uniquely named File Source component. The Source imp
 * `drop_frame_interval = 0`
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [uri source](dsl_source_uri_new)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── file source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`uri source`](dsl_source_uri_new)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `file source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -618,10 +618,10 @@ This service creates a new, uniquely named RTSP Source component. The RTSP Sourc
 **Note** The RTSP Source acts like a live source and will therefore only generate data in the `PLAYING` state.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── rtsp source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `rtsp source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -658,10 +658,10 @@ This service creates a new, uniquely named Interpipe Source component to listen 
 Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── interpipe source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `interpipe source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -689,11 +689,11 @@ DslReturnType dsl_source_image_single_new(const wchar_t* name,
 This service creates a new, uniquely named Single-Image Source component. The Image is streamed as a single frame followed by an End of Stream (EOS) event.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [image source](#image-source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── single-image source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`image source`](#image-source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `single-image source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -720,11 +720,11 @@ Example: `./my_images/image.%d04.mjpg`, where the files in "./my_images/" are na
 The images are streamed one per frame at the specified framerate. A final EOS event occurs once all images have been played.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [image source](#image-source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── multi-image source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`image source`](#image-source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `multi-image source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source.
@@ -752,11 +752,11 @@ This service creates a new, uniquely named Streaming Image Source component. The
 **Important!** The Streaming-Image Services are disabled by default and require additional [install/build steps](/docs/installing-dependencies.md).
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [image source](#image-source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── streaming-image source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`image source`](#image-source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `streaming-image source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
@@ -788,10 +788,10 @@ The relationship between Duplicate Sources and Original Sources is many to one, 
 **IMPORTANT!** The Original Source must exist prior to calling the Duplicate Source constructor. 
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [source](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [video source](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── duplicate source
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `duplicate source`
 
 **Parameters**
 * `source` - [in] unique name for the new Duplicate Source.
