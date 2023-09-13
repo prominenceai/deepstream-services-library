@@ -4,22 +4,22 @@ ODE Triggers use settable criteria to parse the frame and detected-object metada
 [ODE Areas](/docs/api-ode-area.md) -- created from [RGBA Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new), [RGBA Mulit-Lines](/docs/api-display-type.md#dsl_display_type_rgba_line_new), and [RGBA Polygons](/docs/api-display-type.md#dsl_display_type_rgba_polygon_new) -- can be added to one or more Triggers as criteria for ODE occurrence as well.
 
 #### Construction and Destruction
-Triggers are created by calling one of the Type specific [constructors](#constructors) defined below. Triggers are deleted by calling [dsl_ode_trigger_delete](#dsl_ode_trigger_delete), [dsl_ode_trigger_delete_many](#dsl_ode_trigger_delete_many), or [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all).
+Triggers are created by calling one of the Type specific [constructors](#constructors) defined below. Triggers are deleted by calling [`dsl_ode_trigger_delete`](#dsl_ode_trigger_delete), [`dsl_ode_trigger_delete_many`](#dsl_ode_trigger_delete_many), or [`dsl_ode_trigger_delete_all`](#dsl_ode_trigger_delete_all).
 
 #### Adding and Removing Triggers
-The relationship between ODE Pad Prop Handlers and ODE Triggers is one-to-many. A Trigger must be removed from a Handler before it can be used by another. Triggers are added to a handler by calling [dsl_pph_ode_trigger_add](docs/api-pph.md#dsl_pph_ode_trigger_add) and [dsl_pph_ode_trigger_add_many](docs/api-pph.md#dsl_pph_ode_trigger_add_many), and removed with [dsl_pph_ode_trigger_remove](docs/api-pph.md#dsl_pph_ode_trigger_remove), [dsl_pph_ode_trigger_remove_many](docs/api-pph.md#dsl_pph_ode_trigger_remove_many), and [dsl_pph_ode_trigger_remove_all](docs/api-pph.md#dsl_pph_ode_trigger_remove_all).
+The relationship between ODE Pad Prop Handlers and ODE Triggers is one-to-many. A Trigger must be removed from a Handler before it can be used by another. Triggers are added to a handler by calling [`dsl_pph_ode_trigger_add`](docs/api-pph.md#dsl_pph_ode_trigger_add) and [`dsl_pph_ode_trigger_add_many`](docs/api-pph.md#dsl_pph_ode_trigger_add_many), and removed with [`dsl_pph_ode_trigger_remove`](docs/api-pph.md#dsl_pph_ode_trigger_remove), [`dsl_pph_ode_trigger_remove_many`](docs/api-pph.md#dsl_pph_ode_trigger_remove_many), and [`dsl_pph_ode_trigger_remove_all`](docs/api-pph.md#dsl_pph_ode_trigger_remove_all).
 
 #### Adding and Removing Actions
-Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple Triggers.  ODE Actions are added to an ODE Trigger by calling [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add) and [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_add_many), and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_remove), [dsl_ode_trigger_action_remove_many](#dsl_ode_trigger_action_remove_many), and [dsl_ode_trigger_action_remove_all](#dsl_ode_trigger_action_remove_all).
+Multiple ODE Actions can be added to an ODE Trigger and the same ODE Action can be added to multiple Triggers.  ODE Actions are added to an ODE Trigger by calling [`dsl_ode_trigger_action_add`](#dsl_ode_trigger_action_add) and [`dsl_ode_trigger_action_add_many`](#dsl_ode_trigger_action_add_many), and removed with [`dsl_ode_trigger_action_remove`](#dsl_ode_trigger_action_remove), [`dsl_ode_trigger_action_remove_many`](#dsl_ode_trigger_action_remove_many), and [`dsl_ode_trigger_action_remove_all`](#dsl_ode_trigger_action_remove_all).
 
 #### Adding and Removing Areas
-As with Actions, multiple ODE areas can be added to an ODE Trigger and the same ODE Areas can be added to multiple Triggers. ODE Areas are added to an ODE Trigger by calling [dsl_ode_trigger_area_add](#dsl_ode_trigger_area_add) and [dsl_ode_trigger_area_add_many](#dsl_ode_trigger_area_add_many) and removed with [dsl_ode_trigger_action_remove](#dsl_ode_trigger_area_remove), [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many), and [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all).
+As with Actions, multiple ODE areas can be added to an ODE Trigger and the same ODE Areas can be added to multiple Triggers. ODE Areas are added to an ODE Trigger by calling [`dsl_ode_trigger_area_add`](#dsl_ode_trigger_area_add) and [`dsl_ode_trigger_area_add_many`](#dsl_ode_trigger_area_add_many) and removed with [`dsl_ode_trigger_action_remove`](#dsl_ode_trigger_area_remove), [`dsl_ode_trigger_area_remove_many`](#dsl_ode_trigger_area_remove_many), and [`dsl_ode_trigger_area_remove_all`](#dsl_ode_trigger_area_remove_all).
 
 #### Adding and Removing an Accumulator
-A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add) and removed with [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove). See the [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) for additional information.
+A single ODE Accumulator can be added to an ODE Trigger and the same ODE Accumulator can be added to multiple Triggers. An ODE Accumulator is added to an ODE Trigger by calling [`dsl_ode_trigger_accumulator_add`](#dsl_ode_trigger_accumulator_add) and removed with [`dsl_ode_trigger_accumulator_remove`](#dsl_ode_trigger_accumulator_remove). See the [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) for additional information.
 
 #### Adding and Removing a Heat Mapper
-A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mapper is added to an ODE Trigger by calling [dsl_ode_trigger_heat_mapper_add](#dsl_ode_trigger_heat_mapper_add) and removed with [dsl_ode_trigger_heat_mapper_remove](#dsl_ode_trigger_heat_mapper_remove). See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for additional information.
+A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mapper is added to an ODE Trigger by calling [`dsl_ode_trigger_heat_mapper_add`](#dsl_ode_trigger_heat_mapper_add) and removed with [`dsl_ode_trigger_heat_mapper_remove`](#dsl_ode_trigger_heat_mapper_remove). See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for additional information.
 
 **Important** Be careful when creating No-Limit ODE Triggers with Actions that save data to file as these operations can consume all available diskspace.
 
@@ -27,99 +27,99 @@ A single ODE Heat-Mapper can be added to a single ODE Trigger. An ODE Heat-Mappe
 
 ## ODE Trigger API
 **Callback Typedefs:**
-* [dsl_ode_check_for_occurrence_cb](#dsl_ode_check_for_occurrence_cb)
-* [dsl_ode_enabled_state_change_listener_cb](#dsl_ode_enabled_state_change_listener_cb)
-* [dsl_ode_trigger_limit_event_listener_cb](#dsl_ode_trigger_limit_event_listener_cb)
+* [`dsl_ode_check_for_occurrence_cb`](#dsl_ode_check_for_occurrence_cb)
+* [`dsl_ode_enabled_state_change_listener_cb`](#dsl_ode_enabled_state_change_listener_cb)
+* [`dsl_ode_trigger_limit_event_listener_cb`](#dsl_ode_trigger_limit_event_listener_cb)
 
 **Constructors:**
-* [dsl_ode_trigger_always_new](#dsl_ode_trigger_always_new)
-* [dsl_ode_trigger_absence_new](#dsl_ode_trigger_absence_new)
-* [dsl_ode_trigger_custom_new](#dsl_ode_trigger_custom_new)
-* [dsl_ode_trigger_occurrence_new](#dsl_ode_trigger_occurrence_new)
-* [dsl_ode_trigger_instance_new](#dsl_ode_trigger_instance_new)
-* [dsl_ode_trigger_summation_new](#dsl_ode_trigger_summation_new)
-* [dsl_ode_trigger_distance_new](#dsl_ode_trigger_distance_new)
-* [dsl_ode_trigger_intersection_new](#dsl_ode_trigger_intersection_new)
-* [dsl_ode_trigger_count_new](#dsl_ode_trigger_count_new)
-* [dsl_ode_trigger_new_high_new](#dsl_ode_trigger_new_high_new)
-* [dsl_ode_trigger_new_low_new](#dsl_ode_trigger_new_low_new)
-* [dsl_ode_trigger_smallest_new](#dsl_ode_trigger_smallest_new)
-* [dsl_ode_trigger_largest_new](#dsl_ode_trigger_largest_new)
-* [dsl_ode_trigger_cross_new](#dsl_ode_trigger_cross_new)
-* [dsl_ode_trigger_persistence_new](#dsl_ode_trigger_persistence_new)
-* [dsl_ode_trigger_earliest_new](#dsl_ode_trigger_earliest_new)
-* [dsl_ode_trigger_latest_new](#dsl_ode_trigger_latest_new)
+* [`dsl_ode_trigger_always_new`](#dsl_ode_trigger_always_new)
+* [`dsl_ode_trigger_absence_new`](#dsl_ode_trigger_absence_new)
+* [`dsl_ode_trigger_custom_new`](#dsl_ode_trigger_custom_new)
+* [`dsl_ode_trigger_occurrence_new`](#dsl_ode_trigger_occurrence_new)
+* [`dsl_ode_trigger_instance_new`](#dsl_ode_trigger_instance_new)
+* [`dsl_ode_trigger_summation_new`](#dsl_ode_trigger_summation_new)
+* [`dsl_ode_trigger_distance_new`](#dsl_ode_trigger_distance_new)
+* [`dsl_ode_trigger_intersection_new`](#dsl_ode_trigger_intersection_new)
+* [`dsl_ode_trigger_count_new`](#dsl_ode_trigger_count_new)
+* [`dsl_ode_trigger_new_high_new`](#dsl_ode_trigger_new_high_new)
+* [`dsl_ode_trigger_new_low_new`](#dsl_ode_trigger_new_low_new)
+* [`dsl_ode_trigger_smallest_new`](#dsl_ode_trigger_smallest_new)
+* [`dsl_ode_trigger_largest_new`](#dsl_ode_trigger_largest_new)
+* [`dsl_ode_trigger_cross_new`](#dsl_ode_trigger_cross_new)
+* [`dsl_ode_trigger_persistence_new`](#dsl_ode_trigger_persistence_new)
+* [`dsl_ode_trigger_earliest_new`](#dsl_ode_trigger_earliest_new)
+* [`dsl_ode_trigger_latest_new`](#dsl_ode_trigger_latest_new)
 
 **Destructors:**
-* [dsl_ode_trigger_delete](#dsl_ode_trigger_delete)
-* [dsl_ode_trigger_delete_many](#dsl_ode_trigger_delete_many)
-* [dsl_ode_trigger_delete_all](#dsl_ode_trigger_delete_all)
+* [`dsl_ode_trigger_delete`](#dsl_ode_trigger_delete)
+* [`dsl_ode_trigger_delete_many`](#dsl_ode_trigger_delete_many)
+* [`dsl_ode_trigger_delete_all`](#dsl_ode_trigger_delete_all)
 
 **Methods:**
-* [dsl_ode_trigger_count_range_get](#dsl_ode_trigger_count_range_get)
-* [dsl_ode_trigger_count_range_set](#dsl_ode_trigger_count_range_set)
-* [dsl_ode_trigger_distance_range_get](#dsl_ode_trigger_distance_range_get)
-* [dsl_ode_trigger_distance_range_set](#dsl_ode_trigger_distance_range_set)
-* [dsl_ode_trigger_distance_test_params_get](#dsl_ode_trigger_distance_test_params_get)
-* [dsl_ode_trigger_distance_test_params_set](#dsl_ode_trigger_distance_test_params_set)
-* [dsl_ode_trigger_cross_test_settings_get](#dsl_ode_trigger_cross_test_settings_get)
-* [dsl_ode_trigger_cross_test_settings_set](#dsl_ode_trigger_cross_test_settings_set)
-* [dsl_ode_trigger_cross_view_settings_get](#dsl_ode_trigger_cross_view_settings_get)
-* [dsl_ode_trigger_cross_view_settings_set](#dsl_ode_trigger_cross_view_settings_set)
-* [dsl_ode_trigger_instance_count_settings_get](#dsl_ode_trigger_instance_count_settings_get)
-* [dsl_ode_trigger_instance_count_settings_set](#dsl_ode_trigger_instance_count_settings_set)
-* [dsl_ode_trigger_persistence_range_get](#dsl_ode_trigger_persistence_range_get)
-* [dsl_ode_trigger_persistence_range_set](#dsl_ode_trigger_persistence_range_set)
-* [dsl_ode_trigger_reset](#dsl_ode_trigger_reset)
-* [dsl_ode_trigger_reset_timeout_get](#dsl_ode_trigger_reset_timeout_get)
-* [dsl_ode_trigger_reset_timeout_set](#dsl_ode_trigger_reset_timeout_set)
-* [dsl_ode_trigger_enabled_get](#dsl_ode_trigger_enabled_get)
-* [dsl_ode_trigger_enabled_set](#dsl_ode_trigger_enabled_set)
-* [dsl_ode_trigger_enabled_state_change_listener_add](#dsl_ode_trigger_enabled_state_change_listener_add)
-* [dsl_ode_trigger_enabled_state_change_listener_remove](#dsl_ode_trigger_enabled_state_change_listener_remove)
-* [dsl_ode_trigger_source_get](#dsl_ode_trigger_source_get)
-* [dsl_ode_trigger_source_set](#dsl_ode_trigger_source_set)
-* [dsl_ode_trigger_class_id_get](#dsl_ode_trigger_class_id_get)
-* [dsl_ode_trigger_class_id_set](#dsl_ode_trigger_class_id_set)
-* [dsl_ode_trigger_class_id_ab_get](#dsl_ode_trigger_class_id_ab_get)
-* [dsl_ode_trigger_class_id_ab_set](#dsl_ode_trigger_class_id_ab_set)
-* [dsl_ode_trigger_limit_event_get](#dsl_ode_trigger_limit_event_get)
-* [dsl_ode_trigger_limit_event_set](#dsl_ode_trigger_limit_event_set)
-* [dsl_ode_trigger_limit_frame_get](#dsl_ode_trigger_limit_frame_get)
-* [dsl_ode_trigger_limit_frame_set](#dsl_ode_trigger_limit_frame_set)
-* [dsl_ode_trigger_limit_state_change_listener_add](#dsl_ode_trigger_limit_state_change_listener_add)
-* [dsl_ode_trigger_limit_state_change_listener_remove](#dsl_ode_trigger_limit_state_change_listener_remove)
-* [dsl_ode_trigger_infer_confidence_min_get](#dsl_ode_trigger_infer_confidence_min_get)
-* [dsl_ode_trigger_infer_confidence_min_set](#dsl_ode_trigger_infer_confidence_min_set)
-* [dsl_ode_trigger_infer_confidence_max_get](#dsl_ode_trigger_infer_confidence_max_get)
-* [dsl_ode_trigger_infer_confidence_max_set](#dsl_ode_trigger_infer_confidence_max_set)
-* [dsl_ode_trigger_tracker_confidence_min_get](#dsl_ode_trigger_tracker_confidence_min_get)
-* [dsl_ode_trigger_tracker_confidence_min_set](#dsl_ode_trigger_tracker_confidence_min_set)
-* [dsl_ode_trigger_tracker_confidence_max_get](#dsl_ode_trigger_tracker_confidence_max_get)
-* [dsl_ode_trigger_tracker_confidence_max_set](#dsl_ode_trigger_tracker_confidence_max_set)
-* [dsl_ode_trigger_dimensions_min_get](#dsl_ode_trigger_dimensions_min_get)
-* [dsl_ode_trigger_dimensions_min_set](#dsl_ode_trigger_dimensions_min_set)
-* [dsl_ode_trigger_dimensions_max_get](#dsl_ode_trigger_dimensions_max_get)
-* [dsl_ode_trigger_dimensions_max_set](#dsl_ode_trigger_dimensions_max_set)
-* [dsl_ode_trigger_infer_done_only_get](#dsl_ode_trigger_infer_done_only_get)
-* [dsl_ode_trigger_infer_done_only_set](#dsl_ode_trigger_infer_done_only_set)
-* [dsl_ode_trigger_interval_get](#dsl_ode_trigger_interval_get)
-* [dsl_ode_trigger_interval_set](#dsl_ode_trigger_interval_set)
-* [dsl_ode_trigger_action_add](#dsl_ode_trigger_action_add)
-* [dsl_ode_trigger_action_add_many](#dsl_ode_trigger_action_remove_many)
-* [dsl_ode_trigger_action_remove](#dsl_ode_trigger_action_add)
-* [dsl_ode_trigger_action_remove_many](#dsl_ode_trigger_action_remove_many)
-* [dsl_ode_trigger_action_remove_all](#dsl_ode_trigger_action_remove_all)
-* [dsl_ode_trigger_area_add](#dsl_ode_trigger_area_add)
-* [dsl_ode_trigger_area_add_many](#dsl_ode_trigger_area_remove_many)
-* [dsl_ode_trigger_area_remove](#dsl_ode_trigger_area_add)
-* [dsl_ode_trigger_area_remove_many](#dsl_ode_trigger_area_remove_many)
-* [dsl_ode_trigger_area_remove_all](#dsl_ode_trigger_area_remove_all)
-* [dsl_ode_trigger_accumulator_add](#dsl_ode_trigger_accumulator_add)
-* [dsl_ode_trigger_accumulator_remove](#dsl_ode_trigger_accumulator_remove)
-* [dsl_ode_trigger_heat_mapper_add](#dsl_ode_trigger_heat_mapper_add)
-* [dsl_ode_trigger_heat_mapper_remove](#dsl_ode_trigger_heat_mapper_remove)
-* [dsl_ode_trigger_list_size](#dsl_ode_trigger_list_size)
+* [`dsl_ode_trigger_count_range_get`](#dsl_ode_trigger_count_range_get)
+* [`dsl_ode_trigger_count_range_set`](#dsl_ode_trigger_count_range_set)
+* [`dsl_ode_trigger_distance_range_get`](#dsl_ode_trigger_distance_range_get)
+* [`dsl_ode_trigger_distance_range_set`](#dsl_ode_trigger_distance_range_set)
+* [`dsl_ode_trigger_distance_test_params_get`](#dsl_ode_trigger_distance_test_params_get)
+* [`dsl_ode_trigger_distance_test_params_set`](#dsl_ode_trigger_distance_test_params_set)
+* [`dsl_ode_trigger_cross_test_settings_get`](#dsl_ode_trigger_cross_test_settings_get)
+* [`dsl_ode_trigger_cross_test_settings_set`](#dsl_ode_trigger_cross_test_settings_set)
+* [`dsl_ode_trigger_cross_view_settings_get`](#dsl_ode_trigger_cross_view_settings_get)
+* [`dsl_ode_trigger_cross_view_settings_set`](#dsl_ode_trigger_cross_view_settings_set)
+* [`dsl_ode_trigger_instance_count_settings_get`](#dsl_ode_trigger_instance_count_settings_get)
+* [`dsl_ode_trigger_instance_count_settings_set`](#dsl_ode_trigger_instance_count_settings_set)
+* [`dsl_ode_trigger_persistence_range_get`](#dsl_ode_trigger_persistence_range_get)
+* [`dsl_ode_trigger_persistence_range_set`](#dsl_ode_trigger_persistence_range_set)
+* [`dsl_ode_trigger_reset`](#dsl_ode_trigger_reset)
+* [`dsl_ode_trigger_reset_timeout_get`](#dsl_ode_trigger_reset_timeout_get)
+* [`dsl_ode_trigger_reset_timeout_set`](#dsl_ode_trigger_reset_timeout_set)
+* [`dsl_ode_trigger_enabled_get`](#dsl_ode_trigger_enabled_get)
+* [`dsl_ode_trigger_enabled_set`](#dsl_ode_trigger_enabled_set)
+* [`dsl_ode_trigger_enabled_state_change_listener_add`](#dsl_ode_trigger_enabled_state_change_listener_add)
+* [`dsl_ode_trigger_enabled_state_change_listener_remove`](#dsl_ode_trigger_enabled_state_change_listener_remove)
+* [`dsl_ode_trigger_source_get`](#dsl_ode_trigger_source_get)
+* [`dsl_ode_trigger_source_set`](#dsl_ode_trigger_source_set)
+* [`dsl_ode_trigger_class_id_get`](#dsl_ode_trigger_class_id_get)
+* [`dsl_ode_trigger_class_id_set`](#dsl_ode_trigger_class_id_set)
+* [`dsl_ode_trigger_class_id_ab_get`](#dsl_ode_trigger_class_id_ab_get)
+* [`dsl_ode_trigger_class_id_ab_set`](#dsl_ode_trigger_class_id_ab_set)
+* [`dsl_ode_trigger_limit_event_get`](#dsl_ode_trigger_limit_event_get)
+* [`dsl_ode_trigger_limit_event_set`](#dsl_ode_trigger_limit_event_set)
+* [`dsl_ode_trigger_limit_frame_get`](#dsl_ode_trigger_limit_frame_get)
+* [`dsl_ode_trigger_limit_frame_set`](#dsl_ode_trigger_limit_frame_set)
+* [`dsl_ode_trigger_limit_state_change_listener_add`](#dsl_ode_trigger_limit_state_change_listener_add)
+* [`dsl_ode_trigger_limit_state_change_listener_remove`](#dsl_ode_trigger_limit_state_change_listener_remove)
+* [`dsl_ode_trigger_infer_confidence_min_get`](#dsl_ode_trigger_infer_confidence_min_get)
+* [`dsl_ode_trigger_infer_confidence_min_set`](#dsl_ode_trigger_infer_confidence_min_set)
+* [`dsl_ode_trigger_infer_confidence_max_get`](#dsl_ode_trigger_infer_confidence_max_get)
+* [`dsl_ode_trigger_infer_confidence_max_set`](#dsl_ode_trigger_infer_confidence_max_set)
+* [`dsl_ode_trigger_tracker_confidence_min_get`](#dsl_ode_trigger_tracker_confidence_min_get)
+* [`dsl_ode_trigger_tracker_confidence_min_set`](#dsl_ode_trigger_tracker_confidence_min_set)
+* [`dsl_ode_trigger_tracker_confidence_max_get`](#dsl_ode_trigger_tracker_confidence_max_get)
+* [`dsl_ode_trigger_tracker_confidence_max_set`](#dsl_ode_trigger_tracker_confidence_max_set)
+* [`dsl_ode_trigger_dimensions_min_get`](#dsl_ode_trigger_dimensions_min_get)
+* [`dsl_ode_trigger_dimensions_min_set`](#dsl_ode_trigger_dimensions_min_set)
+* [`dsl_ode_trigger_dimensions_max_get`](#dsl_ode_trigger_dimensions_max_get)
+* [`dsl_ode_trigger_dimensions_max_set`](#dsl_ode_trigger_dimensions_max_set)
+* [`dsl_ode_trigger_infer_done_only_get`](#dsl_ode_trigger_infer_done_only_get)
+* [`dsl_ode_trigger_infer_done_only_set`](#dsl_ode_trigger_infer_done_only_set)
+* [`dsl_ode_trigger_interval_get`](#dsl_ode_trigger_interval_get)
+* [`dsl_ode_trigger_interval_set`](#dsl_ode_trigger_interval_set)
+* [`dsl_ode_trigger_action_add`](#dsl_ode_trigger_action_add)
+* [`dsl_ode_trigger_action_add_many`](#dsl_ode_trigger_action_remove_many)
+* [`dsl_ode_trigger_action_remove`](#dsl_ode_trigger_action_add)
+* [`dsl_ode_trigger_action_remove_many`](#dsl_ode_trigger_action_remove_many)
+* [`dsl_ode_trigger_action_remove_all`](#dsl_ode_trigger_action_remove_all)
+* [`dsl_ode_trigger_area_add`](#dsl_ode_trigger_area_add)
+* [`dsl_ode_trigger_area_add_many`](#dsl_ode_trigger_area_remove_many)
+* [`dsl_ode_trigger_area_remove`](#dsl_ode_trigger_area_add)
+* [`dsl_ode_trigger_area_remove_many`](#dsl_ode_trigger_area_remove_many)
+* [`dsl_ode_trigger_area_remove_all`](#dsl_ode_trigger_area_remove_all)
+* [`dsl_ode_trigger_accumulator_add`](#dsl_ode_trigger_accumulator_add)
+* [`dsl_ode_trigger_accumulator_remove`](#dsl_ode_trigger_accumulator_remove)
+* [`dsl_ode_trigger_heat_mapper_add`](#dsl_ode_trigger_heat_mapper_add)
+* [`dsl_ode_trigger_heat_mapper_remove`](#dsl_ode_trigger_heat_mapper_remove)
+* [`dsl_ode_trigger_list_size`](#dsl_ode_trigger_list_size)
 
 ---
 ## Return Values
@@ -225,6 +225,8 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
 ```
 Defines a Callback typedef for a Custom ODE Trigger. Once registered, the function will be called on every object detected that meets the criteria for the Custom Trigger. The client, determining that **custom** criteria have been met, returns true signaling ODE occurrence. The Custom Trigger will then invoke all the client provided Actions.
 
+**IMPORTANT!** This callback typedef and the [Custom Trigger](#dsl_ode_trigger_custom_new) are available for use with C++ only and not Python at this time.
+
 **Parameters**
 * `buffer` - [in] pointer to frame buffer containing the Metadata for the object detected.
 * `frame_meta` - [in] opaque pointer to a frame_meta structure that triggered the ODE event.
@@ -324,6 +326,7 @@ DslReturnType dsl_ode_trigger_custom_new(const wchar_t* name, const wchar_t* sou
 
 The constructor creates a Uniquely named Custom Trigger that checks for the occurrence of Objects within a frame that meets the Triggers criteria and calls a Callback function that allows the client to customize the Trigger. The Callback function is called with the buffer
 
+**IMPORTANT!** This Trigger is only available for use with C++ and not with Python at this time.
 
 **Parameters**
 * `name` - [in] unique name for the ODE Trigger to create.
@@ -337,10 +340,7 @@ The constructor creates a Uniquely named Custom Trigger that checks for the occu
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
-```Python
-retval = dsl_ode_trigger_custom_new('my-custom-trigger',
-        DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE, my_check_for_occurrence_cb, my_client_data)
-```
+_**not-supported**_
 
 <br>
 

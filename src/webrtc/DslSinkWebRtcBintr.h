@@ -94,12 +94,6 @@ namespace DSL
         bool CloseConnection();
 
         /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-
-        /**
          * @brief gets the current STUN and TURN server settings in use by 
          * the WebRtcSinkBintr
          * @param[out] stunServer current STUN Server setting in use

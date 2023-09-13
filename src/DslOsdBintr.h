@@ -92,17 +92,6 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Set the Stream Id - for when a child of a Source
-         * @param streamId unique Id of the Parent Stream
-         */
-        void SetStreamId(uint streamId)
-        {
-            LOG_FUNC();
-            
-            m_streamId = streamId;
-        }
-        
-        /**
          * @brief Gets the current display text enabled state for this OsdBintr.
          * @param[out] enabled true if text display is currently enabled, false otherwise.
          */
@@ -196,6 +185,18 @@ namespace DSL
          * @param[in] enabled set to true to enable mask display, false otherwise.
          */
         bool SetMaskEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current process mode for the OsdBintr.
+         * @param[out] mode 0 = CPU mode, 1 = GPU mode.
+         */
+        void GetProcessMode(uint* mode);
+
+        /**
+         * @brief Gets the current process mode for the OsdBintr.
+         * @param[in] mode set to 0 for CPU mode, 1 for GPU mode.
+         */
+        bool SetProcessMode(uint mode);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -223,15 +224,33 @@ namespace DSL
          */
         boolean m_clockEnabled;
         
+        /**
+         * @brief font name for the on-screen clock if enabled.
+         */
         std::string m_clockFont;
+
+        /**
+         * @brief font size for the on-screen clock if enabled.
+         */
         uint m_clockFontSize;
+
+        /**
+         * @brief X-offset for the on-screen clock if enabled.
+         */
         uint m_clockOffsetX;
+
+        /**
+         * @brief X-offset for the on-screen clock if enabled.
+         */
         uint m_clockOffsetY;
         
+        /**
+         * @brief RGBA clock color for the on-screen clock if enabled.
+         */
         NvOSD_ColorParams m_clockColor;
         
         /**
-         * @brief 0xRGBA value for the color of the clock if displayed
+         * @brief RGBA clock background color of the clock if enabled
          */
         uint m_clkRgbaColor;
 
@@ -253,14 +272,23 @@ namespace DSL
         boolean m_maskEnabled;
 
         /**
-         * @brief Unique streamId of Parent SourceBintr if added to Source vs. Pipeline
-         * The id is used when getting a request Pad for Src Demuxer
+         * @brief Input/vidconverter queue plugin for the OsdBintr.
          */
-        int m_streamId;
-        
         DSL_ELEMENT_PTR m_pVidConvQueue;
+
+        /**
+         * @brief Vidconverter plugin for the OsdBintr.
+         */
         DSL_ELEMENT_PTR m_pVidConv;
+
+        /**
+         * @brief OSD queue plugin for the OsdBintr.
+         */
         DSL_ELEMENT_PTR m_pOsdQueue;
+
+        /**
+         * @brief NVIDIA OSD plugin for the OsdBintr.
+         */
         DSL_ELEMENT_PTR m_pOsd;
     
     };

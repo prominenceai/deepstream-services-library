@@ -36,8 +36,6 @@ namespace DSL
         , m_isEnabled(false)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_padHandlerMutex);
     }
 
     PadProbeHandler::~PadProbeHandler()
@@ -48,7 +46,6 @@ namespace DSL
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
             RemoveAllChildren();
         }
-        g_mutex_clear(&m_padHandlerMutex);
     }
     
     bool PadProbeHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
@@ -108,6 +105,55 @@ namespace DSL
         }
         m_isEnabled = enabled;
         return true;
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    SourceIdOffsetterPadProbeHandler::SourceIdOffsetterPadProbeHandler(
+        const char* name, uint offset)
+        : PadProbeHandler(name)
+        , m_offset(offset)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+    
+    SourceIdOffsetterPadProbeHandler::~SourceIdOffsetterPadProbeHandler()
+    {
+        LOG_FUNC();
+    }
+
+    GstPadProbeReturn SourceIdOffsetterPadProbeHandler::HandlePadData(
+        GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
+        
+        NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        
+        // For each frame in the batched meta data
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
+            pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
+        {
+            // Check for valid frame data
+            NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*)(pFrameMetaList->data);
+            if (pFrameMeta != NULL)
+            {
+                // update the source_id with the unique offset. 
+                pFrameMeta->source_id = (pFrameMeta->source_id | m_offset);
+            }
+        }
+        return GST_PAD_PROBE_OK;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -844,8 +890,6 @@ namespace DSL
         , m_nextHanlderIndex(0)
     {
         LOG_FUNC();
-        
-        g_mutex_init(&m_padProbeMutex);
     }
 
     PadProbetr::~PadProbetr()
@@ -864,8 +908,6 @@ namespace DSL
             }
             gst_object_unref(m_pStaticPad);
         }
-
-        g_mutex_clear(&m_padProbeMutex);
     }
 
     bool PadProbetr::AddPadProbeHandler(DSL_BASE_PTR pPadProbeHandler)

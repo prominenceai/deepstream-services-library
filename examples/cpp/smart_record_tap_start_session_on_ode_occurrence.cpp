@@ -294,9 +294,10 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
     // ComponentNames components(source); 
     void* ptrClientData = reinterpret_cast<void*>(clientdata);   
     
-    // For each camera, create a new RTSP Source for the specific RTSP URI    
+    // For each camera, create a new RTSP Source for the specific RTSP URI
+    // latency = 2000ms, timeout=2s.
     retval = dsl_source_rtsp_new(clientdata->source.c_str(), clientdata->url.c_str(), 
-        DSL_RTP_ALL, false, 0, 100, 2);    
+        DSL_RTP_ALL, false, 0, 2000, 2);    
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // New record tap created with our common RecordComplete callback
@@ -402,9 +403,8 @@ int main(int argc, char** argv)
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Tiled Display, setting width and height, 
-        // use default cols/rows set by source count    
-        retval = dsl_tiler_new(L"tiler", TILER_WIDTH, TILER_HEIGHT);
+        // # New OSD with text, clock, bboxs enabled, mask display disabled
+        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Object Detection Event (ODE) Pad Probe Handler (PPH) 
@@ -412,22 +412,31 @@ int main(int argc, char** argv)
         retval = dsl_pph_ode_new(L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Add the ODE Pad Probe Handler to the Sink Pad of the Tiler    
-        retval = dsl_tiler_pph_add(L"tiler", L"ode-handler", DSL_PAD_SINK);
+        // Add the ODE Pad Probe Handler to the Sink Pad of the OSD    
+        retval = dsl_tiler_pph_add(L"on-screen-display", L"ode-handler", DSL_PAD_SINK);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New OSD with text, clock, bboxs enabled, mask display disabled
-        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
+        // New Overlay Sink, 0 x/y offsets and dimensions.    
         retval = dsl_sink_window_new(L"window-sink",
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+            xwindow_key_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+            xwindow_delete_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+    
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"primary-gie", L"iou-tracker", 
-            L"tiler", L"on-screen-display", L"window-sink", nullptr};
+            L"on-screen-display", L"window-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -449,15 +458,6 @@ int main(int argc, char** argv)
 //        ClientData camera4(L"src-4", src_url_4.c_str());
 //        retval = CreatePerSourceComponents(L"pipeline", &camera4, L"ode-handler");
 //        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the XWindow event handler functions defined above    
-        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
-            xwindow_key_event_handler, nullptr);    
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", 
-            xwindow_delete_event_handler, nullptr);
-        if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", 

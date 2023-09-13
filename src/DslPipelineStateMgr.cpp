@@ -40,9 +40,6 @@ namespace DSL
 
         _initMaps();
 
-        g_mutex_init(&m_busWatchMutex);
-        g_mutex_init(&m_lastErrorMutex);
-        
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
 
         // Add the bus-watch and callback function to the default main context
@@ -59,9 +56,6 @@ namespace DSL
         }
         gst_bus_remove_watch(m_pGstBus);
         gst_object_unref(m_pGstBus);
-
-        g_mutex_clear(&m_busWatchMutex);
-        g_mutex_clear(&m_lastErrorMutex);
     }
 
     bool PipelineStateMgr::NewMainLoop()
@@ -105,10 +99,6 @@ namespace DSL
         // the Pipeline's own main-context created above.
         g_source_set_callback(m_pBusWatch, (GSourceFunc)bus_watch, this, NULL);
         g_source_attach(m_pBusWatch, m_pMainContext);
-        
-        // Initialize the mutex and condition for the two main-loop run and quit thread.
-        g_mutex_init(&m_mainLoopMutex);
-        g_cond_init(&m_mainLoopCond);
         
         return true;
     }
@@ -187,8 +177,6 @@ namespace DSL
         m_pBusWatch = NULL;
         m_pMainLoop = NULL;
         m_pMainContext = NULL;
-        g_mutex_init(&m_mainLoopMutex);
-        g_cond_init(&m_mainLoopCond);
 
         // re-install the watch function for the message bus with the default 
         // main-context - setting it back to its default state.
@@ -291,26 +279,92 @@ namespace DSL
     bool PipelineStateMgr::HandleBusWatchMessage(GstMessage* pMessage)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_busWatchMutex);
-        
+
+        GstClockTime clockTime;
+        GstStreamStatusType statusType;
+        GstElement* pElement(NULL);
+        GstFormat format(GST_FORMAT_UNDEFINED);
+        guint64 processed(0);
+        guint64 dropped(0);
+        GError* error(NULL);
+        gchar* debugInfo(NULL);
+        gint percent(0);
+        gchar* propertyName(NULL);
+        GstProgressType progressType(GST_PROGRESS_TYPE_ERROR);
+        gchar* code;
+        gchar* text;
+
+        const gchar* name = gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage));
+
         switch (GST_MESSAGE_TYPE(pMessage))
         {
-        case GST_MESSAGE_ELEMENT:
-        case GST_MESSAGE_STREAM_STATUS:
-        case GST_MESSAGE_DURATION_CHANGED:
-        case GST_MESSAGE_QOS:
-        case GST_MESSAGE_NEW_CLOCK:
         case GST_MESSAGE_ASYNC_DONE:
-            LOG_INFO("Message type:: " 
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            gst_message_parse_async_done(pMessage, &clockTime);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   time      : " << clockTime);
             break;
-        case GST_MESSAGE_TAG:
+            
+        case GST_MESSAGE_STREAM_STATUS:
+            gst_message_parse_stream_status(pMessage, &statusType, &pElement);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   type      : " << statusType);
+            LOG_INFO("   element   : " << GST_ELEMENT_NAME(pElement));
             break;
+            
+        case GST_MESSAGE_QOS:
+            gst_message_parse_qos_stats(pMessage, &format, &processed, &dropped);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   format    : " << gst_format_get_name(format));
+            LOG_INFO("   processed : " << processed);
+            LOG_INFO("   dropped   : " << dropped);
+            break;
+            
+        case GST_MESSAGE_BUFFERING:
+            gst_message_parse_buffering(pMessage, &percent);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   percent   : " << percent);
+            break;
+            
+        case GST_MESSAGE_LATENCY:
+            LOG_INFO("Message type : " << name);
+            break;
+            
+        case GST_MESSAGE_PROGRESS:
+            gst_message_parse_progress(pMessage,
+                &progressType, &code, &text);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
+            LOG_INFO("   type      : " << progressType);
+            LOG_INFO("   code      : " << code);
+            LOG_INFO("   text      : " << text);
+            break;
+            
+        case GST_MESSAGE_INFO:
+            gst_message_parse_info(pMessage, &error, &debugInfo);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   info      : " << error->message);
+            if(debugInfo)
+                LOG_INFO("   debug     : " << debugInfo);
+            g_error_free(error);
+            g_free(debugInfo);
+            break;
+
+        case GST_MESSAGE_WARNING:
+            gst_message_parse_warning(pMessage, &error, &debugInfo);
+            LOG_INFO("Message type : " << name);
+            LOG_INFO("   warning   : " << error->message);
+            if(debugInfo)
+                LOG_INFO("   debug     : " << debugInfo);
+            g_error_free(error);
+            g_free(debugInfo);
+            break;
+            
         case GST_MESSAGE_EOS:
             HandleEosMessage(pMessage);
-            break;
-        case GST_MESSAGE_INFO:
-            break;
-        case GST_MESSAGE_WARNING:
             break;
         case GST_MESSAGE_ERROR:
             HandleErrorMessage(pMessage);            
@@ -321,10 +375,16 @@ namespace DSL
         case GST_MESSAGE_APPLICATION:
             HandleApplicationMessage(pMessage);
             break;
+
+        case GST_MESSAGE_ELEMENT:
+        case GST_MESSAGE_DURATION_CHANGED:
+        case GST_MESSAGE_NEW_CLOCK:
+        case GST_MESSAGE_TAG:
+            break;
         default:
-            LOG_INFO("Unhandled message type:: " 
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Unhandled message type:: " << name);
         }
+        
         return true;
     }
 

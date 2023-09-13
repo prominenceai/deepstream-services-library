@@ -171,10 +171,11 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        LOG_DEBUG("Setting GPU ID to '" << m_gpuId 
-            << "' for DewarperBintr '" << m_name << "'");
-
         m_pDewarper->SetAttribute("gpu-id", m_gpuId);
+
+        LOG_INFO("DewarperBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+            
         return true;
     }
 

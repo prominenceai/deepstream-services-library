@@ -148,6 +148,30 @@ namespace DSL
             LOG_FUNC();
             
             g_object_get(GetGObject(), name, value, NULL);
+            
+            if (value)
+            {
+                LOG_DEBUG("Attribute '" << name 
+                    << "' returned string '" << *value << "'");
+            }
+            else
+            {
+                LOG_DEBUG("Attribute '" << name 
+                    << "' returned NULL");
+            }
+        }
+
+        /**
+         * @brief Gets a GST Element's attribute of type gint64, 
+         * owned by this Elementr
+         * @param[in] name name of the attribute to get
+         * @param[out] value uint64_t value to get the attribute
+         */
+        void GetAttribute(const char* name, gint64* value)
+        {
+            LOG_FUNC();
+            
+            g_object_get(GetGObject(), name, value, NULL);
 
             LOG_DEBUG("Attribute '" << name 
                 << "' returned string '" << *value << "'");
@@ -166,7 +190,7 @@ namespace DSL
             g_object_get(GetGObject(), name, value, NULL);
 
             LOG_DEBUG("Attribute '" << name 
-                << "' returned string '" << *value << "'");
+                << "' returned uint64_t '" << *value << "'");
         }
 
         /**
@@ -180,7 +204,7 @@ namespace DSL
             LOG_FUNC();
             
             LOG_DEBUG("Setting attribute '" << name 
-                << "' to uint value '" << value << "'");
+                << "' to int value '" << value << "'");
             
             g_object_set(GetGObject(), name, value, NULL);
         }
@@ -217,6 +241,22 @@ namespace DSL
             g_object_set(GetGObject(), name, value, NULL);
         }
         
+        /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of gint64
+         * @param[in] name name of the attribute to set
+         * @param[in] value unsigned integer value to set the attribute
+         */
+        void SetAttribute(const char* name, gint64 value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to uint value '" << value << "'");
+            
+            g_object_set(GetGObject(), name, value, NULL);
+        }
+
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * value of uint64_t

@@ -80,6 +80,7 @@ namespace DSL
     
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
+        , m_uniqueId(-1)  // unassigned until added to a Pipeline
         , m_cudaDeviceProp{0}
         , m_isLive(true)
         , m_fpsN(0)
@@ -87,9 +88,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Set the stream-id of the unique Source name
-        SetId(Services::GetServices()->_sourceNameSet(name));
-        
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
 
@@ -103,8 +101,6 @@ namespace DSL
         {    
             UnlinkAll();
         }
-        
-        Services::GetServices()->_sourceNameErase(GetCStrName());
     }
 
     bool SourceBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -141,12 +137,16 @@ namespace DSL
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
     
+    //--------------------------------------------------------------------------------
+    
     VideoSourceBintr::VideoSourceBintr(const char* name)
         : SourceBintr(name)
         , m_width(0)
         , m_height(0)
         , m_bufferOutWidth(0)
         , m_bufferOutHeight(0)
+        , m_bufferOutFpsN(0)
+        , m_bufferOutFpsD(0)
         , m_bufferOutOrientation(DSL_VIDEO_ORIENTATION_NONE)
     {
         LOG_FUNC();
@@ -174,20 +174,21 @@ namespace DSL
         
         // ---- Caps Filter Setup
 
-        m_pBufferOutCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+        m_pBufferOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
+            name, "vidconv");
         
         SetBufferOutFormat(m_bufferOutFormat.c_str());
 
         // ---- SinkQueue as ghost pad to connect to Streammuxer
         
-        m_pSourceQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
         
         // add both elementrs as children to this Bintr
         AddChild(m_pBufferOutVidConv);
         AddChild(m_pBufferOutCapsFilter);
         AddChild(m_pSourceQueue);
 
-        // buffer-out caps filter is "src" ghost-pad for all SourceBintrs
+        // Source (output) queue is "src" ghost-pad for all SourceBintrs
         m_pSourceQueue->AddGhostPadToParent("src");
         
         std::string padProbeName = GetName() + "-src-pad-probe";
@@ -203,78 +204,145 @@ namespace DSL
     bool VideoSourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
     {
         LOG_FUNC();
+        
+        // If we're duplicating this source stream.
+        if (m_pDuplicateSourceTee)
+        {
+            // We link the upstream source element (input parameter) to the
+            // DuplicateSourceTee
+            if (!pSrcNodetr->LinkToSink(m_pDuplicateSourceTee) or
+                !m_pDuplicateSourceTeeQueue->LinkToSourceTee(
+                    m_pDuplicateSourceTee, "src_%u") or
+                !m_pDuplicateSourceTeeQueue->LinkToSink(m_pBufferOutVidConv))
+            {
+                return false;
+            }
+            // Add the queue as first element to the vector of linked elements
+            m_linkedCommonElements.push_back(m_pDuplicateSourceTeeQueue);
 
-        if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv) or
-            !m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
-        {
-            return false;
-        }
-        if (HasDewarperBintr())
-        {
-            if (!m_pDewarperBintr->LinkAll() or
-                !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
-                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            // Link all Duplicate Sources to the Duplicate Source Tee.
+            if (!linkAllDuplicates())
             {
                 return false;
             }
         }
         else
         {
-            if (!m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
+            // We link the upstream source element (input parameter) to the
+            // videoconvert
+            if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv))
             {
                 return false;
             }
         }
-        return true;
+        return CompleteLinkToCommon();
     }
 
     bool VideoSourceBintr::LinkToCommon(GstPad* pSrcPad)
     {
         LOG_FUNC();
 
-        GstPad* pStaticSinkPad;
-
-        pStaticSinkPad = gst_element_get_static_pad(
-            m_pBufferOutVidConv->GetGstElement(), "sink");
-
-        if (!pStaticSinkPad)
+        // If we're duplicating this source stream.
+        if (m_pDuplicateSourceTee)
         {
-            LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
-                << GetName() << "'");
-            return false;
-        }
-        if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
-        {
-            LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
-                << GetName() << "'");
-            return false;
-        }
-        gst_object_unref(pStaticSinkPad);
-
-        if (!m_pBufferOutVidConv->LinkToSink(m_pBufferOutCapsFilter))
-        {
-            return false;
-        }
-         
-        if (HasDewarperBintr())
-        {
-            if (!m_pDewarperBintr->LinkAll() or
-                !m_pBufferOutCapsFilter->LinkToSink(m_pDewarperBintr) or
-                !m_pDewarperBintr->LinkToSink(m_pSourceQueue))
+            // Static SinkPad for duplicating tee
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                    m_pDuplicateSourceTee->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
             {
-                LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
+                LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
                     << GetName() << "'");
+                return false;
+            }
+            if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+            {
+                LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
+                    << GetName() << "'");
+                return false;
+            }
+            // We link the upstream source element (input parameter) to the
+            // DuplicateSourceTee
+            if (!m_pDuplicateSourceTeeQueue->LinkToSourceTee(
+                    m_pDuplicateSourceTee, "src_%u") or
+                !m_pDuplicateSourceTeeQueue->LinkToSink(m_pBufferOutVidConv))
+            {
+                return false;
+            }
+            // Add the queue as first element to the vector of linked elements
+            m_linkedCommonElements.push_back(m_pDuplicateSourceTeeQueue);
+            
+            // Link all Duplicate Sources to the Duplicate Source Tee.
+            if (!linkAllDuplicates())
+            {
                 return false;
             }
         }
         else
         {
-            if(!m_pBufferOutCapsFilter->LinkToSink(m_pSourceQueue))
+            // Static SinkPad for videoconverter
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_pBufferOutVidConv->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+            {
+                LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
+                    << GetName() << "'");
+                return false;
+            }
+            gst_object_unref(pStaticSinkPad);
+        }
+        return CompleteLinkToCommon();
+    }
+    
+    bool VideoSourceBintr::CompleteLinkToCommon()
+    {
+        
+        // Add the videoconvert as first element to the vector of common elements
+        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
+        
+        if (m_pBufferOutVidRate)
+        {
+            // If viderate was created we link the videoconvert to it now
+            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
             {
                 return false;
             }
+            // Add the videorate to the vector of common elements
+            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
+
+        }            
+        // next we can link the last element in the vector to the capsfilter
+        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
+        m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
+         
+        // If the VideoSource has a dewarper, link it in next 
+        if (HasDewarperBintr())
+        {
+            if (!m_pDewarperBintr->LinkAll() or
+                !m_linkedCommonElements.back()->LinkToSink(m_pDewarperBintr))
+            {
+                LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            m_linkedCommonElements.push_back(m_pDewarperBintr);
         }
         
+        // Link to the final queue element - the source-ghost-pad for the bintr.
+        // IMPORTANT we don't add the queue to vector of linked elements.
+        // as we'll call UnlinkFromSink on each element.
+        if(!m_linkedCommonElements.back()->LinkToSink(m_pSourceQueue))
+        {
+            return false;
+        }
         return true;
     }
 
@@ -282,14 +350,179 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pBufferOutVidConv->UnlinkFromSink();
-        m_pBufferOutCapsFilter->UnlinkFromSink();
-        
-        if (HasDewarperBintr())
+        // iterate through the list of linked Elements, unlinking each
+        for (auto const& ivec: m_linkedCommonElements)
         {
-            m_pDewarperBintr->UnlinkFromSink();
-            m_pDewarperBintr->UnlinkAll();
+            ivec->UnlinkFromSink();
         }
+        m_linkedCommonElements.clear();
+
+        // If we're duplicating this source stream.
+        if (m_pDuplicateSourceTee)
+        {
+            m_pDuplicateSourceTeeQueue->UnlinkFromSourceTee();
+            unlinkAllDuplicates();
+        }
+    }
+
+    bool VideoSourceBintr::linkAllDuplicates()
+    {
+        LOG_FUNC();
+        
+        uint index(1);
+        for (const auto& imap: m_duplicateSources)
+        {
+            // For each duplicate source, we need to request a new source pad
+            // from the Duplicate-Source Tee element.
+            GstPad* pRequestedSrcPad = gst_element_get_request_pad(
+                m_pDuplicateSourceTee->GetGstElement(), "src_%u");
+            if (!pRequestedSrcPad)
+            {
+                LOG_ERROR("Failed to get a requested source pad from Tee '" 
+                    << m_pDuplicateSourceTee->GetName() <<"'");
+                return false;
+            }
+            // We must save the Requested source pad so we can release it 
+            // in the helper function UnlinkAllDuplicates below
+            m_requestedDuplicateSrcPads.push_back(pRequestedSrcPad);
+            
+            LOG_INFO("New request pad = " << std::hex << pRequestedSrcPad
+                << " allocated from Tee '" 
+                << m_pDuplicateSourceTee->GetName() << "'");
+            
+            // Next, we must elevate the requested pad so that it can be linked
+            // to the Sink pad of the DuplicateSourceBintr. We do this be creating
+            // a ghost pad from the requested pad, then active it and add it to  
+            // Tee's parent, i.e. this VideoSourceBintr's gst-bin.
+        
+            // start by creating a new, unique name for the new ghost pad.
+            std::string padName = "src_" + std::to_string(index);
+
+            GstPad* pGhostPad = gst_ghost_pad_new(padName.c_str(), 
+                pRequestedSrcPad);
+            if (!pGhostPad)
+            {
+                LOG_ERROR("Failed to create a ghost pad for requested source pad = "
+                    << std::hex << pRequestedSrcPad);
+                return false;
+            }
+            gst_pad_set_active(pGhostPad, TRUE);
+                
+            if (!gst_element_add_pad(GetGstElement(), pGhostPad))
+            {
+                LOG_ERROR("Failed to add new ghost pad '" << padName 
+                    << "' to Original Source'" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("New ghost pad = " << std::hex << pGhostPad
+                << " allocated for request pad = " 
+                << std::hex << pRequestedSrcPad 
+                << "' added to Original Source '" << GetName() << "'");
+            
+            // We can now get the newly added/elevated source pad by name
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                GetGstElement(), padName.c_str()); 
+                
+            // Along with the elevated static sink pad for the DuplicateSourceBintr    
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                imap.second->GetGstElement(), "sink");
+            
+            // and link them together... with a new stream now splitting
+            // off from the original.
+            if (gst_pad_link(pStaticSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("Original Source '" << GetName() 
+                    << "' failed to link to Duplicate Source '"
+                    << imap.second->GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Original Source '" << GetName() 
+                << "' linked to Duplicate Source '" << imap.second->GetName()
+                << "' successfully");
+            
+            // Need to unreference the pointers to the static source and sink pads.
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pStaticSinkPad);
+            
+            index++;
+        }
+        return true;
+    }
+
+    bool VideoSourceBintr::unlinkAllDuplicates()
+    {
+        LOG_FUNC();
+        
+        uint index(1);
+        for (const auto& imap: m_duplicateSources)
+        {
+            // for each duplicate source, get the elevated static pad for
+            // the added ghost pad for duplicate-source-tee element
+            std::string padName = "src_" + std::to_string(index);
+            
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                GetGstElement(), padName.c_str()); 
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Original Source '" << GetName() 
+                    << "' failed to get static source pad");
+                return false;
+            }
+            
+            // get the static sink for the Duplicate Source so we can unlink it
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                imap.second->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Duplicate Source '" << imap.second->GetName() 
+                    << "' failed to get static sink pad");
+                return false;
+            }
+            
+            // unlink the Original Source From the Duplicate Source
+            if (gst_pad_is_linked(pStaticSinkPad) and
+                (!gst_pad_unlink(pStaticSrcPad, pStaticSinkPad)))
+            {
+                LOG_ERROR("Original Source '" << GetName() 
+                    << "' failed to unlink from Duplicate Source '"
+                    << imap.second->GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Original Source '" << GetName() 
+                << "' unlinked from Duplicate Source '" << imap.second->GetName()
+                << "' successfully");
+            
+            // Need to remove the elevated ghost pad this Origian Sources's gst-bin. 
+            if (!gst_element_remove_pad(GetGstElement(), pStaticSrcPad))
+            {
+                LOG_ERROR("Failed to remove pad '" << padName 
+                    << "' from Original Source'" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Elevated static pad '" << padName 
+                << "' removed from Original Source'" << GetName() << "'");
+
+            // unreference the static pad pointers. 
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pStaticSinkPad);
+
+            // Finally, we need to release and unref the requested pad (the one 
+            // that was ghosted) back to the duplicate-souce-tee
+            GstPad* pRequestedSrcPad = m_requestedDuplicateSrcPads[index-1];
+            
+            LOG_INFO("Releasing and unreferencing requested source pad = " 
+                << pRequestedSrcPad << " for Tee '" 
+                << m_pDuplicateSourceTee->GetName() << "'");
+
+            gst_element_release_request_pad(m_pDuplicateSourceTee->GetGstElement(), 
+                pRequestedSrcPad);
+            gst_object_unref(pRequestedSrcPad);
+            
+            index++;
+        }
+        // Clear out the vector of requested (now unreferenced) source pads
+        m_requestedDuplicateSrcPads.clear();
+        return true;
     }
 
     void VideoSourceBintr::GetDimensions(uint* width, uint* height)
@@ -313,7 +546,7 @@ namespace DSL
 
         m_bufferOutFormat = format;
         
-        updateCaps();
+        updateVidConvCaps();
 
         return true;
     }
@@ -332,14 +565,57 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" << GetName() 
-                << "' as it is currently in a linked state");
+            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
             return false;
         }
         m_bufferOutWidth = width;
         m_bufferOutHeight = height;
         
-        updateCaps();
+        updateVidConvCaps();
+        
+        return true;
+    }
+    
+    void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
+    {
+        LOG_FUNC();
+        
+        *fpsN = m_bufferOutFpsN;
+        *fpsD = m_bufferOutFpsD;
+    }
+    
+    bool VideoSourceBintr::SetBufferOutFrameRate(uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-frame-rate for VideoSourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutFpsN = fpsN;
+        m_bufferOutFpsD = fpsD;
+        
+        // if we're scaling the output frame-rate and there is no viderate element.
+        if (fpsN and fpsD and !m_pBufferOutVidRate)
+        {
+            // time to create the viderate now
+            m_pBufferOutVidRate = DSL_ELEMENT_NEW("videorate", GetCStrName());
+            
+            AddChild(m_pBufferOutVidRate);
+        }
+        // if we're not scalling and the viderate element has already been created.
+        else if ((!fpsN or !fpsD) and m_pBufferOutVidRate)
+        {
+            RemoveChild(m_pBufferOutVidRate);
+
+            // delete the viderate element now
+            m_pBufferOutVidRate = nullptr;
+        }
+        // Update the output-buffer's caps filter now
+        updateVidConvCaps();
         
         return true;
     }
@@ -445,6 +721,26 @@ namespace DSL
         return true;
     }
 
+    bool VideoSourceBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set GPU ID for VideoSourceBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+        m_pBufferOutVidConv->SetAttribute("gpu-id", m_gpuId);
+        
+        LOG_INFO("VideoSourceBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+        
+        return true;
+    }
+
     bool VideoSourceBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
@@ -461,19 +757,37 @@ namespace DSL
 
         return true;
     }
+
     
-    bool VideoSourceBintr::updateCaps()
+    bool VideoSourceBintr::updateVidConvCaps()
     {
         LOG_FUNC();
 
         GstCaps* pCaps(NULL);
         
-        if (m_bufferOutWidth and m_bufferOutHeight)
+        if (m_bufferOutWidth and m_bufferOutHeight and 
+            m_bufferOutFpsN and m_bufferOutFpsD)
         {
             pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
                 "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
                 "width", G_TYPE_INT, m_bufferOutWidth, 
                 "height", G_TYPE_INT, m_bufferOutHeight,
+                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
+                NULL);
+        }
+        else if (m_bufferOutWidth and m_bufferOutHeight)
+        {
+            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                "width", G_TYPE_INT, m_bufferOutWidth, 
+                "height", G_TYPE_INT, m_bufferOutHeight,
+                NULL);
+        }
+        else if (m_bufferOutFpsN and m_bufferOutFpsD)
+        {
+            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
+                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
+                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
                 NULL);
         }
         else
@@ -509,7 +823,8 @@ namespace DSL
         
         if (m_pDewarperBintr)
         {
-            LOG_ERROR("VideoSourceBintr '" << GetName() << "' allready has a Dewarper");
+            LOG_ERROR("VideoSourceBintr '" << GetName() 
+                << "' allready has a Dewarper");
             return false;
         }
         m_pDewarperBintr = std::dynamic_pointer_cast<DewarperBintr>(pDewarperBintr);
@@ -540,6 +855,173 @@ namespace DSL
         return (m_pDewarperBintr != nullptr);
     }
     
+    bool VideoSourceBintr::AddDuplicateSource(
+        DSL_VIDEO_SOURCE_PTR pDuplicateSource)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to add DuplicateSourceBintr '"
+                << pDuplicateSource->GetName() << "' to VideoSourceBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        // ensure uniqueness 
+        if (m_duplicateSources.find(pDuplicateSource->GetName()) 
+            != m_duplicateSources.end())
+        {   
+            LOG_ERROR("DuplicateSourceBintr '" << pDuplicateSource->GetName()
+                << "' has been previously added to VideoSourceBintr '"
+                << GetName() << "' and cannot be added again");
+            return false;
+        }
+        // if this is the first DuplicateSourceBintr to be added, then we need
+        // to create the required Tee and Queue elements to support duplicates.
+        if (!m_duplicateSources.size())
+        {
+            m_pDuplicateSourceTee = DSL_ELEMENT_EXT_NEW("tee", 
+                GetCStrName(), "duplicate");
+            m_pDuplicateSourceTeeQueue = DSL_ELEMENT_EXT_NEW("queue", 
+                GetCStrName(), "duplicate");
+                
+            AddChild(m_pDuplicateSourceTee);
+            AddChild(m_pDuplicateSourceTeeQueue);
+        }
+        // add the duplicate to the map of duplicates for this VideoSourceBintr
+        m_duplicateSources[pDuplicateSource->GetName()] = pDuplicateSource;
+        return true;
+    }
+    
+    bool VideoSourceBintr::RemoveDuplicateSource(
+        DSL_VIDEO_SOURCE_PTR pDuplicateSource)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Unable to remove DuplicateSourceBintr '"
+                << pDuplicateSource->GetName() << "' from VideoSourceBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        // ensure exists
+        if (m_duplicateSources.find(pDuplicateSource->GetName()) 
+            == m_duplicateSources.end())
+        {   
+            LOG_ERROR("DuplicateSourceBintr '" << pDuplicateSource->GetName()
+                << "' has not been previously added to VideoSourceBintr '"
+                << GetName() << "' and cannot removed");
+            return false;
+        }
+        
+        // remove the duplicate from the map of duplicates for this VideoSourceBintr
+        m_duplicateSources.erase(pDuplicateSource->GetName());
+        
+        // if this was the last DuplicateSourceBintr to be remove, then we need
+        // to delete the Tee and Queue elements used to support duplicates.
+        if (!m_duplicateSources.size())
+        {
+            RemoveChild(m_pDuplicateSourceTee);
+            RemoveChild(m_pDuplicateSourceTeeQueue);
+            m_pDuplicateSourceTee = nullptr;
+            m_pDuplicateSourceTeeQueue = nullptr;
+        }
+        
+        return true;
+    }
+    
+    //*********************************************************************************
+    DuplicateSourceBintr::DuplicateSourceBintr(const char* name, 
+            const char* original, bool isLive)
+        : VideoSourceBintr(name) 
+        , m_original(original)
+    {
+        LOG_FUNC();
+        
+        m_isLive = isLive;
+        
+        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "sink-pad");
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for DuplicateSourceBintr '" << name << "'");
+        LOG_INFO("  original-source   : " << m_original);
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+
+        // add all elementrs as childer to this Bintr
+        AddChild(m_pSinkQueue);
+
+        // Sink (input) queue is "sink" ghost-pad for the DuplicateSourceBintr
+        m_pSinkQueue->AddGhostPadToParent("sink");
+    }
+
+    DuplicateSourceBintr::~DuplicateSourceBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool DuplicateSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("DuplicateSourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        
+        if (!LinkToCommon(m_pSinkQueue))
+        {
+            return false;
+        }
+        
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void DuplicateSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("DuplicateSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        m_pSinkQueue->UnlinkFromSink();
+        UnlinkCommon();
+        m_isLinked = false;
+    }
+
+    const char* DuplicateSourceBintr::GetOriginal()
+    {
+        LOG_FUNC();
+        
+        return m_original.c_str();
+    }
+    
+    void DuplicateSourceBintr::SetOriginal(const char* original)
+    {
+        LOG_FUNC();
+        
+        m_original = original;
+    }
+
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
             const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
@@ -618,6 +1100,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -629,15 +1113,11 @@ namespace DSL
 
         // add all elementrs as childer to this Bintr
         AddChild(m_pSourceElement);
-
-        g_mutex_init(&m_dataHandlerMutex);
     }
 
     AppSourceBintr::~AppSourceBintr()
     {
         LOG_FUNC();
-        
-        g_mutex_clear(&m_dataHandlerMutex);
     }
     
     bool AppSourceBintr::LinkAll()
@@ -1064,6 +1544,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -1184,6 +1666,7 @@ namespace DSL
         m_fpsD = fpsD;
         
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
+        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         // Find the first available unique device-id
         while(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
@@ -1204,6 +1687,13 @@ namespace DSL
 
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+        
+        // Set the full capabilities (format, dimensions, and framerate)
+        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
+            m_width, m_height, m_fpsN, m_fpsD, false))
+        {
+            throw;
+        }
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -1225,11 +1715,14 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
+        AddChild(m_pSourceCapsFilter);
     }
 
     UsbSourceBintr::~UsbSourceBintr()
@@ -1255,7 +1748,8 @@ namespace DSL
         // x86_64
         if (!m_cudaDeviceProp.integrated)
         {
-            if (!m_pSourceElement->LinkToSink(m_pdGpuVidConv) or 
+            if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
+                !m_pSourceCapsFilter->LinkToSink(m_pdGpuVidConv) or 
                 !LinkToCommon(m_pdGpuVidConv))
             {
                 return false;
@@ -1263,7 +1757,8 @@ namespace DSL
         }
         else // aarch_64
         {
-            if (!LinkToCommon(m_pSourceElement))
+            if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
+                !LinkToCommon(m_pSourceCapsFilter))
             {
                 return false;
             }
@@ -1285,6 +1780,7 @@ namespace DSL
         
         // x86_64
         m_pSourceElement->UnlinkFromSink();
+        m_pSourceCapsFilter->UnlinkFromSink();
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -1376,9 +1872,6 @@ namespace DSL
         
         m_isLive = isLive;
         
-        // Initialize the mutex regardless of IsLive or not
-        g_mutex_init(&m_repeatEnabledMutex);
-
         m_pSourceElement = DSL_ELEMENT_NEW("uridecodebin", name);
         
         if (!SetUri(uri))
@@ -1411,6 +1904,8 @@ namespace DSL
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
         LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
@@ -1422,8 +1917,6 @@ namespace DSL
     UriSourceBintr::~UriSourceBintr()
     {
         LOG_FUNC();
-
-        g_mutex_clear(&m_repeatEnabledMutex);
     }
 
     bool UriSourceBintr::SetUri(const char* uri)
@@ -1878,6 +2371,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2040,6 +2535,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2206,6 +2703,7 @@ namespace DSL
         m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "source");
         m_pImageOverlay = DSL_ELEMENT_NEW("gdkpixbufoverlay", name); 
 
+        m_pSourceElement->SetAttribute("is-live", m_isLive); 
         m_pSourceElement->SetAttribute("pattern", 2); // 2 = black
         
         if(uri and !SetUri(uri))
@@ -2226,6 +2724,8 @@ namespace DSL
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
         LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
@@ -2235,15 +2735,11 @@ namespace DSL
         AddChild(m_pSourceCapsFilter);
         AddChild(m_pImageOverlay);
 
-        g_mutex_init(&m_timeoutTimerMutex);
-
     }
     
     ImageStreamSourceBintr::~ImageStreamSourceBintr()
     {
         LOG_FUNC();
-        
-        g_mutex_clear(&m_timeoutTimerMutex);
     }
 
     bool ImageStreamSourceBintr::SetUri(const char* uri)
@@ -2425,18 +2921,20 @@ namespace DSL
         LOG_INFO("  accept-eos-event    : " << m_acceptEos);
         LOG_INFO("  accept-events       : " << m_acceptEvents);
         LOG_INFO("  allow-renegotiation : " << TRUE);
-        LOG_INFO("  width             : " << m_width);
-        LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  fps-n             : " << m_fpsN);
-        LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  width               : " << m_width);
+        LOG_INFO("  height              : " << m_height);
+        LOG_INFO("  fps-n               : " << m_fpsN);
+        LOG_INFO("  fps-d               : " << m_fpsD);
+        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out          : ");
+        LOG_INFO("    format            : " << m_bufferOutFormat);
+        LOG_INFO("    width             : " << m_bufferOutWidth);
+        LOG_INFO("    height            : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
+        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2551,22 +3049,49 @@ namespace DSL
         , m_previousState(GST_STATE_NULL)
         , m_listenerNotifierTimerId(0)
     {
+        // ---------------------------------------------------------------------------
+        // The RTSP Source is linked in one of two ways depending on whether
+        // A tap-bintr has been added or not.
+        //
+        // With tap-bintr, the parser is added between the depay and the recordbin
+        // as discussed here: https://forums.developer.nvidia.com/t/questions-re-differences-between-rtsp-source-in-deepstream-source-bin-c-deepstream-test-sr-app-c/245307/6
+        // The decoder will do its own parsing in this case.
+        //
+        //                           |->queue->decoder->[common-elements]->
+        //        rtcpsrc->depay->tee
+        //                           |->parser->tap-bintr
+        //
+        // Without tap-bintr, we add capsfilter->parser to main stream. This is to 
+        // support RTSP Sources that are forwarded trough streaming services. These
+        // sources will NOT be able to connect with a tap-bintr as above.
+        //
+        //        rtcpsrc->depay->capsfilter->parser->decoder->[common-elements]->
+        //
+        // ---------------------------------------------------------------------------
+        
+        // update the is-live variable (initiated as false)
         m_isLive = true;
 
         // New RTSP Specific Elementrs for this Source
         m_pSourceElement = DSL_ELEMENT_NEW("rtspsrc", name);
+        
+        m_pDepayCapsfilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "depay");
         
         // Pre-decode tee is only used if there is a TapBintr
         m_pPreDecodeTee = DSL_ELEMENT_NEW("tee", name);
         m_pPreDecodeQueue = DSL_ELEMENT_EXT_NEW("queue", name, "decodebin");
         m_pPreParserQueue = DSL_ELEMENT_EXT_NEW("queue", name, "parser");
 
+        // Get the default properties
+        m_pSourceElement->GetAttribute("tls-validation-flags", 
+            &m_tlsValidationFlags);
+        m_pSourceElement->GetAttribute("drop-on-latency", &m_dropOnLatency);
+        
         // Configure the source to generate NTP sync values
         configure_source_for_ntp_sync(m_pSourceElement->GetGstElement());
         m_pSourceElement->SetAttribute("location", m_uri.c_str());
 
         m_pSourceElement->SetAttribute("latency", m_latency);
-        m_pSourceElement->SetAttribute("drop-on-latency", TRUE);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
 
         g_signal_connect (m_pSourceElement->GetGObject(), "select-stream",
@@ -2593,26 +3118,30 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RtspSourceBintr '" << name << "'");
-        LOG_INFO("  uri                 : " << m_uri);
-        LOG_INFO("  is-live             : " << m_isLive);
-        LOG_INFO("  skip-frames         : " << m_skipFrames);
-        LOG_INFO("  latency             : " << m_latency);
-        LOG_INFO("  drop-on-latency     : " << TRUE);
-        LOG_INFO("  drop-frame-interval : " << m_dropFrameInterval);
-        LOG_INFO("  width               : " << m_width);
-        LOG_INFO("  height              : " << m_height);
-        LOG_INFO("  fps-n               : " << m_fpsN);
-        LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out          : ");
-        LOG_INFO("    format            : " << m_bufferOutFormat);
-        LOG_INFO("    width             : " << m_bufferOutWidth);
-        LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
-        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
+        LOG_INFO("  uri                  : " << m_uri);
+        LOG_INFO("  is-live              : " << m_isLive);
+        LOG_INFO("  skip-frames          : " << m_skipFrames);
+        LOG_INFO("  latency              : " << m_latency);
+        LOG_INFO("  drop-on-latency      : " << m_dropOnLatency);
+        LOG_INFO("  drop-frame-interval  : " << m_dropFrameInterval);
+        LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
+        LOG_INFO("  width                : " << m_width);
+        LOG_INFO("  height               : " << m_height);
+        LOG_INFO("  fps-n                : " << m_fpsN);
+        LOG_INFO("  fps-d                : " << m_fpsD);
+        LOG_INFO("  media-out            : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out           : ");
+        LOG_INFO("    format             : " << m_bufferOutFormat);
+        LOG_INFO("    width              : " << m_bufferOutWidth);
+        LOG_INFO("    height             : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n              : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d              : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv     : 0:0:0:0" );
+        LOG_INFO("    orientation        : " << m_bufferOutOrientation);
 
         AddChild(m_pSourceElement);
+        AddChild(m_pDepayCapsfilter);
         AddChild(m_pPreDecodeTee);
         AddChild(m_pPreDecodeQueue);
         AddChild(m_pPreParserQueue);
@@ -2627,10 +3156,6 @@ namespace DSL
         m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
             "src", m_pBufferOutVidConv);
         m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
-        
-        g_mutex_init(&m_streamManagerMutex);
-        g_mutex_init(&m_reconnectionManagerMutex);
-        g_mutex_init(&m_stateChangeMutex);
         
         // Set the default connection param values
         m_connectionData.sleep = DSL_RTSP_CONNECTION_SLEEP_S;
@@ -2650,10 +3175,6 @@ namespace DSL
         // Note: don't need t worry about stopping the one-shot m_listenerNotifierTimerId
         
         m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
-        
-        g_mutex_clear(&m_streamManagerMutex);
-        g_mutex_clear(&m_reconnectionManagerMutex);
-        g_mutex_clear(&m_stateChangeMutex);
     }
     
     bool RtspSourceBintr::LinkAll()
@@ -2719,16 +3240,19 @@ namespace DSL
         
         if (m_isFullyLinked)
         {
-            m_pPreDecodeQueue->UnlinkFromSink();
             if (HasTapBintr())
             {
                 m_pPreDecodeQueue->UnlinkFromSourceTee();
                 m_pPreParserQueue->UnlinkFromSourceTee();
                 m_pPreParserQueue->UnlinkFromSink();
-                m_pParser->UnlinkFromSink();
                 m_pTapBintr->UnlinkAll();
             }
+            else
+            {
+                m_pDepayCapsfilter->UnlinkFromSink();
+            }
             m_pDepay->UnlinkFromSink();
+            m_pParser->UnlinkFromSink();
             m_pDecoder->UnlinkFromSink();
             UnlinkCommon();
         }
@@ -2863,9 +3387,79 @@ namespace DSL
         m_connectionData.count = 0;
         m_connectionData.retries = 0;
     }
+    
+    uint RtspSourceBintr::GetLatency()
+    {
+        LOG_FUNC();
 
-    bool RtspSourceBintr::AddStateChangeListener(dsl_state_change_listener_cb listener, 
-        void* userdata)
+        return m_latency;
+    }
+
+    bool RtspSourceBintr::SetLatency(uint latency)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_latency = latency;
+        m_pSourceElement->SetAttribute("latency", m_latency);
+    
+        return true;
+    }
+    
+    boolean RtspSourceBintr::GetDropOnLatencyEnabled()
+    {
+        LOG_FUNC();
+
+        return m_dropOnLatency;
+    }
+
+    bool RtspSourceBintr::SetDropOnLatencyEnabled(boolean dropOnLatency)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_dropOnLatency = dropOnLatency;
+        m_pSourceElement->SetAttribute("drop-on-latency", m_dropOnLatency);
+    
+        return true;
+    }
+    
+    guint RtspSourceBintr::GetTlsValidationFlags()
+    {
+        LOG_FUNC();
+
+        return m_tlsValidationFlags;
+    }
+    
+    bool RtspSourceBintr::SetTlsValidationFlags(uint flags)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set tls-validation-flags for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_tlsValidationFlags = flags;
+        m_pSourceElement->SetAttribute("tls-validation-flags", 
+            m_tlsValidationFlags);
+    
+        return true;
+    }
+
+    bool RtspSourceBintr::AddStateChangeListener(
+        dsl_state_change_listener_cb listener, void* userdata)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_streamManagerMutex);
@@ -2966,22 +3560,27 @@ namespace DSL
             }
             if (encoding.find("H26") != std::string::npos)
             {
+                GstCaps* pCaps;
                 if (encoding.find("H264") != std::string::npos)
                 {
                     m_pDepay = DSL_ELEMENT_NEW("rtph264depay", GetCStrName());
                     m_pParser = DSL_ELEMENT_NEW("h264parse", GetCStrName());
+                    pCaps = gst_caps_from_string("video/x-h264");
                 }
                 else if (encoding.find("H265") != std::string::npos)
                 {
                     m_pDepay = DSL_ELEMENT_NEW("rtph265depay", GetCStrName());
                     m_pParser = DSL_ELEMENT_NEW("h265parse", GetCStrName());
-                }
+                    pCaps = gst_caps_from_string("video/x-h265");
+                } 
                 else
                 {
                     LOG_ERROR("Unsupported encoding = '" << encoding 
                         << "' for RtspSourceBitnr '" << GetName() << "'");
                     return false;
                 }
+                m_pDepayCapsfilter->SetAttribute("caps", pCaps);
+                gst_caps_unref(pCaps);  
             }
             else if (encoding.find("JPEG") != std::string::npos)
             {
@@ -3008,22 +3607,16 @@ namespace DSL
             AddChild(m_pDepay);
             AddChild(m_pParser);
 
-            if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder) or
-                !LinkToCommon(m_pDecoder))
-            {
-                return false;
-            }
-
             // If we're tapping off of the pre-decode source stream
             if (HasTapBintr())
             {
-                if (!m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
+                if (!m_pPreDecodeQueue->LinkToSink(m_pDecoder) or
+                    !m_pPreDecodeQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
                     !m_pDepay->LinkToSink(m_pPreDecodeTee) or 
                     !m_pPreParserQueue->LinkToSourceTee(m_pPreDecodeTee, "src_%u") or
                     !m_pPreParserQueue->LinkToSink(m_pParser) or
                     !m_pTapBintr->LinkAll() or 
                     !m_pParser->LinkToSink(m_pTapBintr) or
-                    !gst_element_sync_state_with_parent(m_pParser->GetGstElement()) or
                     !gst_element_sync_state_with_parent(m_pTapBintr->GetGstElement()))
                 {
                     LOG_ERROR("Failed to link and sync states with Parent for RtspSourceBitnr '" 
@@ -3031,17 +3624,36 @@ namespace DSL
                     return false;
                 }
             }
-            // otherwise, there is no Tee and we link to the Pre-decode Queue directly
+            // Otherwise, we include the capsfilter and parser before decoder.
+            // This seems to be required for certain streaming services. These
+            // streams will fail if trying to connect with a TapBintr above.
+            // Needs review further... to see if there is a way to support both.
+            // See also: https://forums.developer.nvidia.com/t/questions-re-differences-between-rtsp-source-in-deepstream-source-bin-c-deepstream-test-sr-app-c/245307/5
             else
             {
-                if (!m_pDepay->LinkToSink(m_pPreDecodeQueue))
+                if (!m_pDepay->LinkToSink(m_pDepayCapsfilter) or
+                    !m_pDepayCapsfilter->LinkToSink(m_pParser) or
+                    !m_pParser->LinkToSink(m_pDecoder))
                 {
+                    LOG_ERROR("Failed to link elements for RtspSourceBitnr '" 
+                        << GetName() << "'");
                     return false;
                 }            
             }
-            if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()))
+            
+            if (!LinkToCommon(m_pDecoder))
             {
-                LOG_ERROR("Failed to sync Parser/Decoder states with Parent for RtspSourceBitnr '" 
+                LOG_ERROR(
+                    "Failed to link decoder with common elements for RtspSourceBitnr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            
+            if (!gst_element_sync_state_with_parent(m_pDepay->GetGstElement()) or
+                !gst_element_sync_state_with_parent(m_pParser->GetGstElement()))
+            {
+                LOG_ERROR(
+                    "Failed to sync Depay/Parser states with Parent for RtspSourceBitnr '" 
                     << GetName() << "'");
                 return false;
             }
@@ -3049,7 +3661,8 @@ namespace DSL
         return true;
     }
         
-    void RtspSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
+    void RtspSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, 
+        GstPad* pPad)
     {
         LOG_FUNC();
 
@@ -3060,7 +3673,8 @@ namespace DSL
         std::string encoding = gst_structure_get_string (structure, "encoding-name");
 
         LOG_INFO("Caps structs name " << name);
-        LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" << GetName() << "'");
+        LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" 
+            << GetName() << "'");
         
         if (name.find("x-rtp") != std::string::npos and 
             media.find("video")!= std::string::npos)

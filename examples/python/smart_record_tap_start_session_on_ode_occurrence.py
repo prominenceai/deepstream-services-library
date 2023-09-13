@@ -265,7 +265,7 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
         protocol = DSL_RTP_ALL,     
         skip_frames = 0,     
         drop_frame_interval = 0,     
-        latency = 100,
+        latency = 2000, # jitter-buffer size based on latency of 2 sec. 
         timeout = 2)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
@@ -370,36 +370,49 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count    
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)    
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
-
         # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE 
         # Triggers with their ODE Actions    
         retval = dsl_pph_ode_new('ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
 
-        # Add the ODE Pad Probe Hanlder to the Sink Pad of the Tiler    
-        retval = dsl_tiler_pph_add('tiler', 'ode-handler', DSL_PAD_SINK)    
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
-
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)    
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
+         # Add our ODE Pad Probe Handler to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', 
+            handler='ode-handler', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Window Sink, 0 x/y offsets and dimensions.
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add all the components to our pipeline    
         retval = dsl_pipeline_new_component_add_many('pipeline',     
-            ['primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])    
+            ['primary-gie', 'iou-tracker', 
+            'on-screen-display', 'window-sink', None])    
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
@@ -422,16 +435,11 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             break    
 
-        # Add the XWindow event handler functions defined above    
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)    
+        # Syncronize all live input sources (buffers) at the Streammux
+        retval = dsl_pipeline_streammux_sync_inputs_enabled_set('pipeline', True)
         if retval != DSL_RETURN_SUCCESS:    
             break    
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)    
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
-
+        
         ## Add the listener callback functions defined above    
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)    

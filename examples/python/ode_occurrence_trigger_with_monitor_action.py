@@ -109,7 +109,7 @@ def ode_occurrence_monitor(info_ptr, client_data):
     print('  Unique Id         :', info.unique_ode_id)
     print('  NTP Timestamp     :', info.ntp_timestamp)
     print('  Source Data       : ------------------------')
-    print('    Id              :', info.source_info.source_id)
+    print('    Id              :', hex(info.source_info.source_id))
     print('    Batch Id        :', info.source_info.batch_id)
     print('    Pad Index       :', info.source_info.pad_index)
     print('    Frame Num       :', info.source_info.frame_num)
@@ -223,7 +223,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Add the ODE Heat-Mapper to the Person Occurrence Trigger.
+        # Add the Person-Occurrence Monitor to the Person Occurrence Trigger.
         retval = dsl_ode_trigger_action_add('person-occurrence-trigger', 
             action='person-occurrence-monitor')
         if retval != DSL_RETURN_SUCCESS:
@@ -265,36 +265,42 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
          # Add our ODE Pad Probe Handler to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', handler='ode-handler', pad=DSL_PAD_SINK)
+        retval = dsl_osd_pph_add('on-screen-display', 
+            handler='ode-handler', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # New Window Sink, 0 x/y offsets and dimensions
         retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
+            ['uri-source', 'primary-gie', 'iou-tracker', 
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ## Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+        state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

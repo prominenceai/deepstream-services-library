@@ -323,9 +323,9 @@ int main(int argc, char** argv)
 
         // Create the remaining Pipeline components
         
-        // New RTSP Source: latency = 1000ms, timeout=2s
+        // New RTSP Source: latency = 2000ms, timeout=2s
         retval = dsl_source_rtsp_new(L"rtsp-source",
-            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 2);
+            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 2000, 2);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
@@ -361,20 +361,24 @@ int main(int argc, char** argv)
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+            xwindow_key_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+            xwindow_delete_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+    
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"rtsp-source", L"primary-gie", L"iou-tracker", 
             L"on-screen-display", L"window-sink", L"record-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the XWindow event handler functions defined above    
-        retval = dsl_pipeline_xwindow_key_event_handler_add(L"pipeline", 
-            xwindow_key_event_handler, nullptr);    
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_pipeline_xwindow_delete_event_handler_add(L"pipeline", 
-            xwindow_delete_event_handler, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the listener callback functions defined above

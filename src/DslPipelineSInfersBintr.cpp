@@ -73,9 +73,6 @@ namespace DSL
         
         m_pTee->AddGhostPadToParent("sink");
         m_pQueue->AddGhostPadToParent("src");
-        
-        g_mutex_init(&m_sinkPadProbeMutex);
-        g_mutex_init(&m_srcPadProbeMutex);
     }
     
     PipelineSInfersBintr::~PipelineSInfersBintr()
@@ -86,9 +83,6 @@ namespace DSL
         {
             UnlinkAll();
         }
-    
-        g_mutex_clear(&m_sinkPadProbeMutex);
-        g_mutex_clear(&m_srcPadProbeMutex);
     }
      
     bool PipelineSInfersBintr::AddChild(DSL_BASE_PTR pChildElement)

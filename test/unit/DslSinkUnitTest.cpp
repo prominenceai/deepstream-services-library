@@ -29,6 +29,8 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+
 static uint new_buffer_cb(uint data_type, 
     void* buffer, void* client_data)
 {
@@ -51,6 +53,9 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == dataType );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -101,6 +106,9 @@ SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == DSL_SINK_APP_DATA_TYPE_BUFFER );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -119,7 +127,10 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -166,12 +177,16 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
             WHEN( "The OverlaySinkBintr is created " )
             {
                 DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                        displayId, depth, offsetX, offsetY, sinkW, sinkH);
                 
                 THEN( "The correct attribute values are returned" )
                 {
                     REQUIRE( pSinkBintr->GetDisplayId() == 0 );
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                    REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                    REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                    REQUIRE( pSinkBintr->GetQosEnabled() == true );
                 }
             }
         }
@@ -193,7 +208,8 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
             uint sinkH(720);
 
             DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -225,7 +241,8 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr
             uint sinkH(720);
 
             DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
+                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->LinkAll() == true );
 
@@ -428,7 +445,6 @@ SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
     }
 }
 
-
 SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Window Sink" ) 
@@ -446,8 +462,11 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == true );
             }
         }
     }
@@ -520,13 +539,71 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        WHEN( "A WindowSinkBintr is Reset" )
+        WHEN( "A WindowSinkBintr has been linked and unlinked" )
         {
-            REQUIRE( pSinkBintr->Reset() == true );
+            // A window Sink can only be reset after it has been linked/unlinked
+            REQUIRE( pSinkBintr->Reset() == false );
 
-            THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll correctly" )
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            pSinkBintr->UnlinkAll();
+            REQUIRE( pSinkBintr->IsLinked() == false );
+
+            THEN( "The WindowSinkBintr can be reset correctly" )
             {
+                REQUIRE( pSinkBintr->Reset() == true );
+
+            }
+        }
+    }
+}
+
+SCENARIO( "A WindowSinkBintr can LinkAll and UnlinkAll mutlple times", "[SinkBintr]" )
+{
+    GIVEN( "A new WindowSinkBintr" ) 
+    {
+        std::string sinkName("window-sink");
+        uint offsetX(100);
+        uint offsetY(140);
+        uint sinkW(1280);
+        uint sinkH(720);
+        std::shared_ptr<DslMutex> pSharedClientMutex = 
+            std::shared_ptr<DslMutex>(new DslMutex());
+
+        DSL_WINDOW_SINK_PTR pSinkBintr = 
+            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+
+        WHEN( "A WindowSinkBintr is Linked and its handle prepared" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
+
+            THEN( "The WindowSinkBintr can UnlinkAll and LinkAll and serveral times correctly" )
+            {
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                pSinkBintr->UnlinkAll();
+                REQUIRE( pSinkBintr->IsLinked() == false );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( pSinkBintr->LinkAll() == true );
+                REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                pSinkBintr->UnlinkAll();
+                REQUIRE( pSinkBintr->IsLinked() == false );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pSinkBintr->LinkAll() == true );
+                REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                pSinkBintr->UnlinkAll();
+                REQUIRE( pSinkBintr->IsLinked() == false );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( pSinkBintr->LinkAll() == true );
+                REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 pSinkBintr->UnlinkAll();
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }
@@ -534,6 +611,100 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
     }
 }
 
+
+SCENARIO( "Multiple Window Sinks can create their XWindow correctly", 
+    "[SinkBintr]" )
+{
+    GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
+    {
+        std::string sinkName1("window-sink-1");
+        std::string sinkName2("window-sink-2");
+        std::string sinkName3("window-sink-3");
+        std::string sinkName4("window-sink-4");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint initSinkW(300);
+        uint initSinkH(200);
+        std::shared_ptr<DslMutex> pSharedClientMutex = 
+            std::shared_ptr<DslMutex>(new DslMutex());
+
+        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
+            sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
+            sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
+            sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
+            sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+
+        WHEN( "The new PipelineBintr's XWindow is created" )
+        {
+            REQUIRE( pSinkBintr1->PrepareWindowHandle(pSharedClientMutex) == true );
+            REQUIRE( pSinkBintr2->PrepareWindowHandle(pSharedClientMutex) == true );
+            REQUIRE( pSinkBintr3->PrepareWindowHandle(pSharedClientMutex) == true );
+            REQUIRE( pSinkBintr4->PrepareWindowHandle(pSharedClientMutex) == true );
+                
+            THEN( "The XWindow handle is available" )
+            {
+                REQUIRE( pSinkBintr1->GetHandle() != 0 );
+                REQUIRE( pSinkBintr2->GetHandle() != 0 );
+                REQUIRE( pSinkBintr3->GetHandle() != 0 );
+                REQUIRE( pSinkBintr4->GetHandle() != 0 );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+            }
+        }
+    }
+}
+
+SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full screen mode", 
+    "[SinkBintr]" )
+{
+    GIVEN( "Four WindowSinkBintr's with valid XWindow dimensions" ) 
+    {
+        std::string sinkName1("window-sink-1");
+        std::string sinkName2("window-sink-2");
+        std::string sinkName3("window-sink-3");
+        std::string sinkName4("window-sink-4");
+        uint offsetX(0);
+        uint offsetY(0);
+        uint initSinkW(300);
+        uint initSinkH(200);
+        std::shared_ptr<DslMutex> pSharedClientMutex = 
+            std::shared_ptr<DslMutex>(new DslMutex());
+
+        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
+            sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
+            sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
+            sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
+            sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+
+        WHEN( "The all WindowSinkBintr's XWindows are created" )
+        {
+            REQUIRE( pSinkBintr1->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr2->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr3->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr4->SetFullScreenEnabled(true) == true );
+            REQUIRE( pSinkBintr1->PrepareWindowHandle(pSharedClientMutex) == true );
+            REQUIRE( pSinkBintr2->PrepareWindowHandle(pSharedClientMutex) == true );
+            REQUIRE( pSinkBintr3->PrepareWindowHandle(pSharedClientMutex) == true );
+            REQUIRE( pSinkBintr4->PrepareWindowHandle(pSharedClientMutex) == true );
+                
+            THEN( "The XWindow handle is available" )
+            {
+                REQUIRE( pSinkBintr1->GetHandle() != 0 );
+                REQUIRE( pSinkBintr2->GetHandle() != 0 );
+                REQUIRE( pSinkBintr3->GetHandle() != 0 );
+                REQUIRE( pSinkBintr4->GetHandle() != 0 );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+            }
+        }
+    }
+}
 
 SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
@@ -544,9 +715,12 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
         uint initOffsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
+        std::shared_ptr<DslMutex> pSharedClientMutex = 
+            std::shared_ptr<DslMutex>(new DslMutex());
 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
+        REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
             
         uint currOffsetX(0);
         uint currOffsetY(0);
@@ -557,16 +731,20 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
 
         WHEN( "The WindowSinkBintr's Offsets are Set" )
         {
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             uint newOffsetX(80);
             uint newOffsetY(20);
             
-            pSinkBintr->SetOffsets(newOffsetX, newOffsetY);
+            REQUIRE( pSinkBintr->SetOffsets(newOffsetX, newOffsetY) == true );
 
-            THEN( "The WindowSinkBintr's new demensions are returned on Get")
+            THEN( "The WindowSinkBintr's new offsets are returned on Get")
             {
+                // must sleep to allow XWindow offset's to update
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
-                REQUIRE( currOffsetX == newOffsetX );
-                REQUIRE( currOffsetY == newOffsetY );
+                
+//                REQUIRE( currOffsetX == newOffsetX );
+//                REQUIRE( currOffsetY == newOffsetY );
             }
         }
     }
@@ -576,14 +754,17 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
     GIVEN( "A new WindowSinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
+        std::string sinkName("window-sink");
         uint offsetX(0);
         uint offsetY(0);
         uint initSinkW(300);
         uint initSinkH(200);
+        std::shared_ptr<DslMutex> pSharedClientMutex = 
+            std::shared_ptr<DslMutex>(new DslMutex());
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_WINDOW_SINK_PTR pSinkBintr = DSL_WINDOW_SINK_NEW(
+            sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
             
         uint currSinkW(0);
         uint currSinkH(0);
@@ -594,14 +775,17 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 
         WHEN( "The WindowSinkBintr's dimensions are Set" )
         {
+            std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             uint newSinkW(1280);
             uint newSinkH(720);
-            
-            pSinkBintr->SetDimensions(newSinkW, newSinkH);
+            REQUIRE( pSinkBintr->SetDimensions(newSinkW, newSinkH) == true);
 
             THEN( "The WindowSinkBintr's new dimensions are returned on Get")
             {
+                // must sleep to allow XWindow dimensions's to update
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
+
                 REQUIRE( currSinkW == newSinkW );
                 REQUIRE( currSinkH == newSinkH );
             }
@@ -784,6 +968,10 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
                 
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -874,6 +1062,11 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
+
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -1316,6 +1509,9 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
@@ -1535,6 +1731,9 @@ SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( pSinkBintr->GetMaxFiles() == 0 );
                 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }

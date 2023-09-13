@@ -54,6 +54,10 @@ SCENARIO( "A new InterPipeSinkBintr is created correctly",
 
                 REQUIRE( retForwardEos == false );
                 REQUIRE( retForwardEvents == false );
+                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }

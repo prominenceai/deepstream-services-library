@@ -298,44 +298,6 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[mmm]" 
     }
 }
 
-SCENARIO( "A Players's XWindow Handle can be Set/Get", "[player-api]" )
-{
-    GIVEN( "A new Player" ) 
-    {
-        uint zoom(75);        
-        boolean repeatEnabled(false);
-        
-        uint64_t handle(0);
-        
-        REQUIRE( dsl_player_render_video_new(player_name.c_str(), file_path.c_str(), 
-            DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeatEnabled) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_player_xwindow_handle_get(player_name.c_str(), 
-            &handle) == DSL_RESULT_SUCCESS );
-            
-        // must be initialized false
-        REQUIRE( handle == 0 );
-
-        WHEN( "When the Player's XWindow Handle is updated" ) 
-        {
-            handle = 0x1234567812345678;
-            REQUIRE( dsl_player_xwindow_handle_set(player_name.c_str(), 
-                handle) == DSL_RESULT_SUCCESS );
-                
-            THEN( "The new handle value is returned on get" )
-            {
-                uint64_t newHandle(0);
-                REQUIRE( dsl_player_xwindow_handle_get(player_name.c_str(), 
-                    &newHandle) == DSL_RESULT_SUCCESS );
-                REQUIRE( handle == newHandle );
-
-                REQUIRE( dsl_player_delete(player_name.c_str()) == DSL_RESULT_SUCCESS );
-            }
-        }
-    }
-}
-
-
 SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
 {
     GIVEN( "An empty list of Players" ) 

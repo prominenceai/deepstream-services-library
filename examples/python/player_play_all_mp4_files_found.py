@@ -58,14 +58,37 @@ def xwindow_key_event_handler(key_string, client_data):
         
     # Q or Esc = quit application
     elif key_string.upper() == 'Q' or key_string == '':
+        dsl_player_stop('player')
         dsl_main_loop_quit()
     
+## 
+# Function to be called on XWindow Delete event
+## 
+def xwindow_delete_event_handler(client_data):
+    print('delete window event')
+    dsl_player_stop('player')
+    dsl_main_loop_quit()
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-    
+
+        # New Window Sink, 0 x/y offsets and dimensions
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         for file in os.listdir(dir_path):
             if file.endswith(".mp4"):
             
@@ -89,10 +112,6 @@ def main(args):
         # Add the Termination listener callback to the Player
         retval = dsl_player_termination_event_listener_add('player',
             client_listener=player_termination_event_listener, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        retval = dsl_player_xwindow_key_event_handler_add('player', xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

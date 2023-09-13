@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSInfersBintr.h"
-#include "DslMultiComponentsBintr.h"
+#include "DslMultiBranchesBintr.h"
 #include "DslSinkBintr.h"
     
 namespace DSL 
@@ -58,7 +58,7 @@ namespace DSL
         /** 
          * 
          */
-        BranchBintr(const char* name, bool pipeline = false);
+        BranchBintr(const char* name, bool isPipeline = false);
 
         /**
          * @brief adds a PreprocBintr to this Branch 
@@ -190,16 +190,17 @@ namespace DSL
         
         void UnlinkAll();
         
-        /**
-         * @brief Links this BranchBintr, becoming a sink, to a Tee Elementr
-         * The Tee can be either a demuxer of tee 
-         * @param[in] pTee Nodre to link this Sink Nodre back to.
-         * @return true if successfully linked, false otherwise.
-         */
-        bool LinkToSourceTee(DSL_NODETR_PTR pTee, const char* padName);
-
     protected:
+    
+        /**
+         * @brief Created and added as first componet if instantiated as a
+         * Branch t linked to Demuxer or Splitter Tees. 
+         */
+        DSL_ELEMENT_PTR  m_pBranchQueue;
         
+        /**
+         * @brief vector of linked components to simplfy the unlink process
+         */
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**

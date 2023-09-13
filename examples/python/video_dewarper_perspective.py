@@ -120,27 +120,28 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Enable fullscreen for a kiosk look and feel.
+        retval = dsl_sink_window_fullscreen_enabled_set('window-sink', True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['file-source', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Enable fullscreen for a kiosk look and feel.
-        retval = dsl_pipeline_xwindow_fullscreen_enabled_set('pipeline', True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)

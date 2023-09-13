@@ -119,10 +119,16 @@ namespace DSL
         std::shared_ptr<SourceFrameRate>(new SourceFrameRate(name, \
             x_offset, y_offset, font, hasBgColor, pBgColor))
 
-    #define DSL_SOURCE_NUMBER_PTR std::shared_ptr<SourceNumber>
-    #define DSL_SOURCE_NUMBER_NEW(name, \
+    #define DSL_SOURCE_UNIQUE_ID_PTR std::shared_ptr<SourceUniqueId>
+    #define DSL_SOURCE_UNIQUE_ID_NEW(name, \
         x_offset, y_offset, font, hasBgColor, pBgColor) \
-        std::shared_ptr<SourceNumber>(new SourceNumber(name, \
+        std::shared_ptr<SourceUniqueId>(new SourceUniqueId(name, \
+            x_offset, y_offset, font, hasBgColor, pBgColor))
+
+    #define DSL_SOURCE_STREAM_ID_PTR std::shared_ptr<SourceUniqueId>
+    #define DSL_SOURCE_STREAM_ID_NEW(name, \
+        x_offset, y_offset, font, hasBgColor, pBgColor) \
+        std::shared_ptr<SourceStreamId>(new SourceStreamId(name, \
             x_offset, y_offset, font, hasBgColor, pBgColor))
 
     #define DSL_SOURCE_NAME_PTR std::shared_ptr<SourceName>
@@ -170,7 +176,7 @@ namespace DSL
         /**
          * @brief Mutex to ensure mutual exlusion for propery read/writes
          */
-        GMutex m_propertyMutex;
+        DslMutex m_propertyMutex;
     };
     
     // ********************************************************************
@@ -928,23 +934,23 @@ namespace DSL
 
     // ********************************************************************
 
-    class SourceNumber : public RgbaText
+    class SourceUniqueId : public RgbaText
     {
     public:
 
         /**
-         * @brief ctor for Source Number Display Type
-         * @param[in] name unique name of the SourceNumber Display Type
+         * @brief ctor for Source Unique-Id Display Type
+         * @param[in] name unique name of the SourceUniqueId Display Type
          * @param[in] x_offset starting x positional offset
          * @param[in] y_offset starting y positional offset
          * @param[in] font RGBA font to use for the display dext
          * @param[in] hasBgColor set to true to enable bacground color, false otherwise
          * @param[in] pBgColor RGBA Color for the Text background if set
          */
-        SourceNumber(const char* name, uint x_offset, uint y_offset, 
+        SourceUniqueId(const char* name, uint x_offset, uint y_offset, 
             DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
 
-        ~SourceNumber();
+        ~SourceUniqueId();
 
         /**
          * @brief Adds the Display Type's meta to the provided displayMetaData
@@ -959,12 +965,55 @@ namespace DSL
     private:
     
         /**
-         * @breif shared pointer to a RGBA Font Type for this RGBA SourceNumber.
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceUniqueId.
          */
         DSL_RGBA_FONT_PTR m_pFont;
 
         /**
-         * @breif shared pointer to a RGBA Color Type for this RGBA SourceNumber.
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceUniqueId.
+         */
+        DSL_RGBA_COLOR_PTR m_pBgColor;
+    };
+
+    // ********************************************************************
+
+    class SourceStreamId : public RgbaText
+    {
+    public:
+
+        /**
+         * @brief ctor for Source Stream-Id Display Type
+         * @param[in] name unique name of the SourceUniqueId Display Type
+         * @param[in] x_offset starting x positional offset
+         * @param[in] y_offset starting y positional offset
+         * @param[in] font RGBA font to use for the display dext
+         * @param[in] hasBgColor set to true to enable bacground color, false otherwise
+         * @param[in] pBgColor RGBA Color for the Text background if set
+         */
+        SourceStreamId(const char* name, uint x_offset, uint y_offset, 
+            DSL_RGBA_FONT_PTR pFont, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor);
+
+        ~SourceStreamId();
+
+        /**
+         * @brief Adds the Display Type's meta to the provided displayMetaData
+         * @param displayMetaData vector of allocated Display metadata to add 
+         * the meta to
+         * @param pFrameMeta frame meta for the frame the display meta 
+         * will be added to.
+         */
+        void AddMeta(std::vector<NvDsDisplayMeta*>& displayMetaData, 
+            NvDsFrameMeta* pFrameMeta);
+        
+    private:
+    
+        /**
+         * @breif shared pointer to a RGBA Font Type for this RGBA SourceUniqueId.
+         */
+        DSL_RGBA_FONT_PTR m_pFont;
+
+        /**
+         * @breif shared pointer to a RGBA Color Type for this RGBA SourceUniqueId.
          */
         DSL_RGBA_COLOR_PTR m_pBgColor;
     };

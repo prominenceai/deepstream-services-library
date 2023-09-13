@@ -131,13 +131,25 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # New Window Sink, 0 x/y offsets and 1280 x 720 dimensions
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New File Sink with H265 Codec type and MPEG4 conatiner muxer, and bit-rate and iframe interval
-        retval = dsl_sink_file_new('file-sink', "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 2000000, 0)
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New File Sink with H265 Codec type and MPEG4 conatiner muxer, 
+        # and bit-rate and iframe interval
+        retval = dsl_sink_file_new('file-sink', 
+            "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 2000000, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -147,19 +159,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the listener callback functions defined above
-        retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+        eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

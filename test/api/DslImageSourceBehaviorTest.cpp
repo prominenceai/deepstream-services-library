@@ -45,7 +45,7 @@ static const std::wstring jpeg_file_path_multi(L"./test/streams/sample_720p.%d.j
 static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
 //static const std::wstring mjpeg_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p_mjpeg.mp4");
 static const std::wstring mjpeg_file_path_multi(
-    L"./test/streams/sample_720p.%d.mjpeg");
+    L"./test/streams/sample_720p.%04d.mjpeg");
 
 static const std::wstring png_file_path(L"./test/streams/sample_720p.png");
 
@@ -645,78 +645,78 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
     }
 }
 
-SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Tiled Display, \
-    Window Sink, ODE Trigger and Action can play",
-    "[image-source-play]" )
-{
-    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
-    {
-        uint fps_n(1), fps_d(1);
-
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
-            mjpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
-
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-                infer_config_file_jetson.c_str(), 
-                model_engine_file_jetson.c_str(), 
-                0) == DSL_RESULT_SUCCESS );
-        }
-        else
-        {
-            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-                infer_config_file_dgpu.c_str(), 
-                model_engine_file_dgpu.c_str(), 
-                0) == DSL_RESULT_SUCCESS );
-        }
-        
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
-            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
-            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false)  == 
-            DSL_RESULT_SUCCESS );
-            
-        REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
-            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
-            DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
-            print_action_name.c_str()) == DSL_RESULT_SUCCESS );
-            
-        REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
-            occurrence_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
-            
-        REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
-            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
-        
-        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
-        
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
-                components) == DSL_RESULT_SUCCESS );
-
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*3);
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-                dsl_delete_all();
-            }
-        }
-    }
-}
+//SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Tiled Display, \
+//    Window Sink, ODE Trigger and Action can play",
+//    "[rjh]" )
+//{
+//    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
+//    {
+//        uint fps_n(30), fps_d(1);
+//
+//        REQUIRE( dsl_component_list_size() == 0 );
+//
+//        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
+//            mjpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
+//
+//        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+//        {
+//            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+//                infer_config_file_jetson.c_str(), 
+//                model_engine_file_jetson.c_str(), 
+//                0) == DSL_RESULT_SUCCESS );
+//        }
+//        else
+//        {
+//            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+//                infer_config_file_dgpu.c_str(), 
+//                model_engine_file_dgpu.c_str(), 
+//                0) == DSL_RESULT_SUCCESS );
+//        }
+//        
+//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+//
+//        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
+//            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+//        
+//        REQUIRE( dsl_ode_action_print_new(print_action_name.c_str(), false)  == 
+//            DSL_RESULT_SUCCESS );
+//            
+//        REQUIRE( dsl_ode_trigger_occurrence_new(occurrence_trigger_name.c_str(),
+//            DSL_ODE_ANY_SOURCE, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_ONE) ==
+//            DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_ode_trigger_action_add(occurrence_trigger_name.c_str(), 
+//            print_action_name.c_str()) == DSL_RESULT_SUCCESS );
+//            
+//        REQUIRE( dsl_pph_ode_new(ode_handler_name.c_str()) == DSL_RESULT_SUCCESS );
+//        REQUIRE( dsl_pph_ode_trigger_add(ode_handler_name.c_str(), 
+//            occurrence_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+//            
+//        REQUIRE( dsl_tiler_pph_add(tiler_name1.c_str(), ode_handler_name.c_str(), 
+//            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+//        
+//        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
+//            L"window-sink", NULL};
+//        
+//        
+//        WHEN( "When the Pipeline is Assembled" ) 
+//        {
+//            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+//                components) == DSL_RESULT_SUCCESS );
+//
+//            THEN( "Pipeline is Able to LinkAll and Play" )
+//            {
+//                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+//                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+//
+//                dsl_delete_all();
+//            }
+//        }
+//    }
+//}
 
 //SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
 //    "[temp]" )

@@ -50,9 +50,10 @@ namespace DSL
         /**
          * @brief named container ctor with new Bin 
          */
-        Bintr(const char* name, bool pipeline = false)
+        Bintr(const char* name, bool isPipeline = false)
             : GstNodetr(name)
-            , m_uniqueId(-1)
+            , m_isPipeline(isPipeline)
+            , m_requestPadId(-1)
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
@@ -60,7 +61,7 @@ namespace DSL
         { 
             LOG_FUNC(); 
 
-            if (pipeline)
+            if (m_isPipeline)
             {
                 m_pGstObj = GST_OBJECT(gst_pipeline_new(name));
             }
@@ -84,25 +85,29 @@ namespace DSL
         }
 
         /**
-         * @brief returns the current Id - managed by the Parent container
+         * @brief returns the current sink or src request pad-id -- as managed by the 
+         * multi-component Parent Bintr -- for this bintr if used (i.e connected a 
+         * streammuxer, demuxer, or splitter).
          * @return -1 when id is not assigned, i.e. bintr is not currently in use
          */
-        int GetId()
+        int GetRequestPadId()
         {
             LOG_FUNC();
             
-            return m_uniqueId;
+            return m_requestPadId;
         }
         
         /**
-         * @brief Sets the unique id for this bintr
-         * @param id value to assign [0...MAX]
+         * @brief Sets the the sink or src request pad-id -- as managed by the 
+         * multi-component Parent Bintr -- for this bintr if used (i.e connected a 
+         * streammuxer, demuxer, or splitter).
+         * @param request pad-id value to assign. use -1 for unassigned. 
          */
-        void SetId(int id)
+        void SetRequestPadId(int id)
         {
             LOG_FUNC();
 
-            m_uniqueId = id;
+            m_requestPadId = id;
         }
         
         /**
@@ -334,12 +339,17 @@ namespace DSL
         }
 
     protected:
+    
+        /**
+         * @brief flag to specify if derived as Pipeline or other Bintr.
+         */
+        bool m_isPipeline;
 
         /**
-         * @brief unique identifier managed by the 
+         * @brief unique request pad id managed by the 
          * parent from the point of add until removed
          */
-        int m_uniqueId;
+        int m_requestPadId;
     
         /**
          * @brief current is-linked state for this Bintr

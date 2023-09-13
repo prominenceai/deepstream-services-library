@@ -38,6 +38,12 @@ namespace DSL
      * @brief convenience macros for shared pointer abstraction
      */
     #define DSL_PPH_PTR std::shared_ptr<PadProbeHandler>
+    
+    #define DSL_PPH_SOURCE_ID_OFFSETTER_PTR \
+        std::shared_ptr<SourceIdOffsetterPadProbeHandler>
+    #define DSL_PPH_SOURCE_ID_OFFSETTER_NEW(name, offset) \
+        std::shared_ptr<SourceIdOffsetterPadProbeHandler>( \
+            new SourceIdOffsetterPadProbeHandler(name, offset))
 
     #define DSL_PPH_CUSTOM_PTR std::shared_ptr<CustomPadProbeHandler>
     #define DSL_PPH_CUSTOM_NEW(name, clientHandler, clientData) \
@@ -125,10 +131,12 @@ namespace DSL
         /**
          * @brief Handler specific
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
-        virtual GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo){return GST_PAD_PROBE_OK;};
+        virtual GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo)
+            {return GST_PAD_PROBE_OK;};
 
     protected:
     
@@ -140,11 +148,54 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to probe data
          */
-        GMutex m_padHandlerMutex;
+        DslMutex m_padHandlerMutex;
         
     };
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+
+    /**
+     * @class SourceIdPadProbeHandler
+     * @brief Implements a pad-probe-handler to offset the source id by a given
+     * value (pipeline-id) to make each source-id unique accross all Pipelines.
+     */
+    class SourceIdOffsetterPadProbeHandler : public PadProbeHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the Custom Pad Probe Handler
+         * @param[in] name unique name for the PPH
+         * @param[in] offset value to offset all source-ids in all object metedata 
+         * for all frame-metadata processed by this PPH. The offset value is shifted
+         * by 16 bits and bitwise or'ed with the source id.
+         */
+        SourceIdOffsetterPadProbeHandler(const char* name, uint offset);
+
+        /**
+         * @brief dtor for the ODE Pad Probe Handler
+         */
+        ~SourceIdOffsetterPadProbeHandler();
+
+        /**
+         * @brief Custom Pad Probe Handler
+         * @param[in]pBuffer Pad buffer
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         */
+        GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
+
+    private:
+    
+        /**
+         * @brief value to offset each source-id by
+         */
+        uint m_offset;
+        
+    };
+
+    //--------------------------------------------------------------------------------
 
     /**
      * @class CustomPadProbeHandler
@@ -160,7 +211,8 @@ namespace DSL
          * @param[in] clientHandler client callback function to handle the EOS event
          * @param[in] clientData return to the client when the handler is called
          */
-        CustomPadProbeHandler(const char* name, dsl_pph_client_handler_cb clientHandler, void* clientData);
+        CustomPadProbeHandler(const char* name, 
+            dsl_pph_client_handler_cb clientHandler, void* clientData);
 
         /**
          * @brief dtor for the ODE Pad Probe Handler
@@ -170,8 +222,9 @@ namespace DSL
         /**
          * @brief Custom Pad Probe Handler
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
 
@@ -189,7 +242,7 @@ namespace DSL
         
     };
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /**
      * @class EosConsumerPadProbeEventHandler
@@ -213,13 +266,14 @@ namespace DSL
         /**
          * @brief ODE Pad Probe Handler
          * @param[in] pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
     };
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /**
      * @class EosHandlerPadProbeEventHandler
@@ -246,7 +300,8 @@ namespace DSL
         /**
          * @brief Custom Pad Probe Handler
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
 
@@ -264,7 +319,7 @@ namespace DSL
         
     };
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /**
      * @class FrameNumberAdderPadProbeEventHandler
@@ -302,9 +357,9 @@ namespace DSL
         /**
          * @brief ODE Pad Probe Handler
          * @param[in] pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, 
-         * GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, 
-         * GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
         
@@ -317,7 +372,7 @@ namespace DSL
         uint64_t m_currentFrameNumber;
     };
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /**
      * @class OdePadProbeHandler
@@ -370,8 +425,9 @@ namespace DSL
         /**
          * @brief ODE Pad Probe Handler
          * @param[in] pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP,
-         *  GST_PAD_PROBE_OK,GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
         
@@ -394,7 +450,8 @@ namespace DSL
         
     };
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+    
     /**
      * @class MeterPadProbeHandler
      * @brief 
@@ -405,7 +462,8 @@ namespace DSL
 
     
         MeterPadProbeHandler(const char* name, 
-            uint interval, dsl_pph_meter_client_handler_cb clientHandler, void* clientData);
+            uint interval, dsl_pph_meter_client_handler_cb clientHandler, 
+            void* clientData);
 
         /**
          * @brief dtor for the Meter Consumer Pad Probe Handler
@@ -415,15 +473,17 @@ namespace DSL
         /**
          * @brief Sets the current state of the Handler enabled flag. 
          * The default state on creation is True
-         * @param[in] enabled set to true if Repororting is to be enabled, false otherwise
+         * @param[in] enabled set to true if Repororting is to be enabled, 
+         * false otherwise
          */
         bool SetEnabled(bool enabled);
 
         /**
          * @brief Handler specific Pad BufferHandler
          * @param[in]pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
         
@@ -474,11 +534,11 @@ namespace DSL
         std::map<uint, DSL_SOURCE_METER_PTR> m_sourceMeters;
     };
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     static int MeterIntervalTimeoutHandler(void* user_data);
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /**
      * @class TimestampPadProbeHandler
@@ -505,27 +565,31 @@ namespace DSL
         void SetTime(struct timeval& timestamp);
         
         /**
-         * @brief Timestamp Pad Probe Handler. Updates the Timestamp to current-time on each buffer
+         * @brief Timestamp Pad Probe Handler. Updates the Timestamp to 
+         * current-time on each buffer
          * @param[out] pBuffer Pad buffer
-         * @return GstPadProbeReturn see GST reference, one of [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK,
-         * GST_PAD_PROBE_REMOVE, GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
          */
         GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
 
     private:
     
         /**
-         * @brief updated on each call to HandlePadData which provides a time stamp for the last.
+         * @brief updated on each call to HandlePadData which provides a 
+         * time stamp for the last.
          */
         timeval m_timestamp;
         
     };
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /**
      * @class BufferTimeoutPadProbeHandler
-     * @brief implements a PPH that will call a client callback on new buffer timeout.
+     * @brief implements a PPH that will call a client callback on 
+     * new buffer timeout.
      */
     class BufferTimeoutPadProbeHandler : public TimestampPadProbeHandler
     {
@@ -599,7 +663,7 @@ namespace DSL
      */
     static int buffer_timer_cb(gpointer pPph);
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     /**
      * @class PadProbetr
      * @brief Implements a container class for GST Pad Probe
@@ -613,8 +677,8 @@ namespace DSL
          * @param[in] name name for the new PadProbetr
          * @param[in] factoryNme "sink" or "src" Pad Probe type
          */
-        PadProbetr(const char* name, const char* factoryName, DSL_ELEMENT_PTR parentElement, 
-            GstPadProbeType padProbeType);
+        PadProbetr(const char* name, const char* factoryName, 
+            DSL_ELEMENT_PTR parentElement, GstPadProbeType padProbeType);
         
         /**
          * @brief dtor for the PadProbetr base class
@@ -665,7 +729,7 @@ namespace DSL
         /**
          * @brief mutex fo the Pad Probe handler
          */
-        GMutex m_padProbeMutex;
+        DslMutex m_padProbeMutex;
         
         /**
          * @brief unique sink/src pad probe id (handle)
@@ -688,13 +752,15 @@ namespace DSL
         uint m_nextHanlderIndex;
 
         /**
-         * @brief Map of child PadProbeHandlers indexed by their add-order for execution
+         * @brief Map of child PadProbeHandlers indexed by their add-order 
+         * for execution
          */
         std::map <uint, DSL_BASE_PTR> m_pChildrenIndexed; 
 
     };
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+
     /**
      * @class PadBufferProbetr PadProbetr of type GST_PAD_PROBE_TYPE_BUFFER
      * @brief Implements a container class for GST Pad Probe
@@ -709,7 +775,8 @@ namespace DSL
          * @param[in] factoryNme "sink" or "src" Pad Probe type
          * @param[in] parentElement parent bin for pad creation.
          */
-        PadBufferProbetr(const char* name, const char* factoryName, DSL_ELEMENT_PTR parentElement);
+        PadBufferProbetr(const char* name, 
+            const char* factoryName, DSL_ELEMENT_PTR parentElement);
         
         /**
          * @brief dtor for the PadBufferProbetr base class
@@ -726,9 +793,11 @@ namespace DSL
             GstPad* pPad, GstPadProbeInfo* pInfo);
     };
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+
     /**
-     * @class PadEventDownStreamProbetr PadProbetr of type GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM
+     * @class PadEventDownStreamProbetr PadProbetr of type 
+     * GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM
      * @brief Implements a container class for GST Pad Probe
      */
     class PadEventDownStreamProbetr : public PadProbetr
@@ -741,7 +810,8 @@ namespace DSL
          * @param[in] factoryName "sink" or "src" Pad Probe type
          * @param[in] parentElement parent bin for pad creation.
          */
-        PadEventDownStreamProbetr(const char* name, const char* factoryName, DSL_ELEMENT_PTR parentElement);
+        PadEventDownStreamProbetr(const char* name, 
+            const char* factoryName, DSL_ELEMENT_PTR parentElement);
         
         /**
          * @brief dtor for the PadBufferProbetr base class
@@ -758,7 +828,8 @@ namespace DSL
             GstPad* pPad, GstPadProbeInfo* pInfo);
     };
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+
     static GstPadProbeReturn PadProbeCB(GstPad* pPad, 
         GstPadProbeInfo* pInfo, gpointer pPadProbetr);
 

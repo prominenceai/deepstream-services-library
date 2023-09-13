@@ -217,7 +217,7 @@ namespace DSL
         /**
          * @brief mutex to prevent callback reentry
          */
-        GMutex m_showSourceMutex;
+        DslMutex m_showSourceMutex;
         
         /**
          * @brief current show-source id, -1 == show-a;-sources

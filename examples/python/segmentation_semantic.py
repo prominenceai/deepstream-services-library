@@ -95,11 +95,21 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
+        # New Window Sink, 0 x/y offsets and dimensions
         retval = dsl_sink_window_new('window-sink', 100, 1000, width, height)
         if retval != DSL_RETURN_SUCCESS:
             break
         
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Example of how to force the aspect ratio during window resize
         dsl_sink_window_force_aspect_ratio_set('window-sink', force=True)
         if retval != DSL_RETURN_SUCCESS:
@@ -114,16 +124,6 @@ def main(args):
         # Set the Streammuxer dimensions to the same as GIE Config and Sink dimensions
         retval = dsl_pipeline_streammux_dimensions_set("pipeline", 
             width=width, height=height)
-
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,11 +30,21 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    BranchBintr::BranchBintr(const char* name, bool pipeline)
-        : Bintr(name, pipeline)
+    BranchBintr::BranchBintr(const char* name, bool isPipeline)
+        : Bintr(name, isPipeline)
         , m_nextPrimaryInferBintrIndex(0)
     {
         LOG_FUNC();
+
+        // if instantiated as a ture branch to be linked to a Demuxer or
+        // Splitter Tee - add the input queue and float as Branch sink pad.
+        if (!m_isPipeline)
+        {
+            m_pBranchQueue  = DSL_ELEMENT_NEW("queue", name);
+            
+            AddChild(m_pBranchQueue);
+            m_pBranchQueue->AddGhostPadToParent("sink");
+        }
     }
 
     bool BranchBintr::AddPreprocBintr(DSL_BASE_PTR pPreprocBintr)
@@ -591,6 +601,13 @@ namespace DSL
                 m_pMultiSinksBintr->GetName() << "' successfully");
         }
         
+        // If instantiated as a true branch to be linked to a Demuxer/Splitter
+        if (!m_isPipeline)
+        {
+            // Link the input-queue (ghost-pad) to the first component
+            m_pBranchQueue->LinkToSink( m_linkedComponents.front());
+        }
+        
         m_isLinked = true;
         return true;
     }
@@ -603,6 +620,14 @@ namespace DSL
         {
             return;
         }
+        
+        // If instantiated as a true branch and therefore linked to a Demuxer/Splitter
+        if (!m_isPipeline)
+        {
+            // Unlink the first component from the input queue (ghost-pad)
+            m_pBranchQueue->UnlinkFromSink();
+        }
+        
         // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_linkedComponents)
         {
@@ -618,33 +643,5 @@ namespace DSL
         m_isLinked = false;
     }
     
-    bool BranchBintr::LinkToSourceTee(DSL_NODETR_PTR pTee, const char* srcPadName)
-    {
-        LOG_FUNC();
-        
-        if (!m_linkedComponents.size())
-        {
-            LOG_ERROR("Unable to link empty Bramch '" << GetName() <<"'");
-            return false;
-        }
-
-        GstPad* pComponentStaticSinkPad = gst_element_get_static_pad(m_linkedComponents.front()->GetGstElement(), "sink");
-        if (!pComponentStaticSinkPad)
-        {
-            LOG_ERROR("Failed to get static Sink Pad for Branch Bintr '" << GetName() <<"'");
-            return false;
-        }        
-        // Add a sink ghost pad to BranchBintr, using the firt componet's 
-        if (!gst_element_add_pad(GetGstElement(), 
-            gst_ghost_pad_new("sink", pComponentStaticSinkPad)))
-        {
-            gst_object_unref(pComponentStaticSinkPad);
-            LOG_ERROR("Failed to add Sink Ghost Pad for BranchBintr'" << GetName() << "'");
-            return false;
-        }
-        gst_object_unref(pComponentStaticSinkPad);
-        
-        return Bintr::LinkToSourceTee(pTee, srcPadName);
-    }
 
 } // DSL

@@ -4,37 +4,39 @@ The On-Screen Display (OSD) component provides visualization of object detection
 As with all components, OSDs must be uniquely named from all other components created.
 
 #### OSD Construction and Destruction
-The constructor [dsl_osd_new](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [dsl_component_delete](/docs/api-component.md#dsl_component_delete), [dsl_component_delete_many](/docs/api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](/docs/api-component.md#dsl_component_delete_all)
+The constructor [`dsl_osd_new`](#dsl_osd_new) is used to create an OSD with boolean inputs for enabling display of text, clock, bounding boxes, and segmentation mask. Once created, the OSD's clock parameters -- fonts, color and offsets -- can be modified from their [default values](#default-values). OSDs are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
 
 #### Adding and Removing
-A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [dsl_pipeline_component_add](api-pipeline.md#dsl_pipeline_component_add) or [dsl_pipeline_component_add_many](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [dsl_pipeline_component_remove](/docs/api-pipeline.md#dsl_pipeline_component_remove), [dsl_pipeline_component_remove_many](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [dsl_pipeline_component_remove_all](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+A single OSD can be added to Pipeline trunk or individual branch. An OSD is added to a Pipeline by calling [`dsl_pipeline_component_add`](api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
-A similar set of Services are used when adding/removing an OSD to/from a branch: [dsl_branch_component_add](api-branch.md#dsl_branch_component_add), [dsl_branch_component_add_many](/docs/api-branch.md#dsl_branch_component_add_many), [dsl_branch_component_remove](/docs/api-branch.md#dsl_branch_component_remove), [dsl_branch_component_remove_many](/docs/api-branch.md#dsl_branch_component_remove_many), and [dsl_branch_component_remove_all](/docs/api-branch.md#dsl_branch_component_remove_all).
+A similar set of Services are used when adding/removing an OSD to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
 Once added to a Pipeline or Branch, an OSD must be removed before it can be used with another.
 
 ---
 ## On-Screen API
 **Constructors:**
-* [dsl_osd_new](#dsl_osd_new)
+* [`dsl_osd_new`](#dsl_osd_new)
 
 **Methods:**
-* [dsl_osd_text_enabled_get](#dsl_osd_text_enabled_get)
-* [dsl_osd_text_enabled_set](#dsl_osd_text_enabled_set)
-* [dsl_osd_clock_enabled_get](#dsl_osd_clock_enabled_get)
-* [dsl_osd_clock_enabled_set](#dsl_osd_clock_enabled_set)
-* [dsl_osd_clock_offsets_get](#dsl_osd_clock_offsets_get)
-* [dsl_osd_clock_offsets_set](#dsl_osd_clock_offsets_set)
-* [dsl_osd_clock_font_get](#dsl_osd_clock_font_get)
-* [dsl_osd_clock_font_set](#dsl_osd_clock_font_set)
-* [dsl_osd_clock_color_get](#dsl_osd_clock_color_get)
-* [dsl_osd_clock_color_set](#dsl_osd_clock_color_set)
-* [dsl_osd_bbox_enabled_get](#dsl_osd_bbox_enabled_get)
-* [dsl_osd_bbox_enabled_set](#dsl_osd_bbox_enabled_set)
-* [dsl_osd_mask_enabled_get](#dsl_osd_mask_enabled_get)
-* [dsl_osd_mask_enabled_set](#dsl_osd_mask_enabled_set)
-* [dsl_osd_pph_add](#dsl_osd_pph_add)
-* [dsl_osd_pph_remove](#dsl_osd_pph_remove)
+* [`dsl_osd_text_enabled_get`](#dsl_osd_text_enabled_get)
+* [`dsl_osd_text_enabled_set`](#dsl_osd_text_enabled_set)
+* [`dsl_osd_clock_enabled_get`](#dsl_osd_clock_enabled_get)
+* [`dsl_osd_clock_enabled_set`](#dsl_osd_clock_enabled_set)
+* [`dsl_osd_clock_offsets_get`](#dsl_osd_clock_offsets_get)
+* [`dsl_osd_clock_offsets_set`](#dsl_osd_clock_offsets_set)
+* [`dsl_osd_clock_font_get`](#dsl_osd_clock_font_get)
+* [`dsl_osd_clock_font_set`](#dsl_osd_clock_font_set)
+* [`dsl_osd_clock_color_get`](#dsl_osd_clock_color_get)
+* [`dsl_osd_clock_color_set`](#dsl_osd_clock_color_set)
+* [`dsl_osd_bbox_enabled_get`](#dsl_osd_bbox_enabled_get)
+* [`dsl_osd_bbox_enabled_set`](#dsl_osd_bbox_enabled_set)
+* [`dsl_osd_mask_enabled_get`](#dsl_osd_mask_enabled_get)
+* [`dsl_osd_mask_enabled_set`](#dsl_osd_mask_enabled_set)
+* [`dsl_osd_process_mode_get`](#dsl_osd_process_mode_get)
+* [`dsl_osd_process_mode_set`](#dsl_osd_process_mode_set)
+* [`dsl_osd_pph_add`](#dsl_osd_pph_add)
+* [`dsl_osd_pph_remove`](#dsl_osd_pph_remove)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
@@ -53,15 +55,27 @@ The following return codes are used by the On-Screen Display API
 #define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
 ```
 
-## Default Values
+## Symbolic Constants
+### OSD process mode constants for CPU and GPU
+* CPU: Jetson & dGPU
+* GPU: dGPU only
+* HW:  Jetson only
+```c
+#define DSL_OSD_PROCESS_MODE_CPU                                    0
+#define DSL_OSD_PROCESS_MODE_GPU                                    1
+#define DSL_OSD_PROCESS_MODE_HW                                     2
+```
+
+### Default Values
 The following default property values are used by the On-Screen Display API
+These values are used to override the `nvdsosd` plugin defaults.
 ```C
-#define DSL_DEFAULT_OSD_PROCESS_MODE                                0
+#define DSL_DEFAULT_OSD_PROCESS_MODE                                DSL_OSD_PROCESS_MODE_CPU
 #define DSL_DEFAULT_OSD_CLOCK_FONT_TYPE                             "Serif"
 #define DSL_DEFAULT_OSD_CLOCK_FONT_SIZE                             12
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_X                              20
 #define DSL_DEFAULT_OSD_CLOCK_OFFSET_Y                              20
-#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {}
+#define DSL_DEFAULT_OSD_CLOCK_COLOR                                 {1.0,0.0,0.0,1.0}
 ```
 
 ---
@@ -83,7 +97,7 @@ The constructor creates a uniquely named On-Screen Display. Construction will fa
 * `mask_enable` - [in] set to true to enable segmentation mask display, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -99,14 +113,14 @@ retval = dsl_osd_new('my-on-screen-display', True, True, True, False)
 ```c++
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service returns the current text display enabled setting for the named On-Screen Display
+This service returns the current text display enabled setting for the named On-Screen Display.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `enabled` - [out] true if text display is currently enabled, false otherwise
+* `enabled` - [out] true if text display is currently enabled, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -119,15 +133,17 @@ retval, enabled = dsl_osd_text_enabled_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the current text display enabled setting for the named On-Screen Display
+This service sets the current text display enabled setting for the named On-Screen Display.
+
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
-* `enable` - [in] set to true to enable text display, false otherwise
+* `name` - [in] unique name of the On-Screen Display to update.
+* `enable` - [in] set to true to enable text display, false otherwise.
 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -140,14 +156,14 @@ retval = dsl_osd_text_enabled_set('my-on-screen-display', False)
 ```c++
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service returns the current clock display enabled setting for the named On-Screen Display
+This service returns the current clock display enabled setting for the named On-Screen Display.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `enabled` - [out] true if the On-Screen clock is currently enabled, false otherwise
+* `enabled` - [out] true if the On-Screen clock is currently enabled, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -160,14 +176,16 @@ retval, enabled = dsl_osd_clock_enabled_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the current clock display enabled setting for the named On-Screen Display
+This service sets the current clock display enabled setting for the named On-Screen Display.
+
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
-* `enabled` - [in] set to true to enable the On-Screen clock, false otherwise
+* `name` - [in] unique name of the On-Screen Display to update.
+* `enabled` - [in] set to true to enable the On-Screen clock, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -180,15 +198,15 @@ retval = dsl_osd_clock_enabled_set('my-on-screen-display', False)
 ```c++
 DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* x_offset, uint* y_offset);
 ```
-This service gets the current clock X and Y offsets for the named On-Screen Display. The offsets start from the upper left corner of the bounding box for each object detected and tracked.
+This service gets the current clock X and Y offsets for the named On-Screen Display. The offsets start from the upper left corner of the frame.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `x_offset` - [out] On-Screen clock offset in the X direction
-* `y_offset` - [out] On-Screen clock offset in the Y direction
+* `x_offset` - [out] On-Screen clock offset in the X direction.
+* `y_offset` - [out] On-Screen clock offset in the Y direction.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -204,12 +222,12 @@ DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offsetX, uint 
 This service sets the current clock X and Y offsets for the named On-Screen Display. The offsets start from the upper left corner of the frame.
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
-* `x_offset` - [in] On-Screen clock offset in the X direction
-* `y_offset` - [in] On-Screen clock offset in the Y direction
+* `name` - [in] unique name of the On-Screen Display to update.
+* `x_offset` - [in] On-Screen clock offset in the X direction.
+* `y_offset` - [in] On-Screen clock offset in the Y direction.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -222,15 +240,15 @@ retval, x_offset, y_offset = dsl_osd_clock_offsets_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint size);
 ```
-This service gets the current clock font name and size for the named On-Screen Display
+This service gets the current clock font name and size for the named On-Screen Display.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
 * `font` - [out] Name of the clock font type currently in use.
-* `size` - [out] Size of the On-Screen clock
+* `size` - [out] Size of the On-Screen clock.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -246,12 +264,12 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
 This service sets the current clock font type and size for the named On-Screen Display
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
+* `name` - [in] unique name of the On-Screen Display to update.
 * `font` - [in] Name of the clock font type currently in use.
-* `size` - [in] Size of the On-Screen clock
+* `size` - [in] Size of the On-Screen clock.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -269,17 +287,17 @@ This service gets the current clock color for the named On-Screen Display. The c
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `red` - [out] red color weight `[0.0...1.0]`
-* `green` - [out] green color weight `[0.0...1.0]`
-* `blue` - [out] blue color weight `[0.0...1.0]`
-* `alpha` - [out] alpha color weight `[0.0...1.0]`
+* `red` - [out] red color weight `[0.0...1.0]`.
+* `green` - [out] green color weight `[0.0...1.0]`.
+* `blue` - [out] blue color weight `[0.0...1.0]`.
+* `alpha` - [out] alpha color weight `[0.0...1.0]`.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
-retval, red, green, blue, alpha = dsl_osd_clock_color_get('my-on-screen-display')
+retval, red, green, blue, alpha = dsl_osd_clock_color_get('my-on-screen-display').
 ```
 
 <br>
@@ -292,14 +310,14 @@ DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, uint doub
 This service gets the current clock color for the named On-Screen Display. The color is specified in RGBA format.
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
-* `red` - [in] red color weight `[0.0...1.0]`
-* `green` - [in] green color weight `[0.0...1.0]`
-* `blue` - [in] blue color weight `[0.0...1.0]`
-* `alpha` - [in] alpha color weight `[0.0...1.0]`
+* `name` - [in] unique name of the On-Screen Display to update.
+* `red` - [in] red color weight `[0.0...1.0]`.
+* `green` - [in] green color weight `[0.0...1.0]`.
+* `blue` - [in] blue color weight `[0.0...1.0]`.
+* `alpha` - [in] alpha color weight `[0.0...1.0]`.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -312,14 +330,16 @@ retval = dsl_osd_clock_color_set('my-on-screen-display', 0.6, 0.0, 0.6, 1.0)
 ```c++
 DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service returns the current bounding box display enabled setting for the named On-Screen Display
+This service returns the current bounding box display enabled setting for the named On-Screen Display.
+
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `enabled` - [out] true if bounding box display is currently enabled, false otherwise
+* `enabled` - [out] true if bounding box display is currently enabled, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -332,15 +352,15 @@ retval, enabled = dsl_osd_bbox_enabled_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the current bounding box display enabled setting for the named On-Screen Display
+This service sets the current bounding box display enabled setting for the named On-Screen Display.
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
-* `enable` - [in] set to true to enable bounding box display, false otherwise
+* `name` - [in] unique name of the On-Screen Display to update.
+* `enable` - [in] set to true to enable bounding box display, false otherwise.
 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -353,14 +373,14 @@ retval = dsl_osd_bbox_enabled_set('my-on-screen-display', False)
 ```c++
 DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled);
 ```
-This service returns the current segmentation mask display enabled setting for the named On-Screen Display
+This service returns the current segmentation mask display enabled setting for the named On-Screen Display.
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to query.
-* `enabled` - [out] true if segmentation mask display is currently enabled, false otherwise
+* `enabled` - [out] true if segmentation mask display is currently enabled, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
@@ -373,19 +393,59 @@ retval, enabled = dsl_osd_mask_enabled_get('my-on-screen-display')
 ```c++
 DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled);
 ```
-This service sets the current segmentation mask display enabled setting for the named On-Screen Display
+This service sets the current segmentation mask display enabled setting for the named On-Screen Display.
+
+**IMPORTANT!** this service can be called at runtime while the Pipeline is playing.
 
 **Parameters**
-* `name` - [in] unique name of the On-Screen Display to query.
-* `enable` - [in] set to true to enable segmentation mask display, false otherwise
-
+* `name` - [in] unique name of the On-Screen Display to update.
+* `enable` - [in] set to true to enable segmentation mask display, false otherwise.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
 ```Python
 retval = dsl_osd_mask_enabled_set('my-on-screen-display', False)
+```
+
+### *dsl_osd_process_mode_get*
+```c
+DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode);
+```
+This service returns the current process-mode setting for the named On-Screen Display  Default value -- **explicity set by DSL on OSD creation** is `DSL_OSD_PROCESS_MODE_CPU`.
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to query.
+* `mode` - [out] one of the [DSL_OSD_PROCESS_MODE](#osd-process-mode-constants-for-cpu-and-gpu) constants defined above.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, mode = dsl_osd_process_mode_get('my-on-screen-display')
+```
+
+<br>
+
+### *dsl_osd_process_mode_set*
+```c++
+DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode);
+```
+This service sets the process-mode setting for the named On-Screen Display.
+
+**Parameters**
+* `name` - [in] unique name of the On-Screen Display to update.
+* `mode` - [in] one of the [DSL_OSD_PROCESS_MODE](#osd-process-mode-constants-for-cpu-and-gpu) constants defined above.
+
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_osd_process_mode_set('my-on-screen-display', DSL_OSD_PROCESS_MODE_GPU)
 ```
 
 <br>
@@ -399,8 +459,8 @@ This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or 
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
-* `handler` - [in] unique name of Pad Probe Handler to add
-* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
+* `handler` - [in] unique name of Pad Probe Handler to add.
+* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
@@ -422,8 +482,8 @@ This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sin
 
 **Parameters**
 * `name` - [in] unique name of the On-Screen Display to update.
-* `handler` - [in] unique name of Pad Probe Handler to remove
-* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
+* `handler` - [in] unique name of Pad Probe Handler to remove.
+* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.

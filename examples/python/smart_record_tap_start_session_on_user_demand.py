@@ -75,10 +75,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
-WINDOW_WIDTH = TILER_WIDTH
-WINDOW_HEIGHT = TILER_HEIGHT
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -230,8 +228,8 @@ def main(args):
             protocol = DSL_RTP_ALL,     
             skip_frames = 0,     
             drop_frame_interval = 0,     
-            latency=100,
-            timeout=2)    
+            latency = 1000, # jitter-buffer size based on latency of 1 second
+            timeout = 2 )    # new-buffer timeout of 2 seconds    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
@@ -279,14 +277,28 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # add our ODE Pad Probe Handle to the Sink Pad of the Tiler
+        # add our ODE Pad Probe Handle to the Sink Pad of the OSD
         retval = dsl_osd_pph_add('on-screen-display', 'ode-handler', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
  
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 
-            0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        # New Window Sink, 0 x/y offsets and dimensions.
+        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Live Source so best to set the Window-Sink's sync enabled setting to false.
+        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -298,16 +310,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Add the XWindow event handler functions defined above
-        retval = dsl_pipeline_xwindow_key_event_handler_add("pipeline", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_pipeline_xwindow_delete_event_handler_add("pipeline", 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)

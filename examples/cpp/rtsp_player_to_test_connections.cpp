@@ -60,6 +60,17 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     }
 }
 
+//  
+// Function to be called on XWindow Delete event
+// 
+void xwindow_delete_event_handler(void* client_data)
+{
+    std::cout << "delete window event" <<std::endl;
+
+    dsl_pipeline_stop(L"pipeline");
+    dsl_main_loop_quit();
+}
+
 int main(int argc, char** argv)
 {  
     DslReturnType retval;
@@ -77,13 +88,18 @@ int main(int argc, char** argv)
         retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+            xwindow_key_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+            xwindow_delete_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+    
         retval = dsl_player_new(L"player", L"rtsp-source", L"window-sink");
         if (retval != DSL_RESULT_SUCCESS) break;
             
-        // # Add the XWindow event handler functions defined above    
-        retval = dsl_player_xwindow_key_event_handler_add(L"player", xwindow_key_event_handler, nullptr);    
-        if (retval != DSL_RESULT_SUCCESS) break;    
-        
         // # Play the player    
         retval = dsl_player_play(L"player");
         if (retval != DSL_RESULT_SUCCESS) break;

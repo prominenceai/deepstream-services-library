@@ -10,17 +10,17 @@ Message Broker objects wrap around NVIDIA's [Message Broker Interface (nv_msgbro
 **Important:** refer to the DeepStream Plugin Guide for information on the [Message Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgconv.html#gst-nvmsgconv) and [Message Broker](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvmsgbroker.html), and for information on configuration and use of the different Protocol Adapters.  
 
 ### Message Broker Construction and Destruction
-Message Brokers are created by calling [dsl_message_broker_new](#dsl_message_broker_new) with one of the protocol adapter libraries defined below. As with all DSL Components, Broker objects must be uniquely named from all other DSL components created. Broker objects are destroyed by calling either [dsl_message_broker_delete](#dsl_message_broker_delete) or [dsl_message_broker_delete_all](#dsl_message_broker_delete_all)
+Message Brokers are created by calling [`dsl_message_broker_new`](#dsl_message_broker_new) with one of the protocol adapter libraries defined below. As with all DSL Components, Broker objects must be uniquely named from all other DSL components created. Broker objects are destroyed by calling either [`dsl_message_broker_delete`](#dsl_message_broker_delete) or [`dsl_message_broker_delete_all`](#dsl_message_broker_delete_all)
 
 ### Connection Management.
-Message Brokers are connected to a remote entity by calling [dsl_message_broker_connect](#dsl_message_broker_connect) and disconnected by calling [dsl_message_broker_disconnect](#dsl_message_broker_disconnect). The current connection state can be uptrained by calling [dsl_message_broker_is_connected](#dsl_message_broker_is_connected). Clients can listen for connection events by calling [dsl_message_broker_connection_listener_add](#dsl_message_broker_connection_listener_add) with a callback of type [dsl_message_broker_connection_listener_cb](#dsl_message_broker_connection_listener_cb). **Note:** the particular cases for when the callback is called by each of the protocol adapter libraries is still to be determined.
+Message Brokers are connected to a remote entity by calling [`dsl_message_broker_connect`](#dsl_message_broker_connect) and disconnected by calling [`dsl_message_broker_disconnect`](#dsl_message_broker_disconnect). The current connection state can be uptrained by calling [`dsl_message_broker_is_connected`](#dsl_message_broker_is_connected). Clients can listen for connection events by calling [`dsl_message_broker_connection_listener_add`](#dsl_message_broker_connection_listener_add) with a callback of type [`dsl_message_broker_connection_listener_cb`](#dsl_message_broker_connection_listener_cb). **Note:** the particular cases for when the callback is called by each of the protocol adapter libraries is still to be determined.
 
 ### Sending Asynchronous Messages
-Clients can send messages with a specific topic to a remote entity by calling [dsl_message_broker_message_send_async](#dsl_message_broker_message_send_async), while passing in a callback of type [dsl_message_broker_send_result_listener_cb](#dsl_message_broker_send_result_listener_cb) to receive the asynchronous notification of the send operation's success or failure.
+Clients can send messages with a specific topic to a remote entity by calling [`dsl_message_broker_message_send_async`](#dsl_message_broker_message_send_async), while passing in a callback of type [`dsl_message_broker_send_result_listener_cb`](#dsl_message_broker_send_result_listener_cb) to receive the asynchronous notification of the send operation's success or failure.
 
 ### Subscribing to Messages
-Clients can subscribe to incoming messages for one or more topics sent from a remote entity. A callback of type of [dsl_message_broker_subscriber_cb](#dsl_message_broker_subscriber_cb) can be added to a Message Broker by calling  [dsl_message_broker_subscriber_add](#dsl_message_broker_subscriber_add)
-and removed by calling [dsl_message_broker_subscriber_remove](#dsl_message_broker_subscriber_remove).
+Clients can subscribe to incoming messages for one or more topics sent from a remote entity. A callback of type of [`dsl_message_broker_subscriber_cb`](#dsl_message_broker_subscriber_cb) can be added to a Message Broker by calling  [`dsl_message_broker_subscriber_add`](#dsl_message_broker_subscriber_add)
+and removed by calling [`dsl_message_broker_subscriber_remove`](#dsl_message_broker_subscriber_remove).
 
 **Note**: the protocol adapter library used must support bidirectional messaging. The Azure Module Client library `libnvds_azure_edge_proto.so` for example.
 
@@ -55,29 +55,29 @@ a simple example that sends "hello world" strings from two different threads, ea
 ## Message Broker API
 
 **Callback Types:**
-* [dsl_message_broker_connection_listener_cb](#dsl_message_broker_connection_listener_cb)
-* [dsl_message_broker_send_result_listener_cb](#dsl_message_broker_send_result_listener_cb)
-* [dsl_message_broker_subscriber_cb](#dsl_message_broker_subscriber_cb)
+* [`dsl_message_broker_connection_listener_cb`](#dsl_message_broker_connection_listener_cb)
+* [`dsl_message_broker_send_result_listener_cb`](#dsl_message_broker_send_result_listener_cb)
+* [`dsl_message_broker_subscriber_cb`](#dsl_message_broker_subscriber_cb)
 
 **Constructors:**
-* [dsl_message_broker_new](#dsl_message_broker_new)
+* [`dsl_message_broker_new`](#dsl_message_broker_new)
 
 **Destructors:**
-* [dsl_message_broker_delete](#dsl_message_broker_delete)
-* [dsl_message_broker_delete_all](#dsl_message_broker_delete_all)
+* [`dsl_message_broker_delete`](#dsl_message_broker_delete)
+* [`dsl_message_broker_delete_all`](#dsl_message_broker_delete_all)
 
 **Methods:**
-* [dsl_message_broker_connect](#dsl_message_broker_connect)
-* [dsl_message_broker_disconnect](#dsl_message_broker_disconnect)
-* [dsl_message_broker_is_connected](#dsl_message_broker_is_connected)
-* [dsl_message_broker_connection_listener_add](#dsl_message_broker_connection_listener_add)
-* [dsl_message_broker_connection_listener_remove](#dsl_message_broker_connection_listener_remove)
-* [dsl_message_broker_message_send_async](#dsl_message_broker_message_send_async)
-* [dsl_message_broker_subscriber_add](#dsl_message_broker_subscriber_add)
-* [dsl_message_broker_subscriber_remove](#dsl_message_broker_subscriber_remove)
-* [dsl_message_broker_settings_get](#dsl_message_broker_settings_get)
-* [dsl_message_broker_settings_set](#dsl_message_broker_settings_set)
-* [dsl_message_broker_list_size](#dsl_message_broker_list_size)
+* [`dsl_message_broker_connect`](#dsl_message_broker_connect)
+* [`dsl_message_broker_disconnect`](#dsl_message_broker_disconnect)
+* [`dsl_message_broker_is_connected`](#dsl_message_broker_is_connected)
+* [`dsl_message_broker_connection_listener_add`](#dsl_message_broker_connection_listener_add)
+* [`dsl_message_broker_connection_listener_remove`](#dsl_message_broker_connection_listener_remove)
+* [`dsl_message_broker_message_send_async`](#dsl_message_broker_message_send_async)
+* [`dsl_message_broker_subscriber_add`](#dsl_message_broker_subscriber_add)
+* [`dsl_message_broker_subscriber_remove`](#dsl_message_broker_subscriber_remove)
+* [`dsl_message_broker_settings_get`](#dsl_message_broker_settings_get)
+* [`dsl_message_broker_settings_set`](#dsl_message_broker_settings_set)
+* [`dsl_message_broker_list_size`](#dsl_message_broker_list_size)
 
 ## Constants
 The following status values are used by the Message Broker API

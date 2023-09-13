@@ -76,6 +76,88 @@ SCENARIO( "The Components container is updated correctly on Inter-Pipe Sink dele
     }
 }
 
+SCENARIO( "An Interpipe Sink can update it's common properties correctly", 
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name = L"interpipe-sink";
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_interpipe_new(sink_name.c_str(), 
+            forward_eos, forward_events) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Interpipe Sink's sync property is updated from its default" ) 
+        {
+            boolean newSync(false); // default == true
+            REQUIRE( dsl_sink_sync_enabled_set(sink_name.c_str(), 
+                newSync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true);
+                REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
+                    &retSync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Interpipe Sink's async property is updated from its default" ) 
+        {
+            boolean newAsync(false);  // default == true
+            REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
+                newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retAsync(true);
+                REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
+                    &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Interpipe Sink's max-lateness property is updated from its default" ) 
+        {
+            int64_t newMaxLateness(1);  // default == -1
+            REQUIRE( dsl_sink_max_lateness_set(sink_name.c_str(), 
+                newMaxLateness) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                int64_t retMaxLateness(12345678);
+                REQUIRE( dsl_sink_max_lateness_get(sink_name.c_str(), 
+                    &retMaxLateness) == DSL_RESULT_SUCCESS );
+                REQUIRE( retMaxLateness == newMaxLateness );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The Interpipe Sink's qos property is updated from its default" ) 
+        {
+            boolean newQos(false);  // default == true
+            REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
+                newQos) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retQos(true);
+                REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
+                    &retQos) == DSL_RESULT_SUCCESS );
+                REQUIRE( retQos == newQos );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "An Inter-Pipe Sink can update its forward settings correctly",
     "[inter-pipe-sink-api]" )
 {

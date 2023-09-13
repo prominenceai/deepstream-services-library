@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,17 @@ THE SOFTWARE.
 #include "Dsl.h"
 
 static std::wstring pipeline_name(L"test-pipeline");
+static std::wstring pipeline_name0(L"test-pipeline0");
+static std::wstring pipeline_name1(L"test-pipeline1");
 static std::wstring pipeline_name2(L"test-pipeline2");
-static std::wstring pipeline_name3(L"test-pipeline3");
 
 static std::wstring source_name(L"source");
+static std::wstring source_name0(L"source0");
+static std::wstring source_name1(L"source1");
 static std::wstring source_name2(L"source2");
 static std::wstring source_name3(L"source3");
+static std::wstring source_name4(L"source4");
+static std::wstring source_name5(L"source5");
 
 static uint width(1280);
 static uint height(720);
@@ -67,7 +72,8 @@ static std::wstring buffer_in_format(DSL_VIDEO_FORMAT_I420);
 static std::wstring def_device_location(L"/dev/video0");
 
 
-SCENARIO( "The Components container is updated correctly on new source", "[source-api]" )
+SCENARIO( "The Components container is updated correctly on new source", 
+    "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -75,7 +81,8 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
 
         WHEN( "A new Source is created" ) 
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_usb_new(source_name.c_str(), 
+                width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -87,18 +94,21 @@ SCENARIO( "The Components container is updated correctly on new source", "[sourc
     }
 }    
     
-SCENARIO( "The Components container is updated correctly on Source Delete", "[source-api]" )
+SCENARIO( "The Components container is updated correctly on Source Delete",
+    "[source-api]" )
 {
     GIVEN( "One Source im memory" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_usb_new(source_name.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         
         WHEN( "The Source is deleted" )
         {
-            REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_delete(source_name.c_str()) 
+                == DSL_RESULT_SUCCESS );
             
             THEN( "The list and contents are updated correctly" )
             {
@@ -108,15 +118,18 @@ SCENARIO( "The Components container is updated correctly on Source Delete", "[so
     }
 }
 
-SCENARIO( "A Source in use can't be deleted", "[source-api]" )
+SCENARIO( "A Source in use can't be deleted", 
+    "[source-api]" )
 {
     GIVEN( "A new Source and new pPipeline" ) 
     {
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_usb_new(source_name.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) 
+            == DSL_RESULT_SUCCESS );
 
         WHEN( "The Source is added to the Pipeline" ) 
         {
@@ -125,7 +138,8 @@ SCENARIO( "A Source in use can't be deleted", "[source-api]" )
 
             THEN( "The Source can't be deleted" ) 
             {
-                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+                REQUIRE( dsl_component_delete(source_name.c_str()) 
+                    == DSL_RESULT_COMPONENT_IN_USE );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -136,13 +150,15 @@ SCENARIO( "A Source in use can't be deleted", "[source-api]" )
     }
 }
 
-SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api]" )
+SCENARIO( "A Source, once removed from a Pipeline, can be deleted",
+    "[source-api]" )
 {
     GIVEN( "A new Pipeline with a Child CSI Source" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_usb_new(source_name.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
@@ -155,7 +171,8 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
 
             THEN( "The Source can be deleted successfully" ) 
             {
-                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete(source_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
@@ -165,7 +182,171 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted", "[source-api
     }
 }
 
-SCENARIO( "A new App Source returns the correct attribute values", "[source-api]" )
+SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources ", 
+    "[source-api]" )
+{
+    GIVEN( "A new Source and new pPipeline" ) 
+    {
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        int ret_unique_id(99);
+        int ret_stream_id(99);
+        REQUIRE( dsl_source_usb_new(source_name0.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name0.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
+
+        ret_unique_id = 99;
+        ret_stream_id = 99;
+        REQUIRE( dsl_source_usb_new(source_name1.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name1.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
+
+        ret_unique_id = 99;
+        ret_stream_id = 99;
+        REQUIRE( dsl_source_usb_new(source_name2.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name2.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
+
+        ret_unique_id = 99;
+        ret_stream_id = 99;
+        REQUIRE( dsl_source_usb_new(source_name3.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name3.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
+
+        ret_unique_id = 99;
+        ret_stream_id = 99;
+        REQUIRE( dsl_source_usb_new(source_name4.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name4.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
+
+        ret_unique_id = 99;
+        ret_stream_id = 99;
+        REQUIRE( dsl_source_usb_new(source_name5.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
+           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_unique_id == -1);
+        REQUIRE( dsl_source_stream_id_get(source_name5.c_str(), 
+           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_stream_id == -1);
+
+        REQUIRE( dsl_pipeline_new(pipeline_name0.c_str()) 
+            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name1.c_str()) 
+            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(pipeline_name2.c_str()) 
+            == DSL_RESULT_SUCCESS );
+
+        WHEN( "The Sources are added to the Pipeline" ) 
+        {
+            REQUIRE( dsl_pipeline_component_add(pipeline_name0.c_str(), 
+                source_name0.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name0.c_str(), 
+                source_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_component_add(pipeline_name1.c_str(), 
+                source_name2.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name1.c_str(), 
+                source_name3.c_str()) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_component_add(pipeline_name2.c_str(), 
+                source_name4.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add(pipeline_name2.c_str(), 
+                source_name5.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The source-ids are updated correctly" ) 
+            {
+                ret_unique_id = 99;
+                ret_stream_id = 99;
+                REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00000000 );
+                REQUIRE( dsl_source_stream_id_get(source_name0.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 0 );
+                
+                ret_unique_id = 99;
+                ret_stream_id = 99;
+                REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00000001 );
+                REQUIRE( dsl_source_stream_id_get(source_name1.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 1 );
+                
+                ret_unique_id = 99;
+                ret_stream_id = 99;
+                REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00010000 );
+                REQUIRE( dsl_source_stream_id_get(source_name2.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 0 );
+                
+                ret_unique_id = 99;
+                ret_stream_id = 99;
+                REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00010001 );
+                REQUIRE( dsl_source_stream_id_get(source_name3.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 1 );
+                
+                ret_unique_id = 99;
+                ret_stream_id = 99;
+                REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00020000 );
+                REQUIRE( dsl_source_stream_id_get(source_name4.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 0 );
+                
+                ret_unique_id = 99;
+                ret_stream_id = 99;
+                REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
+                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_unique_id == 0x00020001 );
+                REQUIRE( dsl_source_stream_id_get(source_name5.c_str(), 
+                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_stream_id == 1 );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new App Source returns the correct attribute values",
+    "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -228,18 +409,26 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 std::wstring ret_format_string(ret_format_cstrint);
                 REQUIRE( exp_format_string == ret_format_cstrint );
                 
-                // buffer out default dimensions and framerate
+                // buffer out default dimensions
                 uint ret_bo_width(99), ret_bo_height(99);
                 REQUIRE( dsl_source_video_buffer_out_dimensions_get(source_name.c_str(), 
                     &ret_bo_width, &ret_bo_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_width == 0 );
                 REQUIRE( ret_bo_height == 0 );
                 
+                // buffer out default framerate
+                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_fps_n == 0 );
+                REQUIRE( ret_bo_fps_d == 0 );
+                
                 // buffer out default crop rectangles
                 uint ret_bo_rec_left(99), ret_bo_rec_top(99);
                 uint ret_bo_rec_width(99), ret_bo_rec_height(99);
-                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
-                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(
+                    source_name.c_str(), DSL_VIDEO_CROP_AT_SRC, 
+                    &ret_bo_rec_left, &ret_bo_rec_top,
                     &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_rec_left == 0 );
                 REQUIRE( ret_bo_rec_top == 0 );
@@ -249,8 +438,9 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 ret_bo_rec_top = 99;
                 ret_bo_rec_width = 99;
                 ret_bo_rec_height = 99;
-                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
-                    DSL_VIDEO_CROP_AT_SRC, &ret_bo_rec_left, &ret_bo_rec_top,
+                REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(
+                    source_name.c_str(), DSL_VIDEO_CROP_AT_SRC, 
+                    &ret_bo_rec_left, &ret_bo_rec_top,
                     &ret_bo_rec_width, &ret_bo_rec_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_bo_rec_left == 0 );
                 REQUIRE( ret_bo_rec_top == 0 );
@@ -258,8 +448,8 @@ SCENARIO( "A new App Source returns the correct attribute values", "[source-api]
                 REQUIRE( ret_bo_rec_height == 0 );
                 
                 uint ret_orientation(99);
-                REQUIRE( dsl_source_video_buffer_out_orientation_get(source_name.c_str(),
-                    &ret_orientation) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_source_video_buffer_out_orientation_get(
+                    source_name.c_str(), &ret_orientation) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_orientation == 0 );
                 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -369,7 +559,7 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        WHEN( "The App Source's buffer-out-dimensions setting is set" ) 
+        WHEN( "The App Source's buffer-out-dimensions settings are set" ) 
         {
             uint new_width(300), new_height(400);
             REQUIRE( dsl_source_video_buffer_out_dimensions_set(source_name.c_str(), 
@@ -386,6 +576,24 @@ SCENARIO( "An App Source can update its buffer-out settings correctly",
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
+        WHEN( "The App Source's buffer-out-frame-rate is set" ) 
+        {
+            uint new_bo_fps_n(30), new_bo_fps_d(1);
+            REQUIRE( dsl_source_video_buffer_out_frame_rate_set(source_name.c_str(), 
+                new_bo_fps_n, new_bo_fps_d) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint ret_bo_fps_n(99), ret_bo_fps_d(99);
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &ret_bo_fps_n, &ret_bo_fps_d) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_bo_fps_n == new_bo_fps_n );
+                REQUIRE( ret_bo_fps_d == new_bo_fps_d );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        
         WHEN( "The App Source's buffer-out-crop settings are set" ) 
         {
             uint new_bo_rec_left(10), new_bo_rec_top(10);
@@ -534,7 +742,7 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values",
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -599,7 +807,7 @@ SCENARIO( "A new USB Camera Source returns the correct attribute values", "[sour
                 REQUIRE( ret_height == height );
                 REQUIRE( ret_fps_n == fps_n );
                 REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(source_name.c_str()) == 0 );
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -902,6 +1110,121 @@ SCENARIO( "An RTSP Source's Reconnect Stats can gotten and cleared", "[source-ap
     }
 }
 
+SCENARIO( "An RTSP Source's latency setting can be updated correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        uint ret_latency(0);
+        
+        REQUIRE( dsl_source_rtsp_latency_get(source_name.c_str(), 
+            &ret_latency) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_latency == latency );
+
+        WHEN( "The RTSP Source's latency is updated" ) 
+        {
+            uint new_latency(1234);
+                
+            REQUIRE( dsl_source_rtsp_latency_set(source_name.c_str(), 
+                new_latency) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_latency_get(source_name.c_str(), 
+                    &ret_latency) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_latency == new_latency );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTSP Source's drop-on-latency enabled setting can be updated correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        boolean ret_drop_on_latency(true);
+        
+        REQUIRE( dsl_source_rtsp_drop_on_latency_enabled_get(source_name.c_str(), 
+            &ret_drop_on_latency) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_drop_on_latency == false );
+
+        WHEN( "The RTSP Source's latency is updated" ) 
+        {
+            boolean new_drop_on_latency(true);
+                
+            REQUIRE( dsl_source_rtsp_drop_on_latency_enabled_set(source_name.c_str(), 
+                new_drop_on_latency) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_drop_on_latency_enabled_get(source_name.c_str(), 
+                    &ret_drop_on_latency) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_drop_on_latency == new_drop_on_latency );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTSP Source's tls-validation-flags can be updated correctly", "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        uint ret_flags(0);
+        
+        REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+            &ret_flags) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_flags == DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+
+        WHEN( "The RTSP Source's tls-validation-flags is updated" ) 
+        {
+            uint new_flags(DSL_TLS_CERTIFICATE_UNKNOWN_CA | 
+                DSL_TLS_CERTIFICATE_BAD_IDENTITY);
+                
+            REQUIRE( dsl_source_rtsp_tls_validation_flags_set(source_name.c_str(), 
+                new_flags) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+                    &ret_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_flags == new_flags );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "Invalid tls-validation-flags are used" ) 
+        {
+            uint new_flags(DSL_TLS_CERTIFICATE_VALIDATE_ALL+1);
+                
+            REQUIRE( dsl_source_rtsp_tls_validation_flags_set(source_name.c_str(), 
+                new_flags) == DSL_RESULT_SOURCE_SET_FAILED );
+
+            THEN( "The tls-validation-flags are unchanged" )
+            {
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+                    &ret_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_flags == DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 static void source_state_change_listener_cb1(uint prev_state, uint curr_state, void* user_data)
 {
 }
@@ -1171,6 +1494,85 @@ SCENARIO( "A Image Stream Source Component can Set/Get its Display Timeout setti
     }
 }
 
+SCENARIO( "A new Duplicate Source returns the correct attribute values", 
+    "[source-api]" )
+{
+    GIVEN( "A new CSI Source as Original Source" ) 
+    {
+        std::wstring original_source_name(L"original-source");
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        //
+        REQUIRE( dsl_source_csi_new(original_source_name.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A new Duplicate Source is created" ) 
+        {
+            REQUIRE( dsl_source_duplicate_new(source_name.c_str(), 
+                original_source_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                const wchar_t* ret_c_original;
+                REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+                    &ret_c_original) == DSL_RESULT_SUCCESS );
+
+                std::wstring ret_original = ret_c_original;
+                REQUIRE( ret_original == original_source_name );
+
+                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new Duplicate Source can update it Origian Source correctly", 
+    "[next]" )
+{
+    GIVEN( "Two new USB Sources as Original Sources" ) 
+    {
+        std::wstring original_source_name1(L"original-source-1");
+        std::wstring original_source_name2(L"original-source-2");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_csi_new(original_source_name1.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_csi_new(original_source_name2.c_str(), 
+            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_source_duplicate_new(source_name.c_str(), 
+            original_source_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* ret_c_original;
+        REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+            &ret_c_original) == DSL_RESULT_SUCCESS );
+
+        std::wstring ret_original = ret_c_original;
+        REQUIRE( ret_original == original_source_name1 );
+
+        WHEN( "A the Duplicate Source's Original Source is updated" ) 
+        {
+            REQUIRE( dsl_source_duplicate_original_set(source_name.c_str(),
+                original_source_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size and contents are updated correctly" ) 
+            {
+                REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+                    &ret_c_original) == DSL_RESULT_SUCCESS );
+
+                std::wstring ret_original = ret_c_original;
+                REQUIRE( ret_original == original_source_name2 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -1178,7 +1580,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         REQUIRE( dsl_component_list_size() == 0 );
         
         int start_index(0);
-        uint left(0), top(0), width(0);
+        uint left(0), top(0), width(0), fps_n(0), fps_d(0);
         dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -1249,9 +1651,19 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_video_dewarper_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_video_dewarper_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_rtsp_tap_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_rtsp_tap_remove(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tls_validation_flags_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_rtsp_tap_add(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_add(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_tap_remove(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_image_multi_new(NULL, 
                     NULL, fps_n, fps_d) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1306,6 +1718,15 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_video_buffer_out_dimensions_set(NULL, 
                     1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_get(source_name.c_str(), 
+                    &fps_n, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_video_buffer_out_frame_rate_set(NULL, 
+                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(NULL, 
                     0, NULL, NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_video_buffer_out_crop_rectangle_get(source_name.c_str(), 
@@ -1325,6 +1746,30 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_video_buffer_out_orientation_set(NULL, 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_duplicate_new(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_new(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_set(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_duplicate_original_set(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_name_get(0,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_unique_id_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_unique_id_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_stream_id_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_stream_id_get(source_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

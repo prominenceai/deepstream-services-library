@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -235,7 +235,8 @@ DslReturnType dsl_display_type_rgba_line_new(const wchar_t* name,
 }
     
 DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name, 
-    uint x1, uint y1, uint x2, uint y2, uint width, uint head, const wchar_t* color)
+    uint x1, uint y1, uint x2, uint y2, uint width, uint head, 
+    const wchar_t* color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -245,13 +246,13 @@ DslReturnType dsl_display_type_rgba_arrow_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaArrowNew(cstrName.c_str(), 
-        x1, y1, x2, y2, width, head, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaArrowNew(
+        cstrName.c_str(), x1, y1, x2, y2, width, head, cstrColor.c_str());
 }
     
-DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left, uint top, 
-    uint width, uint height, uint border_width, const wchar_t* color, 
-    bool has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, 
+    uint left, uint top, uint width, uint height, uint border_width, 
+    const wchar_t* color, bool has_bg_color, const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(color);
@@ -269,8 +270,9 @@ DslReturnType dsl_display_type_rgba_rectangle_new(const wchar_t* name, uint left
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(cstrName.c_str(), 
-        left, top, width, height, border_width, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaRectangleNew(
+        cstrName.c_str(), left, top, width, height, border_width, 
+        cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
 }
 
 DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name, 
@@ -286,8 +288,9 @@ DslReturnType dsl_display_type_rgba_polygon_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaPolygonNew(cstrName.c_str(), 
-        coordinates, num_coordinates, border_width, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaPolygonNew(
+        cstrName.c_str(), coordinates, num_coordinates, border_width, 
+        cstrColor.c_str());
 }
     
 DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name, 
@@ -303,8 +306,9 @@ DslReturnType dsl_display_type_rgba_line_multi_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaLineMultiNew(cstrName.c_str(), 
-        coordinates, num_coordinates, border_width, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaLineMultiNew(
+        cstrName.c_str(), coordinates, num_coordinates, border_width, 
+        cstrColor.c_str());
 }
     
 DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name, 
@@ -327,12 +331,14 @@ DslReturnType dsl_display_type_rgba_circle_new(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(cstrName.c_str(), 
-        x_center, y_center, radius, cstrColor.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeRgbaCircleNew(
+        cstrName.c_str(), x_center, y_center, radius, cstrColor.c_str(), 
+        has_bg_color, cstrBgColor.c_str());
 }
 
-DslReturnType dsl_display_type_source_number_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+DslReturnType dsl_display_type_source_unique_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -350,12 +356,39 @@ DslReturnType dsl_display_type_source_number_new(const wchar_t* name,
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->DisplayTypeSourceNumberNew(cstrName.c_str(),
-        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeSourceUniqueIdNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
+}
+
+DslReturnType dsl_display_type_source_stream_id_new(const wchar_t* name, 
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(font);
+
+    std::string cstrBgColor;
+    if (has_bg_color)
+    {
+        RETURN_IF_PARAM_IS_NULL(bg_color);
+        std::wstring wstrBgColor(bg_color);
+        cstrBgColor.assign(wstrBgColor.begin(), wstrBgColor.end());
+    }
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFont(font);
+    std::string cstrFont(wstrFont.begin(), wstrFont.end());
+
+    return DSL::Services::GetServices()->DisplayTypeSourceStreamIdNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
 }
 
 DslReturnType dsl_display_type_source_name_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -378,7 +411,8 @@ DslReturnType dsl_display_type_source_name_new(const wchar_t* name,
 }
 
 DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name, 
-    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
+    uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
+    const wchar_t* bg_color)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
@@ -396,12 +430,11 @@ DslReturnType dsl_display_type_source_dimensions_new(const wchar_t* name,
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->DisplayTypeSourceDimensionsNew(cstrName.c_str(),
-        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeSourceDimensionsNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
 }
 
-// TODO: leaving this implementation as is without including in the header file for now.
-// Needs to be completed and tested for all source types.
 DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name, 
     uint x_offset, uint y_offset, const wchar_t* font, boolean has_bg_color, 
     const wchar_t* bg_color)
@@ -422,8 +455,9 @@ DslReturnType dsl_display_type_source_frame_rate_new(const wchar_t* name,
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->DisplayTypeSourceFrameRateNew(cstrName.c_str(),
-        x_offset, y_offset, cstrFont.c_str(), has_bg_color, cstrBgColor.c_str());
+    return DSL::Services::GetServices()->DisplayTypeSourceFrameRateNew(
+        cstrName.c_str(), x_offset, y_offset, cstrFont.c_str(), has_bg_color, 
+        cstrBgColor.c_str());
 }
 
 DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name, 
@@ -437,8 +471,8 @@ DslReturnType dsl_display_type_rgba_text_shadow_add(const wchar_t* name,
     std::wstring wstrColor(color);
     std::string cstrColor(wstrColor.begin(), wstrColor.end());
 
-    return DSL::Services::GetServices()->DisplayRgbaTextShadowAdd(cstrName.c_str(), 
-        x_offset, y_offset, cstrColor.c_str());
+    return DSL::Services::GetServices()->DisplayRgbaTextShadowAdd(
+        cstrName.c_str(), x_offset, y_offset, cstrColor.c_str());
 }
     
 DslReturnType dsl_display_type_meta_add(const wchar_t* name, 
@@ -916,6 +950,7 @@ DslReturnType dsl_ode_action_message_meta_type_get(const wchar_t* name,
     uint* meta_type)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(meta_type);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1017,7 +1052,8 @@ DslReturnType dsl_ode_action_object_remove_new(const wchar_t* name)
     return DSL::Services::GetServices()->OdeActionObjectRemoveNew(cstrName.c_str());
 }
 
-DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipeline)
+DslReturnType dsl_ode_action_pipeline_pause_new(const wchar_t* name, 
+    const wchar_t* pipeline)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(pipeline);
@@ -1027,8 +1063,83 @@ DslReturnType dsl_ode_action_pause_new(const wchar_t* name, const wchar_t* pipel
     std::wstring wstrPipeline(pipeline);
     std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
 
-    return DSL::Services::GetServices()->OdeActionPauseNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->OdeActionPipelinePauseNew(cstrName.c_str(), 
         cstrPipeline.c_str());
+}
+
+DslReturnType dsl_ode_action_pipeline_play_new(const wchar_t* name, 
+    const wchar_t* pipeline)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->OdeActionPipelinePlayNew(cstrName.c_str(), 
+        cstrPipeline.c_str());
+}
+
+DslReturnType dsl_ode_action_pipeline_stop_new(const wchar_t* name, 
+    const wchar_t* pipeline)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(pipeline);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPipeline(pipeline);
+    std::string cstrPipeline(wstrPipeline.begin(), wstrPipeline.end());
+
+    return DSL::Services::GetServices()->OdeActionPipelineStopNew(cstrName.c_str(), 
+        cstrPipeline.c_str());
+}
+
+DslReturnType dsl_ode_action_player_pause_new(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->OdeActionPlayerPauseNew(cstrName.c_str(), 
+        cstrPlayer.c_str());
+}
+
+DslReturnType dsl_ode_action_player_play_new(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->OdeActionPlayerPlayNew(cstrName.c_str(), 
+        cstrPlayer.c_str());
+}
+
+DslReturnType dsl_ode_action_player_stop_new(const wchar_t* name, 
+    const wchar_t* player)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(player);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrPlayer(player);
+    std::string cstrPlayer(wstrPlayer.begin(), wstrPlayer.end());
+
+    return DSL::Services::GetServices()->OdeActionPlayerStopNew(cstrName.c_str(), 
+        cstrPlayer.c_str());
 }
 
 DslReturnType dsl_ode_action_print_new(const wchar_t* name, 
@@ -1305,10 +1416,83 @@ DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name,
     return DSL::Services::GetServices()->OdeActionTilerShowSourceNew(cstrName.c_str(),
         cstrTiler.c_str(), timeout, has_precedence);
 }
+
+DslReturnType dsl_ode_action_branch_add_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(tee);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTee(tee);
+    std::string cstrTee(wstrTee.begin(), wstrTee.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->OdeActionBranchAddNew(cstrName.c_str(),
+        cstrTee.c_str(), cstrBranch.c_str());
+}
+
+DslReturnType dsl_ode_action_branch_add_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(demuxer);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->OdeActionBranchAddToNew(cstrName.c_str(),
+        cstrDemuxer.c_str(), cstrBranch.c_str());
+}
+
+DslReturnType dsl_ode_action_branch_move_to_new(const wchar_t* name,
+    const wchar_t* demuxer, const wchar_t* branch)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(demuxer);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDemuxer(demuxer);
+    std::string cstrDemuxer(wstrDemuxer.begin(), wstrDemuxer.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->OdeActionBranchMoveToNew(cstrName.c_str(),
+        cstrDemuxer.c_str(), cstrBranch.c_str());
+}
+    
+DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
+    const wchar_t* tee, const wchar_t* branch)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(tee);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTee(tee);
+    std::string cstrTee(wstrTee.begin(), wstrTee.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->OdeActionBranchRemoveNew(cstrName.c_str(),
+        cstrTee.c_str(), cstrBranch.c_str());
+}
     
 DslReturnType dsl_ode_action_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1700,6 +1884,8 @@ DslReturnType dsl_ode_trigger_count_range_get(const wchar_t* name,
     uint* minimum, uint* maximum)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(minimum);
+    RETURN_IF_PARAM_IS_NULL(maximum);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1743,6 +1929,8 @@ DslReturnType dsl_ode_trigger_distance_range_get(const wchar_t* name,
     uint* minimum, uint* maximum)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(minimum);
+    RETURN_IF_PARAM_IS_NULL(maximum);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -1767,6 +1955,8 @@ DslReturnType dsl_ode_trigger_distance_test_params_get(const wchar_t* name,
     uint* test_point, uint* test_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(test_point);
+    RETURN_IF_PARAM_IS_NULL(test_method);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -4138,6 +4328,59 @@ DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint 
         protocol, skip_frames, dropFrameInterval, latency, timeout);
 }
 
+DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(original);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOriginal(original);
+    std::string cstrOriginal(wstrOriginal.begin(), wstrOriginal.end());
+    
+    return DSL::Services::GetServices()->SourceDuplicateNew(cstrName.c_str(), 
+        cstrOriginal.c_str());
+}
+
+DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
+    const wchar_t** original)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(original);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cOriginal;
+    static std::string cstrOriginal;
+    static std::wstring wcstrOriginal;
+    
+    uint retval = DSL::Services::GetServices()->SourceDuplicateOriginalGet(
+        cstrName.c_str(), &cOriginal);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrOriginal.assign(cOriginal);
+        wcstrOriginal.assign(cstrOriginal.begin(), cstrOriginal.end());
+        *original = wcstrOriginal.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_source_duplicate_original_set(const wchar_t* name, 
+    const wchar_t* original)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(original);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrOriginal(original);
+    std::string cstrOriginal(wstrOriginal.begin(), wstrOriginal.end());
+    
+    return DSL::Services::GetServices()->SourceDuplicateOriginalSet(cstrName.c_str(), 
+        cstrOriginal.c_str());
+}
+    
 DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4254,6 +4497,32 @@ DslReturnType dsl_source_video_buffer_out_dimensions_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->SourceVideoBufferOutDimensionsSet(
         cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_source_video_buffer_out_frame_rate_get(const wchar_t* name, 
+    uint* fps_n, uint* fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(fps_n);
+    RETURN_IF_PARAM_IS_NULL(fps_d);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceVideoBufferOutFrameRateGet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+
+DslReturnType dsl_source_video_buffer_out_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceVideoBufferOutFrameRateSet(
+        cstrName.c_str(), fps_n, fps_d);
 }
 
 DslReturnType dsl_source_video_buffer_out_crop_rectangle_get(const wchar_t* name,
@@ -4513,7 +4782,8 @@ DslReturnType dsl_source_rtsp_connection_data_get(const wchar_t* name, dsl_rtsp_
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SourceRtspConnectionDataGet(cstrName.c_str(), data);
+    return DSL::Services::GetServices()->SourceRtspConnectionDataGet(
+        cstrName.c_str(), data);
 }
 
 DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name)
@@ -4523,9 +4793,83 @@ DslReturnType dsl_source_rtsp_connection_stats_clear(const wchar_t* name)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SourceRtspConnectionStatsClear(cstrName.c_str());
+    return DSL::Services::GetServices()->SourceRtspConnectionStatsClear(
+        cstrName.c_str());
 }
 
+DslReturnType dsl_source_rtsp_latency_get(const wchar_t* name, uint* latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(latency);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspLatencyGet(
+        cstrName.c_str(), latency);
+}
+
+DslReturnType dsl_source_rtsp_latency_set(const wchar_t* name, uint latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspLatencySet(
+        cstrName.c_str(), latency);
+}
+
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspDropOnLatencyEnabledGet(
+        cstrName.c_str(), enabled);
+}
+    
+DslReturnType dsl_source_rtsp_drop_on_latency_enabled_set(const wchar_t* name, 
+    boolean enabled)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspDropOnLatencyEnabledSet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
+    uint* flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspTlsValidationFlagsGet(
+        cstrName.c_str(), flags);
+}
+    
+DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
+    uint flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspTlsValidationFlagsSet(
+        cstrName.c_str(), flags);
+}
+    
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* source, 
     dsl_state_change_listener_cb listener, void* client_data)
 {
@@ -4575,13 +4919,39 @@ DslReturnType dsl_source_rtsp_tap_remove(const wchar_t* name)
     return DSL::Services::GetServices()->SourceRtspTapRemove(cstrName.c_str());
 }
 
-DslReturnType dsl_source_name_get(uint source_id, const wchar_t** name)
+DslReturnType dsl_source_unique_id_get(const wchar_t* name, int* unique_id)
 {
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(unique_id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceUniqueIdGet(cstrName.c_str(), 
+        unique_id);
+}
+
+DslReturnType dsl_source_stream_id_get(const wchar_t* name, int* stream_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(stream_id);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceStreamIdGet(cstrName.c_str(), 
+        stream_id);
+}
+
+DslReturnType dsl_source_name_get(uint unique_id, const wchar_t** name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
     const char* cName;
     static std::string cstrName;
     static std::wstring wcstrName;
     
-    uint retval = DSL::Services::GetServices()->SourceNameGet(source_id, &cName);
+    uint retval = DSL::Services::GetServices()->SourceNameGet(unique_id, &cName);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrName.assign(cName);
@@ -5608,6 +5978,7 @@ DslReturnType dsl_osd_new(const wchar_t* name,
 DslReturnType dsl_osd_text_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5628,6 +5999,7 @@ DslReturnType dsl_osd_text_enabled_set(const wchar_t* name, boolean enabled)
 DslReturnType dsl_osd_clock_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5645,29 +6017,38 @@ DslReturnType dsl_osd_clock_enabled_set(const wchar_t* name, boolean enabled)
     return DSL::Services::GetServices()->OsdClockEnabledSet(cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y)
+DslReturnType dsl_osd_clock_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(offset_x);
+    RETURN_IF_PARAM_IS_NULL(offset_y);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), 
+        offset_x, offset_y);
+}
+
+DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockOffsetsGet(cstrName.c_str(), offset_x, offset_y);
+    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), 
+        offset_x, offset_y);
 }
 
-DslReturnType dsl_osd_clock_offsets_set(const wchar_t* name, uint offset_x, uint offset_y)
+DslReturnType dsl_osd_clock_font_get(const wchar_t* name, 
+    const wchar_t** font, uint* size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockOffsetsSet(cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, uint* size)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(font);
+    RETURN_IF_PARAM_IS_NULL(size);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5676,7 +6057,8 @@ DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, 
     static std::string cstrFont;
     static std::wstring wcstrFont;
     
-    uint retval = DSL::Services::GetServices()->OsdClockFontGet(cstrName.c_str(), &cfont, size);
+    uint retval = DSL::Services::GetServices()->OsdClockFontGet(cstrName.c_str(), 
+        &cfont, size);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrFont.assign(cfont);
@@ -5686,9 +6068,9 @@ DslReturnType dsl_osd_clock_font_get(const wchar_t* name, const wchar_t** font, 
     return retval;
 }
 
-DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, uint size)
+DslReturnType dsl_osd_clock_font_set(const wchar_t* name, 
+    const wchar_t* font, uint size)
 {
-    std::cout << "***** pre services" << "\n";
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(font);
 
@@ -5697,37 +6079,48 @@ DslReturnType dsl_osd_clock_font_set(const wchar_t* name, const wchar_t* font, u
     std::wstring wstrFont(font);
     std::string cstrFont(wstrFont.begin(), wstrFont.end());
 
-    return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), cstrFont.c_str(), size);
+    return DSL::Services::GetServices()->OsdClockFontSet(cstrName.c_str(), 
+        cstrFont.c_str(), size);
 }
 
-DslReturnType dsl_osd_clock_color_get(const wchar_t* name, double* red, double* green, double* blue, double* alpha)
+DslReturnType dsl_osd_clock_color_get(const wchar_t* name, 
+    double* red, double* green, double* blue, double* alpha)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(red);
+    RETURN_IF_PARAM_IS_NULL(green);
+    RETURN_IF_PARAM_IS_NULL(blue);
+    RETURN_IF_PARAM_IS_NULL(alpha);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), 
+        red, green, blue, alpha);
+}
+
+DslReturnType dsl_osd_clock_color_set(const wchar_t* 
+    name, double red, double green, double blue, double alpha)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdClockColorGet(cstrName.c_str(), red, green, blue, alpha);
-}
-
-DslReturnType dsl_osd_clock_color_set(const wchar_t* name, double red, double green, double blue, double alpha)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), red, green, blue, alpha);
+    return DSL::Services::GetServices()->OsdClockColorSet(cstrName.c_str(), 
+        red, green, blue, alpha);
 }
 
 DslReturnType dsl_osd_bbox_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdBboxEnabledGet(cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->OsdBboxEnabledGet(cstrName.c_str(), 
+        enabled);
 }
 
 DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled)
@@ -5737,17 +6130,20 @@ DslReturnType dsl_osd_bbox_enabled_set(const wchar_t* name, boolean enabled)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdBboxEnabledSet(cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->OsdBboxEnabledSet(cstrName.c_str(), 
+        enabled);
 }
 
 DslReturnType dsl_osd_mask_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdMaskEnabledGet(cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->OsdMaskEnabledGet(cstrName.c_str(), 
+        enabled);
 }
 
 DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled)
@@ -5757,7 +6153,31 @@ DslReturnType dsl_osd_mask_enabled_set(const wchar_t* name, boolean enabled)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->OsdMaskEnabledSet(cstrName.c_str(), enabled);
+    return DSL::Services::GetServices()->OsdMaskEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(mode);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdProcessModeGet(cstrName.c_str(), 
+        mode);
+}
+
+DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OsdProcessModeSet(cstrName.c_str(), 
+        mode);
 }
 
 DslReturnType dsl_osd_pph_add(const wchar_t* name,
@@ -5771,7 +6191,8 @@ DslReturnType dsl_osd_pph_add(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->OsdPphAdd(cstrName.c_str(), cstrHandler.c_str(), pad);
+    return DSL::Services::GetServices()->OsdPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_osd_pph_remove(const wchar_t* name,
@@ -5785,20 +6206,24 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->OsdPphRemove(cstrName.c_str(), cstrHandler.c_str(), pad);
+    return DSL::Services::GetServices()->OsdPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_tee_demuxer_new(const wchar_t* name)
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name, 
+    uint max_branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str());
+    return DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str(),
+        max_branches);
 }
 
-DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
+    uint max_branches, const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -5806,7 +6231,8 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wch
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    DslReturnType retval = DSL::Services::GetServices()->TeeDemuxerNew(cstrName.c_str());
+    DslReturnType retval = DSL::Services::GetServices()->TeeDemuxerNew(
+        cstrName.c_str(), max_branches);
     if (retval != DSL_RESULT_SUCCESS)
     {
         return retval;
@@ -5816,13 +6242,69 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, const wch
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+            cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
         }
     }
     return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerBranchAddTo(cstrName.c_str(),
+        cstrBranch.c_str(), stream_id);
+}
+    
+DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
+    const wchar_t* branch, uint stream_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerBranchMoveTo(cstrName.c_str(),
+        cstrBranch.c_str(), stream_id);
+}
+    
+DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
+    uint* max_branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max_branches);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerMaxBranchesGet(cstrName.c_str(),
+        max_branches);
+}
+    
+DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
+    uint max_branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeDemuxerMaxBranchesSet(
+        cstrName.c_str(), max_branches);
 }
 
 DslReturnType dsl_tee_splitter_new(const wchar_t* name)
@@ -5835,7 +6317,8 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name)
     return DSL::Services::GetServices()->TeeSplitterNew(cstrName.c_str());
 }
 
-DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -5843,7 +6326,8 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, const wc
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    DslReturnType retval = DSL::Services::GetServices()->TeeSplitterNew(cstrName.c_str());
+    DslReturnType retval = DSL::Services::GetServices()->TeeSplitterNew(
+        cstrName.c_str());
     if (retval != DSL_RESULT_SUCCESS)
     {
         return retval;
@@ -5950,6 +6434,31 @@ DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count)
     return DSL::Services::GetServices()->TeeBranchCountGet(cstrName.c_str(), count);
 }
 
+DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
+    uint* timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeBlockingTimeoutGet(
+        cstrName.c_str(), timeout);
+}
+
+DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
+    uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeBlockingTimeoutSet(
+        cstrName.c_str(), timeout);
+}
+    
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6226,6 +6735,39 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
         offset_x, offset_y, width, height);
 }
 
+DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handle);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowHandleGet(
+        cstrName.c_str(), handle);
+}
+
+DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowHandleSet(
+        cstrName.c_str(), handle);
+}
+
+DslReturnType dsl_sink_window_clear(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowClear(cstrName.c_str());
+}
+ 
 DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force)
 {
@@ -6235,8 +6777,8 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRatioGet(cstrName.c_str(), 
-        force);
+    return DSL::Services::GetServices()->SinkWindowForceAspectRatioGet(
+        cstrName.c_str(), force);
 }
     
 DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
@@ -6247,48 +6789,159 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRatioSet(cstrName.c_str(), 
-        force);
+    return DSL::Services::GetServices()->SinkWindowForceAspectRatioSet(
+        cstrName.c_str(), force);
 }
 
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, uint* offset_x, uint* offset_y)
+DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name,
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowFullScreenEnabledGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name, 
+    boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRenderOffsetsGet(cstrName.c_str(), offset_x, offset_y);
+    return DSL::Services::GetServices()->SinkWindowFullScreenEnabledSet(
+        cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, uint offset_x, uint offset_y)
+DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowKeyEventHandlerAdd(
+        cstrName.c_str(), handler, client_data);
+}    
+
+DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_key_event_handler_cb handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowKeyEventHandlerRemove(
+        cstrName.c_str(), handler);
+}
+
+DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowButtonEventHandlerAdd(
+        cstrName.c_str(), handler, client_data);
+}    
+
+DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_button_event_handler_cb handler)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowButtonEventHandlerRemove(
+        cstrName.c_str(), handler);
+}
+
+DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowDeleteEventHandlerAdd(
+        cstrName.c_str(), handler, client_data);
+}    
+
+DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
+    dsl_sink_window_delete_event_handler_cb handler)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        SinkWindowDeleteEventHandlerRemove(cstrName.c_str(), handler);
+}
+
+DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRenderOffsetsSet(cstrName.c_str(), offset_x, offset_y);
+    return DSL::Services::GetServices()->SinkRenderOffsetsGet(
+        cstrName.c_str(), offset_x, offset_y);
 }
 
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, uint* width, uint* height)
+DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRenderDimensionsGet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->SinkRenderOffsetsSet(
+        cstrName.c_str(), offset_x, offset_y);
 }
 
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, uint width, uint height)
+DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRenderDimensionsSet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->SinkRenderDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRenderDimensionsSet(
+        cstrName.c_str(), width, height);
 }
 
 DslReturnType dsl_sink_render_reset(const wchar_t* name)
@@ -7292,6 +7945,97 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
         cstrConn.c_str(), cstrTopic.c_str());
 }
     
+DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkSyncEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkSyncEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_async_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkAsyncEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_async_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkAsyncEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_max_lateness_get(const wchar_t* name, int64_t* max_lateness)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max_lateness);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkMaxLatenessGet(cstrName.c_str(), 
+        max_lateness);
+}
+    
+DslReturnType dsl_sink_max_lateness_set(const wchar_t* name, int64_t max_lateness)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkMaxLatenessSet(cstrName.c_str(), 
+        max_lateness);
+}
+    
+DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkQosEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+    
+DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkQosEnabledSet(cstrName.c_str(), 
+        enabled);
+}
     
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler)
 {
@@ -7322,28 +8066,6 @@ DslReturnType dsl_sink_pph_remove(const wchar_t* name,
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkSyncEnabledGet(cstrName.c_str(), 
-        enabled);
-}
-    
-DslReturnType dsl_sink_sync_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkSyncEnabledSet(cstrName.c_str(), 
-        enabled);
-}
-    
 DslReturnType dsl_component_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7757,7 +8479,7 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeGet(cstrName.c_str(),
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeGet(cstrName.c_str(),
         type);
 }
 
@@ -7769,12 +8491,12 @@ DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNvbufMemTypeSet(cstrName.c_str(),
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeSet(cstrName.c_str(),
         type);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, uint* batch_timeout)
+    uint* batch_size, int* batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
@@ -7783,19 +8505,19 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesGet(
+    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesGet(
         cstrName.c_str(), batch_size, batch_timeout);
 }
 
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, uint batch_timeout)
+    uint batch_size, int batch_timeout)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxBatchPropertiesSet(
+    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesSet(
         cstrName.c_str(), batch_size, batch_timeout);
 }
 
@@ -7809,7 +8531,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsGet(
+    return DSL::Services::GetServices()->PipelineStreammuxDimensionsGet(
         cstrName.c_str(), width, height);
 }
 
@@ -7821,7 +8543,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxDimensionsSet(
+    return DSL::Services::GetServices()->PipelineStreammuxDimensionsSet(
         cstrName.c_str(), width, height);
 }    
 
@@ -7834,7 +8556,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxPaddingGet(
+    return DSL::Services::GetServices()->PipelineStreammuxPaddingGet(
         cstrName.c_str(), enabled);
 }
 
@@ -7846,7 +8568,7 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxPaddingSet(
+    return DSL::Services::GetServices()->PipelineStreammuxPaddingSet(
         cstrName.c_str(), enabled);
 }
 
@@ -7859,7 +8581,7 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameGet(
+    return DSL::Services::GetServices()->PipelineStreammuxNumSurfacesPerFrameGet(
         cstrName.c_str(), num);
 }
 
@@ -7871,8 +8593,56 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxNumSurfacesPerFrameSet(
+    return DSL::Services::GetServices()->PipelineStreammuxNumSurfacesPerFrameSet(
         cstrName.c_str(), num);
+}
+
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxSyncInputsEnabledGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxSyncInputsEnabledSet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(gpuid);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdGet(
+        cstrName.c_str(), gpuid);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdSet(
+        cstrName.c_str(), gpuid);
 }
 
 DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
@@ -7886,7 +8656,7 @@ DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name,
     std::wstring wstrTiler(tiler);
     std::string cstrTiler(wstrTiler.begin(), wstrTiler.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxTilerAdd(
+    return DSL::Services::GetServices()->PipelineStreammuxTilerAdd(
         cstrName.c_str(), cstrTiler.c_str());
 }
     
@@ -7897,105 +8667,10 @@ DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreamMuxTilerRemove(
+    return DSL::Services::GetServices()->PipelineStreammuxTilerRemove(
         cstrName.c_str());
 }
-    
-DslReturnType dsl_pipeline_xwindow_handle_get(const wchar_t* name, 
-    uint64_t* xwindow)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(xwindow);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowHandleGet(
-        cstrName.c_str(), xwindow);
-}
-
-DslReturnType dsl_pipeline_xwindow_handle_set(const wchar_t* name, 
-    uint64_t xwindow)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowHandleSet(
-        cstrName.c_str(), xwindow);
-}
-
-DslReturnType dsl_pipeline_xwindow_clear(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowClear(cstrName.c_str());
-}
  
-DslReturnType dsl_pipeline_xwindow_destroy(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowDestroy(cstrName.c_str());
-}
- 
-DslReturnType dsl_pipeline_xwindow_offsets_get(const wchar_t* name, 
-    uint* x_offset, uint* y_offset)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(x_offset);
-    RETURN_IF_PARAM_IS_NULL(y_offset);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowOffsetsGet(cstrName.c_str(),
-        x_offset, y_offset);
-}
-
-DslReturnType dsl_pipeline_xwindow_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(width);
-    RETURN_IF_PARAM_IS_NULL(height);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowDimensionsGet(cstrName.c_str(),
-        width, height);
-}
-
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_get(const wchar_t* name, boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(enabled);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledGet(cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_pipeline_xwindow_fullscreen_enabled_set(const wchar_t* name, boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineXWindowFullScreenEnabledSet(cstrName.c_str(), enabled);
-}
-
-
 DslReturnType dsl_pipeline_pause(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8169,7 +8844,8 @@ DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* name,
     static std::wstring wstrSource;
     static std::wstring wstrMessage;
     
-    uint retval = DSL::Services::GetServices()->PipelineErrorMessageLastGet(cstrName.c_str(), wstrSource, wstrMessage);
+    uint retval = DSL::Services::GetServices()->PipelineErrorMessageLastGet(
+        cstrName.c_str(), wstrSource, wstrMessage);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         
@@ -8179,84 +8855,6 @@ DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* name,
     return retval;
 }
     
-DslReturnType dsl_pipeline_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PipelineXWindowKeyEventHandlerAdd(cstrName.c_str(), handler, client_data);
-}    
-
-DslReturnType dsl_pipeline_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PipelineXWindowKeyEventHandlerRemove(cstrName.c_str(), handler);
-}
-
-DslReturnType dsl_pipeline_xwindow_button_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_button_event_handler_cb handler, void* client_data)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PipelineXWindowButtonEventHandlerAdd(cstrName.c_str(), handler, client_data);
-}    
-
-DslReturnType dsl_pipeline_xwindow_button_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_button_event_handler_cb handler)    
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PipelineXWindowButtonEventHandlerRemove(cstrName.c_str(), handler);
-}
-
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_delete_event_handler_cb handler, void* client_data)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PipelineXWindowDeleteEventHandlerAdd(cstrName.c_str(), handler, client_data);
-}    
-
-DslReturnType dsl_pipeline_xwindow_delete_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_delete_event_handler_cb handler)    
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PipelineXWindowDeleteEventHandlerRemove(cstrName.c_str(), handler);
-}
-
 DslReturnType dsl_pipeline_main_loop_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8536,52 +9134,6 @@ DslReturnType dsl_player_termination_event_listener_remove(const wchar_t* name,
         PlayerTerminationEventListenerRemove(cstrName.c_str(), listener);
 }
 
-DslReturnType dsl_player_xwindow_handle_get(const wchar_t* name, uint64_t* xwindow)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(xwindow);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PlayerXWindowHandleGet(cstrName.c_str(), xwindow);
-}
-
-DslReturnType dsl_player_xwindow_handle_set(const wchar_t* name, uint64_t xwindow)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PlayerXWindowHandleSet(cstrName.c_str(), xwindow);
-}
-
-DslReturnType dsl_player_xwindow_key_event_handler_add(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler, void* client_data)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PlayerXWindowKeyEventHandlerAdd(cstrName.c_str(), handler, client_data);
-}    
-
-DslReturnType dsl_player_xwindow_key_event_handler_remove(const wchar_t* name, 
-    dsl_xwindow_key_event_handler_cb handler)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(handler);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->
-        PlayerXWindowKeyEventHandlerRemove(cstrName.c_str(), handler);
-}
 DslReturnType dsl_player_play(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

@@ -838,7 +838,7 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::DisplayTypeSourceNumberNew(const char* name,
+    DslReturnType Services::DisplayTypeSourceUniqueIdNew(const char* name,
         uint xOffset, uint yOffset, const char* font, boolean hasBgColor, 
         const char* bgColor)
     {
@@ -850,7 +850,7 @@ namespace DSL
             // ensure type name uniqueness 
             if (m_displayTypes.find(name) != m_displayTypes.end())
             {   
-                LOG_ERROR("Source Number name '" << name << "' is not unique");
+                LOG_ERROR("Display Type name '" << name << "' is not unique");
                 return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
             }
             
@@ -862,7 +862,7 @@ namespace DSL
             if (hasBgColor)
             {
                 DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
-            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
 
                 pBgColor = std::dynamic_pointer_cast<RgbaColor>(
                     m_displayTypes[bgColor]);
@@ -875,17 +875,70 @@ namespace DSL
             DSL_RGBA_FONT_PTR pFont = 
                 std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
             
-            m_displayTypes[name] = DSL_SOURCE_NUMBER_NEW(name,
+            m_displayTypes[name] = DSL_SOURCE_UNIQUE_ID_NEW(name,
                 xOffset, yOffset, pFont, hasBgColor, pBgColor);
 
-            LOG_INFO("New Source Number '" << name 
+            LOG_INFO("New Source Unique Id Display Type '" << name 
                 << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New New Source Number '" << name 
+            LOG_ERROR("New Source Unique Id Display Type '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::DisplayTypeSourceStreamIdNew(const char* name,
+        uint xOffset, uint yOffset, const char* font, boolean hasBgColor, 
+        const char* bgColor)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure type name uniqueness 
+            if (m_displayTypes.find(name) != m_displayTypes.end())
+            {   
+                LOG_ERROR("Display Type name '" << name << "' is not unique");
+                return DSL_RESULT_DISPLAY_TYPE_NAME_NOT_UNIQUE;
+            }
+            
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, font);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_displayTypes, 
+                font, RgbaFont);
+
+            DSL_RGBA_COLOR_PTR pBgColor(nullptr);
+            if (hasBgColor)
+            {
+                DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, bgColor);
+                DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, bgColor);
+
+                pBgColor = std::dynamic_pointer_cast<RgbaColor>(
+                    m_displayTypes[bgColor]);
+            }
+            else
+            {
+                pBgColor = DSL_RGBA_COLOR_NEW("_no_color_", 0.0, 0.0, 0.0, 0.0);
+            }
+
+            DSL_RGBA_FONT_PTR pFont = 
+                std::dynamic_pointer_cast<RgbaFont>(m_displayTypes[font]);
+            
+            m_displayTypes[name] = DSL_SOURCE_STREAM_ID_NEW(name,
+                xOffset, yOffset, pFont, hasBgColor, pBgColor);
+
+            LOG_INFO("New Source Unique Id Display Type '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Source Unique Id Display Type '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }
@@ -937,7 +990,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("New Source Name '" << name
+            LOG_ERROR("New Source Name Display Type'" << name
                 << "' threw exception on create");
             return DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION;
         }

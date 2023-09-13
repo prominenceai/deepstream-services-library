@@ -476,6 +476,72 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::OsdProcessModeGet(const char* name, uint* mode)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, OsdBintr);
+
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            pOsdBintr->GetProcessMode(mode);
+
+            LOG_INFO("OSD '" << name << "' returned process-mode = "
+                << *mode << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception getting process-mode");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OsdProcessModeSet(const char* name, uint mode)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, OsdBintr);
+
+            if (mode > DSL_OSD_PROCESS_MODE_HW)
+            {
+                LOG_ERROR("Invalid process-mode = " << mode 
+                    << " for OSD '" << name);
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+            DSL_OSD_PTR pOsdBintr = 
+                std::dynamic_pointer_cast<OsdBintr>(m_components[name]);
+
+            if (!pOsdBintr->SetProcessMode(mode))
+            {
+                LOG_ERROR("OSD '" << name 
+                    << "' failed to set process-mode = " << mode);
+                return DSL_RESULT_OSD_SET_FAILED;
+            }
+            LOG_INFO("OSD '" << name << "' set process-mode = " 
+                << mode << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("OSD '" << name 
+                << "' threw an exception setting process-mode");
+            return DSL_RESULT_OSD_THREW_EXCEPTION;
+        }
+    }
    
     DslReturnType Services::OsdPphAdd(const char* name, const char* handler, uint pad)
     {

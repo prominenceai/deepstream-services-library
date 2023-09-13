@@ -74,8 +74,6 @@ namespace DSL
         
         m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
         m_initParams.cacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
-        
-        g_mutex_init(&m_recordMgrMutex);
     }
     
     RecordMgr::~RecordMgr()
@@ -87,7 +85,6 @@ namespace DSL
             LOG_INFO("Destroying context");
             DestroyContext();
         }
-        g_mutex_clear(&m_recordMgrMutex);
     }
     
     bool RecordMgr::CreateContext()
@@ -363,13 +360,13 @@ namespace DSL
                 g_usleep(10000);
                 remainingTime -= 10;
             }
-            LOG_INFO("Reset done with remaining time = " << remainingTime);
             if (m_pContext->resetDone == false)
             {
                 LOG_ERROR("Waiting for reset-done exceeded timeout for RecordMgr'"
                     << m_name << "'");
                 return false;
             }
+            LOG_INFO("Reset done with remaining time = " << remainingTime);
         }
         return true;
     }

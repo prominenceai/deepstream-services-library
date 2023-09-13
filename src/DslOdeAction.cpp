@@ -66,6 +66,54 @@ namespace DSL
 
     // ********************************************************************
 
+    AsyncOdeAction::AsyncOdeAction(const char* name) 
+        : OdeAction(name)
+        , m_timerId(0)
+    {
+        LOG_FUNC();
+    };
+    
+    AsyncOdeAction::~AsyncOdeAction()
+    {
+        LOG_FUNC();
+        
+        if (m_timerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+            LOG_WARN("Removing scheduled asynchronous action on dtor of '"
+                << GetName() << "'");
+                
+            g_source_remove(m_timerId);
+        }
+    }
+
+    void AsyncOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Schedule the do_async_action to add the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+
+    static int do_async_action(gpointer pAction)
+    {
+        static_cast<AsyncOdeAction*>(pAction)->
+            DoAsyncAction();
+            
+        // on-shot timer always
+        return false;
+    }
+
+
+    // ********************************************************************
+
     FormatBBoxOdeAction::FormatBBoxOdeAction(const char* name, uint borderWidth,
         DSL_RGBA_COLOR_PTR pColor, bool hasBgColor, DSL_RGBA_COLOR_PTR pBgColor)
         : OdeAction(name)
@@ -263,9 +311,6 @@ namespace DSL
         , m_idleThreadFunctionId(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_captureQueueMutex);
-        g_mutex_init(&m_childContainerMutex);
     }
 
     CaptureOdeAction::~CaptureOdeAction()
@@ -280,9 +325,6 @@ namespace DSL
         }
 
         RemoveAllChildren();
-        
-        g_mutex_clear(&m_captureQueueMutex);
-        g_mutex_clear(&m_childContainerMutex);
     }
 
     bool CaptureOdeAction::AddCaptureCompleteListener(
@@ -1006,7 +1048,7 @@ namespace DSL
                 body.push_back(std::string("    Inference       : No<br>"));
             }
             body.push_back(std::string("    Source Id       : " 
-                +  std::to_string(pFrameMeta->source_id) + "<br>"));
+                +  int_to_hex(pFrameMeta->source_id) + "<br>"));
             body.push_back(std::string("    Batch Id        : " 
                 +  std::to_string(pFrameMeta->batch_id) + "<br>"));
             body.push_back(std::string("    Pad Index       : " 
@@ -1054,15 +1096,18 @@ namespace DSL
                     DSL_FRAME_INFO_OCCURRENCES)
                 {
                     body.push_back(std::string("    Occurrences     : " 
-                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]) + "<br>"));
+                        +  std::to_string(pFrameMeta->
+                            misc_frame_info[DSL_FRAME_INFO_OCCURRENCES]) + "<br>"));
                 }
                 else if (pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] == 
                     DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN)
                 {
                     body.push_back(std::string("    Occurrences In  : " 
-                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]) + "<br>"));
+                        +  std::to_string(pFrameMeta->
+                            misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]) + "<br>"));
                     body.push_back(std::string("    Occurrences Out : " 
-                        +  std::to_string(pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]) + "<br>"));
+                        +  std::to_string(pFrameMeta->
+                            misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]) + "<br>"));
                 }
 
             }
@@ -1109,8 +1154,6 @@ namespace DSL
         , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
-    
-        g_mutex_init(&m_ostreamMutex);
     }
 
     FileOdeAction::~FileOdeAction()
@@ -1129,7 +1172,6 @@ namespace DSL
         }
             
         m_ostream.close();
-        g_mutex_clear(&m_ostreamMutex);
     }
     
     bool FileOdeAction::Flush()
@@ -1237,7 +1279,7 @@ namespace DSL
         {
             m_ostream << "    Inference       : No\n";
         }
-        m_ostream << "    Source Id       : " << pFrameMeta->source_id << "\n";
+        m_ostream << "    Source Id       : " << int_to_hex(pFrameMeta->source_id) << "\n";
         m_ostream << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
         m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
@@ -1597,7 +1639,8 @@ namespace DSL
             
             DSL_RGBA_RECTANGLE_PTR pLeftRect = 
                 DSL_RGBA_RECTANGLE_NEW(leftRectName.c_str(), 
-                0, 0, x1, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+                    0, 0, x1, pFrameMeta->source_frame_height, 
+                    0, m_pColor, true, m_pColor);
                 
             pLeftRect->AddMeta(displayMetaData, pFrameMeta);
 
@@ -1605,22 +1648,25 @@ namespace DSL
             
             DSL_RGBA_RECTANGLE_PTR pRightRect = 
                 DSL_RGBA_RECTANGLE_NEW(rightRectName.c_str(), 
-                x2, 0, pFrameMeta->source_frame_width, pFrameMeta->source_frame_height, 
+                    x2, 0, pFrameMeta->source_frame_width, 
+                    pFrameMeta->source_frame_height, 
                     0, m_pColor, true, m_pColor);
     
             pRightRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string topRectName("top-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(topRectName.c_str(), 
-                x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
+            DSL_RGBA_RECTANGLE_PTR pTopRect = DSL_RGBA_RECTANGLE_NEW(
+                topRectName.c_str(), x1, 0, rWidth, y1, 0, m_pColor, true, m_pColor);
                 
             pTopRect->AddMeta(displayMetaData, pFrameMeta);
 
             std::string bottomRectName("bottom-rect");
             
-            DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(bottomRectName.c_str(), 
-                x1, y2, rWidth, pFrameMeta->source_frame_height, 0, m_pColor, true, m_pColor);
+            DSL_RGBA_RECTANGLE_PTR pBottomRect = DSL_RGBA_RECTANGLE_NEW(
+                bottomRectName.c_str(), x1, y2, rWidth, 
+                pFrameMeta->source_frame_height, 
+                0, m_pColor, true, m_pColor);
                 
             pBottomRect->AddMeta(displayMetaData, pFrameMeta);
         }
@@ -1628,7 +1674,8 @@ namespace DSL
 
     // ********************************************************************
 
-    FillFrameOdeAction::FillFrameOdeAction(const char* name, DSL_RGBA_COLOR_PTR pColor)
+    FillFrameOdeAction::FillFrameOdeAction(const char* name, 
+        DSL_RGBA_COLOR_PTR pColor)
         : OdeAction(name)
         , m_pColor(pColor)
     {
@@ -1659,7 +1706,8 @@ namespace DSL
             rectParams.has_bg_color = true;
             rectParams.bg_color = *m_pColor;
             
-            displayMetaData.at(0)->rect_params[displayMetaData.at(0)->num_rects++] = rectParams;
+            displayMetaData.at(0)->rect_params[displayMetaData.at(0)->
+                num_rects++] = rectParams;
         }
     }
 
@@ -1700,7 +1748,7 @@ namespace DSL
             {
                 LOG_INFO("    Inference       : No");
             }
-            LOG_INFO("    Source Id       : " << pFrameMeta->source_id);
+            LOG_INFO("    Source Id       : " << int_to_hex(pFrameMeta->source_id));
             LOG_INFO("    Batch Id        : " << pFrameMeta->batch_id);
             LOG_INFO("    Pad Index       : " << pFrameMeta->pad_index);
             LOG_INFO("    Frame           : " << pFrameMeta->frame_num);
@@ -2156,29 +2204,158 @@ namespace DSL
 
     // ********************************************************************
 
-    PauseOdeAction::PauseOdeAction(const char* name, const char* pipeline)
-        : OdeAction(name)
+    PipelinePauseOdeAction::PipelinePauseOdeAction(const char* name, 
+        const char* pipeline)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
     {
         LOG_FUNC();
     }
 
-    PauseOdeAction::~PauseOdeAction()
+    PipelinePauseOdeAction::~PipelinePauseOdeAction()
     {
         LOG_FUNC();
     }
     
-    void PauseOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void PipelinePauseOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelinePause(m_pipeline.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelinePause(m_pipeline.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PipelinePlayOdeAction::PipelinePlayOdeAction(const char* name, 
+        const char* pipeline)
+        : AsyncOdeAction(name)
+        , m_pipeline(pipeline)
+    {
+        LOG_FUNC();
+    }
+
+    PipelinePlayOdeAction::~PipelinePlayOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PipelinePlayOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelinePlay(m_pipeline.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PipelineStopOdeAction::PipelineStopOdeAction(const char* name, 
+        const char* pipeline)
+        : AsyncOdeAction(name)
+        , m_pipeline(pipeline)
+    {
+        LOG_FUNC();
+    }
+
+    PipelineStopOdeAction::~PipelineStopOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PipelineStopOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineStop(m_pipeline.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PlayerPauseOdeAction::PlayerPauseOdeAction(const char* name, 
+        const char* player)
+        : AsyncOdeAction(name)
+        , m_player(player)
+    {
+        LOG_FUNC();
+    }
+
+    PlayerPauseOdeAction::~PlayerPauseOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PlayerPauseOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PlayerPause(m_player.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PlayerPlayOdeAction::PlayerPlayOdeAction(const char* name, 
+        const char* player)
+        : AsyncOdeAction(name)
+        , m_player(player)
+    {
+        LOG_FUNC();
+    }
+
+    PlayerPlayOdeAction::~PlayerPlayOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PlayerPlayOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PlayerPlay(m_player.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    PlayerStopOdeAction::PlayerStopOdeAction(const char* name, 
+        const char* player)
+        : AsyncOdeAction(name)
+        , m_player(player)
+    {
+        LOG_FUNC();
+    }
+
+    PlayerStopOdeAction::~PlayerStopOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void PlayerStopOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PlayerStop(m_player.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
@@ -2190,8 +2367,6 @@ namespace DSL
         , m_flushThreadFunctionId(0)
     {
         LOG_FUNC();
-
-        g_mutex_init(&m_ostreamMutex);
     }
 
     PrintOdeAction::~PrintOdeAction()
@@ -2230,7 +2405,7 @@ namespace DSL
         {
             std::cout << "    Inference       : No\n";
         }
-        std::cout << "    Source Id       : " << pFrameMeta->source_id << "\n";
+        std::cout << "    Source Id       : " << int_to_hex(pFrameMeta->source_id) << "\n";
         std::cout << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
         std::cout << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         std::cout << "    Frame           : " << pFrameMeta->frame_num << "\n";
@@ -2361,7 +2536,7 @@ namespace DSL
 
     AddSinkOdeAction::AddSinkOdeAction(const char* name, 
         const char* pipeline, const char* sink)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_sink(sink)
     {
@@ -2373,24 +2548,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void AddSinkOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+            m_sink.c_str());
 
-        if (m_enabled)
-        {
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
-                m_sink.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
 
     RemoveSinkOdeAction::RemoveSinkOdeAction(const char* name, 
         const char* pipeline, const char* sink)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_sink(sink)
     {
@@ -2402,25 +2576,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSinkOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void RemoveSinkOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+            m_sink.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
-                m_sink.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
 
     AddSourceOdeAction::AddSourceOdeAction(const char* name, 
         const char* pipeline, const char* source)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_source(source)
     {
@@ -2432,25 +2604,23 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void AddSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void AddSourceOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
+            m_source.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentAdd(m_pipeline.c_str(), 
-                m_source.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
 
     RemoveSourceOdeAction::RemoveSourceOdeAction(const char* name, 
         const char* pipeline, const char* source)
-        : OdeAction(name)
+        : AsyncOdeAction(name)
         , m_pipeline(pipeline)
         , m_source(source)
     {
@@ -2462,18 +2632,16 @@ namespace DSL
         LOG_FUNC();
     }
     
-    void RemoveSourceOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
-        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
-        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    void RemoveSourceOdeAction::DoAsyncAction()
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
+            m_source.c_str());
 
-        if (m_enabled)
-        {
-            // Ignore the return value, errors will be logged 
-            Services::GetServices()->PipelineComponentRemove(m_pipeline.c_str(), 
-                m_source.c_str());
-        }
+        // reset the timer resource id.
+        m_timerId = 0;
     }
 
     // ********************************************************************
@@ -2615,7 +2783,7 @@ namespace DSL
         }
     }
 
-
+    // ********************************************************************
 
     AddAreaOdeAction::AddAreaOdeAction(const char* name, 
         const char* trigger, const char* area)
@@ -2794,6 +2962,7 @@ namespace DSL
             std::dynamic_pointer_cast<RecordTapBintr>(m_pRecordTap)->StopSession(false);
         }
     }
+    
     // ********************************************************************
 
     TilerShowSourceOdeAction::TilerShowSourceOdeAction(const char* name, 
@@ -2819,10 +2988,171 @@ namespace DSL
 
         if (m_enabled)
         {
+            // Get the stream-id from the frame source-id which has the 
+            // unique Pipeline-id or'ed in by the Streammuxer
+            uint streamId = pFrameMeta->source_id &
+                DSL_PIPELINE_SOURCE_STREAM_ID_MASK;
+
             // Ignore the return value,
             Services::GetServices()->TilerSourceShowSet(m_tiler.c_str(), 
-                pFrameMeta->source_id, m_timeout, m_hasPrecedence);
+                streamId, m_timeout, m_hasPrecedence);
+        }
+    }    
+
+    // ********************************************************************
+
+    AddBranchOdeAction::AddBranchOdeAction(const char* name, 
+        const char* tee, const char* branch)
+        : AsyncOdeAction(name)
+        , m_tee(tee)
+        , m_branch(branch)
+    {
+        LOG_FUNC();
+    }
+
+    AddBranchOdeAction::~AddBranchOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddBranchOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeBranchAdd(m_tee.c_str(), 
+            m_branch.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+    // ********************************************************************
+
+    AddBranchToOdeAction::AddBranchToOdeAction(const char* name, 
+        const char* demuxer, const char* branch)
+        : AsyncOdeAction(name)
+        , m_demuxer(demuxer)
+        , m_branch(branch)
+        , m_destStreamId(-1)
+    {
+        LOG_FUNC();
+    }
+
+    AddBranchToOdeAction::~AddBranchToOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void AddBranchToOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Get the stream-id from the frame source-id which has the 
+            // unique Pipeline-id or'ed in by the Streammuxer
+            m_destStreamId = pFrameMeta->source_id &
+                DSL_PIPELINE_SOURCE_STREAM_ID_MASK;
+            
+            // Schedule the do_async_action to remove the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
         }
     }
-}    
 
+    void AddBranchToOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeDemuxerBranchAddTo(m_demuxer.c_str(), 
+            m_branch.c_str(), m_destStreamId);
+
+        // reset the timer resource id.
+        m_timerId = 0;
+        
+        m_destStreamId = -1;
+    }
+
+    // ********************************************************************
+
+    MoveBranchToOdeAction::MoveBranchToOdeAction(const char* name, 
+        const char* demuxer, const char* branch)
+        : AsyncOdeAction(name)
+        , m_demuxer(demuxer)
+        , m_branch(branch)
+        , m_destStreamId(-1)
+    {
+        LOG_FUNC();
+    }
+
+    MoveBranchToOdeAction::~MoveBranchToOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void MoveBranchToOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData, 
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled)
+        {
+            // Get the stream-id from the frame source-id which has the 
+            // unique Pipeline-id or'ed in by the Streammuxer
+            m_destStreamId = pFrameMeta->source_id &
+                DSL_PIPELINE_SOURCE_STREAM_ID_MASK;
+
+            // Schedule the do_async_action to remove the branch in 
+            // the main-loop context.
+            m_timerId = g_timeout_add(1, do_async_action, this);
+        }
+    }
+    
+    void MoveBranchToOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeDemuxerBranchMoveTo(m_demuxer.c_str(), 
+            m_branch.c_str(), m_destStreamId);
+
+        // reset the timer resource id.
+        m_timerId = 0;
+        
+        m_destStreamId = -1;
+    }
+    
+    // ********************************************************************
+
+    RemoveBranchOdeAction::RemoveBranchOdeAction(const char* name, 
+        const char* tee, const char* branch)
+        : AsyncOdeAction(name)
+        , m_tee(tee)
+        , m_branch(branch)
+    {
+        LOG_FUNC();
+    }
+
+    RemoveBranchOdeAction::~RemoveBranchOdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void RemoveBranchOdeAction::DoAsyncAction()
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+            
+        // Ignore the return value, errors will be logged 
+        Services::GetServices()->TeeBranchRemove(m_tee.c_str(), 
+            m_branch.c_str());
+
+        // reset the timer resource id.
+        m_timerId = 0;
+    }
+
+}

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -91,6 +91,11 @@ namespace DSL
         skipFrames, dropFrameInterval, latency, timeout) \
         std::shared_ptr<RtspSourceBintr>(new RtspSourceBintr(name, uri, protocol, \
             skipFrames, dropFrameInterval, latency, timeout))
+
+    #define DSL_DUPLICATE_SOURCE_PTR std::shared_ptr<DuplicateSourceBintr>
+    #define DSL_DUPLICATE_SOURCE_NEW(name, original, isLive) \
+        std::shared_ptr<DuplicateSourceBintr>(new DuplicateSourceBintr(name, \
+            original, isLive))
 
     /**
      * @brief Utility function to define/set all capabilities (media, 
@@ -211,12 +216,43 @@ namespace DSL
         virtual bool IsLinkable(){return true;};
     
         /**
-         * @brief For sources that manage EOS Consumers, this service must
+         * @brief For sources that manage EOS Consumers, this service must.
          * called before sending the source an EOS Event to stop playing.
          */
         virtual void DisableEosConsumer(){};
         
+        /**
+         * @brief Gets the current unique id for the SourceBintr.
+         * @return unique-id, -1 untill assigned by the parent PipelineSourceBintr.
+         */
+        int GetUniqueId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        /**
+         * @brief Sets the current unique id for the SourceBintr.
+         * @param[in] id, new unique id to assign set the SourceBintr, 
+         * set to -1 to unassign.
+         */
+        void SetUniqueId(int id)
+        {
+            LOG_FUNC();
+            
+            m_uniqueId = id;
+        }
+        
     protected:
+    
+        /**
+         * @brief Unique, assigned Source-Id for the SourceBintr. -1 when
+         * unassigned, set to a unique-id once added to a PipelineSourceBintr 
+         * derived from the parent Pipeline's unique-id or'd with the unique 
+         * stream/pad-id == guaranted uniqueness.
+         */
+        int m_uniqueId; 
     
         /**
          * @brief Device Properties, used for aarch64/x86_64 conditional logic
@@ -272,28 +308,6 @@ namespace DSL
         ~VideoSourceBintr();
 
         /**
-         * @brief Links the derived Source's last specific element (SrcNodetr)
-         * to the common elements shared by all sources.
-         * @param[in] pSrcNodetr source specific element to link to the common
-         * elements.
-         * @return True on success, false otherwise
-         */
-        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
-        
-        /**
-         * @brief Links a dynamic src-pad to the common elements shared by all sources
-         * @param[in] pSrcPad dynamic src-pad to link
-         * @return True on success, false otherwise
-         */
-        bool LinkToCommon(GstPad* pSrcPad);
-        
-        /**
-         * @brief Unlinks all common Elementrs owned by this SourceBintr
-         * elements.
-         */
-        void UnlinkCommon();
-
-        /**
          * @brief Gets the current width and height settings for this SourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
@@ -321,18 +335,35 @@ namespace DSL
 
         /**
          * @brief Sets the buffer-out-dimensions for the SourceBintr.
-         * @param[out] width new width value to scale the output buffer
-         * @param[out] height new height value to scale the output buffer
+         * @param[out] width current width value to scale the output buffer in pixels
+         * @param[out] height current height value to scale the output buffer in pixels
          */
         void GetBufferOutDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the buffer-out-dimensions for the SourceBintr.
-         * @param[in] width new width value to scale the output buffer in pixels
-         * @param[in] height new height value to scale the output buffer in pixels
+         * @param[in] width new width value to scale the output buffer in pixels.
+         * @param[in] height new height value to scale the output buffer in pixels.
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferOutDimensions(uint width, uint height);
+        
+        /**
+         * @brief Gets the buffer-out-frame-rate for the SourceBintr.
+         * The default value of 0 for fps_n and fps_d indicates no scaling.
+         * @param[out] fpsN current fpsN value to scale the output buffer.
+         * @param[out] fpsD current fpsD value to scale the output buffer.
+         */
+        void GetBufferOutFrameRate(uint* fpsN, uint* fpsD);
+        
+        /**
+         * @brief Sets the buffer-out-frame-rate for the SourceBintr.
+         * Set fps_n and fps_d to 0 to indicate no scaling.
+         * @param[in] fpsN new fpsN value to scale the output buffer.
+         * @param[in] fpsD new fpsN value to scale the output buffer.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferOutFrameRate(uint fpsN, uint fpsD);
         
         /**
          * @brief Gets the buffer-out-crop values for the SourceBintr.
@@ -377,6 +408,13 @@ namespace DSL
         bool SetBufferOutOrientation(uint orientaion);
 
         /**
+         * @brief Sets the GPU ID for all Elementrs
+         * @param[in] gpuId new GPU ID to use. 
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+        /**
          * @brief Sets the NVIDIA buffer memory type.
          * @param[in] nvbufMemType new memory type to use, one of the 
          * DSL_NVBUF_MEM_TYPE constant values.
@@ -385,33 +423,93 @@ namespace DSL
         bool SetNvbufMemType(uint nvbufMemType);
 
         /**
-         * @brief adds a single Dewarper Bintr to this SourceBintr 
+         * @brief Adds a single Dewarper Bintr to this SourceBintr 
          * @param[in] pDewarperBintr shared pointer to Dewarper to add
          * @returns true if the Dewarper could be added, false otherwise
          */
         bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
 
         /**
-         * @brief remove a previously added Dewarper Bintr from this SourceBintr 
+         * @brief Removed a previously added DewarperBintr from this SourceBintr.
          * @returns true if the Dewarper could be removed, false otherwise
          */
         bool RemoveDewarperBintr();
         
         /**
-         * @brief call to query the Decode Source if it has a Dewarper
+         * @brief Call to query the VideoSourceBintr if it has a Dewarper.
          * @return true if the Source has a Child
          */
         bool HasDewarperBintr();
+        
+        /**
+         * @brief Adds a DuplicateSourceBintr to this VideoSourceBintr.
+         * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
+         * @return true if the DuplicateSourceBintr could be added, false otherwise.
+         */
+        bool AddDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
+
+        /**
+         * @brief Removes a DuplicateSourceBintr from this VideoSourceBintr.
+         * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
+         * @return true if the DuplicateSourceBintr could be added, false otherwise.
+         */
+        bool RemoveDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
 
     private:
 
         /**
-         * @brief Private function to update the Video Converter's capability filter.
+         * @brief Private helper function to update the Video Converter's capability filter.
          * @return true if successful, false otherwise.
          */
-        bool updateCaps();
+        bool updateVidConvCaps();
+
+        /**
+         * @brief Private helper function to link all DuplicateSourceBintrs to
+         * this VideoSourceBintr.
+         * @return true on successful link, false otherwise
+         */
+        bool linkAllDuplicates();
+
+        /**
+         * @brief Private helper function to unlink all DuplicateSourceBintrs from
+         * this VideoSourceBintr.
+         * @return true on successful unlink, false otherwise
+         */
+        bool unlinkAllDuplicates();
     
     protected:
+    
+        /**
+         * @brief Links the derived Source's last specific element (SrcNodetr)
+         * to the common elements shared by all sources.
+         * @param[in] pSrcNodetr source specific element to link to the common
+         * elements.
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
+        
+        /**
+         * @brief Links a dynamic src-pad to the common elements shared by all sources
+         * @param[in] pSrcPad dynamic src-pad to link
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommon(GstPad* pSrcPad);
+
+        /**
+         * @brief Common shared code for the two LinkToCommon methods.
+         * @return True on success, false otherwise
+         */
+        bool CompleteLinkToCommon();
+        
+        /**
+         * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
+         */
+        void UnlinkCommon();
+
+        /**
+         * @brief vector to link/unlink all common elements
+         */
+        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonElements;
 
         /**
          * @brief current buffer-out-format. 
@@ -441,9 +539,36 @@ namespace DSL
         uint m_bufferOutHeight;
 
         /**
+         * @brief Current scaled fps-n value for the SourceBintr's Output Buffer 
+         * rate controler. Default = 0 for no rate change.
+         */
+        uint m_bufferOutFpsN;
+        
+        /**
+         * @brief Current scaled height setting for the SourceBintr's Output Buffer
+         * rate controler. Default = 0 for no rate change
+         */
+        uint m_bufferOutFpsD;
+
+        /**
          * @brief Current buffer-out-orientation setting for the SourceBintr
          */
         uint m_bufferOutOrientation;
+
+        /**
+         * @brief Output-buffer Video Converter element for this SourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutVidConv;
+
+        /**
+         * @brief Output-buffer Video Rate element for this SourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutVidRate;
+
+        /**
+         * @brief Caps Filter for the SourceBintr's output-buffe.
+         */
+        DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
 
         /**
          * @brief Single, optional dewarper for the DecodeSourceBintr
@@ -451,19 +576,91 @@ namespace DSL
         DSL_DEWARPER_PTR m_pDewarperBintr;
         
         /**
-         * @brief Output-buffer Video Converter element for this SourceBintr.
-         */
-        DSL_ELEMENT_PTR m_pBufferOutVidConv;
-
-        /**
-         * @brief Caps Filter for the SourceBintr's output-buffer Video Converter.
-         */
-        DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
-        
-        /**
          * @brief Source Queue for SourceBintr - set as ghost-pad for each source
          */
         DSL_ELEMENT_PTR  m_pSourceQueue;
+
+        /**
+         * @brief Conditional Tee used if this VideoSourceBintr has 1 or more
+         * DuplicateSourceBintrs.
+         */
+        DSL_ELEMENT_PTR m_pDuplicateSourceTee;
+        
+        /**
+         * @brief Conditional Queue used if this VideoSourceBintr has 1 or more
+         * DuplicateSourceBintrs.
+         */
+        DSL_ELEMENT_PTR m_pDuplicateSourceTeeQueue;
+        
+        /**
+         * @brief map of DuplicateSourceBintrs to duplicate this VideSourceBintr
+         */
+        std::map <std::string, DSL_VIDEO_SOURCE_PTR> m_duplicateSources;
+        
+        /**
+         * @brief vecotr of requested source pads from m_pDuplicateSourceTee
+         */
+        std::vector <GstPad*> m_requestedDuplicateSrcPads;
+        
+    };
+
+    /**
+     * @class DuplicateSourceBintr
+     * @brief Implements a Source that can be added to any other Video Source
+     * to duplicate the original stream.
+     */
+    class DuplicateSourceBintr : public VideoSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the DuplicateSourceBintr
+         * @param[in] name unique name to give the new DuplicateSourceBintr 
+         * @param[in] original unique name of the original source for this
+         * @param[in] isLive set to true if original source isLive, false otherwise. 
+         */
+        DuplicateSourceBintr(const char* name, const char* original,
+            bool isLive);
+
+        /**
+         * @brief dtor for the DuplicateSourceBintr
+         */
+        ~DuplicateSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Gets the unique name of the original Source (VideoSourceBintr)
+         * for this DuplicateSourceBintr
+         */
+        const char* GetOriginal();
+        
+        /**
+         * @brief Sets the the original Source (VideoSourceBintr) by name
+         * for this DuplicateSourceBintr
+         */
+        void SetOriginal(const char* original);
+        
+    private:
+    
+        /**
+         * @brief name of the Original Source -- currently added to -- to duplicate.
+         */
+        std::string m_original;
+        
+        /**
+         * @brief Sink (input) queue for this DuplicateSourceBintr.
+         */
+        DSL_ELEMENT_PTR m_pSinkQueue;
         
     };
 
@@ -673,7 +870,7 @@ namespace DSL
         /**
          * @brief mutex to protect mutual access to the client-data-handlers
          */
-        GMutex m_dataHandlerMutex;
+        DslMutex m_dataHandlerMutex;
         
         /**
          * @brief block-enabled setting for this AppSourceBintr.
@@ -862,6 +1059,12 @@ namespace DSL
          */
         boolean m_doTimestamp;
 
+        /**
+         * @brief "v4l2src" caps filter 
+         */
+         
+        DSL_ELEMENT_PTR m_pSourceCapsFilter;
+        
         /**
          * @brief Video converter, first of two, for the USB Source if dGPU
          */
@@ -1059,7 +1262,7 @@ namespace DSL
         /**
          * @brief mutual exclusion of the repeat enabled setting.
          */
-        GMutex m_repeatEnabledMutex;
+        DslMutex m_repeatEnabledMutex;
     };
 
     //*********************************************************************************
@@ -1358,7 +1561,7 @@ namespace DSL
         /**
          * @brief mutux to guard the display timeout callback.
          */
-        GMutex m_timeoutTimerMutex;
+        DslMutex m_timeoutTimerMutex;
 
         /**
          * @brief Caps Filter for the ImageStreamSourceBintr
@@ -1600,11 +1803,53 @@ namespace DSL
         int NotifyClientListeners();
         
         /**
-         * @brief NOTE: Used for test purposes only, allows access to the Source's Timestamp PPH which 
-         * is used to maintain a timestamp of the last buffer received for the source. 
+         * @brief NOTE: Used for test purposes only, allows access to the 
+         * Source's Timestamp PPH which 
+         * is used to maintain a timestamp of the last buffer received for 
+         * the source. 
          * @return 
          */
         DSL_PPH_TIMESTAMP_PTR _getTimestampPph(){return m_TimestampPph;};
+
+        /**
+         * @brief Gets the current latency setting for the RtspSourceBintr.
+         * @return latency in units of ms.
+         */
+        uint GetLatency();
+        
+        /**
+         * @brief Sets the latency setting for the RtspSourceBintr.
+         * @param latency new latency setting in units of ms.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetLatency(uint latency);
+        
+        /**
+         * @brief Gets the current drop-on-latency enabled setting for the 
+         * RspSourceBintr.
+         * @return true if enabled, false otherwise.
+         */
+        boolean GetDropOnLatencyEnabled();
+        
+        /**
+         * @brief Sets the drop-on-latency enabled setting for the RtspSourceBintr.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDropOnLatencyEnabled(boolean dropOnLatency);
+        
+        /**
+         * @brief Gets the current tls-validation-flags for the RtspSourceBintr.
+         * @return mask of DSL_TLS_CERTIFICATE constants. 
+         * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+         */
+        uint GetTlsValidationFlags();
+        
+        /**
+         * @brief Sets the tls-validation-flags for the RtspSourceBintr to use.
+         * @param[in] flags mask of DSL_TLS_CERTIFICATE constants. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetTlsValidationFlags(uint flags);
         
         /**
          * @brief adds a TapBintr to the RTSP Source - one at most
@@ -1642,7 +1887,13 @@ namespace DSL
         /**
          * @brief Amount of data to buffer in ms.
          */
-        guint m_latency;
+        uint m_latency;
+        
+        /**
+         * @brief If true, tells the jitterbuffer to never exceed the given 
+         * latency in size.
+         */
+        boolean m_dropOnLatency;
     
         /**
          @brief 0x4 for TCP and 0x7 for All (UDP/UDP-MCAST/TCP)
@@ -1667,7 +1918,13 @@ namespace DSL
          * @brief Interval to drop the frames. Ex: a value of 5 means every 5th 
          * frame will be delivered by decoder, the rest will all dropped.
          */
-        guint m_dropFrameInterval;
+        uint m_dropFrameInterval;
+        
+        /**
+         * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the
+         * RTSP server certificat.
+         */
+        uint m_tlsValidationFlags;
 
         /**
          * @brief optional child TapBintr, tapped in pre-decode
@@ -1679,6 +1936,11 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pDepay;
 
+        /**
+         * @brief Depay capsfilter for the RtspSourceBintr
+         */
+        DSL_ELEMENT_PTR m_pDepayCapsfilter;
+        
         /**
          * @brief Pre-parser queue 
          */
@@ -1728,7 +1990,7 @@ namespace DSL
         /**
          * @brief mutux to guard the buffer timeout managment read/write attributes.
          */
-        GMutex m_streamManagerMutex;
+        DslMutex m_streamManagerMutex;
         
         /**
          * @brief active connection data for the RtspSourceBintr.
@@ -1743,7 +2005,7 @@ namespace DSL
         /**
          * @brief mutux to guard the reconnection managment read/write attributes.
          */
-        GMutex m_reconnectionManagerMutex;
+        DslMutex m_reconnectionManagerMutex;
         
         /**
          * @brief will be set to true on reconnection failure to force a mew reconnection cycle
@@ -1774,7 +2036,7 @@ namespace DSL
         /**
          * @brief mutux to guard the current State read/write access.
          */
-        GMutex m_stateChangeMutex;
+        DslMutex m_stateChangeMutex;
 
         /**
          * @brief gnome timer Id for the RTSP reconnection manager
@@ -1883,6 +2145,7 @@ namespace DSL
      * @return int true to continue, 0 to self remove
      */
     static int RtspListenerNotificationHandler(gpointer pSource);
+
 
 } // DSL
 #endif // _DSL_SOURCE_BINTR_H

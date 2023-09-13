@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 using namespace DSL;
 
+static std::wstring w_file_path(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+
 static std::vector<NvDsDisplayMeta*> displayMetaData;
 
 static boolean ode_check_for_occurrence_cb(void* buffer,
@@ -437,7 +439,7 @@ SCENARIO( "An OdeOccurrenceTrigger handles a timed reset on event limit correctl
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger handles a timed reset on frame limit correctly", "[temp]" )
+SCENARIO( "An OdeOccurrenceTrigger handles a timed reset on frame limit correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
@@ -858,7 +860,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its maximum tracker confidence corre
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
+SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[temp]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {
@@ -866,17 +868,46 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
         uint classId(1);
         uint limit(0);
         
-        std::string source("source-1");
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
         
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        uint sourceId(0x10001);
 
         std::string odeActionName("action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(odeTriggerName.c_str(), source3.c_str(), classId, limit);
             
         std::string retSource(pOdeTrigger->GetSource());
-        REQUIRE( retSource == source );
+        REQUIRE( retSource == source3 );
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -907,7 +938,8 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == true );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The Source ID matches the filter" )
@@ -918,7 +950,8 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == true );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The Source ID does not match the filter" )
@@ -929,7 +962,8 @@ SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigg
             {
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta) == false );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -1648,17 +1682,46 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
         uint classId(1);
         uint limit(0);
         
-        std::string source("source-1");
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
         
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        uint sourceId(0x10001);
 
         std::string odeActionName("action");
 
         DSL_ODE_TRIGGER_ABSENCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_ABSENCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_ABSENCE_NEW(odeTriggerName.c_str(), source3.c_str(), classId, limit);
             
         std::string retSource(pOdeTrigger->GetSource());
-        REQUIRE( retSource == source );
+        REQUIRE( retSource == source3 );
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -1691,7 +1754,8 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
                     displayMetaData, &frameMeta, &objectMeta) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
                     displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The Source ID matches the filter" )
@@ -1704,7 +1768,8 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
                     displayMetaData, &frameMeta, &objectMeta) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
                     displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The Source ID does not match the filter" )
@@ -1717,7 +1782,8 @@ SCENARIO( "An OdeAbsenceTrigger checks for Source Name correctly", "[OdeTrigger]
                     displayMetaData, &frameMeta, &objectMeta) == false );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
                     displayMetaData, &frameMeta) == 1 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -2028,16 +2094,46 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
     GIVEN( "A new InstanceOdeTrigger with specific Class Id and Source Id criteria" ) 
     {
         std::string odeTriggerName("instance");
-        std::string source("source-1");
         uint classId(1);
         uint limit(0);
 
         std::string odeActionName("action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint sourceId(0x10001);
 
         DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source3.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2074,7 +2170,9 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                 frameMeta.frame_num = 3;
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta1) == false );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "Three objects have different object Id's" )
@@ -2091,7 +2189,9 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                     displayMetaData, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta3) == true );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "Two objects have the same object Id and a third object is difference" )
@@ -2111,7 +2211,9 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                 frameMeta.frame_num = 2;
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta3) == false );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "Instance count and suppression count are set" )
@@ -2145,7 +2247,8 @@ SCENARIO( "An InstanceOdeTrigger handles ODE Occurrences correctly", "[OdeTrigge
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta1) == true );
 
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -2156,17 +2259,47 @@ SCENARIO( "An InstanceOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTr
     GIVEN( "A new InstanceOdeTrigger with specific Class Id and Source Id criteria" ) 
     {
         std::string odeTriggerName("instance");
-        std::string source("source-1");
         uint classId(1);
         uint limit(0);
 
         std::string odeAccumulatorName("accumulator-name");
         std::string odeActionName("print-action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint sourceId(0x10001);
 
         DSL_ODE_TRIGGER_INSTANCE_PTR pOdeTrigger = 
-            DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source.c_str(), classId, limit);
+            DSL_ODE_TRIGGER_INSTANCE_NEW(odeTriggerName.c_str(), source3.c_str(), classId, limit);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -2244,7 +2377,8 @@ SCENARIO( "An InstanceOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTr
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, 
                     displayMetaData, &frameMeta) == 3 );
 
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -2255,7 +2389,6 @@ SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" 
     GIVEN( "A new CrossOdeTrigger with specific Class Id and Source Id criteria" ) 
     {
         std::string odeTriggerName("cross-trigger");
-        std::string source("source-1");
         uint classId(1);
         uint limit(0);
         uint minFrameCount(0);
@@ -2266,7 +2399,38 @@ SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" 
         std::string odeAreaName("line-area");
         std::string odeActionName("print-action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint sourceId(0x10001);
 
         DSL_RGBA_PREDEFINED_COLOR_PTR pBlack = 
             DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), 
@@ -2274,7 +2438,7 @@ SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" 
 
         DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_CROSS_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, minFrameCount, maxTracePoints,
+                source3.c_str(), classId, limit, minFrameCount, maxTracePoints,
                 DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS, pBlack);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
@@ -2348,7 +2512,8 @@ SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" 
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta3) == true );
 
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "The objects start out below the line" )
@@ -2382,7 +2547,8 @@ SCENARIO( "A CrossOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]" 
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, 
                     displayMetaData, &frameMeta, &objectMeta3) == true );
 
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -2393,7 +2559,6 @@ SCENARIO( "A CrossOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigge
     GIVEN( "A new CrossOdeTrigger with specific Class Id and Source Id criteria" ) 
     {
         std::string odeTriggerName("cross-trigger");
-        std::string source("source-1");
         uint classId(1);
         uint limit(0);
         uint minFrameCount(0);
@@ -2406,7 +2571,38 @@ SCENARIO( "A CrossOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigge
 
         std::string odeAccumulatorName("accumulator-name");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint sourceId(0x10001);
 
         DSL_RGBA_PREDEFINED_COLOR_PTR pBlack = 
             DSL_RGBA_PREDEFINED_COLOR_NEW(colorName.c_str(), 
@@ -2414,7 +2610,7 @@ SCENARIO( "A CrossOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigge
 
         DSL_ODE_TRIGGER_CROSS_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_CROSS_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, minFrameCount, maxTracePoints,
+                source3.c_str(), classId, limit, minFrameCount, maxTracePoints,
                 DSL_OBJECT_TRACE_TEST_METHOD_END_POINTS, pBlack);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
@@ -2523,7 +2719,8 @@ SCENARIO( "A CrossOdeTrigger Accumulates ODE Occurrences correctly", "[OdeTrigge
                     displayMetaData, &frameMeta, &objectMeta3) == true );
                 pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta);
 
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -3618,18 +3815,48 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
     GIVEN( "A new NewLowOdeTrigger with specific Class Id and Source Id criteria" ) 
     {
         std::string odeTriggerName("new-low");
-        std::string source("source-1");
         uint classId(1);
         uint limit(0);
         uint preset(2);
 
         std::string odeActionName("action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        uint sourceId(0x10001);
 
         DSL_ODE_TRIGGER_NEW_LOW_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_NEW_LOW_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, preset);
+                source3.c_str(), classId, limit, preset);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -3659,7 +3886,8 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
             THEN( "PostProcessFrame returns 0 occurrences of new high" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "When two objects - i.e. equal to the current high count - are checked" )
@@ -3670,7 +3898,8 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
             THEN( "PostProcessFrame returns 0 occurrences of new low" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "When one object - i.e. less than the current low count - is added" )
@@ -3685,7 +3914,8 @@ SCENARIO( "An NewLowOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger]
                 pOdeTrigger->PreProcessFrame(NULL, displayMetaData, &frameMeta);
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta1) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
            }
         }
     }
@@ -3696,18 +3926,48 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
     GIVEN( "A new NewHighOdeTrigger with specific Class Id and Source Id criteria" ) 
     {
         std::string odeTriggerName("new-high");
-        std::string source("source-1");
         uint classId(1);
         uint limit(0);
         uint preset(2);
 
         std::string odeActionName("action");
 
-        uint sourceId = Services::GetServices()->_sourceNameSet(source.c_str());
+        std::string source1("source-1");
+        std::wstring wsource1(L"source-1");
+        std::string source2("source-2");
+        std::wstring wsource2(L"source-2");
+        std::string source3("source-3");
+        std::wstring wsource3(L"source-3");
+
+        std::wstring wpipeline1(L"pipeline-1");
+        std::wstring wpipeline2(L"pipeline-2");
+        std::wstring wpipeline3(L"pipeline-3");
+
+        // Source needs to be in the components collection
+        REQUIRE( dsl_source_file_new(wsource1.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource2.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(wsource3.c_str(), 
+            w_file_path.c_str(), false) == DSL_RESULT_SUCCESS );
+            
+        // Need to add the sources to a Pipeline to have their id assigned.
+        REQUIRE( dsl_pipeline_new(wpipeline1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_new(wpipeline3.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pipeline_component_add(wpipeline1.c_str(), 
+            wsource1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_component_add(wpipeline2.c_str(), 
+            wsource3.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint sourceId(0x10001);
 
         DSL_ODE_TRIGGER_NEW_HIGH_PTR pOdeTrigger = 
             DSL_ODE_TRIGGER_NEW_HIGH_NEW(odeTriggerName.c_str(), 
-                source.c_str(), classId, limit, preset);
+                source3.c_str(), classId, limit, preset);
 
         DSL_ODE_ACTION_PRINT_PTR pOdeAction = 
             DSL_ODE_ACTION_PRINT_NEW(odeActionName.c_str(), false);
@@ -3735,7 +3995,8 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
             THEN( "PostProcessFrame returns 0 occurrences of new high" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "When two objects - i.e. equal to the current high count - are checked" )
@@ -3746,7 +4007,8 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
             THEN( "PostProcessFrame returns 0 occurrences of new high" )
             {
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "When three objects - i.e. greater than the current high count - are checked" )
@@ -3765,7 +4027,8 @@ SCENARIO( "An NewHighOdeTrigger handles ODE Occurrences correctly", "[OdeTrigger
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta2) == true );
                 REQUIRE( pOdeTrigger->CheckForOccurrence(NULL, displayMetaData, &frameMeta, &objectMeta3) == true );
                 REQUIRE( pOdeTrigger->PostProcessFrame(NULL, displayMetaData, &frameMeta) == 0 );
-                Services::GetServices()->_sourceNameErase(source.c_str());
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
            }
         }
     }

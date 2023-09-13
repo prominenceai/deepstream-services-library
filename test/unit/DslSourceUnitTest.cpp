@@ -70,9 +70,9 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
                 
@@ -165,9 +165,9 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                 THEN( "All memeber variables are initialized correctly" )
                 {
                     REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                    REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                    REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                     REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                    REQUIRE( pSourceBintr->GetId() == 0 );
+                    REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                     REQUIRE( pSourceBintr->GetSensorId() == 0 );
                     REQUIRE( pSourceBintr->IsInUse() == false );
                     REQUIRE( pSourceBintr->IsLive() == true );
@@ -316,7 +316,7 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
                 
@@ -520,9 +520,9 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -777,16 +777,22 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
         WHEN( "The RtspSourceBintr is created " )
         {
             DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
-                rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
+                rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, 
+                latency, timeout);
 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == 
+                    DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
+                REQUIRE( pSourceBintr->GetLatency() ==  latency );
+                REQUIRE( pSourceBintr->GetDropOnLatencyEnabled() == false );
+                REQUIRE( pSourceBintr->GetTlsValidationFlags() == 
+                    DSL_TLS_CERTIFICATE_VALIDATE_ALL );
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
                 
                 dsl_rtsp_connection_data data{0};
@@ -833,7 +839,7 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
         DSL_RTSP_SOURCE_PTR pSourceBintr = DSL_RTSP_SOURCE_NEW(sourceName.c_str(), 
             rtspUri.c_str(), DSL_RTP_ALL, intrDecode, dropFrameInterval, latency, timeout);
 
-        WHEN( "The RtspSourceBintr's timeout set " )
+        WHEN( "The RtspSourceBintr's timeout is set " )
         {
             uint newTimeout(0);
             pSourceBintr->SetBufferTimeout(newTimeout);
@@ -864,6 +870,18 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
                 REQUIRE( data.count == newData.count );
                 REQUIRE( data.is_in_reconnect == newData.is_in_reconnect );
                 REQUIRE( data.retries == newData.retries );
+            }
+        }
+        WHEN( "The RtspSourceBintr's TLS certificate validation flags are set " )
+        {
+            uint newTlsValidationFlags(DSL_TLS_CERTIFICATE_BAD_IDENTITY |
+                DSL_TLS_CERTIFICATE_NOT_ACTIVATED);
+            
+            pSourceBintr->SetTlsValidationFlags(newTlsValidationFlags);
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pSourceBintr->GetTlsValidationFlags() == newTlsValidationFlags );
             }
         }
     }
@@ -964,9 +982,9 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
         std::string pipelineSourcesName = "pipeline-sources";
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str());
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), 0);
             
-        DSL_VIDEO_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<VideoSourceBintr>(pRtspSourceBintr);
+        DSL_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<SourceBintr>(pRtspSourceBintr);
             
         // Source needs a parent to test reconnect - required for source to call "gst_element_sync_state_with_parent"
         pPipelineSourcesBintr->AddChild(pSourceBintr);
@@ -1083,9 +1101,9 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1157,9 +1175,9 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1233,9 +1251,9 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1304,9 +1322,9 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
-                REQUIRE( pSourceBintr->GetNvbufMemType() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetId() == 0 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1365,6 +1383,180 @@ SCENARIO( "An MultiImageSourceBintr can UnlinkAll all child Elementrs correctly"
             THEN( "The MultiImageSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A name for a new DuplicateSourceBintr" ) 
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        WHEN( "The DuplicateSourceBintr is created " )
+        {
+            DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+                sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                
+                std::string retOriginalName = pSourceBintr->GetOriginal();
+                REQUIRE( retOriginalName == originalSourceName);
+                
+                // Must reflect use of file stream
+                REQUIRE( pSourceBintr->IsLive() == isLive );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+            }
+        }
+    }
+}
+
+SCENARIO( "A DuplicateSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new DuplicateSourceBintr in memory" ) 
+
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+            sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+        WHEN( "The DuplicateSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The DuplicateSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DuplicateSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new, linked DuplicateSourceBintr " ) 
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+            sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+        REQUIRE( pSourceBintr->LinkAll() == true );
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The DuplicateSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The DuplicateSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DuplicateSourceBintr added and removed correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new DuplicateSourceBintr and VideoSourceBintr" ) 
+    {
+        std::string originalSourceName("original-source");
+        bool isLive(true);
+        
+        DSL_FILE_SOURCE_PTR pVideoSourceBintr = DSL_FILE_SOURCE_NEW(
+            originalSourceName.c_str(), filePath.c_str(), false);
+
+        DSL_DUPLICATE_SOURCE_PTR pSourceBintr = DSL_DUPLICATE_SOURCE_NEW(
+            sourceName.c_str(), originalSourceName.c_str(), isLive);
+
+        WHEN( "The DuplicateSourceBintr is added to the VideoSourceBintr" )
+        {
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pSourceBintr) == true );
+
+            // second call must fail
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pSourceBintr) == false );
+
+            THEN( "The same DuplicateSourceBintr can be removed correctly" )
+            {
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pSourceBintr) == true );
+
+                // second call must fail
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pSourceBintr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "Multiple DuplicateSourceBintrs can be added and linked with a VideoSourceBintr",  "[SourceBintr]" )
+{
+    GIVEN( "A new DuplicateSourceBintr and VideoSourceBintr" ) 
+    {
+        std::string originalSourceName("original-source");
+        std::string duplicateSourceName1("duplicate-source-1");
+        std::string duplicateSourceName2("duplicate-source-2");
+        std::string duplicateSourceName3("duplicate-source-3");
+        std::string duplicateSourceName4("duplicate-source-4");
+        bool isLive(true);
+        
+//        DSL_FILE_SOURCE_PTR pVideoSourceBintr = DSL_FILE_SOURCE_NEW(
+//            originalSourceName.c_str(), filePath.c_str(), isLive);
+
+        DSL_USB_SOURCE_PTR pVideoSourceBintr = DSL_USB_SOURCE_NEW(
+            sourceName.c_str(), width, height, fps_n, fps_d);
+
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr1 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName1.c_str(), originalSourceName.c_str(), isLive);
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr2 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName2.c_str(), originalSourceName.c_str(), isLive);
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr3 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName3.c_str(), originalSourceName.c_str(), isLive);
+        DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr4 = DSL_DUPLICATE_SOURCE_NEW(
+            duplicateSourceName4.c_str(), originalSourceName.c_str(), isLive);
+
+        WHEN( "The DuplicateSourceBintrs are added to the VideoSourceBintr and all are linked" )
+        {
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr1) == true );
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr2) == true );
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr3) == true );
+            REQUIRE( pVideoSourceBintr->AddDuplicateSource(pDuplicateSourceBintr4) == true );
+
+            REQUIRE( pVideoSourceBintr->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr1->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr2->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr3->LinkAll() == true );
+            REQUIRE( pDuplicateSourceBintr4->LinkAll() == true );
+
+            THEN( "All Sources can be unliked and removed correctly" )
+            {
+                pVideoSourceBintr->UnlinkAll();
+                pDuplicateSourceBintr1->UnlinkAll();
+                pDuplicateSourceBintr2->UnlinkAll();
+                pDuplicateSourceBintr3->UnlinkAll();
+                pDuplicateSourceBintr4->UnlinkAll();
+
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr1) == true );
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr2) == true );
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr3) == true );
+                REQUIRE( pVideoSourceBintr->RemoveDuplicateSource(
+                    pDuplicateSourceBintr4) == true );
             }
         }
     }

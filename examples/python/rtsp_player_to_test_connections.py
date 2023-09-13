@@ -49,7 +49,15 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':    
         dsl_player_stop('rtsp-player')
         dsl_main_loop_quit()
-       
+
+## 
+# Function to be called on XWindow Delete event
+## 
+def xwindow_delete_event_handler(client_data):
+    print('delete window event')
+    dsl_player_stop('rtsp-player')
+    dsl_main_loop_quit()
+
 def main(args):    
 
     # Since we're not using args, we can Let DSL initialize GST on first call    
@@ -61,7 +69,7 @@ def main(args):
             protocol = DSL_RTP_ALL,     
             skip_frames = 0,     
             drop_frame_interval = 0,     
-            latency=100,
+            latency=1000,
             timeout=2)    
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
@@ -71,15 +79,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:    
             break    
 
+        # Add the XWindow event handler functions defined above to the Window Sink
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         retval = dsl_player_new('rtsp-player', 'rtsp-source', 'window-sink')
         if retval != DSL_RETURN_SUCCESS:    
             break
             
-        # Add the XWindow event handler functions defined above    
-        retval = dsl_player_xwindow_key_event_handler_add("rtsp-player", xwindow_key_event_handler, None)    
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
-        
         # Play the player    
         retval = dsl_player_play('rtsp-player')    
         if retval != DSL_RETURN_SUCCESS:    
