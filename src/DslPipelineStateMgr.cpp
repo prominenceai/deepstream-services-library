@@ -294,20 +294,20 @@ namespace DSL
         gchar* code;
         gchar* text;
 
+        const gchar* name = gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage));
+
         switch (GST_MESSAGE_TYPE(pMessage))
         {
         case GST_MESSAGE_ASYNC_DONE:
             gst_message_parse_async_done(pMessage, &clockTime);
-            LOG_INFO("Message type : " 
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   time      : " << clockTime);
             break;
             
         case GST_MESSAGE_STREAM_STATUS:
             gst_message_parse_stream_status(pMessage, &statusType, &pElement);
-            LOG_INFO("Message type : "
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   type      : " << statusType);
             LOG_INFO("   element   : " << GST_ELEMENT_NAME(pElement));
@@ -315,8 +315,7 @@ namespace DSL
             
         case GST_MESSAGE_QOS:
             gst_message_parse_qos_stats(pMessage, &format, &processed, &dropped);
-            LOG_INFO("Message type : "
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   format    : " << gst_format_get_name(format));
             LOG_INFO("   processed : " << processed);
@@ -325,17 +324,19 @@ namespace DSL
             
         case GST_MESSAGE_BUFFERING:
             gst_message_parse_buffering(pMessage, &percent);
-            LOG_INFO("Message type : "
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   percent   : " << percent);
             break;
             
+        case GST_MESSAGE_LATENCY:
+            LOG_INFO("Message type : " << name);
+            break;
+            
         case GST_MESSAGE_PROGRESS:
-            gst_message_parse_progress (pMessage,
+            gst_message_parse_progress(pMessage,
                 &progressType, &code, &text);
-            LOG_INFO("Message type : "
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
             LOG_INFO("   type      : " << progressType);
             LOG_INFO("   code      : " << code);
@@ -344,20 +345,22 @@ namespace DSL
             
         case GST_MESSAGE_INFO:
             gst_message_parse_info(pMessage, &error, &debugInfo);
-            LOG_INFO("Message type : "
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   info      : " << error->message);
             if(debugInfo)
                 LOG_INFO("   debug     : " << debugInfo);
+            g_error_free(error);
+            g_free(debugInfo);
             break;
 
         case GST_MESSAGE_WARNING:
             gst_message_parse_warning(pMessage, &error, &debugInfo);
-            LOG_INFO("Message type : "
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Message type : " << name);
             LOG_INFO("   warning   : " << error->message);
             if(debugInfo)
                 LOG_INFO("   debug     : " << debugInfo);
+            g_error_free(error);
+            g_free(debugInfo);
             break;
             
         case GST_MESSAGE_EOS:
@@ -379,9 +382,9 @@ namespace DSL
         case GST_MESSAGE_TAG:
             break;
         default:
-            LOG_INFO("Unhandled message type:: " 
-                << gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+            LOG_INFO("Unhandled message type:: " << name);
         }
+        
         return true;
     }
 
