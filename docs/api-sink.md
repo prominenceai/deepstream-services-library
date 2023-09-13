@@ -1,6 +1,14 @@
 
 # Sink API Reference
-Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. DSL supports ten (12) different types of Sinks:
+Sinks are the end components for all DSL GStreamer Pipelines. A Pipeline must have at least one sink in use, along with other certain components, to reach a state of Ready. 
+
+All Sinks are derived from the "Component" class, therefore all [component methods](/docs/api-component.md) can be called with any Sink.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── `sink`
+
+DSL supports ten (12) different types of Sinks:
 * [Overlay Sink](#dsl_sink_overlay_new) - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
 * [File Sink](#dsl_sink_file_new) - encodes video to a media container file
@@ -62,7 +70,7 @@ As a general rule
 
 ## Sink API
 **Types:**
-* [`dsl_recording_info](#dsl_recording_info)
+* [`dsl_recording_info`](#dsl_recording_info)
 
 **Callback Types:**
 * [`dsl_sink_app_new_data_handler_cb`](#dsl_sink_app_new_data_handler_cb)
@@ -429,9 +437,9 @@ DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
 The constructor creates a new, uniquely named App Sink component. Construction will fail if the name is currently in use.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── app sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `app sink`
 
 **Parameters**
 * `name` - [in] unique name for the App Sink to create.
@@ -460,10 +468,10 @@ The constructor creates a uniquely named Overlay Sink with given offsets and dim
 **IMPORTANT:** The Overlay Sink is only available on the Jetson platform.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [render sink](#render-sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── overlay sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`render sink`](#render-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `overlay sink`
 
 **Parameters**
 * `name` - [in] unique name for the Overlay Sink to create.
@@ -492,10 +500,10 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
 The constructor creates a uniquely named Window Sink with given offsets and dimensions. Construction will fail if the name is currently in use. Window Sinks are used to render video onto an XWindows. See [Pipeline XWindow Support](api-pipeline.md#pipeline-xwindow-support) for more information.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [render sink](#render-sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── window sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`render sink`](#render-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `window sink`
 
 **Parameters**
 * `name` - [in] unique name for the Window Sink to create.
@@ -522,10 +530,10 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* filepath,
 The constructor creates a uniquely named File Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - and two video container types - `MPEG4` and `MK4` - supported.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── file sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`encode sink`](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `file sink`
 
 **Parameters**
 * `name` - [in] unique name for the File Sink to create.
@@ -555,10 +563,10 @@ The constructor creates a uniquely named Record Sink. Construction will fail if 
 Note: the Sink name is used as the filename prefix, followed by session id and NTP time.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── record sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`encode sink`](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `record sink`
 
 **Parameters**
 * `name` - [in] unique name for the Record Sink to create.
@@ -608,10 +616,10 @@ rtsp://admin:12345@192.168.1.64:8554/my-rtsp-sink
 ```
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── rtsp sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`encode sink`](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `rtsp sink`
 
 **Parameters**
 * `name` - [in] unique name for the File Sink to create.
@@ -642,10 +650,10 @@ The constructor creates a uniquely named WebRTC Sink. Construction will fail if 
  **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [encode sink](#encode-sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── webrtc sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`encode sink`](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `webrtc sink`
 
 **Parameters**
 * `name` - [in] unique name for the WebRTC Sink to create.
@@ -680,9 +688,9 @@ The constructor creates a uniquely named Message Sink. Construction will fail if
 **Note:** refer to [DSL Message Broker API reference](/docs/api-msg-broker.md) and [DSL - Azure MQTT Protocol Adapter Libraries](/docs/proto-lib-azure.md#azure-mqtt-protocol-adapter-libraries) for additional information. 
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── message sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `message sink`
 
 **Parameters**
 * `name` - [in] unique name for the Message Sink to create.
@@ -717,9 +725,9 @@ The constructor creates a new, uniquely named Inter-Pipe Sink component. Constru
 Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview for more information.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── interpipe sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `interpipe sink`
 
 **Parameters**
 * `name` - [in] unique name for the Interpipe Sink to create.
@@ -748,9 +756,9 @@ The constructor creates a new, uniquely named Multi-Image Sink. Construction wil
 The Sink Encodes each frame into a JPEG image and saves it to a file specified by a given folder/filename-pattern. The size can be scaled by setting the width and height to non-zero values. The rate can be controlled by setting the fps_n and fps_d to non-zero values as well. The maximum rate at which the sink can encode and save is hardware/platform dependent. It is up to the user to manage the maximum setting. Exceeding the limit may lead to corrupted files.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── multi-image sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `multi-image sink`
 
 **Parameters**
 * `name` - [in] unique name for the Multi-Image Sink to create.
@@ -787,9 +795,9 @@ The Application initiates a frame-capture by calling [dsl_sink_frame_capture_ini
 **Note:** The first capture may cause a noticeable short pause to the stream while cuda dependencies are loaded and cached. 
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── frame-capture sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `frame-capture sink`
 
 **Parameters**
 * `name` - [in] unique name for the Frame-Capture Sink to create.
@@ -813,9 +821,9 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name);
 The constructor creates a uniquely named Fake Sink. Construction will fail if the name is currently in use.
 
 #### Hierarchy
-[component](/docs/api-component.md)<br>
-&emsp;╰── [sink](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── fake sink
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `fake sink`
 
 **Parameters**
 * `name` - [in] unique name for the Fake Sink to create.
