@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslSinkBintr.h"
 #include "DslSourceBintr.h"
-#include "DslPipelineSourcesBintr.h"
+#include "DslMultiSourcesBintr.h"
 
 static std::string interPipeSourceName("inter-pipe-source");
 static std::string interPipeSinkName("inter-pipe-sink");

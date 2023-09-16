@@ -23,8 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_PIPELINE_SOURCES_BINTR_H
-#define _DSL_PIPELINE_SOURCES_BINTR_H
+#ifndef _DSL_MULTI_SOURCES_BINTR_H
+#define _DSL_MULTI_SOURCES_BINTR_H
 
 #include "Dsl.h"
 #include "DslApi.h"
@@ -32,28 +32,28 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    #define DSL_PIPELINE_SOURCES_PTR std::shared_ptr<PipelineSourcesBintr>
-    #define DSL_PIPELINE_SOURCES_NEW(name, uniquePipelineId) \
-        std::shared_ptr<PipelineSourcesBintr> \
-           (new PipelineSourcesBintr(name, uniquePipelineId))
+    #define DSL_MULTI_SOURCES_PTR std::shared_ptr<MultiSourcesBintr>
+    #define DSL_MULTI_SOURCES_NEW(name, uniquePipelineId) \
+        std::shared_ptr<MultiSourcesBintr> \
+           (new MultiSourcesBintr(name, uniquePipelineId))
 
-    class PipelineSourcesBintr : public Bintr
+    class MultiSourcesBintr : public Bintr
     {
     public: 
     
-        PipelineSourcesBintr(const char* name, uint uniquePipelineId);
+        MultiSourcesBintr(const char* name, uint uniquePipelineId);
 
-        ~PipelineSourcesBintr();
+        ~MultiSourcesBintr();
         
         /**
-         * @brief adds a child SourceBintr to this PipelineSourcesBintr
+         * @brief adds a child SourceBintr to this MultiSourcesBintr
          * @param pChildSource shared pointer to SourceBintr to add
          * @return true if the SourceBintr was added correctly, false otherwise
          */
         bool AddChild(DSL_SOURCE_PTR pChildSource);
         
         /**
-         * @brief removes a child SourceBintr from this PipelineSourcesBintr
+         * @brief removes a child SourceBintr from this MultiSourcesBintr
          * @param pChildElement a shared pointer to SourceBintr to remove
          * @return true if the SourceBintr was removed correctly, false otherwise
          */
@@ -68,7 +68,7 @@ namespace DSL
          * @brief overrides the base Noder method to only return the number of 
          * child SourceBintrs and not the total number of children... 
          * i.e. exclude the nuber of child Elementrs from the count
-         * @return the number of Child SourceBintrs held by this PipelineSourcesBintr
+         * @return the number of Child SourceBintrs held by this MultiSourcesBintr
          */
         uint GetNumChildren()
         {
@@ -148,14 +148,14 @@ namespace DSL
         bool SetStreammuxDimensions(uint width, uint height);
         
         /**
-         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * @brief Gets the current setting for the MultiSourcesBintr's 
          * Streammuxer padding enabled property.
          * @preturn true if enabled, false otherwise.
          */
         boolean GetStreammuxPaddingEnabled();
 
         /**
-         * @brief Sets the PipelineSourcesBintr's Streammuxer padding 
+         * @brief Sets the MultiSourcesBintr's Streammuxer padding 
          * enabled property.
          * @param enabled set to true to enable padding, false otherwise.
          * @return true if padding enabled was succesfully set, false otherwise.
@@ -163,14 +163,14 @@ namespace DSL
         bool SetStreammuxPaddingEnabled(boolean enabled);
 
         /**
-         * @brief Gets the current setting for the PipelineSourcesBintr's Streammuxer
+         * @brief Gets the current setting for the MultiSourcesBintr's Streammuxer
          * num-surfaces-per-frame seting
          * @return current setting for the number of surfaces [1..4].
          */
         uint GetStreammuxNumSurfacesPerFrame();
 
         /**
-         * @brief Sets the current setting for the PipelineSourcesBintr's 
+         * @brief Sets the current setting for the MultiSourcesBintr's 
          * Streammuxer num-surfaces-per-frame seting.
          * @param[in] num new value for the number of surfaces [1..4].
          * @return true if dimensions are succesfully set, false otherwise.
@@ -178,14 +178,14 @@ namespace DSL
         bool SetStreammuxNumSurfacesPerFrame(uint num);
         
         /**
-         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * @brief Gets the current setting for the MultiSourcesBintr's 
          * Streammuxer sync-inputs enabled property.
          * @preturn true if enabled, false otherwise.
          */
         boolean GetStreammuxSyncInputsEnabled();
         
         /**
-         * @brief Sets the PipelineSourcesBintr's Streammuxer sync-inputs 
+         * @brief Sets the MultiSourcesBintr's Streammuxer sync-inputs 
          * enabled property.
          * @param enabled set to true to enable sync-inputs, false otherwise.
          * @return true if padding enabled was succesfully set, false otherwise.
@@ -193,7 +193,7 @@ namespace DSL
         bool SetStreammuxSyncInputsEnabled(boolean enabled);
         
         /**
-         * @brief Set the GPU ID for the PipelineSourcesBintr's Streammuxer
+         * @brief Set the GPU ID for the MultiSourcesBintr's Streammuxer
          * @return true if successfully set, false otherwise.
          */
         bool SetGpuId(uint gpuId);
@@ -205,7 +205,7 @@ namespace DSL
 
     private:
         /**
-         * @brief adds a child Elementr to this PipelineSourcesBintr
+         * @brief adds a child Elementr to this MultiSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
          * @return a shared pointer to the Elementr if added correctly, 
          * nullptr otherwise
@@ -213,7 +213,7 @@ namespace DSL
         bool AddChild(DSL_BASE_PTR pChildElement);
         
         /**
-         * @brief removes a child Elementr from this PipelineSourcesBintr
+         * @brief removes a child Elementr from this MultiSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
@@ -227,19 +227,19 @@ namespace DSL
         /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
          * Will be created if and when a RTSP source is added to this 
-         * PipelineSourcesBintr.
+         * MultiSourcesBintr.
          */
         DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
         
         /**
          * @brief Source PadBufferProbetr for the SourceIdOffsetterPadProbeHandler 
-         * m_pSourceIdOffsetter owned by this PipelineSourcesBintr.
+         * m_pSourceIdOffsetter owned by this MultiSourcesBintr.
          */
         DSL_PAD_BUFFER_PROBE_PTR m_pSrcPadBufferProbe;
         
         /**
          * @brief Pad Probe Handler to add the source-id offset (based on unique 
-         * pipeline-id) for this PipelineSourcesBintr
+         * pipeline-id) for this MultiSourcesBintr
          */
         DSL_PPH_SOURCE_ID_OFFSETTER_PTR m_pSourceIdOffsetter;
 
@@ -347,4 +347,4 @@ namespace DSL
     
 }
 
-#endif // _DSL_PIPELINE_SOURCES_BINTR_H
+#endif // _DSL_MULTI_SOURCES_BINTR_H

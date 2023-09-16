@@ -25,12 +25,12 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslPadProbeHandler.h"
-#include "DslPipelineSourcesBintr.h"
+#include "DslMultiSourcesBintr.h"
 #include "DslServices.h"
 
 namespace DSL
 {
-    PipelineSourcesBintr::PipelineSourcesBintr(const char* name,
+    MultiSourcesBintr::MultiSourcesBintr(const char* name,
         uint uniquePipelineId)
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
@@ -41,7 +41,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Need to forward all children messages for this PipelineSourcesBintr,
+        // Need to forward all children messages for this MultiSourcesBintr,
         // which is the parent bin for the Pipeline's Streammux, so the Pipeline
         // can be notified of individual source EOS events. 
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
@@ -85,7 +85,7 @@ namespace DSL
 
         AddChild(m_pStreammux);
 
-        // Float the Streammux as a src Ghost Pad for this PipelineSourcesBintr
+        // Float the Streammux as a src Ghost Pad for this MultiSourcesBintr
         m_pStreammux->AddGhostPadToParent("src");
         
         // If the unqiue pipeline-id is greater than 0, then we need to add the
@@ -93,7 +93,7 @@ namespace DSL
         // the frame-metadata produced by the streammux plugin. 
         if (m_uniquePipelineId > 0)
         {
-            LOG_INFO("Adding source-id-offsetter to PipelineSourcesBintr '"
+            LOG_INFO("Adding source-id-offsetter to MultiSourcesBintr '"
                 << GetName() << "' with unique Pipeline-id = " << m_uniquePipelineId);
             // Create the buffer-pad-probe to probe all buffers flowing over the 
             // streammuxer's source pad. 
@@ -112,7 +112,7 @@ namespace DSL
         }
     }
     
-    PipelineSourcesBintr::~PipelineSourcesBintr()
+    MultiSourcesBintr::~MultiSourcesBintr()
     {
         LOG_FUNC();
 
@@ -122,14 +122,14 @@ namespace DSL
         }
     }
 
-    bool PipelineSourcesBintr::AddChild(DSL_BASE_PTR pChildElement)
+    bool MultiSourcesBintr::AddChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
         return Bintr::AddChild(pChildElement);
     }
      
-    bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
+    bool MultiSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
@@ -237,7 +237,7 @@ namespace DSL
             if (!pChildSource->LinkAll() or 
                 !pChildSource->LinkToSinkMuxer(m_pStreammux, sinkPadName.c_str()))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                LOG_ERROR("MultiSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" 
                     << pChildSource->GetName() << "'");
                 return false;
@@ -250,14 +250,14 @@ namespace DSL
         
     }
 
-    bool PipelineSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
+    bool MultiSourcesBintr::IsChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
         
         return (m_pChildSources.find(pChildSource->GetName()) != m_pChildSources.end());
     }
 
-    bool PipelineSourcesBintr::RemoveChild(DSL_BASE_PTR pChildElement)
+    bool MultiSourcesBintr::RemoveChild(DSL_BASE_PTR pChildElement)
     {
         LOG_FUNC();
         
@@ -265,7 +265,7 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    bool PipelineSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
+    bool MultiSourcesBintr::RemoveChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
 
@@ -285,7 +285,7 @@ namespace DSL
             // unlink the source from the Streammuxer
             if (!pChildSource->UnlinkFromSinkMuxer())
             {   
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                LOG_ERROR("MultiSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" 
                     << pChildSource->GetName() << "'");
                 return false;
@@ -309,13 +309,13 @@ namespace DSL
         return Bintr::RemoveChild(pChildSource);
     }
     
-    bool PipelineSourcesBintr::LinkAll()
+    bool MultiSourcesBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+            LOG_ERROR("MultiSourcesBintr '" << GetName() 
                 << "' is already linked");
             return false;
         }
@@ -329,7 +329,7 @@ namespace DSL
                 !imap.second->LinkToSinkMuxer(m_pStreammux,
                     sinkPadName.c_str()))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                LOG_ERROR("MultiSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" 
                     << imap.second->GetName() << "'");
                 return false;
@@ -346,13 +346,13 @@ namespace DSL
         return true;
     }
 
-    void PipelineSourcesBintr::UnlinkAll()
+    void MultiSourcesBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("PipelineSourcesBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("MultiSourcesBintr '" << GetName() << "' is not linked");
             return;
         }
         for (auto const& imap: m_pChildSources)
@@ -362,7 +362,7 @@ namespace DSL
                 << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSinkMuxer())
             {   
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                LOG_ERROR("MultiSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
                 return;
             }
@@ -373,7 +373,7 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void PipelineSourcesBintr::EosAll()
+    void MultiSourcesBintr::EosAll()
     {
         LOG_FUNC();
         
@@ -387,20 +387,20 @@ namespace DSL
     }
     
     
-    bool PipelineSourcesBintr::StreammuxPlayTypeIsLiveGet()
+    bool MultiSourcesBintr::StreammuxPlayTypeIsLiveGet()
     {
         LOG_FUNC();
         
         return m_areSourcesLive;
     }
     
-    bool PipelineSourcesBintr::StreammuxPlayTypeIsLiveSet(bool isLive)
+    bool MultiSourcesBintr::StreammuxPlayTypeIsLiveSet(bool isLive)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update live-source property for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update live-source property for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -414,20 +414,20 @@ namespace DSL
         return true;
     }
 
-    uint PipelineSourcesBintr::GetStreammuxNvbufMemType()
+    uint MultiSourcesBintr::GetStreammuxNvbufMemType()
     {
         LOG_FUNC();
 
         return m_nvbufMemType;
     }
 
-    bool PipelineSourcesBintr::SetStreammuxNvbufMemType(uint type)
+    bool MultiSourcesBintr::SetStreammuxNvbufMemType(uint type)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update nvbuf-memory-type for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update nvbuf-memory-type for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -437,7 +437,7 @@ namespace DSL
         return true;
     }
 
-    void PipelineSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
+    void MultiSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
         int* batchTimeout)
     {
         LOG_FUNC();
@@ -446,14 +446,14 @@ namespace DSL
         *batchTimeout = m_batchTimeout;
     }
 
-    bool PipelineSourcesBintr::SetStreammuxBatchProperties(uint batchSize, 
+    bool MultiSourcesBintr::SetStreammuxBatchProperties(uint batchSize, 
         int batchTimeout)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update batch properties for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update batch properties for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -467,7 +467,7 @@ namespace DSL
         return true;
     }
     
-    void PipelineSourcesBintr::GetStreammuxDimensions(uint* width, uint* height)
+    void MultiSourcesBintr::GetStreammuxDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -475,13 +475,13 @@ namespace DSL
         *height = m_streamMuxHeight;
     }
 
-    bool PipelineSourcesBintr::SetStreammuxDimensions(uint width, uint height)
+    bool MultiSourcesBintr::SetStreammuxDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update Streammux dimensions for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update Streammux dimensions for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -495,20 +495,20 @@ namespace DSL
         return true;
     }
     
-    boolean PipelineSourcesBintr::GetStreammuxPaddingEnabled()
+    boolean MultiSourcesBintr::GetStreammuxPaddingEnabled()
     {
         LOG_FUNC();
         
         return m_isPaddingEnabled;
     }
     
-    bool PipelineSourcesBintr::SetStreammuxPaddingEnabled(boolean enabled)
+    bool MultiSourcesBintr::SetStreammuxPaddingEnabled(boolean enabled)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update enable-padding property for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -519,20 +519,20 @@ namespace DSL
         return true;
     }
 
-    uint PipelineSourcesBintr::GetStreammuxNumSurfacesPerFrame()
+    uint MultiSourcesBintr::GetStreammuxNumSurfacesPerFrame()
     {
         LOG_FUNC();
         
         return m_numSurfacesPerFrame;
     }
     
-    bool PipelineSourcesBintr::SetStreammuxNumSurfacesPerFrame(uint num)
+    bool MultiSourcesBintr::SetStreammuxNumSurfacesPerFrame(uint num)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update num-surfaces-per-frame property for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update num-surfaces-per-frame property for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -543,20 +543,20 @@ namespace DSL
         return true;
     }
 
-    boolean PipelineSourcesBintr::GetStreammuxSyncInputsEnabled()
+    boolean MultiSourcesBintr::GetStreammuxSyncInputsEnabled()
     {
         LOG_FUNC();
         
         return m_syncInputs;
     }
     
-    bool PipelineSourcesBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
+    bool MultiSourcesBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update enable-padding property for MultiSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -567,7 +567,7 @@ namespace DSL
         return true;
     }
 
-    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
+    bool MultiSourcesBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
         
@@ -580,13 +580,13 @@ namespace DSL
         m_gpuId = gpuId;
         m_pStreammux->SetAttribute("gpu-id", m_gpuId);
         
-        LOG_INFO("PipelineSourcesBintr '" << GetName() 
+        LOG_INFO("MultiSourcesBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );
             
         return true;
     }
     
-    void PipelineSourcesBintr::DisableEosConsumers()
+    void MultiSourcesBintr::DisableEosConsumers()
     {
         for (auto const& imap: m_pChildSources)
         {

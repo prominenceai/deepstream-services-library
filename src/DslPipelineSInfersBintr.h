@@ -132,7 +132,7 @@ namespace DSL
 
     private:
         /**
-         * @brief adds a child Elementr to this PipelineSourcesBintr
+         * @brief adds a child Elementr to this PipelineSInfersBintr
          * @param pChildElement a shared pointer to the Elementr to add
          * @return a shared pointer to the Elementr if added correctly, nullptr otherwise
          */

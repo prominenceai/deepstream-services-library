@@ -136,6 +136,57 @@ namespace DSL
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
+
+    //--------------------------------------------------------------------------------
+    
+    QueueSourceBintr::QueueSourceBintr(const char* name)
+        : SourceBintr(name)
+    {
+        LOG_FUNC();
+
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+
+        // Source (output) queue is "src" ghost-pad for this Source.
+        m_pQueue->AddGhostPadToParent("src");
+    }
+    
+    QueueSourceBintr::~QueueSourceBintr()
+    {
+        LOG_FUNC();
+
+    }
+
+    bool QueueSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("QueueSourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void QueueSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("QueueSourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        m_isLinked = false;
+    }
     
     //--------------------------------------------------------------------------------
     
@@ -188,7 +239,7 @@ namespace DSL
         AddChild(m_pBufferOutCapsFilter);
         AddChild(m_pSourceQueue);
 
-        // Source (output) queue is "src" ghost-pad for all SourceBintrs
+        // Source (output) queue is "src" ghost-pad for all VideoSourceBintrs
         m_pSourceQueue->AddGhostPadToParent("src");
         
         std::string padProbeName = GetName() + "-src-pad-probe";

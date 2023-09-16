@@ -40,6 +40,10 @@ namespace DSL
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
 
+    #define DSL_QUEUE_SOURCE_PTR std::shared_ptr<QueueSourceBintr> 
+    #define DSL_QUEUE_SOURCE_NEW(name) \
+        std::shared_ptr<QueueSourceBintr>(new QueueSourceBintr(name))
+    
     #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
 
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
@@ -146,7 +150,7 @@ namespace DSL
         ~SourceBintr();
 
         /**
-         * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
+         * @brief Adds the SourceBintr to a given Parent Bintr.
          * @param[in] pParentBintr shared pointer to the Parent Bintr to add to.
          * @return true on successful add, false otherwise.
          */
@@ -286,6 +290,45 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pSourceElement;
         
+    };
+
+    /**
+     * @class QueueSourceBintr
+     * @brief Implements a simple Queue Source Bintr.
+     * The QueueSourceBintr does not produce buffers. It simpley allows
+     * a QueueElement to be added to a MultiSourcesBintr.
+     */
+    class QueueSourceBintr : public SourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the QueueSourceBintr class
+         * @param[in] name unique name for the new QueueSourceBintr
+         */
+        QueueSourceBintr(const char* name);
+
+        /**
+         * @brief dtor for the QueueSourceBintr class
+         */
+        ~QueueSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Queuue Element for this SourceBintr
+         */
+        DSL_ELEMENT_PTR m_pQueue;
+
     };
 
     /**

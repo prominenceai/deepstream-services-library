@@ -58,7 +58,7 @@ namespace DSL
         // Instantiate the PipelineSourcesBintr for the Pipeline Bintr, 
         std::string sourcesBinName = GetName() + "-sources-bin";
         m_pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
+            DSL_MULTI_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
 
         // Add PipelineSourcesBintr as chid of this PipelineBintr.
         AddChild(m_pPipelineSourcesBintr);

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslSinkBintr.h"
 #include "DslSourceBintr.h"
-#include "DslPipelineSourcesBintr.h"
+#include "DslMultiSourcesBintr.h"
 
 static std::string sourceName("test-source");
 static std::string uri("/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
@@ -981,8 +981,8 @@ SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "
 
         std::string pipelineSourcesName = "pipeline-sources";
 
-        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
-            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), 0);
+        DSL_MULTI_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_MULTI_SOURCES_NEW(pipelineSourcesName.c_str(), 0);
             
         DSL_SOURCE_PTR pSourceBintr = std::dynamic_pointer_cast<SourceBintr>(pRtspSourceBintr);
             
