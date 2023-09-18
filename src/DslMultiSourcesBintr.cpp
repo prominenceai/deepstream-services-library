@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     MultiSourcesBintr::MultiSourcesBintr(const char* name,
-        uint uniquePipelineId)
+        int uniquePipelineId)
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
         , m_isPaddingEnabled(false)
@@ -203,15 +203,18 @@ namespace DSL
         // Set the source's request sink pad-id
         pChildSource->SetRequestPadId(padId);
 
-        // Set the sources unique id by shifting/or-ing the unique pipeline-id
-        // with the source's pad-id -- combined, they are gauranteed to be unique.
-        pChildSource->SetUniqueId(
-            (m_uniquePipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) 
-            | padId);
-            
-        // Add the source's "unique-name to unique-id" mapping to the Services DB.
-        Services::GetServices()->_sourceNameSet(pChildSource->GetCStrName(),
-            pChildSource->GetUniqueId());
+        if (m_uniquePipelineId >= 0)
+        {
+            // Set the sources unique id by shifting/or-ing the unique pipeline-id
+            // with the source's pad-id -- combined, they are gauranteed to be unique.
+            pChildSource->SetUniqueId(
+                (m_uniquePipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) 
+                | padId);
+                
+            // Add the source's "unique-name to unique-id" mapping to the Services DB.
+            Services::GetServices()->_sourceNameSet(pChildSource->GetCStrName(),
+                pChildSource->GetUniqueId());
+        }
 
         // Add the Source to the Bintrs collection of children mapped by name
         m_pChildSources[pChildSource->GetName()] = pChildSource;
@@ -293,9 +296,11 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
         }
-        // Erase the Source the source from the name<->unique-id database.
-        Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
-        
+        if (m_uniquePipelineId >= 0)
+        {
+            // Erase the Source the source from the name<->unique-id database.
+            Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
+        }
         // unreference and remove from the child source collections
         m_pChildSources.erase(pChildSource->GetName());
         m_pChildSourcesIndexed.erase(pChildSource->GetRequestPadId());

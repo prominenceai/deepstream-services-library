@@ -257,7 +257,7 @@ namespace DSL
         /**
          * @brief unique pipeline-id for this PipelineBintr
          */
-        uint m_pipelineId;
+        int m_pipelineId;
 
         /**
          * @brief parent bin for all Source bins in this PipelineBintr

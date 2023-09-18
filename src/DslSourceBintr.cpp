@@ -150,6 +150,11 @@ namespace DSL
 
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for QueueSourceBintr '" << name << "'");
+        
+        AddChild(m_pQueue);
+
         // Source (output) queue is "src" ghost-pad for this Source.
         m_pQueue->AddGhostPadToParent("src");
     }

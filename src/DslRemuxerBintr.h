@@ -38,10 +38,10 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_REMUXER_PTR std::shared_ptr<OsdBintr>
-    #define DSL_REMUXER_NEW(name, streamIds, numStreamIds) \
+    #define DSL_REMUXER_PTR std::shared_ptr<RemuxerBintr>
+    #define DSL_REMUXER_NEW(name, maxStreamIds) \
         std::shared_ptr<RemuxerBintr>(new RemuxerBintr(name, \
-            streamIds, numStreamIds))
+            maxStreamIds))
 
     /**
      * @class RemuxerBintr
@@ -54,12 +54,9 @@ namespace DSL
         /**
          * @brief ctor for the RemuxerBintr class
          * @param[in] name name to give the new RemuxerBintr
-         * @param[in] streamIds array of stream-ids to remux.
-         * @param[in] numStreamIds number of stream-ids in the streamIds array.
          * @param[in] maxStreamIds maximum number of streams that can be connect.
          */
-        RemuxerBintr(const char* name, 
-            uint* streamIds, uint numStreamIds, uint maxStreamIds);
+        RemuxerBintr(const char* name, uint maxStreamIds);
 
         /**
          * @brief dtor for the RemuxerBintr class
@@ -79,7 +76,45 @@ namespace DSL
          * @return true on successful add, false otherwise
          */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
+
+        /**
+         * @brief Adds a child ComponentBintr to this RemuxerBintr. Each child 
+         * (branch) is assigned a new Streammuxer. Each Streammuxer is connected
+         * to multiple streams produced by, and tee'd off of, the Bintr's Demuxer.
+         * @param[in] pChildComponent shared pointer to ComponentBintr (branch) to add.
+         * @param[in] streamIds array of streamIds - identifing which streams to connect
+         * to.
+         * @return true if the ComponentBintr was added correctly, false otherwise
+         */
+        bool AddChild(DSL_BINTR_PTR pChildComponent, 
+            uint* streamIds, uint numStreamIds);
+
+        /**
+         * @brief removes a child ComponentBintr from this RemuxerBintr
+         * @param[in] pChildComponent a shared pointer to ComponentBintr to remove.
+         * @return true if the ComponentBintr was removed correctly, false otherwise
+         */
+        bool RemoveChild(DSL_BINTR_PTR pChildComponent);
         
+        /**
+         * @brief overrides the base method and checks in m_pChildBranches only.
+         */
+        bool IsChild(DSL_BINTR_PTR pChildComponent);
+
+        /**
+         * @brief overrides the base Noder method to only return the number of 
+         * child ComponentBintrs and not the total number of children... 
+         * i.e. exclude the nuber of child Elementrs from the count
+         * @return the number of Child ComponentBintrs (branches) held by this 
+         * MultiBranchesBintr
+         */
+        uint GetNumChildren()
+        {
+            LOG_FUNC();
+            
+            return m_pChildBranches.size();
+        }
+
         /**
          * @brief Links all child elements of this RemuxerBintr
          * @return true if all elements were succesfully linked, false otherwise.
@@ -103,7 +138,7 @@ namespace DSL
         /**
          * @brief Number of stream-ids either currently or to be connected.
          */
-        uint m_numStreamIds;
+  //      uint m_numStreamIds;
         
         /**
          * @brief Maximum number of stream-ids that can be connected.
@@ -113,22 +148,34 @@ namespace DSL
         /**
          * @brief Vector of stream-ids enabled for remuxing.
          */
-        std::vector<uint> m_streamIds;
+//        std::vector<uint> m_streamIds;
 
         /**
-         * @brief Stream-demuxer child Bintr for the RemuxerBintr
+         * @brief Streamdemuxer child Bintr for the RemuxerBintr
          */
         DSL_DEMUXER_PTR m_pDemuxer;
         
         /**
-         * @brief Stream-muxer child Bintr for the RemuxerBintr
+         * @brief Vector of Splitter Tees, one per maxStreamIds, for the RemuxerBintr.
          */
-        DSL_MULTI_SOURCES_PTR m_pMuxer;
+        std::vector<DSL_SPLITTER_PTR> m_splitters;
 
         /**
-         * @brief Vector of Tee elements for the RemuxerBintr.
+         * @brief container of all child Sinks/Branches mapped by their unique names
          */
-        std::vector<DSL_QUEUE_SOURCE_PTR> m_pSourceQueues;
+        std::map<std::string, DSL_BINTR_PTR> m_pChildBranches;
+        
+        /**
+         * @brief Map of child Streammuxers, one per child Branch, 
+         * for the RemuxerBintr.
+         */
+        std::map<std::string, DSL_MULTI_SOURCES_PTR> m_muxers;
+
+        /**
+         * @brief Map of SourceQueue Vectors for the RemuxerBintr. Entries are
+         * mapped by unique Streammuxer Bintr name.
+         */
+        std::map<std::string, std::vector<DSL_QUEUE_SOURCE_PTR>> m_pSourceQueues;
     
     };
     

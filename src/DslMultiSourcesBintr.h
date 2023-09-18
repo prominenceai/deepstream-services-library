@@ -41,7 +41,13 @@ namespace DSL
     {
     public: 
     
-        MultiSourcesBintr(const char* name, uint uniquePipelineId);
+        /**
+         * @brief ctor for the MultiSourcesBintr
+         * @param name[in] unique name for the MultiSourcesBintr
+         * @param uniquePipelineId[in] unique-id of the parent Pipeline if
+         * the parent is a Pipeline. -1 otherwise. 
+         */
+        MultiSourcesBintr(const char* name, int uniquePipelineId);
 
         ~MultiSourcesBintr();
         
@@ -222,7 +228,7 @@ namespace DSL
          * @brief unique id for the Parent Pipeline, used to offset all source
          * Id's (if greater than 0)
          */
-        uint m_uniquePipelineId; 
+        int m_uniquePipelineId; 
          
         /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
