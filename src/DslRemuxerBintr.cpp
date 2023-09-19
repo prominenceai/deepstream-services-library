@@ -30,10 +30,90 @@ THE SOFTWARE.
 namespace DSL
 {
 
+    RemuxerBranchBintr::RemuxerBranchBintr(const char* name, 
+        GstObject* parentRemuxerBin, DSL_BINTR_PTR pChildBranch,
+        uint* streamIds, uint numStreamIds)
+        : Bintr(name, parentRemuxerBin)
+        , m_pChildBranch(pChildBranch)
+        , m_streamIds(streamIds, streamIds+numStreamIds)
+    {
+        LOG_FUNC();
+        
+        // Create a new Streammuxer for this child branch with a unique name
+        std::string streammuxerName = GetName() + "-streammuxer";
+        
+        // We create the new Streammuxer with a pipeline-id of -1 so the Streammuxer
+        // will not update the source-id in the frame-metadata
+        m_pStreammuxerBintr = DSL_MULTI_SOURCES_NEW(streammuxerName.c_str(), -1);
+       
+        AddChild(m_pChildBranch);
+        AddChild(m_pStreammuxerBintr);
+
+        for (auto i=0; i<numStreamIds; i++)
+        {
+            std::string queueName = GetName() +"-source-" + std::to_string(i);
+            DSL_QUEUE_SOURCE_PTR pQueueSource = 
+                DSL_QUEUE_SOURCE_NEW(queueName.c_str());
+            
+            m_pStreammuxerBintr->AddChild(
+                std::dynamic_pointer_cast<SourceBintr>(pQueueSource));
+                
+            m_queueSources[m_streamIds[i]] = pQueueSource;
+        }
+        
+    }
+    
+    RemuxerBranchBintr::~RemuxerBranchBintr()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RemuxerBranchBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RemuxerBranchBintr '" << GetName() 
+                << "' is already linked");
+            return false;
+        }
+        if (!m_pChildBranch->LinkAll() or
+            !m_pStreammuxerBintr->LinkAll() or 
+            !m_pStreammuxerBintr->LinkToSink(m_pChildBranch))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RemuxerBranchBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RemuxerBranchBintr '" << GetName() 
+                << "' is not linked");
+            return;
+        }
+        m_pStreammuxerBintr->UnlinkFromSink();
+        m_pStreammuxerBintr->UnlinkAll();
+        m_pChildBranch->UnlinkAll();
+
+        m_isLinked = false;
+    }
+
+            
     RemuxerBintr::RemuxerBintr(const char* name, uint maxStreamIds)
         : Bintr(name)
         , m_maxStreamIds(maxStreamIds)
-//        , m_streamIds(streamIds, streamIds+numStreamIds)
     {
         LOG_FUNC();
         
@@ -73,7 +153,7 @@ namespace DSL
             UnlinkAll();
         }
     }
-
+    
     bool RemuxerBintr::AddChild(DSL_BINTR_PTR pChildComponent, 
         uint* streamIds, uint numStreamIds)
     {
@@ -86,37 +166,13 @@ namespace DSL
             return false;
         }
         
-        // Create a new Streammuxer for this child branch with a unique name
-        // based on the childs name.
-        std::string streammuxerName = pChildComponent->GetName() + "-streammuxer";
-        
-        // We create the new Streammuxer with a Pipeline-Id of 0 so the Streammuxer
-        // will not update the source-id in the frame-metadata
-        DSL_MULTI_SOURCES_PTR pStreammuxerBintr = 
-            DSL_MULTI_SOURCES_NEW(streammuxerName.c_str(), 0);
-        
-        m_muxers[streammuxerName] = pStreammuxerBintr;
-        
-        for (auto i=0; i<numStreamIds; i++)
-        {
-            std::string queueName = "source-" + std::to_string(i);
-            DSL_QUEUE_SOURCE_PTR pSourceQueue = 
-                DSL_QUEUE_SOURCE_NEW(queueName.c_str());
-            
-            pStreammuxerBintr->AddChild(
-                std::dynamic_pointer_cast<SourceBintr>(pSourceQueue));
-        }
+        // Important - use the child branch components name. 
+        DSL_REMUXER_BRANCH_PTR pRemuxerBranch = 
+            DSL_REMUXER_BRANCH_NEW(pChildComponent->GetCStrName(),
+                GetGstObject(), pChildComponent, streamIds, numStreamIds);
         
         // Add the branch to the Remuxers collection of children branches 
-        m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
-        
-        // call the parent class to complete the add
-        if (!Bintr::AddChild(pChildComponent))
-        {
-            LOG_ERROR("Faild to add Component '" << pChildComponent->GetName() 
-                << "' as a child to '" << GetName() << "'");
-            return false;
-        }
+        m_childBranches[pChildComponent->GetName()] = pRemuxerBranch;
         
         return true;
     }
@@ -132,24 +188,19 @@ namespace DSL
             return false;
         }
 
-        std::string streammuxerName = pChildComponent->GetName() + "-streammuxer";
+        // Remove the BranchBintr from the Remuxers collection of children branches.
+        // This will destroy
+        m_childBranches.erase(pChildComponent->GetName());
         
-        // Clear the Streammuxer entry from the map of child Streammuxers.
-        m_muxers.erase(streammuxerName);
-
-        // Remove the BranchBintr from the Remuxers collection of children branches
-        m_pChildBranches.erase(pChildComponent->GetName());
-
-        // call the base function to complete the remove
-        return Bintr::RemoveChild(pChildComponent);
+        return true;
     }
 
     bool RemuxerBintr::IsChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
         
-        return (m_pChildBranches.find(pChildComponent->GetName()) 
-            != m_pChildBranches.end());
+        return (m_childBranches.find(pChildComponent->GetName()) 
+            != m_childBranches.end());
     }
     
     bool RemuxerBintr::LinkAll()
@@ -162,13 +213,13 @@ namespace DSL
             return false;
         }
         
-//        for (auto const& ivec: m_splitters)
-//        {
-//            if (!ivec->LinkAll())
-//            {
-//                return false;
-//            }
-//        }
+        for (auto const& imap: m_childBranches)
+        {
+            if (!imap.second->LinkAll())
+            {
+                return false;
+            }
+        }
         if (!m_pDemuxer->LinkAll())
         {
             return false;
@@ -189,10 +240,10 @@ namespace DSL
         }
         m_pDemuxer->UnlinkAll();
         
-//        for (auto const& ivec: m_splitters)
-//        {
-//            ivec->UnlinkAll();
-//        }
+        for (auto const& imap: m_childBranches)
+        {
+            imap.second->UnlinkAll();
+        }
         m_isLinked = false;
     }
 
