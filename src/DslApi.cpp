@@ -6307,6 +6307,18 @@ DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name,
         cstrName.c_str(), max_branches);
 }
 
+DslReturnType dsl_tee_remuxer_new(const wchar_t* name, 
+    uint max_branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerNew(cstrName.c_str(),
+        max_branches);
+}
+
 DslReturnType dsl_tee_splitter_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

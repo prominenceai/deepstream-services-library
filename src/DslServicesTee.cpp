@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslServicesValidate.h"
 #include "DslMultiBranchesBintr.h"
+#include "DslRemuxerBintr.h"
 
 namespace DSL
 {
@@ -123,32 +124,6 @@ namespace DSL
         }
     }    
 
-    DslReturnType Services::TeeSplitterNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Splitter Tee name '" << name << "' is not unique");
-                return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = std::shared_ptr<Bintr>(new SplitterBintr(name));
-            
-            LOG_INFO("New Splitter Tee '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Splitter Tee '" << name << "' threw exception on create");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::TeeDemuxerBranchAddTo(const char* name, 
         const char* branch, uint streamId)
     {
@@ -236,6 +211,58 @@ namespace DSL
         }
     }    
 
+    DslReturnType Services::TeeRemuxerNew(const char* name, 
+        uint maxBranches)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Remuxer Tee name '" << name << "' is not unique");
+                return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_REMUXER_NEW(name, maxBranches);
+            
+            LOG_INFO("New Remuxer Tee '" << name << "' created successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Remuxer Tee '" << name << "' threw exception on create");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TeeSplitterNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Splitter Tee name '" << name << "' is not unique");
+                return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new SplitterBintr(name));
+            
+            LOG_INFO("New Splitter Tee '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Splitter Tee '" << name << "' threw exception on create");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
    
     DslReturnType Services::TeeBranchAdd(const char* name, 
         const char* branch)

@@ -1090,14 +1090,16 @@ namespace DSL {
         DslReturnType TeeDemuxerMaxBranchesGet(const char* name, uint* maxBranches);
         
         DslReturnType TeeDemuxerMaxBranchesSet(const char* name, uint maxBranches);
-        
-        DslReturnType TeeSplitterNew(const char* name);
-        
+
         DslReturnType TeeDemuxerBranchAddTo(const char* name, 
             const char* branch, uint stream_id);
 
         DslReturnType TeeDemuxerBranchMoveTo(const char* name, 
             const char* branch, uint stream_id);
+
+        DslReturnType TeeRemuxerNew(const char* name, uint maxBranches);
+        
+        DslReturnType TeeSplitterNew(const char* name);
 
         DslReturnType TeeBranchAdd(const char* name, const char* branch);
         

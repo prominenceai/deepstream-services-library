@@ -29,10 +29,65 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    //--------------------------------------------------------------------------------
+    
+    RemuxerQueueBintr::RemuxerQueueBintr(const char* name)
+        : Bintr(name)
+    {
+        LOG_FUNC();
+
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RemuxerQueueBintr '" << name << "'");
+        
+        AddChild(m_pQueue);
+
+        // Source (output) queue is "src" ghost-pad for this Source.
+        m_pQueue->AddGhostPadToParent("sink");
+        m_pQueue->AddGhostPadToParent("src");
+    }
+    
+    RemuxerQueueBintr::~RemuxerQueueBintr()
+    {
+        LOG_FUNC();
+
+    }
+
+    bool RemuxerQueueBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("RemuxerQueueBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void RemuxerQueueBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RemuxerQueueBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        m_isLinked = false;
+    }
+    
+    //--------------------------------------------------------------------------------
 
     RemuxerBranchBintr::RemuxerBranchBintr(const char* name, 
-        GstObject* parentRemuxerBin, DSL_BINTR_PTR pChildBranch,
-        uint* streamIds, uint numStreamIds)
+        GstObject* parentRemuxerBin, 
+        const std::vector<DSL_SPLITTER_PTR>& splitters,
+        DSL_BINTR_PTR pChildBranch, uint* streamIds, uint numStreamIds)
         : Bintr(name, parentRemuxerBin)
         , m_pChildBranch(pChildBranch)
         , m_streamIds(streamIds, streamIds+numStreamIds)
@@ -51,14 +106,50 @@ namespace DSL
 
         for (auto i=0; i<numStreamIds; i++)
         {
-            std::string queueName = GetName() +"-source-" + std::to_string(i);
-            DSL_QUEUE_SOURCE_PTR pQueueSource = 
-                DSL_QUEUE_SOURCE_NEW(queueName.c_str());
+            std::string sourceName = GetName() +"-source-" + 
+                std::to_string(m_streamIds[i]);
+                
+            DSL_IDENTITY_SOURCE_PTR pIdentitySource = 
+                DSL_IDENTITY_SOURCE_NEW(sourceName.c_str());
             
             m_pStreammuxerBintr->AddChild(
-                std::dynamic_pointer_cast<SourceBintr>(pQueueSource));
+                std::dynamic_pointer_cast<SourceBintr>(pIdentitySource));
+
+            std::string ghostPadName = "sink_" + std::to_string(m_streamIds[i]);
                 
-            m_queueSources[m_streamIds[i]] = pQueueSource;
+            if (!gst_element_add_pad(m_pStreammuxerBintr->GetGstElement(), 
+                gst_ghost_pad_new(ghostPadName.c_str(), 
+                    gst_element_get_static_pad(pIdentitySource->GetGstElement(),
+                        "sink"))))
+            {
+                LOG_ERROR("Failed to add ghost-pad '" << ghostPadName 
+                    << "' for queue-source'" << pIdentitySource->GetName() << "'");
+                throw;
+            }
+            
+            std::string queueName = GetName() +"-queue-" + 
+                std::to_string(m_streamIds[i]);
+            DSL_REMUXER_QUEUE_PTR pQueueBintr = 
+                DSL_REMUXER_QUEUE_NEW(queueName.c_str());
+                
+            splitters[m_streamIds[i]]->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pQueueBintr));
+
+            ghostPadName = "src_" + 
+                std::to_string(pQueueBintr->GetRequestPadId());
+                
+            if (!gst_element_add_pad(splitters[m_streamIds[i]]->GetGstElement(), 
+                gst_ghost_pad_new(ghostPadName.c_str(), 
+                    gst_element_get_static_pad(pQueueBintr->GetGstElement(),
+                        "src"))))
+            {
+                LOG_ERROR("Failed to add ghost-pad '" << ghostPadName 
+                    << "' for queue-source'" << pQueueBintr->GetName() << "'");
+                throw;
+            }
+            
+            m_identiySources[m_streamIds[i]] = pIdentitySource;
+            m_queueBintrs[m_streamIds[i]] = pQueueBintr;
         }
         
     }
@@ -83,6 +174,7 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
+        
         if (!m_pChildBranch->LinkAll() or
             !m_pStreammuxerBintr->LinkAll() or 
             !m_pStreammuxerBintr->LinkToSink(m_pChildBranch))
@@ -110,6 +202,52 @@ namespace DSL
         m_isLinked = false;
     }
 
+    bool RemuxerBranchBintr::LinkToSourceTees(
+        const std::vector<DSL_SPLITTER_PTR>& splitters)
+    {
+        LOG_FUNC();
+    
+        for (auto i=0; i<m_streamIds.size(); i++)
+        {
+            std::string srcPadName = "src_" + 
+                std::to_string(m_queueBintrs[m_streamIds[i]]->GetRequestPadId());
+                
+            std::string sinkPadName = "sink_" + std::to_string(m_streamIds[i]);
+
+            if (!gst_element_link_pads(splitters[i]->GetGstElement(), srcPadName.c_str(),
+               m_pStreammuxerBintr->GetGstElement(), sinkPadName.c_str()))
+            {
+                LOG_ERROR("Failed to link '" << m_queueBintrs[m_streamIds[i]]->GetName() 
+                    << "' to '" << m_identiySources[m_streamIds[i]]->GetName() << "'");
+                return false;
+            }   
+            LOG_INFO("Successfully linked '" << m_queueBintrs[m_streamIds[i]]->GetName() 
+                << "' to '" << m_identiySources[m_streamIds[i]]->GetName() << "'");
+        }
+        return true;
+    }
+    
+    void RemuxerBranchBintr::UnlinkFromSourceTees(
+        const std::vector<DSL_SPLITTER_PTR>& splitters)
+    {
+        LOG_FUNC();
+    
+        for (auto i=0; i<m_streamIds.size(); i++)
+        {
+            std::string srcPadName = "src_" + 
+                std::to_string(m_queueBintrs[m_streamIds[i]]->GetRequestPadId());
+                
+            std::string sinkPadName = "sink_" + std::to_string(m_streamIds[i]);
+
+            gst_element_unlink_pads(splitters[i]->GetGstElement(), srcPadName.c_str(),
+               m_pStreammuxerBintr->GetGstElement(), sinkPadName.c_str());
+
+            LOG_INFO("Successfully unlinked '" << m_queueBintrs[m_streamIds[i]]->GetName() 
+                << "' to '" << m_identiySources[m_streamIds[i]]->GetName() << "'");
+        }
+    }
+    
+    //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name, uint maxStreamIds)
         : Bintr(name)
@@ -169,7 +307,8 @@ namespace DSL
         // Important - use the child branch components name. 
         DSL_REMUXER_BRANCH_PTR pRemuxerBranch = 
             DSL_REMUXER_BRANCH_NEW(pChildComponent->GetCStrName(),
-                GetGstObject(), pChildComponent, streamIds, numStreamIds);
+                GetGstObject(), m_splitters, 
+                    pChildComponent, streamIds, numStreamIds);
         
         // Add the branch to the Remuxers collection of children branches 
         m_childBranches[pChildComponent->GetName()] = pRemuxerBranch;
@@ -213,16 +352,17 @@ namespace DSL
             return false;
         }
         
-        for (auto const& imap: m_childBranches)
-        {
-            if (!imap.second->LinkAll())
-            {
-                return false;
-            }
-        }
         if (!m_pDemuxer->LinkAll())
         {
             return false;
+        }
+        for (auto const& imap: m_childBranches)
+        {
+            if (!imap.second->LinkAll() or
+                !imap.second->LinkToSourceTees(m_splitters))
+            {
+                return false;
+            }
         }
 
         m_isLinked = true;
@@ -243,6 +383,7 @@ namespace DSL
         for (auto const& imap: m_childBranches)
         {
             imap.second->UnlinkAll();
+            imap.second->UnlinkFromSourceTees(m_splitters);
         }
         m_isLinked = false;
     }

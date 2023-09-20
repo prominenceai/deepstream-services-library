@@ -40,9 +40,9 @@ namespace DSL
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
 
-    #define DSL_QUEUE_SOURCE_PTR std::shared_ptr<QueueSourceBintr> 
-    #define DSL_QUEUE_SOURCE_NEW(name) \
-        std::shared_ptr<QueueSourceBintr>(new QueueSourceBintr(name))
+    #define DSL_IDENTITY_SOURCE_PTR std::shared_ptr<IdentitySourceBintr> 
+    #define DSL_IDENTITY_SOURCE_NEW(name) \
+        std::shared_ptr<IdentitySourceBintr>(new IdentitySourceBintr(name))
     
     #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
 
@@ -293,25 +293,25 @@ namespace DSL
     };
 
     /**
-     * @class QueueSourceBintr
-     * @brief Implements a simple Queue Source Bintr.
-     * The QueueSourceBintr does not produce buffers. It simpley allows
-     * a QueueElement to be added to a MultiSourcesBintr.
+     * @class IdentitySourceBintr
+     * @brief Implements a simple Identity Source Bintr.
+     * The IdentitySourceBintr does not produce buffers. It simpley allows
+     * an IdentifyElement to be added to a MultiSourcesBintr.
      */
-    class QueueSourceBintr : public SourceBintr
+    class IdentitySourceBintr : public SourceBintr
     {
     public: 
     
         /**
-         * @brief ctor for the QueueSourceBintr class
-         * @param[in] name unique name for the new QueueSourceBintr
+         * @brief ctor for the IdentitySourceBintr class
+         * @param[in] name unique name for the new IdentitySourceBintr
          */
-        QueueSourceBintr(const char* name);
+        IdentitySourceBintr(const char* name);
 
         /**
-         * @brief dtor for the QueueSourceBintr class
+         * @brief dtor for the IdentitySourceBintr class
          */
-        ~QueueSourceBintr();
+        ~IdentitySourceBintr();
 
         /**
          * @brief Links all Child Elementrs owned by this Source Bintr
@@ -325,9 +325,9 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Queuue Element for this SourceBintr
+         * @brief Identity Element for this SourceBintr
          */
-        DSL_ELEMENT_PTR m_pQueue;
+        DSL_ELEMENT_PTR m_pIdentity;
 
     };
 

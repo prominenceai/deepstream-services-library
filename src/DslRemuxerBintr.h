@@ -38,16 +38,59 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
+    #define DSL_REMUXER_QUEUE_PTR std::shared_ptr<RemuxerQueueBintr>
+    #define DSL_REMUXER_QUEUE_NEW(name) \
+        std::shared_ptr<RemuxerQueueBintr>(new RemuxerQueueBintr(name))
+
     #define DSL_REMUXER_BRANCH_PTR std::shared_ptr<RemuxerBranchBintr>
     #define DSL_REMUXER_BRANCH_NEW(name, \
-        parentRemuxerBin, pChildBranch, streamIds, numStreamIds) \
+        splitters, parentRemuxerBin, pChildBranch, streamIds, numStreamIds) \
         std::shared_ptr<RemuxerBranchBintr>(new RemuxerBranchBintr(name, \
-            parentRemuxerBin, pChildBranch, streamIds, numStreamIds))
+            splitters, parentRemuxerBin, pChildBranch, streamIds, numStreamIds))
 
     #define DSL_REMUXER_PTR std::shared_ptr<RemuxerBintr>
     #define DSL_REMUXER_NEW(name, maxStreamIds) \
         std::shared_ptr<RemuxerBintr>(new RemuxerBintr(name, \
             maxStreamIds))
+
+    /**
+     * @class RemuxerQueueBintr
+     * @brief Elevates a single Queue Element to Bintr class
+     */
+    class RemuxerQueueBintr : public Bintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the RemuxerQueueBintr class
+         * @param[in] name name to give the new RemuxerQueueBintr
+         */
+        RemuxerQueueBintr(const char* name);
+            
+        /**
+         * @brief dtor for the RemuxerQueueBintr class
+         */
+        ~RemuxerQueueBintr();
+
+        /**
+         * @brief Links all child components of this RemuxerQueueBintr
+         * @return true if all components were succesfully linked, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all child components of the RemuxerQueueBintr
+         */
+        void UnlinkAll();
+        
+    private:
+    
+        /**
+         * @brief Queue element for this RemuxerQueueBintr
+         */
+        DSL_ELEMENT_PTR m_pQueue;
+        
+    };
 
     /**
      * @class RemuxerBranchBintr
@@ -66,9 +109,9 @@ namespace DSL
          * connect this RemuxerBranchBintr
          * @param[in] numStreamIds number of stream-ids in the streamIds array.
          */
-        RemuxerBranchBintr(const char* name, 
-            GstObject* parentRemuxerBin, DSL_BINTR_PTR pChildBranch,
-            uint* streamIds, uint numStreamIds);
+        RemuxerBranchBintr(const char* name, GstObject* parentRemuxerBin, 
+            const std::vector<DSL_SPLITTER_PTR>& splitters,
+            DSL_BINTR_PTR pChildBranch, uint* streamIds, uint numStreamIds);
             
         /**
          * @brief dtor for the RemuxerBranchBintr class
@@ -86,6 +129,16 @@ namespace DSL
          */
         void UnlinkAll();
         
+        /**
+         * @brief Links the RemuxerBranchBintr to the Parents RemuxerBintr's
+         * collection of tees, one for each streamId in m_streamIds.
+         * @param splitters vector of tees to link to
+         * @return true if all streams were successfully linked
+         */
+        bool LinkToSourceTees(const std::vector<DSL_SPLITTER_PTR>& splitters);
+        
+        void UnlinkFromSourceTees(const std::vector<DSL_SPLITTER_PTR>& splitters);
+        
     private:
     
         /**
@@ -102,14 +155,15 @@ namespace DSL
          * @brief Vector of stream-ids to connect this RemuxerBranchBintr to
          */
         std::vector<uint> m_streamIds;
+
+        std::map<uint, DSL_REMUXER_QUEUE_PTR> m_queueBintrs;
         
         /**
-         * @brief Containers of Queue-Sources used to connect to Splitter Tees
-         * maintained by the Parent Remuxer. There is one Splitter Tee for every
-         * possible stream-id to connect the RemuxerBranchBitnr to. The Source
-         * components are mapped by target stream-id
+         * @brief Containers of Identity-Sources used to connect to Queue Sinks
+         * maintained by the Parent Remuxer. The Source components are mapped 
+         * by target stream-id
          */
-        std::map<uint, DSL_QUEUE_SOURCE_PTR> m_queueSources;
+        std::map<uint, DSL_IDENTITY_SOURCE_PTR> m_identiySources;
     };
 
     /**

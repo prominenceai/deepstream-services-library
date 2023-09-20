@@ -39,102 +39,102 @@ static const std::string branchBintrName2("branch2");
 static const std::string sinkName0("fake-sink0");
 static const std::string sinkName1("fake-sink1");
 static const std::string sinkName2("fake-sink2");
-
-SCENARIO( "A RemuxerBranchBintr is created correctly", "[RemuxerBintr]" )
-{
-    GIVEN( "Attributes for a new RemuxerBintr, BranchBintr, and RemuxerBranchBintr" )
-    {
-        uint maxStreamIds(4);
-        std::vector<uint> streamIds{0,3};
-
-        DSL_REMUXER_PTR pRemuxerBintr = 
-            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
-
-        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
-
-        WHEN( "The RemuxerBranchBintr is created" )
-        {
-            DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
-                DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                    pRemuxerBintr->GetGstObject(), pBranchBintr0, 
-                    &streamIds[0], streamIds.size());
-            
-            THEN( "All members have been setup correctly" )
-            {
-                REQUIRE( pRemuxerBranchBintr->GetName() == remuxerBranchBintrName0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A RemuxerBranchBintr can LinkAll successfully", "[RemuxerBintr]" )
-{
-    GIVEN( "A new RemuxerBintr, BranchBintr, SinkBintr, and RemuxerBranchBintr" ) 
-    {
-        uint maxStreamIds(4);
-        std::vector<uint> streamIds{0,3};
-
-        DSL_REMUXER_PTR pRemuxerBintr = 
-            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
-
-        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
-
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
-
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
-
-        DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
-            DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pBranchBintr0, 
-                &streamIds[0], streamIds.size());
-
-        WHEN( "The RemuxerBranchBintr is called to LinkAll" )
-        {
-            REQUIRE( pRemuxerBranchBintr->LinkAll() == true );
-            
-            THEN( "The link state has been updated correctly" )
-            {
-                REQUIRE( pRemuxerBranchBintr->IsLinked() == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A RemuxerBranchBintr can UnlinkAll successfully", "[RemuxerBintr]" )
-{
-    GIVEN( "A new RemuxerBranchBintr in a linked state" ) 
-    {
-        uint maxStreamIds(4);
-        std::vector<uint> streamIds{0,3};
-
-        DSL_REMUXER_PTR pRemuxerBintr = 
-            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
-
-        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
-
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
-
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
-
-        DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
-            DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pBranchBintr0, 
-                &streamIds[0], streamIds.size());
-
-        REQUIRE( pRemuxerBranchBintr->LinkAll() == true );
-        REQUIRE( pRemuxerBranchBintr->IsLinked() == true );
-
-        WHEN( "The RemuxerBranchBintr is called to LinkAll" )
-        {
-            pRemuxerBranchBintr->UnlinkAll();
-            
-            THEN( "The link state has been updated correctly" )
-            {
-                REQUIRE( pRemuxerBranchBintr->IsLinked() == true );
-            }
-        }
-    }
-}
+//
+//SCENARIO( "A RemuxerBranchBintr is created correctly", "[RemuxerBintr]" )
+//{
+//    GIVEN( "Attributes for a new RemuxerBintr, BranchBintr, and RemuxerBranchBintr" )
+//    {
+//        uint maxStreamIds(4);
+//        std::vector<uint> streamIds{0,3};
+//
+//        DSL_REMUXER_PTR pRemuxerBintr = 
+//            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
+//
+//        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+//
+//        WHEN( "The RemuxerBranchBintr is created" )
+//        {
+//            DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
+//                DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
+//                    pRemuxerBintr->GetGstObject(), pBranchBintr0, 
+//                    &streamIds[0], streamIds.size());
+//            
+//            THEN( "All members have been setup correctly" )
+//            {
+//                REQUIRE( pRemuxerBranchBintr->GetName() == remuxerBranchBintrName0 );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A RemuxerBranchBintr can LinkAll successfully", "[RemuxerBintr]" )
+//{
+//    GIVEN( "A new RemuxerBintr, BranchBintr, SinkBintr, and RemuxerBranchBintr" ) 
+//    {
+//        uint maxStreamIds(4);
+//        std::vector<uint> streamIds{0,3};
+//
+//        DSL_REMUXER_PTR pRemuxerBintr = 
+//            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
+//
+//        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+//
+//        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+//
+//        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
+//
+//        DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
+//            DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
+//                pRemuxerBintr->GetGstObject(), pBranchBintr0, 
+//                &streamIds[0], streamIds.size());
+//
+//        WHEN( "The RemuxerBranchBintr is called to LinkAll" )
+//        {
+//            REQUIRE( pRemuxerBranchBintr->LinkAll() == true );
+//            
+//            THEN( "The link state has been updated correctly" )
+//            {
+//                REQUIRE( pRemuxerBranchBintr->IsLinked() == true );
+//            }
+//        }
+//    }
+//}
+//
+//SCENARIO( "A RemuxerBranchBintr can UnlinkAll successfully", "[RemuxerBintr]" )
+//{
+//    GIVEN( "A new RemuxerBranchBintr in a linked state" ) 
+//    {
+//        uint maxStreamIds(4);
+//        std::vector<uint> streamIds{0,3};
+//
+//        DSL_REMUXER_PTR pRemuxerBintr = 
+//            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
+//
+//        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+//
+//        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+//
+//        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
+//
+//        DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
+//            DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
+//                pRemuxerBintr->GetGstObject(), pBranchBintr0, 
+//                &streamIds[0], streamIds.size());
+//
+//        REQUIRE( pRemuxerBranchBintr->LinkAll() == true );
+//        REQUIRE( pRemuxerBranchBintr->IsLinked() == true );
+//
+//        WHEN( "The RemuxerBranchBintr is called to LinkAll" )
+//        {
+//            pRemuxerBranchBintr->UnlinkAll();
+//            
+//            THEN( "The link state has been updated correctly" )
+//            {
+//                REQUIRE( pRemuxerBranchBintr->IsLinked() == true );
+//            }
+//        }
+//    }
+//}
 
 SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
 {

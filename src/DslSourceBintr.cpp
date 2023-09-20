@@ -139,7 +139,7 @@ namespace DSL
 
     //--------------------------------------------------------------------------------
     
-    QueueSourceBintr::QueueSourceBintr(const char* name)
+    IdentitySourceBintr::IdentitySourceBintr(const char* name)
         : SourceBintr(name)
     {
         LOG_FUNC();
@@ -148,30 +148,31 @@ namespace DSL
         std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
         m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pIdentity = DSL_ELEMENT_NEW("identity", name);
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for QueueSourceBintr '" << name << "'");
+        LOG_INFO("Initial property values for IdentitySourceBintr '" << name << "'");
         
-        AddChild(m_pQueue);
+        AddChild(m_pIdentity);
 
         // Source (output) queue is "src" ghost-pad for this Source.
-        m_pQueue->AddGhostPadToParent("src");
+        m_pIdentity->AddGhostPadToParent("sink");
+        m_pIdentity->AddGhostPadToParent("src");
     }
     
-    QueueSourceBintr::~QueueSourceBintr()
+    IdentitySourceBintr::~IdentitySourceBintr()
     {
         LOG_FUNC();
 
     }
 
-    bool QueueSourceBintr::LinkAll()
+    bool IdentitySourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("QueueSourceBintr '" << GetName() 
+            LOG_ERROR("IdentitySourceBintr '" << GetName() 
                 << "' is already in a linked state");
             return false;
         }
@@ -180,13 +181,13 @@ namespace DSL
         return true;
     }
 
-    void QueueSourceBintr::UnlinkAll()
+    void IdentitySourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("QueueSourceBintr '" << GetName() 
+            LOG_ERROR("IdentitySourceBintr '" << GetName() 
                 << "' is not in a linked state");
             return;
         }
