@@ -296,9 +296,14 @@ namespace DSL
                 retval = std::dynamic_pointer_cast<SplitterBintr>(
                     m_components[name])->AddChild(pBranchBintr);
             }
-            else
+            else if (m_components[name]->IsType(typeid(DemuxerBintr)))
             {
                 retval = std::dynamic_pointer_cast<DemuxerBintr>(
+                    m_components[name])->AddChild(pBranchBintr);
+            }
+            else
+            {
+                retval = std::dynamic_pointer_cast<RemuxerBintr>(
                     m_components[name])->AddChild(pBranchBintr);
             }
             if (!retval)

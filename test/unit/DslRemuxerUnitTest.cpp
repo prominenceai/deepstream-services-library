@@ -151,6 +151,13 @@ SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
             {
                 REQUIRE( pRemuxerBintr->GetName() == remuxerBintrName );
                 REQUIRE( pRemuxerBintr->GetNumChildren() == 0 );
+                
+                uint retWidth(0), retHeight(0);
+                pRemuxerBintr->GetStreammuxDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
+                REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+                
+                REQUIRE( pRemuxerBintr->GetBatchTimeout() == -1 );
             }
         }
     }
@@ -176,13 +183,55 @@ SCENARIO( "A RemuxerBintr can Add and Remove a child Branch.",
         WHEN( "The BranchBintr is added to the RemuxerBintr" )
         {
             REQUIRE( pRemuxerBintr->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+
+            // Second attempt must fail
+            REQUIRE( pRemuxerBintr->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == false );
+            
+            THEN( "The same BranchBintr can be removed" )
+            {
+                REQUIRE( pRemuxerBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+                REQUIRE( pRemuxerBintr->IsChild(pBranchBintr0) == false );
+                
+                // Second attempt must fail
+                REQUIRE( pRemuxerBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A RemuxerBintr can Add-To and Remove a child Branch.", 
+    "[RemuxerBintr]" )
+{
+    GIVEN( "A new RemuxerBintr and BranchBintr in memory" ) 
+    {
+        uint maxStreamIds(4);
+        
+        std::vector<uint> streamIds{0,1,2,3};
+
+        DSL_REMUXER_PTR pRemuxerBintr = 
+            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
+
+        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+
+        // prior to adding the child
+        REQUIRE( pRemuxerBintr->IsChild(pBranchBintr0) == false );
+
+        WHEN( "The BranchBintr is added to the RemuxerBintr" )
+        {
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
                      &streamIds[0], streamIds.size()) == true );
             REQUIRE( pRemuxerBintr->IsChild(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
 
             // Second attempt must fail
-            REQUIRE( pRemuxerBintr->AddChild(
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
                     &streamIds[0], streamIds.size()) == false );
             
@@ -218,16 +267,63 @@ SCENARIO( "A RemuxerBintr can Add and Remove multiple child Branches",
         WHEN( "The BranchBintrs are added to the RemuxerBintr" )
         {
             REQUIRE( pRemuxerBintr->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+            REQUIRE( pRemuxerBintr->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+            REQUIRE( pRemuxerBintr->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+            
+            THEN( "The same BranchBintrs can be removed" )
+            {
+                REQUIRE( pRemuxerBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+                REQUIRE( pRemuxerBintr->IsChild(pBranchBintr0) == false );
+                REQUIRE( pRemuxerBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+                REQUIRE( pRemuxerBintr->IsChild(pBranchBintr0) == false );
+                REQUIRE( pRemuxerBintr->RemoveChild(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
+                REQUIRE( pRemuxerBintr->IsChild(pBranchBintr0) == false );
+            }
+        }
+    }
+}
+
+
+SCENARIO( "A RemuxerBintr can Add-To and Remove multiple child Branches", 
+    "[RemuxerBintr]" )
+{
+    GIVEN( "A new RemuxerBintr and BranchBintr in memory" ) 
+    {
+        uint maxStreamIds(4);
+        
+        std::vector<uint> streamIds{0,1,2,3};
+
+        DSL_REMUXER_PTR pRemuxerBintr = 
+            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
+
+        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+        DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
+        DSL_BRANCH_PTR pBranchBintr2 = DSL_BRANCH_NEW(branchBintrName2.c_str());
+        WHEN( "The BranchBintrs are added to the RemuxerBintr" )
+        {
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
                      &streamIds[0], streamIds.size()) == true );
             REQUIRE( pRemuxerBintr->IsChild(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-            REQUIRE( pRemuxerBintr->AddChild(
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr1),
                      &streamIds[0], streamIds.size()) == true );
             REQUIRE( pRemuxerBintr->IsChild(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-            REQUIRE( pRemuxerBintr->AddChild(
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr2),
                      &streamIds[0], streamIds.size()) == true );
             REQUIRE( pRemuxerBintr->IsChild(
@@ -249,15 +345,53 @@ SCENARIO( "A RemuxerBintr can Add and Remove multiple child Branches",
     }
 }
 
-SCENARIO( "Linking multiple BranchBintrs to a RemuxerBintr is managed correctly",
-    "[rjh]" )
+SCENARIO( "Linking a BranchBintr with select stream-ids to a RemuxerBintr is managed correctly",
+    "[RemuxerBintr]" )
 {
     GIVEN( "A new RemuxerBintr and BranchBintrs in memory" ) 
     {
         std::string remuxerBintrName = "remuxer";
         uint maxStreamIds(4);
         
-        std::vector<uint> streamIds{0,1,2,3};
+        std::vector<uint> streamIds0{0,2};
+
+        DSL_REMUXER_PTR pRemuxerBintr = 
+            DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
+
+        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+
+        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
+
+        REQUIRE( pRemuxerBintr->AddChildTo(
+            std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
+                 &streamIds0[0], streamIds0.size()) == true );
+        REQUIRE( pRemuxerBintr->IsChild(
+            std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+        
+        WHEN( "The BranchBintrs are added to the RemuxerBintr" )
+        {
+            
+            THEN( "The same BranchBintrs can be removed" )
+            {
+                REQUIRE( pRemuxerBintr->LinkAll() == true );
+                REQUIRE( pRemuxerBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "Linking multiple BranchBintrs with select stream-ids to a RemuxerBintr is managed correctly",
+    "[RemuxerBintr]" )
+{
+    GIVEN( "A new RemuxerBintr and BranchBintrs in memory" ) 
+    {
+        std::string remuxerBintrName = "remuxer";
+        uint maxStreamIds(4);
+        
+        std::vector<uint> streamIds0{0,1,2,3};
+        std::vector<uint> streamIds1{0,2};
+        std::vector<uint> streamIds2{3};
 
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str(), maxStreamIds);
@@ -273,19 +407,19 @@ SCENARIO( "Linking multiple BranchBintrs to a RemuxerBintr is managed correctly"
         REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
         REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
 
-        REQUIRE( pRemuxerBintr->AddChild(
+        REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
-                 &streamIds[0], streamIds.size()) == true );
+                 &streamIds0[0], streamIds0.size()) == true );
         REQUIRE( pRemuxerBintr->IsChild(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-        REQUIRE( pRemuxerBintr->AddChild(
+        REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr1),
-                 &streamIds[0], streamIds.size()) == true );
+                 &streamIds1[0], streamIds1.size()) == true );
         REQUIRE( pRemuxerBintr->IsChild(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-        REQUIRE( pRemuxerBintr->AddChild(
+        REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr2),
-                 &streamIds[0], streamIds.size()) == true );
+                 &streamIds2[0], streamIds2.size()) == true );
         REQUIRE( pRemuxerBintr->IsChild(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
         
