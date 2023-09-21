@@ -207,6 +207,12 @@ namespace DSL
             return false;
         }
         
+        // Get the current Streammuxer batch-size = number of stream-ids
+        // so we can update the Child-Branch's batch-size.
+        uint batchSize(0);
+        int batchTimeout(0);
+        m_pStreammuxerBintr->GetStreammuxBatchProperties(&batchSize, &batchTimeout);
+        m_pChildBranch->SetBatchSize(batchSize);
         if (!m_pChildBranch->LinkAll() or
             !m_pStreammuxerBintr->LinkAll() or 
             !m_pStreammuxerBintr->LinkToSink(m_pChildBranch))
@@ -291,38 +297,6 @@ namespace DSL
         }
     }
 
-    void RemuxerBranchBintr::GetStreammuxBatchProperties(uint* batchSize, 
-        int* batchTimeout)
-    {
-        LOG_FUNC();
-
-        m_pStreammuxerBintr->
-            GetStreammuxBatchProperties(batchSize, batchTimeout);
-    }
-
-    bool RemuxerBranchBintr::SetStreammuxBatchProperties(uint batchSize, 
-        int batchTimeout)
-    {
-        LOG_FUNC();
-
-        return m_pStreammuxerBintr->
-            SetStreammuxBatchProperties(batchSize, batchTimeout);
-    }
-
-    void RemuxerBranchBintr::GetStreammuxDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-
-        m_pStreammuxerBintr->GetStreammuxDimensions(width, height);
-    }
-
-    bool RemuxerBranchBintr::SetStreammuxDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-
-        return m_pStreammuxerBintr->SetStreammuxDimensions(width, height);
-    }
-    
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name, uint maxStreamIds)
@@ -470,8 +444,6 @@ namespace DSL
         }
         for (auto const& imap: m_childBranches)
         {
-            int batchTimeout(0); // we don't care about batch-timeout
-            imap.second->GetStreammuxBatchProperties(&mbatchSize, &batchTimeout);
             if (!imap.second->LinkAll() or
                 !imap.second->LinkToSourceTees(m_splitters))
             {
@@ -506,9 +478,9 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' OSD to the Parent Pipeline 
-//        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
-//            AddRemuxerBintr(shared_from_this());
+        // add 'this' Remuxer to the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
+            AddRemuxerBintr(shared_from_this());
         return true;
     }
 
@@ -516,33 +488,41 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // remove 'this' OSD to the Parent Pipeline 
-//        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
-//            RemoveRemuxerBintr(shared_from_this());
+        // remove 'this' Remuxer to the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
+            RemoveRemuxerBintr(shared_from_this());
         return true;
     }
 
-    int* RemuxerBintr::GetBatchTimeout(int* batchTimeout)
+    int RemuxerBintr::GetStreammuxBatchTimeout()
     {
         LOG_FUNC();
         
         return m_batchTimeout;
     }
 
-    bool RemuxerBintr::SetBatchTimeout(int batchTimeout)
+    bool RemuxerBintr::SetStreammuxBatchTimeout(int batchTimeout)
     {
+        LOG_FUNC();
         
         if (m_isLinked)
         {
             LOG_ERROR("Can't set Streammuxer dimension for RemuxerBintr '" 
-                << GetName << "' as it is currently linked");
+                << GetName() << "' as it is currently linked");
             return false;
         }
         m_batchTimeout = batchTimeout;
 
         for (auto const& imap: m_childBranches)
         {
-            if (!imap.second->SetBatchTimeout(m_batchTimeout))
+            uint currentBatchSize(0);
+            int currentBatchTimeout(0);
+            imap.second->GetStreammuxBatchProperties(&currentBatchSize, 
+                &currentBatchTimeout);
+                
+            // Update just the batch-timeout.    
+            if (!imap.second->SetStreammuxBatchProperties(currentBatchSize, 
+                m_batchTimeout))
             {
                 return false;
             }
@@ -550,7 +530,7 @@ namespace DSL
         return true;
     }
     
-    void RemuxerBranchBintr::GetStreammuxDimensions(uint* width, uint* height)
+    void RemuxerBintr::GetStreammuxDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
 
@@ -558,14 +538,14 @@ namespace DSL
         *height = m_streammuxHeight;
     }
 
-    bool RemuxerBranchBintr::SetStreammuxDimensions(uint width, uint height)
+    bool RemuxerBintr::SetStreammuxDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
             LOG_ERROR("Can't set Streammuxer dimension for RemuxerBintr '" 
-                << GetName << "' as it is currently linked");
+                << GetName() << "' as it is currently linked");
             return false;
         }
         m_streammuxWidth = width;

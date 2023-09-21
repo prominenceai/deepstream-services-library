@@ -157,7 +157,7 @@ SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
                 REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
                 REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
                 
-                REQUIRE( pRemuxerBintr->GetBatchTimeout() == -1 );
+                REQUIRE( pRemuxerBintr->GetStreammuxBatchTimeout() == -1 );
             }
         }
     }

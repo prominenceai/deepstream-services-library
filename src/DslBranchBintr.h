@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include "DslTilerBintr.h"
 #include "DslPipelineSInfersBintr.h"
 #include "DslMultiBranchesBintr.h"
+#include "DslRemuxerBintr.h"
 #include "DslSinkBintr.h"
     
 namespace DSL 
@@ -139,28 +140,42 @@ namespace DSL
         
         /**
          * @brief removes a OsdBintr from this Branch 
-         * @param[in] pOsdBintr shared pointer to OSD Bintr to remove
+         * @param[in] pOsdBintr shared pointer to OsdBintr to remove
          * @return true on succesful remove, false otherwise.
          */
         bool RemoveOsdBintr(DSL_BASE_PTR pOsdBintr);
         
         /**
          * @brief adds a single TeeBintr to this Branch 
-         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @param[in] pDisplayBintr shared pointer to TeeBintr to add
          * @return true on successful add, false otherwise
          */
         bool AddTeeBintr(DSL_BASE_PTR pTeeBintr);
         
         /**
          * @brief adds a single DemuxerBintr to this Branch 
-         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @param[in] pDemuxerBintr shared pointer to DemuxerBintr to add
          * @return true on successful add, false otherwise
          */
         bool AddDemuxerBintr(DSL_BASE_PTR pDemuxerBintr);
 
         /**
+         * @brief adds a single RemuxerBintr to this Branch 
+         * @param[in] pRemuxerBintr shared pointer to RemuxerBintr to add
+         * @return true on successful add, false otherwise
+         */
+        bool AddRemuxerBintr(DSL_BASE_PTR pRemuxerBintr);
+        
+        /**
+         * @brief removes a RemuxerBintr from this Branch 
+         * @param[in] pRemuxerBintr shared pointer to RemuxerBintr to remove
+         * @return true on succesful remove, false otherwise.
+         */
+        bool RemoveRemuxerBintr(DSL_BASE_PTR pRemuxerBintr);
+
+        /**
          * @brief adds a single SplitterBintr to this Branch 
-         * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
+         * @param[in] pSplitterBintr shared pointer to SplitterBintr to add
          * @return true on successful add, false otherwise
          */
         bool AddSplitterBintr(DSL_BASE_PTR pSplitterBintr);
@@ -256,13 +271,19 @@ namespace DSL
         DSL_TILER_PTR m_pTilerBintr;
                         
         /**
-         * @brief optional, one at most StreamStreamDemuxerBintr mutually exclusive 
+         * @brief optional, one at most DemuxerBintr mutually exclusive 
          * with the TilerBintr, however, a Pipeline must have one or the other.
          */
         DSL_DEMUXER_PTR m_pDemuxerBintr;
         
         /**
-         * @brief optional, one at most SplitterDemuxerBintr mutually exclusive 
+         * @brief optional, one at most RemuxerBintr mutually exclusive 
+         * with the TilerBintr, however, a Pipeline must have one or the other.
+         */
+        DSL_REMUXER_PTR m_pRemuxerBintr;
+        
+        /**
+         * @brief optional, one at most SplitterBintr mutually exclusive 
          * with the TilerBintr and MultiSinkBintr.
          */
         DSL_SPLITTER_PTR m_pSplitterBintr;

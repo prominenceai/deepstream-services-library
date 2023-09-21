@@ -250,22 +250,86 @@ namespace DSL
 
         if (m_pDemuxerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Demuxer");
+            return false;
+        }
+        if (m_pRemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Remuxer - can't add Demuxer");
             return false;
         }
         if (m_pSplitterBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Splitter - can't add Demuxer");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Splitter - can't add Demuxer");
             return false;
         }
         if (m_pTilerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Tiler - can't add Demuxer");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Tiler - can't add Demuxer");
             return false;
         }
         m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
         
         return AddChild(pDemuxerBintr);
+    }
+
+    bool BranchBintr::AddRemuxerBintr(DSL_BASE_PTR pRemuxerBintr)
+    {
+        LOG_FUNC();
+
+        if (m_pRemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Remuxer");
+            return false;
+        }
+        if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Demuxer - can't add Remuxer");
+            return false;
+        }
+        if (m_pSplitterBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Splitter - can't add Remuxer");
+            return false;
+        }
+        if (m_pTilerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Tiler - can't add Remuxer");
+            return false;
+        }
+        m_pRemuxerBintr = std::dynamic_pointer_cast<RemuxerBintr>(pRemuxerBintr);
+        
+        return AddChild(pRemuxerBintr);
+    }
+
+    bool BranchBintr::RemoveRemuxerBintr(DSL_BASE_PTR pRemuxerBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pRemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no OSD to remove'");
+            return false;
+        }
+        if (m_pRemuxerBintr != pRemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Remuxer' " 
+                << pRemuxerBintr->GetName() << "'");
+            return false;
+        }
+        m_pRemuxerBintr = nullptr;
+        
+        LOG_INFO("Removing Remuxer '"<< m_pRemuxerBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(m_pRemuxerBintr);
     }
 
     bool BranchBintr::AddSplitterBintr(DSL_BASE_PTR pSplitterBintr)

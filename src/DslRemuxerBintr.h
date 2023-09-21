@@ -145,35 +145,56 @@ namespace DSL
         void UnlinkFromSourceTees(const std::vector<DSL_SPLITTER_PTR>& splitters);
 
         /**
-         * @brief Gets the current batch settings for the Pipeline's Streammuxer
-         * @param[out] batchSize current batchSize, default == the number of source
-         * @param[out] batchTimeout current batch timeout
-         * @return true if the batch properties could be read, false otherwise
+         * @brief Gets the current batch settings for the RemuxerBintr's Streammuxer.
+         * @param[out] batchSize current batchSize, default == the number of source.
+         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
          */
-        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout);
+        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout)
+        {
+            LOG_FUNC();
+            
+            m_pStreammuxerBintr->
+                GetStreammuxBatchProperties(batchSize, batchTimeout);
+        }
 
         /**
-         * @brief Sets the current batch settings for the Pipeline's Streammuxer
-         * @param[in] batchSize new batchSize to set, default == the number of sources
-         * @param[in] batchTimeout timeout value to set in ms
-         * @return true if the batch properties could be set, false otherwise
+         * @brief Sets the current batch settings for the RemuxerBintr's Streammuxer.
+         * @param[in] batchSize new batchSize to set, default == the number of sources.
+         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
+         * @return true if batch-properties are succesfully set, false otherwise.
          */
-        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
+        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout)
+        {
+            LOG_FUNC();
+            
+            return m_pStreammuxerBintr->
+                SetStreammuxBatchProperties(batchSize, batchTimeout);
+        };
 
         /**
-         * @brief Gets the current dimensions for the Pipeline's Streammuxer
+         * @brief Gets the current dimensions for the RemuxerBintr's Streammuxer.
          * @param[out] width width in pixels for the current setting
          * @param[out] height height in pixels for the curren setting
          */
-        void GetStreammuxDimensions(uint* width, uint* height);
+        void GetStreammuxDimensions(uint* width, uint* height)
+        {
+            LOG_FUNC();
+
+            m_pStreammuxerBintr->GetStreammuxDimensions(width, height);
+        };
 
         /**
-         * @brief Set the dimensions for the Pipeline's Streammuxer
-         * @param width width in pixels to set the streamMux Output
+         * @brief Set the dimensions for the RemuxerBintr's Streammuxer
+         * @param width width in pixels to set the streammux Output
          * @param height height in pixels to set the Streammux output
          * @return true if the output dimensions could be set, false otherwise
          */
-        bool SetStreammuxDimensions(uint width, uint height);
+        bool SetStreammuxDimensions(uint width, uint height)
+        {
+            LOG_FUNC();
+
+            return m_pStreammuxerBintr->SetStreammuxDimensions(width, height);
+        }
         
     private:
     
@@ -300,7 +321,7 @@ namespace DSL
          * @brief Gets the current batch-timeout for the Streammuxer
          * @return Current batch-timeout -1 = disabled. 
          */
-        int* GetStreammuxBatchTimeout(int* batchTimeout);
+        int GetStreammuxBatchTimeout();
 
         /**
          * @brief Sets the current batch settings for the Pipeline's Streammuxer
@@ -338,22 +359,27 @@ namespace DSL
          */
         uint m_maxStreamIds;
         
+        /**
+         * @brief Default stream-ids - one for all possible stream-ids.
+         * This will be used for Branches that are simply added, without
+         * specifying a select set of stream-ids as with "add-to"
+         */
         std::vector<uint> m_defaultStreamIds;
 
         /**
          * @brief Batch-timeout used for all branches, i.e. all Streammuxers 
          */
-        gint m_batchTimeout;
+        int m_batchTimeout;
         
         /**
          * @brief Batched frame output width in pixels for all branches.
          */
-        gint m_streammuxWidth;
+        uint m_streammuxWidth;
 
         /**
          * @brief Batched frame output height in pixels for all branches.
          */
-        gint m_streammuxHeight;
+        uint m_streammuxHeight;
 
         /**
          * @brief Streamdemuxer child Bintr for the RemuxerBintr
