@@ -37,6 +37,7 @@ namespace DSL
         DSL_BINTR_PTR pChildBranch, uint* streamIds, uint numStreamIds)
         : Bintr(name, parentRemuxerBin)
         , m_pChildBranch(pChildBranch)
+        , m_selectStreams(numStreamIds) // true if numStreamIds > 0
         , m_batchTimeout(-1)
         , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
         , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
@@ -98,7 +99,7 @@ namespace DSL
         }
         if (!m_batchSize)
         {
-            LOG_ERROR("Can't link RemuxerBintr '" << GetName() 
+            LOG_ERROR("Can't link RemuxerBranchBintr '" << GetName() 
                 << "' as batch-size is not set");
             return false;
         }
@@ -113,7 +114,9 @@ namespace DSL
                 m_streamIds.push_back(i);
             }
         }
-
+        // We need to create Queue elements to link to the request src pads
+        // for each Tee so that each stream can be linked as follows.
+        //
         // Demuxer[stream-i]->Tee[pad-id]->Queue->[stream-i]Streammuxer
         //
         // The first Branch added will link to each Tee on request-pad-id = 0.
@@ -176,6 +179,13 @@ namespace DSL
         m_queues.clear();
         m_pStreammuxer->UnlinkFromSink();
         m_pChildBranch->UnlinkAll();
+        
+        // If we're not linking to specific stream-ids, clear the stream-id 
+        // vector to be populated on next LinkAll()
+        if (!m_selectStreams)
+        {
+            m_streamIds.clear();
+        }
 
         m_isLinked = false;
     }
@@ -250,7 +260,11 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        m_batchSize = batchSize;
+        // If linking to specific streams, use the size of the stream-id vector
+        // for batch-size, otherwise, use parent Remuxer batch-size
+        m_batchSize = (m_selectStreams) 
+            ? m_streamIds.size()
+            : batchSize;
         m_batchTimeout = batchTimeout;
         
         m_pStreammuxer->SetAttribute("batch-size", m_batchSize);
@@ -306,7 +320,6 @@ namespace DSL
         LOG_INFO("  width                  : " << m_width);
         LOG_INFO("  height                 : " << m_height);
         LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
-        
         
         // Add the demuxer as child and elevate as sink ghost pad
         Bintr::AddChild(m_pDemuxer);

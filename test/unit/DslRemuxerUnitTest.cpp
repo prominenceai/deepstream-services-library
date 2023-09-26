@@ -510,7 +510,7 @@ SCENARIO( "Linking a BranchBintr with no select stream-ids to a RemuxerBintr is 
 }
 
 SCENARIO( "Linking multiple BranchBintrs with select stream-ids to a RemuxerBintr is managed correctly",
-    "[rjh]" )
+    "[RemuxerBintr]" )
 {
     GIVEN( "A new RemuxerBintr and BranchBintrs in memory" ) 
     {
@@ -564,7 +564,7 @@ SCENARIO( "Linking multiple BranchBintrs with select stream-ids to a RemuxerBint
 
 
 SCENARIO( "BranchBintrs with select stream-ids can be linked to a RemuxerBintr multiple times",
-    "[rjh]" )
+    "[RemuxerBintr]" )
 {
     GIVEN( "A new RemuxerBintr and BranchBintrs in memory" ) 
     {

@@ -6317,6 +6317,103 @@ DslReturnType dsl_tee_remuxer_new(const wchar_t* name)
     return DSL::Services::GetServices()->TeeRemuxerNew(cstrName.c_str());
 }
 
+DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branches);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->TeeRemuxerNew(
+        cstrName.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+
+    for (const wchar_t** branch = branches; *branch; branch++)
+    {
+        std::wstring wstrBranch(*branch);
+        std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+            cstrBranch.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint* stream_ids, uint num_stream_ids)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBranchAddTo(cstrName.c_str(), 
+        cstrBranch.c_str(), stream_ids, num_stream_ids);
+}
+
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+    RETURN_IF_PARAM_IS_NULL(batch_timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesGet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesSet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsSet(
+        cstrName.c_str(), width, height);
+}    
+
 DslReturnType dsl_tee_splitter_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6347,7 +6444,8 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name,
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+            cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;

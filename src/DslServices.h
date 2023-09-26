@@ -1098,6 +1098,21 @@ namespace DSL {
             const char* branch, uint stream_id);
 
         DslReturnType TeeRemuxerNew(const char* name);
+
+        DslReturnType TeeRemuxerBranchAddTo(const char* name, const char* branch,
+            uint* streamIds, uint numStreamIds);
+
+        DslReturnType TeeRemuxerBatchPropertiesGet(const char* name,
+            uint* batchSize, int* batchTimeout);
+
+        DslReturnType TeeRemuxerBatchPropertiesSet(const char* name,
+            uint batchSize, int batchTimeout);
+
+        DslReturnType TeeRemuxerDimensionsGet(const char* name,
+            uint* width, uint* height);
+
+        DslReturnType TeeRemuxerDimensionsSet(const char* name,
+            uint width, uint height);
         
         DslReturnType TeeSplitterNew(const char* name);
 

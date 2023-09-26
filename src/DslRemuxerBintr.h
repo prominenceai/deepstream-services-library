@@ -163,6 +163,11 @@ namespace DSL
          * @brief Vector of stream-ids to connect this RemuxerBranchBintr to
          */
         std::vector<uint> m_streamIds;
+        
+        /**
+         * @brief True if connecting to select stream-ids, false otherwise.
+         */    
+        bool m_selectStreams;
 
         /**
          * @brief Container of Queues elements used to connect to Streammuxer.
