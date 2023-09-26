@@ -180,6 +180,8 @@
       <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
       <File Name="../test/api/DslDemuxerBehaviorTest.cpp"/>
       <File Name="../test/api/DslPipelineCbApiTest.cpp"/>
+      <File Name="../test/api/DslRemuxerApiTest.cpp"/>
+      <File Name="../test/api/DslRemuxerBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDewarperUnitTest.cpp"/>

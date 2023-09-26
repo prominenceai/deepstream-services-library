@@ -38,59 +38,15 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_REMUXER_QUEUE_PTR std::shared_ptr<RemuxerQueueBintr>
-    #define DSL_REMUXER_QUEUE_NEW(name) \
-        std::shared_ptr<RemuxerQueueBintr>(new RemuxerQueueBintr(name))
-
     #define DSL_REMUXER_BRANCH_PTR std::shared_ptr<RemuxerBranchBintr>
     #define DSL_REMUXER_BRANCH_NEW(name, \
-        splitters, parentRemuxerBin, pChildBranch, streamIds, numStreamIds) \
+        parentRemuxerBin, pChildBranch, streamIds, numStreamIds) \
         std::shared_ptr<RemuxerBranchBintr>(new RemuxerBranchBintr(name, \
-            splitters, parentRemuxerBin, pChildBranch, streamIds, numStreamIds))
+            parentRemuxerBin, pChildBranch, streamIds, numStreamIds))
 
     #define DSL_REMUXER_PTR std::shared_ptr<RemuxerBintr>
-    #define DSL_REMUXER_NEW(name, maxStreamIds) \
-        std::shared_ptr<RemuxerBintr>(new RemuxerBintr(name, \
-            maxStreamIds))
-
-    /**
-     * @class RemuxerQueueBintr
-     * @brief Elevates a single Queue Element to Bintr class
-     */
-    class RemuxerQueueBintr : public Bintr
-    {
-    public: 
-    
-        /**
-         * @brief ctor for the RemuxerQueueBintr class
-         * @param[in] name name to give the new RemuxerQueueBintr
-         */
-        RemuxerQueueBintr(const char* name);
-            
-        /**
-         * @brief dtor for the RemuxerQueueBintr class
-         */
-        ~RemuxerQueueBintr();
-
-        /**
-         * @brief Links all child components of this RemuxerQueueBintr
-         * @return true if all components were succesfully linked, false otherwise.
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all child components of the RemuxerQueueBintr
-         */
-        void UnlinkAll();
-        
-    private:
-    
-        /**
-         * @brief Queue element for this RemuxerQueueBintr
-         */
-        DSL_ELEMENT_PTR m_pQueue;
-        
-    };
+    #define DSL_REMUXER_NEW(name) \
+        std::shared_ptr<RemuxerBintr>(new RemuxerBintr(name))
 
     /**
      * @class RemuxerBranchBintr
@@ -110,7 +66,6 @@ namespace DSL
          * @param[in] numStreamIds number of stream-ids in the streamIds array.
          */
         RemuxerBranchBintr(const char* name, GstObject* parentRemuxerBin, 
-            const std::vector<DSL_SPLITTER_PTR>& splitters,
             DSL_BINTR_PTR pChildBranch, uint* streamIds, uint numStreamIds);
             
         /**
@@ -135,73 +90,69 @@ namespace DSL
          * @param splitters[in] vector of tees to link to.
          * @return true if all streams were successfully linked
          */
-        bool LinkToSourceTees(const std::vector<DSL_SPLITTER_PTR>& splitters);
+        bool LinkToSourceTees(const std::vector<DSL_ELEMENT_PTR>& tees);
         
         /**
          * @brief Unlinks the RemuxerBranchBintr from the Parent RemuxerBintr's
          * collection of tees.
-         * @param splitters[in] vector of tees to unlink from.
          */
-        void UnlinkFromSourceTees(const std::vector<DSL_SPLITTER_PTR>& splitters);
+        void UnlinkFromSourceTees();
 
         /**
-         * @brief Gets the current batch settings for the RemuxerBintr's Streammuxer.
+         * @brief Gets the current batch settings for the RemuxerBranchBintr's 
+         * Streammuxer.
          * @param[out] batchSize current batchSize, default == the number of source.
          * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
          */
-        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout)
-        {
-            LOG_FUNC();
-            
-            m_pStreammuxerBintr->
-                GetStreammuxBatchProperties(batchSize, batchTimeout);
-        }
+        void GetBatchProperties(uint* batchSize, int* batchTimeout);
 
         /**
-         * @brief Sets the current batch settings for the RemuxerBintr's Streammuxer.
+         * @brief Sets the current batch settings for the RemuxerBranchBintr's 
+         * er.
          * @param[in] batchSize new batchSize to set, default == the number of sources.
          * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
          * @return true if batch-properties are succesfully set, false otherwise.
          */
-        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout)
-        {
-            LOG_FUNC();
-            
-            return m_pStreammuxerBintr->
-                SetStreammuxBatchProperties(batchSize, batchTimeout);
-        };
+        bool SetBatchProperties(uint batchSize, int batchTimeout);
 
         /**
-         * @brief Gets the current dimensions for the RemuxerBintr's Streammuxer.
+         * @brief Gets the current dimensions for the RemuxerBranchBintr's 
+         * Streammuxer.
          * @param[out] width width in pixels for the current setting
          * @param[out] height height in pixels for the curren setting
          */
-        void GetStreammuxDimensions(uint* width, uint* height)
-        {
-            LOG_FUNC();
-
-            m_pStreammuxerBintr->GetStreammuxDimensions(width, height);
-        };
+        void GetDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the RemuxerBintr's Streammuxer
+         * @brief Set the dimensions for the RemuxerBranchBintr's Streammuxer
          * @param width width in pixels to set the streammux Output
          * @param height height in pixels to set the Streammux output
          * @return true if the output dimensions could be set, false otherwise
          */
-        bool SetStreammuxDimensions(uint width, uint height)
-        {
-            LOG_FUNC();
-
-            return m_pStreammuxerBintr->SetStreammuxDimensions(width, height);
-        }
+        bool SetDimensions(uint width, uint height);
         
     private:
     
         /**
          * @brief Child Streammuxer for the RemuxerBranchBintr
          */
-        DSL_MULTI_SOURCES_PTR m_pStreammuxerBintr;
+        DSL_ELEMENT_PTR m_pStreammuxer;
+
+        /**
+         * @brief Stream-muxer batch timeout used when waiting for all sources
+         * to produce a frame when batching together
+         */
+        gint m_batchTimeout;
+        
+        /**
+         * @brief Streammuxer batched frame output width in pixels
+         */
+        gint m_width;
+
+        /**
+         * @brief Streammuxer batched frame output height in pixels
+         */
+        gint m_height;
 
         /**
          * @brief Child Branch to link to the Streammuxer
@@ -214,16 +165,11 @@ namespace DSL
         std::vector<uint> m_streamIds;
 
         /**
-         * @brief Container of Queue used to connect to the Identity-Sources.
+         * @brief Container of Queues elements used to connect to Streammuxer.
          * The components are mapped by target stream-id
          */
-        std::map<uint, DSL_REMUXER_QUEUE_PTR> m_queueBintrs;
+        std::map<uint, DSL_ELEMENT_PTR> m_queues;
         
-        /**
-         * @brief Container of Identity-Sources used to connect to the Queues. 
-         * The components are mapped by target stream-id
-         */
-        std::map<uint, DSL_IDENTITY_SOURCE_PTR> m_identiySources;
     };
 
     /**
@@ -237,9 +183,8 @@ namespace DSL
         /**
          * @brief ctor for the RemuxerBintr class
          * @param[in] name name to give the new RemuxerBintr
-         * @param[in] maxStreamIds maximum number of streams that can be connect.
          */
-        RemuxerBintr(const char* name, uint maxStreamIds);
+        RemuxerBintr(const char* name);
 
         /**
          * @brief dtor for the RemuxerBintr class
@@ -316,35 +261,45 @@ namespace DSL
          * @brief Unlinks all child elements of the RemuxerBintr
          */
         void UnlinkAll();
+        
+        /**
+         * @brief Overrides the base SetBatchSize() to set the batch size for 
+         * this Bintr.
+         * @param[in] batchSize the new batchSize to use.
+         */
+        bool SetBatchSize(uint batchSize);
 
         /**
-         * @brief Gets the current batch-timeout for the Streammuxer
-         * @return Current batch-timeout -1 = disabled. 
+         * @brief Gets the current batch settings for the RemuxerBintr.
+         * @param[out] batchSize current batchSize, default == the number of source.
+         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
          */
-        int GetStreammuxBatchTimeout();
+        void GetBatchProperties(uint* batchSize, int* batchTimeout);
 
         /**
-         * @brief Sets the current batch settings for the Pipeline's Streammuxer
-         * @param[in] batchSize new batchSize to set, default == the number of sources
-         * @param[in] batchTimeout timeout value to set in ms
-         * @return true if the batch properties could be set, false otherwise
+         * @brief Sets the current batch settings for the RemuxerBintr.
+         * @param[in] batchSize new batchSize to set, default is set by parent.
+         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
+         * @return true if batch-properties are succesfully set, false otherwise.
          */
-        bool SetStreammuxBatchTimeout(int batchTimeout);
+        bool SetBatchProperties(uint batchSize, int batchTimeout);
 
         /**
-         * @brief Gets the current dimensions for the Pipeline's Streammuxer
-         * @param[out] width width in pixels for the current setting
-         * @param[out] height height in pixels for the curren setting
+         * @brief Gets the current output frame dimensions for the RemuxerBintr.
+         * Settings are used by all Streammuxers created for this RemuxerBintr.
+         * @param[out] width width in pixels for the current setting.
+         * @param[out] height height in pixels for the curren setting.
          */
-        void GetStreammuxDimensions(uint* width, uint* height);
+        void GetDimensions(uint* width, uint* height);
 
         /**
-         * @brief Set the dimensions for the Pipeline's Streammuxer
-         * @param width width in pixels to set the streamMux Output
-         * @param height height in pixels to set the Streammux output
-         * @return true if the output dimensions could be set, false otherwise
+         * @brief Set the frame dimensions for the RemuxerBintr to use.
+         * Settings are used by all Streammuxers created for this RemuxerBintr.
+         * @param width width in pixels to set the streamMux Output.
+         * @param height height in pixels to set the Streammux output.
+         * @return true if the output dimensions could be set, false otherwise.
          */
-        bool SetStreammuxDimensions(uint width, uint height);
+        bool SetDimensions(uint width, uint height);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -360,36 +315,41 @@ namespace DSL
         uint m_maxStreamIds;
         
         /**
-         * @brief Default stream-ids - one for all possible stream-ids.
-         * This will be used for Branches that are simply added, without
-         * specifying a select set of stream-ids as with "add-to"
-         */
-        std::vector<uint> m_defaultStreamIds;
-
-        /**
          * @brief Batch-timeout used for all branches, i.e. all Streammuxers 
          */
         int m_batchTimeout;
+
+        /**
+         * @brief true if batch-size explicity set by client, false by default.
+         */
+        bool m_batchSizeSetByClient;
+
+        /**
+         * @brief list of reguest pads -- batch-size in length -- for the 
+         * for the DemuxerBintr. 
+         * and then used on LinkAll or AddChild when in a linked-state
+         */
+        std::vector<GstPad*> m_requestedSrcPads;
         
         /**
          * @brief Batched frame output width in pixels for all branches.
          */
-        uint m_streammuxWidth;
+        uint m_width;
 
         /**
          * @brief Batched frame output height in pixels for all branches.
          */
-        uint m_streammuxHeight;
+        uint m_height;
 
         /**
-         * @brief Streamdemuxer child Bintr for the RemuxerBintr
+         * @brief Streamdemuxer for the RemuxerBintr.
          */
-        DSL_DEMUXER_PTR m_pDemuxer;
+        DSL_ELEMENT_PTR m_pDemuxer;
         
         /**
          * @brief Vector of Splitter Tees, one per maxStreamIds, for the RemuxerBintr.
          */
-        std::vector<DSL_SPLITTER_PTR> m_splitters;
+        std::vector<DSL_ELEMENT_PTR> m_tees;
 
         /**
          * @brief container of all child Sinks/Branches mapped by their unique names

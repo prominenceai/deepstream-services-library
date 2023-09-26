@@ -205,12 +205,13 @@ namespace DSL
         
         /**
          * @brief sets the batch size for this Bintr
-         * @param the new batchSize to use
+         * @param[in] batchSize the new batchSize to use.
          */
         virtual bool SetBatchSize(uint batchSize)
         {
             LOG_FUNC();
-            LOG_INFO("Setting batch size to '" << batchSize << "' for Bintr '" << GetName() << "'");
+            LOG_INFO("Setting batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
             
             m_batchSize = batchSize;
             return true;

@@ -6168,11 +6168,9 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Remuxer Tee component
  * @param[in] name unique name for the new Stream Remuxer Tee
- * @param[in] max_branches maximum number of branches that can be
- * added/connected to this Remuxer, before or during Pipeline play.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
  */
-DslReturnType dsl_tee_remuxer_new(const wchar_t* name, uint max_branches);
+DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
 
 /**
  * @brief adds a single Branch to a Stream Demuxer, Stream Remuxer, or 

@@ -211,8 +211,7 @@ namespace DSL
         }
     }    
 
-    DslReturnType Services::TeeRemuxerNew(const char* name, 
-        uint maxBranches)
+    DslReturnType Services::TeeRemuxerNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -225,7 +224,7 @@ namespace DSL
                 LOG_ERROR("Remuxer Tee name '" << name << "' is not unique");
                 return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_REMUXER_NEW(name, maxBranches);
+            m_components[name] = DSL_REMUXER_NEW(name);
             
             LOG_INFO("New Remuxer Tee '" << name << "' created successfully");
             

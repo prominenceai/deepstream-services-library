@@ -143,12 +143,15 @@ namespace DSL
         : SourceBintr(name)
     {
         LOG_FUNC();
+        
+        m_isLive = false;
 
         // Media type is fixed to "video/x-raw"
         std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
         m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
 
-        m_pIdentity = DSL_ELEMENT_NEW("identity", name);
+//        m_pIdentity = DSL_ELEMENT_NEW("identity", name);
+        m_pIdentity = DSL_ELEMENT_NEW("queue", name);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for IdentitySourceBintr '" << name << "'");

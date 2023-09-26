@@ -29,71 +29,29 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    //--------------------------------------------------------------------------------
-    
-    RemuxerQueueBintr::RemuxerQueueBintr(const char* name)
-        : Bintr(name)
-    {
-        LOG_FUNC();
-
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
-
-        LOG_INFO("");
-        LOG_INFO("Initial property values for RemuxerQueueBintr '" << name << "'");
-        
-        AddChild(m_pQueue);
-
-        // Queue is both "sink" and "src" ghost-pad for this Bintr.
-        m_pQueue->AddGhostPadToParent("sink");
-        m_pQueue->AddGhostPadToParent("src");
-    }
-    
-    RemuxerQueueBintr::~RemuxerQueueBintr()
-    {
-        LOG_FUNC();
-
-    }
-
-    bool RemuxerQueueBintr::LinkAll()
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("RemuxerQueueBintr '" << GetName() 
-                << "' is already in a linked state");
-            return false;
-        }
-        m_isLinked = true;
-        
-        return true;
-    }
-
-    void RemuxerQueueBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-
-        if (!m_isLinked)
-        {
-            LOG_ERROR("RemuxerQueueBintr '" << GetName() 
-                << "' is not in a linked state");
-            return;
-        }
-        m_isLinked = false;
-    }
     
     //--------------------------------------------------------------------------------
 
     RemuxerBranchBintr::RemuxerBranchBintr(const char* name, 
         GstObject* parentRemuxerBin, 
-        const std::vector<DSL_SPLITTER_PTR>& splitters,
         DSL_BINTR_PTR pChildBranch, uint* streamIds, uint numStreamIds)
         : Bintr(name, parentRemuxerBin)
         , m_pChildBranch(pChildBranch)
-        , m_streamIds(streamIds, streamIds+numStreamIds)
+        , m_batchTimeout(-1)
+        , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
+        , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
     {
         LOG_FUNC();
-        
+
+        std::stringstream ssStreamIds;
+        // If linking to specific streams ids - not all.
+        if (streamIds and numStreamIds)
+        {
+            m_streamIds.assign(streamIds, streamIds+numStreamIds);
+            
+            std::copy(m_streamIds.begin(), m_streamIds.end(), 
+                std::ostream_iterator<uint>(ssStreamIds, " "));
+        }
         // Create a new Streammuxer for this child branch with a unique name
         // derived from this RemuxerBranchBintr's name which comes from the
         // unique pChildBranch name - enforced by the client API.
@@ -101,89 +59,21 @@ namespace DSL
         
         // Each branch needs its own Streammuxer to connect back to the output Tees,
         // which are connected to the request-pads of the Demuxer.
-        // We create the new Streammuxer with a pipeline-id of -1 so the Streammuxer
-        // will not update the source-ids in the frame-metadata.
-        m_pStreammuxerBintr = DSL_MULTI_SOURCES_NEW(streammuxerName.c_str(), -1);
+        m_pStreammuxer = DSL_ELEMENT_NEW("nvstreammux", streammuxerName.c_str());
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
+        LOG_INFO("  child-branch           : " << m_pChildBranch->GetName());
+        LOG_INFO("  stream-ids             : " << ssStreamIds.str());
+        LOG_INFO("  width                  : " << m_width);
+        LOG_INFO("  height                 : " << m_height);
+        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
        
         // Add both the ChildBranch and new Streammuxer to this RemuxerBranchBintr
         // so that we can link them together => streammuxer->branch.
         AddChild(m_pChildBranch);
-        AddChild(m_pStreammuxerBintr);
+        AddChild(m_pStreammuxer);
 
-        // Next, we loop through the stream-ids vector to create the required 
-        // Queue and Identity bintrs used to link up the Demuxer output Tees
-        // to the branch's Streammuxer.
-        //
-        // Demuxer[stream-i]->Tee[pad-id]->Queue->Identity->[stream-i]Streammuxer
-        //
-        // The first Branch added will link to each Tee on request-pad-id = 0.
-        // The second Branch added will link to each Tee on request-pad-d = 1.
-        for (auto i=0; i<m_streamIds.size(); i++)
-        {
-            // Create the IdentitySource that will link upstream with the Queue
-            // and downstream with the Streammuxer
-            std::string sourceName = GetName() +"-source-" + 
-                std::to_string(m_streamIds[i]);
-                
-            DSL_IDENTITY_SOURCE_PTR pIdentitySource = 
-                DSL_IDENTITY_SOURCE_NEW(sourceName.c_str());
-            
-            // Add the IdentitySource as a Child of the Streammuxer to be linked
-            // to the ith-requested sink-pad. 
-            m_pStreammuxerBintr->AddChild(
-                std::dynamic_pointer_cast<SourceBintr>(pIdentitySource));
-
-            // We need to create a ghost pad for the added Identity Source
-            // so that it can be linked with the Queue - which is not a child.
-            // This elevates the pad to the same level as the Streammuxer.
-            // The pad will be named from the unique Stream-id it is connecting to.
-            std::string ghostPadName = "sink_" + std::to_string(m_streamIds[i]);
-                
-            if (!gst_element_add_pad(m_pStreammuxerBintr->GetGstElement(), 
-                gst_ghost_pad_new(ghostPadName.c_str(), 
-                    gst_element_get_static_pad(pIdentitySource->GetGstElement(),
-                        "sink"))))
-            {
-                LOG_ERROR("Failed to add ghost-pad '" << ghostPadName 
-                    << "' for queue-source'" << pIdentitySource->GetName() << "'");
-                throw;
-            }
-            
-            // Create the Queue that will link upstream with the Splitter Tee
-            // and downstream with the Queue
-            std::string queueName = GetName() +"-queue-" + 
-                std::to_string(m_streamIds[i]);
-                
-            DSL_REMUXER_QUEUE_PTR pQueueBintr = 
-                DSL_REMUXER_QUEUE_NEW(queueName.c_str());
-            
-            // Add the Queue as a Child of the Tee that is connected the the
-            // Demuxer's requested source-pad for the current stream-id in the vector. 
-            splitters[m_streamIds[i]]->AddChild(
-                std::dynamic_pointer_cast<Bintr>(pQueueBintr));
-
-            // We need to create a ghost pad for the added Queue so that
-            // it can be linked with the Indenty Source - which is not a child.
-            // This elevates the pad to the same level as the Tee.
-            // The pad is named from the pad-id of the Tee it will connect to. 
-            ghostPadName = "src_" + 
-                std::to_string(pQueueBintr->GetRequestPadId());
-                
-            if (!gst_element_add_pad(splitters[m_streamIds[i]]->GetGstElement(), 
-                gst_ghost_pad_new(ghostPadName.c_str(), 
-                    gst_element_get_static_pad(pQueueBintr->GetGstElement(),
-                        "src"))))
-            {
-                LOG_ERROR("Failed to add ghost-pad '" << ghostPadName 
-                    << "' for queue-source'" << pQueueBintr->GetName() << "'");
-                throw;
-            }
-            
-            // Add the created IdentitySource and Queue their respective colections.
-            m_identiySources[m_streamIds[i]] = pIdentitySource;
-            m_queueBintrs[m_streamIds[i]] = pQueueBintr;
-        }
-        
     }
     
     RemuxerBranchBintr::~RemuxerBranchBintr()
@@ -206,16 +96,54 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
+        if (!m_batchSize)
+        {
+            LOG_ERROR("Can't link RemuxerBintr '" << GetName() 
+                << "' as batch-size is not set");
+            return false;
+        }
+        // Need to determine if the Branch is to be connected to a 
+        // select set of stream-ids or all in batch-size
+        if(!m_streamIds.size())
+        {
+            LOG_INFO("Connecting to all streams for RemuxerBranchBintr '"
+                << GetName() << "'");
+            for (auto i=0; i<m_batchSize; i++)
+            {
+                m_streamIds.push_back(i);
+            }
+        }
+
+        // Demuxer[stream-i]->Tee[pad-id]->Queue->[stream-i]Streammuxer
+        //
+        // The first Branch added will link to each Tee on request-pad-id = 0.
+        // The second Branch added will link to each Tee on request-pad-d = 1.
+        for (auto i=0; i<m_streamIds.size(); i++)
+        {
+            DSL_ELEMENT_PTR pQueue = DSL_ELEMENT_EXT_NEW("queue", 
+                GetCStrName(), std::to_string(m_streamIds[i]).c_str());
+
+            // Add the new queue as a child of this proxy bintr - proxy for the 
+            // RemuxerBintr.  Add the Queue to the map of Queues to be linked
+            // to the Remuxer Tees in LinkToSourceTees() below
+            AddChild(pQueue);
+            m_queues[m_streamIds[i]] = pQueue;
+
+            std::string sinkPadName = 
+                "sink_" + std::to_string(i);
+            
+            if (!pQueue->LinkToSinkMuxer(m_pStreammuxer,
+                    sinkPadName.c_str()))
+            {
+                return false;
+            }
+        }
         
-        // Get the current Streammuxer batch-size = number of stream-ids
-        // so we can update the Child-Branch's batch-size.
-        uint batchSize(0);
-        int batchTimeout(0);
-        m_pStreammuxerBintr->GetStreammuxBatchProperties(&batchSize, &batchTimeout);
-        m_pChildBranch->SetBatchSize(batchSize);
+        // Set the batch-size for the Child Branch and all of its childern.
+        // Then link the Streammuxer to the Child Branch
+        m_pChildBranch->SetBatchSize(m_batchSize);
         if (!m_pChildBranch->LinkAll() or
-            !m_pStreammuxerBintr->LinkAll() or 
-            !m_pStreammuxerBintr->LinkToSink(m_pChildBranch))
+            !m_pStreammuxer->LinkToSink(m_pChildBranch))
         {
             return false;
         }
@@ -233,108 +161,152 @@ namespace DSL
                 << "' is not linked");
             return;
         }
-        m_pStreammuxerBintr->UnlinkFromSink();
-        m_pStreammuxerBintr->UnlinkAll();
+        for (auto i=0; i<m_streamIds.size(); i++)
+        {
+            // Create the unique name for the queue based on stream-id
+            std::string queueNameExt = "-" + std::to_string(m_streamIds[i]);
+
+            // Unlink the Queue for the Streammuxer and remove as Child
+            // of the Proxy - Bintr for the RemuxerBintr
+            m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer();
+
+            RemoveChild(m_queues[m_streamIds[i]]);
+        }
+        // Delete all child Queue elements
+        m_queues.clear();
+        m_pStreammuxer->UnlinkFromSink();
         m_pChildBranch->UnlinkAll();
 
         m_isLinked = false;
     }
 
     bool RemuxerBranchBintr::LinkToSourceTees(
-        const std::vector<DSL_SPLITTER_PTR>& splitters)
+        const std::vector<DSL_ELEMENT_PTR>& tees)
     {
         LOG_FUNC();
     
-        // We loop through the stream-ids vector to link each Tee with
-        // with the Streammuxer ... by linking the Queue (via ghostpad)
-        // with the IdentitySource (via ghostpad)
+        // We loop through the stream-ids vector to link each Queue with
+        // with the correct Remuxer Tee.
         for (auto i=0; i<m_streamIds.size(); i++)
         {
-            // IMPORTANT! these names need to match the pad-names created when the
-            // RemuxerBranchBintr, Queue's and IdentitySource's were created.
-            std::string srcPadName = "src_" + 
-                std::to_string(m_queueBintrs[m_streamIds[i]]->GetRequestPadId());
-                
-            std::string sinkPadName = "sink_" + std::to_string(m_streamIds[i]);
-
-            if (!gst_element_link_pads(
-                splitters[m_streamIds[i]]->GetGstElement(), srcPadName.c_str(),
-                m_pStreammuxerBintr->GetGstElement(), sinkPadName.c_str()))
+            if (!m_queues[m_streamIds[i]]->LinkToSourceTee(
+                tees[m_streamIds[i]], "src_%u"))
             {
-                LOG_ERROR("Failed to link '" << m_queueBintrs[m_streamIds[i]]->GetName() 
-                    << "' to '" << m_identiySources[m_streamIds[i]]->GetName() << "'");
+                LOG_INFO("Failed to link queue '" 
+                    << m_queues[m_streamIds[i]]->GetName() 
+                    << "' back to source-tee '" 
+                    << tees[m_streamIds[i]]->GetName() << "'");
                 return false;
-            }   
-            LOG_INFO("Successfully linked '" << m_queueBintrs[m_streamIds[i]]->GetName() 
-                << "' to '" << m_identiySources[m_streamIds[i]]->GetName() << "'");
+            }
+                
+            LOG_INFO("Successfully linked queue '" 
+                << m_queues[m_streamIds[i]]->GetName() 
+                << "' back to source-tee '" 
+                << tees[m_streamIds[i]]->GetName() << "'");
         }
         return true;
     }
     
-    void RemuxerBranchBintr::UnlinkFromSourceTees(
-        const std::vector<DSL_SPLITTER_PTR>& splitters)
+    void RemuxerBranchBintr::UnlinkFromSourceTees()
     {
         LOG_FUNC();
     
-        // We loop through the stream-ids vector to unlink each Tee from
-        // the Streammuxer ... by unlinking the Queue (via ghostpad)
-        // from the IdentitySource (via ghostpad)
+        // We loop through the stream-ids vector to unlink each Queue from
+        // the RemuxerBintr's source Tees.
         for (auto i=0; i<m_streamIds.size(); i++)
         {
-            // IMPORTANT! these names need to match the pad-names created when the
-            // RemuxerBranchBintr, Queue's and IdentitySource's were created.
-            std::string srcPadName = "src_" + 
-                std::to_string(m_queueBintrs[m_streamIds[i]]->GetRequestPadId());
-                
-            std::string sinkPadName = "sink_" + std::to_string(m_streamIds[i]);
-
-            gst_element_unlink_pads(
-                splitters[m_streamIds[i]]->GetGstElement(), srcPadName.c_str(),
-                m_pStreammuxerBintr->GetGstElement(), sinkPadName.c_str());
-
-            LOG_INFO("Successfully unlinked '" << m_queueBintrs[m_streamIds[i]]->GetName() 
-                << "' to '" << m_identiySources[m_streamIds[i]]->GetName() << "'");
+            if (!m_queues[m_streamIds[i]]->UnlinkFromSourceTee())
+            {
+                LOG_INFO("Failed to unlink queue '" 
+                    << m_queues[m_streamIds[i]]->GetName() 
+                    << "' from source-tee");
+            } 
+            else
+            {
+                LOG_INFO("Successfully unlinked queue '" 
+                    << m_queues[m_streamIds[i]]->GetName() 
+                    << "' from source-tee");
+            }
         }
+    }
+
+    void RemuxerBranchBintr::GetBatchProperties(uint* batchSize, 
+        int* batchTimeout)
+    {
+        LOG_FUNC();
+
+        *batchSize = m_batchSize;
+        *batchTimeout = m_batchTimeout;
+    }
+
+    bool RemuxerBranchBintr::SetBatchProperties(uint batchSize, 
+        int batchTimeout)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update batch properties for RemuxerBranchBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_batchSize = batchSize;
+        m_batchTimeout = batchTimeout;
+        
+        m_pStreammuxer->SetAttribute("batch-size", m_batchSize);
+        m_pStreammuxer->SetAttribute("batched-push-timeout", m_batchTimeout);
+        
+        return true;
+    }
+    
+    void RemuxerBranchBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_width;
+        *height = m_height;
+    }
+
+    bool RemuxerBranchBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update dimensions for RemuxerBranchBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_width = width;
+        m_height = height;
+
+        m_pStreammuxer->SetAttribute("width", m_width);
+        m_pStreammuxer->SetAttribute("height", m_height);
+        
+        return true;
     }
 
     //--------------------------------------------------------------------------------
             
-    RemuxerBintr::RemuxerBintr(const char* name, uint maxStreamIds)
+    RemuxerBintr::RemuxerBintr(const char* name)
         : Bintr(name)
-        , m_maxStreamIds(maxStreamIds)
-        , m_streammuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_streammuxHeight(DSL_STREAMMUX_DEFAULT_HEIGHT)
+        , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
+        , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
         , m_batchTimeout(-1)
+        , m_batchSizeSetByClient(false)
+        // m_batchSize initialized to 0 in Bintr ctor
     {
         LOG_FUNC();
         
-        m_pDemuxer = DSL_DEMUXER_NEW(name, maxStreamIds);
-        
-        // Create a splitter Tee for each "potential" demuxed source stream.
-        // Each tee will be linked to a unique Demuxer requested source pad.
-        for (auto i=0; i<maxStreamIds; i++)
-        {
-            // Create the unique name for the splitter based on stream-id
-            std::string splitterName = GetName() + "-splitter-" + std::to_string(i);
-            
-            // Create a new splitter and add as a child to the Demuxer.
-            DSL_SPLITTER_PTR pSplitter = DSL_SPLITTER_NEW(splitterName.c_str());
-            m_pDemuxer->AddChildTo(pSplitter, i);
-
-            // We also add the Splitter to the vector of splitters for link access.
-            m_splitters.push_back(pSplitter);
-            
-            // Create the default stream-ids for all possible stream-ids.
-            // This will be used for Branches that are simply added, without
-            // specifying a select set of stream-ids as with "add-to"
-            m_defaultStreamIds.push_back(i);
-        }
+        m_pDemuxer = DSL_ELEMENT_NEW("nvstreamdemux", name);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
-        LOG_INFO("  width                  : " << m_streammuxWidth);
-        LOG_INFO("  height                 : " << m_streammuxHeight);
+        LOG_INFO("  width                  : " << m_width);
+        LOG_INFO("  height                 : " << m_height);
         LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
+        
         
         // Add the demuxer as child and elevate as sink ghost pad
         Bintr::AddChild(m_pDemuxer);
@@ -364,12 +336,10 @@ namespace DSL
         }
         
         // Important - use the child branch components name. 
-        // use the default-stream-ids meaning all possible stream-ids.
         // The Branches are created as proxy-bins for this bintr.
         DSL_REMUXER_BRANCH_PTR pRemuxerBranch = 
-            DSL_REMUXER_BRANCH_NEW(pChildComponent->GetCStrName(),
-                GetGstObject(), m_splitters, pChildComponent, 
-                &m_defaultStreamIds[0], m_defaultStreamIds.size());
+            DSL_REMUXER_BRANCH_NEW(pChildComponent->GetCStrName(), GetGstObject(), 
+                pChildComponent, NULL, 0);
         
         // Add the branch to the Remuxers collection of children branches 
         m_childBranches[pChildComponent->GetName()] = pRemuxerBranch;
@@ -392,8 +362,7 @@ namespace DSL
         // Important - use the child branch components name. 
         // The Branches are created as proxy-bins for this bintr.
         DSL_REMUXER_BRANCH_PTR pRemuxerBranch = 
-            DSL_REMUXER_BRANCH_NEW(pChildComponent->GetCStrName(),
-                GetGstObject(), m_splitters, 
+            DSL_REMUXER_BRANCH_NEW(pChildComponent->GetCStrName(), GetGstObject(),
                     pChildComponent, streamIds, numStreamIds);
         
         // Add the branch to the Remuxers collection of children branches 
@@ -437,19 +406,63 @@ namespace DSL
             LOG_ERROR("RemuxerBintr '" << m_name << "' is already linked");
             return false;
         }
-        
-        if (!m_pDemuxer->LinkAll())
+        if (!m_batchSize)
         {
+            LOG_ERROR("Can't link RemuxerBintr '" << m_name 
+                << "' as batch-size is not set");
             return false;
         }
+
+        // We need to request all the needed source pads while the 
+        // nvstreamdemux plugin is in a NULL state. This is a workaround
+        // for the fact the the plugin does not support dynamic requests
+        for (uint i=0; i<m_batchSize; i++)
+        {
+            std::string srcPadName = "src_" + std::to_string(i);
+                
+            GstPad* pRequestedSrcPad = gst_element_get_request_pad(
+                m_pDemuxer->GetGstElement(), srcPadName.c_str());
+            if (!pRequestedSrcPad)
+            {
+                
+                LOG_ERROR("Failed to get a requested source pad for Demuxer '" 
+                    << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Allocated requested source pad = " << pRequestedSrcPad 
+                << " for RemuxerBintr '" << GetName() << "'");
+            m_requestedSrcPads.push_back(pRequestedSrcPad);
+            
+            // Create a new Tee element and add as a child to the Demuxer.
+            DSL_ELEMENT_PTR pTee = DSL_ELEMENT_EXT_NEW("tee", 
+                GetCStrName(), std::to_string(i).c_str());
+            
+            Bintr::AddChild(pTee);
+            
+            // We can now link the new Tee to the Demuxer request src-pad.
+            if (!pTee->LinkToSourceTee(m_pDemuxer, pRequestedSrcPad))
+            {
+                LOG_ERROR("DemuxerBintr '" << GetName() 
+                    << "' failed to Tee Component '" 
+                        << pTee->GetName() << "'");
+                return false;
+            }
+
+            // We add the Tee to the vector of Tees for link access.
+            m_tees.push_back(pTee);
+        }
+        
         for (auto const& imap: m_childBranches)
         {
-            if (!imap.second->LinkAll() or
-                !imap.second->LinkToSourceTees(m_splitters))
+            if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
+                !imap.second->SetDimensions(m_width, m_height) or
+                !imap.second->LinkAll() or
+                !imap.second->LinkToSourceTees(m_tees))
             {
                 return false;
             }
         }
+
 
         m_isLinked = true;
         return true;
@@ -464,12 +477,38 @@ namespace DSL
             LOG_ERROR("RemuxerBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pDemuxer->UnlinkAll();
-        
         for (auto const& imap: m_childBranches)
         {
+            // Important to unlink from source Tees first, UnlinkAll will 
+            // delete all queues.
+            imap.second->UnlinkFromSourceTees();
             imap.second->UnlinkAll();
-            imap.second->UnlinkFromSourceTees(m_splitters);
+        }
+
+        // Now unlink the Tees from the Demuxer, remove as child, and delete.
+        while (m_tees.size())
+        {
+            if (!m_tees.back()->UnlinkFromSourceTee())
+            {
+                LOG_ERROR("RemuxerBintr '" << GetName() 
+                    << "' failed to Unlink Tee '" 
+                    << m_tees.back()->GetName() << "'");
+                return;
+            }
+            Bintr::RemoveChild(m_tees.back());
+            m_tees.pop_back();
+        }
+            
+        // We now free all of the pre-allocated requested pads
+        while (m_requestedSrcPads.size())
+        {
+            LOG_INFO("Releasing requested source pad = " 
+                << m_requestedSrcPads.back()
+                << " for DemuxerBintr '"<< GetName() << "'");
+                
+            gst_element_release_request_pad(m_pDemuxer->GetGstElement(), 
+                m_requestedSrcPads.back());
+            m_requestedSrcPads.pop_back();
         }
         m_isLinked = false;
     }
@@ -494,51 +533,69 @@ namespace DSL
         return true;
     }
 
-    int RemuxerBintr::GetStreammuxBatchTimeout()
+    bool RemuxerBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
-        
-        return m_batchTimeout;
-    }
 
-    bool RemuxerBintr::SetStreammuxBatchTimeout(int batchTimeout)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
+        // This service will be called by the parent Branch just prior to LinkAll.
+        // LinkAll(). We only update the Bintr's batch-size (and all children) if not
+        //  explicity set buy the client.
+        if (!m_batchSizeSetByClient)
         {
-            LOG_ERROR("Can't set Streammuxer dimension for RemuxerBintr '" 
-                << GetName() << "' as it is currently linked");
-            return false;
-        }
-        m_batchTimeout = batchTimeout;
-
-        for (auto const& imap: m_childBranches)
-        {
-            uint currentBatchSize(0);
-            int currentBatchTimeout(0);
-            imap.second->GetStreammuxBatchProperties(&currentBatchSize, 
-                &currentBatchTimeout);
-                
-            // Update just the batch-timeout.    
-            if (!imap.second->SetStreammuxBatchProperties(currentBatchSize, 
-                m_batchTimeout))
+            m_batchSize = batchSize;
+            for (auto const& imap: m_childBranches)
             {
-                return false;
+                imap.second->SetBatchSize(batchSize);
             }
         }
         return true;
     }
     
-    void RemuxerBintr::GetStreammuxDimensions(uint* width, uint* height)
+    void RemuxerBintr::GetBatchProperties(uint* batchSize, 
+        int* batchTimeout)
     {
         LOG_FUNC();
 
-        *width = m_streammuxWidth;
-        *height = m_streammuxHeight;
+        *batchSize = m_batchSize;
+        *batchTimeout = m_batchTimeout;
     }
 
-    bool RemuxerBintr::SetStreammuxDimensions(uint width, uint height)
+    bool RemuxerBintr::SetBatchProperties(uint batchSize, 
+        int batchTimeout)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update batch properties for MultiSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_batchTimeout = batchTimeout;
+        m_batchSize = batchSize;
+
+        if (!batchSize)
+        {
+            LOG_INFO("batch-size cleared by client for RemuxerBintr '" 
+                << GetName() << "'");
+            m_batchSizeSetByClient = false;
+        }
+        else
+        {
+            m_batchSizeSetByClient = true;
+        }
+        return true;
+    }
+    
+    void RemuxerBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+
+        *width = m_width;
+        *height = m_height;
+    }
+
+    bool RemuxerBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
@@ -548,17 +605,8 @@ namespace DSL
                 << GetName() << "' as it is currently linked");
             return false;
         }
-        m_streammuxWidth = width;
-        m_streammuxHeight = height;
-
-        for (auto const& imap: m_childBranches)
-        {
-            if (!imap.second->SetStreammuxDimensions(
-                m_streammuxWidth, m_streammuxHeight))
-            {
-                return false;
-            }
-        }
+        m_width = width;
+        m_height = height;
         return true;
     }
 

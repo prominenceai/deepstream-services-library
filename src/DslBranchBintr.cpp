@@ -272,6 +272,12 @@ namespace DSL
                 << "' already has a Tiler - can't add Demuxer");
             return false;
         }
+        if (m_pMultiSinksBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Sink - can't add Demuxer");
+            return false;
+        }
         m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
         
         return AddChild(pDemuxerBintr);
@@ -303,6 +309,12 @@ namespace DSL
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Tiler - can't add Remuxer");
+            return false;
+        }
+        if (m_pMultiSinksBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Sink - can't add Remuxer");
             return false;
         }
         m_pRemuxerBintr = std::dynamic_pointer_cast<RemuxerBintr>(pRemuxerBintr);
@@ -338,17 +350,53 @@ namespace DSL
 
         if (m_pSplitterBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Splitter");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Splitter");
             return false;
         }
         if (m_pDemuxerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Dumxer- can't add Splitter");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Demuxer- can't add Splitter");
+            return false;
+        }
+        if (m_pRemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Remuxer- can't add Splitter");
+            return false;
+        }
+        if (m_pMultiSinksBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Sink - can't add Splitter");
             return false;
         }
         m_pSplitterBintr = std::dynamic_pointer_cast<SplitterBintr>(pSplitterBintr);
         
         return AddChild(pSplitterBintr);
+    }
+
+    bool BranchBintr::RemoveSplitterBintr(DSL_BASE_PTR pSplitterBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pSplitterBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no OSD to remove");
+            return false;
+        }
+        if (m_pSplitterBintr != pSplitterBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Splitter '" 
+                << m_pOsdBintr->GetName() << "'");
+            return false;
+        }
+        m_pSplitterBintr = nullptr;
+        
+        LOG_INFO("Removing Splitter '"<< pSplitterBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pSplitterBintr);
     }
 
     bool BranchBintr::AddTilerBintr(DSL_BASE_PTR pTilerBintr)
@@ -357,17 +405,47 @@ namespace DSL
 
         if (m_pTilerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Tiler");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Tiler");
             return false;
         }
         if (m_pDemuxerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add Tiler");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Demuxer - can't add Tiler");
+            return false;
+        }
+        if (m_pRemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Remuxer- can't add Tiler");
             return false;
         }
         m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
         
         return AddChild(pTilerBintr);
+    }
+
+    bool BranchBintr::RemoveTilerBintr(DSL_BASE_PTR pTilerBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pTilerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' has no Tiler to remove");
+            return false;
+        }
+        if (m_pTilerBintr != pTilerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() << "' does not own Tiler '" 
+                << m_pTilerBintr->GetName() << "'");
+            return false;
+        }
+        m_pTilerBintr = nullptr;
+        
+        LOG_INFO("Removing Tiler '"<< pTilerBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+        return RemoveChild(pTilerBintr);
     }
 
     bool BranchBintr::AddOsdBintr(DSL_BASE_PTR pOsdBintr)
@@ -417,6 +495,12 @@ namespace DSL
         LOG_FUNC();
         
         if (m_pDemuxerBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Demuxer - can't add Sink after a Demuxer");
+            return false;
+        }
+        if (m_pRemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add Sink after a Demuxer");
             return false;
@@ -470,10 +554,11 @@ namespace DSL
             LOG_INFO("Components for Branch '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+        if (!m_pDemuxerBintr and !m_pRemuxerBintr and 
+            !m_pSplitterBintr and !m_pMultiSinksBintr)
         {
             LOG_ERROR("Pipline '" << GetName() 
-                << "' has no Demuxer, Splitter or Sink - and is unable to link");
+                << "' has no Demuxer, Remuxer, Splitter, or Sink - and is unable to link");
             return false;
         }
         
@@ -597,7 +682,6 @@ namespace DSL
                 m_pTilerBintr->GetName() << "' successfully");
         }
 
-        // mutually exclusive with Demuxer
         if (m_pOsdBintr)
         {
             // LinkAll Osd Elementrs and add as next component in the Branch
@@ -613,7 +697,6 @@ namespace DSL
                 m_pOsdBintr->GetName() << "' successfully");
         }
 
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, and Pieline-MultiSinksBintr
         if (m_pDemuxerBintr)
         {
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
@@ -630,8 +713,22 @@ namespace DSL
                 m_pDemuxerBintr->GetName() << "' successfully");
         }
 
-        // mutually exclusive with TilerBintr, Pipeline-OsdBintr, 
-        // and Pieline-MultiSinksBintr
+        if (m_pRemuxerBintr)
+        {
+            // Link All Remuxer Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
+            m_pRemuxerBintr->SetBatchSize(m_batchSize);
+            if (!m_pRemuxerBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pRemuxerBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pRemuxerBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Remuxer '" << 
+                m_pRemuxerBintr->GetName() << "' successfully");
+        }
+
         if (m_pSplitterBintr)
         {
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
@@ -665,11 +762,11 @@ namespace DSL
                 m_pMultiSinksBintr->GetName() << "' successfully");
         }
         
-        // If instantiated as a true branch to be linked to a Demuxer/Splitter
+        // If instantiated as a true branch to be linked to a Demuxer/Remuxer/Splitter
         if (!m_isPipeline)
         {
             // Link the input-queue (ghost-pad) to the first component
-            m_pBranchQueue->LinkToSink( m_linkedComponents.front());
+            m_pBranchQueue->LinkToSink(m_linkedComponents.front());
         }
         
         m_isLinked = true;

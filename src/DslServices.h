@@ -1097,7 +1097,7 @@ namespace DSL {
         DslReturnType TeeDemuxerBranchMoveTo(const char* name, 
             const char* branch, uint stream_id);
 
-        DslReturnType TeeRemuxerNew(const char* name, uint maxBranches);
+        DslReturnType TeeRemuxerNew(const char* name);
         
         DslReturnType TeeSplitterNew(const char* name);
 

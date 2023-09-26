@@ -233,7 +233,7 @@ namespace DSL
         std::string m_modelEngineFile;
         
         /**
-         * @brief true if Client explicity set by client, false by default.
+         * @brief true if batch-size explicity set by client, false by default.
          */
         bool m_batchSizeSetByClient;
         
