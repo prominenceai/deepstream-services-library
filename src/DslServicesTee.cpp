@@ -327,7 +327,7 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 name, RemuxerBintr);
             
-            if (std::dynamic_pointer_cast<RemuxerBintr>(
+            if (!std::dynamic_pointer_cast<RemuxerBintr>(
                 m_components[name])->SetBatchProperties(batchSize, batchTimeout))
             {
                 LOG_ERROR("Remuxer Tee '" << name 
@@ -510,21 +510,24 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
             DSL_RETURN_IF_BRANCH_NAME_NOT_FOUND(m_components, branch);
 
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
-
-            if (!pTeeBintr->IsChild(m_components[branch]))
-            {
-                LOG_ERROR("Branch '" << branch << 
-                    "' is not in use by Tee '" << name << "'");
-                return DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD;
-            }
-
-            // Cast the Branch to a Bintr to call the correct AddChile method.
+            bool retval(false);
+            
+            // Cast the Branch to a Bintr to call the correct RemoveChild method.
             DSL_BINTR_PTR pBranchBintr = 
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
 
-            if (!pTeeBintr->RemoveChild(pBranchBintr))
+            if (m_components[name]->IsType(typeid(RemuxerBintr)))
+            {
+                retval = std::dynamic_pointer_cast<RemuxerBintr>(
+                    m_components[name])->RemoveChild(pBranchBintr);
+            }
+            else
+            {
+                retval = std::dynamic_pointer_cast<MultiBranchesBintr>(
+                    m_components[name])->RemoveChild(pBranchBintr);
+            }
+
+            if (!retval)
             {
                 LOG_ERROR("Tee '" << name << 
                     "' failed to remove branch '" << branch << "'");
@@ -577,10 +580,16 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
 
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
-
-            *count = pTeeBintr->GetNumChildren();
+            if (m_components[name]->IsType(typeid(RemuxerBintr)))
+            {
+                *count = std::dynamic_pointer_cast<RemuxerBintr>(
+                    m_components[name])->GetNumChildren();
+            }
+            else
+            {
+                *count = std::dynamic_pointer_cast<MultiBranchesBintr>(
+                    m_components[name])->GetNumChildren();
+            }
             
             return DSL_RESULT_SUCCESS;
         }
