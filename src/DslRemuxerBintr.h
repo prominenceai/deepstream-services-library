@@ -142,17 +142,17 @@ namespace DSL
          * @brief Stream-muxer batch timeout used when waiting for all sources
          * to produce a frame when batching together
          */
-        gint m_batchTimeout;
+        int m_batchTimeout;
         
         /**
          * @brief Streammuxer batched frame output width in pixels
          */
-        gint m_width;
+        uint m_width;
 
         /**
          * @brief Streammuxer batched frame output height in pixels
          */
-        gint m_height;
+        uint m_height;
 
         /**
          * @brief Child Branch to link to the Streammuxer
@@ -167,7 +167,7 @@ namespace DSL
         /**
          * @brief True if connecting to select stream-ids, false otherwise.
          */    
-        bool m_selectStreams;
+        bool m_linkSelectiveStreams;
 
         /**
          * @brief Container of Queues elements used to connect to Streammuxer.

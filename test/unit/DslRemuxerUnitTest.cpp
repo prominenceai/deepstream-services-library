@@ -115,7 +115,8 @@ SCENARIO( "A RemuxerBranchBintr whith no specific stream-ids is created correctl
     }
 }
 
-SCENARIO( "A RemuxerBranchBintr with specific stream-ids can LinkAll", "[RemuxerBintr]" )
+SCENARIO( "A RemuxerBranchBintr with specific stream-ids can LinkAll",
+    "[RemuxerBintr]" )
 {
     GIVEN( "A new RemuxerBintr, FakeSinkBintr, and a new RemuxerBranchBintr" )
     {
@@ -144,7 +145,8 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids can LinkAll", "[Remuxer
     }
 }
 
-SCENARIO( "A RemuxerBranchBintr with specific stream-ids can UnlinkAll", "[RemuxerBintr]" )
+SCENARIO( "A RemuxerBranchBintr with specific stream-ids can UnlinkAll",
+    "[RemuxerBintr]" )
 {
     GIVEN( "A new RemuxerBintr, FakeSinkBintr, and a new RemuxerBranchBintr" )
     {
@@ -179,7 +181,8 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids can UnlinkAll", "[Remux
     }
 }
 
-SCENARIO( "A RemuxerBranchBintr with no specific stream-ids can LinkAll", "[RemuxerBintr]" )
+SCENARIO( "A RemuxerBranchBintr with no specific stream-ids can LinkAll",
+    "[RemuxerBintr]" )
 {
     GIVEN( "A new RemuxerBintr, FakeSinkBintr, and a new RemuxerBranchBintr" )
     {
@@ -444,11 +447,11 @@ SCENARIO( "A RemuxerBintr can Add-To and Remove multiple child Branches",
 SCENARIO( "Linking a BranchBintr with select stream-ids to a RemuxerBintr is managed correctly",
     "[RemuxerBintr]" )
 {
-    GIVEN( "A new RemuxerBintr and BranchBintrs in memory" ) 
+    GIVEN( "A new RemuxerBintr and BranchBintr in memory" ) 
     {
         std::string remuxerBintrName = "remuxer";
         
-        std::vector<uint> streamIds0{0,2};
+        std::vector<uint> streamIds0{0,2,3,5};
 
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
@@ -464,17 +467,57 @@ SCENARIO( "Linking a BranchBintr with select stream-ids to a RemuxerBintr is man
         REQUIRE( pRemuxerBintr->IsChild(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
         
-        WHEN( "The BranchBintrs are added to the RemuxerBintr" )
+        WHEN( "The batch-size and Branch stream-ids are valid" )
         {
-            REQUIRE( pRemuxerBintr->SetBatchSize(4) == true );
-            REQUIRE( pRemuxerBintr->LinkAll() == true );
-            THEN( "The same BranchBintrs can be removed" )
+            REQUIRE( pRemuxerBintr->SetBatchSize(6) == true );
+            
+            THEN( "The Remuxer can LinkAll Successfully" )
             {
+                REQUIRE( pRemuxerBintr->LinkAll() == true );
                 REQUIRE( pRemuxerBintr->IsLinked() == true );
             }
         }
+        WHEN( "The num-stream-ids is greater than the batch-size" )
+        {
+            pRemuxerBintr->SetBatchSize(3);
+            
+            THEN( "The RemuxerBintr must fail to LinkAll" )
+            {
+                REQUIRE( pRemuxerBintr->LinkAll() == false );
+                REQUIRE( pRemuxerBintr->IsLinked() == false );
+            }
+        }
+        WHEN( "An one or more stream-ids are greater in value than the batch-size" )
+        {
+            pRemuxerBintr->SetBatchSize(5);
+            
+            THEN( "The RemuxerBintr must fail to LinkAll" )
+            {
+                REQUIRE( pRemuxerBintr->LinkAll() == false );
+                REQUIRE( pRemuxerBintr->IsLinked() == false );
+            }
+        }
+}
+}
+SCENARIO( "A RemuxerBranchBintr with invalid stream-ids will fail to LinkAll", 
+    "[RemuxerBintr]" )
+{
+    GIVEN( "A new RemuxerBintr, FakeSinkBintr, and a new RemuxerBranchBintr" )
+    {
+        std::vector<uint> streamIds{0,1,2,5};
+
+        DSL_REMUXER_PTR pRemuxerBintr = 
+            DSL_REMUXER_NEW(remuxerBintrName.c_str());
+
+        DSL_FAKE_SINK_PTR pFakeSink = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+
+        DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
+            DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
+                pRemuxerBintr->GetGstObject(), pFakeSink, 
+                &streamIds[0], streamIds.size());
     }
 }
+
 
 SCENARIO( "Linking a BranchBintr with no select stream-ids to a RemuxerBintr is managed correctly",
     "[RemuxerBintr]" )

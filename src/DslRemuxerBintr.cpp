@@ -37,8 +37,8 @@ namespace DSL
         DSL_BINTR_PTR pChildBranch, uint* streamIds, uint numStreamIds)
         : Bintr(name, parentRemuxerBin)
         , m_pChildBranch(pChildBranch)
-        , m_selectStreams(numStreamIds) // true if numStreamIds > 0
-        , m_batchTimeout(-1)
+        , m_linkSelectiveStreams(numStreamIds)   // true if numStreamIds > 0
+        , m_batchTimeout(-1)                     
         , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
         , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
     {
@@ -105,7 +105,7 @@ namespace DSL
         }
         // Need to determine if the Branch is to be connected to a 
         // select set of stream-ids or all in batch-size
-        if(!m_streamIds.size())
+        if(!m_linkSelectiveStreams)
         {
             LOG_INFO("Connecting to all streams for RemuxerBranchBintr '"
                 << GetName() << "'");
@@ -182,7 +182,7 @@ namespace DSL
         
         // If we're not linking to specific stream-ids, clear the stream-id 
         // vector to be populated on next LinkAll()
-        if (!m_selectStreams)
+        if (!m_linkSelectiveStreams)
         {
             m_streamIds.clear();
         }
@@ -260,11 +260,37 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        // If linking to specific streams, use the size of the stream-id vector
-        // for batch-size, otherwise, use parent Remuxer batch-size
-        m_batchSize = (m_selectStreams) 
-            ? m_streamIds.size()
-            : batchSize;
+        // If the Branch is linking to select streams
+        if (m_linkSelectiveStreams)
+        {
+            // Make sure the number of target stream-ids is no greater than batch-size
+            if (m_streamIds.size() > batchSize)
+            {
+                LOG_ERROR("num-stream-ids '" << m_streamIds.size() 
+                    << "' is greater than batch-size '" << batchSize
+                    << "' for RemuxerBranchBintr '" << GetName() << "'" );
+                return false;
+            }
+            // Make sure that each stream-id is within the batch-size.
+            for (const auto& ivec: m_streamIds)
+            {
+                if (ivec >= batchSize)
+                {
+                    LOG_ERROR("Stream-id '" << ivec 
+                        << "' is >= batch-size '" << batchSize
+                        << "' for RemuxerBranchBintr '" << GetName() << "'" );
+                    return false;
+                }
+            }
+            // If linking to specific streams, use the size of the stream-id vector
+            // for batch-size
+            m_batchSize = m_streamIds.size();
+        }
+        else
+        {
+            // otherwise, use parent Remuxer batch-size
+            m_batchSize = batchSize;
+        }
         m_batchTimeout = batchTimeout;
         
         m_pStreammuxer->SetAttribute("batch-size", m_batchSize);
@@ -465,6 +491,9 @@ namespace DSL
             m_tees.push_back(pTee);
         }
         
+        // For each Branch, we set the Streammuxers batch properties and dimensions.
+        // Then, call on the Branch to link-all of its children and to link back
+        // to the Demuxer source Tees according to their select stream-ids.
         for (auto const& imap: m_childBranches)
         {
             if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
@@ -475,7 +504,6 @@ namespace DSL
                 return false;
             }
         }
-
 
         m_isLinked = true;
         return true;
@@ -551,15 +579,16 @@ namespace DSL
         LOG_FUNC();
 
         // This service will be called by the parent Branch just prior to LinkAll.
-        // LinkAll(). We only update the Bintr's batch-size (and all children) if not
-        //  explicity set buy the client.
-        if (!m_batchSizeSetByClient)
+        // LinkAll(). We only update the Bintr's batch-size if not explicity set 
+        // by the client, i.e. when supporting dynamic Source add/remove. 
+        if (m_batchSizeSetByClient)
+        {
+            LOG_INFO("Batch-size set by client for RemuxerBintr '"
+                << GetName() << "' - not updating" );
+        }
+        else
         {
             m_batchSize = batchSize;
-            for (auto const& imap: m_childBranches)
-            {
-                imap.second->SetBatchSize(batchSize);
-            }
         }
         return true;
     }
@@ -580,7 +609,7 @@ namespace DSL
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update batch properties for MultiSourcesBintr '" 
+            LOG_ERROR("Can't update batch properties for RemuxerBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
