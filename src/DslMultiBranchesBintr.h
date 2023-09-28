@@ -321,8 +321,8 @@ namespace DSL
         
         /**
          * @brief list of reguest pads -- maxBranches in length -- for the 
-         * for the DemuxerBintr. The pads are preallocated on Bintr creation
-         * and then used on LinkAll or AddChild when in a linked-state
+         * for the DemuxerBintr. The pads are preallocated on Bintr LinkAll
+         * and released on UnlinkAll.
          */
         std::vector<GstPad*> m_requestedSrcPads;
         

@@ -136,6 +136,66 @@ namespace DSL
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
+
+    //--------------------------------------------------------------------------------
+    
+    IdentitySourceBintr::IdentitySourceBintr(const char* name)
+        : SourceBintr(name)
+    {
+        LOG_FUNC();
+        
+        m_isLive = false;
+
+        // Media type is fixed to "video/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
+        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+
+//        m_pIdentity = DSL_ELEMENT_NEW("identity", name);
+        m_pIdentity = DSL_ELEMENT_NEW("queue", name);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for IdentitySourceBintr '" << name << "'");
+        
+        AddChild(m_pIdentity);
+
+        // Source (output) queue is "src" ghost-pad for this Source.
+        m_pIdentity->AddGhostPadToParent("sink");
+        m_pIdentity->AddGhostPadToParent("src");
+    }
+    
+    IdentitySourceBintr::~IdentitySourceBintr()
+    {
+        LOG_FUNC();
+
+    }
+
+    bool IdentitySourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("IdentitySourceBintr '" << GetName() 
+                << "' is already in a linked state");
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void IdentitySourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("IdentitySourceBintr '" << GetName() 
+                << "' is not in a linked state");
+            return;
+        }
+        m_isLinked = false;
+    }
     
     //--------------------------------------------------------------------------------
     
@@ -188,7 +248,7 @@ namespace DSL
         AddChild(m_pBufferOutCapsFilter);
         AddChild(m_pSourceQueue);
 
-        // Source (output) queue is "src" ghost-pad for all SourceBintrs
+        // Source (output) queue is "src" ghost-pad for all VideoSourceBintrs
         m_pSourceQueue->AddGhostPadToParent("src");
         
         std::string padProbeName = GetName() + "-src-pad-probe";

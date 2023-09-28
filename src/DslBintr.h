@@ -76,6 +76,20 @@ namespace DSL
             }
         }
         
+        Bintr(const char* name, GstObject* GstObj)
+            : GstNodetr(name)
+            , m_isPipeline(false)
+            , m_requestPadId(-1)
+            , m_isLinked(false)
+            , m_batchSize(0)
+            , m_gpuId(0)
+            , m_nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT)
+        { 
+            LOG_FUNC(); 
+
+            SetGstObjAsProxy(GstObj);
+        }
+        
         /**
          * @brief Bintr dtor to release all GST references
          */
@@ -191,12 +205,13 @@ namespace DSL
         
         /**
          * @brief sets the batch size for this Bintr
-         * @param the new batchSize to use
+         * @param[in] batchSize the new batchSize to use.
          */
         virtual bool SetBatchSize(uint batchSize)
         {
             LOG_FUNC();
-            LOG_INFO("Setting batch size to '" << batchSize << "' for Bintr '" << GetName() << "'");
+            LOG_INFO("Setting batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
             
             m_batchSize = batchSize;
             return true;

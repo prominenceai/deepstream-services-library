@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include "DslPipelineBusSyncMgr.h"
 #include "DslSourceBintr.h"
 #include "DslDewarperBintr.h"
-#include "DslPipelineSourcesBintr.h"
+#include "DslMultiSourcesBintr.h"
     
 namespace DSL 
 {
@@ -257,12 +257,12 @@ namespace DSL
         /**
          * @brief unique pipeline-id for this PipelineBintr
          */
-        uint m_pipelineId;
+        int m_pipelineId;
 
         /**
          * @brief parent bin for all Source bins in this PipelineBintr
          */
-        DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
+        DSL_MULTI_SOURCES_PTR m_pPipelineSourcesBintr;
         
         
         /**

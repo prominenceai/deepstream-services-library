@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslServicesValidate.h"
 #include "DslMultiBranchesBintr.h"
+#include "DslRemuxerBintr.h"
 
 namespace DSL
 {
@@ -123,32 +124,6 @@ namespace DSL
         }
     }    
 
-    DslReturnType Services::TeeSplitterNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Splitter Tee name '" << name << "' is not unique");
-                return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = std::shared_ptr<Bintr>(new SplitterBintr(name));
-            
-            LOG_INFO("New Splitter Tee '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Splitter Tee '" << name << "' threw exception on create");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }
-
     DslReturnType Services::TeeDemuxerBranchAddTo(const char* name, 
         const char* branch, uint streamId)
     {
@@ -236,6 +211,230 @@ namespace DSL
         }
     }    
 
+    DslReturnType Services::TeeRemuxerNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Remuxer Tee name '" << name << "' is not unique");
+                return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_REMUXER_NEW(name);
+            
+            LOG_INFO("New Remuxer Tee '" << name << "' created successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Remuxer Tee '" << name << "' threw exception on create");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TeeRemuxerBranchAddTo(const char* name, 
+        const char* branch, uint* streamIds, uint numStreamIds)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+            
+            // Can't add components if they're In use by another Branch
+            if (m_components[branch]->IsInUse())
+            {
+                LOG_ERROR("Unable to add branch '" << branch 
+                    << "' as it's currently in use");
+                return DSL_RESULT_COMPONENT_IN_USE;
+            }
+            // Cast the Branch to a Bintr to call the correct AddChild method.
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            if (!std::dynamic_pointer_cast<RemuxerBintr>(
+                    m_components[name])->AddChildTo(pBranchBintr, 
+                        streamIds, numStreamIds))
+            {
+                LOG_ERROR("Remuxer '" << name << 
+                    "' failed to add branch '" << branch 
+                    << "' to select stream-ids ");
+                return DSL_RESULT_TEE_BRANCH_ADD_FAILED;
+            }
+                
+            LOG_INFO("Branch '" << branch 
+                << "' was added to Remuxer Tee '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer Tee '" << name 
+                << "' threw an exception adding branch '" << branch << "'");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }    
+
+    DslReturnType Services::TeeRemuxerBatchPropertiesGet(const char* name,
+        uint* batchSize, int* batchTimeout)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            
+            std::dynamic_pointer_cast<RemuxerBintr>(
+                m_components[name])->GetBatchProperties(batchSize, batchTimeout);
+            
+            LOG_INFO("Remuxer Tee '" << name 
+                << "' returned batch-size = " 
+                << *batchSize << " and batch-timeout = " 
+                << *batchTimeout << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer Tee '" << name 
+                << "' threw an exception getting batch properties");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TeeRemuxerBatchPropertiesSet(const char* name,
+        uint batchSize, int batchTimeout)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            
+            if (!std::dynamic_pointer_cast<RemuxerBintr>(
+                m_components[name])->SetBatchProperties(batchSize, batchTimeout))
+            {
+                LOG_ERROR("Remuxer Tee '" << name 
+                    << "' failed to set batch-size = "
+                    << batchSize << " and batch-timeout = "
+                    << batchTimeout);
+                return DSL_RESULT_TEE_SET_FAILED;
+            }
+            LOG_INFO("Remuxer Tee '" << name << "' set batch-size = " 
+                << batchSize << " and batch-timeout = " 
+                << batchTimeout << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer Tee '" << name 
+                << "' threw an exception setting batch properties");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TeeRemuxerDimensionsGet(const char* name,
+        uint* width, uint* height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            
+            std::dynamic_pointer_cast<RemuxerBintr>(
+                m_components[name])->GetDimensions(width, height);
+            
+            LOG_INFO("Remuxer Tee '" << name << "' returned width = " 
+                << *width << " and  height = " << *height << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer Tee '" << name 
+                << "' threw an exception getting the output dimensions");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::TeeRemuxerDimensionsSet(const char* name,
+        uint width, uint height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            
+            if (!std::dynamic_pointer_cast<RemuxerBintr>(
+                m_components[name])->SetDimensions(width, height))
+            {
+                LOG_ERROR("Remuxer Tee '" << name 
+                    << "' failed to Set the Streammux output dimensions");
+                return DSL_RESULT_TEE_SET_FAILED;
+            }
+            LOG_INFO("Remuxer Tee '" << name << "' set width = " 
+                << width << " and height = " << height << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer Tee '" << name 
+                << "' threw an exception setting the output dimensions");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::TeeSplitterNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Splitter Tee name '" << name << "' is not unique");
+                return DSL_RESULT_TILER_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = std::shared_ptr<Bintr>(new SplitterBintr(name));
+            
+            LOG_INFO("New Splitter Tee '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Splitter Tee '" << name << "' threw exception on create");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
    
     DslReturnType Services::TeeBranchAdd(const char* name, 
         const char* branch)
@@ -269,9 +468,14 @@ namespace DSL
                 retval = std::dynamic_pointer_cast<SplitterBintr>(
                     m_components[name])->AddChild(pBranchBintr);
             }
-            else
+            else if (m_components[name]->IsType(typeid(DemuxerBintr)))
             {
                 retval = std::dynamic_pointer_cast<DemuxerBintr>(
+                    m_components[name])->AddChild(pBranchBintr);
+            }
+            else
+            {
+                retval = std::dynamic_pointer_cast<RemuxerBintr>(
                     m_components[name])->AddChild(pBranchBintr);
             }
             if (!retval)
@@ -306,21 +510,24 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
             DSL_RETURN_IF_BRANCH_NAME_NOT_FOUND(m_components, branch);
 
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
-
-            if (!pTeeBintr->IsChild(m_components[branch]))
-            {
-                LOG_ERROR("Branch '" << branch << 
-                    "' is not in use by Tee '" << name << "'");
-                return DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD;
-            }
-
-            // Cast the Branch to a Bintr to call the correct AddChile method.
+            bool retval(false);
+            
+            // Cast the Branch to a Bintr to call the correct RemoveChild method.
             DSL_BINTR_PTR pBranchBintr = 
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
 
-            if (!pTeeBintr->RemoveChild(pBranchBintr))
+            if (m_components[name]->IsType(typeid(RemuxerBintr)))
+            {
+                retval = std::dynamic_pointer_cast<RemuxerBintr>(
+                    m_components[name])->RemoveChild(pBranchBintr);
+            }
+            else
+            {
+                retval = std::dynamic_pointer_cast<MultiBranchesBintr>(
+                    m_components[name])->RemoveChild(pBranchBintr);
+            }
+
+            if (!retval)
             {
                 LOG_ERROR("Tee '" << name << 
                     "' failed to remove branch '" << branch << "'");
@@ -373,10 +580,16 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
 
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
-
-            *count = pTeeBintr->GetNumChildren();
+            if (m_components[name]->IsType(typeid(RemuxerBintr)))
+            {
+                *count = std::dynamic_pointer_cast<RemuxerBintr>(
+                    m_components[name])->GetNumChildren();
+            }
+            else
+            {
+                *count = std::dynamic_pointer_cast<MultiBranchesBintr>(
+                    m_components[name])->GetNumChildren();
+            }
             
             return DSL_RESULT_SUCCESS;
         }

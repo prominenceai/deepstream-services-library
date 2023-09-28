@@ -100,10 +100,10 @@ namespace DSL
         // Set the branches unique id to the available stream-id
         pChildComponent->SetRequestPadId(padId);
 
-        // Add the branch to the Demuxers collection of children mapped by name 
+        // Add the branch to the Tees collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
         
-        // Add the branch to the Demuxers collection of children mapped by stream-id 
+        // Add the branch to the Tees collection of children mapped by stream-id 
         m_pChildBranchesIndexed[padId] = pChildComponent;
         
         // call the parent class to complete the add

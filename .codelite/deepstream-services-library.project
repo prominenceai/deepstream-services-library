@@ -26,7 +26,6 @@
     <File Name="../src/DslPadProbeHandler.cpp"/>
     <File Name="../src/DslPipelineBintr.cpp"/>
     <File Name="../src/DslPipelineSInfersBintr.cpp"/>
-    <File Name="../src/DslPipelineSourcesBintr.cpp"/>
     <File Name="../src/DslPipelineStateMgr.cpp"/>
     <File Name="../src/DslPlayerBintr.cpp"/>
     <File Name="../src/DslRecordMgr.cpp"/>
@@ -77,7 +76,6 @@
     <File Name="../src/DslPadProbeHandler.h"/>
     <File Name="../src/DslPipelineBintr.h"/>
     <File Name="../src/DslPipelineSInfersBintr.h"/>
-    <File Name="../src/DslPipelineSourcesBintr.h"/>
     <File Name="../src/DslPipelineStateMgr.h"/>
     <File Name="../src/DslPlayerBintr.h"/>
     <File Name="../src/DslRecordMgr.h"/>
@@ -126,6 +124,10 @@
     <File Name="../src/DslMutex.h"/>
     <File Name="../src/DslCond.h"/>
     <File Name="../src/DslUtilities.h"/>
+    <File Name="../src/DslMultiSourcesBintr.h"/>
+    <File Name="../src/DslMultiSourcesBintr.cpp"/>
+    <File Name="../src/DslRemuxerBintr.h"/>
+    <File Name="../src/DslRemuxerBintr.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">
@@ -178,6 +180,8 @@
       <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
       <File Name="../test/api/DslDemuxerBehaviorTest.cpp"/>
       <File Name="../test/api/DslPipelineCbApiTest.cpp"/>
+      <File Name="../test/api/DslRemuxerApiTest.cpp"/>
+      <File Name="../test/api/DslRemuxerBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDewarperUnitTest.cpp"/>
@@ -213,6 +217,7 @@
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
       <File Name="../test/unit/DslDemuxerAndSplitterUnitTest.cpp"/>
+      <File Name="../test/unit/DslRemuxerUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
@@ -321,6 +326,7 @@
       <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
       <File Name="../examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py"/>
       <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py"/>
+      <File Name="../examples/python/parallel_inference_on_selective_streams.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>

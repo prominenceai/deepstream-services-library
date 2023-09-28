@@ -318,6 +318,7 @@ namespace DSL
          */
         GstNodetr(const char* name)
             : Nodetr(name)
+            , m_isProxy(false)
             , m_releaseRequestedPadOnUnlink(false)
         {
             LOG_FUNC();
@@ -340,7 +341,7 @@ namespace DSL
             else
             {
                 // Set the State to NULL to free up all resource before 
-                // removing childern
+                // removing children
                 LOG_DEBUG("Setting GstElement for GstNodetr '" 
                     << GetName() << "' to GST_STATE_NULL");
                 gst_element_set_state(GetGstElement(), GST_STATE_NULL);
@@ -348,7 +349,9 @@ namespace DSL
                 // Remove all child references 
                 RemoveAllChildren();
                 
-                if (!m_pParentGstObj)
+                // Don't delete the gstreamer bin if currently owned by Parent
+                // or if acting as a proxy for the Parent.
+                if (!m_pParentGstObj and !m_isProxy)
                 {
                     LOG_DEBUG("Unreferencing GST Object contained by this GstNodetr '" 
                         << GetName() << "'");
@@ -356,6 +359,21 @@ namespace DSL
                 }
             }
             LOG_DEBUG("Nodetr '" << GetName() << "' deleted");
+        }
+        
+        void SetGstObjAsProxy(GstObject* pGstObj)
+        {
+            LOG_FUNC();
+            
+            if (m_pGstObj)
+            {
+                LOG_ERROR("Failed to set GstObj as proxy for GstNodetr '"
+                    << GetName() << "' as it's currently set");
+                throw;
+            }
+            // Set the bin object pointer and isProxy flag (don't unref on delete).
+            m_pGstObj = pGstObj;
+            m_isProxy = true;
         }
 
         /**
@@ -990,6 +1008,12 @@ namespace DSL
         
     private:
     
+        /**
+         * @brief true if the GstNodetr acts as a proxy for it's parent
+         * using it's parent's bin i.e. m_pGstObj
+         */
+        bool m_isProxy;
+        
         bool m_releaseRequestedPadOnUnlink;
     };
 

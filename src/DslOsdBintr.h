@@ -1,4 +1,3 @@
-
 /*
 The MIT License
 
@@ -67,15 +66,15 @@ namespace DSL
         ~OsdBintr();
 
         /**
-         * @brief Adds this OsdBintr to a Parent Branch Bintr
-         * @param[in] pParentBintr parent Pipeline to add to
+         * @brief Adds this OsdBintr to a Parent Pipeline or Branch Bintr.
+         * @param[in] pParentBintr parent Pipeline or Branch to add to.
          * @return true on successful add, false otherwise
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
         
         /**
-         * @brief Removes this OsdBintr to a Parent Branch Bintr
-         * @param[in] pParentBintr parent Pipeline to remove from
+         * @brief Removes this OsdBintr to a Parent Pipeline or Branch Bintr.
+         * @param[in] pParentBintr parent Pipeline or Branch to remove from.
          * @return true on successful add, false otherwise
          */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);

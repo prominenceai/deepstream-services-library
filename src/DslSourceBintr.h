@@ -40,6 +40,10 @@ namespace DSL
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
 
+    #define DSL_IDENTITY_SOURCE_PTR std::shared_ptr<IdentitySourceBintr> 
+    #define DSL_IDENTITY_SOURCE_NEW(name) \
+        std::shared_ptr<IdentitySourceBintr>(new IdentitySourceBintr(name))
+    
     #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
 
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
@@ -146,7 +150,7 @@ namespace DSL
         ~SourceBintr();
 
         /**
-         * @brief Adds the SourceBintr to a given Parent Bintr (PipelineSourcesBintr).
+         * @brief Adds the SourceBintr to a given Parent Bintr.
          * @param[in] pParentBintr shared pointer to the Parent Bintr to add to.
          * @return true on successful add, false otherwise.
          */
@@ -286,6 +290,45 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pSourceElement;
         
+    };
+
+    /**
+     * @class IdentitySourceBintr
+     * @brief Implements a simple Identity Source Bintr.
+     * The IdentitySourceBintr does not produce buffers. It simpley allows
+     * an IdentifyElement to be added to a MultiSourcesBintr.
+     */
+    class IdentitySourceBintr : public SourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the IdentitySourceBintr class
+         * @param[in] name unique name for the new IdentitySourceBintr
+         */
+        IdentitySourceBintr(const char* name);
+
+        /**
+         * @brief dtor for the IdentitySourceBintr class
+         */
+        ~IdentitySourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Identity Element for this SourceBintr
+         */
+        DSL_ELEMENT_PTR m_pIdentity;
+
     };
 
     /**
