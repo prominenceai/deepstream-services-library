@@ -6097,7 +6097,7 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
  * @param[in] name unique name for the new Stream Demuxer Tee
  * @param[in] max_branches maximum number of branches that can be
  * added/connected to this Demuxer, before or during Pipeline play.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE
  */
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
 
@@ -6105,7 +6105,7 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
  * @brief Creates a new Demuxer Tee and adds a list of Branches
  * @param[in] name name of the Tee to create
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
     uint max_branches, const wchar_t** branches);
@@ -6115,7 +6115,7 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
  * @param[in] name name of the Dumxer to update.
  * @param[in] branch name of Branch to add.
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
  */
 DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
@@ -6126,7 +6126,7 @@ DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name,
  * @param[in] name name of the Dumxer to update.
  * @param[in] branch name of Branch to add.
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
  */
 DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
@@ -6144,7 +6144,7 @@ DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name,
  * @brief Sets the max-branches setting for the named Deumuxer Tee to use.
  * @param[in] name name of the Demuxer Tee to update
  * @param[in] max_branches new setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
     uint max_branches);
@@ -6152,7 +6152,7 @@ DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
  * @param[in] name unique name for the new Stream Splitter Tee
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE
  */
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
 
@@ -6160,7 +6160,7 @@ DslReturnType dsl_tee_splitter_new(const wchar_t* name);
  * @brief Creates a new Splitter Tee and adds a list of Branches to it.
  * @param[in] name name of the Splitter Tee to create
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
     const wchar_t** branches);
@@ -6168,7 +6168,7 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Remuxer Tee component
  * @param[in] name unique name for the new Stream Remuxer Tee
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE
  */
 DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
 
@@ -6176,7 +6176,7 @@ DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
  * @brief Creates a new Remuxer Tee and adds a list of Branches to it.
  * @param[in] name unique name for the new Remuxer Tee.
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, 
     const wchar_t** branches);
@@ -6188,7 +6188,7 @@ DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name,
  * @param[in] branch name of Branch to add.
  * @param[in] stream_ids array of specific stream-ids to connect to.
  * @param[in] num_stream_ids number of ids in the stream-ids array.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
  */
 DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint* stream_ids, uint num_stream_ids);
@@ -6240,7 +6240,7 @@ DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name,
  * Splitter Tee.
  * @param[in] name name of the Tee to update
  * @param[in] branch name of Branch to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 
@@ -6248,7 +6248,7 @@ DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
  * @brief adds a list of Branches to a Stream Demuxer or Splitter Tee
  * @param[in] name name of the Tee to update
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches);
 
@@ -6256,7 +6256,7 @@ DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branc
  * @brief removes a single Branch from a Stream Demuxer or Splitter Tee
  * @param[in] name name of the Tee to update
  * @param[in] branch name of Branch to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
 
@@ -6264,14 +6264,14 @@ DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
  * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee
  * @param[in] name name of the Tee to update
  * @param[in] branches NULL terminated array of Branch names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches);
 
 /**
  * @brief removes all Branches from a Stream Demuxer or Splitter Tee
  * @param[in] name name of the Tee to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
 
@@ -6279,7 +6279,7 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
  * @brief gets the current number of branches owned by Tee
  * @param[in] tee name of the tee to query
  * @param[out] count current number of branches 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
 
@@ -6294,7 +6294,7 @@ DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
  * @param[in] name name of the Demuxer Tee to query
  * @param[out] timeout current timeout value in units of seconds. 
  * Default = DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
     uint* timeout);
@@ -6309,7 +6309,7 @@ DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name,
  * a bad state in which case the pad callback will never be called.
  * @param[in] name name of the Demuxer Tee to query
  * @param[in] timeout new timeout value in units of seconds.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
     uint timeout);
@@ -6319,7 +6319,7 @@ DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name,
  * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
  * @param[in] name unique name of the Tee to update
  * @param[in] handler callback function to process each frame buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE otherwise
  */
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 

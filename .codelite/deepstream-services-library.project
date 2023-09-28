@@ -326,6 +326,7 @@
       <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
       <File Name="../examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py"/>
       <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py"/>
+      <File Name="../examples/python/parallel_inference_on_selective_streams.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
