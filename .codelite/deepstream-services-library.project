@@ -264,6 +264,7 @@
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
       <File Name="../examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp"/>
       <File Name="../examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp"/>
+      <File Name="../examples/cpp/parallel_inference_on_selective_streams.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
