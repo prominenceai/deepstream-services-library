@@ -76,7 +76,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Multi-Object Tracker](/docs/api-tracker.md)
   * [Segmentation Visualizer](/docs/api-segvisual.md)
   * [Tiler](/docs/api-tiler.md)
-  * [Demuxer and Splitter](/docs/api-tee.md)
+  * [Demuxer, Remxer, and Splitter](/docs/api-tee.md)
   * [On-Screen Display](/docs/api-osd.md)
   * [Sink](/docs/api-sink.md)
   * [Pad Probe Handler](/docs/api-pph.md)
