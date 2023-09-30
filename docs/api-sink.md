@@ -2410,7 +2410,7 @@ retval = dsl_sink_frame_capture_initiate('my-frame-capture-sink')
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Splitter and Demuxer](/docs/api-tee.md)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * **Sink**
 * [Pad Probe Handler](/docs/api-pph.md)
