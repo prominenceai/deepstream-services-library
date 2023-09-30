@@ -346,10 +346,12 @@
 * [`dsl_osd_pph_add`](/docs/api-osd.md##dsl_osd_pph_add)
 * [`dsl_osd_pph_remove`](/docs/api-osd.md##dsl_osd_pph_remove)
 
-## Demuxer and Splitter - Tee:
+## Demuxer, Remuxer, and Splitter - Tee:
 * [Overview](/docs/api-tee.md)
 * [`dsl_tee_demuxer_new`](/docs/api-tee.md#dsl_tee_demuxer_new)
 * [`dsl_tee_demuxer_new_branch_add_many`](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
+* [`dsl_tee_remuxer_new`](/docs/api-tee.md#dsl_tee_remuxer_new)
+* [`dsl_tee_remuxer_new_branch_add_many`](#dsl_tee_remuxer_new_branch_add_many)
 * [`dsl_tee_splitter_new`](/docs/api-tee.md#dsl_tee_splitter_new) 
 * [`dsl_tee_splitter_new_branch_add_many`](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
 * [`dsl_tee_branch_add`](/docs/api-tee.md#dsl_tee_branch_add)
@@ -366,6 +368,11 @@
 * [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to)
 * [`dsl_tee_demuxer_max_branches_get`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_get)
 * [`dsl_tee_demuxer_max_branches_set`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_set)
+* [`dsl_tee_remuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_remuxer_branch_add_to)
+* [`dsl_tee_remuxer_batch_properties_get`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_get)
+* [`dsl_tee_remuxer_batch_properties_set`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_set)
+* [`dsl_tee_remuxer_dimensions_get`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_get)
+* [`dsl_tee_remuxer_dimensions_set`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_set)
 
 ## Sink:
 * [Overview](/docs/api-sink.md)
