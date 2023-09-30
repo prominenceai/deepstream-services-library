@@ -1,4 +1,4 @@
-# Demuxer and Splitter - Tee API
+# Demuxer, Remuxer, and Splitter - Tee API
 There are currently three types of Tees -- Demuxer, Remuxer, and Splitter -- each with a very specific use and purpose. All connect to downstream [Branches](/docs/api-branch.md). 
 
 ### Demuxer Tee
