@@ -181,7 +181,7 @@ namespace DSL
      * @class RemuxerBintr
      * @brief Implements a Remuxer (demuxer-streammuxer) bin container
      */
-    class RemuxerBintr : public Bintr
+    class RemuxerBintr : public TeeBintr
     {
     public: 
     

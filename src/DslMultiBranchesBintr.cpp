@@ -31,8 +31,7 @@ namespace DSL
 
     MultiBranchesBintr::MultiBranchesBintr(const char* name, 
         const char* teeType)
-        : Bintr(name)
-        , m_blockingTimeout(DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC)
+        : TeeBintr(name)
     {
         LOG_FUNC();
         
@@ -326,8 +325,8 @@ namespace DSL
         for (const auto& imap: m_pChildBranchesIndexed)
         {
             // unlink from the Tee Element
-            LOG_INFO("Unlinking " << m_pTee->GetName() << " from " 
-                << imap.second->GetName());
+            LOG_INFO("Unlinking " << m_pTee->GetName() << " from '" 
+                << imap.second->GetName() << "'");
             if (!imap.second->UnlinkFromSourceTee())
             {
                 LOG_ERROR("MultiBranchesBintr '" << GetName() 
@@ -364,28 +363,6 @@ namespace DSL
             }
         }
         return Bintr::SetBatchSize(batchSize);
-    }
-    
-    uint MultiBranchesBintr::GetBlockingTimeout()
-    {
-        LOG_FUNC();
-        
-        return m_blockingTimeout;
-    }
- 
-    bool MultiBranchesBintr::SetBlockingTimeout(uint timeout)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set blocking-timeout for Tee '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_blockingTimeout = timeout;
-        
-        return true;
     }
     
     //--------------------------------------------------------------------------------

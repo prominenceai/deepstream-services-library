@@ -330,7 +330,7 @@ namespace DSL
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
-        : Bintr(name)
+        : TeeBintr(name)
         , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
         , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
         , m_batchTimeout(-1)
@@ -338,6 +338,11 @@ namespace DSL
         // m_batchSize initialized to 0 in Bintr ctor
     {
         LOG_FUNC();
+
+        // Need to forward all children messages for this RemuxerBintr,
+        // which is the parent bin for the Streammuxer allocated, so the Pipeline
+        // can be notified of individual source EOS events. 
+        g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
         
         m_pDemuxer = DSL_ELEMENT_NEW("nvstreamdemux", name);
 
@@ -373,6 +378,12 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't add branch to RemuxerBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
         
         // Important - use the child branch components name. 
         // The Branches are created as proxy-bins for this bintr.
@@ -397,6 +408,12 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't add branch to RemuxerBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
         
         // Important - use the child branch components name. 
         // The Branches are created as proxy-bins for this bintr.
@@ -418,6 +435,12 @@ namespace DSL
         {
             LOG_ERROR("Component '" << pChildComponent->GetName() 
                 << "' is not a child of '" << GetName() << "'");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't remove branch from RemuxerBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
 

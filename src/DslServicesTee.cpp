@@ -516,18 +516,8 @@ namespace DSL
             DSL_BINTR_PTR pBranchBintr = 
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
 
-            if (m_components[name]->IsType(typeid(RemuxerBintr)))
-            {
-                retval = std::dynamic_pointer_cast<RemuxerBintr>(
-                    m_components[name])->RemoveChild(pBranchBintr);
-            }
-            else
-            {
-                retval = std::dynamic_pointer_cast<MultiBranchesBintr>(
-                    m_components[name])->RemoveChild(pBranchBintr);
-            }
-
-            if (!retval)
+            if (!std::dynamic_pointer_cast<TeeBintr>(
+                m_components[name])->RemoveChild(pBranchBintr))
             {
                 LOG_ERROR("Tee '" << name << 
                     "' failed to remove branch '" << branch << "'");
@@ -556,8 +546,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
 
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
+            DSL_TEE_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<TeeBintr>(m_components[name]);
                 
             // pTeeBintr->RemoveAll();
             return DSL_RESULT_SUCCESS;
@@ -580,16 +570,8 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
 
-            if (m_components[name]->IsType(typeid(RemuxerBintr)))
-            {
-                *count = std::dynamic_pointer_cast<RemuxerBintr>(
-                    m_components[name])->GetNumChildren();
-            }
-            else
-            {
-                *count = std::dynamic_pointer_cast<MultiBranchesBintr>(
-                    m_components[name])->GetNumChildren();
-            }
+            *count = std::dynamic_pointer_cast<TeeBintr>(
+                m_components[name])->GetNumChildren();
             
             return DSL_RESULT_SUCCESS;
         }
@@ -610,11 +592,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                DemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
             
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
+            DSL_TEE_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<TeeBintr>(m_components[name]);
             
             *timeout = pTeeBintr->GetBlockingTimeout();
                 
@@ -641,11 +622,10 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                DemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
             
-            DSL_MULTI_BRANCHES_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<MultiBranchesBintr>(m_components[name]);
+            DSL_TEE_PTR pTeeBintr = 
+                std::dynamic_pointer_cast<TeeBintr>(m_components[name]);
             
             if (!pTeeBintr->SetBlockingTimeout(timeout))
             {

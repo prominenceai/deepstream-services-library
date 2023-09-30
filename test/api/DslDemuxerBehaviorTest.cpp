@@ -380,7 +380,7 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
     }
 }
 
-SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks", 
+SCENARIO( "A Pipeline can add and remove three Sources and Window-Sinks", 
     "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sink" ) 

@@ -35,6 +35,8 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
+    #define DSL_TEE_PTR std::shared_ptr<TeeBintr>
+
     #define DSL_MULTI_BRANCHES_PTR std::shared_ptr<MultiBranchesBintr>
 
     #define DSL_MULTI_SINKS_PTR std::shared_ptr<MultiSinksBintr>
@@ -50,11 +52,100 @@ namespace DSL
         std::shared_ptr<SplitterBintr>(new SplitterBintr(name))
 
     /**
+     * @class TeeBintr
+     * @brief Implements a virtual base Tee binter that can add, link, 
+     * unlink, and remove child branches
+     */
+    class TeeBintr : public Bintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the MultiBranchesBintr
+         * @param[in] name name to give the new Bintr
+         */
+        TeeBintr(const char* name) 
+            : Bintr(name)
+            , m_blockingTimeout(DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC)
+        {
+            LOG_FUNC();
+        };
+
+        /**
+         * @brief dtor for the MultiBranchesBintr
+         */
+        ~TeeBintr()
+        {
+            LOG_FUNC();
+        };
+
+        /**
+         * @brief adds a child ComponentBintr to this TeeBintr
+         * @param[in] pChildComponent shared pointer to ComponentBintr to add
+         * @return true if the ComponentBintr was added correctly, false otherwise
+         */
+        virtual bool AddChild(DSL_BINTR_PTR pChildComponent) = 0;
+        
+        /**
+         * @brief removes a child ComponentBintr from this TeeBintr
+         * @param[in] pChildComponent a shared pointer to ComponentBintr to remove
+         * @return true if the ComponentBintr was removed correctly, false otherwise
+         */
+        virtual bool RemoveChild(DSL_BINTR_PTR pChildComponent) = 0;
+
+        /**
+         * @brief overrides the base method and checks in m_pChildBranches only.
+         */
+        virtual bool IsChild(DSL_BINTR_PTR pChildComponent) = 0;
+
+        /**
+         * @brief overrides the base Noder method to only return the number of 
+         * child ComponentBintrs and not the total number of children... 
+         * i.e. exclude the nuber of child Elementrs from the count
+         * @return the number of Child ComponentBintrs (branches) held by this 
+         * TeeBintr
+         */
+        virtual uint GetNumChildren() = 0;
+
+        uint GetBlockingTimeout()
+        {
+            LOG_FUNC();
+            
+            return m_blockingTimeout;
+        };
+     
+        bool SetBlockingTimeout(uint timeout)
+        {
+            LOG_FUNC();
+            
+            if (IsLinked())
+            {
+                LOG_ERROR("Unable to set blocking-timeout for Tee '" << GetName() 
+                    << "' as it's currently linked");
+                return false;
+            }
+            m_blockingTimeout = timeout;
+            
+            return true;
+        };
+        
+    protected:
+
+        /**
+         * @brief current blocking-timeout for this TeeBintr. Controls
+         * how long the TeeBintr will block/wait for the blocking PPH
+         * callback to be called. Needs to be > seconds/frame for all streams.
+         */
+        uint m_blockingTimeout;
+    
+    };
+
+    /**
      * @class MultiBranchesBintr
      * @brief Implements a base Tee binter that can add, link, unlink, and remove
      * child branches while in any state (NULL, PLAYING, etc.)
      */
-    class MultiBranchesBintr : public Bintr
+    class MultiBranchesBintr : public TeeBintr
     {
     public: 
     
@@ -101,20 +192,6 @@ namespace DSL
             
             return m_pChildBranches.size();
         }
-
-        /**
-         * @brief Gets the current blocking-timeout for the MultiBranchesBintr.
-         * @return current blocking-timeout. 
-         * Default = DSL_TEE_DEMUXER_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
-         */
-        uint GetBlockingTimeout();
-        
-        /**
-         * @brief Sets the blocking-timeout for this MultiBranchesBintr.
-         * @param timeout new timeout in units of seconds.
-         * @return True if set successfully, false otherwise. 
-         */
-        bool SetBlockingTimeout(uint timeout);
 
         /** 
          * @brief links all child Component Bintrs and their elements
@@ -165,13 +242,6 @@ namespace DSL
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
 
-        /**
-         * @brief current blocking-timeout for this MultiBranchesBintr. Controls
-         * how long the MultiBranchesBintr will block/wait for the blocking PPH
-         * callback to be called. Needs to be > seconds/frame for all streams.
-         */
-        uint m_blockingTimeout;
-    
         /**
          * @brief queue element for this Bintr to create a new process 
          * for this Bintr to run in
