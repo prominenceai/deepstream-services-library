@@ -309,6 +309,8 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
+        !components[name]->IsType(typeid(DemuxerBintr)) and \
+        !components[name]->IsType(typeid(SplitterBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Branch type"); \
