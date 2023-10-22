@@ -477,14 +477,14 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
             }
             WHEN( "The Overlay Sink's qos property is updated from its default" ) 
             {
-                boolean newQos(false);  // default == true
+                boolean newQos(true);  // default == false
                 REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
                     newQos) == DSL_RESULT_SUCCESS );
 
                 THEN( "The correct value is returned on get" ) 
                 {
                     REQUIRE( dsl_component_list_size() == 1 );
-                    boolean retQos(true);
+                    boolean retQos(false);
                     REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
                         &retQos) == DSL_RESULT_SUCCESS );
                     REQUIRE( retQos == newQos );
@@ -840,14 +840,14 @@ SCENARIO( "A Window Sink can update it's common properties correctly",
         }
         WHEN( "The Window Sink's qos property is updated from its default" ) 
         {
-            boolean newQos(false);  // default == true
+            boolean newQos(true);  // default == false
             REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
                 newQos) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retQos(true);
+                boolean retQos(false);
                 REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
                     &retQos) == DSL_RESULT_SUCCESS );
                 REQUIRE( retQos == newQos );
@@ -1461,14 +1461,14 @@ SCENARIO( "A File Sink can update it's common properties correctly",
         }
         WHEN( "The File Sink's qos property is updated from its default" ) 
         {
-            boolean newQos(false);  // default == true
+            boolean newQos(true);  // default == false
             REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
                 newQos) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retQos(true);
+                boolean retQos(false);
                 REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
                     &retQos) == DSL_RESULT_SUCCESS );
                 REQUIRE( retQos == newQos );
@@ -2011,14 +2011,14 @@ SCENARIO( "A RTSP Sink can update it's common properties correctly",
         }
         WHEN( "The RTSP Sink's qos property is updated from its default" ) 
         {
-            boolean newQos(false);  // default == true
+            boolean newQos(true);  // default == false
             REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
                 newQos) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retQos(true);
+                boolean retQos(false);
                 REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
                     &retQos) == DSL_RESULT_SUCCESS );
                 REQUIRE( retQos == newQos );
@@ -2265,7 +2265,7 @@ SCENARIO( "A Multi-Image Sink can update it's common properties correctly",
         }
         WHEN( "The Multi-Image Sink's qos property is updated from its default" ) 
         {
-            boolean newQos(false);  // default == true
+            boolean newQos(true);  // default == false
             REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
                 newQos) == DSL_RESULT_SUCCESS );
 

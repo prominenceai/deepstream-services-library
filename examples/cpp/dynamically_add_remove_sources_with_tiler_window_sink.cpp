@@ -195,24 +195,14 @@ int main(int argc, char** argv)
         retval = dsl_osd_new(L"on-screen-display", TRUE, TRUE, TRUE, FALSE);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // IMPORTANT! the default Window-Sink (and Overlay-Sink) settings must by
-        // updated to support dynamic Pipeline updates... specifically, we need to 
-        // disable the "sync", "max-lateness", and "qos" properties.
         // New Window Sink, 0 x/y offsets.
         retval = dsl_sink_window_new(L"window-sink", 
             300, 300, 1280, 720);
         if (retval != DSL_RESULT_SUCCESS) break;
     
-        // Disable the "sync" setting    
+        // IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
+        // be set to false to support dynamic Pipeline updates.ties.
         retval = dsl_sink_sync_enabled_set(L"window-sink", FALSE);
-        if (retval != DSL_RESULT_SUCCESS) break;
-            
-        // Disable the "max-lateness" setting
-        retval = dsl_sink_max_lateness_set(L"window-sink", -1);
-        if (retval != DSL_RESULT_SUCCESS) break;
-            
-        // Disable the "qos" setting
-        retval = dsl_sink_qos_enabled_set(L"window-sink", FALSE);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above

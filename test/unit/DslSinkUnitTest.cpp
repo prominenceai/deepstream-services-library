@@ -186,7 +186,7 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                     REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                     REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
-                    REQUIRE( pSinkBintr->GetQosEnabled() == true );
+                    REQUIRE( pSinkBintr->GetQosEnabled() == false );
                 }
             }
         }
@@ -466,7 +466,7 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == true );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }

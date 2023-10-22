@@ -181,25 +181,13 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        # IMPORTANT! the default Window-Sink (and Overlay-Sink) settings must by
-        # updated to support dynamic Pipeline updates... specifically, we need to 
-        # disable the "sync", "max-lateness", and "qos" properties.
         retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Disable the "sync" setting    
+        # IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
+        # be set to false to support dynamic Pipeline updates.ties.
         retval = dsl_sink_sync_enabled_set('window-sink', False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Disable the "max-lateness" setting
-        retval = dsl_sink_max_lateness_set('window-sink', -1)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        # Disable the "qos" setting
-        retval = dsl_sink_qos_enabled_set('window-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
