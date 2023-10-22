@@ -53,7 +53,7 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == dataType );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
@@ -106,7 +106,7 @@ SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == DSL_SINK_APP_DATA_TYPE_BUFFER );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
@@ -128,7 +128,7 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
@@ -184,7 +184,7 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
                 {
                     REQUIRE( pSinkBintr->GetDisplayId() == 0 );
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                    REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                    REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                     REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
                     REQUIRE( pSinkBintr->GetQosEnabled() == true );
                 }
@@ -464,7 +464,7 @@ SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
             {
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == true );
             }
@@ -969,7 +969,7 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retHeight == 0 );
                 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
@@ -1064,7 +1064,7 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retHeight == 0 );
 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
@@ -1509,7 +1509,7 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
@@ -1731,7 +1731,7 @@ SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( pSinkBintr->GetMaxFiles() == 0 );
                 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }

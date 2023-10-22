@@ -275,14 +275,14 @@ SCENARIO( "A Fake Sink can update it's common properties correctly",
         }
         WHEN( "The Fake Sink's async property is updated from its default" ) 
         {
-            boolean newAsync(false);  // default == true
+            boolean newAsync(true);  // default == false
             REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                 newAsync) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retAsync(true);
+                boolean retAsync(false);
                 REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                     &retAsync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retAsync == newAsync );
@@ -443,14 +443,14 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
             }
             WHEN( "The Overlay Sink's async property is updated from its default" ) 
             {
-                boolean newAsync(false);  // default == true
+                boolean newAsync(true);  // default == false
                 REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                     newAsync) == DSL_RESULT_SUCCESS );
 
                 THEN( "The correct value is returned on get" ) 
                 {
                     REQUIRE( dsl_component_list_size() == 1 );
-                    boolean retAsync(true);
+                    boolean retAsync(false);
                     REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                         &retAsync) == DSL_RESULT_SUCCESS );
                     REQUIRE( retAsync == newAsync );
@@ -573,41 +573,6 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
                     dsl_sink_render_dimensions_get(sink_name.c_str(), &retSinkW, &retSinkH);
                     REQUIRE( preSinkW == retSinkW);
                     REQUIRE( preSinkH == retSinkH);
-
-                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                    REQUIRE( dsl_component_list_size() == 0 );
-                }
-            }
-        }
-    }
-}
-
-SCENARIO( "An Overlay Sink can be Reset", "[sink-api]" )
-{
-    GIVEN( "Attributes for a new Overlay Sink" ) 
-    {
-        // Get the Device properties
-        cudaDeviceProp deviceProp;
-        cudaGetDeviceProperties(&deviceProp, 0);
-        
-        if (deviceProp.integrated)
-        {
-            std::wstring overlaySinkName = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
-            uint offsetX(0);
-            uint offsetY(0);
-            uint sinkW(0);
-            uint sinkH(0);
-
-            WHEN( "The Overlay Sink is created" ) 
-            {
-                REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
-                    offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-                
-                THEN( "The Overlay Sink can be reset after creation" ) 
-                {
-                    REQUIRE( dsl_sink_render_reset(overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
 
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                     REQUIRE( dsl_component_list_size() == 0 );
@@ -841,14 +806,14 @@ SCENARIO( "A Window Sink can update it's common properties correctly",
         }
         WHEN( "The Window Sink's async property is updated from its default" ) 
         {
-            boolean newAsync(false);  // default == true
+            boolean newAsync(true);  // default == false
             REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                 newAsync) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retAsync(true);
+                boolean retAsync(false);
                 REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                     &retAsync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retAsync == newAsync );
@@ -928,34 +893,7 @@ SCENARIO( "A Window Sink can update its force-aspect-ratio setting", "[sink-api]
         }
     }
 }    
-
-SCENARIO( "A Window Sink can be Reset", "[sink-api]" )
-{
-    GIVEN( "Given attributes for a new window sink" ) 
-    {
-        std::wstring windowSinkName = L"window-sink";
-
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
-        boolean force(1);
-
-        WHEN( "The Window Sink is created" ) 
-        {
-            REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
-                offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-            THEN( "The Window Sink can be reset after creation" ) 
-            {
-                REQUIRE( dsl_sink_render_reset(windowSinkName.c_str()) == DSL_RESULT_SUCCESS );
-
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}    
+ 
 
 SCENARIO( "A Window Sinks full-screen-enabled setting can be Set/Get", "[sink-api]" )
 {
@@ -1489,14 +1427,14 @@ SCENARIO( "A File Sink can update it's common properties correctly",
         }
         WHEN( "The File Sink's async property is updated from its default" ) 
         {
-            boolean newAsync(false);  // default == true
+            boolean newAsync(true);  // default == false
             REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                 newAsync) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retAsync(true);
+                boolean retAsync(false);
                 REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                     &retAsync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retAsync == newAsync );
@@ -2039,14 +1977,14 @@ SCENARIO( "A RTSP Sink can update it's common properties correctly",
         }
         WHEN( "The RTSP Sink's async property is updated from its default" ) 
         {
-            boolean newAsync(false);  // default == true
+            boolean newAsync(true);  // default == false
             REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                 newAsync) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retAsync(true);
+                boolean retAsync(false);
                 REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                     &retAsync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retAsync == newAsync );
@@ -2293,14 +2231,14 @@ SCENARIO( "A Multi-Image Sink can update it's common properties correctly",
         }
         WHEN( "The Multi-Image Sink's async property is updated from its default" ) 
         {
-            boolean newAsync(false);  // default == true
+            boolean newAsync(true);  // default == false
             REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                 newAsync) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retAsync(true);
+                boolean retAsync(false);
                 REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                     &retAsync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retAsync == newAsync );
@@ -2376,8 +2314,6 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(sink_name.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                
-                REQUIRE( dsl_sink_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_file_new(sink_name.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
