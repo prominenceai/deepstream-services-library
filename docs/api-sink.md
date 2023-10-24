@@ -48,23 +48,28 @@ As a general rule
 * **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`. See [`dsl_sink_max_lateness_get`](#dsl_sink_max_lateness_get) and [`dsl_sink_max_lateness_se`t](#dsl_sink_max_lateness_set).
 * **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronization. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example. See [`dsl_sink_qos_enabled_get`](#dsl_sink_qos_enabled_get) and [`dsl_sink_qos_enabled_set`](#dsl_sink_qos_enabled_set).
 
-**IMPORTANT!** All DSL Sink Components use the default property values assigned to their GStreamer (GST) Sink Plugin as defined in the table below.
+**IMPORTANT!** All DSL Sink Components use the default property values assigned to their GStreamer (GST) Sink Plugins, except for.
+1. All set their `async` property to false on construction.  Synchronization is required to support multiple levels of multiple [Secondary Inference](/docs/api-infer.md)
+2. All use a QOS value assigned to false (disabled)
 
-#### Default common property values
-| Sink               |  GST Plugin   | sync  | async | max-lateness |  qos  |
-| -------------------|---------------|-------|------ | ------------ | ----- |
-| Overlay Sink       | nvoverlaysink | true  | true  |   20000000   | true  |
-| Window Sink        | nveglglessink | true  | true  |   20000000   | true  |
-| File Sink          | filesink      | false | true  |      -1      | false |
-| Record Sink        | n/a           |  n/a  |  n/a  |      n/a     |  n/a  |
-| RTSP Sink          | udpsink       | true  | true  |      -1      | false |
-| WebRTC Sink        | fakesink      | false | true  |      -1      | false |
-| Message Sink       | nvmsgbroker   | true  | true  |      -1      | false |
-| App Sink           | appsink       | true  | true  |      -1      | false |
-| Interpipe Sink     | interpipesink | false | true  |      -1      | false |
-| Multi-Image Sink   | multifilesink | false | true  |      -1      | false |
-| Frame-Capture Sink | appsink       | true  | true  |      -1      | false |
-| Fake Sink          | fakesink      | false | true  |      -1      | false |
+#### Sink common property values
+* A single value indicates that the default is used.
+* `a/b` values define both default/updated used value.
+
+| Sink               |  GST Plugin   | sync  |    async    | max-lateness |     qos     |
+| -------------------|---------------|-------|------------ | ------------ | ----------- |
+| Overlay Sink       | nvoverlaysink | true  | true/false  |   20000000   | true/false  |
+| Window Sink        | nveglglessink | true  | true/false  |   20000000   | true/false  |
+| File Sink          | filesink      | false | true/false  |      -1      | false       |
+| Record Sink        | na            |  na   |  na         |      na      |  na         |
+| RTSP Sink          | udpsink       | true  | true/false  |      -1      | false       | 
+| WebRTC Sink        | fakesink      | false | true/false  |      -1      | false       |
+| Message Sink       | nvmsgbroker   | true  | true/false  |      -1      | false       |
+| App Sink           | appsink       | true  | true/false  |      -1      | false       |
+| Interpipe Sink     | interpipesink | false | true/false  |      -1      | false       |
+| Multi-Image Sink   | multifilesink | false | true/false  |      -1      | false       |
+| Frame-Capture Sink | appsink       | true  | true/false  |      -1      | false       |
+| Fake Sink          | fakesink      | false | true/false  |      -1      | false       |
 
 <b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
 
