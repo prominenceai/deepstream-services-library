@@ -312,7 +312,6 @@
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_thumbnail_periodically.py"/>
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_on_viewer_demand.py"/>
       <File Name="../examples/python/2uri_file_demuxer_pgie_iou_tiler_osd_window_2_file.py"/>
-      <File Name="../examples/python/2uri_splitter_pgie_iou_osd_window_and_file.py"/>
       <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_overlay.py"/>
       <File Name="../examples/python/smart_record_sink_start_session_on_ode_occurrence.py"/>
       <File Name="../examples/python/smart_record_sink_start_session_on_user_demand.py"/>

@@ -185,7 +185,7 @@ def main(args):
             break
 
         # Create an Any-Class Occurrence Trigger for our remove label and bbox border actions
-        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source-1',
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break

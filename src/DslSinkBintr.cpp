@@ -33,23 +33,29 @@ THE SOFTWARE.
 
 namespace DSL
 {
-
     SinkBintr::SinkBintr(const char* name) 
         : Bintr(name)
-        , m_sync(false)         // Note: each derived bintr will update the 4 common
-        , m_async(false)        // propery settings (sync, async, max-latness, qos)
-        , m_maxLateness(-1)     // with get-property calls on bintr construction.
-        , m_qos(false)
-        , m_enableLastSample(false) // disable last-sample for all bintrs.
+        , m_sync(false)         // Note: each derived bintr will update the 2 of th 4
+        , m_maxLateness(-1)     // common propery settings (sync,  max-latness)
+        , m_qos(false)          // with get-property calls on bintr construction.
+        , m_async(false)        // Set async property to false for all bintrs.
+        , m_enableLastSample(false) // Disable last-sample for all bintrs.
         , m_cudaDeviceProp{0}
     {
         LOG_FUNC();
 
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
-
+        
+        // SinkBintrs well be connected to either the MultiSinksBintr
+        // or as a Branch to a Demuxer, Remuxer, or Splitter Tee.
+        // In all cases a Tee - therefore we need a downstream queue as first element.
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        
+        // Add the Queue as a child of the SinkBintr
         AddChild(m_pQueue);
+        
+        // Float the Queue as sink (input) ghost pad for this SinkBintr
         m_pQueue->AddGhostPadToParent("sink");
     }
 
@@ -62,7 +68,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' Sink to the Parent Pipeline 
+        // add 'this' Sink to the Parent Pipeline or Branch
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSinkBintr(shared_from_this());
     }
@@ -71,7 +77,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // check if 'this' Sink is child of Parent Pipeline 
+        // check if 'this' Sink is child of Parent Pipeline or Branch
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             IsSinkBintrChild(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
@@ -202,9 +208,13 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -467,9 +477,13 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -588,9 +602,13 @@ namespace DSL
         
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -760,9 +778,13 @@ namespace DSL
         
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -1690,9 +1712,13 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -1929,9 +1955,13 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -2135,9 +2165,13 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -2151,16 +2185,6 @@ namespace DSL
 
         m_pSink->SetAttribute("proto-lib", m_protocolLib.c_str());
         m_pSink->SetAttribute("conn-str", m_connectionString.c_str());
-        
-        // Get the property defaults
-//        m_pFakeSink->GetAttribute("async", &m_async);
-
-        // Update all default DSL values
-//        m_pFakeSink->SetAttribute("enable-last-sample", false);
-//        m_pFakeSink->SetAttribute("max-lateness", -1);
-//        m_pFakeSink->SetAttribute("sync", m_sync);
-//        m_pFakeSink->SetAttribute("async", false);
-//        m_pFakeSink->SetAttribute("qos", m_qos);
         
         if (brokerConfigFile)
         {
@@ -2341,9 +2365,13 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
@@ -2468,9 +2496,13 @@ namespace DSL
         
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
