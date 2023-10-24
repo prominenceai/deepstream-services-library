@@ -5506,11 +5506,11 @@ def dsl_sink_record_session_start(name, start, duration, client_data):
 ##
 ## dsl_sink_record_session_stop()
 ##
-_dsl.dsl_sink_record_session_stop.argtypes = [c_wchar_p]
+_dsl.dsl_sink_record_session_stop.argtypes = [c_wchar_p, c_bool]
 _dsl.dsl_sink_record_session_stop.restype = c_uint
-def dsl_sink_record_session_stop(name):
+def dsl_sink_record_session_stop(name, sync):
     global _dsl
-    result = _dsl.dsl_sink_record_session_stop(name)
+    result = _dsl.dsl_sink_record_session_stop(name, sync)
     return int(result)
 
 ##

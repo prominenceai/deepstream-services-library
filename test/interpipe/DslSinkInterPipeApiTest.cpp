@@ -106,14 +106,14 @@ SCENARIO( "An Interpipe Sink can update it's common properties correctly",
         }
         WHEN( "The Interpipe Sink's async property is updated from its default" ) 
         {
-            boolean newAsync(false);  // default == true
+            boolean newAsync(true);  // default == false
             REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
                 newAsync) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct value is returned on get" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
-                boolean retAsync(true);
+                boolean retAsync(false);
                 REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
                     &retAsync) == DSL_RESULT_SUCCESS );
                 REQUIRE( retAsync == newAsync );

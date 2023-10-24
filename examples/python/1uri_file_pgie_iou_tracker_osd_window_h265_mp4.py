@@ -127,7 +127,8 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -147,15 +148,16 @@ def main(args):
             break
 
         # New File Sink with H265 Codec type and MPEG4 conatiner muxer, 
-        # and bit-rate and iframe interval
+        # and bit-rate=0 (use plugin default) and interval=0=everyframe.
         retval = dsl_sink_file_new('file-sink', 
-            "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 2000000, 0)
+            "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'window-sink', 'file-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display',
+            'window-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

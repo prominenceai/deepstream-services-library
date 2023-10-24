@@ -137,9 +137,9 @@ def main(args):
             break
 
         # New File Sink with H264 Codec type and MKV conatiner muxer, 
-        # and bit-rate and iframe interval
+        # and bit-rate=0 (use plugin default) and interval=0=everyframe.
         retval = dsl_sink_file_new('file-sink', "./output.mkv", 
-            DSL_CODEC_H264, DSL_CONTAINER_MKV, 2000000, 0)
+            DSL_CODEC_H264, DSL_CONTAINER_MKV, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

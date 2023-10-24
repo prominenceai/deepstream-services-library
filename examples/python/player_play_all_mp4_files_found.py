@@ -31,6 +31,9 @@ import os
 
 dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams"
 
+WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+
 ## 
 # Function to be called on Player termination event
 ## 

@@ -90,6 +90,13 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+
+        # need to check if there's a recording in progress that needs to be stopped
+        retval, is_on = dsl_sink_record_is_on_get('record-sink')
+        if is_on:
+            print('Recording in progress, stoping first.')
+            dsl_sink_record_session_stop('record-sink', True)
+
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
@@ -98,6 +105,13 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    
+    # need to check if there's a recording in progress that needs to be stopped
+    retval, is_on = dsl_sink_record_is_on_get('record-sink')
+    if is_on:
+        print('Recording in progress, stoping first.')
+        dsl_sink_record_session_stop('record-sink', True)
+        
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
