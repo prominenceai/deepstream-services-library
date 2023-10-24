@@ -370,6 +370,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New Tiler, setting width and height, use default cols/rows set by 
+        # the number of sources
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Object Detection Event (ODE) Pad Probe Handler (PPH) to manage our ODE 
         # Triggers with their ODE Actions    
         retval = dsl_pph_ode_new('ode-handler')    
@@ -411,7 +417,7 @@ def main(args):
 
         # Add all the components to our pipeline    
         retval = dsl_pipeline_new_component_add_many('pipeline',     
-            ['primary-gie', 'iou-tracker', 
+            ['primary-gie', 'iou-tracker', 'tiler',
             'on-screen-display', 'window-sink', None])    
         if retval != DSL_RETURN_SUCCESS:    
             break    
