@@ -6166,15 +6166,85 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name,
     const wchar_t** branches);
 
 /**
- * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
+ * @brief Creates a new, uniquely named Remuxer Tee component
+ * @param[in] name unique name for the new Stream Remuxer Tee
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE
+ */
+DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
+
+/**
+ * @brief Creates a new Remuxer Tee and adds a list of Branches to it.
+ * @param[in] name unique name for the new Remuxer Tee.
+ * @param[in] branches NULL terminated array of Branch names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
+ */
+DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches);
+
+/**
+ * @brief Adds a single Branch to a Remuxer Tee to be linked to a specific set 
+ * of streams-ids.
+ * @param[in] name name of the Rumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_ids array of specific stream-ids to connect to.
+ * @param[in] num_stream_ids number of ids in the stream-ids array.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint* stream_ids, uint num_stream_ids);
+
+/**
+ * @brief Gets the current batch-size and batch-push-timeout properties for the 
+ * named Remuxer.
+ * @param[in] name unique name of the Remuxer to query
+ * @param[out] batch_size the current batch size in use.
+ * @param[out] batch_timeout the current batch timeout in use. 
+ * Default = -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout);
+
+/**
+ * @brief Updates the named Remuxer's batch-size and batch-push-timeout properties
+ * @param[in] name unique name of the Remuxer to update.
+ * @param[out] batch_size the new batch size to use.
+ * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout);
+
+/**
+ * @brief Get the current output frame dimensions for the named Remuxer.
+ * @param[in] name name of the Remuxer to query.
+ * @param[out] width current output frame width in units of pixels.
+ * @param[out] height current output frame height in units of pixels.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Set the output dimensions for the named Remuxer to use.
+ * @param[in] name name of the Remuxer to update.
+ * @param[in] width new output frame width to use in units of pixels.
+ * @param[in] height new output frame height to use in units of pixels.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+*/
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief adds a single Branch to a Demuxer, Remuxer, or Splitter Tee.
  * @param[in] name name of the Tee to update
  * @param[in] branch name of Branch to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
  */
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 
 /**
- * @brief adds a list of Branches to a Stream Demuxer or Splitter Tee
+ * @brief adds a list of Branches to a Demuxer, Reuxer or Splitter Tee
  * @param[in] name name of the Tee to update
  * @param[in] branches NULL terminated array of Branch names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure

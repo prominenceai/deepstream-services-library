@@ -4913,6 +4913,89 @@ def dsl_tee_demuxer_max_branches_set(name, max_branches):
     return int(result)
 
 ##
+## dsl_tee_remuxer_new()
+##
+_dsl.dsl_tee_remuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_tee_remuxer_new.restype = c_uint
+def dsl_tee_remuxer_new(name):
+    global _dsl
+    result =_dsl.dsl_tee_remuxer_new(name)
+    return int(result)
+
+##
+## dsl_tee_remuxer_new_branch_add_many()
+##
+#_dsl.dsl_tee_remuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_remuxer_new_branch_add_many.restype = c_uint
+def dsl_tee_remuxer_new_branch_add_many(name, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_remuxer_new_branch_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_tee_remuxer_branch_add_to()
+##
+# ??? _dsl.dsl_tee_remuxer_branch_add_to.argtypes = [c_wchar_p, c_wchar_p, 
+#    c_uint]
+_dsl.dsl_tee_remuxer_branch_add_to.restype = c_uint
+def dsl_tee_remuxer_branch_add_to(name, branch, stream_ids, num_stream_ids):
+    global _dsl
+    arr = (c_uint * num_stream_ids)()
+    arr[:] = stream_ids
+    result =_dsl.dsl_tee_remuxer_branch_add_to(name, branch, arr, num_stream_ids)
+    return int(result)
+
+##
+## dsl_tee_remuxer_batch_properties_get()
+##
+_dsl.dsl_tee_remuxer_batch_properties_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tee_remuxer_batch_properties_get.restype = c_uint
+def dsl_tee_remuxer_batch_properties_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    batch_timeout = c_uint(0)
+    result = _dsl.dsl_tee_remuxer_batch_properties_get(name, DSL_UINT_P(batch_size), 
+        DSL_UINT_P(batch_timeout))
+    return int(result), batch_size.value, batch_timeout.value 
+
+##
+## dsl_tee_remuxer_batch_properties_set()
+##
+_dsl.dsl_tee_remuxer_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tee_remuxer_batch_properties_set.restype = c_uint
+def dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout)
+    return int(result)
+
+##
+## dsl_tee_remuxer_dimensions_get()
+##
+_dsl.dsl_tee_remuxer_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tee_remuxer_dimensions_get.restype = c_uint
+def dsl_tee_remuxer_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_tee_remuxer_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_tee_remuxer_dimensions_set()
+##
+_dsl.dsl_tee_remuxer_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tee_remuxer_dimensions_set.restype = c_uint
+def dsl_tee_remuxer_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_dimensions_set(name, width, height)
+    return int(result)
+
+##
 ## dsl_tee_splitter_new()
 ##
 _dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]
