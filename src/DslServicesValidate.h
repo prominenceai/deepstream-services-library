@@ -288,6 +288,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(DemuxerBintr)) and  \
+        !components[name]->IsType(typeid(RemuxerBintr)) and  \
         !components[name]->IsType(typeid(SplitterBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Tee"); \

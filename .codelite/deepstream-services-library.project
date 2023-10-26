@@ -126,6 +126,8 @@
     <File Name="../src/DslMutex.h"/>
     <File Name="../src/DslCond.h"/>
     <File Name="../src/DslUtilities.h"/>
+    <File Name="../src/DslRemuxerBintr.cpp"/>
+    <File Name="../src/DslRemuxerBintr.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
     <VirtualDirectory Name="avfile">
@@ -178,6 +180,8 @@
       <File Name="../test/api/DslSinkImageBehaviorTest.cpp"/>
       <File Name="../test/api/DslDemuxerBehaviorTest.cpp"/>
       <File Name="../test/api/DslPipelineCbApiTest.cpp"/>
+      <File Name="../test/api/DslRemuxerApiTest.cpp"/>
+      <File Name="../test/api/DslRemuxerBehaviorTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="unit">
       <File Name="../test/unit/DslDewarperUnitTest.cpp"/>
@@ -213,6 +217,7 @@
       <File Name="../test/unit/DslOdeActionUnitTest.cpp"/>
       <File Name="../test/unit/DslPreprocUnitTest.cpp"/>
       <File Name="../test/unit/DslDemuxerAndSplitterUnitTest.cpp"/>
+      <File Name="../test/unit/DslRemuxerUnitTest.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="nmp">
       <File Name="../test/nmp/DslPphNmpUnitTest.cpp"/>
@@ -259,6 +264,7 @@
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
       <File Name="../examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp"/>
       <File Name="../examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp"/>
+      <File Name="../examples/cpp/parallel_inference_on_selective_streams.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1csi_live_pgie_osd_overlay_rtsp_h254.py"/>
@@ -320,6 +326,7 @@
       <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
       <File Name="../examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py"/>
       <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py"/>
+      <File Name="../examples/python/parallel_inference_on_selective_streams.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
       <File Name="../examples/tkinter/action.py"/>
