@@ -1918,8 +1918,9 @@ namespace DSL
 
     //******************************************************************************************
     
-    RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
-         uint codec, uint bitrate, uint interval)
+    RtspServerSinkBintr::RtspServerSinkBintr(const char* name, 
+        const char* host, uint udpPort, uint rtspPort,
+        uint codec, uint bitrate, uint interval)
         : EncodeSinkBintr(name, codec, bitrate, interval)
         , m_host(host)
         , m_udpPort(udpPort)
@@ -1984,7 +1985,7 @@ namespace DSL
 
         
         LOG_INFO("");
-        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
         LOG_INFO("  host               : " << m_host);
         LOG_INFO("  port               : " << m_udpPort);
         LOG_INFO("  codec              : " << m_codec);
@@ -2009,7 +2010,7 @@ namespace DSL
         AddChild(m_pSink);
     }
     
-    RtspSinkBintr::~RtspSinkBintr()
+    RtspServerSinkBintr::~RtspServerSinkBintr()
     {
         LOG_FUNC();
 
@@ -2019,13 +2020,13 @@ namespace DSL
         }
     }
 
-    bool RtspSinkBintr::LinkAll()
+    bool RtspServerSinkBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("RtspSinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("RtspServerSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         
@@ -2043,7 +2044,7 @@ namespace DSL
         m_pFactory = gst_rtsp_media_factory_new();
         gst_rtsp_media_factory_set_launch(m_pFactory, udpSrc.c_str());
 
-        LOG_INFO("UDP Src for RtspSinkBintr '" << GetName() << "' = " << udpSrc);
+        LOG_INFO("UDP Src for RtspServerSinkBintr '" << GetName() << "' = " << udpSrc);
 
         // Get a handle to the Mount-Points object from the new RTSP Server
         GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
@@ -2085,17 +2086,17 @@ namespace DSL
         return GST_RTSP_FILTER_REMOVE;
     }
 
-    void RtspSinkBintr::UnlinkAll()
+    void RtspServerSinkBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("RtspSinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("RtspServerSinkBintr '" << GetName() << "' is not linked");
             return;
         }
 
-        // remove the mount point for this RtspSinkBintr's server
+        // remove the mount point for this RtspServerSinkBintr's server
         GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);        
         std::string uniquePath = "/" + GetName();
         gst_rtsp_mount_points_remove_factory(pMounts, uniquePath.c_str());
@@ -2132,7 +2133,7 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void RtspSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort)
+    void RtspServerSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort)
     {
         LOG_FUNC();
         

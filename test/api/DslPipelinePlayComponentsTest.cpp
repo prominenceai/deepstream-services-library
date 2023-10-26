@@ -672,7 +672,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_rtsp_new(rtsp_sink_name.c_str(), host.c_str(),
+        REQUIRE( dsl_sink_rtsp_server_new(rtsp_sink_name.c_str(), host.c_str(),
             udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
@@ -721,7 +721,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
 //            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
-//        REQUIRE( dsl_sink_rtsp_new(rtsp_sink_name.c_str(), host.c_str(),
+//        REQUIRE( dsl_sink_rtsp_server_new(rtsp_sink_name.c_str(), host.c_str(),
 //            udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );

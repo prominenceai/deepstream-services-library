@@ -1566,8 +1566,8 @@ namespace DSL
     }
 
 
-    DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
-            uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
+    DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
+        uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1582,23 +1582,28 @@ namespace DSL
             }
             if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for RTSP Server Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
-            m_components[name] = DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval);
+            m_components[name] = DSL_RTSP_SERVER_SINK_NEW(name, 
+                host, udpPort, rtspPort, codec, bitrate, interval);
 
-            LOG_INFO("New RTSP Sink '" << name << "' created successfully");
+            LOG_INFO("New RTSP Server Sink '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New RTSP Sink '" << name << "' threw exception on create");
+            LOG_ERROR("New RTSP Server Sink '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* udpPort, uint* rtspPort)
+    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, 
+        uint* udpPort, uint* rtspPort)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1606,21 +1611,23 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspServerSinkBintr);
             
-            DSL_RTSP_SINK_PTR rtspSinkBintr = 
-                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
+            DSL_RTSP_SERVER_SINK_PTR rtspSinkBintr = 
+                std::dynamic_pointer_cast<RtspServerSinkBintr>(m_components[name]);
 
             rtspSinkBintr->GetServerSettings(udpPort, rtspPort);
 
-            LOG_INFO("RTSP Sink '" << name << "' returned UDP Port = " 
+            LOG_INFO("RTSP Server Sink '" << name << "' returned UDP Port = " 
                 << *udpPort << ", RTSP Port = " << *rtspPort << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
+            LOG_ERROR("RTSP Server Sink '" << name 
+                << "' threw an exception getting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

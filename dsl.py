@@ -5809,25 +5809,30 @@ def dsl_sink_encode_dimensions_set(name, width, height):
     return int(result)
 
 ##
-## dsl_sink_rtsp_new()
+## dsl_sink_rtsp_server_new()
 ##
-_dsl.dsl_sink_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_rtsp_new.restype = c_uint
-def dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval):
+_dsl.dsl_sink_rtsp_server_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_rtsp_server_new.restype = c_uint
+def dsl_sink_rtsp_server_new(name, 
+    host, udp_port, rtsp_port, codec, bitrate, interval):
     global _dsl
-    result =_dsl.dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval)
+    result =_dsl.dsl_sink_rtsp_server_new(name, 
+        host, udp_port, rtsp_port, codec, bitrate, interval)
     return int(result)
 
 ##
 ## dsl_sink_rtsp_server_settings_get()
 ##
-_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_sink_rtsp_server_settings_get.restype = c_uint
 def dsl_sink_rtsp_server_settings_get(name):
     global _dsl
     udp_port = c_uint(0)
     rtsp_port = c_uint(0)
-    result = _dsl.dsl_sink_rtsp_server_settings_get(name, DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port))
+    result = _dsl.dsl_sink_rtsp_server_settings_get(name, 
+        DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port))
     return int(result), udp_port.value, rtsp_port.value
 
 ##
