@@ -81,6 +81,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PREPROC_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
             
             DSL_PREPROC_PTR pPreprocBintr = 
                 std::dynamic_pointer_cast<PreprocBintr>(m_components[name]);
@@ -109,6 +111,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PREPROC_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
 
             std::string testPath(configFile);
             if (testPath.size())
@@ -154,6 +158,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PREPROC_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
 
             DSL_PREPROC_PTR pPreprocBintr = 
                 std::dynamic_pointer_cast<PreprocBintr>(m_components[name]);
@@ -182,6 +188,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PREPROC_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
 
             DSL_PREPROC_PTR pPreprocBintr = 
                 std::dynamic_pointer_cast<PreprocBintr>(m_components[name]);
@@ -213,6 +221,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PREPROC_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
 
             DSL_PREPROC_PTR pPreprocBintr = 
                 std::dynamic_pointer_cast<PreprocBintr>(m_components[name]);
@@ -228,6 +238,88 @@ namespace DSL
         {
             LOG_ERROR("Preprocessor '" << name 
                 << "' threw an exception getting unique Id");
+            return DSL_RESULT_PREPROC_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PreprocPphAdd(const char* name, 
+        const char* handler, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Preprocessor '" 
+                    << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the Preprocessor as 
+            // a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], pad))
+            {
+                LOG_ERROR("Preprocessor '" << name 
+                    << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_PREPROC_HANDLER_ADD_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler 
+                << "' added to Preprocess '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Preprocessor '" << name 
+                << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_PREPROC_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::PreprocPphRemove(const char* name, 
+        const char* handler, uint pad) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PreprocBintr);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Preprocessor '" 
+                    << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the Tiler
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], 
+                pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Preprocessor '" << name << "'");
+                return DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler 
+                << "' removed from Preprocessor '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Preprocessor '" << name 
+                << "' threw an exception removing ODE Handle");
             return DSL_RESULT_PREPROC_THREW_EXCEPTION;
         }
     }

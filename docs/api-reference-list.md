@@ -262,6 +262,8 @@
 * [`dsl_preproc_enabled_get`](/docs/api-preproc.md#dsl_preproc_enabled_get)
 * [`dsl_preproc_enabled_set`](/docs/api-preproc.md#dsl_preproc_enabled_set)
 * [`dsl_preproc_unique_id_get`](/docs/api-preproc.md#dsl_preproc_unique_id_get)
+* [`dsl_preproc_pph_add`](/docs/api-preproc.md#dsl_preproc_pph_add)
+* [`dsl_preproc_pph_remove`](/docs/api-preproc.md#dsl_preproc_pph_remove)
 
 ## Primary and Secondary Inference API:
 * [Overview](/docs/api-infer.md)

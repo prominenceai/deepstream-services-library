@@ -475,6 +475,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PREPROC_IN_USE                                   0x00B00005
 #define DSL_RESULT_PREPROC_SET_FAILED                               0x00B00006
 #define DSL_RESULT_PREPROC_IS_NOT_PREPROC                           0x00B00007
+#define DSL_RESULT_PREPROC_HANDLER_ADD_FAILED                       0x00B00008
+#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B00009
 
 /**
  * GPU Types
@@ -5529,6 +5531,28 @@ DslReturnType dsl_preproc_unique_id_get(const wchar_t* name,
     uint* id);
 
 /**
+ * @brief Adds a pad-probe-handler to a named Preprocessor to be called to 
+ * process each frame buffer. A Preprocessor can have multiple Sink and Source
+ * pad-probe-handlers.
+ * @param[in] name unique name of the Preprocessor to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PREPROC_RESULT otherwise
+ */
+DslReturnType dsl_preproc_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from a named Preprocessor
+ * @param[in] name unique name of the Preprocessor to update
+ * @param[in] handler pad-probe-handler to remove.
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PREPROC_RESULT otherwise
+ */
+DslReturnType dsl_preproc_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
  * @brief Creates a new, uniquely named Segmentation Visualizer. Once created,
  * the Segmentation Visualizer can be added to a Primary GIE. 
  * @param[in] name unique name for the new Segmentation Visualizer
@@ -5888,22 +5912,24 @@ DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name,
 
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * A Primary GIE can have multiple Sink and Source pad-probe-handlers
- * @param[in] name unique name of the Primary GIE to update
+ * A Tracker can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the Tracker to update
  * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_tracker_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the Primary GIE
- * @param[in] name unique name of the Primary GIE to update
+ * @brief Removes a pad-probe-handler from the name Tracker Component
+ * @param[in] name unique name of the Tracker to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_tracker_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj

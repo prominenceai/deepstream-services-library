@@ -989,6 +989,13 @@ namespace DSL {
         DslReturnType PreprocUniqueIdGet(const char* name, 
             uint* uniqueId);
 
+        DslReturnType PreprocPphAdd(const char* name, 
+            const char* handler, uint pad);
+
+        DslReturnType PreprocPphRemove(const char* name, 
+            const char* handler, uint pad);
+
+
         DslReturnType SegVisualNew(const char* name, uint width, uint height);
         
         DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);
