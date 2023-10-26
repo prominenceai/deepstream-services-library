@@ -5406,6 +5406,36 @@ DslReturnType dsl_preproc_unique_id_get(const wchar_t* name,
         id);
 }
 
+DslReturnType dsl_preproc_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PreprocPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
+}
+
+DslReturnType dsl_preproc_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PreprocPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
+}
+
 DslReturnType dsl_segvisual_new(const wchar_t* name, 
     uint width, uint height)
 {
