@@ -7375,7 +7375,7 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
         cstrName.c_str(), cstrMailer.c_str());
 }
    
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7386,7 +7386,7 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
     std::wstring wstrHost(host);
     std::string cstrHost(wstrHost.begin(), wstrHost.end());
 
-    return DSL::Services::GetServices()->SinkRtspNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkRtspServerNew(cstrName.c_str(), 
         cstrHost.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 }     
 

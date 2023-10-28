@@ -383,7 +383,7 @@
 * [`dsl_sink_window_new`](/docs/api-sink.md#dsl_sink_window_new)
 * [`dsl_sink_file_new`](/docs/api-sink.md#dsl_sink_file_new)
 * [`dsl_sink_record_new`](/docs/api-sink.md#dsl_sink_record_new)
-* [`dsl_sink_rtsp_new`](/docs/api-sink.md#dsl_sink_rtsp_new)
+* [`dsl_sink_rtsp_server_new`](/docs/api-sink.md#dsl_sink_rtsp_server_new)
 * [`dsl_sink_webrtc_new`](/docs/api-sink.md#dsl_sink_webrtc_new)
 * [`dsl_sink_message_new`](/docs/api-sink.md#dsl_sink_message_new)
 * [`dsl_sink_interpipe_new`](/docs/api-sink.md#dsl_sink_interpipe_new)

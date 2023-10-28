@@ -212,7 +212,7 @@ Sinks are the end components in each Pipeline or Branch. All Pipelines or Branch
 2. **Window Sink** - renders/overlays video on a Parent XWindow
 3. **File Sink** - encodes video to a media container file
 4. **Record Sink** - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
-5. **RTSP Sink** - streams encoded video on a specified port
+5. **RTSP Server Sink** - streams encoded video via an RTSP Server on a specified port
 6. **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
 7. **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
 8. **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
@@ -224,7 +224,7 @@ Sinks are the end components in each Pipeline or Branch. All Pipelines or Branch
 
 The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H.265 with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
 
-**RTSP Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the `main-loop` context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
+**RTSP Server Sinks** create RTSP servers that stream H.264 or H.265 encoded video, and are configured when the Pipeline is called to Play. The server is started and attached to the `main-loop` context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
 
 With Sinks, clients can add one or more [Pad Probe Handlers](#pad-probe-handlers) to process the batched stream buffers and metadata for each frame and detected-object -- on the input (sink pad) only.
 
@@ -949,7 +949,7 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
+    retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
     if (retval != DSL_RETURN_SUCCESS):
         break
 
@@ -966,8 +966,8 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_sink_rtsp_new('rtsp-sink', 
-        host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
+    retval = dsl_sink_rtsp_server_new('rtsp-server-sink', 
+        host='0.0.0.0', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=0, interval=0)
     if (retval != DSL_RETURN_SUCCESS):
         break
     
@@ -1346,7 +1346,8 @@ typedef uint DslReturnType
 ```Python
 from dsl import *
 
-retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
+retVal = dsl_sink_rtsp_server_new('rtsp-server-sink',
+    host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
 
 if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
     # handle error
@@ -1373,9 +1374,9 @@ The [deepstream-services-library-docker](https://github.com/prominenceai/deepstr
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter Tees](/docs/api-tee)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
-* [Sink](docs/api-sink.md)
+* [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)

@@ -6978,8 +6978,8 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
- * @brief creates a new, uniquely named RTSP Sink component
- * @param[in] name unique coomponent name for the new RTSP Sink
+ * @brief creates a new, uniquely named RTSP Server Sink component
+ * @param[in] name unique component name for the new RTSP Server Sink
  * @param[in] host address for the RTSP Server
  * @param[in] port UDP port number for the RTSP Server
  * @param[in] port RTSP port number for the RTSP Server
@@ -6989,11 +6989,12 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtmpPort, uint codec, uint bitrate, uint interval);
 
 /**
- * @brief gets the current codec and video media container formats
+ * @brief gets the current codec and video media container formats for the
+ * named RTSP Server Sink.
  * @param[in] name unique name of the Sink to query
  * @param[out] port UDP Port number to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure

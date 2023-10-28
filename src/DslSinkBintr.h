@@ -75,10 +75,10 @@ namespace DSL
         std::shared_ptr<RecordSinkBintr>( \
         new RecordSinkBintr(name, outdir, codec, container, bitrate, interval, clientListener))
         
-    #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
-    #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
-        std::shared_ptr<RtspSinkBintr>( \
-        new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
+    #define DSL_RTSP_SERVER_SINK_PTR std::shared_ptr<RtspServerSinkBintr>
+    #define DSL_RTSP_SERVER_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
+        std::shared_ptr<RtspServerSinkBintr>( \
+        new RtspServerSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
         
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
@@ -1013,18 +1013,19 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class RtspSinkBintr : public EncodeSinkBintr
+    class RtspServerSinkBintr : public EncodeSinkBintr
     {
     public: 
     
-        RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
-         uint codec, uint bitrate, uint interval);
+        RtspServerSinkBintr(const char* name, 
+            const char* host, uint udpPort, uint rtspPort,
+            uint codec, uint bitrate, uint interval);
 
-        ~RtspSinkBintr();
+        ~RtspServerSinkBintr();
   
         /**
          * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
+         * @return true if all links were succesful, false otherwise.
          */
         bool LinkAll();
         
@@ -1035,9 +1036,10 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the current codec and media container formats for RtspSinkBintr
-         * @param[out] port the current UDP port number for the RTSP Server
-         * @param[out] port the current RTSP port number for the RTSP Server
+         * @brief Gets the current codec and media container formats for the 
+         * RtspServerSinkBintr.
+         * @param[out] port the current UDP port number for the RTSP Server.
+         * @param[out] port the current RTSP port number for the RTSP Server.
          */ 
         void GetServerSettings(uint* udpPort, uint* rtspPort);
 

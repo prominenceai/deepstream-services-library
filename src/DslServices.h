@@ -1351,7 +1351,7 @@ namespace DSL {
         DslReturnType SinkEncodeSettingsSet(const char* name, 
             uint codec, uint bitrate, uint interval);
 
-        DslReturnType SinkRtspNew(const char* name, const char* host, 
+        DslReturnType SinkRtspServerNew(const char* name, const char* host, 
             uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
