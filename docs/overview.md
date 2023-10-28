@@ -1374,7 +1374,7 @@ The [deepstream-services-library-docker](https://github.com/prominenceai/deepstr
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter Tees](/docs/api-tee)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
