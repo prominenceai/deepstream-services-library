@@ -13,7 +13,7 @@ DSL supports ten (12) different types of Sinks:
 * [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
 * [File Sink](#dsl_sink_file_new) - encodes video to a media container file
 * [Record Sink](#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
-* [RTSP Sink](#dsl_sink_rtsp_new) - streams encoded video on a specified port
+* [RTSP Server Sink](#dsl_sink_rtsp_server_new) - streams encoded video via an RTSP (UDP) Server on a specified port.
 * [WebRTC Sink](#dsl_sink_webrtc_new) - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
 * [Message Sink](dsl_sink_message_new) - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
 * [Application Sink](#dsl_sink_app_new) - allows the application to receive buffers or samples from a DSL Pipeline.
@@ -62,7 +62,7 @@ As a general rule
 | Window Sink        | nveglglessink | true  | true/false  |   20000000   | true/false  |
 | File Sink          | filesink      | false | true/false  |      -1      | false       |
 | Record Sink        | na            |  na   |  na         |      na      |  na         |
-| RTSP Sink          | udpsink       | true  | true/false  |      -1      | false       | 
+| RTSP Server Sink   | udpsink       | true  | true/false  |      -1      | false       | 
 | WebRTC Sink        | fakesink      | false | true/false  |      -1      | false       |
 | Message Sink       | nvmsgbroker   | true  | true/false  |      -1      | false       |
 | App Sink           | appsink       | true  | true/false  |      -1      | false       |
@@ -91,7 +91,7 @@ As a general rule
 * [`dsl_sink_window_new`](#dsl_sink_window_new)
 * [`dsl_sink_file_new`](#dsl_sink_file_new)
 * [`dsl_sink_record_new`](#dsl_sink_record_new)
-* [`dsl_sink_rtsp_new`](#dsl_sink_rtsp_new)
+* [`dsl_sink_rtsp_server_new`](#dsl_sink_rtsp_server_new)
 * [`dsl_sink_webrtc_new`](#dsl_sink_webrtc_new)
 * [`dsl_sink_message_new`](#dsl_sink_message_new)
 * [`dsl_sink_interpipe_new`](#dsl_sink_interpipe_new)
@@ -159,7 +159,7 @@ As a general rule
 * [`dsl_sink_record_mailer_remove`](#dsl_sink_record_mailer_remove)
 * [`dsl_sink_record_reset_done_get`](#dsl_sink_record_reset_done_get)
 
-**RTSP Sink Methods**
+**RTSP Server Sink Methods**
 * [`dsl_sink_rtsp_server_settings_get`](#dsl_sink_rtsp_server_settings_get)
 
 **WebRTC Sink Methods**
@@ -593,31 +593,32 @@ retval = dsl_sink_record_new('my-record-sink',
 
 <br>
 
-### *dsl_sink_rtsp_new*
+### *dsl_sink_rtsp_server_new*
 ```C++
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host,
      uint udp_port, uint rtmp_port, uint codec, uint bitrate, uint interval);
 ```
-The constructor creates a uniquely named RTSP Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
+The constructor creates a uniquely named RTSP Server Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
 
-**Important Note:** the URI is derived from the device identification, `rtmp_port`, and server mount point which is derived from the unique RTSP Sink name, 
+**Important Note:** the URI is derived from the device identification, `rtmp_port`, and server mount point which is derived from the unique RTSP Server Sink name, 
 
 **When the client and DSL application are both running locally:**
 ```
-rtsp://<device-name>.local:<rtmp-port-number>/<rtsp-sink-name>
+rtsp://<device-name>.local:<rtmp-port-number>/<rtsp-server-sink-name>
 ```
-for example:
+examples:
 ```
-rtsp://my-jetson-device.local:8554/my-rtsp-sink
+rtsp://my-jetson-device.local:8554/my-rtsp-server-sink
+rtsp://0.0.0.0:8554/my-rtsp-server-sink
 ```
 
 **When the client is running remotely from the DSL application:**
 ```
-rtsp://<user-name>:<password>@<ip-address>:<rtmp-port-number>/<rtsp-sink-name>
+rtsp://<user-name>:<password>@<ip-address>:<rtmp-port-number>/<rtsp-server-sink-name>
 ```
 for example:
 ```
-rtsp://admin:12345@192.168.1.64:8554/my-rtsp-sink
+rtsp://admin:12345@192.168.1.64:8554/my-rtsp-server-sink
 ```
 
 #### Hierarchy
@@ -627,10 +628,10 @@ rtsp://admin:12345@192.168.1.64:8554/my-rtsp-sink
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `rtsp sink`
 
 **Parameters**
-* `name` - [in] unique name for the File Sink to create.
+* `name` - [in] unique name for the RTSP Server Sink to create.
 * `host` - [in] host name
 * `udp_port` - [in] UDP port setting for the RTSP server.
-* `rtsp_port` - [in] RTSP port setting for the server.
+* `rtsp_port` - [in] RTSP port setting for the RTSP server.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
 * `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
@@ -640,7 +641,7 @@ rtsp://admin:12345@192.168.1.64:8554/my-rtsp-sink
 
 **Python Example**
 ```Python
- retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
+ retVal = dsl_sink_rtsp_server_new('my-rtsp-server-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
 ```
 
 <br>
@@ -1466,7 +1467,7 @@ retval = dsl_sink_window_delete_event_handler_remove('my-pipeline',
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* codec, uint* bitrate, uint* interval);
 ```
-This service returns the current bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC.
+This service returns the current bitrate and interval settings for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new).
 
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to query.
@@ -1489,7 +1490,7 @@ retval, bitrate, interval = dsl_sink_encode_settings_get('my-file-sink')
 DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     uint codec, uint bitrate, uint interval);
 ```
-This service sets the bitrate and interval settings for the named Encode Sink; File, Record, RTSP OR WebRTC. The service will fail if the Encode Sink is currently linked.
+This service sets the bitrate and interval settings for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new). The service will fail if the Encode Sink is currently linked.
 
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to update.
@@ -1512,7 +1513,7 @@ retval = dsl_sink_encode_settings_set('my-file-sink', 4000000, 1)
 DslReturnType dsl_sink_encode_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
-This service gets the current input dimensions for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_new), or [WebRTC](dsl_sink_webrtc_new).  Values of 0 indicate NO scaling.
+This service gets the current input dimensions for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new).  Values of 0 indicate NO scaling.
 
 The dimensions, if non-zero, are used to scale the video input into the Sinks's encoder element. 
 
@@ -1526,7 +1527,7 @@ The dimensions, if non-zero, are used to scale the video input into the Sinks's 
 
 **Python Example**
 ```Python
-retval, width, height = dsl_sink_encode_dimensions_get('my-rtsp-sink')
+retval, width, height = dsl_sink_encode_dimensions_get('my-rtsp-server-sink')
 ```
 
 <br>
@@ -1536,7 +1537,7 @@ retval, width, height = dsl_sink_encode_dimensions_get('my-rtsp-sink')
 DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
-This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_new), or [WebRTC](dsl_sink_webrtc_new).  Set the values to 0 to indicate NO scaling.
+This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP-Server](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new).  Set the values to 0 to indicate NO scaling.
 
 
 **Parameters**
@@ -1549,7 +1550,7 @@ This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_fil
 
 **Python Example**
 ```Python
-retval = dsl_sink_encode_dimensions_set('my-rtsp-sink', 1280, 720)
+retval = dsl_sink_encode_dimensions_set('my-rtsp-server-sink', 1280, 720)
 ```
 
 <br>
