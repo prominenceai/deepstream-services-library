@@ -655,6 +655,15 @@ THE SOFTWARE.
 #define DSL_DEFAULT_UDP_BUFER_SIZE                                  (512*1024)
 
 /**
+ * @brief RTSP Profiles constants
+ */
+#define DSL_RTSP_PROFILE_UNKNOWN                                    0x00000000
+#define DSL_RTSP_PROFILE_AVP                                        0x00000001
+#define DSL_RTSP_PROFILE_SAVP                                       0x00000002
+#define DSL_RTSP_PROFILE_AVPF                                       0x00000004
+#define DSL_RTSP_PROFILE_SAVPF                                      0x00000008
+
+/**
  * @brief Predefined Color Constants - rows 1 and 2.
  */
 #define DSL_COLOR_PREDEFINED_BLACK                                  0
@@ -7001,6 +7010,85 @@ DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host,
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     uint* udpPort, uint* rtspPort);
+
+/**
+ * @brief creates a new, uniquely named RTSP-Client Sink component.
+ * @param[in] name unique component name for the new RTSP-Client Sink.
+ * @param[in] uri RTSP uri to read.
+ * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265.
+ * @param[in] bitrate in bits per second - H264 and H265 only.
+ * Set to 0 to use the Encoder default bitrate (4Mbps).
+ * @param[in] interval iframe interval to encode at.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+     uint codec, uint bitrate, uint interval);
+
+/**
+ * @brief Sets the user credentials for the named RTSP-Client Sink to use.
+ * Note: there is no corresponding "Get" service for user credentials, 
+ * meaning, there is no way of reading the current credentials once set.
+ * @param[in] name name of the RTSP-Client to update.
+ * @param[in] user_id URI user id for authentication.
+ * @param[in] user_password URI user password for authentication.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
+    wchar_t* user_id, wchar_t* user_password);
+
+/**
+ * @brief Gets the current latency setting for the named RTSP-Client Sink.
+ * @param[in] name name of the RTSP-Client Sink to query.
+ * @param[in] latency current latency setting = amount of data to buffer in ms.
+ * @return[in] DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, uint* latency);
+
+/**
+ * @brief Sets the latency setting for the named RTSP-Client Sink to use.
+ * @param[in] name name of the RTSP-Client to update.
+ * @param[in] latency new latency setting = amount of data to buffer in ms.
+ * @return[in] DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, uint latency);
+
+/**
+ * @brief Gets the current allowed RTSP profiles for the named RTSP-Client Sink.
+ * @param[in] name name of the RTSP-Client Sink object to query
+ * @param[out] profiles mask of DSL_RTSP_PROFILE constant values. 
+ * Default = DSL_RTSP_PROFILE_AVP.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles);
+
+/**
+ * @brief Sets the allowed RTSP profiles for the named RTSP-Client Sink to use.
+ * @param[in] name name of the RTSP-Client Sink object to update
+ * @param[in] profiles mask of DSL_RTSP_PROFILE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles);
+     
+/**
+ * @brief Gets the current connection validation flags for the named RTSP-Client Sink.
+ * @param[in] name name of the RTSP-Client Sink object to query
+ * @param[out] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_get(const wchar_t* name,
+    uint* flags);
+
+/**
+ * @brief Sets the connection validation flags for the named RTSP-Client Sink to use.
+ * @param[in] name name of the RTSP-Client Sink object to update
+ * @param[in] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_set(const wchar_t* name,
+    uint flags);
 
 /**
  * @brief creates a new, uniquely named Interpipe Sink component.

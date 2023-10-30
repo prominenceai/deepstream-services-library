@@ -1632,6 +1632,244 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkRtspClientNew(const char* name, const char* uri, 
+            uint codec, uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (codec > DSL_CODEC_H265)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for RTSP-CLient Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            m_components[name] = DSL_RTSP_CLIENT_SINK_NEW(name, 
+                uri, codec, bitrate, interval);
+            
+            LOG_INFO("New RTSP-Client Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTSP-CLient Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientLatencyGet(const char* name, 
+        uint* latency)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *latency = pSinkBintr->GetLatency();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned latency = " << *latency 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting latency");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientLatencySet(const char* name, 
+        uint latency)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetLatency(latency))
+            {
+                LOG_ERROR("RTSP Client '" << name 
+                    << "' failed to set latency = " << latency);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set latency = " << latency 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting latency");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProfilesGet(const char* name, 
+        uint* profiles)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *profiles = pSinkBintr->GetProfiles();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned profiles = " << std::hex << *profiles 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting profiles");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProfilesSet(const char* name, 
+        uint profiles)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetProfiles(profiles))
+            {
+                LOG_ERROR("RTSP Client '" << name 
+                    << "' failed to set profiles = " << std::hex << profiles);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set profiles = " << std::hex  << profiles 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting profiles");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientTlsValidationFlagsGet(const char* name, 
+        uint* flags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *flags = pSinkBintr->GetTlsValidationFlags();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned tls-validation-flags = " 
+                << std::hex << *flags << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting tls-validation-flags");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientTlsValidationFlagsSet(const char* name, 
+        uint flags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetTlsValidationFlags(flags))
+            {
+                LOG_ERROR("RTSP Client '" << name 
+                    << "' failed to set tls-validation-flags = " 
+                    << std::hex << flags);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set tls-validation-flags = " 
+                << std::hex  << flags << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting tls-validation-flags");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SinkInterpipeNew(const char* name,
         boolean forwardEos, boolean forwardEvents)
     {

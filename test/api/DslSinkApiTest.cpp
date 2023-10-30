@@ -2061,6 +2061,47 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new RTSP-Client Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring rtspClientSinkName(L"file-sink");
+        std::wstring uri(L"rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new File Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
+                uri.c_str(), codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                REQUIRE( dsl_sink_encode_settings_get(rtspClientSinkName.c_str(), 
+                    &retCodec, &retBitrate, &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retCodec == codec );
+                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retInterval == interval );
+                
+                uint retHeight(99), retWidth(99);
+                REQUIRE( dsl_sink_encode_dimensions_get(rtspClientSinkName.c_str(), 
+                    &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Components container is updated correctly on new and delete Multi-Image Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 

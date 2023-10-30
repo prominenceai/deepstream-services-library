@@ -1357,6 +1357,27 @@ namespace DSL {
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
             
+        DslReturnType SinkRtspClientNew(const char* name, const char* uri, 
+            uint codec, uint bit_rate, uint interval);
+
+        DslReturnType SinkRtspClientLatencyGet(const char* name, 
+            uint* latency);
+
+        DslReturnType SinkRtspClientLatencySet(const char* name, 
+            uint latency);
+        
+        DslReturnType SinkRtspClientProfilesGet(const char* name, 
+            uint* profiles);
+
+        DslReturnType SinkRtspClientProfilesSet(const char* name, 
+            uint profiles);
+            
+        DslReturnType SinkRtspClientTlsValidationFlagsGet(const char* name, 
+            uint* flags);
+
+        DslReturnType SinkRtspClientTlsValidationFlagsSet(const char* name, 
+            uint flags);
+            
         DslReturnType SinkInterpipeNew(const char* name,
             boolean forward_eos, boolean forward_events);
 

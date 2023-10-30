@@ -2141,6 +2141,176 @@ namespace DSL
         *rtspPort = m_rtspPort;
     }
     
+    //-------------------------------------------------------------------------
+    
+    RtspClientSinkBintr::RtspClientSinkBintr(const char* name, const char* uri, 
+        uint codec, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, codec, bitrate, interval)
+    {
+        LOG_FUNC();
+        
+        m_pSink = DSL_ELEMENT_NEW("rtspclientsink", name);
+
+        // IMPORTANT RTSP Client Sink is NOT derived from GST Base Sink
+        // Therefore, common properties -- sync, async, max-lateness, qos -- do
+        // not apply.
+
+        // Get the property defaults
+        m_pSink->GetAttribute("latency", &m_latency);
+        m_pSink->GetAttribute("profiles", &m_profiles);
+        m_pSink->GetAttribute("tls-validation-flags", &m_tlsValidationFlags);
+
+        // Disable the last-sample property for performance reasons.
+//        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Set the location for the output file
+        m_pSink->SetAttribute("location", uri);
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RtspClientSinkBintr '" << name << "'");
+        LOG_INFO("  uri                  : " << uri);
+        LOG_INFO("  latency              : " << m_latency);
+        LOG_INFO("  profiles             : " << std::hex << m_profiles);
+        LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
+        LOG_INFO("  codec                : " << m_codec);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate              : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate              : " << m_defaultBitrate);
+        }
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  converter-width      : " << m_width);
+        LOG_INFO("  converter-height     : " << m_height);
+        LOG_INFO("  sync                 : " << "na");
+        LOG_INFO("  async                : " << "na");
+        LOG_INFO("  max-lateness         : " << "na");
+        LOG_INFO("  qos                  : " << "na");
+
+        AddChild(m_pSink);
+    }
+    
+    RtspClientSinkBintr::~RtspClientSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RtspClientSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RtspClientSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pParser->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    uint RtspClientSinkBintr::GetLatency()
+    {
+        LOG_FUNC();
+
+        return m_latency;
+    }
+
+    bool RtspClientSinkBintr::SetLatency(uint latency)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_latency = latency;
+        m_pSink->SetAttribute("latency", m_latency);
+    
+        return true;
+    }
+    
+    uint RtspClientSinkBintr::GetProfiles()
+    {
+        LOG_FUNC();
+
+        return m_profiles;
+    }
+    
+    bool RtspClientSinkBintr::SetProfiles(uint profiles)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set tls-validation-flags for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_profiles = profiles;
+        m_pSink->SetAttribute("profiles", m_profiles);
+    
+        return true;
+    }
+
+    uint RtspClientSinkBintr::GetTlsValidationFlags()
+    {
+        LOG_FUNC();
+
+        return m_tlsValidationFlags;
+    }
+    
+    bool RtspClientSinkBintr::SetTlsValidationFlags(uint flags)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set tls-validation-flags for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_tlsValidationFlags = flags;
+        m_pSink->SetAttribute("tls-validation-flags", 
+            m_tlsValidationFlags);
+    
+        return true;
+    }
+
+
     // -------------------------------------------------------------------------------
     
     MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
