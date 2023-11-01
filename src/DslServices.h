@@ -1360,6 +1360,9 @@ namespace DSL {
         DslReturnType SinkRtspClientNew(const char* name, const char* uri, 
             uint codec, uint bit_rate, uint interval);
 
+        DslReturnType SinkRtspClientCredentialsSet(const char* name, 
+            const char* userId, const char* userPw);
+
         DslReturnType SinkRtspClientLatencyGet(const char* name, 
             uint* latency);
 
@@ -1371,6 +1374,12 @@ namespace DSL {
 
         DslReturnType SinkRtspClientProfilesSet(const char* name, 
             uint profiles);
+            
+        DslReturnType SinkRtspClientProtocolsGet(const char* name, 
+            uint* protocols);
+
+        DslReturnType SinkRtspClientProtocolsSet(const char* name, 
+            uint protocols);
             
         DslReturnType SinkRtspClientTlsValidationFlagsGet(const char* name, 
             uint* flags);

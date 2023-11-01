@@ -860,7 +860,7 @@ SCENARIO( "An ODE Occurrence Trigger checks its maximum tracker confidence corre
     }
 }
 
-SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[temp]" )
+SCENARIO( "An OdeOccurrenceTrigger checks for Source Name correctly", "[OdeTrigger]" )
 {
     GIVEN( "A new OdeTrigger with default criteria" ) 
     {

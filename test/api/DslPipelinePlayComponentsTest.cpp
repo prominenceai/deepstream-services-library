@@ -277,7 +277,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Overlay Sink, and Tiled Displa
         }
     }
 }
-//SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[temp]" )
+//SCENARIO( "A new Pipeline with a URI https Source, OverlaySink, and Tiled Display can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, Overlay Sink, and Tiled Display" ) 
 //    {

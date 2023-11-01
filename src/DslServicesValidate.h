@@ -224,7 +224,8 @@ THE SOFTWARE.
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and \
-        !components[name]->IsType(typeid(RtspServerSinkBintr))) \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
@@ -236,6 +237,7 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and \
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Decode Source"); \

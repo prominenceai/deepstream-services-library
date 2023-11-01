@@ -2106,7 +2106,7 @@ namespace DSL
         if (g_main_loop_is_running(
             DSL::Services::GetServices()->GetMainLoopHandle()))
         {
-            LOG_INFO("Adding server filter to remove clients for RtspSourceBintr '"
+            LOG_INFO("Adding server filter to remove clients for RtspServerSinkBintr '"
                 << GetName() << "'");
             gst_rtsp_server_client_filter(m_pServer, client_filter_cb, NULL);
         }
@@ -2158,10 +2158,8 @@ namespace DSL
         // Get the property defaults
         m_pSink->GetAttribute("latency", &m_latency);
         m_pSink->GetAttribute("profiles", &m_profiles);
+        m_pSink->GetAttribute("protocols", &m_protocols);
         m_pSink->GetAttribute("tls-validation-flags", &m_tlsValidationFlags);
-
-        // Disable the last-sample property for performance reasons.
-//        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
         // Set the location for the output file
         m_pSink->SetAttribute("location", uri);
@@ -2171,6 +2169,7 @@ namespace DSL
         LOG_INFO("  uri                  : " << uri);
         LOG_INFO("  latency              : " << m_latency);
         LOG_INFO("  profiles             : " << std::hex << m_profiles);
+        LOG_INFO("  protocols            : " << std::hex << m_protocols);
         LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
         LOG_INFO("  codec                : " << m_codec);
         if (m_bitrate)
@@ -2240,6 +2239,24 @@ namespace DSL
         m_isLinked = false;
     }
 
+    bool RtspClientSinkBintr::SetCredentials(const char* userId, 
+        const char* userPw)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set credentials for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        // Note! we do not persist or log the actual credentials.
+        m_pSink->SetAttribute("user-id", userId);
+        m_pSink->SetAttribute("user-pw", userPw);
+    
+        return true;
+    }
+
     uint RtspClientSinkBintr::GetLatency()
     {
         LOG_FUNC();
@@ -2253,7 +2270,7 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
+            LOG_ERROR("Unable to set latency for RtspClientSinkBintr '" 
                 << GetName() << "' as it's currently in use");
             return false;
         }
@@ -2282,6 +2299,29 @@ namespace DSL
         }
         m_profiles = profiles;
         m_pSink->SetAttribute("profiles", m_profiles);
+    
+        return true;
+    }
+
+    uint RtspClientSinkBintr::GetProtocols()
+    {
+        LOG_FUNC();
+
+        return m_protocols;
+    }
+    
+    bool RtspClientSinkBintr::SetProtocols(uint protocols)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set lower-protocols for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_protocols = protocols;
+        m_pSink->SetAttribute("protocols", m_protocols);
     
         return true;
     }

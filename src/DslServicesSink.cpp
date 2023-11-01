@@ -1668,6 +1668,41 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkRtspClientCredentialsSet(const char* name, 
+        const char* userId, const char* userPw)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetCredentials(userId, userPw))
+            {
+                LOG_ERROR("RTSP Client '" << name 
+                    << "' failed to set credentials");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set credentials successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting credentials");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SinkRtspClientLatencyGet(const char* name, 
         uint* latency)
     {
@@ -1781,9 +1816,16 @@ namespace DSL
             DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
 
+            if (profiles > DSL_TLS_CERTIFICATE_VALIDATE_ALL)
+            {
+                LOG_ERROR("RTSP Client Sink '" << name 
+                    << "' failed to set profiles -- invalid profiles = "
+                    << std::hex << profiles);
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
             if (!pSinkBintr->SetProfiles(profiles))
             {
-                LOG_ERROR("RTSP Client '" << name 
+                LOG_ERROR("RTSP Client Sink'" << name 
                     << "' failed to set profiles = " << std::hex << profiles);
                 return DSL_RESULT_SINK_SET_FAILED;
             }
@@ -1798,6 +1840,73 @@ namespace DSL
         {
             LOG_ERROR("RTSP Client Sink '" << name 
                 << "' threw exception setting profiles");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProtocolsGet(const char* name, 
+        uint* protocols)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *protocols = pSinkBintr->GetProtocols();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned lower-protocols = " << std::hex << *protocols 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting lower-protocols");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProtocolsSet(const char* name, 
+        uint protocols)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetProtocols(protocols))
+            {
+                LOG_ERROR("RTSP Client Sink'" << name 
+                    << "' failed to set lower-protocols = " << std::hex << protocols);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set lower-protocols = " << std::hex  << protocols 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting lower-protocols");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1848,9 +1957,16 @@ namespace DSL
             DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
 
+            if (flags > DSL_TLS_CERTIFICATE_VALIDATE_ALL)
+            {
+                LOG_ERROR("RTSP Client Sink '" << name 
+                    << "' failed to set tls-validation-flags -- invalid flags = "
+                    << std::hex << flags);
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
             if (!pSinkBintr->SetTlsValidationFlags(flags))
             {
-                LOG_ERROR("RTSP Client '" << name 
+                LOG_ERROR("RTSP Client Sink '" << name 
                     << "' failed to set tls-validation-flags = " 
                     << std::hex << flags);
                 return DSL_RESULT_SINK_SET_FAILED;

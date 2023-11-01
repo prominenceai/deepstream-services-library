@@ -1095,6 +1095,14 @@ namespace DSL
         void UnlinkAll();
         
         /**
+         * @brief Sets the client credentials for the RtspClientSinkBintr.
+         * @param[in] userId client user-id to use for credentials
+         * @param[in] userPw client user-password to use for credentials
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetCredentials(const char* userId, const char* userPw);
+        
+        /**
          * @brief Gets the current latency setting for the RtspClientSinkBintr.
          * @return latency in units of ms.
          */
@@ -1116,10 +1124,27 @@ namespace DSL
         
         /**
          * @brief Sets the RTSP Profiles for the RtspClientSinkBintr to use.
-         * @param[in] profile mask of DSL_RTSP_PROFILE constants. 
+         * @param[in] profiles mask of DSL_RTSP_PROFILE constants. 
          * @return true on successful set, false otherwise.
          */
         bool SetProfiles(uint profiles);
+        
+        /**
+         * @brief Gets the current allowed RTSP lower-protocols for the 
+         * RtspClientSinkBintr.
+         * @return mask of DSL_RTSP_LOWER_TRANS constant values. 
+         * Default = DSL_RTSP_LOWER_TRANS_TCP + DSL_RTSP_LOWER_TRANS_UDP_MCAST +
+         * DSL_RTSP_LOWER_TRANS_UDP.
+         */
+        uint GetProtocols();
+        
+        /**
+         * @brief Sets the allowed RTSP lower-protocols for the RtspClientSinkBintr 
+         * to use.
+         * @param[in] protocols mask of DSL_RTSP_LOWER_TRANS constant values. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetProtocols(uint protocols);
         
         /**
          * @brief Gets the current tls-validation-flags for the RtspClientSinkBintr.
@@ -1147,6 +1172,12 @@ namespace DSL
          * RtspClientSinkBintr.
          */
         uint m_profiles;
+        
+        /**
+         * @brief mask of currently allowed RTSP lower-protocols for this 
+         * RtspClientSinkBintr.
+         */
+        uint m_protocols;
         
         /**
          * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the

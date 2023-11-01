@@ -1504,6 +1504,8 @@ SCENARIO( "A new DSL_CODEC_H264 RtspClientSinkBintr is created correctly",  "[si
             {
                 REQUIRE( pSinkBintr->GetLatency() == 2000 );
                 REQUIRE( pSinkBintr->GetProfiles() == DSL_RTSP_PROFILE_AVP );
+                REQUIRE( pSinkBintr->GetProtocols() == (DSL_RTSP_LOWER_TRANS_TCP |
+                    DSL_RTSP_LOWER_TRANS_UDP_MCAST | DSL_RTSP_LOWER_TRANS_UDP) );
                 REQUIRE( pSinkBintr->GetTlsValidationFlags() == DSL_TLS_CERTIFICATE_VALIDATE_ALL );
 
                 uint retCodec(0), retBitrate(0), retInterval(0);
