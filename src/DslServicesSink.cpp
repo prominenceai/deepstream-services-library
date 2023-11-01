@@ -206,7 +206,7 @@ namespace DSL
             return false;
         }
         LOG_INFO("Registering Window-Sink '"<< sink->GetName() 
-            << "' with GstObject* = " << std::hex << element);
+            << "' with GstObject* = " << int_to_hex(element));
             
         m_windowSinkElements[sink] = element;
 
@@ -292,8 +292,8 @@ namespace DSL
             *handle = pWindowSinkBintr->GetHandle();
 
             LOG_INFO("Window Sink '" << name 
-                << "' returned handle = " << std::hex 
-                << *handle << " successfully");
+                << "' returned handle = " << int_to_hex(*handle) 
+                << " successfully");
                 
             return DSL_RESULT_SUCCESS;
         }
@@ -321,12 +321,12 @@ namespace DSL
             
             if (!pWindowSinkBintr->SetHandle(handle))
             {
-                LOG_ERROR("Failure setting handle = " << std::hex 
+                LOG_ERROR("Failure setting handle = " << int_to_hex(handle)
                     << " for Window Sink '" << name << "'");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
-                << "' set handle = " << std::hex << handle << " successfully");
+                << "' set handle = " << int_to_hex(handle) << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1788,7 +1788,7 @@ namespace DSL
             *profiles = pSinkBintr->GetProfiles();
 
             LOG_INFO("RTSP Client Sink '" << name 
-                << "' returned profiles = " << std::hex << *profiles 
+                << "' returned profiles = " << int_to_hex(*profiles)
                 << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1820,18 +1820,18 @@ namespace DSL
             {
                 LOG_ERROR("RTSP Client Sink '" << name 
                     << "' failed to set profiles -- invalid profiles = "
-                    << std::hex << profiles);
+                    << int_to_hex(profiles));
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
             if (!pSinkBintr->SetProfiles(profiles))
             {
                 LOG_ERROR("RTSP Client Sink'" << name 
-                    << "' failed to set profiles = " << std::hex << profiles);
+                    << "' failed to set profiles = " << int_to_hex(profiles));
                 return DSL_RESULT_SINK_SET_FAILED;
             }
 
             LOG_INFO("RTSP Client Sink '" << name 
-                << "' set profiles = " << std::hex  << profiles 
+                << "' set profiles = " << int_to_hex(profiles)
                 << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1862,7 +1862,7 @@ namespace DSL
             *protocols = pSinkBintr->GetProtocols();
 
             LOG_INFO("RTSP Client Sink '" << name 
-                << "' returned lower-protocols = " << std::hex << *protocols 
+                << "' returned lower-protocols = " << int_to_hex(*protocols) 
                 << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1893,12 +1893,12 @@ namespace DSL
             if (!pSinkBintr->SetProtocols(protocols))
             {
                 LOG_ERROR("RTSP Client Sink'" << name 
-                    << "' failed to set lower-protocols = " << std::hex << protocols);
+                    << "' failed to set lower-protocols = " << int_to_hex(protocols));
                 return DSL_RESULT_SINK_SET_FAILED;
             }
 
             LOG_INFO("RTSP Client Sink '" << name 
-                << "' set lower-protocols = " << std::hex  << protocols 
+                << "' set lower-protocols = " << int_to_hex(protocols) 
                 << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -1930,7 +1930,7 @@ namespace DSL
 
             LOG_INFO("RTSP Client Sink '" << name 
                 << "' returned tls-validation-flags = " 
-                << std::hex << *flags << " successfully");
+                << int_to_hex(*flags) << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1961,20 +1961,20 @@ namespace DSL
             {
                 LOG_ERROR("RTSP Client Sink '" << name 
                     << "' failed to set tls-validation-flags -- invalid flags = "
-                    << std::hex << flags);
+                    << int_to_hex(flags));
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
             if (!pSinkBintr->SetTlsValidationFlags(flags))
             {
                 LOG_ERROR("RTSP Client Sink '" << name 
                     << "' failed to set tls-validation-flags = " 
-                    << std::hex << flags);
+                    << int_to_hex(flags));
                 return DSL_RESULT_SINK_SET_FAILED;
             }
 
             LOG_INFO("RTSP Client Sink '" << name 
                 << "' set tls-validation-flags = " 
-                << std::hex  << flags << " successfully");
+                << int_to_hex(flags) << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }

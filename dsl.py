@@ -113,6 +113,19 @@ DSL_TLS_CERTIFICATE_INSECURE      = 0x00000020
 DSL_TLS_CERTIFICATE_GENERIC_ERROR = 0x00000040
 DSL_TLS_CERTIFICATE_VALIDATE_ALL  = 0x0000007f
 
+DSL_RTSP_PROFILE_UNKNOWN  = 0x00000000
+DSL_RTSP_PROFILE_AVP      = 0x00000001
+DSL_RTSP_PROFILE_SAVP     = 0x00000002
+DSL_RTSP_PROFILE_AVPF     = 0x00000004
+DSL_RTSP_PROFILE_SAVPF    = 0x00000008
+
+DSL_RTSP_LOWER_TRANS_UNKNOWN   = 0x00000000
+DSL_RTSP_LOWER_TRANS_UDP       = 0x00000001
+DSL_RTSP_LOWER_TRANS_UDP_MCAST = 0x00000002
+DSL_RTSP_LOWER_TRANS_TCP       = 0x00000004
+DSL_RTSP_LOWER_TRANS_HTTP      = 0x00000010
+DSL_RTSP_LOWER_TRANS_TLS       = 0x00000020
+
 DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
 DSL_STATE_PAUSED = 3
@@ -5834,6 +5847,120 @@ def dsl_sink_rtsp_server_settings_get(name):
     result = _dsl.dsl_sink_rtsp_server_settings_get(name, 
         DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port))
     return int(result), udp_port.value, rtsp_port.value
+
+##
+## dsl_sink_rtsp_client_new()
+##
+_dsl.dsl_sink_rtsp_client_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_rtsp_client_new.restype = c_uint
+def dsl_sink_rtsp_client_new(name, 
+    uri, codec, bitrate, interval):
+    global _dsl
+    result =_dsl.dsl_sink_rtsp_client_new(name, 
+        uri, codec, bitrate, interval)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_credentials_set()
+##
+_dsl.dsl_sink_rtsp_client_credentials_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_rtsp_client_credentials_set.restype = c_uint
+def dsl_sink_rtsp_client_credentials_set(name, user_id, user_pw):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_credentials_set(name, 
+        user_id, user_pw)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_latency_get()
+##
+_dsl.dsl_sink_rtsp_client_latency_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_latency_get.restype = c_uint
+def dsl_sink_rtsp_client_latency_get(name):
+    global _dsl
+    latency = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_latency_get(name, DSL_UINT_P(latency))
+    return int(result), latency.value 
+
+##
+## dsl_sink_rtsp_client_latency_set()
+##
+_dsl.dsl_sink_rtsp_client_latency_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_latency_set.restype = c_uint
+def dsl_sink_rtsp_client_latency_set(name, latency):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_latency_set(name, latency)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_profiles_get()
+##
+_dsl.dsl_sink_rtsp_client_profiles_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_profiles_get.restype = c_uint
+def dsl_sink_rtsp_client_profiles_get(name):
+    global _dsl
+    profiles = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_profiles_get(name, DSL_UINT_P(profiles))
+    return int(result), profiles.value 
+
+##
+## dsl_sink_rtsp_client_profiles_set()
+##
+_dsl.dsl_sink_rtsp_client_profiles_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_profiles_set.restype = c_uint
+def dsl_sink_rtsp_client_profiles_set(name, profiles):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_profiles_set(name, profiles)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_protocols_get()
+##
+_dsl.dsl_sink_rtsp_client_protocols_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_protocols_get.restype = c_uint
+def dsl_sink_rtsp_client_protocols_get(name):
+    global _dsl
+    protocols = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_protocols_get(name, DSL_UINT_P(protocols))
+    return int(result), protocols.value 
+
+##
+## dsl_sink_rtsp_client_protocols_set()
+##
+_dsl.dsl_sink_rtsp_client_protocols_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_protocols_set.restype = c_uint
+def dsl_sink_rtsp_client_protocols_set(name, protocols):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_protocols_set(name, protocols)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_tls_validation_flags_get()
+##
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_get.restype = c_uint
+def dsl_sink_rtsp_client_tls_validation_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_tls_validation_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value 
+
+##
+## dsl_sink_rtsp_client_tls_validation_flags_set()
+##
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_set.restype = c_uint
+def dsl_sink_rtsp_client_tls_validation_flags_set(name, flags):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_tls_validation_flags_set(name, flags)
+    return int(result)
 
 ##
 ## dsl_sink_webrtc_new()

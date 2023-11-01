@@ -333,6 +333,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
@@ -352,6 +353,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \

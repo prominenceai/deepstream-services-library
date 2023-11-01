@@ -1120,7 +1120,7 @@ namespace DSL
         if (m_xWindowKeyEventHandlers.find(handler) != 
             m_xWindowKeyEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " is not unique for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1138,7 +1138,7 @@ namespace DSL
         if (m_xWindowKeyEventHandlers.find(handler) == 
             m_xWindowKeyEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " was not found for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1156,7 +1156,7 @@ namespace DSL
         if (m_xWindowButtonEventHandlers.find(handler) != 
             m_xWindowButtonEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " is not unique for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1174,7 +1174,7 @@ namespace DSL
         if (m_xWindowButtonEventHandlers.find(handler) == 
             m_xWindowButtonEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " was not found for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1192,7 +1192,7 @@ namespace DSL
         if (m_xWindowDeleteEventHandlers.find(handler) != 
             m_xWindowDeleteEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " is not unique for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1210,7 +1210,7 @@ namespace DSL
         if (m_xWindowDeleteEventHandlers.find(handler) == 
             m_xWindowDeleteEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " was not found for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -2168,9 +2168,9 @@ namespace DSL
         LOG_INFO("Initial property values for RtspClientSinkBintr '" << name << "'");
         LOG_INFO("  uri                  : " << uri);
         LOG_INFO("  latency              : " << m_latency);
-        LOG_INFO("  profiles             : " << std::hex << m_profiles);
-        LOG_INFO("  protocols            : " << std::hex << m_protocols);
-        LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
+        LOG_INFO("  profiles             : " << int_to_hex(m_profiles));
+        LOG_INFO("  protocols            : " << int_to_hex(m_protocols));
+        LOG_INFO("  tls-validation-flags : " << int_to_hex(m_tlsValidationFlags));
         LOG_INFO("  codec                : " << m_codec);
         if (m_bitrate)
         {

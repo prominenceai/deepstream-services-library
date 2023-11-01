@@ -1484,7 +1484,8 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can Link/UnlinkAll multipl
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H264 RtspClientSinkBintr is created correctly",  "[sink]" )
+SCENARIO( "A new DSL_CODEC_H264 RtspClientSinkBintr is created correctly",
+    "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 RTSP Client Sink" ) 
     {
