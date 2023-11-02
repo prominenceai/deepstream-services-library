@@ -512,7 +512,8 @@ THE SOFTWARE.
  */
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
-#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
+#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"
+#define DSL_VIDEO_FORMAT_YUY2                                       L"YUY2"
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_NV12
 
 /**
@@ -672,6 +673,19 @@ THE SOFTWARE.
 #define DSL_RTSP_LOWER_TRANS_TCP                                    0x00000004
 #define DSL_RTSP_LOWER_TRANS_HTTP                                   0x00000010
 #define DSL_RTSP_LOWER_TRANS_TLS                                    0x00000020
+
+/**
+ * @brief V4L2 Device Type Flags - must match GstV4l2DeviceTypeFlags
+ * see https://gstreamer.freedesktop.org/documentation/video4linux2/v4l2src.html?gi-language=c#GstV4l2DeviceTypeFlags
+ */
+#define DSL_V4L2_DEVICE_TYPE_NONE                                   0x00000000 
+#define DSL_V4L2_DEVICE_TYPE_CAPTURE                                0x00000001
+#define DSL_V4L2_DEVICE_TYPE_OUTPUT                                 0x00000002
+#define DSL_V4L2_DEVICE_TYPE_OVERLAY                                0x00000004
+#define DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE                            0x00000010
+#define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
+#define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
+#define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -7495,6 +7509,117 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
 DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
     const wchar_t* broker_config_file, const wchar_t* protocol_lib,
     const wchar_t* connection_string, const wchar_t* topic);
+
+/**
+ * @brief Creates a new, uniquely named V4L2 Sink that streams to a specific
+ * device_location as a V4L2 Device.
+ * @param[in] name unique component name for the new V4L2 Sink
+ * @param[in] device_location device-location setting for the V4L2 Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_v4l2_new(const wchar_t* name, 
+    const wchar_t* device_location);
+
+/**
+ * @brief Gets the device location setting for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_location current device location setting.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+    
+/**
+ * @brief Sets the device location setting for the named V4L2 Sink. 
+ * @param[in] name unique name of the V4L2 Sink to update.
+ * @param[in] device_location new device location setting to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+    
+/**
+ * @brief Gets the device name setting for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+    
+/**
+ * @brief Gets the device file-descriptor setting for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_fd current device file-descriptor setting. 
+ * Default = -1. Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd);
+
+/**
+ * @brief Gets the device flags setting for the named V4L2 Sink. 
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_flags device flags setting. One or more of the
+ * DSL_V4L2_DEVICE_TYPE flags. Default = DSL_V4L2_DEVICE_TYPE_NONE. The
+ * value is updated at runtime after negotiation with the V4L2 device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags);
+    
+/**
+ * @brief Gets the current buffer-in-format for the named V4L2 Sink. The
+ * buffer-in-format defines the format set on input to the v4l2sink plugin.
+ * @param name unique name of the V4L2 Sink Component to query.
+ * @param[out] format current buffer-in-format. One of the DSL_VIDEO_FORMAT
+ * constant string values. Default = DSL_VIDEO_FORMAT_YUY.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_buffer_in_format_get(const wchar_t* name,
+    const wchar_t** format);
+
+/**
+ * @brief Sets the buffer-in-format for the named V4L2 Sink to use. The
+ * buffer-in-format defines the format set on input to the v4l2sink plugin.
+ * @param name unique name of the V4L2 Sink Component to query.
+ * @param[in] format new buffer-int-format to use. One of the DSL_VIDEO_FORMAT
+ * constant string values.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_buffer_in_format_set(const wchar_t* name,
+    const wchar_t* format);
+
+/**
+ * @brief Gets the current picture brightness, contrast, and saturation settings
+ * for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] brightness current brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[out] contrast current picture color contrast setting or luma gain.
+ * Default = 0.
+ * @param[out] saturation current picture color saturation setting or chroma gain.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* saturation);
+
+/**
+ * @brief Gets the picture brightness, contrast, and saturation settings
+ * for the named V4L2 Sink to use.
+ * @param[in] name unique name of the V4L2 Sink to update.
+ * @param[in] brightness new brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[in] contrast new picture contrast setting or luma gain.
+ * Default = 0.
+ * @param[in] saturation new picture color saturation setting or chroma gain.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int saturation);
 
 /**
  * @brief Gets the current "sync" enabled setting for the named Sink. If enabled

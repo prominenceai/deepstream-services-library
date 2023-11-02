@@ -1448,6 +1448,35 @@ namespace DSL {
         DslReturnType SinkWebRtcClientListenerRemove(const char* name,
             dsl_sink_webrtc_client_listener_cb listener);
 
+        DslReturnType SinkV4l2New(const char* name, const char* deviceLocation);
+
+        DslReturnType SinkV4l2DeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SinkV4l2DeviceLocationSet(const char* name, 
+            const char* deviceLocation);
+
+        DslReturnType SinkV4l2DeviceNameGet(const char* name, 
+            const char** deviceName);
+
+        DslReturnType SinkV4l2DeviceFdGet(const char* name, 
+            int* deviceFd);
+
+        DslReturnType SinkV4l2DeviceFlagsGet(const char* name, 
+            uint* deviceFlags);
+
+        DslReturnType SinkV4l2BufferInFormatGet(const char* name, 
+            const char** format);
+
+        DslReturnType SinkV4l2BufferInFormatSet(const char* name, 
+            const char* format);
+
+        DslReturnType SinkV4l2PictureSettingsGet(const char* name, 
+            int* brightness, int* contrast, int* saturation);
+
+        DslReturnType SinkV4l2PictureSettingsSet(const char* name, 
+            int brightness, int contrast, int saturation);
+
         DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType SinkSyncEnabledSet(const char* name, boolean enabled);
