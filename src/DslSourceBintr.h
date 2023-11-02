@@ -1922,7 +1922,7 @@ namespace DSL
         
         /**
          * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the
-         * RTSP server certificat.
+         * RTSP server certificate.
          */
         uint m_tlsValidationFlags;
 

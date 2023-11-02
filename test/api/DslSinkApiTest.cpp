@@ -2061,6 +2061,185 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new RTSP-Client Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring rtspClientSinkName(L"rtsp-client-sink");
+        std::wstring uri(L"rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(2000000);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new File Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
+                uri.c_str(), codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                REQUIRE( dsl_sink_encode_settings_get(rtspClientSinkName.c_str(), 
+                    &retCodec, &retBitrate, &retInterval) == DSL_RESULT_SUCCESS );
+                REQUIRE( retCodec == codec );
+                REQUIRE( retBitrate == bitrate );
+                REQUIRE( retInterval == interval );
+                
+                uint retHeight(99), retWidth(99);
+                REQUIRE( dsl_sink_encode_dimensions_get(rtspClientSinkName.c_str(), 
+                    &retWidth, &retHeight) == DSL_RESULT_SUCCESS );
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new RTSP-Client Sink can set its credentials", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring rtspClientSinkName(L"rtsp-client-sink");
+        std::wstring uri(L"rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(0);
+        uint interval(0);
+        
+        std::wstring user_id(L"admin");
+        std::wstring user_pw(L"123456");
+
+        REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
+            uri.c_str(), codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A the RTSP-Client Sink's credentials are upaded" ) 
+        {
+            REQUIRE( dsl_sink_rtsp_client_credentials_set(rtspClientSinkName.c_str(), 
+                user_id.c_str(), user_pw.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                // Needs to be verified by using the logs level=4
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new RTSP-Client Sink can update its properties correctly", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring rtspClientSinkName(L"rtsp-client-sink");
+        std::wstring uri(L"rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(0);
+        uint interval(0);
+        
+        uint def_latency(2000);
+        uint def_profiles(DSL_RTSP_PROFILE_AVP);
+        uint def_protocols(DSL_RTSP_LOWER_TRANS_TCP |
+            DSL_RTSP_LOWER_TRANS_UDP_MCAST | DSL_RTSP_LOWER_TRANS_UDP);
+        uint def_flags(DSL_TLS_CERTIFICATE_VALIDATE_ALL);
+        
+        REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
+            uri.c_str(), codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+
+        uint ret_latency(123);
+        REQUIRE( dsl_sink_rtsp_client_latency_get(rtspClientSinkName.c_str(), 
+            &ret_latency) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_latency == def_latency );
+
+        uint ret_profiles(0);
+        REQUIRE( dsl_sink_rtsp_client_profiles_get(rtspClientSinkName.c_str(), 
+            &ret_profiles) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_profiles == def_profiles );
+
+        uint ret_protocols(0);
+        REQUIRE( dsl_sink_rtsp_client_protocols_get(rtspClientSinkName.c_str(), 
+            &ret_protocols) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_protocols == def_protocols );
+
+        uint ret_flags(0);
+        REQUIRE( dsl_sink_rtsp_client_tls_validation_flags_get(
+            rtspClientSinkName.c_str(), &ret_flags) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_flags == def_flags );
+
+        WHEN( "A new RTSP-Client Sink's latency is updated" ) 
+        {
+            uint new_latency(1000);
+            REQUIRE( dsl_sink_rtsp_client_latency_set(rtspClientSinkName.c_str(), 
+                new_latency) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_sink_rtsp_client_latency_get(rtspClientSinkName.c_str(), 
+                    &ret_latency) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_latency == new_latency );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RTSP-Client Sink's profiles are updated" ) 
+        {
+            uint new_profiles(DSL_RTSP_PROFILE_SAVPF);
+            REQUIRE( dsl_sink_rtsp_client_profiles_set(rtspClientSinkName.c_str(), 
+                new_profiles) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_sink_rtsp_client_profiles_get(rtspClientSinkName.c_str(), 
+                    &ret_profiles) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_profiles == new_profiles );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RTSP-Client Sink's protocols are updated" ) 
+        {
+            uint new_protocols(DSL_RTSP_LOWER_TRANS_HTTP);
+            REQUIRE( dsl_sink_rtsp_client_protocols_set(rtspClientSinkName.c_str(), 
+                new_protocols) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_sink_rtsp_client_protocols_get(rtspClientSinkName.c_str(), 
+                    &ret_protocols) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_protocols == new_protocols );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new RTSP-Client Sink's tls-validation-flags are updated" ) 
+        {
+            uint new_flags(DSL_TLS_CERTIFICATE_BAD_IDENTITY);
+            REQUIRE( dsl_sink_rtsp_client_tls_validation_flags_set(
+                rtspClientSinkName.c_str(), new_flags) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_sink_rtsp_client_tls_validation_flags_get(
+                    rtspClientSinkName.c_str(), &ret_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_flags == new_flags );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Components container is updated correctly on new and delete Multi-Image Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -2296,6 +2475,8 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         
         std::wstring mailerName(L"mailer");
         
+        std::wstring user_id(L"admin");
+        
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -2355,9 +2536,47 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_encode_dimensions_set(NULL, 
                     0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_rtsp_server_new(NULL, NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_server_new(sink_name.c_str(), NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, &udpPort, &rtspPort) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_new(NULL, 
+                    NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_new(sink_name.c_str(), 
+                    NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_server_settings_get(NULL, 
+                    &udpPort, &rtspPort) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_sink_rtsp_client_new(NULL, 
+                    NULL, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_new(sink_name.c_str(), 
+                    NULL, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_credentials_set(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_credentials_set(sink_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_credentials_set(sink_name.c_str(), 
+                    user_id.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_latency_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_latency_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_latency_set(NULL, 
+                    2000) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_profiles_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_profiles_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_profiles_set(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_protocols_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_protocols_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_protocols_set(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_tls_validation_flags_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_tls_validation_flags_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtsp_client_tls_validation_flags_set(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_image_multi_new(NULL,
                     NULL, 0, 0, 1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -647,7 +647,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
 
 //SCENARIO( "A new Pipeline with a Multi MJPEG Image Frame Source, Primary GIE, Tiled Display, \
 //    Window Sink, ODE Trigger and Action can play",
-//    "[rjh]" )
+//    "[image-source-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, Primary GIE, Tiled Display, Window Sink" ) 
 //    {
@@ -719,7 +719,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
 //}
 
 //SCENARIO( "A new Player with a Multi JPEG Image Source and Window Sink can play",
-//    "[temp]" )
+//    "[image-source-play]" )
 //{
 //    GIVEN( "A Player with a Multi JPEG Source, Window Sink" ) 
 //    {

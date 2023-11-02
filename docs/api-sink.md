@@ -8,11 +8,12 @@ All Sinks are derived from the "Component" class, therefore all [component metho
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── `sink`
 
-DSL supports ten (12) different types of Sinks:
+DSL supports thirteen (13) different types of Sinks:
 * [Overlay Sink](#dsl_sink_overlay_new) - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
 * [File Sink](#dsl_sink_file_new) - encodes video to a media container file
 * [Record Sink](#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+* [RTSP Client Sink](#dsl_sink_rtsp_client_new) - streams encoded video using the Real-time Streaming Protocol (RTSP) as a client of a media server. 
 * [RTSP Server Sink](#dsl_sink_rtsp_server_new) - streams encoded video via an RTSP (UDP) Server on a specified port.
 * [WebRTC Sink](#dsl_sink_webrtc_new) - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
 * [Message Sink](dsl_sink_message_new) - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
@@ -39,7 +40,7 @@ A similar set of Services are used when adding/removing a to/from a branch: [`ds
 **IMPORTANT!:** A Sink Component can be added as a branch to either a [Splitter or Demuxer Tee](/docs/api-tee.md).
 
 ### Common Sink Properties
-All Sinks<sup id="a1">[1](#f1)</sup> support the following common properties accessible through corresponding get/set base [Sink Methods](#sink-methods). (_Note: the follow bullets are quotes from the [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/base/gstbasesink.html?gi-language=c)_)
+All Sinks -- except for the Smart Record and RTSP Client Sinks -- support the following common properties accessible through corresponding get/set base [Sink Methods](#sink-methods). (_Note: the follow bullets are quotes from the [GStreamer Documentation](https://gstreamer.freedesktop.org/documentation/base/gstbasesink.html?gi-language=c)_)
 * **`sync`** : Each Sink sets a timestamp for when a frame should be played, if `sync=true` it will block the pipeline and only play the frame after that time. This is useful for playing from a video file, or other non-live sources. If you play a video file with `sync=false` it will play back as fast as it can be read and processed. See [`dsl_sink_sync_enabled_get`](#dsl_sink_sync_enabled_get) and [`dsl_sink_sync_enabled_set`](#dsl_sink_sync_enabled_set).
 As a general rule
    * Set `sync=true` if using non-live sources and/or if the stream is to be rendered and viewed.
@@ -56,22 +57,24 @@ As a general rule
 * A single value indicates that the default is used.
 * `a/b` values define both default/updated used value.
 
-| Sink               |  GST Plugin   | sync  |    async    | max-lateness |     qos     |
-| -------------------|---------------|-------|------------ | ------------ | ----------- |
-| Overlay Sink       | nvoverlaysink | true  | true/false  |   20000000   | true/false  |
-| Window Sink        | nveglglessink | true  | true/false  |   20000000   | true/false  |
-| File Sink          | filesink      | false | true/false  |      -1      | false       |
-| Record Sink        | na            |  na   |  na         |      na      |  na         |
-| RTSP Server Sink   | udpsink       | true  | true/false  |      -1      | false       | 
-| WebRTC Sink        | fakesink      | false | true/false  |      -1      | false       |
-| Message Sink       | nvmsgbroker   | true  | true/false  |      -1      | false       |
-| App Sink           | appsink       | true  | true/false  |      -1      | false       |
-| Interpipe Sink     | interpipesink | false | true/false  |      -1      | false       |
-| Multi-Image Sink   | multifilesink | false | true/false  |      -1      | false       |
-| Frame-Capture Sink | appsink       | true  | true/false  |      -1      | false       |
-| Fake Sink          | fakesink      | false | true/false  |      -1      | false       |
+| Sink               |  GST Plugin    | sync  |    async    | max-lateness |     qos     |
+| -------------------|----------------|-------|------------ | ------------ | ----------- |
+| Overlay Sink       | nvoverlaysink  | true  | true/false  |   20000000   | true/false  |
+| Window Sink        | nveglglessink  | true  | true/false  |   20000000   | true/false  |
+| File Sink          | filesink       | false | true/false  |      -1      | false       |
+| Record Sink<sup id="a1">[1](#f1)</sup>        | na             |  na   |  na         |      na      |  na         |
+| RTSP Client Sink<sup id="a2">[2](#f2)</sup>   | rtspclientsink |  na   |  na         |      na      |  na         | 
+| RTSP Server Sink   | udpsink        | true  | true/false  |      -1      | false       | 
+| WebRTC Sink        | fakesink       | false | true/false  |      -1      | false       |
+| Message Sink       | nvmsgbroker    | true  | true/false  |      -1      | false       |
+| App Sink           | appsink        | true  | true/false  |      -1      | false       |
+| Interpipe Sink     | interpipesink  | false | true/false  |      -1      | false       |
+| Multi-Image Sink   | multifilesink  | false | true/false  |      -1      | false       |
+| Frame-Capture Sink | appsink        | true  | true/false  |      -1      | false       |
+| Fake Sink          | fakesink       | false | true/false  |      -1      | false       |
 
-<b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
+* <b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
+* <b id="f2">2</b> _The rtspclientsink plugin is not derrived from the GStreamer basesink which implements the common sink properties._ [↩](#a2)
 
 ## Sink API
 **Types:**
@@ -91,6 +94,7 @@ As a general rule
 * [`dsl_sink_window_new`](#dsl_sink_window_new)
 * [`dsl_sink_file_new`](#dsl_sink_file_new)
 * [`dsl_sink_record_new`](#dsl_sink_record_new)
+* [`dsl_sink_rtsp_client_new`](#dsl_sink_rtsp_client_new)
 * [`dsl_sink_rtsp_server_new`](#dsl_sink_rtsp_server_new)
 * [`dsl_sink_webrtc_new`](#dsl_sink_webrtc_new)
 * [`dsl_sink_message_new`](#dsl_sink_message_new)
@@ -158,6 +162,17 @@ As a general rule
 * [`dsl_sink_record_mailer_add`](#dsl_sink_record_mailer_add)
 * [`dsl_sink_record_mailer_remove`](#dsl_sink_record_mailer_remove)
 * [`dsl_sink_record_reset_done_get`](#dsl_sink_record_reset_done_get)
+
+**RTSP Client Sink Methods**
+* [`dsl_sink_rtsp_client_credentials_set`](#dsl_sink_rtsp_client_credentials_set)
+* [`dsl_sink_rtsp_client_latency_get`](#dsl_sink_rtsp_client_latency_get)
+* [`dsl_sink_rtsp_client_latency_set`](#dsl_sink_rtsp_client_latency_set)
+* [`dsl_sink_rtsp_client_profiles_get`](#dsl_sink_rtsp_client_profiles_get)
+* [`dsl_sink_rtsp_client_profiles_set`](#dsl_sink_rtsp_client_profiles_set)
+* [`dsl_sink_rtsp_client_protocols_get`](#dsl_sink_rtsp_client_protocols_get)
+* [`dsl_sink_rtsp_client_protocols_set`](#dsl_sink_rtsp_client_protocols_set)
+* [`dsl_sink_rtsp_client_tls_validation_flags_get`](#dsl_sink_rtsp_client_tls_validation_flags_get)
+* [`dsl_sink_rtsp_client_tls_validation_flags_set`](#dsl_sink_rtsp_client_tls_validation_flags_set)
 
 **RTSP Server Sink Methods**
 * [`dsl_sink_rtsp_server_settings_get`](#dsl_sink_rtsp_server_settings_get)
@@ -255,6 +270,36 @@ The following video container types are used by the File Sink API
 ```C
 #define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
 #define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
+```
+
+## RTSP Profile constants
+```C
+#define DSL_RTSP_PROFILE_UNKNOWN                                    0x00000000
+#define DSL_RTSP_PROFILE_AVP                                        0x00000001
+#define DSL_RTSP_PROFILE_SAVP                                       0x00000002
+#define DSL_RTSP_PROFILE_AVPF                                       0x00000004
+#define DSL_RTSP_PROFILE_SAVPF                                      0x00000008
+```
+
+## RTSP Lower-Protocol constants
+#define DSL_RTSP_LOWER_TRANS_UNKNOWN                                0x00000000
+#define DSL_RTSP_LOWER_TRANS_UDP                                    0x00000001
+#define DSL_RTSP_LOWER_TRANS_UDP_MCAST                              0x00000002
+#define DSL_RTSP_LOWER_TRANS_TCP                                    0x00000004
+#define DSL_RTSP_LOWER_TRANS_HTTP                                   0x00000010
+#define DSL_RTSP_LOWER_TRANS_TLS                                    0x00000020
+
+## TLS certificate validation constants
+Flags used to validate the RTSP server certificate.
+```C
+#define DSL_TLS_CERTIFICATE_UNKNOWN_CA                              0x00000001
+#define DSL_TLS_CERTIFICATE_BAD_IDENTITY                            0x00000002
+#define DSL_TLS_CERTIFICATE_NOT_ACTIVATED                           0x00000004
+#define DSL_TLS_CERTIFICATE_EXPIRED                                 0x00000008
+#define DSL_TLS_CERTIFICATE_REVOKED                                 0x00000010
+#define DSL_TLS_CERTIFICATE_INSECURE                                0x00000020
+#define DSL_TLS_CERTIFICATE_GENERIC_ERROR                           0x00000040
+#define DSL_TLS_CERTIFICATE_VALIDATE_ALL                            0x0000007f
 ```
 
 ## WebRTC Connection States
@@ -589,6 +634,37 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 ```Python
 retval = dsl_sink_record_new('my-record-sink',
     './', DSL_CODEC_H265, DSL_CONTAINER_MPEG, 0, 0, my-client-recording-event-cb)
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_new*
+```C++
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+     uint codec, uint bitrate, uint interval);
+```
+The constructor creates a uniquely named RTSP Client Sink. Construction will fail if the name is currently in use. There are two Codec formats supported; `H.264` and `H.265`.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`encode sink`](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `rtsp client sink`
+
+**Parameters**
+* `name` - [in] unique name for the RTSP Client Sink to create.
+* `uri` - [in] the URI to write to.
+* `codec` - [in] one of the [Codec Types](#codec-types) defined above.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
+* `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_new('my-rtsp-client-sink',
+    'rtsp://server_endpoint/stream', DSL_CODEC_H264, 0, 0)
 ```
 
 <br>
@@ -1541,7 +1617,7 @@ This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_fil
 
 
 **Parameters**
-* `name` - [in] unique name of the Overlay Sink to update.
+* `name` - [in] unique name of the Encode Sink to update.
 * `width` - [in] new width setting for the Encode Sink in pixels.
 * `height` - [in] new height setting for the Encode Sink in pixels.
 
@@ -1884,7 +1960,205 @@ retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
 
 <br>
 
-## RTSP Sink Methods
+## RTSP Client Sink Methods
+
+### *dsl_sink_rtsp_client_credentials_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
+    const wchar_t* user_id, const wchar_t* user_pw);
+```
+This service sets the user credentials for the named RTSP Client Sink to use. 
+
+**IMPORTANT!:** For security purposes, credentials are NOT logged or saved as a result of this call by DSL. In addition, there is no corresponding "Get" service for user credentials, meaning there is no way of reading the current credentials once set.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `user_id` - [in] user identification for client authentication.
+* `user_pw` - [in] user password for client authentication.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_credentials_set('my-rtsp-client-sink',
+    'admin', '12345678')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_latency_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, uint* latency);
+```
+This service gets the current latency setting for the named RTSP Client Sink.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `latency` - [out] current latency -- the amount of data to buffer -- in units of ms. Default = 2000ms.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, latency = dsl_sink_rtsp_client_latency_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_latency_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, uint latency);
+```
+This service sets the latency setting for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `latency` - [in] new latency -- the amount of data to buffer -- in units of ms..
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_latency_set('my-rtsp-client-sink', 1000)
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_profiles_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles);
+```
+This service gets the current allowed RTSP profiles for the named RTSP Client Sink.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `profiles` - [out] mask of [RTSP Profile constant values](#rtsp-profile-constants). Default = `DSL_RTSP_PROFILE_AVP`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, profiles = dsl_sink_rtsp_client_profiles_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_profiles_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles);
+```
+This service sets the allowed RTSP profiles for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `profiles` - [in] mask of [RTSP Profile constant values](#rtsp-profile-constants).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_profiles_set('my-rtsp-client-sink',
+    DSL_RTSP_PROFILE_SAV)
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_protocols_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols);
+```
+This service gets the current allowed RTSP lower-protocols for the named RTSP Client Sink.
+
+Default = `DSL_RTSP_LOWER_TRANS_TCP | DSL_RTSP_LOWER_TRANS_UDP_MCAST | DSL_RTSP_LOWER_TRANS_UDP`
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `protocols` - [out] mask of [RTSP Lower-Protocol constant values](#rtsp-lower-protocol-constants). 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, protocols = dsl_sink_rtsp_client_protocols_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_protocols_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols);
+```
+This service sets the allowed lower-protocols for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `protocols` - [in] mask of [RTSP Lower-Protocol constant values](#rtsp-lower-protocol-constants).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_profiles_set('my-rtsp-client-sink',
+    DSL_RTSP_LOWER_TRANS_HTTP)
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_tls_validation_flags_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_get(const wchar_t* name,
+    uint* flags);
+```
+This service gets the current TLS connection validation flags for the named RTSP Client Sink.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `flags` - [out] mask of [TLS certificate validation constants](#tls-certificate-validation-constants). Default = `DSL_TLS_CERTIFICATE_VALIDATE_ALL`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, flags = dsl_sink_rtsp_client_tls_validation_flags_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_tls_validation_flags_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_set(const wchar_t* name,
+    uint flags);
+```
+This service sets the TLS connection validation flags for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `flags` - [out] mask of [TLS certificate validation constants](#tls-certificate-validation-constants).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_tls_validation_flags_set('my-rtsp-client-sink',
+    DSL_TLS_CERTIFICATE_NOT_ACTIVATED)
+```
+
+<br>
+
+## RTSP Server Sink Methods
 
 ### *dsl_sink_rtsp_server_settings_get*
 This service returns the current RTSP video codec and Port settings for the named RTSP Sink.

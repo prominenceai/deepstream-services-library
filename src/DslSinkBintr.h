@@ -79,7 +79,12 @@ namespace DSL
     #define DSL_RTSP_SERVER_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspServerSinkBintr>( \
         new RtspServerSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
-        
+
+    #define DSL_RTSP_CLIENT_SINK_PTR std::shared_ptr<RtspClientSinkBintr>
+    #define DSL_RTSP_CLIENT_SINK_NEW(name, uri, codec, bitrate, interval) \
+        std::shared_ptr<RtspClientSinkBintr>( \
+        new RtspClientSinkBintr(name, uri, codec, bitrate, interval))
+                
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
             converterConfigFile, payloadType, brokerConfigFile, \
@@ -1065,6 +1070,123 @@ namespace DSL
  
         DSL_ELEMENT_PTR m_pPayloader;
     };
+
+    //-------------------------------------------------------------------------
+
+    class RtspClientSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RtspClientSinkBintr(const char* name, const char* uri, 
+            uint codec, uint bitrate, uint interval);
+
+        ~RtspClientSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Sets the client credentials for the RtspClientSinkBintr.
+         * @param[in] userId client user-id to use for credentials
+         * @param[in] userPw client user-password to use for credentials
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetCredentials(const char* userId, const char* userPw);
+        
+        /**
+         * @brief Gets the current latency setting for the RtspClientSinkBintr.
+         * @return latency in units of ms.
+         */
+        uint GetLatency();
+        
+        /**
+         * @brief Sets the latency setting for the RtspClientSinkBintr.
+         * @param latency new latency setting in units of ms.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetLatency(uint latency);
+        
+        /**
+         * @brief Gets the current RTSP Profiles for the RtspClientSinkBintr.
+         * @return mask of DSL_RTSP_PROFILE constants. 
+         * Default = DSL_RTSP_PROFILE_AVP.
+         */
+        uint GetProfiles();
+        
+        /**
+         * @brief Sets the RTSP Profiles for the RtspClientSinkBintr to use.
+         * @param[in] profiles mask of DSL_RTSP_PROFILE constants. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetProfiles(uint profiles);
+        
+        /**
+         * @brief Gets the current allowed RTSP lower-protocols for the 
+         * RtspClientSinkBintr.
+         * @return mask of DSL_RTSP_LOWER_TRANS constant values. 
+         * Default = DSL_RTSP_LOWER_TRANS_TCP + DSL_RTSP_LOWER_TRANS_UDP_MCAST +
+         * DSL_RTSP_LOWER_TRANS_UDP.
+         */
+        uint GetProtocols();
+        
+        /**
+         * @brief Sets the allowed RTSP lower-protocols for the RtspClientSinkBintr 
+         * to use.
+         * @param[in] protocols mask of DSL_RTSP_LOWER_TRANS constant values. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetProtocols(uint protocols);
+        
+        /**
+         * @brief Gets the current tls-validation-flags for the RtspClientSinkBintr.
+         * @return mask of DSL_TLS_CERTIFICATE constants. 
+         * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+         */
+        uint GetTlsValidationFlags();
+        
+        /**
+         * @brief Sets the tls-validation-flags for the RtspClientSinkBintr to use.
+         * @param[in] flags mask of DSL_TLS_CERTIFICATE constants. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetTlsValidationFlags(uint flags);
+        
+    private:
+    
+        /**
+         * @brief Amount of data to buffer in ms for this RtspClientSinkBintr.
+         */
+        uint m_latency;
+        
+        /**
+         * @brief mask of currently allowed RTSP profiles for this 
+         * RtspClientSinkBintr.
+         */
+        uint m_profiles;
+        
+        /**
+         * @brief mask of currently allowed RTSP lower-protocols for this 
+         * RtspClientSinkBintr.
+         */
+        uint m_protocols;
+        
+        /**
+         * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the
+         * RTSP server certificate.
+         */
+        uint m_tlsValidationFlags;
+
+    };
+
 
     //-------------------------------------------------------------------------
 

@@ -7402,6 +7402,139 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
         udpPort, rtspPort);
 }    
 
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+    uint codec, uint bitrate, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientNew(cstrName.c_str(), 
+        cstrUri.c_str(), codec, bitrate, interval);
+}     
+
+DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
+    const wchar_t* user_id, const wchar_t* user_pw)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(user_id);
+    RETURN_IF_PARAM_IS_NULL(user_pw);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrId(user_id);
+    std::string cstrId(wstrId.begin(), wstrId.end());
+    std::wstring wstrPassword(user_pw);
+    std::string cstrPassword(wstrPassword.begin(), wstrPassword.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientCredentialsSet(
+        cstrName.c_str(), cstrId.c_str(), cstrPassword.c_str());
+}
+    
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, 
+    uint* latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(latency);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientLatencyGet(
+        cstrName.c_str(), latency);
+}
+
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, 
+    uint latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientLatencySet(
+        cstrName.c_str(), latency);
+}
+     
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(profiles);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProfilesGet(
+        cstrName.c_str(), profiles);
+}
+
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProfilesSet(
+        cstrName.c_str(), profiles);
+}
+     
+DslReturnType dsl_sink_rtsp_client_protocols_get(const wchar_t* name,
+    uint* protocols)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(protocols);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProtocolsGet(
+        cstrName.c_str(), protocols);
+}
+
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProtocolsSet(
+        cstrName.c_str(), protocols);
+}
+     
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_get(const wchar_t* name,
+    uint* flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientTlsValidationFlagsGet(
+        cstrName.c_str(), flags);
+}
+
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_set(const wchar_t* name,
+    uint flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientTlsValidationFlagsSet(
+        cstrName.c_str(), flags);
+}
+     
 DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
     boolean forward_eos, boolean forward_events)
 {    
