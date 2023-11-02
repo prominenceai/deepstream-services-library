@@ -91,6 +91,7 @@ As a general rule
 * [`dsl_sink_window_new`](#dsl_sink_window_new)
 * [`dsl_sink_file_new`](#dsl_sink_file_new)
 * [`dsl_sink_record_new`](#dsl_sink_record_new)
+* [`dsl_sink_rtsp_client_new`](#dsl_sink_rtsp_client_new)
 * [`dsl_sink_rtsp_server_new`](#dsl_sink_rtsp_server_new)
 * [`dsl_sink_webrtc_new`](#dsl_sink_webrtc_new)
 * [`dsl_sink_message_new`](#dsl_sink_message_new)
@@ -158,6 +159,15 @@ As a general rule
 * [`dsl_sink_record_mailer_add`](#dsl_sink_record_mailer_add)
 * [`dsl_sink_record_mailer_remove`](#dsl_sink_record_mailer_remove)
 * [`dsl_sink_record_reset_done_get`](#dsl_sink_record_reset_done_get)
+
+**RTSP Client Sink Methods**
+* [`dsl_sink_rtsp_client_credentials_set`](#dsl_sink_rtsp_client_credentials_set)
+* [`dsl_sink_rtsp_client_latency_get`](#dsl_sink_rtsp_client_latency_get)
+* [`dsl_sink_rtsp_client_latency_set`](#dsl_sink_rtsp_client_latency_set)
+* [`dsl_sink_rtsp_client_profiles_get`](#dsl_sink_rtsp_client_profiles_get)
+* [`dsl_sink_rtsp_client_profiles_set`](#dsl_sink_rtsp_client_profiles_set)
+* [`dsl_sink_rtsp_client_protocols_get`](#dsl_sink_rtsp_client_protocols_get)
+* [`dsl_sink_rtsp_client_protocols_set`](#dsl_sink_rtsp_client_protocols_set)
 
 **RTSP Server Sink Methods**
 * [`dsl_sink_rtsp_server_settings_get`](#dsl_sink_rtsp_server_settings_get)
@@ -256,6 +266,23 @@ The following video container types are used by the File Sink API
 #define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
 #define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
 ```
+
+## RTSP Profile constants
+```C
+#define DSL_RTSP_PROFILE_UNKNOWN                                    0x00000000
+#define DSL_RTSP_PROFILE_AVP                                        0x00000001
+#define DSL_RTSP_PROFILE_SAVP                                       0x00000002
+#define DSL_RTSP_PROFILE_AVPF                                       0x00000004
+#define DSL_RTSP_PROFILE_SAVPF                                      0x00000008
+```
+
+## RTSP Lower-Protocol constants
+#define DSL_RTSP_LOWER_TRANS_UNKNOWN                                0x00000000
+#define DSL_RTSP_LOWER_TRANS_UDP                                    0x00000001
+#define DSL_RTSP_LOWER_TRANS_UDP_MCAST                              0x00000002
+#define DSL_RTSP_LOWER_TRANS_TCP                                    0x00000004
+#define DSL_RTSP_LOWER_TRANS_HTTP                                   0x00000010
+#define DSL_RTSP_LOWER_TRANS_TLS                                    0x00000020
 
 ## WebRTC Connection States
 Used by the WebRTC Sink to communicate its current state to listening clients
@@ -1541,7 +1568,7 @@ This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_fil
 
 
 **Parameters**
-* `name` - [in] unique name of the Overlay Sink to update.
+* `name` - [in] unique name of the Encode Sink to update.
 * `width` - [in] new width setting for the Encode Sink in pixels.
 * `height` - [in] new height setting for the Encode Sink in pixels.
 
@@ -1885,6 +1912,135 @@ retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
 <br>
 
 ## RTSP Sink Methods
+
+### *dsl_sink_rtsp_client_latency_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, uint* latency);
+```
+This service gets the current latency setting for the named RTSP Client Sink.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `latency` - [out] current latency -- the amount of data to buffer -- in units of ms. Default = 2000ms.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, latency = dsl_sink_rtsp_client_latency_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_latency_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, uint latency);
+```
+This service sets the latency setting for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `latency` - [in] new latency -- the amount of data to buffer -- in units of ms..
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_latency_set('my-rtsp-client-sink', 1000)
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_profiles_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles);
+```
+This service the current allowed RTSP profiles for the named RTSP Client Sink.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `profiles` - [out] mask of [RTSP Profile constant values](#rtsp-profile-constants). Default = `DSL_RTSP_PROFILE_AVP`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, profiles = dsl_sink_rtsp_client_profiles_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_profiles_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles);
+```
+This service sets the allowed RTSP profiles for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `profiles` - [in] mask of [RTSP Profile constant values](#rtsp-profile-constants).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_profiles_set('my-rtsp-client-sink',
+    DSL_RTSP_PROFILE_SAV)
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_protocols_get*
+```C++
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols);
+```
+This service gets the current allowed RTSP lower-protocols for the named RTSP Client Sink.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client Sink to query.
+* `protocols` - [out] mask of [RTSP Lower-Protocol constant values](#rtsp-lower-protocol-constants). 
+Default = `DSL_RTSP_LOWER_TRANS_TCP | DSL_RTSP_LOWER_TRANS_UDP_MCAST | DSL_RTSP_LOWER_TRANS_UDP`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, protocols = dsl_sink_rtsp_client_protocols_get('my-rtsp-client-sink')
+```
+
+<br>
+
+### *dsl_sink_rtsp_client_protocols_set*
+```C++
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols);
+```
+This service sets the allowed lower-protocols for the named RTSP Client to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTSP Client to update.
+* `protocols` - [in] mask of [RTSP Lower-Protocol constant values](#rtsp-lower-protocol-constants).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtsp_client_profiles_set('my-rtsp-client-sink',
+    DSL_RTSP_LOWER_TRANS_HTTP)
+```
+
+<br>
+
+## RTSP Server Sink Methods
 
 ### *dsl_sink_rtsp_server_settings_get*
 This service returns the current RTSP video codec and Port settings for the named RTSP Sink.
