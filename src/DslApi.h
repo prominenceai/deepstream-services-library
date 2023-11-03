@@ -514,6 +514,7 @@ THE SOFTWARE.
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
 #define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"
 #define DSL_VIDEO_FORMAT_YUY2                                       L"YUY2"
+#define DSL_VIDEO_FORMAT_YVYU                                       L"YVYU"
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_NV12
 
 /**

@@ -1900,3 +1900,94 @@ SCENARIO( "A Linked MultiImageSinkBintr can UnlinkAll Child Elementrs", "[SinkBi
         }
     }
 }
+
+SCENARIO( "A new V4l2SinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new V4L2 Sink" ) 
+    {
+        std::string sinkName("v4l2-sink");
+        std::string deviceLocation("/dev/video0");
+
+        WHEN( "The V4l2SinkBintr is created" )
+        {
+            DSL_V4L2_SINK_PTR pSinkBintr = DSL_V4L2_SINK_NEW(sinkName.c_str(), 
+                deviceLocation.c_str());
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                std::string retDeviceLocation = pSinkBintr->GetDeviceLocation();
+                REQUIRE( retDeviceLocation == deviceLocation);
+
+                std::string retDeviceName = pSinkBintr->GetDeviceName();
+                REQUIRE( retDeviceName == "" );
+
+                REQUIRE( pSinkBintr->GetDeviceFd() ==  -1 );
+                REQUIRE( pSinkBintr->GetDeviceFlags() == DSL_V4L2_DEVICE_TYPE_NONE );
+                
+                int retBrightness(-99), retContrast(-99), retSaturation(-99);
+                pSinkBintr->GetPictureSettings(&retBrightness,
+                    &retContrast, &retSaturation);
+                REQUIRE( retBrightness == 0 );
+                REQUIRE( retContrast == 0 );
+                REQUIRE( retSaturation == 0 );
+                
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new V4l2SinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new V4l2SinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("v4l2-sink");
+        std::string deviceName("/dev/video0");
+
+        DSL_V4L2_SINK_PTR pSinkBintr = DSL_V4L2_SINK_NEW(sinkName.c_str(), 
+            deviceName.c_str());
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new V4l2SinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The V4l2SinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new V4l2SinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new V4l2SinkBintr in an Linked state" ) 
+    {
+        std::string sinkName("v4l2-sink");
+        std::string deviceName("/dev/video0");
+
+        DSL_V4L2_SINK_PTR pSinkBintr = DSL_V4L2_SINK_NEW(sinkName.c_str(), 
+            deviceName.c_str());
+
+        REQUIRE( pSinkBintr->LinkAll() == true );
+        REQUIRE( pSinkBintr->IsLinked() == true );
+
+        // second call should fail
+        REQUIRE( pSinkBintr->LinkAll() == false );
+
+        WHEN( "A the V4l2SinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+            
+            THEN( "The V4l2SinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
