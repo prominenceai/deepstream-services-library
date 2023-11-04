@@ -8,9 +8,10 @@ All Sinks are derived from the "Component" class, therefore all [component metho
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── `sink`
 
-DSL supports thirteen (13) different types of Sinks:
+DSL supports fourteen (14) different types of Sinks:
 * [Overlay Sink](#dsl_sink_overlay_new) - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
+* [V4L2 Sink](#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
 * [File Sink](#dsl_sink_file_new) - encodes video to a media container file
 * [Record Sink](#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
 * [RTSP Client Sink](#dsl_sink_rtsp_client_new) - streams encoded video using the Real-time Streaming Protocol (RTSP) as a client of a media server. 
@@ -29,7 +30,7 @@ Sinks are created by calling one of the type-specific constructors. As with all 
 The relationship between [Pipelines](/docs/api-pipeline.md) and Sinks is one-to-many. The same relationship exists between [Branches](/docs/api-branch.md) and Sinks. Once added to a Pipeline, a Sink must be removed before it can be used with another. Sinks are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
 
 ### Adding and Removing
-When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as show in the image below, even if there is only one.  This ensures that additional Sinks can be added (and removed) once the Pipeline is playing. 
+When adding a Sink(s) to a Pipeline or Branch, DSL automatically inserts a Splitter Tee between the last component and the Sink(s) as shown in the image below, even if there is only one.  This ensures that additional Sinks can be added (and removed) once the Pipeline is playing. 
 
 <img src="/Images/multi-sink-splitter-tee.png"/>
 
@@ -46,7 +47,7 @@ As a general rule
    * Set `sync=true` if using non-live sources and/or if the stream is to be rendered and viewed.
    * Set `sync=false` if using live sources and/or if significantly processing the stream.
 * **`async`** : If `async=true`, the Sink will perform asynchronous state changes. When `async=false`, the Sink will not signal the parent when it prerolls. Use this option when dealing with sparse streams or when synchronization is not required. See [`dsl_sink_async_enabled_get`](#dsl_sink_async_enabled_get) and [`dsl_sink_async_enabled_set`](#dsl_sink_async_enabled_set).
-* **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`. See [`dsl_sink_max_lateness_get`](#dsl_sink_max_lateness_get) and [`dsl_sink_max_lateness_se`t](#dsl_sink_max_lateness_set).
+* **`max-lateness`** : The max-lateness property affects how the Sink deals with buffers that arrive too late. A buffer arrives too late in the Sink when the presentation time (as a combination of the last segment, buffer timestamp and element base_time) plus the duration is before the current time of the clock. If the frame is later than max-lateness (in nanoseconds), the sink will drop the buffer without calling the render method. This feature is disabled if `sync=false`. See [`dsl_sink_max_lateness_get`](#dsl_sink_max_lateness_get) and [`dsl_sink_max_lateness_set`](#dsl_sink_max_lateness_set).
 * **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronization. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example. See [`dsl_sink_qos_enabled_get`](#dsl_sink_qos_enabled_get) and [`dsl_sink_qos_enabled_set`](#dsl_sink_qos_enabled_set).
 
 **IMPORTANT!** All DSL Sink Components use the default property values assigned to their GStreamer (GST) Sink Plugins, except for.
@@ -54,13 +55,14 @@ As a general rule
 2. All use a QOS value assigned to false (disabled)
 
 #### Sink common property values
-* A single value indicates that the default is used.
-* `a/b` values define both default/updated used value.
+* A single value indicates that the gstreamer-default is used.
+* `a/b` values define both the gstreamer-default/DSL-default values.
 
 | Sink               |  GST Plugin    | sync  |    async    | max-lateness |     qos     |
 | -------------------|----------------|-------|------------ | ------------ | ----------- |
 | Overlay Sink       | nvoverlaysink  | true  | true/false  |   20000000   | true/false  |
 | Window Sink        | nveglglessink  | true  | true/false  |   20000000   | true/false  |
+| V4L2 Sink          | v4l2sink       | true  | true/false  |   20000000   | true/false  |
 | File Sink          | filesink       | false | true/false  |      -1      | false       |
 | Record Sink<sup id="a1">[1](#f1)</sup>        | na             |  na   |  na         |      na      |  na         |
 | RTSP Client Sink<sup id="a2">[2](#f2)</sup>   | rtspclientsink |  na   |  na         |      na      |  na         | 
@@ -74,7 +76,7 @@ As a general rule
 | Fake Sink          | fakesink       | false | true/false  |      -1      | false       |
 
 * <b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
-* <b id="f2">2</b> _The rtspclientsink plugin is not derrived from the GStreamer basesink which implements the common sink properties._ [↩](#a2)
+* <b id="f2">2</b> _The rtspclientsink plugin is not derived from the GStreamer basesink which implements the common sink properties._ [↩](#a2)
 
 ## Sink API
 **Types:**
@@ -92,6 +94,7 @@ As a general rule
 * [`dsl_sink_app_new`](#dsl_sink_app_new)
 * [`dsl_sink_overlay_new`](#dsl_sink_overlay_new)
 * [`dsl_sink_window_new`](#dsl_sink_window_new)
+* [`dsl_sink_v4l2_new`](#dsl_sink_v4l2_new)
 * [`dsl_sink_file_new`](#dsl_sink_file_new)
 * [`dsl_sink_record_new`](#dsl_sink_record_new)
 * [`dsl_sink_rtsp_client_new`](#dsl_sink_rtsp_client_new)
@@ -138,6 +141,17 @@ As a general rule
 * [`dsl_sink_window_button_event_handler_remove`](#dsl_sink_window_button_event_handler_remove)
 * [`dsl_sink_window_delete_event_handler_add`](#dsl_sink_window_delete_event_handler_add)
 * [`dsl_sink_window_delete_event_handler_remove`](#dsl_sink_window_delete_event_handler_remove)
+
+**V4L2 Sink Methods**
+* [`dsl_sink_v4l2_device_location_get`](#dsl_sink_v4l2_device_location_get)
+* [`dsl_sink_v4l2_device_location_set`](#dsl_sink_v4l2_device_location_set)
+* [`dsl_sink_v4l2_device_name_get`](#dsl_sink_v4l2_device_name_get)
+* [`dsl_sink_v4l2_device_fd_get`](#dsl_sink_v4l2_device_fd_get)
+* [`dsl_sink_v4l2_device_flags_get`](#dsl_sink_v4l2_device_flags_get)
+* [`dsl_sink_v4l2_buffer_in_format_get`](#dsl_sink_v4l2_buffer_in_format_get)
+* [`dsl_sink_v4l2_buffer_in_format_set`](#dsl_sink_v4l2_buffer_in_format_set)
+* [`dsl_sink_v4l2_picture_settings_get`](#dsl_sink_v4l2_picture_settings_get)
+* [`dsl_sink_v4l2_picture_settings_set`](#dsl_sink_v4l2_picture_settings_set)
 
 **Encode Sink Methods**
 * [`dsl_sink_encode_settings_get`](#dsl_sink_encode_settings_get)
@@ -266,10 +280,28 @@ The following video container types are used by the File Sink API
 #define DSL_FLOW_ERROR                                              2
 ```
 
-## Data types provided by the APP Sink
+## Data Types provided by the APP Sink
 ```C
 #define DSL_SINK_APP_DATA_TYPE_SAMPLE                               0
 #define DSL_SINK_APP_DATA_TYPE_BUFFER                               1
+```
+
+## Buffer Format constants
+```C
+#define DSL_VIDEO_FORMAT_YUY2                                       L"YUY2"
+#define DSL_VIDEO_FORMAT_YVYU                                       L"YVYU"
+```
+
+## V4L2 Device Type Flags
+```C
+#define DSL_V4L2_DEVICE_TYPE_NONE                                   0x00000000 
+#define DSL_V4L2_DEVICE_TYPE_CAPTURE                                0x00000001
+#define DSL_V4L2_DEVICE_TYPE_OUTPUT                                 0x00000002
+#define DSL_V4L2_DEVICE_TYPE_OVERLAY                                0x00000004
+#define DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE                            0x00000010
+#define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
+#define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
+#define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
 ```
 
 ## RTSP Profile constants
@@ -547,7 +579,7 @@ retval = dsl_sink_overlay_new('my-overlay-sink', 0, 0, 200, 100, 1280, 720)
 DslReturnType dsl_sink_window_new(const wchar_t* name,
     uint x_offset, uint y_offset, uint width, uint height);
 ```
-The constructor creates a uniquely named Window Sink with given offsets and dimensions. Construction will fail if the name is currently in use. Window Sinks are used to render video onto an XWindows. See [Pipeline XWindow Support](api-pipeline.md#pipeline-xwindow-support) for more information.
+The constructor creates a uniquely named Window Sink with given offsets and dimensions. Construction will fail if the name is currently in use. Window Sinks are used to render video onto an XWindow Display.
 
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
@@ -568,6 +600,32 @@ The constructor creates a uniquely named Window Sink with given offsets and dime
 **Python Example**
 ```Python
 retval = dsl_sink_window_new('my-window-sink', 0, 0, 1280, 720)
+```
+
+<br>
+
+### *dsl_sink_v4l2_new*
+```C++
+DslReturnType dsl_sink_v4l2_new(const wchar_t* name, 
+    const wchar_t* device_location);
+```
+The constructor creates a uniquely named V4L2 Sink that streams to any compatible V4L2 Device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback). Construction will fail if the name is currently in use.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `v4l2 sink`
+
+**Parameters**
+* `name` - [in] unique name for the V4L2 Sink to create.
+* `device_location` - [in]  device-location setting for the V4L2 Sink.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_v4l2_new('my-v4l2-sink', '/dev/video0')
 ```
 
 <br>
@@ -1532,6 +1590,207 @@ This service removes a function of type [dsl_sink_window_delete_event_handler_cb
 ```Python
 retval = dsl_sink_window_delete_event_handler_remove('my-pipeline',
     xwindow_delete_event_handler)
+```
+
+<br>
+
+## V4L2 Sink Methods
+
+### *dsl_sink_v4l2_device_location_get*
+```C++
+DslReturnType dsl_sink_v4l2_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+```
+This service gets the device-location setting for the named V4L2 Sink.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to query.
+* `device_location` - [out] current device-location setting.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_location = dsl_sink_v4l2_device_location_get('my-v4l2-sink')
+```
+
+<br>
+
+### *dsl_sink_v4l2_device_location_set*
+```C++
+DslReturnType dsl_sink_v4l2_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+```
+This service sets the device-location for the named V4L2 Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to update.
+* `device_location` - [in] new device-location setting to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_v4l2_device_location_set('my-v4l2-sink', '/dev/video10')
+```
+
+<br>
+
+### *dsl_sink_v4l2_device_name_get*
+```C++
+DslReturnType dsl_sink_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+```
+This service gets the device-name setting for the named V4L2 Sink.
+
+**IMPORTANT!** The default value = "" on Sink creation. The value is updated after negotiation with the V4L2 device.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to query.
+* `device_name` - [out] device-name of the v4l2 device once connected. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_name = dsl_sink_v4l2_device_name_get('my-v4l2-sink')
+```
+
+<br>
+
+### *dsl_sink_v4l2_device_fd_get*
+```C++
+DslReturnType dsl_sink_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd);
+```
+This service gets the device-file-descriptor setting for the named V4L2 Sink.
+
+**IMPORTANT!** The default-file-descriptor = "" on Sink creation. The value is updated after negotiation with the V4L2 device.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to query.
+* `device_fd` - [out] file-descriptor of the v4l2 device once connected. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_fd = dsl_sink_v4l2_device_fd_get('my-v4l2-sink')
+```
+
+<br>
+
+### *dsl_sink_v4l2_device_flags_get*
+```C++
+DslReturnType dsl_sink_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags);
+```
+This service gets the device-flags setting for the named V4L2 Sink.
+
+**IMPORTANT!** The default-flags = `DSL_V4L2_DEVICE_TYPE_NONE` on Sink creation. The value is updated after negotiation with the V4L2 device.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to query.
+* `device_flags` - [out] mask of [V4L2 Device Type Flags](#v4l2-device-type-flags) 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_flags = dsl_sink_v4l2_device_flags_get('my-v4l2-sink')
+```
+
+<br>
+
+### *dsl_sink_v4l2_buffer_in_format_get*
+```C++
+DslReturnType dsl_sink_v4l2_buffer_in_format_get(const wchar_t* name,
+    const wchar_t** format);
+```
+This service gets the current buffer-in-format -- the format set on input to the v4l2sink plugin -- for the named V4L2 Sink.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to query.
+* `format` - [out] current buffer-in-format setting defined as one of the [Buffer Format constants](#buffer-format-constants). Default = `DSL_VIDEO_FORMAT_YUY2`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, format = dsl_sink_v4l2_buffer_in_format_get('my-v4l2-sink')
+```
+
+<br>
+
+### *dsl_sink_v4l2_buffer_in_format_set*
+```C++
+DslReturnType dsl_sink_v4l2_buffer_in_format_set(const wchar_t* name,
+    const wchar_t* format);
+```
+This service sets the buffer-in-format -- the format set on input to the v4l2sink plugin -- for the named V4L2 Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to update.
+* `format` - [in] new format setting to use. A string value or one of the [Buffer Format constants](#buffer-format-constants)
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_v4l2_buffer_in_format_set('my-v4l2-sink', DSL_VIDEO_FORMAT_YVYU)
+```
+
+<br>
+
+### *dsl_sink_v4l2_picture_settings_get*
+```C++
+DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* saturation);
+```
+This service gets the current picture brightness, contrast, and saturation settings for the named V4L2 Sink.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to query.
+* `brightness` - [out] current picture brightness level, or more precisely, the black level. Default = 0.
+* `contrast` - [out] current picture color contrast setting or luma gain. Default = 0.
+* `saturation` - [out] current picture color saturation setting or chroma gain. Default = 0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, brightness, contrast, saturation = dsl_sink_v4l2_picture_settings_get('my-v4l2-sink')
+```
+
+<br>
+
+### *dsl_sink_v4l2_picture_settings_set*
+```C++
+DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int saturation);
+```
+This service sets the current picture brightness, contrast, and saturation settings for the named V4L2 Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Sink to update.
+* `brightness` - [in] new picture brightness level, or more precisely, the black level to use.
+* `contrast` - [in] new picture contrast setting, or luma gain, to use.
+* `saturation` - [in] new color saturation setting, or chroma gain, to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_v4l2_picture_settings_set('my-v4l2-sink', -10, 14, 0)
 ```
 
 <br>

@@ -2462,6 +2462,177 @@ SCENARIO( "A Multi-Image Sink can update it's common properties correctly",
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new V4L2 Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring v4l2_sink_name(L"v4l2-sink");
+        std::wstring device_location(L"/dev/video10");
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new V4L2 Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_v4l2_new(v4l2_sink_name.c_str(), 
+                device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                const wchar_t* c_ret_device_location;
+                REQUIRE( dsl_sink_v4l2_device_location_get(v4l2_sink_name.c_str(), 
+                    &c_ret_device_location) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_location(c_ret_device_location);
+                REQUIRE( ret_device_location == device_location );
+
+                const wchar_t* c_ret_device_name;
+                REQUIRE( dsl_sink_v4l2_device_name_get(v4l2_sink_name.c_str(), 
+                    &c_ret_device_name) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_name(c_ret_device_name);
+                REQUIRE( ret_device_name == L"" );
+
+                int ret_device_fd;
+                REQUIRE( dsl_sink_v4l2_device_fd_get(v4l2_sink_name.c_str(), 
+                    &ret_device_fd) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_device_fd == -1 );
+
+                uint ret_device_flags;
+                REQUIRE( dsl_sink_v4l2_device_flags_get(v4l2_sink_name.c_str(), 
+                    &ret_device_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_device_flags == DSL_V4L2_DEVICE_TYPE_NONE );
+
+                const wchar_t* c_bufffer_in_format;
+                REQUIRE( dsl_sink_v4l2_buffer_in_format_get(v4l2_sink_name.c_str(), 
+                    &c_bufffer_in_format) == DSL_RESULT_SUCCESS );
+                std::wstring ret_buffer_in_format(c_bufffer_in_format);
+                REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_YUY2 );
+
+                int retBrightness(0), retContrast(0), retSaturation(0);
+                REQUIRE( dsl_sink_v4l2_picture_settings_get(v4l2_sink_name.c_str(), 
+                    &retBrightness, &retContrast, &retSaturation) == DSL_RESULT_SUCCESS );
+                REQUIRE( retBrightness == 0 );
+                REQUIRE( retContrast == 0 );
+                REQUIRE( retSaturation == 0 );
+
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on V4L2 Sink delete", "[sink-api]" )
+{
+    GIVEN( "An V4L2 Sink Component" ) 
+    {
+        std::wstring v4l2_sink_name(L"v4l2-sink");
+        std::wstring device_location(L"/dev/video10");
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_v4l2_new(v4l2_sink_name.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+
+        WHEN( "A new V4L2 Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(v4l2_sink_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new V4L2 Sink can update its properties correctly", "[sink-api]" )
+{
+    GIVEN( "An V4L2 Sink Component" ) 
+    {
+        std::wstring v4l2_sink_name(L"v4l2-sink");
+        std::wstring device_location(L"/dev/video10");
+
+        REQUIRE( dsl_sink_v4l2_new(v4l2_sink_name.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A V4L2 Sink's device locaton is set" ) 
+        {
+            const wchar_t* c_ret_device_location;
+            REQUIRE( dsl_sink_v4l2_device_location_get(v4l2_sink_name.c_str(), 
+                &c_ret_device_location) == DSL_RESULT_SUCCESS );
+            std::wstring ret_device_location(c_ret_device_location);
+            REQUIRE( ret_device_location == device_location );
+
+            std::wstring new_device_location(L"/dev/video0");
+            REQUIRE( dsl_sink_v4l2_device_location_set(v4l2_sink_name.c_str(), 
+                new_device_location.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_sink_v4l2_device_location_get(v4l2_sink_name.c_str(), 
+                    &c_ret_device_location) == DSL_RESULT_SUCCESS );
+                ret_device_location = c_ret_device_location;
+                REQUIRE( ret_device_location == new_device_location );
+
+                REQUIRE( dsl_component_delete(v4l2_sink_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A V4L2 Sink's buffer-in-format is set" ) 
+        {
+            const wchar_t* c_bufffer_in_format;
+            REQUIRE( dsl_sink_v4l2_buffer_in_format_get(v4l2_sink_name.c_str(), 
+                &c_bufffer_in_format) == DSL_RESULT_SUCCESS );
+            std::wstring ret_buffer_in_format(c_bufffer_in_format);
+            REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_YUY2 );
+
+            REQUIRE( dsl_sink_v4l2_buffer_in_format_set(v4l2_sink_name.c_str(), 
+                DSL_VIDEO_FORMAT_YVYU) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_sink_v4l2_buffer_in_format_get(v4l2_sink_name.c_str(), 
+                    &c_bufffer_in_format) == DSL_RESULT_SUCCESS );
+                ret_buffer_in_format = c_bufffer_in_format;
+                REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_YVYU );
+
+                REQUIRE( dsl_component_delete(v4l2_sink_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A V4L2 Sink's picture settings are set" ) 
+        {
+            int retBrightness(0), retContrast(0), retSaturation(0);
+            REQUIRE( dsl_sink_v4l2_picture_settings_get(v4l2_sink_name.c_str(), 
+                &retBrightness, &retContrast, &retSaturation) == DSL_RESULT_SUCCESS );
+            REQUIRE( retBrightness == 0 );
+            REQUIRE( retContrast == 0 );
+            REQUIRE( retSaturation == 0 );
+
+            int newBrightness(12), newContrast(-34), newSaturation(99);
+
+            REQUIRE( dsl_sink_v4l2_picture_settings_set(v4l2_sink_name.c_str(), 
+                newBrightness, newContrast, newSaturation) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_sink_v4l2_picture_settings_get(v4l2_sink_name.c_str(), 
+                    &retBrightness, &retContrast, &retSaturation) == DSL_RESULT_SUCCESS );
+                REQUIRE( retBrightness == newBrightness );
+                REQUIRE( retContrast == newContrast );
+                REQUIRE( retSaturation == newSaturation );
+
+                REQUIRE( dsl_component_delete(v4l2_sink_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -2619,6 +2790,39 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_frame_capture_initiate(NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_v4l2_new(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_new(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_location_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_location_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_location_set(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_location_set(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_name_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_name_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_fd_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_fd_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_flags_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_device_flags_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_buffer_in_format_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_buffer_in_format_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_buffer_in_format_set(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_v4l2_buffer_in_format_set(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_sync_enabled_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -79,6 +79,9 @@ DSL_MEDIA_TYPE_AUDIO_XRAW = "audio/x-raw"
 DSL_VIDEO_FORMAT_I420    = "I420"
 DSL_VIDEO_FORMAT_NV12    = "NV12"
 DSL_VIDEO_FORMAT_RGBA    = "RGBA"   
+DSL_VIDEO_FORMAT_YUY2    = "YUY2"
+DSL_VIDEO_FORMAT_YVYU    = "YVYU"
+DSL_VIDEO_FORMAT_DEFAULT = DSL_VIDEO_FORMAT_NV12
 
 # Constants defining the two crop_at positions.
 DSL_VIDEO_CROP_AT_SRC  = 0
@@ -125,6 +128,15 @@ DSL_RTSP_LOWER_TRANS_UDP_MCAST = 0x00000002
 DSL_RTSP_LOWER_TRANS_TCP       = 0x00000004
 DSL_RTSP_LOWER_TRANS_HTTP      = 0x00000010
 DSL_RTSP_LOWER_TRANS_TLS       = 0x00000020
+
+DSL_V4L2_DEVICE_TYPE_NONE        = 0x00000000 
+DSL_V4L2_DEVICE_TYPE_CAPTURE     = 0x00000001
+DSL_V4L2_DEVICE_TYPE_OUTPUT      = 0x00000002
+DSL_V4L2_DEVICE_TYPE_OVERLAY     = 0x00000004
+DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE = 0x00000010
+DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT  = 0x00000020
+DSL_V4L2_DEVICE_TYPE_TUNER       = 0x00010000
+DSL_V4L2_DEVICE_TYPE_AUDIO       = 0x00020000
 
 DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
@@ -5586,6 +5598,124 @@ def dsl_sink_render_dimensions_set(name, width, height):
     return int(result)
 
 ##
+## dsl_sink_v4l2_new()
+##
+_dsl.dsl_sink_v4l2_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_v4l2_new.restype = c_uint
+def dsl_sink_v4l2_new(name, device_location):
+    global _dsl
+    result =_dsl.dsl_sink_v4l2_new(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_v4l2_device_location_get()
+##
+_dsl.dsl_sink_v4l2_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_device_location_get.restype = c_uint
+def dsl_sink_v4l2_device_location_get(name):
+    global _dsl
+    device_location = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
+    return int(result), device_location.value 
+
+##
+## dsl_sink_v4l2_device_location_set()
+##
+_dsl.dsl_sink_v4l2_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_v4l2_device_location_set.restype = c_uint
+def dsl_sink_v4l2_device_location_set(name, device_location):
+    global _dsl
+    result = _dsl.dsl_sink_v4l2_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_v4l2_device_name_get()
+##
+_dsl.dsl_sink_v4l2_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_device_name_get.restype = c_uint
+def dsl_sink_v4l2_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
+## dsl_sink_v4l2_device_fd_get()
+##
+_dsl.dsl_sink_v4l2_device_fd_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_device_fd_get.restype = c_uint
+def dsl_sink_v4l2_device_fd_get(name):
+    global _dsl
+    device_fd = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_device_fd_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_fd.value 
+
+##
+## dsl_sink_v4l2_device_flags_get()
+##
+_dsl.dsl_sink_v4l2_device_flags_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_v4l2_device_flags_get.restype = c_uint
+def dsl_sink_v4l2_device_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_sink_v4l2_device_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value 
+
+##
+## dsl_sink_v4l2_buffer_in_format_get()
+##
+_dsl.dsl_sink_v4l2_buffer_in_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_buffer_in_format_get.restype = c_uint
+def dsl_sink_v4l2_buffer_in_format_get(name):
+    global _dsl
+    format = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_buffer_in_format_get(name, 
+        DSL_WCHAR_PP(format))
+    return int(result), format.value 
+
+##
+## dsl_sink_v4l2_buffer_in_format_set()
+##
+_dsl.dsl_sink_v4l2_buffer_in_format_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_v4l2_buffer_in_format_set.restype = c_uint
+def dsl_sink_v4l2_buffer_in_format_set(name, format):
+    global _dsl
+    result = _dsl.dsl_sink_v4l2_buffer_in_format_set(name, format)
+    return int(result)
+
+##
+## dsl_sink_v4l2_picture_settings_get()
+##
+_dsl.dsl_sink_v4l2_picture_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+_dsl.dsl_sink_v4l2_picture_settings_get.restype = c_uint
+def dsl_sink_v4l2_picture_settings_get(name):
+    global _dsl
+    brightness = c_int(0)
+    contrast = c_int(0)
+    container = c_int(0)
+    result = _dsl.dsl_sink_v4l2_picture_settings_get(name, 
+        DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(saturation))
+    return int(result), brightness.value, contrast.value, saturation.value
+
+##
+## dsl_sink_v4l2_picture_settings_set()
+##
+_dsl.dsl_sink_v4l2_picture_settings_set.argtypes = [c_wchar_p, 
+    c_int, c_int, c_int]
+_dsl.dsl_sink_v4l2_picture_settings_set.restype = c_uint
+def dsl_sink_v4l2_picture_settings_set(name, 
+    brightness, contrast, saturation):
+    global _dsl
+    result = _dsl.dsl_sink_v4l2_picture_settings_set(name, 
+        brightness, contrast, saturation)
+    return int(result)
+
+##
 ## dsl_sink_file_new()
 ##
 _dsl.dsl_sink_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
@@ -5598,13 +5728,16 @@ def dsl_sink_file_new(name, filepath, codec, container, bitrate, interval):
 ##
 ## dsl_sink_record_new()
 ##
-_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, DSL_RECORD_CLIENT_LISTNER]
+_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, DSL_RECORD_CLIENT_LISTNER]
 _dsl.dsl_sink_record_new.restype = c_uint
-def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, client_listener):
+def dsl_sink_record_new(name, outdir, 
+    codec, container, bitrate, interval, client_listener):
     global _dsl
     c_client_listener = DSL_RECORD_CLIENT_LISTNER(client_listener)
     callbacks.append(c_client_listener)
-    result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, c_client_listener)
+    result =_dsl.dsl_sink_record_new(name, outdir, 
+        codec, container, bitrate, interval, c_client_listener)
     return int(result)
     
 ##

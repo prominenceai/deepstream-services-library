@@ -2937,4 +2937,246 @@ namespace DSL
         return true;
     }
 
+    //-------------------------------------------------------------------------
+
+    V4l2SinkBintr::V4l2SinkBintr(const char* name, 
+        const char* deviceLocation)
+        : SinkBintr(name)
+        , m_deviceLocation(deviceLocation)
+    {
+        LOG_FUNC();
+
+        m_pSink = DSL_ELEMENT_NEW("v4l2sink", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+
+        m_pSink->GetAttribute("device-fd", &m_deviceFd);
+        m_pSink->GetAttribute("flags", &m_deviceFlags);
+        m_pSink->GetAttribute("brightness", &m_brightness);
+        m_pSink->GetAttribute("contrast", &m_contrast);
+        m_pSink->GetAttribute("saturation", &m_saturation);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Set the unique device location for the Sink
+        m_pSink->SetAttribute("device", deviceLocation);
+        
+        m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+        // Setup the default caps/buffer-format to YUY2
+        std::wstring L_bufferInFormat(DSL_VIDEO_FORMAT_YUY2);
+        std::string bufferInFormat(L_bufferInFormat.begin(), 
+            L_bufferInFormat.end());
+        SetBufferInFormat(bufferInFormat.c_str());
+        
+        m_pIdentity = DSL_ELEMENT_NEW("identity", name);
+        m_pIdentity->SetAttribute("drop-allocation", 1);
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for v4L2SinkBintr '" << name << "'");
+        LOG_INFO("  device-location    : " << m_deviceLocation);
+        LOG_INFO("  device-name        : " << m_deviceName);
+        LOG_INFO("  device-fd          : " << m_deviceFd);
+        LOG_INFO("  flags              : " << int_to_hex(m_deviceFlags));
+        LOG_INFO("  buffer-in-format   : " << m_bufferInFormat);
+        LOG_INFO("  brightness         : " << m_brightness);
+        LOG_INFO("  contrast           : " << m_contrast);
+        LOG_INFO("  saturation         : " << m_saturation);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        
+        AddChild(m_pSink);
+        AddChild(m_pTransform);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pIdentity);
+    }
+    
+    V4l2SinkBintr::~V4l2SinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool V4l2SinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or    
+            !m_pCapsFilter->LinkToSink(m_pIdentity) or
+            !m_pIdentity->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void V4l2SinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pQueue->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pIdentity->UnlinkFromSink();
+
+        m_isLinked = false;
+    }
+
+    const char* V4l2SinkBintr::GetDeviceLocation()
+    {
+        LOG_FUNC();
+
+        return m_deviceLocation.c_str();
+    }
+    
+    bool V4l2SinkBintr::SetDeviceLocation(const char* deviceLocation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set device-location for V4l2SinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        
+        m_deviceLocation = deviceLocation;
+        
+        m_pSink->SetAttribute("device", deviceLocation);
+        return true;
+    }
+
+    const char* V4l2SinkBintr::GetDeviceName()
+    {
+        LOG_FUNC();
+        
+        // default to no device-name
+        m_deviceName = "";
+
+        const char* deviceName(NULL);
+        m_pSink->GetAttribute("device-name", &deviceName);
+        
+        // Update if set
+        if (deviceName)
+        {
+            m_deviceName = deviceName;
+        }
+            
+        return m_deviceName.c_str();
+    }
+    
+    int V4l2SinkBintr::GetDeviceFd()
+    {
+        LOG_FUNC();
+
+        m_pSink->GetAttribute("device-fd", &m_deviceFd);
+        return m_deviceFd;
+    }
+    
+    uint V4l2SinkBintr::GetDeviceFlags()
+    {
+        LOG_FUNC();
+
+        m_pSink->GetAttribute("flags", &m_deviceFlags);
+        return m_deviceFlags;
+    }
+    
+    const char* V4l2SinkBintr::GetBufferInFormat()
+    {
+        LOG_FUNC();
+        
+        return m_bufferInFormat.c_str();
+    }
+    
+    bool V4l2SinkBintr::SetBufferInFormat(const char* format)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for V4l2SinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        
+        m_bufferInFormat = format;
+
+        // Define the default video caps - media and format only.
+        GstCaps* pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, m_bufferInFormat.c_str(), NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create caps for V4l2SinkBintr '"
+                << GetName() << "'");
+            throw;
+        }
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+
+        return true;
+    }
+
+    void V4l2SinkBintr::GetPictureSettings(int* brightness, 
+        int* contrast, int* saturation)
+    {
+        LOG_FUNC();
+        
+        *brightness = m_brightness;
+        *contrast = m_contrast;
+        *saturation = m_saturation;
+    }
+
+    bool V4l2SinkBintr::SetPictureSettings(int brightness, 
+        int contrast, int saturation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set picture-settings for V4l2SinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_brightness = brightness;
+        m_contrast = contrast;
+        m_saturation = saturation;
+
+        m_pSink->SetAttribute("brightness", m_brightness);
+        m_pSink->SetAttribute("contrast", m_contrast);
+        m_pSink->SetAttribute("saturation", m_saturation);
+        
+        return true;
+    }
+
 }    

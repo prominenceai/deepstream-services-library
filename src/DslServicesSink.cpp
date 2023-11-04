@@ -2744,6 +2744,316 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::SinkV4l2New(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_V4L2_SINK_NEW(name, 
+                deviceLocation);
+            
+            LOG_INFO("New V4L2 Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceLocationGet(const char* name, 
+        const char** deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceLocation = pSinkBintr->GetDeviceLocation();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-location = '" 
+                << *deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceLocationSet(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetDeviceLocation(deviceLocation))
+            {
+                LOG_ERROR("Failed to set device-location '" 
+                    << deviceLocation << "' for V4L2 Sink '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Sink '" << name << "' set device-location = '" 
+                << deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception setting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceNameGet(const char* name, 
+        const char** deviceName)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceName = pSinkBintr->GetDeviceName();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-name = '" 
+                << *deviceName << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-name");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceFdGet(const char* name, 
+        int* deviceFd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceFd = pSinkBintr->GetDeviceFd();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-fd = '" 
+                << *deviceFd << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-fd");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceFlagsGet(const char* name, 
+        uint* deviceFlags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceFlags = pSinkBintr->GetDeviceFlags();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-flags = '" 
+                << int_to_hex(*deviceFlags) << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-fd");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkV4l2BufferInFormatGet(const char* name, 
+        const char** format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *format = pSinkBintr->GetBufferInFormat();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned buffer-in-format = '" 
+                << *format << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting buffer-in-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2BufferInFormatSet(const char* name, 
+        const char* format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetBufferInFormat(format))
+            {
+                LOG_ERROR("Failed to set buffer-in-format '" 
+                    << format << "' for V4L2 Sink '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Sink '" << name << "' set buffer-in-format = '" 
+                << format << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception setting buffer-in-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2PictureSettingsGet(const char* name, 
+        int* brightness, int* contrast, int* saturation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            pSinkBintr->GetPictureSettings(brightness, contrast, saturation);
+
+            LOG_INFO("V4L2 Sink '" << name 
+                << "' returned picture-settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting picture-settings");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2PictureSettingsSet(const char* name, 
+        int brightness, int contrast, int saturation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetPictureSettings(brightness, contrast, saturation))
+            {
+                LOG_ERROR("Failed to set picture-settings for V4L2 Sink '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Sink '" << name 
+                << "' set picture-settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception setting picture-settings");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
             
     DslReturnType Services::SinkSyncEnabledGet(const char* name, boolean* enabled)
     {
