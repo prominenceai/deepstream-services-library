@@ -6334,6 +6334,16 @@ def dsl_sink_frame_capture_initiate(name):
     return int(result)
     
 ##
+## dsl_sink_frame_capture_schedule()
+##
+_dsl.dsl_sink_frame_capture_schedule.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_sink_frame_capture_schedule.restype = c_uint
+def dsl_sink_frame_capture_schedule(name, frame_number):
+    global _dsl
+    result =_dsl.dsl_sink_frame_capture_schedule(name, frame_number)
+    return int(result)
+    
+##
 ## dsl_sink_sync_enabled_get()
 ##
 _dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
