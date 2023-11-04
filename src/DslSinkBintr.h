@@ -361,6 +361,15 @@ namespace DSL
         bool Initiate();
 
         /**
+         * @brief Function to schedule a capture of a specific 
+         * frame-buffer to be provided by the base AppSinkBintr. 
+         * @param[in] frameNumber unique frame-number of the buffer to capture.
+         * @return false if the Sink is unlinked or the frameNumber is invalid,
+         * true otherwise.
+         */
+        bool Schedule(uint64_t frameNumber);
+
+        /**
          * @brief Function to handle each new buffer provided by the AppSinkBintr.
          * @param[in] buffer new buffer to capture if m_captureNextBuffer == true.
          * @return GST_FLOW_OK always.
@@ -374,11 +383,17 @@ namespace DSL
          * function to capture the next frame-buffer.
          */
         bool m_captureNextBuffer;
+        
+        /**
+         * @brief queue of scheduled frame-numbers to capture.
+         */
+        std::queue<uint64_t> m_captureFrameNumbers;
 
         /**
-         * @brief mutex to protect mutual access to m_captureNextBuffer flag.
+         * @brief mutex to protect mutual access to the Sink's capture control 
+         * variables.
          */
-        DslMutex m_captureNextMutex;
+        DslMutex m_captureMutex;
 
         /**
          * @brief Shared pointer to a Frame Capture Action.

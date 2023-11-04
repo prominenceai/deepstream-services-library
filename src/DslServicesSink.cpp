@@ -2740,7 +2740,43 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Frame-Capture Sink '" << name 
-                << "' threw an exception initiating capture");
+                << "' threw an exception initiating a frame capture");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkFrameCaptureSchedule(const char* name,
+        uint64_t frameNumber)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, FrameCaptureSinkBintr);
+
+            DSL_FRAME_CAPTURE_SINK_PTR pFrameCaptureSink = 
+                std::dynamic_pointer_cast<FrameCaptureSinkBintr>(m_components[name]);
+
+            if (!pFrameCaptureSink->Schedule(frameNumber))
+            {
+                LOG_ERROR("Frame-Capture Sink '" << name 
+                    << "' failed to schedule a frame-capture for frame-number = "
+                    << frameNumber);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Frame-Capture Sink '" << name 
+                << "' scheduled a frame-capture for frame-number = "
+                << frameNumber << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Frame-Capture Sink '" << name 
+                << "' threw an exception scheduling a frame-capture");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

@@ -407,7 +407,7 @@ namespace DSL
     
     bool FrameCaptureSinkBintr::Initiate()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureNextMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
         if (!IsLinked())
         {
@@ -420,10 +420,25 @@ namespace DSL
         return true;
     }
     
+    bool FrameCaptureSinkBintr::Schedule(uint64_t frameNumber)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
+        
+        if (!IsLinked())
+        {
+            LOG_ERROR("Unable schedule a frame-capture with FrameCaptureSinkBintr '"
+                << GetName() << "' as it's not in a linked/playing state");
+            return false;
+        }
+        
+        m_captureFrameNumbers.push(frameNumber);
+        return true;
+    }
+    
     uint FrameCaptureSinkBintr::HandleNewBuffer(void* buffer)
     {
         // don't log function
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureNextMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
         if (m_captureNextBuffer)
         {

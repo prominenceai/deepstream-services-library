@@ -7788,6 +7788,26 @@ DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name)
 #endif        
 }
     
+DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
+    uint64_t frame_number)
+{
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkFrameCaptureSchedule(
+        cstrName.c_str(), frame_number);
+#endif        
+}
+ 
     
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,

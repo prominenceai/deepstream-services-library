@@ -1431,6 +1431,9 @@ namespace DSL {
             
         DslReturnType SinkFrameCaptureInitiate(const char* name);
             
+        DslReturnType SinkFrameCaptureSchedule(const char* name,
+            uint64_t frameNumber);
+            
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 
