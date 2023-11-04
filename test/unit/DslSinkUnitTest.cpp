@@ -1932,9 +1932,9 @@ SCENARIO( "A new V4l2SinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retSaturation == 0 );
                 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == true );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }

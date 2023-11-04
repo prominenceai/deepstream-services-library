@@ -103,10 +103,10 @@ namespace DSL
         std::shared_ptr<MultiImageSinkBintr>( \
         new MultiImageSinkBintr(name, filepath, width, height, fps_n, fps_d))
 
-    #define DSL_V4L2_SINK_PTR std::shared_ptr<v4l2SinkBintr>
+    #define DSL_V4L2_SINK_PTR std::shared_ptr<V4l2SinkBintr>
     #define DSL_V4L2_SINK_NEW(name, deviceLocation) \
-        std::shared_ptr<v4l2SinkBintr>( \
-        new v4l2SinkBintr(name, deviceLocation))
+        std::shared_ptr<V4l2SinkBintr>( \
+        new V4l2SinkBintr(name, deviceLocation))
 
     //-------------------------------------------------------------------------
 
@@ -1577,13 +1577,13 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class v4l2SinkBintr : public SinkBintr
+    class V4l2SinkBintr : public SinkBintr
     {
     public: 
     
-        v4l2SinkBintr(const char* name, const char* deviceLocation);
+        V4l2SinkBintr(const char* name, const char* deviceLocation);
 
-        ~v4l2SinkBintr();
+        ~V4l2SinkBintr();
   
         /**
          * @brief Links all Child Elementrs owned by this Bintr
@@ -1598,20 +1598,20 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the current device-location setting for the v4l2SinkBintr
+         * @brief Gets the current device-location setting for the V4l2SinkBintr
          * @return current device location.
          */
         const char* GetDeviceLocation();
         
         /**
-         * @brief Sets the device-location setting for the v4l2SinkBintr.
-         * @param[in] new device location for the v4l2SinkBintr to use.
+         * @brief Sets the device-location setting for the V4l2SinkBintr.
+         * @param[in] new device location for the V4l2SinkBintr to use.
          * @return true if successfully set, false otherwise.
          */
         bool SetDeviceLocation(const char* deviceLocation);
 
         /**
-         * @brief Gets the current device-name setting for the v4l2SinkBintr
+         * @brief Gets the current device-name setting for the V4l2SinkBintr
          * Default = "". Updated after negotiation with the V4L2 Device.
          * @return current device location.
          */
@@ -1619,14 +1619,14 @@ namespace DSL
         
         /**
          * @brief Gets the current device-fd (file-descriptor) setting for 
-         * the v4l2SinkBintr. Default = -1 (unset). Updated at runtime after
+         * the V4l2SinkBintr. Default = -1 (unset). Updated at runtime after
          * negotiation with the V4l2 Device.
          * @return current device location.
          */
         int GetDeviceFd();
         
         /**
-         * @brief Gets the current device-flags setting for the v4l2SinkBintr. 
+         * @brief Gets the current device-flags setting for the V4l2SinkBintr. 
          * Default = 0 (none). Updated at runtime after negotiation with the 
          * V4l2 Device.
          * @return current device location.
@@ -1634,21 +1634,21 @@ namespace DSL
         uint GetDeviceFlags();
         
         /**
-         * @brief Gets the current buffer-in-format for this v4l2SinkBintr.
+         * @brief Gets the current buffer-in-format for this V4l2SinkBintr.
          * @return Current buffer-in-format. string version of one of the 
          * DSL_VIDEO_FORMAT constants.
          */
         const char* GetBufferInFormat();
         
         /**
-         * @brief Sets the buffer-in-format for the v4l2SinkBintr.
+         * @brief Sets the buffer-in-format for the V4l2SinkBintr.
          * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferInFormat(const char* format);
 
         /**
-         * @brief Gets the current buffer-in-format for this v4l2SinkBintr.
+         * @brief Gets the current buffer-in-format for this V4l2SinkBintr.
          * @param[out] brightness current brightness (actually darkness) level.
          * @param[out] contrast current picture contrast or luna gain level.
          * @param[out] saturation current color saturation or chroma gain level.
@@ -1656,7 +1656,7 @@ namespace DSL
         void GetPictureSettings(int* brightness, int* contrast, int* saturation);
         
         /**
-         * @brief Sets the buffer-in-format for the v4l2SinkBintr.
+         * @brief Sets the buffer-in-format for the V4l2SinkBintr.
          * @param[in] brightness new brightness (actually darkness) level.
          * @param[in] contrast new picture contrast or luna level.
          * @param[in] saturation new color saturation or chroma level.
@@ -1667,22 +1667,22 @@ namespace DSL
     private:
 
         /**
-         * @brief Device location string for this v4l2SinkBintr.
+         * @brief Device location string for this V4l2SinkBintr.
          */
         std::string m_deviceLocation;
 
         /**
-         * @brief Device name string for this v4l2SinkBintr. Default size=0
+         * @brief Device name string for this V4l2SinkBintr. Default size=0
          */
         std::string m_deviceName;
         
         /**
-         * @brief Device file-descriptor for this v4l2SinkBintr. Default = -1
+         * @brief Device file-descriptor for this V4l2SinkBintr. Default = -1
          */
         int m_deviceFd;
         
         /**
-         * @brief Device type-flags for this v4l2SinkBintr. 
+         * @brief Device type-flags for this V4l2SinkBintr. 
          * Default = DSL_V4L2_DEVICE_TYPE_NONE
          */
         uint m_deviceFlags;
@@ -1708,18 +1708,18 @@ namespace DSL
         int m_saturation;
         
         /**
-         * @brief Identity module for the  v4l2SinkBintr required to workaround 
+         * @brief Identity module for the  V4l2SinkBintr required to workaround 
          * a bug in the v4l2loopback.
          */
         DSL_ELEMENT_PTR m_pIdentity;
 
         /**
-         * @brief Caps Filter required for for the v4l2SinkBintr.
+         * @brief Caps Filter required for for the V4l2SinkBintr.
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
 
         /**
-         * @brief Video converter required for the v4l2SinkBintr.
+         * @brief Video converter required for the V4l2SinkBintr.
          */
         DSL_ELEMENT_PTR m_pTransform;
 

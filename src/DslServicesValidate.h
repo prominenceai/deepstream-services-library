@@ -312,7 +312,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
-        !components[name]->IsType(typeid(v4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(SplitterBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
@@ -337,7 +337,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
-        !components[name]->IsType(typeid(v4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr))) \
     { \
@@ -358,7 +358,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
-        !components[name]->IsType(typeid(v4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \

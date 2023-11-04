@@ -2939,7 +2939,7 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    v4l2SinkBintr::v4l2SinkBintr(const char* name, 
+    V4l2SinkBintr::V4l2SinkBintr(const char* name, 
         const char* deviceLocation)
         : SinkBintr(name)
         , m_deviceLocation(deviceLocation)
@@ -2950,22 +2950,26 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("async", &m_async);
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        m_pSink->GetAttribute("qos", &m_qos);
-        
+
         m_pSink->GetAttribute("device-fd", &m_deviceFd);
         m_pSink->GetAttribute("flags", &m_deviceFlags);
         m_pSink->GetAttribute("brightness", &m_brightness);
         m_pSink->GetAttribute("contrast", &m_contrast);
         m_pSink->GetAttribute("saturation", &m_saturation);
 
-        // Set the unique device location for the Sink
-        m_pSink->SetAttribute("device", deviceLocation);
-        
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
+        // Set the unique device location for the Sink
+        m_pSink->SetAttribute("device", deviceLocation);
+        
         m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
@@ -3000,7 +3004,7 @@ namespace DSL
         AddChild(m_pIdentity);
     }
     
-    v4l2SinkBintr::~v4l2SinkBintr()
+    V4l2SinkBintr::~V4l2SinkBintr()
     {
         LOG_FUNC();
 
@@ -3010,13 +3014,13 @@ namespace DSL
         }
     }
 
-    bool v4l2SinkBintr::LinkAll()
+    bool V4l2SinkBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("v4l2SinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         
@@ -3031,13 +3035,13 @@ namespace DSL
         return true;
     }
     
-    void v4l2SinkBintr::UnlinkAll()
+    void V4l2SinkBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("v4l2SinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is not linked");
             return;
         }
 
@@ -3049,20 +3053,20 @@ namespace DSL
         m_isLinked = false;
     }
 
-    const char* v4l2SinkBintr::GetDeviceLocation()
+    const char* V4l2SinkBintr::GetDeviceLocation()
     {
         LOG_FUNC();
 
         return m_deviceLocation.c_str();
     }
     
-    bool v4l2SinkBintr::SetDeviceLocation(const char* deviceLocation)
+    bool V4l2SinkBintr::SetDeviceLocation(const char* deviceLocation)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set device-location for v4l2SinkBintr '" 
+            LOG_ERROR("Can't set device-location for V4l2SinkBintr '" 
                 << GetName() << "' as it is currently in a linked state");
             return false;
         }
@@ -3073,7 +3077,7 @@ namespace DSL
         return true;
     }
 
-    const char* v4l2SinkBintr::GetDeviceName()
+    const char* V4l2SinkBintr::GetDeviceName()
     {
         LOG_FUNC();
         
@@ -3092,7 +3096,7 @@ namespace DSL
         return m_deviceName.c_str();
     }
     
-    int v4l2SinkBintr::GetDeviceFd()
+    int V4l2SinkBintr::GetDeviceFd()
     {
         LOG_FUNC();
 
@@ -3100,7 +3104,7 @@ namespace DSL
         return m_deviceFd;
     }
     
-    uint v4l2SinkBintr::GetDeviceFlags()
+    uint V4l2SinkBintr::GetDeviceFlags()
     {
         LOG_FUNC();
 
@@ -3108,20 +3112,20 @@ namespace DSL
         return m_deviceFlags;
     }
     
-    const char* v4l2SinkBintr::GetBufferInFormat()
+    const char* V4l2SinkBintr::GetBufferInFormat()
     {
         LOG_FUNC();
         
         return m_bufferInFormat.c_str();
     }
     
-    bool v4l2SinkBintr::SetBufferInFormat(const char* format)
+    bool V4l2SinkBintr::SetBufferInFormat(const char* format)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-format for v4l2SinkBintr '" 
+            LOG_ERROR("Can't set buffer-out-format for V4l2SinkBintr '" 
                 << GetName() << "' as it is currently in a linked state");
             return false;
         }
@@ -3133,7 +3137,7 @@ namespace DSL
             "format", G_TYPE_STRING, m_bufferInFormat.c_str(), NULL);
         if (!pCaps)
         {
-            LOG_ERROR("Failed to create caps for v4l2SinkBintr '"
+            LOG_ERROR("Failed to create caps for V4l2SinkBintr '"
                 << GetName() << "'");
             throw;
         }
@@ -3143,7 +3147,7 @@ namespace DSL
         return true;
     }
 
-    void v4l2SinkBintr::GetPictureSettings(int* brightness, 
+    void V4l2SinkBintr::GetPictureSettings(int* brightness, 
         int* contrast, int* saturation)
     {
         LOG_FUNC();
@@ -3153,14 +3157,14 @@ namespace DSL
         *saturation = m_saturation;
     }
 
-    bool v4l2SinkBintr::SetPictureSettings(int brightness, 
+    bool V4l2SinkBintr::SetPictureSettings(int brightness, 
         int contrast, int saturation)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set picture-settings for v4l2SinkBintr '" 
+            LOG_ERROR("Can't set picture-settings for V4l2SinkBintr '" 
                 << GetName() << "' as it is currently in a linked state");
             return false;
         }

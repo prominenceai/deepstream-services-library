@@ -2783,10 +2783,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             *deviceLocation = pSinkBintr->GetDeviceLocation();
 
@@ -2813,10 +2813,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             if (!pSinkBintr->SetDeviceLocation(deviceLocation))
             {
@@ -2847,10 +2847,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             *deviceName = pSinkBintr->GetDeviceName();
 
@@ -2877,10 +2877,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             *deviceFd = pSinkBintr->GetDeviceFd();
 
@@ -2907,10 +2907,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             *deviceFlags = pSinkBintr->GetDeviceFlags();
 
@@ -2937,10 +2937,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             *format = pSinkBintr->GetBufferInFormat();
 
@@ -2967,10 +2967,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             if (!pSinkBintr->SetBufferInFormat(format))
             {
@@ -3001,10 +3001,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             pSinkBintr->GetPictureSettings(brightness, contrast, saturation);
 
@@ -3031,10 +3031,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                v4l2SinkBintr);
+                V4l2SinkBintr);
 
             DSL_V4L2_SINK_PTR pSinkBintr = 
-                std::dynamic_pointer_cast<v4l2SinkBintr>(m_components[name]);
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
 
             if (!pSinkBintr->SetPictureSettings(brightness, contrast, saturation))
             {

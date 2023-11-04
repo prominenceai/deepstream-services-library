@@ -7512,8 +7512,8 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     const wchar_t* connection_string, const wchar_t* topic);
 
 /**
- * @brief Creates a new, uniquely named V4L2 Sink that streams to a specific
- * device_location as a V4L2 Device.
+ * @brief Creates a new, uniquely named V4L2 Sink that streams to a V4L2 compatable
+ * device or v4l2loopback
  * @param[in] name unique component name for the new V4L2 Sink
  * @param[in] device_location device-location setting for the V4L2 Sink
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
@@ -7575,7 +7575,7 @@ DslReturnType dsl_sink_v4l2_device_flags_get(const wchar_t* name,
  * buffer-in-format defines the format set on input to the v4l2sink plugin.
  * @param name unique name of the V4L2 Sink Component to query.
  * @param[out] format current buffer-in-format. One of the DSL_VIDEO_FORMAT
- * constant string values. Default = DSL_VIDEO_FORMAT_YUY.
+ * constant string values. Default = DSL_VIDEO_FORMAT_YUY2.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_v4l2_buffer_in_format_get(const wchar_t* name,
