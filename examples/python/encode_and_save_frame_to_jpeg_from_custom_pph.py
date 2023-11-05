@@ -37,15 +37,17 @@
 # A Custom Pad Probe Handler (PPH) is added to the sink-pad of the OSD component
 # to process every buffer flowing over the pad by:
 #    - Retrieving the batch-metadata and its list of frame metadata structures
-#      (only frame per batched-buffer with 1 Source)
+#      (only one frame per batched-buffer with 1 Source)
 #    - Retrieving the list of object metadata structures from the frame metadata.
-#    - Iterate through the list of objects looking for the first occurrence of
+#    - Iterating through the list of objects looking for the first occurrence of
 #      a bicycle. 
 #    - If detected, the current frame-number is schedule to be captured by the
 #      Frame-Capture Sink using its Frame-Capture Action.
 #
 #          dsl_sink_frame_capture_schedule('frame-capture-sink', 
 #                   frame_meta.frame_num)
+#
+# Note: The Custom PPH will schedule every frame with a bicycle to be captured!
 #
 # IMPORT All captured frames are copied and buffered in the Sink's processing
 # thread. The encoding and saving of each buffered frame is done in the 
@@ -66,7 +68,7 @@ uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.
 primary_infer_config_file_jetson = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine'
 primary_infer_config_file_dgpu = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file_dgpu = \
@@ -76,6 +78,7 @@ primary_model_engine_file_dgpu = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+# Valid Object Class Ids
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
@@ -219,13 +222,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to call the handler function above 
-        # for handling the Batched Meta Data
+        # New Custom Pad Probe Handler (PPH) to call our handler function above
         retval = dsl_pph_custom_new('custom-pph', 
             client_handler=custom_pad_probe_handler, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+        
+        # Add the Custom PPH to the sink (input) pad of the OSD component.
         retval = dsl_osd_pph_add('on-screen-display', 'custom-pph', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
