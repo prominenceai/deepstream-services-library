@@ -431,7 +431,7 @@ namespace DSL
             return false;
         }
         
-        m_captureFrameNumbers.push(frameNumber);
+        m_captureFrameNumbers.emplace(frameNumber);
         return true;
     }
     
@@ -440,19 +440,18 @@ namespace DSL
         // don't log function
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
-        if (m_captureNextBuffer)
+        if (m_captureNextBuffer or m_captureFrameNumbers.size())
         {
+            // flag for final determination to capture this frame.
+            bool captureThisFrame(false);
+            
+            // get the batch metadata for the current buffer
             NvDsBatchMeta* pBatchMeta = 
                 gst_buffer_get_nvds_batch_meta((GstBuffer*)buffer);
             
-            // For each frame in the batched meta data
+            // Although it's a list, there will only be one frame
             NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
             
-            if (pFrameMetaList->next)
-            {
-                LOG_WARN("MetaList should only include one frame-meta struct");
-            }
-
             // Check for valid frame data
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
             if (pFrameMeta == NULL)
@@ -461,15 +460,41 @@ namespace DSL
                 return GST_FLOW_OK;
             }
             
-            // Need to up-cast the base pointer to our frame-capture action
-            DSL_ODE_ACTION_CAPTURE_FRAME_PTR pCaptureAction =
-                std::dynamic_pointer_cast<CaptureFrameOdeAction>(m_pFrameCaptureAction);
-            
-            
-            pCaptureAction->HandleOccurrence((GstBuffer*)buffer, pFrameMeta, NULL);
-            
-            // clear the client flag before returning
-            m_captureNextBuffer = false;
+            // If there are frame-numbers schedule for capture
+            if (m_captureFrameNumbers.size())
+            {
+                // First, check to see if we've already missed the frame to capture
+                if (pFrameMeta->frame_num > m_captureFrameNumbers.front())
+                {
+                    LOG_ERROR("Current frame-number (" << pFrameMeta->frame_num
+                        << ") is greater than the scheduled frame-number (" 
+                        << m_captureFrameNumbers.front()
+                        << ") for FrameCaptureSinkBintr '" << GetName() << "'");
+                    m_captureFrameNumbers.pop();
+                }
+                // Else, check to see if this is the scheduled frame.
+                else if (m_captureFrameNumbers.front() == pFrameMeta->frame_num)
+                {
+                    captureThisFrame = true;
+                    m_captureFrameNumbers.pop();
+                }
+            }
+            // both conditions can be true, however, we only capture the frame once.
+            if (m_captureNextBuffer)
+            {
+                captureThisFrame = true;
+                m_captureNextBuffer = false;
+            }
+                
+            if (captureThisFrame)
+            {
+                // Need to up-cast the base pointer to our frame-capture action
+                DSL_ODE_ACTION_CAPTURE_FRAME_PTR pCaptureAction =
+                    std::dynamic_pointer_cast<CaptureFrameOdeAction>(m_pFrameCaptureAction);
+                
+                
+                pCaptureAction->HandleOccurrence((GstBuffer*)buffer, pFrameMeta, NULL);
+            }
         }
         
         return GST_FLOW_OK;
