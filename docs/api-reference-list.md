@@ -478,7 +478,9 @@
 * [`dsl_sink_image_multi_frame_rate_get`](/docs/api-sink.md#dsl_sink_image_multi_frame_rate_get)
 * [`dsl_sink_image_multi_frame_rate_set`](/docs/api-sink.md#dsl_sink_image_multi_frame_rate_set)
 * [`dsl_sink_image_multi_file_max_get`](/docs/api-sink.md#dsl_sink_image_multi_file_max_get)
+* [`dsl_sink_image_multi_file_max_set`](/docs/api-sink.md#dsl_sink_image_multi_file_max_set)
 * [`dsl_sink_frame_capture_initiate`](/docs/api-sink.md#dsl_sink_frame_capture_initiate)
+* [`dsl_sink_frame_capture_schedule`](/docs/api-sink.md#dsl_sink_frame_capture_schedule)
 
 ## Pad Probe Handler:
 * [Overview](/docs/api-pph.md)
