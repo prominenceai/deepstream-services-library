@@ -21,7 +21,7 @@ DSL supports fourteen (14) different types of Sinks:
 * [Application Sink](#dsl_sink_app_new) - allows the application to receive buffers or samples from a DSL Pipeline.
 * [Interpipe Sink](#dsl_sink_interpipe_new) -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Multi-Image Sink](#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
-* [Frame-Capture Sink](#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on application/user demand. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Frame-Capture Sink](#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on demand or on schedule. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Fake Sink](#dsl_sink_fake_new) - consumes/drops all data.
 
 ### Sink Construction and Destruction
@@ -217,9 +217,11 @@ As a general rule
 * [`dsl_sink_image_multi_frame_rate_get`](#dsl_sink_image_multi_frame_rate_get)
 * [`dsl_sink_image_multi_frame_rate_set`](#dsl_sink_image_multi_frame_rate_set)
 * [`dsl_sink_image_multi_file_max_get`](#dsl_sink_image_multi_file_max_get)
+* [`dsl_sink_image_multi_file_max_set`](#dsl_sink_image_multi_file_max_set)
 
 **Frame-Capture Sink Methods**
 * [`dsl_sink_frame_capture_initiate`](#dsl_sink_frame_capture_initiate)
+* [`dsl_sink_frame_capture_schedule`](#dsl_sink_frame_capture_schedule)
 
 ## Return Values
 The following return codes are used by the Sink API
@@ -314,12 +316,14 @@ The following video container types are used by the File Sink API
 ```
 
 ## RTSP Lower-Protocol constants
+```C
 #define DSL_RTSP_LOWER_TRANS_UNKNOWN                                0x00000000
 #define DSL_RTSP_LOWER_TRANS_UDP                                    0x00000001
 #define DSL_RTSP_LOWER_TRANS_UDP_MCAST                              0x00000002
 #define DSL_RTSP_LOWER_TRANS_TCP                                    0x00000004
 #define DSL_RTSP_LOWER_TRANS_HTTP                                   0x00000010
 #define DSL_RTSP_LOWER_TRANS_TLS                                    0x00000020
+```
 
 ## TLS certificate validation constants
 Flags used to validate the RTSP server certificate.
@@ -354,10 +358,10 @@ Defines the Payload schema types that can be used with the Message Sink
 The following -D flags are defined in the DSL Makefile
 ```C
 -DNVDS_AZURE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_proto.so"' \
--DNVDS_AZURE_EDGE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto.so \
--DNVDS_AMQP_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_amqp_proto.so \
--DNVDS_KAFKA_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_kafka_proto.so \
--DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_edge_proto.so
+-DNVDS_AZURE_EDGE_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_azure_edge_proto.so"' \
+-DNVDS_AMQP_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_amqp_proto.so"' \
+-DNVDS_KAFKA_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_kafka_proto.so"' \
+-DNVDS_REDIS_PROTO_LIB='L"$(LIB_INSTALL_DIR)/libnvds_redis_edge_proto.so"'
  ```
 
 <br>
@@ -383,7 +387,7 @@ typedef struct dsl_recording_info
 Structure typedef used to provide recording session information provided to the client on callback
 
 **Fields**
-* `recording_event` - specifies which recording event has occurred. One of DSL_RECORDING_EVENT_START or DSL_RECORDING_EVENT_END
+* `recording_event` - specifies which recording event has occurred. One of `DSL_RECORDING_EVENT_START` or `DSL_RECORDING_EVENT_END`
 * `sessionId` - the unique sessions id assigned on record start
 * `filename` - filename generated for the completed recording. Null on recording start.
 * `directory` - path for the completed recording. Null on recording start.
@@ -435,7 +439,7 @@ A structure typedef used to provide connection date for a given WebRTC Sink
 typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
     void* data, void* client_data);
 ```
-Callback typedef for the App Sink Component. The function is registered when the App Sink is created with [dsl_sink_app_new](#dsl_sink_app_new). Once the Pipeline is playing, the function will be called when new data is available to process. The type of data is specified with the App Sink constructor.
+Callback typedef for the App Sink Component. The function is registered when the App Sink is created with [`dsl_sink_app_new`](#dsl_sink_app_new). Once the Pipeline is playing, the function will be called when new data is available to process. The type of data is specified with the App Sink constructor.
 
 **Parameters**
 * `data_type` [in] either `DSL_SINK_APP_DATA_TYPE_SAMPLE` or `DSL_SINK_APP_DATA_TYPE_BUFFER`. See [App Sink data-types](#data-types-provided-by-the-app-sink).
@@ -450,7 +454,7 @@ Callback typedef for the App Sink Component. The function is registered when the
 ```C++
 typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* client_data);
 ```
-Callback typedef for a client XWindow `KeyRelease` event handler function. Functions of this type are added to a Window Sink by calling [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add). Once added, the function will be called on every XWindow `KeyRelease` event. The handler function is removed by calling  [dsl_sink_window_key_event_handler_remove](#dsl_sink_window_key_event_handler_remove).
+Callback typedef for a client XWindow `KeyRelease` event handler function. Functions of this type are added to a Window Sink by calling [`dsl_sink_window_key_event_handler_add`](#dsl_sink_window_key_event_handler_add). Once added, the function will be called on every XWindow `KeyRelease` event. The handler function is removed by calling  [`dsl_sink_window_key_event_handler_remove`](#dsl_sink_window_key_event_handler_remove).
 
 **Parameters**
 * `key` - [in] UNICODE key string for the key pressed
@@ -462,7 +466,7 @@ Callback typedef for a client XWindow `KeyRelease` event handler function. Funct
 ```C++
 typedef void (*dsl_sink_window_button_event_handler_cb)(uint button, uint xpos, uint ypos, void* client_data);
 ```
-Callback typedef for a client XWindow `ButtonPress` event handler function. Functions of this type are added to a Window Sink by calling [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add). Once added, the function will be called on every XWindow `ButtonPress` event. The handler function is removed by calling [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove).
+Callback typedef for a client XWindow `ButtonPress` event handler function. Functions of this type are added to a Window Sink by calling [`dsl_sink_window_button_event_handler_add`](#dsl_sink_window_button_event_handler_add). Once added, the function will be called on every XWindow `ButtonPress` event. The handler function is removed by calling [`dsl_sink_window_button_event_handler_remove`](#dsl_sink_window_button_event_handler_remove).
 
 **Parameters**
 * `button` - [in] one of [DSL_BUTTON_ID](#) indicating which mouse button was pressed
@@ -476,7 +480,7 @@ Callback typedef for a client XWindow `ButtonPress` event handler function. Func
 ```C++
 typedef void (*dsl_sink_window_delete_event_handler_cb)(void* client_data);
 ```
-Callback typedef for a client XWindow `Delete` event handler function. Functions of this type are added to a Pipeline by calling [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add). Once added, the function will be called on XWindow `Delete` event. The handler function is removed by calling [dsl_sink_window_button_event_handler_remove](#dsl_sink_window_button_event_handler_remove).
+Callback typedef for a client XWindow `Delete` event handler function. Functions of this type are added to a Pipeline by calling [`dsl_sink_window_delete_event_handler_add`](#dsl_sink_window_delete_event_handler_add). Once added, the function will be called on XWindow `Delete` event. The handler function is removed by calling [`dsl_sink_window_button_event_handler_remove`](#dsl_sink_window_button_event_handler_remove).
 
 **Parameters**
 * `client_data` - [in] opaque pointer to client's user data, passed into the Window Sink on callback add
@@ -490,7 +494,7 @@ typedef void* (*dsl_record_client_listener_cb)(void* info, void* user_data);
 Callback typedef for clients to listen for a notification that a Recording Session has started or ended.
 
 **Parameters**
-* `info` [in] opaque pointer to the connection info, see... see [dsl_capture_info](#dsl_capture_info).
+* `info` [in] opaque pointer to the connection info, see... see [`dsl_capture_info`](#dsl_capture_info).
 * `client_data` [in] opaque pointer to client's user data, provided by the client.
 
 <br>
@@ -505,7 +509,7 @@ Callback typedef for a client to listen for WebRTC Sink connection events.
 **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
 **Parameters**
-* `info` [in] opaque pointer to the session info, see [dsl_webrtc_connection_data](#dsl_webrtc_connection_data).
+* `info` [in] opaque pointer to the session info, see [`dsl_webrtc_connection_data`](#dsl_webrtc_connection_data).
 * `client_data` [in] opaque pointer to client's user data, provided by the client.
 
 ---
@@ -683,7 +687,7 @@ Note: the Sink name is used as the filename prefix, followed by session id and N
 * `container` - [in] one of the [Video Container Types](#video-container-types) defined above.
 * `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
-* `client_listener` - [in] client callback function of type [dsl_record_client_listener_cb ](#dsl_record_client_listener_cb) to be called when a [Recording Event}(#smart-recording-events) occurs.
+* `client_listener` - [in] client callback function of type [`dsl_record_client_listener_cb`](#dsl_record_client_listener_cb) to be called when a [Recording Event}(#smart-recording-events) occurs.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -732,7 +736,7 @@ retval = dsl_sink_rtsp_client_new('my-rtsp-client-sink',
 DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host,
      uint udp_port, uint rtmp_port, uint codec, uint bitrate, uint interval);
 ```
-The constructor creates a uniquely named RTSP Server Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [dsl_main_loop_run](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
+The constructor creates a uniquely named RTSP Server Sink. Construction will fail if the name is currently in use. There are two Codec formats - `H.264` and `H.265` - supported. The RTSP server is configured when the Pipeline is called to Play. The server is then started and attached to the g-main-loop context once [`dsl_main_loop_run`](#dsl_main_loop_run) is called. Once attached, the server can accept connections.
 
 **Important Note:** the URI is derived from the device identification, `rtmp_port`, and server mount point which is derived from the unique RTSP Server Sink name, 
 
@@ -926,7 +930,9 @@ DslReturnType dsl_sink_frame_capture_new(const wchar_t* name,
 ```
 The constructor creates a new, uniquely named Frame-Capture Sink. Construction will fail if the name is currently in use. The Sink is created with an [ODE Frame-Capture Action](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) which performs the image encoding and saving. All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
 
-The Application initiates a frame-capture by calling [dsl_sink_frame_capture_initiate](#dsl_sink_frame_capture_initiate).
+There are two methods for capturing frames:
+1. The Application _initiates_ a frame-capture of the next buffer by calling [`dsl_sink_frame_capture_initiate`](#dsl_sink_frame_capture_initiate).
+2. An upstream [Custom PPH](/docs/api-pph.md#custom-pad-probe-handler) _schedules_ a frame-capture for a specific frame-number by calling [`dsl_sink_frame_capture_schedule`](#dsl_sink_frame_capture_schedule).
 
 [Capture-complete-listeners](/docs/api-ode-action.md#dsl_capture_complete_listener_cb) (to notify on completion), [Image Players](/docs/api-player.md) (to auto-play the new image) and [SMTP Mailers](/docs/api-mailer.md) (to mail the new image) can be added to the Capture Action as well.
 
@@ -981,7 +987,7 @@ retVal = dsl_sink_fake_new('my-fake-sink')
 ---
 
 ## Destructors
-As with all Pipeline components, Sinks are deleted by calling [dsl_component_delete](api-component.md#dsl_component_delete), [dsl_component_delete_many](api-component.md#dsl_component_delete_many), or [dsl_component_delete_all](api-component.md#dsl_component_delete_all).
+As with all Pipeline components, Sinks are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all).
 
 <br>
 
@@ -1329,7 +1335,7 @@ DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
 ```
 This service returns the current XWindow handle in use by the named Window Sink. The handle is set to `Null` on Wink creation and will remain `Null` until,
 1. The Sink creates an internal XWindow synchronized on Transition to a state of playing, or
-2. The Client Application passes an XWindow handle into the Pipeline by calling [dsl_sink_window_handle_set](#dsl_sink_window_handle_set).
+2. The Client Application passes an XWindow handle into the Pipeline by calling [`dsl_sink_window_handle_set`](#dsl_sink_window_handle_set).
 
 **Parameters**
 * `name` - [in] unique name for the Window Sink to query.
@@ -1452,7 +1458,7 @@ retval = dsl_sink_window_fullscreen_enabled_set('my-window-sink', enabled=True)
 DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
     dsl_sink_window_key_event_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
+This service adds a callback function of type [`dsl_sink_window_key_event_handler_cb`](#dsl_sink_window_key_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `KeyReleased` event with Key string and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -1478,7 +1484,7 @@ retval = dsl_sink_window_key_event_handler_add('my-window-sink',
 DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_key_event_handler_cb handler);
 ```
-This service removes a function of type [dsl_sink_window_key_event_handler_cb](#dsl_sink_window_key_event_handler_cb) that was previously added with [dsl_sink_window_key_event_handler_add](#dsl_sink_window_key_event_handler_add).
+This service removes a function of type [`dsl_sink_window_key_event_handler_cb`](#dsl_sink_window_key_event_handler_cb) that was previously added with [`dsl_sink_window_key_event_handler_add`](#dsl_sink_window_key_event_handler_add).
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update
@@ -1500,7 +1506,7 @@ retval = dsl_sink_window_key_event_handler_remove('my-window-sink',
 DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name, 
     dsl_sink_window_button_event_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
+This service adds a callback function of type [`dsl_sink_window_button_event_handler_cb`](#dsl_sink_window_button_event_handler_cb) to a named Window Sink. The function will be called on every XWindow `ButtonPressed` event with Button ID, X and Y positional offsets, and the client provided `client_data`. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sinks.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -1528,7 +1534,7 @@ retval = dsl_sink_window_button_event_handler_add('my-window-sink',
 DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_button_event_handler_cb handler);
 ```
-This service removes a function of type [dsl_sink_window_button_event_handler_cb](#dsl_sink_window_button_event_handler_cb) that was previously added with [dsl_sink_window_button_event_handler_add](#dsl_sink_window_button_event_handler_add).
+This service removes a function of type [`dsl_sink_window_button_event_handler_cb`](#dsl_sink_window_button_event_handler_cb) that was previously added with [`dsl_sink_window_button_event_handler_add`](#dsl_sink_window_button_event_handler_add).
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -1550,7 +1556,7 @@ retval = dsl_sink_window_button_event_handler_remove('my-window-sink',
 DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
     dsl_sink_window_delete_event_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb) to a named Window Sink. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sink.
+This service adds a callback function of type [`dsl_sink_window_delete_event_handler_cb`](#dsl_sink_window_delete_event_handler_cb) to a named Window Sink. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sink.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -1577,7 +1583,7 @@ retval = dsl_sink_window_delete_event_handler_add('my-window-sink',
 DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_delete_event_handler_cb handler);
 ```
-This service removes a function of type [dsl_sink_window_delete_event_handler_cb](#dsl_sink_window_delete_event_handler_cb) that was previously added with [dsl_sink_window_delete_event_handler_add](#dsl_sink_window_delete_event_handler_add).
+This service removes a function of type [`dsl_sink_window_delete_event_handler_cb`](#dsl_sink_window_delete_event_handler_cb) that was previously added with [`dsl_sink_window_delete_event_handler_add`](#dsl_sink_window_delete_event_handler_add).
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update
@@ -2513,7 +2519,7 @@ retval = dsl_sink_webrtc_servers_get('my-webrtc-sink', NULL, turn_server)
 DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
     dsl_sink_webrtc_client_listener_cb listener, void* client_data);
 ```
-This service adds a callback function of type [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb) to the WebRTC Sink. The function will be called on all changes of WebSocket connection state. Multiple callback functions can be added to the WebRTC Sink.
+This service adds a callback function of type [`dsl_sink_webrtc_client_listener_cb`](#dsl_sink_webrtc_client_listener_cb) to the WebRTC Sink. The function will be called on all changes of WebSocket connection state. Multiple callback functions can be added to the WebRTC Sink.
 
  **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
@@ -2536,7 +2542,7 @@ retval = dsl_sink_webrtc_client_listener_add('my-webrtc-sink', client_listener_c
 DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
     dsl_sink_webrtc_client_listener_cb listener);
 ```
-This service removes a callback function of type [dsl_sink_webrtc_client_listener_cb](#dsl_sink_webrtc_client_listener_cb) from the WebRTC Sink.
+This service removes a callback function of type [`dsl_sink_webrtc_client_listener_cb`](#dsl_sink_webrtc_client_listener_cb) from the WebRTC Sink.
 
  **IMPORTANT:** The WebRTC Sink implementation requires GStreamer 1.18 or later.
 
@@ -2916,7 +2922,7 @@ retval = dsl_sink_image_multi_file_max_set('my-multi-image-sink', 100)
 ```C++
 DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name);
 ```
-This service initiates a "frame-capture" action to capture the next buffer processed by the named Frame-Capture Sink.
+This service initiates a "frame-capture action" to capture the next buffer processed by the named Frame-Capture Sink.
 
  All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
  
@@ -2935,6 +2941,31 @@ retval = dsl_sink_frame_capture_initiate('my-frame-capture-sink')
 
 <br>
 
+### *dsl_sink_frame_capture_schedule*
+```C++
+DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
+    uint64_t frame_number);
+```
+This service schedules a "frame-capture action" for a specified frame-number to be processed by the named Frame-Capture Sink once the frame arrives. Multiple frames can be scheduled (queued) for processing. The Sink will log an ERROR message durring buffer processing if the scheduled frame-number(s) is less (earlier in time) than the current frame-number. 
+
+ All captured frames are copied and buffered in the Sink's processing thread. The encoding and saving of each buffered frame is done in the g-idle-thread context. 
+ 
+ Note: The first capture may cause a noticeable short pause to the stream while cuda dependencies are loaded and cached.  
+
+**Parameters**
+* `name` - [in] unique name of the Frame-Capture Sink to update.
+* `frame_num` - [in] unique frame-number of the frame to capture.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_frame_capture_schedule('my-frame-capture-sink', frame_meta.frame_num)
+```
+
+<br>
+
 ---
 
 ## API Reference
@@ -2949,7 +2980,7 @@ retval = dsl_sink_frame_capture_initiate('my-frame-capture-sink')
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
+* [Demuxer, Remuxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * **Sink**
 * [Pad Probe Handler](/docs/api-pph.md)
