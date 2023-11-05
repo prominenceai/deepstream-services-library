@@ -2790,6 +2790,8 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_frame_capture_initiate(NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_frame_capture_schedule(NULL, 0) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_v4l2_new(NULL, 
                     NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );

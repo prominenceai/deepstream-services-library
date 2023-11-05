@@ -7304,6 +7304,19 @@ DslReturnType dsl_sink_frame_capture_new(const wchar_t* name,
 DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name);
     
 /**
+ * @brief Schedules a Frame-Capture action for a specified frame-number to be
+ * processed by the named Frame-Capture Sink. This service is designed to be
+ * called by an upstream Custom Pad Probe Handler (PPH) which has access to the
+ * frame_number while processing frame and object metadata for each buffer.
+ * @param[in] name unique name of the Frame-Capture Sink to use.
+ * @param[in] frame_number unique frame-number of the frame to capture. This 
+ * service will fail if "frame_number < the Sink's current frame-number".
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
+ */
+DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
+    uint64_t frame_number);
+    
+/**
  * @brief creates a new, uniquely named WebRTC Sink component
  * @param[in] name unique component name for the new WebRTC Sink
  * @param[in] stun_server STUN server to use of the form stun://hostname:port.
