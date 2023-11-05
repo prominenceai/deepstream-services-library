@@ -34,9 +34,18 @@
 # Child Players (to play the captured image) and Mailers (to mail the image) can
 # be added to the ODE Frame-Capture action as well (not shown).
 #
-# The "invocation" of a new Frame-Capture is done by pressing the "C" key while 
-# the Window Sink has user focus... i.e. the xwindow_key_event_handler will call
-# the "dsl_sink_frame_capture_initiate" service on key-event.
+# A Custom Pad Probe Handler (PPH) is added to the sink-pad of the OSD component
+# to process every buffer flowing over the pad by:
+#    - Retrieving the batch-metadata and its list of frame metadata structures
+#      (only frame per batched-buffer with 1 Source)
+#    - Retrieving the list of object metadata structures from the frame metadata.
+#    - Iterate through the list of objects looking for the first occurrence of
+#      a bicycle. 
+#    - If detected, the current frame-number is schedule to be captured by the
+#      Frame-Capture Sink using its Frame-Capture Action.
+#
+#          dsl_sink_frame_capture_schedule('frame-capture-sink', 
+#                   frame_meta.frame_num)
 #
 # IMPORT All captured frames are copied and buffered in the Sink's processing
 # thread. The encoding and saving of each buffered frame is done in the 
@@ -124,7 +133,6 @@ def capture_complete_listener(capture_info_ptr, client_data):
 # Custom Pad Probe Handler function called with every buffer
 ## 
 def custom_pad_probe_handler(buffer, user_data):
-    frame_number=0
 
     # Retrieve batch metadata from the gst_buffer
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
@@ -140,7 +148,9 @@ def custom_pad_probe_handler(buffer, user_data):
         except StopIteration:
             break
 
-        frame_number=frame_meta.frame_num
+        # Iterate through the list of object metadata for this frame looking
+        # for the first occurrence of a bicycle - our trigger to schedule
+        # frame-capture with our . 
         
         l_obj=frame_meta.obj_meta_list
         while l_obj is not None:
@@ -149,12 +159,22 @@ def custom_pad_probe_handler(buffer, user_data):
                 obj_meta=pyds.glist_get_nvds_object_meta(l_obj.data)
             except StopIteration:
                 break
-
+            
+            # Check the class-id to see if it's the object type we're looking for
             if obj_meta.class_id == PGIE_CLASS_ID_BICYCLE:
+
+                # IMPORTANT! This example is using a single Source and single
+                # Frame-Capture Sink.  If using multiple sources with a Demuxer 
+                # and multiple Frame-Capture Sinks you will need to check the 
+                # 'frame_meta.source_id' to call on the correct Sink. 
+                
+                # Schedule the current frame to be captured by the Sink 
                 if dsl_sink_frame_capture_schedule('frame-capture-sink', 
                    frame_meta.frame_num) != DSL_RETURN_SUCCESS:
-                   
                    print("Custom PPH failed to schedule frame-capture!")
+                   
+                # Once the frame has been scheduled for capture, there is no
+                # need to keep processing so return now.
                 return DSL_PAD_PROBE_OK
             
             try: 
@@ -229,9 +249,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Capture Action to capture and encode frame to jpeg image, 
+        # Create a new Capture Action to capture and encode the frame to jpeg image,
         # and save to file. Encoding and saving is done in the g-idle-thread.
-        # Saving to current directory. File names will be generated as
+        # Saving to the current directory. File names will be generated as
         #    <action-name>_<unique_capture_id>_<%Y%m%d-%H%M%S>.jpeg
         retval = dsl_ode_action_capture_frame_new('frame-capture-action',
             outdir = "./")
