@@ -117,6 +117,18 @@ namespace DSL
     #define DSL_ODE_ACTION_BBOX_SCALE_NEW(name, scale) \
         std::shared_ptr<ScaleBBoxOdeAction>(new ScaleBBoxOdeAction(name, scale))
 
+    #define DSL_ODE_ACTION_BBOX_STYLE_CORNERS_PTR std::shared_ptr<StyleBBoxCornersOdeAction>
+    #define DSL_ODE_ACTION_BBOX_STYLE_CORNERS_NEW(name, \
+        pColor, length, maxLength, thicknessValues, numValues) \
+        std::shared_ptr<StyleBBoxCornersOdeAction>(new StyleBBoxCornersOdeAction(name, \
+            pColor, length, maxLength, thicknessValues, numValues))
+
+    #define DSL_ODE_ACTION_BBOX_STYLE_CROSSHAIR_PTR std::shared_ptr<StyleBBoxCrosshairOdeAction>
+    #define DSL_ODE_ACTION_BBOX_STYLE_CROSSHAIR_NEW(name, \
+        pColor, radius, maxRadius, innerRadius, thicknessValues, numValues) \
+        std::shared_ptr<StyleBBoxCrosshairOdeAction>(new StyleBBoxCrosshairOdeAction(name, \
+            pColor, radius, maxRadius, innerRadius, thicknessValues, numValues))
+
     #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_PTR std::shared_ptr<CustomizeLabelOdeAction>
     #define DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(name, contentTypes) \
         std::shared_ptr<CustomizeLabelOdeAction>(new CustomizeLabelOdeAction( \
@@ -475,6 +487,152 @@ namespace DSL
          * @brief scale factor to apply to each ObjectMeta 
          */
         uint m_scale;
+
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class StyleBBoxCornersOdeAction
+     * @brief Style Bounding Box Corners ODE Action class
+     */
+    class StyleBBoxCornersOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Style BBox Corners ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pColor RGBA Color to use for the styled BBox corners. 
+         * @param[in] length of each corner line defined as a percentage of the length of 
+         * the longest side of the Object's BBox.
+         * @param[in] maxLength maximum length of each corner line defined as a percentage
+         * of the shortest side of the Object's BBox.
+         * @param[in] thicknessValues an array of defined threshold values to use for each
+         * line's thickness.
+         * @param[in] num_values the number of values in the thickness_values array.
+         */
+        StyleBBoxCornersOdeAction(const char* name, 
+             DSL_RGBA_COLOR_PTR pColor, uint length, uint maxLength,
+             dsl_threshold_value* thicknessValues, uint numValues);
+        
+        /**
+         * @brief dtor for the ODE Style BBox Action class
+         */
+        ~StyleBBoxCornersOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by styling the bounding box of pObjectMeta
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief RGBA Color display type to use for the corners.
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+        
+        /**
+         * @brief length of each corner line defined as a percentage
+         * of the shortest side of the Object's BBox.
+         */
+        uint m_length; 
+        
+        /**
+         * @brief maximum length of each corner line defined as a percentage
+         * of the shortest side of the Object's BBox.
+         */
+        uint m_maxLength;
+           
+        /**
+         * @brief RGBA Color display type to use for the corners.
+         */
+        std::vector<dsl_threshold_value> m_thicknessValues;
+
+    };
+
+    // ********************************************************************
+
+    /**
+     * @class StyleBBoxCrosshairOdeAction
+     * @brief Style Bounding Box Crosshair ODE Action class
+     */
+    class StyleBBoxCrosshairOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Style BBox ODE Action class
+         * @param[in] name unique name for the ODE Action
+         * @param[in] pColor RGBA Color to use for the styled BBox corners. 
+         * @param[in] raidus of the Crosshair defined as a percentage of the length of 
+         * the longest side of the Object's BBox.
+         * @param[in] maxRadius maximum radius of the crosshair defined as a percentage
+         * of the shortest side of the Object's BBox.
+         * @param[in] innerRadius maximum radius of the crosshair circle defined as a percentage
+         * of the crosshair radius.
+         * @param[in] thicknessValues an array of defined threshold values to use for each
+         * line's thickness.
+         * @param[in] num_values the number of values in the thickness_values array.
+         */
+        StyleBBoxCrosshairOdeAction(const char* name, 
+             DSL_RGBA_COLOR_PTR pColor, uint radius, uint maxRadius, uint innerRadius,
+             dsl_threshold_value* thicknessValues, uint numValues);
+        
+        /**
+         * @brief dtor for the ODE Style BBox Action class
+         */
+        ~StyleBBoxCrosshairOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by styling the bounding box of pObjectMeta
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief RGBA Color display type to use for the crosshair.
+         */
+        DSL_RGBA_COLOR_PTR m_pColor;
+        
+        /**
+         * @brief radius of the crosshair defined as a percentage
+         * of the shortest side of the Object's BBox.
+         */
+        uint m_radius; 
+        
+        /**
+         * @brief maximum radius of the crosshair defined as a percentage
+         * of the shortest side of the Object's BBox.
+         */
+        uint m_maxRadius;
+        
+        /**
+         * @brief radius of the crosshair circle defined as a percentage
+         * of the crosshair raidus.
+         */
+        uint m_innerRadius;
+           
+        /**
+         * @brief RGBA Color display type to use for the crosshair.
+         */
+        std::vector<dsl_threshold_value> m_thicknessValues;
 
     };
 

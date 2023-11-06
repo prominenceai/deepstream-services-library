@@ -187,6 +187,14 @@ namespace DSL {
             
         DslReturnType OdeActionBBoxScaleNew(const char* name, uint scale);
 
+        DslReturnType OdeActionBBoxStyleCornersNew(const char* name, 
+            const char* color, uint length, uint maxLength,
+            dsl_threshold_value* thicknessValues, uint numValues);
+            
+        DslReturnType OdeActionBBoxStyleCrosshairNew(const char* name, 
+            const char* color, uint radius, uint maxRadius, uint innerRadius,
+            dsl_threshold_value* thicknessValues, uint numValues);
+            
         DslReturnType OdeActionLabelCustomizeNew(const char* name, 
             const uint* contentTypes, uint size);
 
