@@ -1446,6 +1446,25 @@ typedef struct _dsl_ode_occurrence_info
        
 } dsl_ode_occurrence_info;
 
+/**
+ * @struct _dsl_threshold_value
+ * @brief defines an abstract class that contains two data points; a
+ * minimum threshold and a value to use if the threshold is met.
+ */
+typedef struct _dsl_threshold_value
+{
+    /**
+     * @brief the minimum threshold that defines when value is first valid.
+     */
+    uint threshold;
+
+    /**
+     * @brief the value to use if the minimum threshold is met.
+     */
+    uint value;
+    
+} dsl_threshold_value;
+
 //------------------------------------------------------------------------------------
 
 /**
@@ -2302,6 +2321,44 @@ DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_wi
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale);
+
+/**
+ * @brief Creates a uniquely named "Style BBox Corners" ODE Action that styles
+ * the Objects BBox corners with RGBA Mutli-Lines.
+ * @param[in] name unique name for the "Scale Bounding Box" ODE Action. 
+ * @param[in] color RGBA Color to use for the styled BBox corners. 
+ * @param[in] length of each corner line defined as a percentage of the length of 
+ * the longest side of the Object's BBox.
+ * @param[in] max_length maximum length of each corner line defined as a percentage
+ * of the shortest side of the Object's BBox.
+ * @param[in] thickness_values an array of defined threshold values to use for each
+ * line's thickness.
+ * @param[in] num_values the number of values in the thickness_values array.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_style_corners_new(const wchar_t* name, 
+    const wchar_t* color, uint length, uint max_length,
+    dsl_threshold_value* thickness_values, uint num_values);
+
+/**
+ * @brief Creates a uniquely named "Style BBox Crosshair" ODE Action that styles
+ * the Objects BBox corners with RGBA Mutli-Lines.
+ * @param[in] name unique name for the "Scale Bounding Box" ODE Action. 
+ * @param[in] color RGBA Color to use for the styled BBox corners. 
+ * @param[in] radius of the crosshair defined as a percentage of the length of 
+ * the longest side of the Object's BBox.
+ * @param[in] max_radius maximum radius of crosshair defined as a percentage
+ * of the shortest side of the Object's BBox.
+ * @param[in] inner_radius radius of the crosshair-circle defined as a percentage of 
+ * the radius. 
+ * @param[in] thickness_values an array of defined threshold values to use for each
+ * line's thickness.
+ * @param[in] num_values the number of values in the thickness_values array.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_style_crosshair_new(const wchar_t* name, 
+    const wchar_t* color, uint radius, uint max_radius, uint inner_radius,
+    dsl_threshold_value* thickness_values, uint num_values);
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables

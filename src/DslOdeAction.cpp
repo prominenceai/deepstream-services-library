@@ -246,6 +246,196 @@ namespace DSL
 
     // ********************************************************************
 
+    StyleBBoxCornersOdeAction::StyleBBoxCornersOdeAction(const char* name, 
+        DSL_RGBA_COLOR_PTR pColor, uint length, uint maxLength,
+        dsl_threshold_value* thicknessValues, uint numValues)
+        : OdeAction(name)
+        , m_pColor(pColor)
+        , m_length(length)
+        , m_maxLength(maxLength)
+        , m_thicknessValues(thicknessValues, thicknessValues+numValues)
+    {
+        LOG_FUNC();
+    }
+
+    StyleBBoxCornersOdeAction::~StyleBBoxCornersOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void StyleBBoxCornersOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            // bbox coordinates are of type float (to support scaling).
+            // need to round to nearest integer.
+            uint left = round(pObjectMeta->rect_params.left);
+            uint top = round(pObjectMeta->rect_params.top);
+            uint width = round(pObjectMeta->rect_params.width);
+            uint height = round(pObjectMeta->rect_params.height);
+
+            uint longSide = std::max(width, height);
+            uint shortSide = std::min(width, height);
+
+            uint xc = round(pObjectMeta->rect_params.left +
+                pObjectMeta->rect_params.width/2.0);
+            uint yc = round(pObjectMeta->rect_params.top +
+                pObjectMeta->rect_params.height/2.0);
+            
+            // Determine the length of the corner lines. 
+            uint maxLength = round((float)m_maxLength/100.0 * (float)shortSide);
+            uint desiredLength = round((float)m_length/100.0 * (float)longSide);
+            uint actualLength = std::min(desiredLength, maxLength);
+
+            // Define the coordinates to create 4 multi-line display types,
+            // one for each corner (north-west, north-east, south-west, and
+            // south-east) using the bbox params and the line-length.
+            dsl_coordinate nw_coordinates[3] = {
+                {left, top + actualLength}, 
+                {left, top},
+                {left + actualLength, top}};                    
+            dsl_coordinate ne_coordinates[3] = {
+                {left + width, top + actualLength},
+                {left + width, top},
+                {left + width - actualLength, top}};                    
+            dsl_coordinate sw_coordinates[3] = {
+                {left, top + height - actualLength},
+                {left, top + height},
+                {left + actualLength, top + height}};
+            dsl_coordinate se_coordinates[3] = {
+                {left + width, top + height - actualLength},
+                {left + width, top + height},
+                {left + width - actualLength, top + height}};
+
+            uint thickness = m_thicknessValues[0].value;
+            for (auto i=1; i<m_thicknessValues.size(); i++)
+            {
+                if (longSide < m_thicknessValues[i].threshold)
+                {
+                    thickness = m_thicknessValues[i-1].value;
+                    break;
+                }
+                else if (i == m_thicknessValues.size()-1)
+                {
+                    thickness = m_thicknessValues[i].value;
+                    break;
+                }
+            }
+            
+            // create the mutli-line display types
+            DSL_RGBA_MULTI_LINE_PTR nw_corner = 
+                DSL_RGBA_MULTI_LINE_NEW("", 
+                    nw_coordinates, 3, thickness, m_pColor);
+            DSL_RGBA_MULTI_LINE_PTR ne_corner = 
+                DSL_RGBA_MULTI_LINE_NEW("", 
+                    ne_coordinates, 3, thickness, m_pColor);
+            DSL_RGBA_MULTI_LINE_PTR sw_corner = 
+                DSL_RGBA_MULTI_LINE_NEW("", 
+                    sw_coordinates, 3, thickness, m_pColor);
+            DSL_RGBA_MULTI_LINE_PTR se_corner = 
+                DSL_RGBA_MULTI_LINE_NEW("", 
+                    se_coordinates, 3, thickness, m_pColor);
+
+            // call on each display type to add there metadata to the
+            // Frame's display-metadata.
+            nw_corner->AddMeta(displayMetaData, pFrameMeta);
+            ne_corner->AddMeta(displayMetaData, pFrameMeta);
+            sw_corner->AddMeta(displayMetaData, pFrameMeta);
+            se_corner->AddMeta(displayMetaData, pFrameMeta);
+        }
+    }
+    
+    // ********************************************************************
+
+    StyleBBoxCrosshairOdeAction::StyleBBoxCrosshairOdeAction(const char* name, 
+        DSL_RGBA_COLOR_PTR pColor, uint radius, uint maxRadius, uint innerRadius,
+        dsl_threshold_value* thicknessValues, uint numValues)
+        : OdeAction(name)
+        , m_pColor(pColor)
+        , m_radius(radius)
+        , m_maxRadius(maxRadius)
+        , m_innerRadius(innerRadius)
+        , m_thicknessValues(thicknessValues, thicknessValues+numValues)
+    {
+        LOG_FUNC();
+    }
+
+    StyleBBoxCrosshairOdeAction::~StyleBBoxCrosshairOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void StyleBBoxCrosshairOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            // bbox coordinates are of type float (to support scaling).
+            // need to round to nearest integer.
+            uint left = round(pObjectMeta->rect_params.left);
+            uint top = round(pObjectMeta->rect_params.top);
+            uint width = round(pObjectMeta->rect_params.width);
+            uint height = round(pObjectMeta->rect_params.height);
+
+            uint longSide = std::max(width, height);
+            uint shortSide = std::min(width, height);
+
+            uint xc = round(pObjectMeta->rect_params.left +
+                pObjectMeta->rect_params.width/2.0);
+            uint yc = round(pObjectMeta->rect_params.top +
+                pObjectMeta->rect_params.height/2.0);
+
+            // Determine the radius of the outer cross and inner circle. 
+            uint maxRadius = round((float)m_maxRadius/100.0 * 
+                (float)shortSide);
+            uint desiredRadius = round((float)m_radius/100.0 * 
+                (float)longSide);
+            uint actualRadius = std::min(desiredRadius, maxRadius);
+            uint circleRadius = round((float)m_innerRadius/100.0 * 
+                (float)actualRadius);
+
+            uint thickness = m_thicknessValues[0].value;
+            for (auto i=1; i<m_thicknessValues.size(); i++)
+            {
+                if (longSide < m_thicknessValues[i].threshold)
+                {
+                    thickness = m_thicknessValues[i-1].value;
+                    break;
+                }
+                else if (i == m_thicknessValues.size()-1)
+                {
+                    thickness = m_thicknessValues[i].value;
+                    break;
+                }
+            }
+
+            DSL_RGBA_LINE_PTR pVerticleLine =
+                DSL_RGBA_LINE_NEW("",  xc, yc-(actualRadius), 
+                    xc, yc+(actualRadius), thickness, m_pColor);
+            DSL_RGBA_LINE_PTR pHorizontalLine =
+                DSL_RGBA_LINE_NEW("",  xc-(actualRadius),
+                    yc, xc+(actualRadius), yc, thickness, m_pColor);
+            
+            DSL_RGBA_CIRCLE_PTR pCircle = 
+                DSL_RGBA_CIRCLE_NEW("", xc, yc, circleRadius, m_pColor, 
+                    false, m_pColor);
+            
+            pVerticleLine->AddMeta(displayMetaData, pFrameMeta);
+            pHorizontalLine->AddMeta(displayMetaData, pFrameMeta);
+            pCircle->AddMeta(displayMetaData, pFrameMeta);
+            
+        }
+    }
+    
+    // ********************************************************************
+
     CustomOdeAction::CustomOdeAction(const char* name, 
         dsl_ode_handle_occurrence_cb clientHandler, void* clientData)
         : OdeAction(name)

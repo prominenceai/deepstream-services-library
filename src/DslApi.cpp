@@ -564,6 +564,42 @@ DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale)
         scale);
 }
 
+DslReturnType dsl_ode_action_bbox_style_corners_new(const wchar_t* name, 
+    const wchar_t* color, uint length, uint max_length,
+    dsl_threshold_value* thickness_values, uint num_values)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+    
+    return DSL::Services::GetServices()->OdeActionBBoxStyleCornersNew(
+        cstrName.c_str(), cstrColor.c_str(), length, max_length,
+        thickness_values, num_values);
+}
+    
+DslReturnType dsl_ode_action_bbox_style_crosshair_new(const wchar_t* name, 
+    const wchar_t* color, uint radius, uint max_radius, uint inner_radius,
+    dsl_threshold_value* thickness_values, uint num_values)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+    
+    return DSL::Services::GetServices()->OdeActionBBoxStyleCrosshairNew(
+        cstrName.c_str(), cstrColor.c_str(), radius, max_radius, inner_radius,
+        thickness_values, num_values);
+}
+    
 DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {

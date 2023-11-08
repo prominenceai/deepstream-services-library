@@ -364,6 +364,130 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::OdeActionBBoxStyleCornersNew(const char* name, 
+        const char* color, uint length, uint maxLength,
+        dsl_threshold_value* thicknessValues, uint numValues)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            if (length == 0 or length > 50)
+            {
+                LOG_ERROR("Invalid length = " << length 
+                    << " for Style BBox Corners ODE Action '" 
+                    << name << "' must be in range of [1..50]%");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            if (maxLength == 0 or maxLength > 50)
+            {
+                LOG_ERROR("Invalid max_length = " << maxLength 
+                    << " for Style BBox Corners ODE Action '" 
+                    << name << "' must be in range of [1..50]%");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            if (numValues == 0)
+            {
+                LOG_ERROR("Invalid thinkness-values array length = " << numValues 
+                    << " for Style BBox Corners ODE Action '" 
+                    << name << "' must be greater than 0");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_BBOX_STYLE_CORNERS_NEW(
+                name, pColor, length, maxLength, thicknessValues, numValues);
+
+            LOG_INFO("New Style BBox Corners ODE Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Style BBox Corners ODE Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::OdeActionBBoxStyleCrosshairNew(const char* name, 
+        const char* color, uint radius, uint maxRadius, uint innerRadius,
+        dsl_threshold_value* thicknessValues, uint numValues)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, color);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_COLOR(m_displayTypes, color);
+
+            DSL_RGBA_COLOR_PTR pColor = 
+                std::dynamic_pointer_cast<RgbaColor>(m_displayTypes[color]);
+
+            if (radius == 0 or radius > 50)
+            {
+                LOG_ERROR("Invalid radius = " << radius 
+                    << " for Style BBox Chrosshair ODE Action '" 
+                    << name << "' must be in range of [1..50]%");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            if (maxRadius == 0 or maxRadius > 50)
+            {
+                LOG_ERROR("Invalid max-radius = " << maxRadius 
+                    << " for Style BBox Chrosshair ODE Action '" 
+                    << name << "' must be in range of [1..50]%");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            if (innerRadius == 0 or innerRadius > 100)
+            {
+                LOG_ERROR("Invalid inner-radius = " << innerRadius 
+                    << " for Style BBox Chrosshair ODE Action '" 
+                    << name << "' must be in range of [1..100]%");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            if (numValues == 0)
+            {
+                LOG_ERROR("Invalid thinkness-values array length = " << numValues 
+                    << " for Style BBox Chrosshair ODE Action '" 
+                    << name << "' must be greater than 0");
+                return DSL_RESULT_ODE_ACTION_PARAMETER_INVALID;
+            }
+            m_odeActions[name] = DSL_ODE_ACTION_BBOX_STYLE_CROSSHAIR_NEW(
+                name, pColor, radius, maxRadius, innerRadius, 
+                thicknessValues, numValues);
+
+            LOG_INFO("New Style BBox Chrosshair ODE Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Style BBox Chrosshair ODE Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::OdeActionLabelCustomizeNew(const char* name, 
         const uint* contentTypes, uint size)
     {
@@ -404,14 +528,14 @@ namespace DSL
             m_odeActions[name] = DSL_ODE_ACTION_LABEL_CUSTOMIZE_NEW(
                 name, contentTypesCopy);
 
-            LOG_INFO("New ODE Customize Label Action '" << name 
+            LOG_INFO("New Customize Label ODE Action '" << name 
                 << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Customize Label Action '" << name 
+            LOG_ERROR("New Customize Label ODE Action '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }
