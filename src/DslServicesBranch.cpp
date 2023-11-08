@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslServicesValidate.h"
 #include "DslInferBintr.h"
+#include "DslCaps.h"
 
 namespace DSL
 {

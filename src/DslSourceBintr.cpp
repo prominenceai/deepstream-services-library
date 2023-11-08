@@ -24,6 +24,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslCaps.h"
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslPipelineBintr.h"
@@ -177,7 +178,11 @@ namespace DSL
         m_pBufferOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
             name, "vidconv");
         
-        SetBufferOutFormat(m_bufferOutFormat.c_str());
+        // Update the caps with the media, format, and memory:NVMM feature
+        if (!SetBufferOutFormat(m_bufferOutFormat.c_str()))
+        {
+            throw;
+        }
 
         // ---- SinkQueue as ghost pad to connect to Streammuxer
         
@@ -546,9 +551,7 @@ namespace DSL
 
         m_bufferOutFormat = format;
         
-        updateVidConvCaps();
-
-        return true;
+        return updateVidConvCaps();
     }
     
     void VideoSourceBintr::GetBufferOutDimensions(uint* width, uint* height)
@@ -572,9 +575,7 @@ namespace DSL
         m_bufferOutWidth = width;
         m_bufferOutHeight = height;
         
-        updateVidConvCaps();
-        
-        return true;
+        return updateVidConvCaps();
     }
     
     void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
@@ -615,9 +616,7 @@ namespace DSL
             m_pBufferOutVidRate = nullptr;
         }
         // Update the output-buffer's caps filter now
-        updateVidConvCaps();
-        
-        return true;
+        return updateVidConvCaps();
     }
     
     void tokenize(std::string const &str, const char delim,
@@ -763,55 +762,12 @@ namespace DSL
     {
         LOG_FUNC();
 
-        GstCaps* pCaps(NULL);
-        
-        if (m_bufferOutWidth and m_bufferOutHeight and 
-            m_bufferOutFpsN and m_bufferOutFpsD)
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                "width", G_TYPE_INT, m_bufferOutWidth, 
-                "height", G_TYPE_INT, m_bufferOutHeight,
-                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-                NULL);
-        }
-        else if (m_bufferOutWidth and m_bufferOutHeight)
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                "width", G_TYPE_INT, m_bufferOutWidth, 
-                "height", G_TYPE_INT, m_bufferOutHeight,
-                NULL);
-        }
-        else if (m_bufferOutFpsN and m_bufferOutFpsD)
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-                NULL);
-        }
-        else
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                NULL);
-        }
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for VideoSourceBintr '" 
-                << GetName() << "'");
-            return false;  
-        }
+        DslCaps Caps(m_mediaType.c_str(), m_bufferOutFormat.c_str(),
+            m_bufferOutWidth, m_bufferOutHeight, 
+            m_bufferOutFpsN, m_bufferOutFpsD, true);
 
-        // The Video converter is an NVIDIA plugin so we need to add the
-        // additional feature to enable buffer access via the NvBuffer API.
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        // Set the provided element's caps and unref caps structure.
-        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps); 
+        // Set the Caps for the Buffer output
+        m_pBufferOutCapsFilter->SetAttribute("caps", &Caps);
         
         return true;
     }
@@ -1688,12 +1644,12 @@ namespace DSL
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
         
-        // Set the full capabilities (format, dimensions, and framerate)
-        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
-            m_width, m_height, m_fpsN, m_fpsD, false))
-        {
-            throw;
-        }
+        // Set the capabilities - do not set the format. 
+        // Dimensions and framerate are set conditionally (non zero).
+        DslCaps Caps(m_mediaType.c_str(), NULL, 
+            m_width, m_height, m_fpsN, m_fpsD, false);
+
+        m_pSourceCapsFilter->SetAttribute("caps", &Caps);
 
         if (!m_cudaDeviceProp.integrated)
         {
