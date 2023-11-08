@@ -31,10 +31,14 @@ LIB:= libdsl
 CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
-USER_SITE = "`python3 -m site --user-site`"
+ifeq ($(SUDO_USER),)
+	USER_SITE = "`python3 -m site --user-site`"
+else
+    USER_SITE = "`sudo -u ${SUDO_USER} python3 -m site --user-site`"
+endif
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.27.a.alpha"'
+DSL_VERSION:='L"v0.27.b.alpha"'
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 GSTREAMER_SUB_VERSION:=16
