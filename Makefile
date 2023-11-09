@@ -35,7 +35,7 @@ TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 ifeq ($(SUDO_USER),)
 	USER_SITE = "`python3 -m site --user-site`"
 else
-    USER_SITE = "`sudo -u ${SUDO_USER} python3 -m site --user-site`"
+	USER_SITE = "`sudo -u ${SUDO_USER} python3 -m site --user-site`"
 endif
 
 CXX_VERSION:=c++17
