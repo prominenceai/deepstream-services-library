@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2021, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_COND_H
-#define _DSL_COND_H
+#include "catch.hpp"
+#include "DslCaps.h"
 
-#include "glib.h"
- 
-namespace DSL
+using namespace DSL;
+
+SCENARIO( "A DslCaps helper is constructed correctly", "[Caps]" )
 {
-    /**
-     * @class DslCond
-     * @brief Wrapper class for the GCond type
-     */
-    class DslCond
+    GIVEN( "Possible values for new caps" )
     {
-    public:
-    
-        /**
-         * @brief ctor for DslCond class
-         */
-        DslCond() 
-        {
-            g_cond_init(&m_cond);
-        }
+        std::string media("video/x-raw");
+        std::string format("I420");
         
-        /**
-         * @brief dtor for DslCond class
-         */
-        ~DslCond()
-        {
-            g_cond_clear(&m_cond);
-        }
+        uint height(1920), width(1280);
+        uint fpsN(30), fpsD(1);
         
-        /**
-         * @brief & operator for the DslCond class
-         * @return returns the address of the wrapped mutex.
-         */
-        GCond* operator& ()
+        WHEN( "A CapsFiler is created with media, format, and memory feture" )
         {
-            return &m_cond;
+            DslCaps Caps(media.c_str(), format.c_str(), 0, 0, 0, 0, true);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                std::string expected("video/x-raw(memory:NVMM),format=I420");
+                std::string actual(Caps.c_str());
+                REQUIRE( expected == actual );
+            }
         }
-        
-    private:
-        GCond m_cond; 
-    };
-
-} // namespace 
-
-#endif // _DSL_COND_H
+    }
+}
