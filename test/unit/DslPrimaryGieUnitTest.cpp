@@ -26,13 +26,9 @@ THE SOFTWARE.
 #include "DslInferBintr.h"
 
 static std::string primaryGieName("primary-gie");
-static std::string inferConfigFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static std::string modelEngineFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
-static std::string inferConfigFileDgpu(
+static std::string inferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-static std::string modelEngineFileDgpu(
+static std::string modelEngineFile(
     "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 
 static uint interval(1);
@@ -46,36 +42,17 @@ SCENARIO( "A new PrimaryGieBintr is created correctly",  "[PrimaryGieBintr]" )
         
         WHEN( "A new PrimaryGieBintr is created" )
         {
-            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-            if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-            {
-                pPrimaryGieBintr = 
-                    DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                    inferConfigFileJetson.c_str(), 
-                    modelEngineFileJetson.c_str(), interval);
-            }
-            else
-            {
-                pPrimaryGieBintr = 
-                    DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                    inferConfigFileDgpu.c_str(), 
-                    modelEngineFileDgpu.c_str(), interval);
-            }
+            DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+                inferConfigFile.c_str(), 
+                modelEngineFile.c_str(), interval);
 
             THEN( "The PrimaryGieBintr's memebers are setup and returned correctly" )
             {
                 std::string returnedInferConfigFile = pPrimaryGieBintr->GetInferConfigFile();
                 std::string returnedModelEngineFile = pPrimaryGieBintr->GetModelEngineFile();
-                if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-                {
-                    REQUIRE( returnedInferConfigFile == inferConfigFileJetson );
-                    REQUIRE( returnedModelEngineFile == modelEngineFileJetson );
-                }
-                else
-                {
-                    REQUIRE( returnedInferConfigFile == inferConfigFileDgpu );
-                    REQUIRE( returnedModelEngineFile == modelEngineFileDgpu );
-                }
+                REQUIRE( returnedInferConfigFile == inferConfigFile );
+                REQUIRE( returnedModelEngineFile == modelEngineFile );
                 
                 REQUIRE( interval == pPrimaryGieBintr->GetInterval() );
                 
@@ -89,21 +66,10 @@ SCENARIO( "A new PrimaryGieBintr can not LinkAll without setting the Batch Size 
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         WHEN( "A new PrimaryGieBintr is requested to LinkAll prior to setting the Batch Size" )
         {
@@ -121,21 +87,10 @@ SCENARIO( "A new PrimaryGieBintr with its Batch Size set can LinkAll Child Eleme
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         WHEN( "The Batch Size is set and the PrimaryGieBintr is asked to LinkAll" )
         {
@@ -155,21 +110,10 @@ SCENARIO( "A Linked PrimaryGieBintr can UnlinkAll Child Elementrs",  "[PrimaryGi
 {
     GIVEN( "A Linked PrimaryGieBintr" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         pPrimaryGieBintr->SetBatchSize(1);
         REQUIRE( pPrimaryGieBintr->LinkAll() == true );
@@ -190,21 +134,10 @@ SCENARIO( "A Linked PrimaryGieBintr can not be linked again", "[PrimaryGieBintr]
 {
     GIVEN( "A new PrimaryGieBintr in an Unlinked state" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         WHEN( "A new PrimaryGieBintr is Linked" )
         {
@@ -226,21 +159,10 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its GPU ID",  "[PrimaryGieBintr]" )
         uint GPUID0(0);
         uint GPUID1(1);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         REQUIRE( pPrimaryGieBintr->GetGpuId() == GPUID0 );
         
@@ -260,21 +182,10 @@ SCENARIO( "A PrimaryGieBintr can Enable and Disable raw layer info output",  "[P
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
         
         WHEN( "The PrimaryGieBintr's raw output is enabled" )
         {
@@ -292,21 +203,10 @@ SCENARIO( "A PrimaryGieBintr fails to Enable raw layer info output given a bad p
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
         
         WHEN( "A bad path is constructed" )
         {
@@ -324,21 +224,10 @@ SCENARIO( "A PrimaryGieBintr can Get and Set its Interval",  "[PrimaryGieBintr]"
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         REQUIRE( pPrimaryGieBintr->GetInterval() == interval );
         
@@ -359,21 +248,10 @@ SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its Interval",  "[Pr
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         REQUIRE( pPrimaryGieBintr->GetInterval() == interval );
         
@@ -400,21 +278,10 @@ SCENARIO( "A PrimaryGieBintr in a Linked state fails to Set its tensor-meta sett
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         bool inputEnabled(true), outputEnabled(true);
         
@@ -455,21 +322,10 @@ SCENARIO( "A PrimaryGieBintr manages its batch-size settings correctly",
 {
     GIVEN( "A new PrimaryGieBintr in memory" ) 
     {
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileJetson.c_str(), 
-                modelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                inferConfigFileDgpu.c_str(), 
-                modelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr= 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         WHEN( "The Client sets the PrimaryGieBintr's batch-size" )
         {

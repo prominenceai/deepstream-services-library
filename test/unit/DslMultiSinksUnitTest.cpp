@@ -54,8 +54,8 @@ SCENARIO( "Adding a single Sink to a MultiSinksBintr is managed correctly", "[Mu
     {
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1920);
+        uint sinkH(1080);
         std::string sinkName = "window-sink";
         std::string multiSinksBintrName = "multi-sinks";
 
@@ -90,8 +90,8 @@ SCENARIO( "Removing a single Sink from a MultiSinksBintr is managed correctly", 
         std::string multiSinksBintrName = "multi-sinks";
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1920);
+        uint sinkH(1080);
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(multiSinksBintrName.c_str());
             
@@ -126,8 +126,8 @@ SCENARIO( "Linking multiple sinks to a MultiSinksBintr Tee is managed correctly"
         std::string sinkName2 = "window-sink-2";
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1920);
+        uint sinkH(1080);
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(multiSinksBintrName.c_str());
             
@@ -180,8 +180,8 @@ SCENARIO( "Multiple sinks linked to a MultiSinksBintr Tee can be unlinked correc
         std::string sinkName2 = "window-sink-2";
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1920);
+        uint sinkH(1080);
 
         DSL_MULTI_SINKS_PTR pMultiSinksBintr = DSL_MULTI_SINKS_NEW(multiSinksBintrName.c_str());
             
@@ -245,8 +245,8 @@ SCENARIO( "All GST Resources are released on MultiSinksBintr destruction", "[Mul
         std::string sinkName2 = "window-sink-2";
         uint offsetX(0);
         uint offsetY(0);
-        uint sinkW(0);
-        uint sinkH(0);
+        uint sinkW(1920);
+        uint sinkH(1080);
 
         WHEN( "The Bintrs are created and the Components are added as children and linked" )
         {
