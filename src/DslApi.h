@@ -7072,14 +7072,14 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
  * @brief creates a new, uniquely named RTMP Sink component. 
  * IMPORT! Although derived from the Encode Sink, only the H264 codec 
  * is supported.
- * @param[in] name unique component name for the new RTSP Client Sink.
- * @param[in] uri RTSP uri to .
+ * @param[in] name unique component name for the new RTMP Sink.
+ * @param[in] uri RTMP uri to stream to.
  * @param[in] bitrate in bits per second. Set to 0 to use the Encoder default 
  * bitrate (4Mbps).
  * @param[in] interval frame interval to encode at.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
+ DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
     uint bitrate, uint interval);
 
 /**
