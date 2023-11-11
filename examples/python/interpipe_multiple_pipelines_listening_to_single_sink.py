@@ -48,13 +48,9 @@ import threading
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
 # Filespecs for the Primary GIE - Jetson & dGPU
-primary_infer_config_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
+primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 tracker_config_file = '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
@@ -281,12 +277,8 @@ def main(args):
             break    
 
         # New Primary GIE using for the first Pipeline. 
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new(components_1.pgie, 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
-        else:
-            retval = dsl_infer_gie_primary_new(components_1.pgie, 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
+        retval = dsl_infer_gie_primary_new(components_1.pgie, 
+            primary_infer_config_file, primary_model_engine_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -317,12 +309,8 @@ def main(args):
 
         # New Primary GIE using for the second Pipeline. 
         # NOTE: using a different config & model would make more sense for this scenario.
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new(components_2.pgie, 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
-        else:
-            retval = dsl_infer_gie_primary_new(components_2.pgie, 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
+        retval = dsl_infer_gie_primary_new(components_2.pgie, 
+            primary_infer_config_file, primary_model_engine_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
             

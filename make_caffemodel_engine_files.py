@@ -42,8 +42,6 @@ uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
 # Config file for the Primary GIE
 inferConfigFile = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-inferConfigFileNano = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
     
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
@@ -58,9 +56,6 @@ sgie3_config_file = \
 
 TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
 TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
-
-# Set to true to use nano version of primary config file
-MAKE_FOR_NANO = True
 
 ## 
 # Function to be called on End-of-Stream (EOS) event
@@ -90,16 +85,10 @@ def main(args):
         dsl_source_uri_new('Camera 7', uri, False, False, 0)
         dsl_source_uri_new('Camera 8', uri, False, False, 0)
 
-        if MAKE_FOR_NANO:
-            # New Primary GIE using the filespecs above, with interval and Id. Setting the
-            # model_engine_files parameter to None allows for model generation if not found.
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                inferConfigFileNano, None, interval=10)
-        else:
-            # New Primary GIE using the filespecs above, with interval and Id. Setting the
-            # model_engine_files parameter to None allows for model generation if not found.
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                inferConfigFile, None, interval=10)
+        # New Primary GIE using the filespecs above, with interval and Id. Setting the
+        # model_engine_files parameter to None allows for model generation if not found.
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            inferConfigFile, None, interval=10)
         if retval != DSL_RETURN_SUCCESS:
             break
 
