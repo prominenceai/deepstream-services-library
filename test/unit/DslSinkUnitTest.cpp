@@ -1484,6 +1484,87 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can Link/UnlinkAll multipl
     }
 }
 
+SCENARIO( "A new RtmpSinkBintr is created correctly",  "[rtmp]" )
+{
+    GIVEN( "Attributes for a new Rtmp Sink" ) 
+    {
+        std::string sinkName("rtmp-sink");
+        std::string uri("rtmp://localhost/path-to-stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        WHEN( "The DSL_CODEC_H264 RtspServerSinkBintr is created " )
+        {
+            DSL_RTMP_SINK_PTR pSinkBintr = 
+                DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
+                    bitrate, interval);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RtmpSinkBintr can LinkAll Child Elementrs", "[rtmp]" )
+{
+    GIVEN( "A new RtmpSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("rtmp-sink");
+        std::string uri("rtmp://localhost/path-to-stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        DSL_RTMP_SINK_PTR pSinkBintr = 
+            DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
+                bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new DSL_CODEC_H264 RtspServerSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The DSL_CODEC_H264 RtspServerSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked RtmpSinkBintr can UnlinkAll Child Elementrs", "[rtmp]" )
+{
+    GIVEN( "A RtmpSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("rtmp-sink");
+        std::string uri("rtmp://localhost/path-to-stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        DSL_RTMP_SINK_PTR pSinkBintr = 
+            DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
+                bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A DSL_CODEC_H264 RtspServerSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CODEC_H264 RtspServerSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new DSL_CODEC_H264 RtspClientSinkBintr is created correctly",
     "[SinkBintr]" )
 {

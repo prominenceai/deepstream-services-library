@@ -1565,7 +1565,36 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkRtmpNew(const char* name, const char* uri, 
+        uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_RTMP_SINK_NEW(name, 
+                uri, bitrate, interval);
+
+            LOG_INFO("New RTMP Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTMP Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
         uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
     {

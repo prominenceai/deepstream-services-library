@@ -1769,6 +1769,33 @@ SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new RTMP Sink", "[rtmp]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring rtmpSinkName(L"rtmp-sink");
+        std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new RTMP Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_rtmp_new(rtmpSinkName.c_str(),uri.c_str(),
+                bitrate, interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
