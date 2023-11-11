@@ -33,7 +33,7 @@ static std::string protocolLib("/opt/nvidia/deepstream/deepstream/lib/libnvds_az
 
 static std::string connectionString;
 static std::string brokerConfigFile(
-    "/opt/nvidia/deepstream/deepstream-6.0/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
+    "/opt/nvidia/deepstream/deepstream/sources/libs/azure_protocol_adaptor/device_client/cfg_azure.txt");
 
 SCENARIO( "A new MessageBrokerDeviceClient is created correctly", "[MessageBrokerDeviceClient]" )
 {

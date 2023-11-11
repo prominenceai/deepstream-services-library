@@ -32,13 +32,9 @@ uri_h264 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs for the Primary GIE
-primary_infer_config_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
+primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 
@@ -49,23 +45,17 @@ iou_tracker_config_file = \
 # Filespecs for the Secondary GIE
 sgie1_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt'
-sgie1_model_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine'
-sgie1_model_file_dgpu = \
+sgie1_model_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_int8.engine'
 
 sgie2_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt'
-sgie2_model_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine'
-sgie2_model_file_dgpu = \
+sgie2_model_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine'
 
 sgie3_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
-sgie3_model_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine'
-sgie3_model_file_dgpu = \
+sgie3_model_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_int8.engine'
 
 ## 
@@ -117,47 +107,25 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED) :
-            # New Primary GIE using the filespecs above with interval = 0
-            retval = dsl_infer_gie_primary_new('pgie', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 3)
-            if retval != DSL_RETURN_SUCCESS:
-                break
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('pgie', 
+            primary_infer_config_file, primary_model_engine_file, 3)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
-            # New Secondary GIEs using the filespecs above with interval = 0
-            retval = dsl_infer_gie_secondary_new('carcolor-sgie', 
-                sgie1_config_file, sgie1_model_file_jetson, 'pgie', 0)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-            retval = dsl_infer_gie_secondary_new('carmake-sgie', 
-                sgie2_config_file, sgie2_model_file_jetson, 'pgie', 0)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-            retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
-                sgie3_config_file, sgie3_model_file_jetson, 'pgie', 0)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-        else :
-            # New Primary GIE using the filespecs above with interval = 0
-            retval = dsl_infer_gie_primary_new('pgie', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 3)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-
-            # New Secondary GIEs using the filespecs above with interval = 0
-            retval = dsl_infer_gie_secondary_new('carcolor-sgie', 
-                sgie1_config_file, sgie1_model_file_dgpu, 'pgie', 0)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-            retval = dsl_infer_gie_secondary_new('carmake-sgie', 
-                sgie2_config_file, sgie2_model_file_dgpu, 'pgie', 0)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-            retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
-                sgie3_config_file, sgie3_model_file_dgpu, 'pgie', 0)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-
+        # New Secondary GIEs using the filespecs above with interval = 0
+        retval = dsl_infer_gie_secondary_new('carcolor-sgie', 
+            sgie1_config_file, sgie1_model_file, 'pgie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_secondary_new('carmake-sgie', 
+            sgie2_config_file, sgie2_model_file, 'pgie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
+            sgie3_config_file, sgie3_model_file, 'pgie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New IOU Tracker, setting operational width and hieght
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)

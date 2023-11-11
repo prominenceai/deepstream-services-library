@@ -52,14 +52,10 @@ static const std::string sinkName4("sink-4");
 static const std::string tilerName("tiler");
 static const std::string pipelineName("pipeline");
 static const std::string primaryGieName("primary-gie");
-static const std::string primaryInferConfigFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::string primaryInferConfigFileDgpu(
+static const std::string primaryInferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-static const std::string primaryModelEngineFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
-static const std::string primaryModelEngineFileDgpu(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_int8.engine");
+static const std::string primaryModelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
     
 static const std::string demuxerName("demuxer");
 static const std::string trackerName("iou-tracker");
@@ -69,9 +65,7 @@ static const uint trackerH(150);
 static const std::string secondaryGieName("secondary-gie");
 static const std::string secondaryInferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
-static const std::string secondaryModelEngineFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
-static const std::string secondaryModelEngineFileDgpu(
+static const std::string secondaryModelEngineFile(
     "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
 
 static const std::string osdName("on-screen-tiler");
@@ -210,21 +204,10 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Components and a PrimaryGi
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -255,22 +238,11 @@ SCENARIO( "A Pipeline is unable to LinkAll with a SecondaryGieBintr and no Prima
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName.c_str(), interval);
-        }
-        {
-            pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileDgpu.c_str(), 
-                primaryGieName.c_str(), interval);
-        }
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+            secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), 
+            primaryGieName.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -304,21 +276,10 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
@@ -354,21 +315,10 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with a PrimaryGieBintr, T
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_TILER_PTR pTilerBintr = 
             DSL_TILER_NEW(tilerName.c_str(), tilerW, tilerH);
@@ -412,32 +362,15 @@ SCENARIO( "A Pipeline is able to LinkAll and UnlinkAll with Optional Components"
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+            secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), 
+            primaryGieName.c_str(), interval);
 
         DSL_OSD_PTR pOsdBintr = 
             DSL_OSD_NEW(osdName.c_str(), true, true, true, false);
@@ -534,40 +467,18 @@ SCENARIO( "A Pipeline can add/remove multiple PrimaryGieBintrs correctly", "[Pip
         std::string primaryGieName2("primary-gie-2");
         std::string primaryGieName3("primary-gie-3");
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1;
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2;
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr3;
-
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr1 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pPrimaryGieBintr2 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pPrimaryGieBintr3 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr1 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pPrimaryGieBintr2 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pPrimaryGieBintr3 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr3 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -605,78 +516,37 @@ SCENARIO( "A Pipeline with multiple Primary and Secondar InferBintrs can link co
         std::string primaryGieName2("primary-gie-2");
         std::string primaryGieName3("primary-gie-3");
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1;
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2;
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr3;
-
         std::string secondaryGieName1("secondary-gie-1");
         std::string secondaryGieName2("secondary-gie-2");
         std::string secondaryGieName3("secondary-gie-3");
         
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr1;
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr2;
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr3;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr1 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pPrimaryGieBintr2 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pPrimaryGieBintr3 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pSecondaryGieBintr1 = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName1.c_str(), interval);
-            pSecondaryGieBintr2 = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName2.c_str(), interval);
-            pSecondaryGieBintr3 = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName3.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr1 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pPrimaryGieBintr2 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pPrimaryGieBintr3 = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pSecondaryGieBintr1 = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileDgpu.c_str(), 
-                primaryGieName1.c_str(), interval);
-            pSecondaryGieBintr2 = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileDgpu.c_str(), 
-                primaryGieName2.c_str(), interval);
-            pSecondaryGieBintr3 = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileDgpu.c_str(), 
-                primaryGieName3.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr3 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName3.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr1 = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName1.c_str(), 
+            secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), 
+            primaryGieName1.c_str(), interval);
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr2 = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName2.c_str(), 
+            secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), 
+            primaryGieName2.c_str(), interval);
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr3 = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName3.c_str(), 
+            secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), 
+            primaryGieName3.c_str(), interval);
 
         DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
             sourceName.c_str(), filePath.c_str(), false, false, 0);
@@ -976,21 +846,10 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
@@ -1029,21 +888,10 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
@@ -1086,32 +934,15 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-            pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-            pSecondaryGieBintr = 
-                DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
-                secondaryInferConfigFile.c_str(), 
-                secondaryModelEngineFileJetson.c_str(), 
-                primaryGieName.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
+        DSL_SECONDARY_GIE_PTR pSecondaryGieBintr = 
+            DSL_SECONDARY_GIE_NEW(secondaryGieName.c_str(), 
+            secondaryInferConfigFile.c_str(), 
+            secondaryModelEngineFile.c_str(), 
+            primaryGieName.c_str(), interval);
 
         DSL_TRACKER_PTR pTrackerBintr = 
             DSL_TRACKER_NEW(trackerName.c_str(), "", trackerW, trackerH);
@@ -1157,21 +988,10 @@ SCENARIO( "A Pipeline with an ImageStreamSourceBintr is able to Link/UnlinkAll",
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 
@@ -1210,21 +1030,10 @@ SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[Pipe
         DSL_WINDOW_SINK_PTR pSinkBintr = 
             DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
 
-        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr;
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileJetson.c_str(), 
-                primaryModelEngineFileJetson.c_str(), interval);
-        }
-        else
-        {
-            pPrimaryGieBintr = 
-                DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
-                primaryInferConfigFileDgpu.c_str(), 
-                primaryModelEngineFileDgpu.c_str(), interval);
-        }
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName.c_str(), 
+            primaryInferConfigFile.c_str(), 
+            primaryModelEngineFile.c_str(), interval);
 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
 

@@ -76,13 +76,9 @@ file_path2 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike
 file_path3 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file_jetson = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
+primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
@@ -152,24 +148,14 @@ def main(args):
         # Note: this example will be updated in the future to use different models
         
         ## New Primary GIE using the filespecs above with interval = 0
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new('pgie-1', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-            retval = dsl_infer_gie_primary_new('pgie-2', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-        else:
-            retval = dsl_infer_gie_primary_new('pgie-1', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
-            if retval != DSL_RETURN_SUCCESS:
-                break
-            retval = dsl_infer_gie_primary_new('pgie-2', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
-            if retval != DSL_RETURN_SUCCESS:
-                break
+        retval = dsl_infer_gie_primary_new('pgie-1', 
+            primary_infer_config_file, primary_model_engine_file, 4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_primary_new('pgie-2', 
+            primary_infer_config_file, primary_model_engine_file, 4)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # New IOU Tracker, setting operational width and height
         retval = dsl_tracker_new('tracker-1', iou_tracker_config_file, 480, 272)

@@ -38,7 +38,7 @@ static const std::wstring fileSinkName(L"file-sink");
 static const std::wstring filePath(L"./output.mp4");
      
 static const std::wstring infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static const std::wstring infer_config_file_dgpu(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 

@@ -77,13 +77,9 @@ std::wstring file_path2 = L"/opt/nvidia/deepstream/deepstream/samples/streams/sa
 std::wstring file_path3 = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov";
 
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
+std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
@@ -163,30 +159,15 @@ int main(int argc, char** argv)
         // Note: this example will be updated in the future to use different models
         
         // New Primary GIE using the filespecs above with interval = 0
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(L"pgie-1", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-            if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_infer_gie_primary_new(L"pgie-1", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
+        if (retval != DSL_RESULT_SUCCESS) break;
 
-            retval = dsl_infer_gie_primary_new(L"pgie-2", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-            if (retval != DSL_RESULT_SUCCESS) break;
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(L"pgie-1", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-            if (retval != DSL_RESULT_SUCCESS) break;
-
-            retval = dsl_infer_gie_primary_new(L"pgie-2", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-            if (retval != DSL_RESULT_SUCCESS) break;
-        }
+        retval = dsl_infer_gie_primary_new(L"pgie-2", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting operational width and height
         retval = dsl_tracker_new(L"tracker-1", 
