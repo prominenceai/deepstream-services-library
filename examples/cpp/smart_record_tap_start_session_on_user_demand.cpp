@@ -169,6 +169,7 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
+    return NULL;
 }
 
 int main(int argc, char** argv)

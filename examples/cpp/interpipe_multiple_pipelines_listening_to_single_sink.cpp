@@ -44,6 +44,8 @@ static const std::wstring file_path(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 
 // Config and model-engine files - Jetson and dGPU
+static const std::wstring primary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static const std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 static const std::wstring tracker_config_file(
@@ -304,8 +306,8 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs defined above, with interval = 4
         retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(), 
-            primary_infer_config_file_dgpu.c_str(), 
-            primary_model_engine_file_dgpu.c_str(), 4);
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
 
         // New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_new(client_data_1.tracker.c_str(), 
@@ -334,18 +336,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame

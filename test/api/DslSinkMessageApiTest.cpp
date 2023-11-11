@@ -171,7 +171,7 @@ SCENARIO( "A Message Sink's Broker Settings can be updated", "[message-sink-api]
         WHEN( "When new Message Converter settings are set" ) 
         {
             std::wstring new_broker_config_file(
-                L"/opt/nvidia/deepstream/deepstream-6.0/sources/libs/kafka_protocol_adaptor/cfg_kafka.txt");
+                L"/opt/nvidia/deepstream/deepstream/sources/libs/kafka_protocol_adaptor/cfg_kafka.txt");
             std::wstring new_protocol_lib(NVDS_AZURE_EDGE_PROTO_LIB);
             std::wstring new_connection_string(
                 L"HostName=my-hub.azure-devices.net;DeviceId=6789;SharedAccessKey=efghi");

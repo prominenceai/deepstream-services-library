@@ -42,13 +42,13 @@ THE SOFTWARE.
 
 // File path for the single File Source
 std::wstring file_path1(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_1080p_h265.mp4");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 std::wstring file_path2(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 std::wstring file_path3(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_ride_bike.mov");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov");
 std::wstring file_path4(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_walk.mov");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov");
 
 std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");

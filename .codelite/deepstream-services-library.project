@@ -249,7 +249,6 @@
       <File Name="../examples/cpp/ode_occurrence_trigger_with_mot_challenge_file_action.cpp"/>
       <File Name="../examples/cpp/1file_preproc_pgie_iou_osd_window.cpp"/>
       <File Name="../examples/cpp/4uri_file_streammux_with_tiled_output_pre_pgie.cpp"/>
-      <File Name="../examples/cpp/non_maximum_processing.cpp"/>
       <File Name="../examples/cpp/Makefile"/>
       <File Name="../examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp"/>
       <File Name="../examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp"/>
@@ -374,7 +373,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make -C ../  clean</CleanCommand>
-        <BuildCommand>make -C ../ -j 4</BuildCommand>
+        <BuildCommand>make -C ../ -j 6</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

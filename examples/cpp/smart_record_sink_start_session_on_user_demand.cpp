@@ -48,20 +48,20 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 // RTSP Source URI for AMCREST Camera    
-std::wstring amcrest_rtsp_uri = 
+static const std::wstring amcrest_rtsp_uri = 
     L"rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0";
 
 // RTSP Source URI for HIKVISION Camera    
-std::wstring hikvision_rtsp_uri = 
+static const std::wstring hikvision_rtsp_uri = 
     L"rtsp://username:password@192.168.1.64:554/Streaming/Channels/101";
 
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file(
+static const std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file(
+static const std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
 
-std::wstring tracker_config_file(
+static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
@@ -166,6 +166,7 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
+    return NULL;
 }
 
 int main(int argc, char** argv)
@@ -262,8 +263,8 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs defined above, with interval = 4
         retval = dsl_infer_gie_primary_new(L"primary-gie", 
-            primary_infer_config_file_dgpu.c_str(), 
-            primary_model_engine_file_dgpu.c_str(), 4);
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame    

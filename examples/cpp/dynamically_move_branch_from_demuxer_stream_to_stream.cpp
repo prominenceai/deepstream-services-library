@@ -134,6 +134,8 @@ static int move_branch(void* user_data)
     << dsl_return_value_to_string(
         dsl_tee_demuxer_branch_move_to(L"demuxer", L"branch-0", stream_id)) 
         << std::endl;
+        
+    return true;
 }
 
 int main(int argc, char** argv)
