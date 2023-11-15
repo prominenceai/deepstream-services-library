@@ -7410,7 +7410,59 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
     return DSL::Services::GetServices()->SinkRecordMailerRemove(
         cstrName.c_str(), cstrMailer.c_str());
 }
-   
+
+DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
+    uint bitrate, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtmpNew(cstrName.c_str(), 
+        cstrUri.c_str(), bitrate, interval);
+}     
+
+DslReturnType dsl_sink_rtmp_uri_get(const wchar_t* name, const wchar_t** uri)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cUri;
+    static std::string cstrUri;
+    static std::wstring wcstrUri;
+    
+    uint retval = DSL::Services::GetServices()->SinkRtmpUriGet(cstrName.c_str(), 
+        &cUri);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrUri.assign(cUri);
+        wcstrUri.assign(cstrUri.begin(), cstrUri.end());
+        *uri = wcstrUri.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtmpUriSet(cstrName.c_str(), 
+        cstrUri.c_str());
+}
+
 DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
 {

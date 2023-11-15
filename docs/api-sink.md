@@ -8,12 +8,13 @@ All Sinks are derived from the "Component" class, therefore all [component metho
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── `sink`
 
-DSL supports fourteen (14) different types of Sinks:
+DSL supports fifteen (15) different types of Sinks:
 * [Overlay Sink](#dsl_sink_overlay_new) - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
 * [V4L2 Sink](#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
 * [File Sink](#dsl_sink_file_new) - encodes video to a media container file
 * [Record Sink](#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+* [RTMP Sink](#dsl_sink_record_new) - streams encoded video using the Real-time Messaging Protocol (RTMP) to social media networks, live streaming platforms, and media servers.
 * [RTSP Client Sink](#dsl_sink_rtsp_client_new) - streams encoded video using the Real-time Streaming Protocol (RTSP) as a client of a media server. 
 * [RTSP Server Sink](#dsl_sink_rtsp_server_new) - streams encoded video via an RTSP (UDP) Server on a specified port.
 * [WebRTC Sink](#dsl_sink_webrtc_new) - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
@@ -65,6 +66,7 @@ As a general rule
 | V4L2 Sink          | v4l2sink       | true  | true/false  |   20000000   | true/false  |
 | File Sink          | filesink       | false | true/false  |      -1      | false       |
 | Record Sink<sup id="a1">[1](#f1)</sup>        | na             |  na   |  na         |      na      |  na         |
+| RTMP Sink          | rtmpsink       | true  | true/false  |      -1      | false       |
 | RTSP Client Sink<sup id="a2">[2](#f2)</sup>   | rtspclientsink |  na   |  na         |      na      |  na         | 
 | RTSP Server Sink   | udpsink        | true  | true/false  |      -1      | false       | 
 | WebRTC Sink        | fakesink       | false | true/false  |      -1      | false       |
@@ -97,6 +99,7 @@ As a general rule
 * [`dsl_sink_v4l2_new`](#dsl_sink_v4l2_new)
 * [`dsl_sink_file_new`](#dsl_sink_file_new)
 * [`dsl_sink_record_new`](#dsl_sink_record_new)
+* [`dsl_sink_rtmp_new`](#dsl_sink_rtmp_new)
 * [`dsl_sink_rtsp_client_new`](#dsl_sink_rtsp_client_new)
 * [`dsl_sink_rtsp_server_new`](#dsl_sink_rtsp_server_new)
 * [`dsl_sink_webrtc_new`](#dsl_sink_webrtc_new)
@@ -176,6 +179,10 @@ As a general rule
 * [`dsl_sink_record_mailer_add`](#dsl_sink_record_mailer_add)
 * [`dsl_sink_record_mailer_remove`](#dsl_sink_record_mailer_remove)
 * [`dsl_sink_record_reset_done_get`](#dsl_sink_record_reset_done_get)
+
+**RTMP Sink Methods**
+* [`dsl_sink_rtmp_uri_get`](#dsl_sink_rtmp_uri_get)
+* [`dsl_sink_rtmp_uri_set`](#dsl_sink_rtmp_uri_set)
 
 **RTSP Client Sink Methods**
 * [`dsl_sink_rtsp_client_credentials_set`](#dsl_sink_rtsp_client_credentials_set)
@@ -700,6 +707,36 @@ retval = dsl_sink_record_new('my-record-sink',
 
 <br>
 
+### *dsl_sink_rtmp_new*
+```C++
+DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
+    uint bitrate, uint interval);
+```
+The constructor creates a uniquely named RTMP Sink. Construction will fail if the name is currently in use. There is only one Codec format supported; `H.264`.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`encode sink`](#encode-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `rtmp sink`
+
+**Parameters**
+* `name` - [in] unique name for the RTMP Sink to create.
+* `uri` - [in] the RTMP URI to stream to.
+* `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
+* `interval` - [in] frame interval at which to encode the video. Set to 0 to encode every frame.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtmp_new('my-rtmp-sink',
+    'rtmp://localhost/path/to/stream/to', 0, 0)
+```
+
+<br>
+
 ### *dsl_sink_rtsp_client_new*
 ```C++
 DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
@@ -715,7 +752,7 @@ The constructor creates a uniquely named RTSP Client Sink. Construction will fai
 
 **Parameters**
 * `name` - [in] unique name for the RTSP Client Sink to create.
-* `uri` - [in] the URI to write to.
+* `uri` - [in] the RTSP URI to stream to.
 * `codec` - [in] one of the [Codec Types](#codec-types) defined above.
 * `bitrate` - [in] bitrate at which to encode the video. Set to 0 to use the encoder's default (4Mbps).
 * `interval` - [in] frame interval at which to encode the video. Set to 0 to code every frame.
@@ -1808,7 +1845,7 @@ retval = dsl_sink_v4l2_picture_settings_set('my-v4l2-sink', -10, 14, 0)
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* codec, uint* bitrate, uint* interval);
 ```
-This service returns the current bitrate and interval settings for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new).
+This service returns the current bitrate and interval settings for the named Encode Sink; [File Sink](#dsl_sink_file_new), [Smart-Record Sink](#dsl_sink_record_new), [RTMP Sink](#dsl_sink_rtmp_new), [RTSP Client Sink](#dsl_sink_rtsp_client_new), [RTSP Server Sink](#dsl_sink_rtsp_server_new), or [WebRTC Sink](dsl_sink_webrtc_new).
 
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to query.
@@ -1831,7 +1868,9 @@ retval, bitrate, interval = dsl_sink_encode_settings_get('my-file-sink')
 DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
     uint codec, uint bitrate, uint interval);
 ```
-This service sets the bitrate and interval settings for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new). The service will fail if the Encode Sink is currently linked.
+This service sets the bitrate and interval settings for the named Encode Sink; [File Sink](#dsl_sink_file_new), [Smart-Record Sink](#dsl_sink_record_new), [RTMP Sink](#dsl_sink_rtmp_new), [RTSP Client Sink](#dsl_sink_rtsp_client_new), [RTSP Server Sink](#dsl_sink_rtsp_server_new), or [WebRTC Sink](dsl_sink_webrtc_new). The service will fail if the Encode Sink is currently linked.
+
+IMPORTANT! The [RTMP Sink](#dsl_sink_rtmp_new) only supports the H.264 codec. Setting the `codec` parameter to `DSL_CODEC_H265` will cause this service to fail.
 
 **Parameters**
 * `name` - [in] unique name of the Encode Sink to update.
@@ -1844,7 +1883,7 @@ This service sets the bitrate and interval settings for the named Encode Sink; [
 
 **Python Example**
 ```Python
-retval = dsl_sink_encode_settings_set('my-file-sink', 4000000, 1)
+retval = dsl_sink_encode_settings_set('my-file-sink', `DSL_CODEC_H264`, 4000000, 1)
 ```
 
 <br>
@@ -1854,7 +1893,7 @@ retval = dsl_sink_encode_settings_set('my-file-sink', 4000000, 1)
 DslReturnType dsl_sink_encode_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
-This service gets the current input dimensions for the named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new).  Values of 0 indicate NO scaling.
+This service gets the current input dimensions for the named Encode Sink; [File Sink](#dsl_sink_file_new), [Smart-Record Sink](#dsl_sink_record_new), [RTMP Sink](#dsl_sink_rtmp_new), [RTSP Client Sink](#dsl_sink_rtsp_client_new), [RTSP Server Sink](#dsl_sink_rtsp_server_new), or [WebRTC Sink](dsl_sink_webrtc_new).  Values of 0 indicate NO scaling.
 
 The dimensions, if non-zero, are used to scale the video input into the Sinks's encoder element. 
 
@@ -1878,7 +1917,7 @@ retval, width, height = dsl_sink_encode_dimensions_get('my-rtsp-server-sink')
 DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name, 
     uint width, uint height);
 ```
-This service updates the dimensions of a named Encode Sink; [File](#dsl_sink_file_new), [Smart-Record](#dsl_sink_record_new), [RTSP-Server](#dsl_sink_rtsp_server_new), or [WebRTC](dsl_sink_webrtc_new).  Set the values to 0 to indicate NO scaling.
+This service updates the dimensions of a named Encode Sink; [File Sink](#dsl_sink_file_new), [Smart-Record Sink](#dsl_sink_record_new), [RTMP Sink](#dsl_sink_rtmp_new), [RTSP Client Sink](#dsl_sink_rtsp_client_new), [RTSP Server Sink](#dsl_sink_rtsp_server_new), or [WebRTC Sink](dsl_sink_webrtc_new). Set the values to 0 to indicate NO scaling.
 
 
 **Parameters**
@@ -2225,8 +2264,47 @@ retval = dsl_sink_record_mailer_remove('my-record-sink', 'my-mailer')
 
 <br>
 
-## RTSP Client Sink Methods
+## RTMP Sink Methods
+### *dsl_sink_rtmp_uri_get*
+```C
+DslReturnType dsl_sink_rtmp_uri_get(const wchar_t* name, const wchar_t** uri);
+```
+This service gets the current RTMP URI in use for the named RTMP Sink.
 
+**Parameters**
+* `name` - [in] unique name of the RTMP Sink to query.
+* `uri` - [out] uniform resource identifier (URI) in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, uri = dsl_sink_rtmp_uri_get('my-rtmp-sink')
+```
+<br>
+
+### *dsl_sink_rtmp_uri_set*
+```C
+DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri);
+```
+This service sets the RTMP URI for the named RTMP Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the RTMP Sink to update.
+* `uri` - [in] uniform resource identifier (URI) for the RTMP Sink to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_rtmp_uri_set('my-rtmp-sink', 'rtmp://0.0.0.0/new/path/to/stream/to')
+```
+
+<br>
+
+## RTSP Client Sink Methods
 ### *dsl_sink_rtsp_client_credentials_set*
 ```C++
 DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 

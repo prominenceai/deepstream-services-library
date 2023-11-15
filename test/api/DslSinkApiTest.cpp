@@ -1769,6 +1769,199 @@ SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new RTMP Sink",
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name(L"rtmp-sink");
+        std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new RTMP Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
+                bitrate, interval) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                
+                const wchar_t * c_ret_uri;
+                REQUIRE( dsl_sink_rtmp_uri_get(sink_name.c_str(),
+                    &c_ret_uri) == DSL_RESULT_SUCCESS );
+                std::wstring ret_uri(c_ret_uri);
+                REQUIRE( ret_uri == uri );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTMP Sink can update it's common properties correctly", 
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name(L"rtmp-sink");
+        std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
+            bitrate, interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The RTMP Sink's sync property is updated from its default" ) 
+        {
+            boolean newSync(false); // default == true
+            REQUIRE( dsl_sink_sync_enabled_set(sink_name.c_str(), 
+                newSync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retSync(true);
+                REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
+                    &retSync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retSync == newSync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The RTMP Sink's async property is updated from its default" ) 
+        {
+            boolean newAsync(true);  // default == false
+            REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
+                newAsync) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retAsync(false);
+                REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
+                    &retAsync) == DSL_RESULT_SUCCESS );
+                REQUIRE( retAsync == newAsync );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The RTMP Sink's max-lateness property is updated from its default" ) 
+        {
+            int64_t newMaxLateness(-1);  // default == 20000000
+            REQUIRE( dsl_sink_max_lateness_set(sink_name.c_str(), 
+                newMaxLateness) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                int64_t retMaxLateness(12345678);
+                REQUIRE( dsl_sink_max_lateness_get(sink_name.c_str(), 
+                    &retMaxLateness) == DSL_RESULT_SUCCESS );
+                REQUIRE( retMaxLateness == newMaxLateness );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "The RTMP Sink's qos property is updated from its default" ) 
+        {
+            boolean newQos(true);  // default == false
+            REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
+                newQos) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+                boolean retQos(false);
+                REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
+                    &retQos) == DSL_RESULT_SUCCESS );
+                REQUIRE( retQos == newQos );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTMP Sink can update it's URI correctly", 
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name(L"rtmp-sink");
+        std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
+            bitrate, interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The RTMP URI is updated" ) 
+        {
+            std::wstring new_uri(L"rtmp://0.0.0.0/new/path/to/stream"); 
+            REQUIRE( dsl_sink_rtmp_uri_set(sink_name.c_str(), 
+                new_uri.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                const wchar_t * c_ret_uri;
+                REQUIRE( dsl_sink_rtmp_uri_get(sink_name.c_str(),
+                    &c_ret_uri) == DSL_RESULT_SUCCESS );
+                std::wstring ret_uri(c_ret_uri);
+                REQUIRE( ret_uri == new_uri );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An RTMP Sink returns failure when encoder is set to H265", 
+    "[rtmp]" )
+{
+    GIVEN( "A new RTMP Sink" ) 
+    {
+        std::wstring sink_name(L"rtmp-sink");
+        std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
+            bitrate, interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The RTMP Sink is called to update its codec type to H265" ) 
+        {
+            REQUIRE( dsl_sink_encode_settings_set(sink_name.c_str(), 
+                DSL_CODEC_H265, 0, 0) == DSL_RESULT_SINK_CODEC_VALUE_INVALID );
+
+            THEN( "The current codec type is unchanged" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                uint ret_codec(99), ret_bitrate(99), ret_interval(99);
+                REQUIRE( dsl_sink_encode_settings_get(sink_name.c_str(),
+                    &ret_codec, &ret_bitrate, &ret_interval) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_codec ==  DSL_CODEC_H264 );
+                REQUIRE( ret_bitrate ==  4000000 );
+                REQUIRE( ret_interval ==  0 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -2706,6 +2899,19 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                     &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_encode_dimensions_set(NULL, 
                     0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_rtmp_new(NULL, NULL,
+                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtmp_new(NULL, sink_name.c_str(),
+                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtmp_uri_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtmp_uri_get(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtmp_uri_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_rtmp_uri_set(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_rtsp_server_new(NULL, 
                     NULL, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

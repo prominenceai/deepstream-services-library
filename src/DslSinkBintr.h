@@ -75,6 +75,11 @@ namespace DSL
         std::shared_ptr<RecordSinkBintr>( \
         new RecordSinkBintr(name, outdir, codec, container, bitrate, interval, clientListener))
         
+    #define DSL_RTMP_SINK_PTR std::shared_ptr<RtmpSinkBintr>
+    #define DSL_RTMP_SINK_NEW(name, uri, bitrate, interval) \
+        std::shared_ptr<RtmpSinkBintr>( \
+        new RtmpSinkBintr(name, uri, bitrate, interval))
+
     #define DSL_RTSP_SERVER_SINK_PTR std::shared_ptr<RtspServerSinkBintr>
     #define DSL_RTSP_SERVER_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
         std::shared_ptr<RtspServerSinkBintr>( \
@@ -1035,6 +1040,60 @@ namespace DSL
 
     };
 
+    //-------------------------------------------------------------------------
+
+    class RtmpSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RtmpSinkBintr(const char* name, 
+            const char* uri, uint bitrate, uint interval);
+
+        ~RtmpSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief returns the current URI (location) for this RtmpSinkBintr.
+         * @return const string for the current URI.
+         */
+        const char* GetUri();
+        
+        /**
+         * @brief Sets the URI (location)for this RtmpSinkBintr.
+         * @param uri new URI for the RtmpSinkBintr to use.
+         * @return true on successful update, false otherwise
+         */
+        bool SetUri(const char* uri);
+
+    private:
+
+        /**
+         * @brief RTMP URI to stream to.
+         */
+        std::string m_uri;
+
+        /**
+         * @brief flvmux to convert the stream from video/x-h264 to video/x-flv.
+         */
+        DSL_ELEMENT_PTR m_pFlvmux;
+        
+        /**
+         * @brief rtph264pay plugin for the RTMP SInk
+         */ 
+        DSL_ELEMENT_PTR m_pPayloader;
+        
+    };
 
     //-------------------------------------------------------------------------
 

@@ -1581,7 +1581,6 @@ namespace DSL
         
         m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-        m_pTransform->SetAttribute("gpu-id", m_gpuId);
 
         switch (codec)
         {
@@ -1600,8 +1599,15 @@ namespace DSL
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
+            m_pEncoder->SetAttribute("preset-level", true);
+            m_pEncoder->SetAttribute("insert-sps-pps", true);
             m_pEncoder->SetAttribute("bufapi-version", true);
-        }      
+        }
+        else // x86_64
+        {
+            m_pTransform->SetAttribute("gpu-id", m_gpuId);
+        }
+
         
         // Get the default bitrate
         m_pEncoder->GetAttribute("bitrate", &m_defaultBitrate);
@@ -1956,7 +1962,141 @@ namespace DSL
         m_isLinked = false;
     }
 
-    //******************************************************************************************
+    //-------------------------------------------------------------------------
+    
+    RtmpSinkBintr::RtmpSinkBintr(const char* name, 
+        const char* uri, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, DSL_CODEC_H264, bitrate, interval)
+        , m_uri(uri)
+    {
+        LOG_FUNC();
+        
+        m_pSink = DSL_ELEMENT_NEW("rtmpsink", name);
+        m_pFlvmux = DSL_ELEMENT_NEW("flvmux", name);
+        
+        // Set the RTMP URI (location) for the sink
+        m_pSink->SetAttribute("location", m_uri.c_str());
+        
+        m_pFlvmux->SetAttribute("name", "mux");
+        m_pFlvmux->SetAttribute("streamable", true);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
+        LOG_INFO("  uri                : " << m_uri);
+        LOG_INFO("  codec              : " << m_codec);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
+        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+
+        AddChild(m_pFlvmux);
+        AddChild(m_pSink);
+    }
+    
+    RtmpSinkBintr::~RtmpSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RtmpSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RtmpSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pFlvmux) or
+            !m_pFlvmux->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RtmpSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RtmpSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pFlvmux->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    const char* RtmpSinkBintr::GetUri()
+    {
+        LOG_FUNC();
+        
+        return m_uri.c_str();
+    }
+    
+    bool RtmpSinkBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Uri for RtmpSinkBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+        m_uri = uri;
+        m_pSink->SetAttribute("location", m_uri.c_str());
+        
+        return true;
+    }
+
+    
+    
+    //-------------------------------------------------------------------------
     
     RtspServerSinkBintr::RtspServerSinkBintr(const char* name, 
         const char* host, uint udpPort, uint rtspPort,
@@ -2010,19 +2150,6 @@ namespace DSL
         // Update all default DSL values
         m_pSink->SetAttribute("host", m_host.c_str());
         m_pSink->SetAttribute("port", m_udpPort);
-
-        // aarch_64
-        if (m_cudaDeviceProp.integrated)
-        {
-            m_pEncoder->SetAttribute("preset-level", true);
-            m_pEncoder->SetAttribute("insert-sps-pps", true);
-            m_pEncoder->SetAttribute("bufapi-version", true);
-        }
-        else // x86_64
-        {
-            m_pEncoder->SetAttribute("gpu-id", m_gpuId);
-        }
-
         
         LOG_INFO("");
         LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");

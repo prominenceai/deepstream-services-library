@@ -5955,6 +5955,40 @@ def dsl_sink_encode_dimensions_set(name, width, height):
     return int(result)
 
 ##
+## dsl_sink_rtmp_new()
+##
+_dsl.dsl_sink_rtmp_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_rtmp_new.restype = c_uint
+def dsl_sink_rtmp_new(name, 
+    uri, bitrate, interval):
+    global _dsl
+    result =_dsl.dsl_sink_rtmp_new(name, 
+        uri, bitrate, interval)
+    return int(result)
+
+##
+## dsl_sink_rtmp_uri_get()
+##
+_dsl.dsl_sink_rtmp_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_rtmp_uri_get.restype = c_uint
+def dsl_sink_rtmp_uri_get(name):
+    global _dsl
+    uri = c_wchar_p(0)
+    result = _dsl.dsl_sink_rtmp_uri_get(name, DSL_WCHAR_PP(uri))
+    return int(result), uri.value 
+
+##
+## dsl_sink_rtmp_uri_set()
+##
+_dsl.dsl_sink_rtmp_uri_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_rtmp_uri_set.restype = c_uint
+def dsl_sink_rtmp_uri_set(name, uir):
+    global _dsl
+    result = _dsl.dsl_sink_rtmp_uri_set(name, uir)
+    return int(result)
+
+##
 ## dsl_sink_rtsp_server_new()
 ##
 _dsl.dsl_sink_rtsp_server_new.argtypes = [c_wchar_p, 

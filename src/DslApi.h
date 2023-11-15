@@ -5116,6 +5116,7 @@ DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_uri_set(const wchar_t* name, const wchar_t* uri);
+
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source
  * @param[in] name name of the source object to query
@@ -7069,6 +7070,36 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
+ * @brief creates a new, uniquely named RTMP Sink component. 
+ * IMPORT! Although derived from the Encode Sink, only the H264 codec 
+ * is supported.
+ * @param[in] name unique component name for the new RTMP Sink.
+ * @param[in] uri RTMP URI to stream to.
+ * @param[in] bitrate in bits per second. Set to 0 to use the Encoder default 
+ * bitrate (4Mbps).
+ * @param[in] interval frame interval to encode at.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+ DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
+    uint bitrate, uint interval);
+
+/**
+ * @brief Gets the current URI in use by the named RTMP Sink.
+ * @param[in] name name of the RTMP Sink to query.
+ * @param[out] uri URI in use by the RTMP Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtmp_uri_get(const wchar_t* name, const wchar_t** uri);
+
+/**
+ * @brief Sets the current URI for the named RTMP Sink to use.
+ * @param[in] name name of the RTMP Sink to update.
+ * @param[in] uri new URI for the RTMP Sink to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri);
+
+/**
  * @brief creates a new, uniquely named RTSP Server Sink component
  * @param[in] name unique component name for the new RTSP Server Sink
  * @param[in] host address for the RTSP Server
@@ -7096,7 +7127,7 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
 /**
  * @brief creates a new, uniquely named RTSP Client Sink component.
  * @param[in] name unique component name for the new RTSP Client Sink.
- * @param[in] uri RTSP uri to read.
+ * @param[in] uri RTSP uri to stream to.
  * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265.
  * @param[in] bitrate in bits per second - H264 and H265 only.
  * Set to 0 to use the Encoder default bitrate (4Mbps).
