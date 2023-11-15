@@ -1925,6 +1925,43 @@ SCENARIO( "An RTMP Sink can update it's URI correctly",
     }
 }
 
+SCENARIO( "An RTMP Sink returns failure when encoder is set to H265", 
+    "[rtmp]" )
+{
+    GIVEN( "A new RTMP Sink" ) 
+    {
+        std::wstring sink_name(L"rtmp-sink");
+        std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
+            bitrate, interval) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The RTMP Sink is called to update its codec type to H265" ) 
+        {
+            REQUIRE( dsl_sink_encode_settings_set(sink_name.c_str(), 
+                DSL_CODEC_H265, 0, 0) == DSL_RESULT_SINK_CODEC_VALUE_INVALID );
+
+            THEN( "The current codec type is unchanged" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                uint ret_codec(99), ret_bitrate(99), ret_interval(99);
+                REQUIRE( dsl_sink_encode_settings_get(sink_name.c_str(),
+                    &ret_codec, &ret_bitrate, &ret_interval) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_codec ==  DSL_CODEC_H264 );
+                REQUIRE( ret_bitrate ==  4000000 );
+                REQUIRE( ret_interval ==  0 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
