@@ -2070,6 +2070,31 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
+
+    const char* RtmpSinkBintr::GetUri()
+    {
+        LOG_FUNC();
+        
+        return m_uri.c_str();
+    }
+    
+    bool RtmpSinkBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Uri for RtmpSinkBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+        m_uri = uri;
+        m_pSink->SetAttribute("location", m_uri.c_str());
+        
+        return true;
+    }
+
+    
     
     //-------------------------------------------------------------------------
     

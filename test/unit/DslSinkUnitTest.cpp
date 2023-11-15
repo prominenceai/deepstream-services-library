@@ -1484,7 +1484,7 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can Link/UnlinkAll multipl
     }
 }
 
-SCENARIO( "A new RtmpSinkBintr is created correctly",  "[rtmp]" )
+SCENARIO( "A new RtmpSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new Rtmp Sink" ) 
     {
@@ -1501,6 +1501,9 @@ SCENARIO( "A new RtmpSinkBintr is created correctly",  "[rtmp]" )
             
             THEN( "The correct attribute values are returned" )
             {
+                std::string retUri(pSinkBintr->GetUri());
+                REQUIRE( retUri == uri );
+                
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                 REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
@@ -1510,7 +1513,7 @@ SCENARIO( "A new RtmpSinkBintr is created correctly",  "[rtmp]" )
     }
 }
 
-SCENARIO( "A new RtmpSinkBintr can LinkAll Child Elementrs", "[rtmp]" )
+SCENARIO( "A new RtmpSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new RtmpSinkBintr in an Unlinked state" ) 
     {
@@ -1537,7 +1540,7 @@ SCENARIO( "A new RtmpSinkBintr can LinkAll Child Elementrs", "[rtmp]" )
     }
 }
 
-SCENARIO( "A Linked RtmpSinkBintr can UnlinkAll Child Elementrs", "[rtmp]" )
+SCENARIO( "A Linked RtmpSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A RtmpSinkBintr in a linked state" ) 
     {

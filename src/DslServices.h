@@ -1361,6 +1361,10 @@ namespace DSL {
 
         DslReturnType SinkRtmpNew(const char* name, const char* uri, 
             uint bitrate, uint interval);
+
+        DslReturnType SinkRtmpUriGet(const char* name, const char** uri);
+
+        DslReturnType SinkRtmpUriSet(const char* name, const char* uri);
             
         DslReturnType SinkRtspServerNew(const char* name, const char* host, 
             uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);

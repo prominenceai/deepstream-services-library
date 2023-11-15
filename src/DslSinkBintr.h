@@ -1062,6 +1062,19 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
+        
+        /**
+         * @brief returns the current URI (location) for this RtmpSinkBintr.
+         * @return const string for the current URI.
+         */
+        const char* GetUri();
+        
+        /**
+         * @brief Sets the URI (location)for this RtmpSinkBintr.
+         * @param uri new URI for the RtmpSinkBintr to use.
+         * @return true on successful update, false otherwise
+         */
+        bool SetUri(const char* uri);
 
     private:
 

@@ -1108,7 +1108,7 @@ namespace DSL
         }
         
         /**
-         * @brief Virtual method to be implented by eached derived Resource Source
+         * @brief Virtual method to be implented by each derived Resource Source
          * @param uri Source specific use of URI varries.
          * @return true on successful update, false otherwise
          */

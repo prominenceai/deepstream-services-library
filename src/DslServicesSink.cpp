@@ -1594,6 +1594,67 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::SinkRtmpUriGet(const char* name, const char** uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtmpSinkBintr);
+
+            DSL_RTMP_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtmpSinkBintr>(m_components[name]);
+
+            *uri = pSinkBintr->GetUri();
+
+            LOG_INFO("RTMP Sink '" << name << "' returned URI = '" 
+                << *uri << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTMP Sink '" << name << "' threw exception getting URI");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SinkRtmpUriSet(const char* name, const char* uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtmpSinkBintr);
+
+            DSL_RTMP_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtmpSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetUri(uri))
+            {
+                LOG_ERROR("Failed to Set URI '" << uri 
+                    << "' for RTMP Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("RTMP Sink '" << name << "' set URI = '" 
+                << uri << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTMP Sink '" << name << "' threw exception setting URI");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
     
     DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
         uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
