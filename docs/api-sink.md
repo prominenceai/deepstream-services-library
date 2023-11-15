@@ -8,7 +8,7 @@ All Sinks are derived from the "Component" class, therefore all [component metho
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── `sink`
 
-DSL supports fivteen (15) different types of Sinks:
+DSL supports fifteen (15) different types of Sinks:
 * [Overlay Sink](#dsl_sink_overlay_new) - renders/overlays video on a Parent display **(Jetson Platform Only)**
 * [Window Sink](#dsl_sink_window_new) - renders/overlays video on a Parent XWindow
 * [V4L2 Sink](#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
