@@ -6885,16 +6885,16 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
 }
 
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
-    uint depth, uint offset_x, uint offset_y, uint width, uint height)
+DslReturnType dsl_sink_3d_new(const wchar_t* name, 
+    uint offset_x, uint offset_y, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), 
-        display_id, depth, offset_x, offset_y, width, height);
+    return DSL::Services::GetServices()->Sink3DNew(cstrName.c_str(), 
+        offset_x, offset_y, width, height);
 }
 
 DslReturnType dsl_sink_window_new(const wchar_t* name,

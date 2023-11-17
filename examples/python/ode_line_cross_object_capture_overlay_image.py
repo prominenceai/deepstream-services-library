@@ -326,7 +326,7 @@ def main(args):
         dsl_player_render_image_new(
             name = 'image-player',
             file_path = None,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
+            render_type = DSL_RENDER_TYPE_3D,
             offset_x = 700,
             offset_y = 300,
             zoom = 200,

@@ -53,10 +53,10 @@ namespace DSL
 
     #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
 
-    #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
-    #define DSL_OVERLAY_SINK_NEW(name, displayId, depth, offsetX, offsetY, width, height) \
-        std::shared_ptr<OverlaySinkBintr>( \
-        new OverlaySinkBintr(name, displayId, depth, offsetX, offsetY, width, height))
+    #define DSL_3D_SINK_PTR std::shared_ptr<ThreeDSinkBintr>
+    #define DSL_3D_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<ThreeDSinkBintr>( \
+        new ThreeDSinkBintr(name, offsetX, offsetY, width, height))
 
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
     #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
@@ -489,8 +489,9 @@ namespace DSL
         /**
          * @brief Resets the Sink element for this RenderSinkBintr
          * @return false if the sink is currently Linked. True otherwise
+         * IMPORTANT! this is now only used by the Window Sink. 
          */
-        virtual bool Reset() = 0;
+        virtual bool Reset(){return true;};
 
     protected:
 
@@ -517,21 +518,15 @@ namespace DSL
     
     //-------------------------------------------------------------------------
 
-    class OverlaySinkBintr : public RenderSinkBintr
+    class ThreeDSinkBintr : public RenderSinkBintr
     {
     public: 
     
-        OverlaySinkBintr(const char* name, uint displayId, uint depth, 
+        ThreeDSinkBintr(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
 
-        ~OverlaySinkBintr();
+        ~ThreeDSinkBintr();
 
-        /**
-         * @brief Resets the Sink element for this OverlaySinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        bool Reset();
-  
         /**
          * @brief Links all Child Elementrs owned by this Bintr
          * @return true if all links were succesful, false otherwise
@@ -544,12 +539,8 @@ namespace DSL
          */
         void UnlinkAll();
 
-        int GetDisplayId();
-
-        bool SetDisplayId(int id);
-
         /**
-         * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
+         * @brief Sets the current X and Y offset settings for this ThreeDSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] offsetX the offset in the X direct to set in pixels
          * @param[in] offsetY the offset in the Y direct to set in pixels
@@ -558,21 +549,14 @@ namespace DSL
         bool SetOffsets(uint offsetX, uint offsetY);
         
         /**
-         * @brief Sets the current width and height settings for this OverlaySinkBintr
+         * @brief Sets the current width and height settings for this ThreeDSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
-
-        static std::list<uint> s_uniqueIds;
-        
-    private:
-
-        uint m_displayId;
-        uint m_uniqueId;
-        uint m_depth;
+    
     };
 
     //-------------------------------------------------------------------------

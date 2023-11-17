@@ -37,14 +37,14 @@ primary_model_engine_file = \
 
 source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 
-MAX_OVERLAY_COUNT = 2 # hardware limited
-cur_overlay_count = 0
+MAX_3D_SINK_COUNT = 2 # hardware limited
+cur_3d_sink_count = 0
 
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
-    global MAX_OVERLAY_COUNT, cur_overlay_count
+    global MAX_3D_SINK_COUNT, cur_3d_sink_count
     print('key released = ', key_string)
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -54,25 +54,25 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
 
-    # Add a new overlay sink
+    # Add a new 3D Sink
     elif key_string == '+': 
-        if cur_overlay_count < MAX_OVERLAY_COUNT:
-            cur_overlay_count += 1
-            sink_name = 'overlay-sink-' + str(cur_overlay_count)
+        if cur_3d_sink_count < MAX_3D_SINK_COUNT:
+            cur_3d_sink_count += 1
+            sink_name = '3d-sink-' + str(cur_3d_sink_count)
             print('adding sink ', sink_name)
-            dsl_sink_overlay_new(sink_name, 0, 0, 100*cur_overlay_count, 
-                100*cur_overlay_count, 360, 180)
+            dsl_sink_3d_new(sink_name, 100*cur_3d_sink_count, 
+                100*cur_3d_sink_count, 360, 180)
             dsl_sink_sync_enabled_set(sink_name, False)
             dsl_pipeline_component_add('pipeline', sink_name)
 
     # Remove the last sink added
     elif key_string == '-': 
-        if cur_overlay_count > 0:
-            sink_name = 'overlay-sink-' + str(cur_overlay_count)
+        if cur_3d_sink_count > 0:
+            sink_name = '3d-sink-' + str(cur_3d_sink_count)
             print('removing sink ', sink_name)
             dsl_pipeline_component_remove('pipeline', sink_name)
             dsl_component_delete(sink_name)
-            cur_overlay_count -= 1
+            cur_3d_sink_count -= 1
  
 ## 
 # Function to be called on XWindow Delete event
@@ -100,8 +100,8 @@ def state_change_listener(old_state, new_state, client_data):
 def main(args):
 
     print('*******************************************************')
-    print(' Press + to add new Overlay Sink')
-    print(' Press - to remove last added Overlay Sink')
+    print(' Press + to add new 3D Sink')
+    print(' Press - to remove last added 3D Sink')
     print('*******************************************************')
 
     # Since we're not using args, we can Let DSL initialize GST on first call

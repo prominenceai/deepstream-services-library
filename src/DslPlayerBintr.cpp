@@ -542,9 +542,6 @@ namespace DSL
 
     //----------------------------------------------------------------------------------
 
-   const uint RenderPlayerBintr::m_displayId(0);
-   const uint RenderPlayerBintr::m_depth(0);
-    
     RenderPlayerBintr::RenderPlayerBintr(const char* name, uint renderType, 
         uint offsetX, uint offsetY, uint zoom)
         : PlayerBintr(name)
@@ -697,10 +694,10 @@ namespace DSL
         uint height = std::round((m_zoom * m_height) / 100);
         
         std::string sinkName = m_name + "-render-sink__";
-        if (m_renderType == DSL_RENDER_TYPE_OVERLAY)
+        if (m_renderType == DSL_RENDER_TYPE_3D)
         {
-            m_pSink = DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                m_displayId, m_depth, m_offsetX, m_offsetY, width, height);
+            m_pSink = DSL_3D_SINK_NEW(sinkName.c_str(), 
+                m_offsetX, m_offsetY, width, height);
         }
         else
         {

@@ -77,7 +77,7 @@ namespace DSL
         try
         {
         
-            if (renderType == DSL_RENDER_TYPE_OVERLAY)
+            if (renderType == DSL_RENDER_TYPE_3D)
                 {
                 // Get the Device properties
                 cudaDeviceProp deviceProp;
@@ -86,7 +86,7 @@ namespace DSL
                 if (!deviceProp.integrated)
                 {
                     LOG_ERROR("Overlay Sink is not supported on dGPU x86_64 builds");
-                    return DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED;
+                    return DSL_RESULT_SINK_3D_NOT_SUPPORTED;
                 }
             }
             if (m_players.find(name) != m_players.end())

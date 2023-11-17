@@ -580,7 +580,7 @@ SCENARIO( "A Player can be added and removed from a Capture Action", "[ode-actio
             outdir.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_render_image_new(player_name.c_str(),file_path.c_str(), 
-            DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+            DSL_RENDER_TYPE_3D, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Player is added" )
         {

@@ -327,7 +327,7 @@ SCENARIO( "A Fake Sink can update it's common properties correctly",
     }
 }    
 
-SCENARIO( "The Components container is updated correctly on new Overlay Sink", 
+SCENARIO( "The Components container is updated correctly on new 3D Sink", 
     "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -338,9 +338,7 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink",
         
         if (deviceProp.integrated)
         {
-            std::wstring overlaySinkName = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring three_d_sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(1280);
@@ -348,10 +346,10 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink",
 
             REQUIRE( dsl_component_list_size() == 0 );
 
-            WHEN( "A new Overlay Sink is created" ) 
+            WHEN( "A new 3D Sink is created" ) 
             {
 
-                REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
+                REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
                     offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
                 THEN( "The list size is updated correctly" ) 
@@ -366,9 +364,9 @@ SCENARIO( "The Components container is updated correctly on new Overlay Sink",
     }
 }    
 
-SCENARIO( "The Components container is updated correctly on Overlay Sink delete", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on 3D Sink delete", "[sink-api]" )
 {
-    GIVEN( "An Overlay Sink Component" ) 
+    GIVEN( "An 3D Sink Component" ) 
     {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -376,21 +374,19 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
         
         if (deviceProp.integrated)
         {
-            std::wstring overlaySinkName = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring three_d_sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(0);
             uint sinkH(0);
 
             REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
+            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-            WHEN( "A new Overlay Sink is deleted" ) 
+            WHEN( "A new 3D Sink is deleted" ) 
             {
-                REQUIRE( dsl_component_delete(overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete(three_d_sink_name.c_str()) == DSL_RESULT_SUCCESS );
                 
                 THEN( "The list size updated correctly" )
                 {
@@ -401,7 +397,7 @@ SCENARIO( "The Components container is updated correctly on Overlay Sink delete"
     }
 }
 
-SCENARIO( "A Overlay Sink can update it's common properties correctly", 
+SCENARIO( "A 3D Sink can update it's common properties correctly", 
     "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -412,19 +408,17 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
         
         if (deviceProp.integrated)
         {
-            std::wstring sink_name = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(0);
             uint sinkH(0);
 
             REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), displayId, depth, 
+            REQUIRE( dsl_sink_3d_new(sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-            WHEN( "The Overlay Sink's sync property is updated from its default" ) 
+            WHEN( "The 3D Sink's sync property is updated from its default" ) 
             {
                 boolean newSync(false); // default == true
                 REQUIRE( dsl_sink_sync_enabled_set(sink_name.c_str(), 
@@ -441,7 +435,7 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
                     REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
-            WHEN( "The Overlay Sink's async property is updated from its default" ) 
+            WHEN( "The 3D Sink's async property is updated from its default" ) 
             {
                 boolean newAsync(true);  // default == false
                 REQUIRE( dsl_sink_async_enabled_set(sink_name.c_str(), 
@@ -458,7 +452,7 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
                     REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
-            WHEN( "The Overlay Sink's max-lateness property is updated from its default" ) 
+            WHEN( "The 3D Sink's max-lateness property is updated from its default" ) 
             {
                 int64_t newMaxLateness(-1);  // default == 20000000
                 REQUIRE( dsl_sink_max_lateness_set(sink_name.c_str(), 
@@ -475,7 +469,7 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
                     REQUIRE( dsl_component_list_size() == 0 );
                 }
             }
-            WHEN( "The Overlay Sink's qos property is updated from its default" ) 
+            WHEN( "The 3D Sink's qos property is updated from its default" ) 
             {
                 boolean newQos(true);  // default == false
                 REQUIRE( dsl_sink_qos_enabled_set(sink_name.c_str(), 
@@ -496,9 +490,9 @@ SCENARIO( "A Overlay Sink can update it's common properties correctly",
     }
 }    
 
-SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
+SCENARIO( "A 3D Sink's Offsets can be updated", "[sink-api]" )
 {
-    GIVEN( "A new Overlay Sink in memory" ) 
+    GIVEN( "A new 3D Sink in memory" ) 
     {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -506,9 +500,7 @@ SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
         
         if (deviceProp.integrated)
         {
-            std::wstring sink_name = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(0);
@@ -517,7 +509,7 @@ SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
             uint preOffsetX(100), preOffsetY(100);
             uint retOffsetX(0), retOffsetY(0);
 
-            REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), displayId, depth, 
+            REQUIRE( dsl_sink_3d_new(sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             WHEN( "The Window Sink's Offsets are Set" ) 
@@ -539,9 +531,9 @@ SCENARIO( "A Overlay Sink's Offsets can be updated", "[sink-api]" )
     }
 }
 
-SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
+SCENARIO( "A 3D Sink's Dimensions can be updated", "[sink-api]" )
 {
-    GIVEN( "A new Overlay Sink in memory" ) 
+    GIVEN( "A new 3D Sink in memory" ) 
     {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -549,9 +541,7 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
         
         if (deviceProp.integrated)
         {
-            std::wstring sink_name = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(0);
@@ -560,10 +550,10 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
             uint preSinkW(1280), preSinkH(720);
             uint retSinkW(0), retSinkH(0);
 
-            REQUIRE( dsl_sink_overlay_new(sink_name.c_str(), displayId, depth, 
+            REQUIRE( dsl_sink_3d_new(sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-            WHEN( "The Overlay Sink's Dimensions are Set" ) 
+            WHEN( "The 3D Sink's Dimensions are Set" ) 
             {
                 REQUIRE( dsl_sink_render_dimensions_set(sink_name.c_str(), 
                     preSinkW, preSinkH) == DSL_RESULT_SUCCESS);
@@ -582,9 +572,9 @@ SCENARIO( "A Overlay Sink's Dimensions can be updated", "[sink-api]" )
     }
 }
 
-SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
+SCENARIO( "An 3D Sink in use can't be deleted", "[sink-api]" )
 {
-    GIVEN( "A new Overlay Sink and new pPipeline" ) 
+    GIVEN( "A new 3D Sink and new pPipeline" ) 
     {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -593,28 +583,26 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
         if (deviceProp.integrated)
         {
             std::wstring pipelineName  = L"test-pipeline";
-            std::wstring overlaySinkName = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring three_d_sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(1280);
             uint sinkH(720);
 
-            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_component_list_size() == 1 );
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_list_size() == 1 );
 
-            WHEN( "The Overlay Sink is added to the Pipeline" ) 
+            WHEN( "The 3D Sink is added to the Pipeline" ) 
             {
                 REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                    overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                    three_d_sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
-                THEN( "The Overlay Sink can't be deleted" ) 
+                THEN( "The 3D Sink can't be deleted" ) 
                 {
-                    REQUIRE( dsl_component_delete(overlaySinkName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+                    REQUIRE( dsl_component_delete(three_d_sink_name.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
                     
                     REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -626,7 +614,7 @@ SCENARIO( "An Overlay Sink in use can't be deleted", "[sink-api]" )
     }
 }
 
-SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sink-api]" )
+SCENARIO( "An 3D Sink, once removed from a Pipeline, can be deleted", "[sink-api]" )
 {
     GIVEN( "A new Sink owned by a new pPipeline" ) 
     {
@@ -637,30 +625,28 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sin
         if (deviceProp.integrated)
         {
             std::wstring pipelineName  = L"test-pipeline";
-            std::wstring overlaySinkName = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring three_d_sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(1280);
             uint sinkH(720);
 
-            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth, 
+            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
                 
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
-                overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                three_d_sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
-            WHEN( "The Overlay Sink is removed the Pipeline" ) 
+            WHEN( "The 3D Sink is removed the Pipeline" ) 
             {
                 REQUIRE( dsl_pipeline_component_remove(pipelineName.c_str(), 
-                    overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                    three_d_sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
-                THEN( "The Overlay Sink can be deleted" ) 
+                THEN( "The 3D Sink can be deleted" ) 
                 {
-                    REQUIRE( dsl_component_delete(overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_delete(three_d_sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
                     REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                     REQUIRE( dsl_pipeline_list_size() == 0 );
@@ -671,9 +657,9 @@ SCENARIO( "An Overlay Sink, once removed from a Pipeline, can be deleted", "[sin
     }
 }
 
-SCENARIO( "An Overlay Sink in use can't be added to a second Pipeline", "[sink-api]" )
+SCENARIO( "An 3D Sink in use can't be added to a second Pipeline", "[sink-api]" )
 {
-    GIVEN( "A new Overlay Sink and two new Pipelines" ) 
+    GIVEN( "A new 3D Sink and two new Pipelines" ) 
     {
         // Get the Device properties
         cudaDeviceProp deviceProp;
@@ -683,28 +669,26 @@ SCENARIO( "An Overlay Sink in use can't be added to a second Pipeline", "[sink-a
         {
             std::wstring pipelineName1(L"test-pipeline-1");
             std::wstring pipelineName2(L"test-pipeline-2");
-            std::wstring overlaySinkName = L"overlay-sink";
-            uint displayId(0);
-            uint depth(0);
+            std::wstring three_d_sink_name = L"3d-sink";
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(1280);
             uint sinkH(720);
 
-            REQUIRE( dsl_sink_overlay_new(overlaySinkName.c_str(), displayId, depth,
+            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
 
-            WHEN( "The Overlay Sink is added to the first Pipeline" ) 
+            WHEN( "The 3D Sink is added to the first Pipeline" ) 
             {
                 REQUIRE( dsl_pipeline_component_add(pipelineName1.c_str(), 
-                    overlaySinkName.c_str()) == DSL_RESULT_SUCCESS );
+                    three_d_sink_name.c_str()) == DSL_RESULT_SUCCESS );
 
-                THEN( "The Overlay Sink can't be added to the second Pipeline" ) 
+                THEN( "The 3D Sink can't be added to the second Pipeline" ) 
                 {
                     REQUIRE( dsl_pipeline_component_add(pipelineName2.c_str(), 
-                        overlaySinkName.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
+                        three_d_sink_name.c_str()) == DSL_RESULT_COMPONENT_IN_USE );
 
                     REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                     REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -1692,7 +1676,7 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
         std::wstring file_path = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
         
         REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
-            DSL_RENDER_TYPE_OVERLAY, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+            DSL_RENDER_TYPE_3D, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
         WHEN( "A capture-complete-listner is added" )
         {
@@ -2854,7 +2838,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_overlay_new(NULL, 0, 0, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_3d_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(sink_name.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );

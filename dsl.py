@@ -255,7 +255,7 @@ DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
 DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A = 3
 DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
 
-DSL_RENDER_TYPE_OVERLAY = 0
+DSL_RENDER_TYPE_3D      = 0
 DSL_RENDER_TYPE_WINDOW  = 1
 
 DSL_RECORDING_EVENT_START = 0
@@ -5393,16 +5393,16 @@ def dsl_sink_fake_new(name):
     return int(result)
 
 ##
-## dsl_sink_overlay_new()
+## dsl_sink_3d_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, 
-    c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, 
-    display_id, depth, offset_x, offset_y, width, height):
+_dsl.dsl_sink_3d_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_3d_new.restype = c_uint
+def dsl_sink_3d_new(name, 
+    offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, 
-        display_id, depth, offset_x, offset_y, width, height)
+    result =_dsl.dsl_sink_3d_new(name, 
+        offset_x, offset_y, width, height)
     return int(result)
 
 ##

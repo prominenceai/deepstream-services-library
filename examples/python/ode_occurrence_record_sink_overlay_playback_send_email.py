@@ -223,7 +223,7 @@ def main(args):
         dsl_player_render_video_new(
             name = 'video-player',
             file_path = None,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
+            render_type = DSL_RENDER_TYPE_3D,
             offset_x = 500, 
             offset_y = 20, 
             zoom = 50,

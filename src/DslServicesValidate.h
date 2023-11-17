@@ -208,7 +208,7 @@ THE SOFTWARE.
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(OverlaySinkBintr)) and \
+    if (!components[name]->IsType(typeid(ThreeDSinkBintr)) and \
         !components[name]->IsType(typeid(WindowSinkBintr)))\
     { \
         LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
@@ -306,7 +306,7 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
@@ -334,7 +334,7 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
@@ -356,7 +356,7 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
         !components[name]->IsType(typeid(WindowSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \

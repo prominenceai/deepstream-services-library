@@ -159,30 +159,27 @@ SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
+SCENARIO( "A new 3dSinkBintr is created correctly",  "[SinkBintr]" )
 {
-    GIVEN( "Attributes for a new Overlay Sink" ) 
+    GIVEN( "Attributes for a new 3D Sink" ) 
     {
         
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(100);
             uint offsetY(140);
             uint sinkW(1280);
             uint sinkH(720);
 
-            WHEN( "The OverlaySinkBintr is created " )
+            WHEN( "The 3dSinkBintr is created " )
             {
-                DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                        displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                DSL_3D_SINK_PTR pSinkBintr = 
+                    DSL_3D_SINK_NEW(sinkName.c_str(), 
+                        offsetX, offsetY, sinkW, sinkH);
                 
                 THEN( "The correct attribute values are returned" )
                 {
-                    REQUIRE( pSinkBintr->GetDisplayId() == 0 );
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                     REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
                     REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
@@ -193,31 +190,29 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A new 3dSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new OverlaySinkBintr in an Unlinked state" ) 
+    GIVEN( "A new 3dSinkBintr in an Unlinked state" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(100);
             uint offsetY(140);
             uint sinkW(1280);
             uint sinkH(720);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
+                    offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->IsLinked() == false );
 
-            WHEN( "A new OverlaySinkBintr is Linked" )
+            WHEN( "A new 3dSinkBintr is Linked" )
             {
                 REQUIRE( pSinkBintr->LinkAll() == true );
 
-                THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+                THEN( "The 3dSinkBintr's IsLinked state is updated correctly" )
                 {
                     REQUIRE( pSinkBintr->IsLinked() == true );
                 }
@@ -226,31 +221,29 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A Linked 3dSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A OverlaySinkBintr in a linked state" ) 
+    GIVEN( "A 3dSinkBintr in a linked state" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(100);
             uint offsetY(140);
             uint sinkW(1280);
             uint sinkH(720);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
+                    offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->LinkAll() == true );
 
-            WHEN( "A OverlaySinkBintr is Unlinked" )
+            WHEN( "A 3dSinkBintr is Unlinked" )
             {
                 pSinkBintr->UnlinkAll();
 
-                THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+                THEN( "The 3dSinkBintr's IsLinked state is updated correctly" )
                 {
                     REQUIRE( pSinkBintr->IsLinked() == false );
                 }
@@ -259,87 +252,20 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr
     }
 }
 
-SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "An 3dSinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A newOverlaySinkBintr" ) 
+    GIVEN( "A new 3dSinkBintr in memory" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
-            uint offsetX(100);
-            uint offsetY(140);
-            uint sinkW(1280);
-            uint sinkH(720);
-
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-
-            WHEN( "A OverlaySinkBintr is Reset" )
-            {
-                REQUIRE( pSinkBintr->Reset() == true );
-
-                THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll" )
-                {
-                    REQUIRE( pSinkBintr->LinkAll() == true );
-                    pSinkBintr->UnlinkAll();
-                    REQUIRE( pSinkBintr->IsLinked() == false );
-                }
-            }
-        }
-    }
-}
-
-SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[SinkBintr]" )
-{
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
-    {
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
-            uint offsetX(100);
-            uint offsetY(140);
-            uint sinkW(1280);
-            uint sinkH(720);
-            uint newDisplayId(123);
-
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-                
-            // ensure display id reflects not is use
-            REQUIRE( pSinkBintr->GetDisplayId() == 0 );
-
-            WHEN( "The OverlaySinkBintr's display Id is set " )
-            {
-                pSinkBintr->SetDisplayId(newDisplayId);
-                THEN( "The OverlaySinkBintr's new display Id is returned on Get" )
-                {
-                    REQUIRE( pSinkBintr->GetDisplayId() == newDisplayId );
-                }
-            }
-        }
-    }
-}
-
-SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
-{
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
-    {
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint initOffsetX(0);
             uint initOffsetY(0);
             uint sinkW(1280);
             uint sinkH(720);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, initOffsetX, initOffsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
                 
             uint currOffsetX(0);
             uint currOffsetY(0);
@@ -348,14 +274,14 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
             REQUIRE( currOffsetX == initOffsetX );
             REQUIRE( currOffsetY == initOffsetY );
 
-            WHEN( "The OverlaySinkBintr's Offsets are Set" )
+            WHEN( "The 3dSinkBintr's Offsets are Set" )
             {
                 uint newOffsetX(80);
                 uint newOffsetY(20);
                 
                 pSinkBintr->SetOffsets(newOffsetX, newOffsetY);
 
-                THEN( "The OverlaySinkBintr's new demensions are returned on Get")
+                THEN( "The 3dSinkBintr's new demensions are returned on Get")
                 {
                     pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
                     REQUIRE( currOffsetX == newOffsetX );
@@ -367,22 +293,20 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
 }
 
 
-SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
+SCENARIO( "An 3dSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
+    GIVEN( "A new 3dSinkBintr in memory" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(0);
             uint offsetY(0);
             uint initSinkW(300);
             uint initSinkH(200);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, 
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
                     offsetX, offsetY, initSinkW, initSinkH);
                 
             uint currSinkW(0);
@@ -392,14 +316,14 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
             REQUIRE( currSinkW == initSinkW );
             REQUIRE( currSinkH == initSinkH );
 
-            WHEN( "The OverlaySinkBintr's dimensions are Set" )
+            WHEN( "The 3dSinkBintr's dimensions are Set" )
             {
                 uint newSinkW(1280);
                 uint newSinkH(720);
                 
                 pSinkBintr->SetDimensions(newSinkW, newSinkH);
 
-                THEN( "The OverlaySinkBintr's new dimensions are returned on Get")
+                THEN( "The 3dSinkBintr's new dimensions are returned on Get")
                 {
                     pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
                     REQUIRE( currSinkW == newSinkW );
@@ -410,35 +334,33 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
+SCENARIO( "A 3dSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
+    GIVEN( "A new 3dSinkBintr in memory" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(300);
             uint sinkH(200);
 
-            DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR p3dSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
             
             uint GPUID0(0);
             uint GPUID1(1);
 
-            REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID0 );
+            REQUIRE( p3dSinkBintr->GetGpuId() == GPUID0 );
             
-            WHEN( "The OverlaySinkBintr's  GPU ID is set" )
+            WHEN( "The 3dSinkBintr's  GPU ID is set" )
             {
-                REQUIRE( pOverlaySinkBintr->SetGpuId(GPUID1) == true );
+                REQUIRE( p3dSinkBintr->SetGpuId(GPUID1) == true );
 
                 THEN( "The correct GPU ID is returned on get" )
                 {
-                    REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID1 );
+                    REQUIRE( p3dSinkBintr->GetGpuId() == GPUID1 );
                 }
             }
         }
@@ -518,7 +440,7 @@ SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]
         {
             pSinkBintr->UnlinkAll();
 
-            THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+            THEN( "The 3dSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }
@@ -798,7 +720,7 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 //{
 //    GIVEN( "A new WindowSinkBintr in memory" ) 
 //    {
-//        std::string sinkName("overlay-sink");
+//        std::string sinkName("3d-sink");
 //        uint offsetX(0);
 //        uint offsetY(0);
 //        uint initSinkW(300);
@@ -828,7 +750,7 @@ SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[S
 {
     GIVEN( "A new WindowSinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
+        std::string sinkName("3d-sink");
         uint offsetX(0);
         uint offsetY(0);
         uint initSinkW(300);

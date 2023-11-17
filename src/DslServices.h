@@ -1237,8 +1237,8 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
-        DslReturnType SinkOverlayNew(const char* name, uint display_id,
-            uint depth, uint offsetX, uint offsetY, uint width, uint height);
+        DslReturnType Sink3DNew(const char* name,
+            uint offsetX, uint offsetY, uint width, uint height);
         
         // ---------------------------------------------------------------------------
         // The following three internal services provide access to the

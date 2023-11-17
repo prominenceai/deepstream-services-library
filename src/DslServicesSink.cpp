@@ -155,8 +155,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkOverlayNew(const char* name, uint display_id,
-        uint depth, uint offsetX, uint offsetY, uint width, uint height)
+    DslReturnType Services::Sink3DNew(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -169,8 +169,8 @@ namespace DSL
             
             if (!deviceProp.integrated)
             {
-                LOG_ERROR("Overlay Sink is not supported on dGPU x86_64 builds");
-                return DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED;
+                LOG_ERROR("3D Sink is not supported on dGPU x86_64 builds");
+                return DSL_RESULT_SINK_3D_NOT_SUPPORTED;
             }
             
             // ensure component name uniqueness 
@@ -179,16 +179,16 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_OVERLAY_SINK_NEW(
-                name, display_id, depth, offsetX, offsetY, width, height);
+            m_components[name] = DSL_3D_SINK_NEW(
+                name, offsetX, offsetY, width, height);
 
-            LOG_INFO("New Overlay Sink '" << name << "' created successfully");
+            LOG_INFO("New 3D Sink '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            LOG_ERROR("New 3D Sink '" << name << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

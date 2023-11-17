@@ -613,32 +613,21 @@ namespace DSL
         *height = m_height;
     }
     
-    std::list<uint> OverlaySinkBintr::s_uniqueIds;
     //-------------------------------------------------------------------------
 
-    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
-        uint depth, uint offsetX, uint offsetY, uint width, uint height)
+    ThreeDSinkBintr::ThreeDSinkBintr(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
         : RenderSinkBintr(name, offsetX, offsetY, width, height)
-        , m_displayId(displayId)
-        , m_depth(depth)
-        , m_uniqueId(1)
     {
         LOG_FUNC();
         
         if (!m_cudaDeviceProp.integrated)
         {
-            LOG_ERROR("Overlay Sink is only supported on the aarch64 Platform'");
+            LOG_ERROR("3D Sink is only supported on the Jetson Platform'");
             throw;
         }
         
-        // Find the first available unique Id
-        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
-        {
-            m_uniqueId++;
-        }
-        s_uniqueIds.push_back(m_uniqueId);
-        
-        m_pSink = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
+        m_pSink = DSL_ELEMENT_NEW("nv3dsink", GetCStrName());
         
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
@@ -653,14 +642,14 @@ namespace DSL
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
-        // Update all default DSL values
-        m_pSink->SetAttribute("overlay", m_uniqueId);
-        m_pSink->SetAttribute("display-id", m_displayId);
+        // Set the  DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for OverlaySinkBintr '" << name << "'");
-        LOG_INFO("  unique-id          : " << m_uniqueId);
-        LOG_INFO("  display-id         : " << m_displayId);
+        LOG_INFO("Initial property values for ThreeDSinkBintr '" << name << "'");
         LOG_INFO("  offset-x           : " << offsetX);
         LOG_INFO("  offset-y           : " << offsetY);
         LOG_INFO("  width              : " << m_width);
@@ -674,55 +663,22 @@ namespace DSL
         AddChild(m_pSink);
     }
     
-    bool OverlaySinkBintr::Reset()
+    ThreeDSinkBintr::~ThreeDSinkBintr()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() 
-                << "' is currently linked and cannot be reset");
-            return false;
-        }
-
-        // Need to clear and then reset the Overlay attributes. Note this is
-        // a workaround see 
-        // https://forums.developer.nvidia.com/t/nvoverlaysink-ignores-properties-when-pipeline-is-restarted/179379
-        m_pSink->SetAttribute("overlay-x", 0);
-        m_pSink->SetAttribute("overlay-y", 0);
-        m_pSink->SetAttribute("overlay-w", 0);
-        m_pSink->SetAttribute("overlay-h", 0);
-
-        m_pSink->SetAttribute("overlay-x", m_offsetX);
-        m_pSink->SetAttribute("overlay-y", m_offsetY);
-        m_pSink->SetAttribute("overlay-w", m_width);
-        m_pSink->SetAttribute("overlay-h", m_height);
-
-        return true;
-    }
-    
-    OverlaySinkBintr::~OverlaySinkBintr()
-    {
-        LOG_FUNC();
-        
-        s_uniqueIds.remove(m_uniqueId);
     }
 
-    bool OverlaySinkBintr::LinkAll()
+    bool ThreeDSinkBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("ThreeDSinkBintr '" << GetName() 
+                << "' is already linked");
             return false;
         }
 
-        if (!Reset())
-        {
-            LOG_ERROR("Failed to create/reset Overlay pluggin");
-            return false;
-        }
         if (!m_pQueue->LinkToSink(m_pSink))
         {
             return false;
@@ -731,13 +687,13 @@ namespace DSL
         return true;
     }
     
-    void OverlaySinkBintr::UnlinkAll()
+    void ThreeDSinkBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("ThreeDSinkBintr '" << GetName() << "' is not linked");
             return;
         }
         
@@ -746,56 +702,28 @@ namespace DSL
         m_isLinked = false;
     }
 
-    int OverlaySinkBintr::GetDisplayId()
-    {
-        LOG_FUNC();
-        
-        return m_displayId;
-    }
-    
-    bool OverlaySinkBintr::SetDisplayId(int id)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set DisplayId for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_displayId = id;
-        m_pSink->SetAttribute("display-id", m_displayId);
-        
-        return true;
-    }
-    
-    bool OverlaySinkBintr::SetOffsets(uint offsetX, uint offsetY)
+    bool ThreeDSinkBintr::SetOffsets(uint offsetX, uint offsetY)
     {
         LOG_FUNC();
 
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
-        // workaround for NVIDIA bug... need to reset offsets
-        // before setting them to new values.
-        m_pSink->SetAttribute("overlay-x", 0);
-        m_pSink->SetAttribute("overlay-y", 0);
-        m_pSink->SetAttribute("overlay-x", m_offsetX);
-        m_pSink->SetAttribute("overlay-y", m_offsetY);
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
         
         return true;
     }
 
-    bool OverlaySinkBintr::SetDimensions(uint width, uint height)
+    bool ThreeDSinkBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
         m_width = width;
         m_height = height;
 
-        m_pSink->SetAttribute("overlay-w", m_width);
-        m_pSink->SetAttribute("overlay-h", m_height);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
         
         return true;
     }

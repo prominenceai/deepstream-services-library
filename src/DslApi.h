@@ -140,7 +140,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
@@ -682,7 +682,7 @@ THE SOFTWARE.
 #define DSL_V4L2_DEVICE_TYPE_NONE                                   0x00000000 
 #define DSL_V4L2_DEVICE_TYPE_CAPTURE                                0x00000001
 #define DSL_V4L2_DEVICE_TYPE_OUTPUT                                 0x00000002
-#define DSL_V4L2_DEVICE_TYPE_OVERLAY                                0x00000004
+#define DSL_V4L2_DEVICE_TYPE_3D                                     0x00000004
 #define DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE                            0x00000010
 #define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
 #define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
@@ -914,7 +914,7 @@ THE SOFTWARE.
 /**
  * @brief Sink Types for Render Players
  */
-#define DSL_RENDER_TYPE_OVERLAY                                     0
+#define DSL_RENDER_TYPE_3D                                          0
 #define DSL_RENDER_TYPE_WINDOW                                      1
 
 /**
@@ -6633,18 +6633,16 @@ DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 
 /**
- * @brief creates a new, uniquely named Ovelay Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @param[in] display_id Id of the display to overlay, 0 = main display
- * @param[in] depth overlay depth for this Overlay Sink
+ * @brief creates a new, uniquely named 3D Sink component
+ * @param[in] name unique component name for the new 3D Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the Ovelay Sink in pixels
- * @param[in] heigth height of the Overlay Sink in pixels
+ * @param[in] width width of the 3D Sink in pixels
+ * @param[in] heigth height of the 3D Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
-    uint depth, uint offset_x, uint offset_y, uint width, uint height);
+DslReturnType dsl_sink_3d_new(const wchar_t* name, 
+    uint offset_x, uint offset_y, uint width, uint height);
 
 /**
  * @brief Creates a new, uniquely named Window Sink component
@@ -8404,7 +8402,7 @@ DslReturnType dsl_player_new(const wchar_t* name,
  * @brief Creates a new, uniquely named Video Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the file to render
- * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
@@ -8418,7 +8416,7 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* f
  * @brief Creates a new, uniquely named Image Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the image to render
- * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
