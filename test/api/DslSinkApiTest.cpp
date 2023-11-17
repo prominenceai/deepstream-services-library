@@ -703,7 +703,7 @@ SCENARIO( "The Components container is updated correctly on new Window Sink", "[
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring windowSinkName(L"window-sink");
+        std::wstring windowSinkName(L"egl-sink");
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
@@ -714,7 +714,7 @@ SCENARIO( "The Components container is updated correctly on new Window Sink", "[
         WHEN( "A new Window Sink is created" ) 
         {
 
-            REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+            REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
@@ -732,7 +732,7 @@ SCENARIO( "The Components container is updated correctly on Window Sink delete",
 {
     GIVEN( "An Window Sink Component" ) 
     {
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -740,7 +740,7 @@ SCENARIO( "The Components container is updated correctly on Window Sink delete",
         uint sinkH(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Window Sink is deleted" ) 
@@ -761,14 +761,14 @@ SCENARIO( "A Window Sink can update it's common properties correctly",
     GIVEN( "An empty list of Components" ) 
     {
         
-        std::wstring sink_name = L"window-sink";
+        std::wstring sink_name = L"egl-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(0);
         uint sinkH(0);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Window Sink's sync property is updated from its default" ) 
@@ -847,7 +847,7 @@ SCENARIO( "A Window Sink can update its force-aspect-ratio setting", "[sink-api]
 {
     GIVEN( "A new window sink" ) 
     {
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -856,7 +856,7 @@ SCENARIO( "A Window Sink can update its force-aspect-ratio setting", "[sink-api]
         boolean force(1);
 
         REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Window Sink's force-aspect-ratio is set" ) 
@@ -883,7 +883,7 @@ SCENARIO( "A Window Sinks full-screen-enabled setting can be Set/Get", "[sink-ap
 {
     GIVEN( "A new Window Sink" ) 
     {
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -892,7 +892,7 @@ SCENARIO( "A Window Sinks full-screen-enabled setting can be Set/Get", "[sink-ap
         boolean defFullScreenEnabled(0);
         boolean retFullScreenEnabled(99);
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_fullscreen_enabled_get(windowSinkName.c_str(), 
@@ -926,7 +926,7 @@ SCENARIO( "A Window Sink's Handle can be Set/Get", "[sink-api]" )
 {
     GIVEN( "A new Window Sink" ) 
     {
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
 
         uint offsetX(0);
         uint offsetY(0);
@@ -935,7 +935,7 @@ SCENARIO( "A Window Sink's Handle can be Set/Get", "[sink-api]" )
         boolean defFullScreenEnabled(0);
         boolean retFullScreenEnabled(99);
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         uint64_t retHandle(0);
@@ -974,14 +974,14 @@ SCENARIO( "A Window Sink in use can't be deleted", "[sink-api]" )
     GIVEN( "A new Window Sink and new Pipeline" ) 
     {
         std::wstring pipelineName  = L"test-pipeline";
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
 
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -1010,13 +1010,13 @@ SCENARIO( "A Window Sink, once removed from a Pipeline, can be deleted", "[sink-
     GIVEN( "A new Sink owned by a new pPipeline" ) 
     {
         std::wstring pipelineName  = L"test-pipeline";
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1047,13 +1047,13 @@ SCENARIO( "A Window Sink in use can't be added to a second Pipeline", "[sink-api
     {
         std::wstring pipelineName1(L"test-pipeline-1");
         std::wstring pipelineName2(L"test-pipeline-2");
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
         uint sinkH(720);
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
@@ -1081,14 +1081,14 @@ SCENARIO( "A Window Sink's Offsets can be updated", "[sink-api]" )
 {
     GIVEN( "A new Render Sink in memory" ) 
     {
-        std::wstring sink_name = L"window-sink";
+        std::wstring sink_name = L"egl-sink";
         uint sinkW(1280);
         uint sinkH(720);
         uint offsetX(0), offsetY(0);
 
         uint preOffsetX(100), preOffsetY(100);
         uint retOffsetX(0), retOffsetY(0);
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Window Sink's Offsets are Set" ) 
@@ -1113,14 +1113,14 @@ SCENARIO( "A Window Sink's Dimensions can be updated", "[sink-api]" )
 {
     GIVEN( "A new Window Sink in memory" ) 
     {
-        std::wstring sink_name = L"window-sink";
+        std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
 
         uint preSinkW(1280), preSinkH(720);
         uint retSinkW(0), retSinkH(0);
 
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         WHEN( "The Window Sink's Dimensions are Set" ) 
@@ -1146,12 +1146,12 @@ SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ",
 {
     GIVEN( "A Pipeline in memory" ) 
     {
-        std::wstring sink_name = L"window-sink";
+        std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
         dsl_sink_window_key_event_handler_cb handler;
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         WHEN( "A XWindow Key Event Handler is added" )
@@ -1185,12 +1185,12 @@ SCENARIO( "Window Sink Button Event Handler are added and removded correctly",
 {
     GIVEN( "A Pipeline in memory" ) 
     {
-        std::wstring sink_name = L"window-sink";
+        std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
         dsl_sink_window_button_event_handler_cb handler;
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         WHEN( "A XWindow Button Event Handler is added" )
@@ -1222,12 +1222,12 @@ SCENARIO( "A XWindow Delete Event Handler must be unique", "[sink-api]" )
 {
     GIVEN( "A Pipeline in memory" ) 
     {
-        std::wstring sink_name = L"window-sink";
+        std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
         dsl_sink_window_delete_event_handler_cb handler;
 
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         WHEN( "A XWindow Delete Event Handler is added" )
@@ -2839,7 +2839,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_3d_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_window_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_egl_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(sink_name.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

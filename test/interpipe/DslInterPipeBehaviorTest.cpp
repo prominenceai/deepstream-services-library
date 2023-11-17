@@ -79,8 +79,8 @@ static const uint offest_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name1(L"window-sink-1");
-static const std::wstring window_sink_name2(L"window-sink-2");
+static const std::wstring window_sink_name1(L"egl-sink-1");
+static const std::wstring window_sink_name2(L"egl-sink-2");
 
 static const std::wstring inter_pipe_source_name1(L"inter-pipe-source-1");
 static const std::wstring inter_pipe_source_name2(L"inter-pipe-source-2");
@@ -123,7 +123,7 @@ SCENARIO( "Two Pipelines, one with Inter-Pipe Sink, the other with Inter-Pipe Sr
             inter_pipe_sink_name1.c_str(), false, accept_eos, accept_events) == 
             DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components2[] = {inter_pipe_source_name1.c_str(), 
@@ -191,7 +191,7 @@ SCENARIO( "A Pipeline with and Inter-Pipe Source can dynamically switch between 
             inter_pipe_sink_name1.c_str(), false, accept_eos, accept_events) == 
             DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components1[] = {inter_pipe_source_name1.c_str(), 
@@ -300,10 +300,10 @@ SCENARIO( "Two Pipelines, each with an Inter-Pipe Source can listen to a single 
         REQUIRE( dsl_osd_new(osd_name1.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name2.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name2.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components1[] = {inter_pipe_source_name1.c_str(), 

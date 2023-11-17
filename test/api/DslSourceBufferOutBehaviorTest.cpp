@@ -46,7 +46,7 @@ static const uint sink_width(1280);
 static const uint sink_height(720);
 
 static const std::wstring tiler_name(L"tiler");
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 SCENARIO( "A URI File Source can play with buffer-out-format = RGBA]",
     "[buffer-out-behavior]")
@@ -58,10 +58,10 @@ SCENARIO( "A URI File Source can play with buffer-out-format = RGBA]",
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -93,10 +93,10 @@ SCENARIO( "A URI File Source can play with buffer-out-format = NV12",
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -128,10 +128,10 @@ SCENARIO( "A URI File Source can play with scaled-down frame-rate",
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -163,10 +163,10 @@ DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT]", "[buffer-out-behavior]")
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -198,10 +198,10 @@ SCENARIO( "A URI File Source can play with buffer-out-crop-pre set]",
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -233,10 +233,10 @@ SCENARIO( "A URI File Source can play with buffer-out-crop-post set]",
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"uri-source-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -292,13 +292,13 @@ SCENARIO( "A URI File Source with three Duplicate Sources can play",
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         
         const wchar_t* components[] = {L"uri-source-1", 
             L"duplicate-source-1", L"duplicate-source-2", L"duplicate-source-3",
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
@@ -351,13 +351,13 @@ SCENARIO( "A CSI Camera Source with three Duplicate Sources can play",
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         
         const wchar_t* components[] = {L"uri-source-1", 
             L"duplicate-source-1", L"duplicate-source-2", L"duplicate-source-3",
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );

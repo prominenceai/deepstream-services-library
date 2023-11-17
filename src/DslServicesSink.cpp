@@ -261,7 +261,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_WINDOW_SINK_NEW(name, 
+            m_components[name] = DSL_EGL_SINK_NEW(name, 
                 offsetX, offsetY, width, height);
 
             LOG_INFO("New Window Sink '" << name << "' created successfully");
@@ -283,8 +283,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -313,8 +312,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -346,8 +344,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -379,8 +376,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -410,8 +406,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -444,8 +439,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -474,8 +468,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -509,8 +502,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -543,8 +535,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -577,8 +568,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -611,8 +601,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -645,8 +634,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -679,8 +667,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -713,12 +700,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
 
-            pRenderSink->GetOffsets(offsetX, offsetY);
+            pWindowSink->GetOffsets(offsetX, offsetY);
             
             LOG_INFO("Render Sink '" << name << "' returned Offset X = " 
                 << *offsetX << " and Offset Y = " << *offsetY << "' successfully");
@@ -741,12 +728,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
 
-            if (!pRenderSink->SetOffsets(offsetX, offsetY))
+            if (!pWindowSink->SetOffsets(offsetX, offsetY))
             {
                 LOG_ERROR("Render Sink '" << name << "' failed to set offsets");
                 return DSL_RESULT_SINK_SET_FAILED;
@@ -772,12 +759,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
 
-            pRenderSink->GetDimensions(width, height);
+            pWindowSink->GetDimensions(width, height);
 
             LOG_INFO("Render Sink '" << name << "' returned Width = " 
                 << *width << " and Height = " << *height << "' successfully");
@@ -800,12 +787,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
 
-            if (!pRenderSink->SetDimensions(width, height))
+            if (!pWindowSink->SetDimensions(width, height))
             {
                 LOG_ERROR("Render Sink '" << name << "' failed to set dimensions");
                 return DSL_RESULT_SINK_SET_FAILED;
@@ -830,12 +817,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
 
-            if (!pRenderSink->Reset())
+            if (!pWindowSink->Reset())
             {
                 LOG_ERROR("Render Sink '" << name << "' failed to reset its render suface");
                 return DSL_RESULT_SINK_SET_FAILED;

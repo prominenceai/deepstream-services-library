@@ -581,247 +581,27 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    RenderSinkBintr::RenderSinkBintr(const char* name, 
+    WindowSinkBintr::WindowSinkBintr(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
         : SinkBintr(name)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
         , m_height(height)
-    {
-        LOG_FUNC();
-    };
-
-    RenderSinkBintr::~RenderSinkBintr()
-    {
-        LOG_FUNC();
-    };
-
-    void  RenderSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-
-    void RenderSinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
-    }
-    
-    //-------------------------------------------------------------------------
-
-    ThreeDSinkBintr::ThreeDSinkBintr(const char* name, 
-        uint offsetX, uint offsetY, uint width, uint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height)
-    {
-        LOG_FUNC();
-        
-        if (!m_cudaDeviceProp.integrated)
-        {
-            LOG_ERROR("3D Sink is only supported on the Jetson Platform'");
-            throw;
-        }
-        
-        m_pSink = DSL_ELEMENT_NEW("nv3dsink", GetCStrName());
-        
-        // Get the property defaults
-        m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-
-        // Set the qos property to the common default.
-        m_pSink->SetAttribute("qos", m_qos);
-
-        // Set the async property to the common default (must be false)
-        m_pSink->SetAttribute("async", m_async);
-
-        // Disable the last-sample property for performance reasons.
-        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-
-        // Set the  DSL values
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-
-        LOG_INFO("");
-        LOG_INFO("Initial property values for ThreeDSinkBintr '" << name << "'");
-        LOG_INFO("  offset-x           : " << offsetX);
-        LOG_INFO("  offset-y           : " << offsetY);
-        LOG_INFO("  width              : " << m_width);
-        LOG_INFO("  height             : " << m_height);
-        LOG_INFO("  sync               : " << m_sync);
-        LOG_INFO("  async              : " << m_async);
-        LOG_INFO("  max-lateness       : " << m_maxLateness);
-        LOG_INFO("  qos                : " << m_qos);
-        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
-        
-        AddChild(m_pSink);
-    }
-    
-    ThreeDSinkBintr::~ThreeDSinkBintr()
-    {
-        LOG_FUNC();
-    }
-
-    bool ThreeDSinkBintr::LinkAll()
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("ThreeDSinkBintr '" << GetName() 
-                << "' is already linked");
-            return false;
-        }
-
-        if (!m_pQueue->LinkToSink(m_pSink))
-        {
-            return false;
-        }
-        m_isLinked = true;
-        return true;
-    }
-    
-    void ThreeDSinkBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-        
-        if (!m_isLinked)
-        {
-            LOG_ERROR("ThreeDSinkBintr '" << GetName() << "' is not linked");
-            return;
-        }
-        
-        m_pQueue->UnlinkFromSink();
-
-        m_isLinked = false;
-    }
-
-    bool ThreeDSinkBintr::SetOffsets(uint offsetX, uint offsetY)
-    {
-        LOG_FUNC();
-
-        m_offsetX = offsetX;
-        m_offsetY = offsetY;
-
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        
-        return true;
-    }
-
-    bool ThreeDSinkBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-        
-        m_width = width;
-        m_height = height;
-
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        
-        return true;
-    }
-
-    //-------------------------------------------------------------------------
-
-    WindowSinkBintr::WindowSinkBintr(const char* name, 
-        guint offsetX, guint offsetY, guint width, guint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height)
         , m_pXDisplay(0)
         , m_pXWindow(0)
         , m_pXWindowCreated(false)
         , m_forceAspectRatio(false)
         , m_xWindowfullScreenEnabled(false)
         , m_pSharedClientCbMutex(NULL)
-{
+    {
         LOG_FUNC();
+    };
 
-        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
-        
-        // Get the property defaults
-        m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-
-        // Set the qos property to the common default.
-        m_pSink->SetAttribute("qos", m_qos);
-
-        // Set the async property to the common default (must be false)
-        m_pSink->SetAttribute("async", m_async);
-
-        // Disable the last-sample property for performance reasons.
-        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-
-        // Update all default DSL values
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        // x86_64
-        if (!m_cudaDeviceProp.integrated)
-        {
-            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
-            m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-
-            GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
-            if (!pCaps)
-            {
-                LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-                throw;  
-            }
-
-            GstCapsFeatures *feature = NULL;
-            feature = gst_caps_features_new("memory:NVMM", NULL);
-            gst_caps_set_features(pCaps, 0, feature);
-
-            m_pCapsFilter->SetAttribute("caps", pCaps);
-            
-            gst_caps_unref(pCaps);        
-            
-            m_pTransform->SetAttribute("gpu-id", m_gpuId);
-            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-            
-            AddChild(m_pCapsFilter);
-        
-        }
-        // aarch_64
-        else
-        {
-            m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
-        }
-        
-        LOG_INFO("");
-        LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
-        LOG_INFO("  offset-x           : " << offsetX);
-        LOG_INFO("  offset-y           : " << offsetY);
-        LOG_INFO("  width              : " << m_width);
-        LOG_INFO("  height             : " << m_height);
-        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
-        LOG_INFO("  sync               : " << m_sync);
-        LOG_INFO("  async              : " << m_async);
-        LOG_INFO("  max-lateness       : " << m_maxLateness);
-        LOG_INFO("  qos                : " << m_qos);
-        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
-        
-        AddChild(m_pTransform);
-        AddChild(m_pSink);
-}
-    
     WindowSinkBintr::~WindowSinkBintr()
     {
         LOG_FUNC();
 
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
         // cleanup all resources
         if (m_pXDisplay)
         {
@@ -840,202 +620,22 @@ namespace DSL
             }
             g_thread_join(m_pXWindowEventThread);
         }
-    }
+    };
 
-    bool WindowSinkBintr::Reset()
+    void  WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
     {
         LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() 
-                << "' is currently linked and cannot be reset");
-            return false;
-        }
-
-        // We only reset if the pointer to the sink element is null
-        if (m_pSink != nullptr)
-        {    
-            return false;
-        }
-        
-        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
-        
-        // Set the property defaults
-        m_pSink->SetAttribute("sync", m_sync);
-        m_pSink->SetAttribute("async", m_async);
-        m_pSink->SetAttribute("max-lateness", m_maxLateness);
-        m_pSink->SetAttribute("qos", m_qos);
-
-        // Disable the last-sample property for performance reasons.
-        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-
-        // Update all default DSL values
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        AddChild(m_pSink);
-        
-        return true;
-    }
-
-    bool WindowSinkBintr::LinkAll()
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
-            return false;
-        }
-        
-        // Do a conditional reset, i.e. a reconstruction of the Sink element
-        // This is a workaround for the fact that the nveglglessink plugin
-        // fails to work correctly once its state is set to NULL.
-        Reset();
-        
-        // register this Window-Sink's nveglglessink plugin.
-        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
-            m_pSink->GetGstObject());
-
-        // x86_64
-        if (!m_cudaDeviceProp.integrated)
-        {
-            if (!m_pQueue->LinkToSink(m_pTransform) or
-                !m_pTransform->LinkToSink(m_pCapsFilter) or
-                !m_pCapsFilter->LinkToSink(m_pSink))
-            {
-                return false;
-            }
-        }
-        else // aarch_64
-        {
-            if (!m_pQueue->LinkToSink(m_pTransform) or
-                !m_pTransform->LinkToSink(m_pSink))
-            {
-                return false;
-            }
-        }
-        m_isLinked = true;
-        return true;
-    }
-    
-    void WindowSinkBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-        
-        if (!m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is not linked");
-            return;
-        }
-
-        m_pQueue->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        
-        // x86_64
-        if (!m_cudaDeviceProp.integrated)
-        {
-            m_pCapsFilter->UnlinkFromSink();
-        }
-        // unregister this Window-Sink's nveglglessink plugin.
-        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
-
-        m_isLinked = false;
-        
-        if(OwnsXWindow())
-        {
-            XUnmapWindow(m_pXDisplay, m_pXWindow);
-        }
-
-        // Remove the existing element from the objects bin
-        // this ensures that we can recreate the Sink if linked-up again
-        gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
-        RemoveChild(m_pSink);
-        m_pSink = nullptr;
-    }
-    
-    void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        // If the Pipeline is linked and has an XWindow, then we need to get the 
-        // current XWindow attributes as the window may have been moved.
-        if (m_pXWindow)
-        {
-            XWindowAttributes attrs;
-            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
-            m_offsetX = attrs.x;
-            m_offsetY = attrs.y;
-        }
         
         *offsetX = m_offsetX;
         *offsetY = m_offsetY;
-    }
-
-    bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
-    {
-        LOG_FUNC();
-
-        m_offsetX = offsetX;
-        m_offsetY = offsetY;
-
-        // If the Pipeline is linked and has an XWindow, then we need to set  
-        // XWindow attributes to actually resize the window
-        if (m_pXWindow)
-        {
-            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-                m_offsetX, m_offsetY, 
-                m_width, m_height);
-        }
-        // Set the EglGles plugin values regardless of XWindow existence.
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        
-        return true;
     }
 
     void WindowSinkBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
-        // If the Pipeline is linked and has an XWindow, then we need to get the 
-        // current XWindow attributes as the window may have been moved.
-        if (m_pXWindow)
-        {
-            XWindowAttributes attrs;
-            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
-            m_width = attrs.width;
-            m_height = attrs.height;
-        }
-
         *width = m_width;
         *height = m_height;
-    }
-
-    bool WindowSinkBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-        
-        m_width = width;
-        m_height = height;
-
-        // If the Pipeline is linked and has an XWindow, then we need to set  
-        // XWindow attributes to actually resize the window
-        if (m_pXWindow)
-        {
-            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-                m_offsetX, m_offsetY, 
-                m_width, m_height);
-        }
-        // Set the EglGles plugin values regardless of XWindow existence.
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        
-        return true;
     }
 
     bool WindowSinkBintr::GetForceAspectRatio()
@@ -1193,27 +793,34 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!HasXWindow())
+        if (GST_IS_VIDEO_OVERLAY(m_pSink->GetGstObject()))
         {
-            if (!CreateXWindow())
+            if (!HasXWindow())
             {
-                return false;
+                if (!CreateXWindow())
+                {
+                    return false;
+                }
+                m_pSharedClientCbMutex = pSharedClientCbMutex;
             }
-            m_pSharedClientCbMutex = pSharedClientCbMutex;
+            else
+            {
+                XMapRaised(m_pXDisplay, m_pXWindow);
+            }
+            gst_video_overlay_set_window_handle(
+                GST_VIDEO_OVERLAY(m_pSink->GetGstObject()), m_pXWindow);
+
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+
+            gst_video_overlay_expose(
+                GST_VIDEO_OVERLAY(m_pSink->GetGstObject()));
         }
         else
         {
-            XMapRaised(m_pXDisplay, m_pXWindow);
+            LOG_WARN("Prepare Window called for non-overlay sink");
         }
-        gst_video_overlay_set_window_handle(
-            GST_VIDEO_OVERLAY(m_pSink->GetGstObject()), m_pXWindow);
-
-        XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-            m_offsetX, m_offsetY, 
-            m_width, m_height);
-
-        gst_video_overlay_expose(
-            GST_VIDEO_OVERLAY(m_pSink->GetGstObject()));
         return true;
     }
 
@@ -1435,21 +1042,439 @@ namespace DSL
         XClearWindow(m_pXDisplay, m_pXWindow);
         return true;
     }
+
+    static gpointer XWindowEventThread(gpointer pRenderSink)
+    {
+        static_cast<WindowSinkBintr*>(pRenderSink)->HandleXWindowEvents();
+       
+        return NULL;
+    }
     
-    bool WindowSinkBintr::SetGpuId(uint gpuId)
+    //-------------------------------------------------------------------------
+
+    ThreeDSinkBintr::ThreeDSinkBintr(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
+        : WindowSinkBintr(name, offsetX, offsetY, width, height)
+    {
+        LOG_FUNC();
+        
+        if (!m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("3D Sink is only supported on the Jetson Platform'");
+            throw;
+        }
+        
+        m_pSink = DSL_ELEMENT_NEW("nv3dsink", GetCStrName());
+        
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Set the  DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for ThreeDSinkBintr '" << name << "'");
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        
+        AddChild(m_pSink);
+    }
+    
+    ThreeDSinkBintr::~ThreeDSinkBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool ThreeDSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("ThreeDSinkBintr '" << GetName() 
+                << "' is already linked");
+            return false;
+        }
+        // register this 3D-Sink's nv3dsink plugin.
+        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
+            m_pSink->GetGstObject());
+
+        if (!m_pQueue->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void ThreeDSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("ThreeDSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        
+        m_pQueue->UnlinkFromSink();
+
+        // unregister this 3D-Sink's nv3dsink plugin.
+        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
+        
+        if(OwnsXWindow())
+        {
+            XUnmapWindow(m_pXDisplay, m_pXWindow);
+        }
+        m_isLinked = false;
+    }
+
+    bool ThreeDSinkBintr::SetOffsets(uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+
+        m_offsetX = offsetX;
+        m_offsetY = offsetY;
+
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        
+        return true;
+    }
+
+    bool ThreeDSinkBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        m_width = width;
+        m_height = height;
+
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+
+    EglSinkBintr::EglSinkBintr(const char* name, 
+        guint offsetX, guint offsetY, guint width, guint height)
+        : WindowSinkBintr(name, offsetX, offsetY, width, height)
+{
+        LOG_FUNC();
+
+        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+            m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+            GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
+            if (!pCaps)
+            {
+                LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+                throw;  
+            }
+
+            GstCapsFeatures *feature = NULL;
+            feature = gst_caps_features_new("memory:NVMM", NULL);
+            gst_caps_set_features(pCaps, 0, feature);
+
+            m_pCapsFilter->SetAttribute("caps", pCaps);
+            
+            gst_caps_unref(pCaps);        
+            
+            m_pTransform->SetAttribute("gpu-id", m_gpuId);
+            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+            
+            AddChild(m_pCapsFilter);
+        
+        }
+        // aarch_64
+        else
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
+        }
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for EglSinkBintr '" << name << "'");
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        
+        AddChild(m_pTransform);
+        AddChild(m_pSink);
+}
+    
+    EglSinkBintr::~EglSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool EglSinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("EglSinkBintr '" << GetName() 
+                << "' is currently linked and cannot be reset");
+            return false;
+        }
+
+        // We only reset if the pointer to the sink element is null
+        if (m_pSink != nullptr)
+        {    
+            return false;
+        }
+        
+        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        
+        // Set the property defaults
+        m_pSink->SetAttribute("sync", m_sync);
+        m_pSink->SetAttribute("async", m_async);
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        AddChild(m_pSink);
+        
+        return true;
+    }
+
+    bool EglSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("EglSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        
+        // Do a conditional reset, i.e. a reconstruction of the Sink element
+        // This is a workaround for the fact that the nveglglessink plugin
+        // fails to work correctly once its state is set to NULL.
+        Reset();
+        
+        // register this Window-Sink's nveglglessink plugin.
+        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
+            m_pSink->GetGstObject());
+
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            if (!m_pQueue->LinkToSink(m_pTransform) or
+                !m_pTransform->LinkToSink(m_pCapsFilter) or
+                !m_pCapsFilter->LinkToSink(m_pSink))
+            {
+                return false;
+            }
+        }
+        else // aarch_64
+        {
+            if (!m_pQueue->LinkToSink(m_pTransform) or
+                !m_pTransform->LinkToSink(m_pSink))
+            {
+                return false;
+            }
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void EglSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("EglSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pQueue->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pCapsFilter->UnlinkFromSink();
+        }
+        // unregister this Window-Sink's nveglglessink plugin.
+        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
+        
+        if(OwnsXWindow())
+        {
+            XUnmapWindow(m_pXDisplay, m_pXWindow);
+        }
+
+        // Remove the existing element from the objects bin
+        // this ensures that we can recreate the Sink if linked-up again
+        gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
+        RemoveChild(m_pSink);
+        m_pSink = nullptr;
+
+        m_isLinked = false;
+    }
+    
+    void EglSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_offsetX = attrs.x;
+            m_offsetY = attrs.y;
+        }
+        
+        *offsetX = m_offsetX;
+        *offsetY = m_offsetY;
+    }
+
+    bool EglSinkBintr::SetOffsets(uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+
+        m_offsetX = offsetX;
+        m_offsetY = offsetY;
+
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        // Set the EglGles plugin values regardless of XWindow existence.
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        
+        return true;
+    }
+
+    void EglSinkBintr::GetDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_width = attrs.width;
+            m_height = attrs.height;
+        }
+
+        *width = m_width;
+        *height = m_height;
+    }
+
+    bool EglSinkBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        m_width = width;
+        m_height = height;
+
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        // Set the EglGles plugin values regardless of XWindow existence.
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        
+        return true;
+    }
+
+    bool EglSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
         
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
-            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" 
+            LOG_ERROR("Unable to set GPU ID for EglSinkBintr '" 
                 << GetName() << "' - property is not supported on aarch_64");
             return false;
         }
         if (m_isLinked)
         {
-            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for EglSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -1457,27 +1482,27 @@ namespace DSL
         m_gpuId = gpuId;
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
         
-        LOG_INFO("WindowSinkBintr '" << GetName() 
+        LOG_INFO("EglSinkBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );
 
         return true;
     }
 
-    bool WindowSinkBintr::SetNvbufMemType(uint nvbufMemType)
+    bool EglSinkBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
         
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for EglSinkBintr '" 
                 << GetName() << "' - property is not supported on aarch_64");
             return false;
         }
 
         if (m_isLinked)
         {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for EglSinkBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -1487,13 +1512,6 @@ namespace DSL
         return true;
     }    
 
-    static gpointer XWindowEventThread(gpointer pWindowSink)
-    {
-        static_cast<WindowSinkBintr*>(pWindowSink)->HandleXWindowEvents();
-       
-        return NULL;
-    }
-    
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,

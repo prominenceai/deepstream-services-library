@@ -63,7 +63,7 @@ static const uint offest_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 static const std::wstring message_sink_name(L"message-sink");
 static const std::wstring converter_config_file(
@@ -94,7 +94,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
@@ -125,7 +125,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source",L"primary-gie", L"tiler", 
-            L"window-sink", L"message-sink", NULL};
+            L"egl-sink", L"message-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

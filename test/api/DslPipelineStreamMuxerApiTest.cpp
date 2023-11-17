@@ -43,7 +43,7 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
         uint width(1920);
         uint height(720);
 
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1920);
@@ -61,13 +61,13 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
 
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
@@ -129,7 +129,7 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
         uint width(1920);
         uint height(720);
 
-        std::wstring windowSinkName = L"window-sink";
+        std::wstring windowSinkName = L"egl-sink";
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1920);
@@ -147,14 +147,14 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", 
             L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
 
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         

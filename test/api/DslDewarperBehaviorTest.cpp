@@ -48,7 +48,7 @@ static const uint offest_y(0);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 static const std::wstring pipeline_graph_name(L"dewarper-behavior");
 
@@ -85,13 +85,13 @@ use-case -- can play]", "[dewarper-behavior]")
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
             muxer_width, muxer_height*4) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, muxer_width/2, muxer_height*2) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is assembled" ) 
         {
             const wchar_t* components[] = {L"uri-source-1", 
-                L"tiler", L"window-sink", NULL};
+                L"tiler", L"egl-sink", NULL};
             
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
@@ -157,13 +157,13 @@ Projection use-case -- can play]", "[dewarper-behavior]")
         REQUIRE( dsl_source_video_dewarper_add(source_name1.c_str(), 
             dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is assembled" ) 
         {
             const wchar_t* components[] = {L"uri-source-1", 
-                L"window-sink", NULL};
+                L"egl-sink", NULL};
             
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );

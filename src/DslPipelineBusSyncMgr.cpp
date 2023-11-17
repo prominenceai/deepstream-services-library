@@ -59,9 +59,9 @@ namespace DSL
         
             if (gst_is_video_overlay_prepare_window_handle_message(pMessage))
             {
-                // A Window Sink component is signaling to prepare 
-                // the window handle. Call into the Window-Sink registry services
-                // to get the Owner of the nveglglessink element
+                // A Render Sink component is signaling to prepare 
+                // the window handle. Call into the Render-Sink registry services
+                // to get the Owner of the sink element
 
                 DSL_WINDOW_SINK_PTR pWindowSink =
                     std::dynamic_pointer_cast<WindowSinkBintr>(

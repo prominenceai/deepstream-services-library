@@ -6897,7 +6897,7 @@ DslReturnType dsl_sink_3d_new(const wchar_t* name,
         offset_x, offset_y, width, height);
 }
 
-DslReturnType dsl_sink_window_new(const wchar_t* name,
+DslReturnType dsl_sink_window_egl_new(const wchar_t* name,
     uint offset_x, uint offset_y, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);

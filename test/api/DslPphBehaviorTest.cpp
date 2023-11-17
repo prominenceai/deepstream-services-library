@@ -70,7 +70,7 @@ static const uint offest_y(0);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 static std::wstring custom_ppm_name1(L"custom-ppm-1");
 static std::wstring custom_ppm_name2(L"custom-ppm-2");
@@ -116,10 +116,10 @@ SCENARIO( "Multiple Custom PPHs are called in the correct add order", "[pph-beha
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"source-1",L"primary-gie", L"window-sink", NULL};
+        const wchar_t* components[] = {L"source-1",L"primary-gie", L"egl-sink", NULL};
         
         REQUIRE( dsl_pph_custom_new(custom_ppm_name1.c_str(), 
             pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
@@ -169,10 +169,10 @@ SCENARIO( "A Custom PPH can remove be removed on return", "[pph-behavior]" )
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        const wchar_t* components[] = {L"source-1",L"primary-gie", L"window-sink", NULL};
+        const wchar_t* components[] = {L"source-1",L"primary-gie", L"egl-sink", NULL};
         
         REQUIRE( dsl_pph_custom_new(custom_ppm_name4.c_str(), 
             pad_probe_handler_cb4, NULL) == DSL_RESULT_SUCCESS );
@@ -252,11 +252,11 @@ SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[hold]"
         REQUIRE( dsl_tiler_new(tiler_name.c_str(),
             DSL_STREAMMUX_DEFAULT_WIDTH, DSL_STREAMMUX_DEFAULT_HEIGHT) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"source-1", L"source-2", L"source-3",
-            L"source-4", L"tiler", L"window-sink", NULL};
+            L"source-4", L"tiler", L"egl-sink", NULL};
         
         
         WHEN( "When the Pipeline is Assembled" ) 

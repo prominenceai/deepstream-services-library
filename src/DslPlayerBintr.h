@@ -272,7 +272,7 @@ namespace DSL
         bool SetZoom(uint zoom);
 
         /**
-         * @brief Resets the Sink element for this RenderSinkBintr
+         * @brief Resets the Sink element for this WindowSinkBintr
          * @return false if the sink is currently Linked. True otherwise
          */
         bool Reset();

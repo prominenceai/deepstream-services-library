@@ -82,7 +82,7 @@ static const boolean clock_enabled(false);
 static const boolean bbox_enabled(true);
 static const boolean mask_enabled(false);
         
-static const std::wstring sink_name(L"window-sink");
+static const std::wstring sink_name(L"egl-sink");
 static const uint offset_x(100);
 static const uint offset_y(140);
 static const uint sink_width(1280);
@@ -129,12 +129,12 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
             L"file-source-3", L"file-source-4", L"primary-gie", 
-            L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -186,11 +186,11 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"primary-gie", 
-            L"dcf-tracker", L"on-screen-display", L"window-sink", NULL};
+            L"dcf-tracker", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -244,12 +244,12 @@ SCENARIO( "A new Pipeline with a Primary GIE, IOU Tracker and optional \
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
             L"file-source-3", L"file-source-4", L"primary-gie", 
-            L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

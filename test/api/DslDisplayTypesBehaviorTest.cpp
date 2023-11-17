@@ -47,7 +47,7 @@ static const std::wstring tiler_name(L"tiler");
 static const uint width(1280);
 static const uint height(720);
         
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
 static const uint sinkW(1280);
@@ -323,14 +323,14 @@ SCENARIO( "All DisplayTypes can be displayed by an ODE Action", "[display-types-
         REQUIRE( dsl_osd_pph_add(osd_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_fullscreen_enabled_set(
             window_sink_name.c_str(), true) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -478,11 +478,11 @@ SCENARIO( "DisplayTypes with a Random Color can be displayed by an ODE Action",
         REQUIRE( dsl_osd_new(osd_name.c_str(), 
             text_enabled, clock_enabled, bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and played" ) 
         {
@@ -625,11 +625,11 @@ SCENARIO( "DisplayTypes with a RGBA Palette color can be displayed by an ODE Act
         REQUIRE( dsl_osd_new(osd_name.c_str(), 
             text_enabled, clock_enabled, bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and played" ) 
         {
@@ -812,11 +812,11 @@ SCENARIO( "DisplayTypes with an On-Deman Color can be displayed by an ODE Action
         REQUIRE( dsl_osd_new(osd_name.c_str(), 
             text_enabled, clock_enabled, bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and played" ) 
         {
@@ -916,11 +916,11 @@ SCENARIO( "A Format BBox ODE Action works correctly with a Random Color Palette"
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1013,11 +1013,11 @@ SCENARIO( "A Format Label ODE Action works correctly with a Random Color Palette
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"tiler", L"osd", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

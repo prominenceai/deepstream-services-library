@@ -116,7 +116,7 @@ static const uint offest_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 static const std::wstring rtsp_sink_name(L"rtsp-sink");
 static const std::wstring host(L"rjhowell-desktop.local");
@@ -302,12 +302,12 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1", L"tiler-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1", L"tiler-1", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -347,12 +347,12 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled
             infer_config_file.c_str(), model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"tiler-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"tiler-1", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -393,12 +393,12 @@ and Tiled Display can play", "[pipeline-play]" )
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", L"tiler-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", L"tiler-1", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -440,7 +440,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
@@ -449,7 +449,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source-1", L"primary-gie", L"iou-tracker", 
-            L"tiler-1", L"on-screen-display", L"window-sink", NULL};
+            L"tiler-1", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -724,13 +724,13 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
-            L"secondary-gie-1", L"tiler-1", L"on-screen-display", L"window-sink", NULL};
+            L"secondary-gie-1", L"tiler-1", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -785,13 +785,13 @@ Window Sink, and Tiled Display can play", "[pipeline-play]" )
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
-            L"secondary-gie-1", L"secondary-gie-2", L"secondary-gie-3", L"tiler-1", L"on-screen-display", L"window-sink", NULL};
+            L"secondary-gie-1", L"secondary-gie-2", L"secondary-gie-3", L"tiler-1", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -867,14 +867,14 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, WindowSink and Demux
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str(), 1) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_branch_new(branch_name1.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         
         const wchar_t* pipelineComps[] = {L"uri-source-1", L"demuxer", NULL};
-        const wchar_t* branchComps[] = {L"fake-sink", L"window-sink", NULL};
+        const wchar_t* branchComps[] = {L"fake-sink", L"egl-sink", NULL};
 
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1194,7 +1194,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 //        uint width(1280);
 //        uint height(720);
 //
-//        std::wstring window_sink_name = L"window-sink";
+//        std::wstring window_sink_name = L"egl-sink";
 //        uint offest_x(100);
 //        uint offest_y(140);
 //        uint sink_width(1280);
@@ -1209,14 +1209,14 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 //            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        // Widnow sink for observation 
-//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(), 
+//        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_ofv_new(ofvName.c_str()) == DSL_RESULT_SUCCESS );
 //        
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
-//        const wchar_t* components[] = {L"uri-source-1", L"ofv", L"tiler-1", L"window-sink", NULL};
+//        const wchar_t* components[] = {L"uri-source-1", L"ofv", L"tiler-1", L"egl-sink", NULL};
 //        
 //        WHEN( "When the Pipeline is Assembled" ) 
 //        {
@@ -1305,12 +1305,12 @@ SCENARIO( "A new Pipeline with a Image Source, Window Sink, and Tiled Display ca
         REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
             fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
-        const wchar_t* components[] = {L"image-source", L"tiler-1", L"window-sink", NULL};
+        const wchar_t* components[] = {L"image-source", L"tiler-1", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1347,11 +1347,11 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
 
         REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"uri-source-1", L"primary-gie",
-            L"segvisual", L"window-sink", NULL};
+            L"segvisual", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -1396,11 +1396,11 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
 //        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
 //            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 //        
-//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 //
 //        const wchar_t* components[] = {L"image-source", L"primary-gie",
-//            L"segvisual", L"on-screen-display", L"window-sink", NULL};
+//            L"segvisual", L"on-screen-display", L"egl-sink", NULL};
 //        
 //        WHEN( "When the Pipeline is Assembled" ) 
 //        {
@@ -1451,13 +1451,13 @@ SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Wi
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source-1", L"uri-source-2", L"uri-source-3", L"uri-source-4", 
-            L"primary-gie", L"on-screen-display", L"window-sink", NULL};
+            L"primary-gie", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and a Tiler is added to the output of the Stream-Muxer" ) 
         {

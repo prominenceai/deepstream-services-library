@@ -5406,13 +5406,13 @@ def dsl_sink_3d_new(name,
     return int(result)
 
 ##
-## dsl_sink_window_new()
+## dsl_sink_window_egl_new()
 ##
-_dsl.dsl_sink_window_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_window_new.restype = c_uint
-def dsl_sink_window_new(name, offset_x, offset_y, width, height):
+_dsl.dsl_sink_window_egl_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_window_egl_new.restype = c_uint
+def dsl_sink_window_egl_new(name, offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_window_new(name, offset_x, offset_y, width, height)
+    result =_dsl.dsl_sink_window_egl_new(name, offset_x, offset_y, width, height)
     return int(result)
 
 ##

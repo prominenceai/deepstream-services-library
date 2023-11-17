@@ -37,7 +37,7 @@ static std::wstring file_path(
 static std::wstring image_path1(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg");
 static std::wstring image_path2(L"/opt/nvidia/deepstream/deepstream/samples/streams/yoga.jpg");
 
-static std::wstring sink_name(L"window-sink");
+static std::wstring sink_name(L"egl-sink");
 static uint offsetX(0);
 static uint offsetY(0);
 static uint sinkW(1280);
@@ -51,7 +51,7 @@ SCENARIO( "A single Player is created and deleted correctly", "[player-api]" )
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_player_list_size() == 0 );
@@ -79,7 +79,7 @@ SCENARIO( "A single Player can Play, Pause, and Stop", "[player-api]" )
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_player_list_size() == 0 );
@@ -309,7 +309,7 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
         REQUIRE( dsl_source_file_new(source_name.c_str(), file_path.c_str(), 
             false) == DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_list_size() == 0 );

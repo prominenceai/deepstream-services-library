@@ -83,7 +83,7 @@ static const std::wstring exclude_bbox_action(L"exclude-bbox-action");
 static const std::wstring ode_print_action_name(L"print-action");
 
 // Window Sink name and attributes.
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
 static const uint sinkW(DSL_STREAMMUX_DEFAULT_WIDTH);
@@ -329,13 +329,13 @@ int test()
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // New Window Sink to render the video stream. 
-        retval = dsl_sink_window_new(window_sink_name.c_str(),
+        retval = dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"egl-sink", NULL};
         
         // Create a new Pipeline and add the above components in the next call.
         retval = dsl_pipeline_new_component_add_many(

@@ -640,10 +640,10 @@ namespace DSL
         m_offsetX = offsetX;
         m_offsetY = offsetY;
 
-        DSL_RENDER_SINK_PTR pRenderSink = 
-            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+        DSL_WINDOW_SINK_PTR pWindowSink = 
+            std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink);
 
-        return pRenderSink->SetOffsets(m_offsetX, m_offsetY);
+        return pWindowSink->SetOffsets(m_offsetX, m_offsetY);
     }
 
     bool RenderPlayerBintr::SetDimensions()
@@ -654,10 +654,10 @@ namespace DSL
         uint width = std::round((m_zoom * m_width) / 100);
         uint height = std::round((m_zoom * m_height) / 100);
         
-        DSL_RENDER_SINK_PTR pRenderSink = 
-            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+        DSL_WINDOW_SINK_PTR pWindowSink = 
+            std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink);
 
-        return pRenderSink->SetDimensions(width, height);
+        return pWindowSink->SetDimensions(width, height);
     }
 
     uint RenderPlayerBintr::GetZoom()
@@ -679,10 +679,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        DSL_RENDER_SINK_PTR pRenderSink = 
-            std::dynamic_pointer_cast<RenderSinkBintr>(m_pSink);
+        DSL_WINDOW_SINK_PTR pWindowSink = 
+            std::dynamic_pointer_cast<WindowSinkBintr>(m_pSink);
 
-        return pRenderSink->Reset();
+        return pWindowSink->Reset();
     }
     
     bool RenderPlayerBintr::CreateRenderSink()
@@ -701,7 +701,7 @@ namespace DSL
         }
         else
         {
-            m_pSink = DSL_WINDOW_SINK_NEW(sinkName.c_str(), 
+            m_pSink = DSL_EGL_SINK_NEW(sinkName.c_str(), 
                 m_offsetX, m_offsetY, width, height);
             
         }
