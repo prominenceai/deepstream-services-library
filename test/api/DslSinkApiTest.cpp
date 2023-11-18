@@ -349,7 +349,7 @@ SCENARIO( "The Components container is updated correctly on new 3D Sink",
             WHEN( "A new 3D Sink is created" ) 
             {
 
-                REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
+                REQUIRE( dsl_sink_window_3d_new(three_d_sink_name.c_str(),
                     offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
                 THEN( "The list size is updated correctly" ) 
@@ -381,7 +381,7 @@ SCENARIO( "The Components container is updated correctly on 3D Sink delete", "[s
             uint sinkH(0);
 
             REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             WHEN( "A new 3D Sink is deleted" ) 
@@ -415,7 +415,7 @@ SCENARIO( "A 3D Sink can update it's common properties correctly",
             uint sinkH(0);
 
             REQUIRE( dsl_component_list_size() == 0 );
-            REQUIRE( dsl_sink_3d_new(sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             WHEN( "The 3D Sink's sync property is updated from its default" ) 
@@ -509,7 +509,7 @@ SCENARIO( "A 3D Sink's Offsets can be updated", "[sink-api]" )
             uint preOffsetX(100), preOffsetY(100);
             uint retOffsetX(0), retOffsetY(0);
 
-            REQUIRE( dsl_sink_3d_new(sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             WHEN( "The Window Sink's Offsets are Set" ) 
@@ -550,7 +550,7 @@ SCENARIO( "A 3D Sink's Dimensions can be updated", "[sink-api]" )
             uint preSinkW(1280), preSinkH(720);
             uint retSinkW(0), retSinkH(0);
 
-            REQUIRE( dsl_sink_3d_new(sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
             WHEN( "The 3D Sink's Dimensions are Set" ) 
@@ -589,7 +589,7 @@ SCENARIO( "An 3D Sink in use can't be deleted", "[sink-api]" )
             uint sinkW(1280);
             uint sinkH(720);
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_component_list_size() == 1 );
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -631,7 +631,7 @@ SCENARIO( "An 3D Sink, once removed from a Pipeline, can be deleted", "[sink-api
             uint sinkW(1280);
             uint sinkH(720);
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
                 
             REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -675,7 +675,7 @@ SCENARIO( "An 3D Sink in use can't be added to a second Pipeline", "[sink-api]" 
             uint sinkW(1280);
             uint sinkH(720);
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_new(pipelineName1.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_new(pipelineName2.c_str()) == DSL_RESULT_SUCCESS );
@@ -2838,7 +2838,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_3d_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_3d_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_egl_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_window_force_aspect_ratio_get(sink_name.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );

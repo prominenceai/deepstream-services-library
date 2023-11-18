@@ -85,19 +85,19 @@ int main(int argc, char** argv)
             return retval;
 
         // # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
-        retval = dsl_player_new(L"player", L"rtsp-source", L"window-sink");
+        retval = dsl_player_new(L"player", L"rtsp-source", L"egl-sink");
         if (retval != DSL_RESULT_SUCCESS) break;
             
         // # Play the player    

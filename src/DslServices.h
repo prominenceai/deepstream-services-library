@@ -1237,9 +1237,6 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
-        DslReturnType Sink3DNew(const char* name,
-            uint offsetX, uint offsetY, uint width, uint height);
-        
         // ---------------------------------------------------------------------------
         // The following three internal services provide access to the
         // database of active Window Sinks
@@ -1250,7 +1247,10 @@ namespace DSL {
         DSL_BASE_PTR _sinkWindowGet(GstObject* element);
         // ---------------------------------------------------------------------------
     
-        DslReturnType SinkWindowNew(const char* name, 
+        DslReturnType SinkWindow3dNew(const char* name,
+            uint offsetX, uint offsetY, uint width, uint height);
+        
+        DslReturnType SinkWindowEglNew(const char* name, 
             uint offsetX, uint offsetY, uint width, uint height);
 
         DslReturnType SinkWindowHandleGet(const char* name, uint64_t* handle);
@@ -2022,9 +2022,14 @@ namespace DSL {
         std::map <std::string, uint> m_inferProcessModes;
         
         /**
-         * @brief map of all Window-Sinks to their nveglglessink object pointer
+         * @brief map of all Window-Sinks to their 3d/egl plugin object pointer.
          */
         std::map <DSL_BASE_PTR, GstObject*> m_windowSinkElements;
+
+        /**
+         * @brief mutex to prevent Window registry re-entry
+         */
+        DslMutex m_windowRegistryMutex;
         
         /**
          * @brief map of all mailer objects by name

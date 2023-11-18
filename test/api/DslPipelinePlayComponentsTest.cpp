@@ -225,7 +225,7 @@ SCENARIO( "A new Pipeline with a URI File Source, 3D Sink, and Tiled Display can
             REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
                 false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name1.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name1.c_str(),
                 offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
@@ -263,7 +263,7 @@ SCENARIO( "A new Pipeline with a URI File Source, 3D Sink, and Tiled Display can
 //        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
 //            true, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
-//        REQUIRE( dsl_sink_3d_new(three_d_sink_name1.c_str(),
+//        REQUIRE( dsl_sink_window_3d_new(three_d_sink_name1.c_str(),
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
@@ -932,10 +932,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, two 3D Sinks and Demuxer ca
             REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
                 false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name1.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name1.c_str(),
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name2.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name2.c_str(),
                 offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_tee_demuxer_new(demuxer_name.c_str(), 2) == DSL_RESULT_SUCCESS );
@@ -997,10 +997,10 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two 3D Sinks,
             REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
                 bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name1.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name1.c_str(),
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name2.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name2.c_str(),
                 offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -1077,10 +1077,10 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
             REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
                 bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name1.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name1.c_str(),
                 offest_x1, offest_y1, sink_width1, sink_height1) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_3d_new(three_d_sink_name2.c_str(),
+            REQUIRE( dsl_sink_window_3d_new(three_d_sink_name2.c_str(),
                 offest_x2, offest_y2, sink_width2, sink_height2) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 

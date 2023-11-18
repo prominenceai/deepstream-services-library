@@ -83,7 +83,7 @@ def main(args):
             break
 
         # New 3D Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_3d_new('3d-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_3d_new('3d-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 

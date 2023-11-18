@@ -79,7 +79,7 @@ class ComponentNames:
         self.pgie = 'pgie-' + str(id)
         self.tracker = 'tracker-' + str(id)
         self.osd = 'osd-' + str(id)
-        self.sink = 'window-sink-' + str(id)
+        self.sink = 'egl-sink-' + str(id)
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -156,7 +156,7 @@ def create_pipeline(client_data):
         return retval
 
     # New Window Sink using the global dimensions
-    retval = dsl_sink_window_new(client_data.sink,
+    retval = dsl_sink_window_egl_new(client_data.sink,
         0, 0, sink_width, sink_height)
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    

@@ -301,21 +301,21 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, sink_width, sink_height);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, sink_width, sink_height);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Add all the components to a new pipeline
         const wchar_t* components[] = { L"app-source",L"primary-tis",
-            L"iou-tracker",L"on-screen-display",L"window-sink",nullptr};
+            L"iou-tracker",L"on-screen-display",L"egl-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
         

@@ -459,7 +459,7 @@ namespace DSL
          * @param[out] offsetX the current offset in the X direction in pixels
          * @param[out] offsetY the current offset in the Y direction in pixels
          */ 
-        virtual void GetOffsets(uint* offsetX, uint* offsetY);
+        void GetOffsets(uint* offsetX, uint* offsetY);
 
         /**
          * @brief Sets the current X and Y offset settings for this RednerSinkBintr
@@ -468,14 +468,14 @@ namespace DSL
          * @param[in] offsetY the offset in the Y direct to set in pixels
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
-        virtual bool SetOffsets(uint offsetX, uint offsetY) = 0;
+        bool SetOffsets(uint offsetX, uint offsetY);
 
         /**
          * @brief Gets the current width and height settings for this WindowSinkBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
-        virtual void GetDimensions(uint* width, uint* height);
+        void GetDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the current width and height settings for this WindowSinkBintr
@@ -484,7 +484,7 @@ namespace DSL
          * @param[in] height the height value to set in pixels
          * @return false if the sink is currently Linked. True otherwise
          */ 
-        virtual bool SetDimensions(uint width, uint hieght) = 0;
+        bool SetDimensions(uint width, uint hieght);
         
         /**
          * @brief Resets the Sink element for this WindowSinkBintr
@@ -672,9 +672,19 @@ namespace DSL
             m_xWindowDeleteEventHandlers;
         
         /**
-         * @brief Pointer to the XDisplay once connected with server.
+         * @brief Pointer to the XDisplay opened in CreateXWindow().
          */
         Display* m_pXDisplay;
+        
+        /**
+         * @brief Width of the XDisplay's default screen.
+         */
+        uint m_XDisplayWidth;
+        
+        /**
+         * @brief Height of the XDisplay's default screen.
+         */
+        uint m_XDisplayHeight;
         
         /**
          * @brief Mutex to ensures mutual exclusion for the m_pXDisplay member
@@ -739,24 +749,6 @@ namespace DSL
          */
         void UnlinkAll();
 
-        /**
-         * @brief Sets the current X and Y offset settings for this ThreeDSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direct to set in pixels
-         * @param[in] offsetY the offset in the Y direct to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetOffsets(uint offsetX, uint offsetY);
-        
-        /**
-         * @brief Sets the current width and height settings for this ThreeDSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetDimensions(uint width, uint hieght);
-    
     };
 
     //-------------------------------------------------------------------------
@@ -787,38 +779,6 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
-
-        /**
-         * @brief Gets the current X and Y offset settings for this EglSinkBintr
-         * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction in pixels
-         */ 
-        void GetOffsets(uint* offsetX, uint* offsetY);
-
-        /**
-         * @brief Sets the current X and Y offset settings for this EglSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direction to set in pixels
-         * @param[in] offsetY the offset in the Y direction to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetOffsets(uint offsetX, uint offsetY);
-        
-        /**
-         * @brief Gets the current width and height settings for this EglSinkBintr
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        void GetDimensions(uint* width, uint* height);
-
-        /**
-         * @brief Sets the current width and height settings for this EglSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetDimensions(uint width, uint hieght);
 
         /**
          * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.

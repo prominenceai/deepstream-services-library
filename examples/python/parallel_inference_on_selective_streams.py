@@ -266,40 +266,40 @@ def main(args):
             break
 
         # Two new Window Sinks, one for each Branch
-        retval = dsl_sink_window_new('window-sink-1',
+        retval = dsl_sink_window_egl_new('egl-sink-1',
             0, 0, SINK_1_WIDTH, SINK_1_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_new('window-sink-2',
+        retval = dsl_sink_window_egl_new('egl-sink-2',
             300, 300, SINK_2_WIDTH, SINK_2_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to both Window Sinks
-        retval = dsl_sink_window_key_event_handler_add('window-sink-1', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink-1', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_key_event_handler_add('window-sink-2', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink-2', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink-1', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink-1', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink-2', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink-2', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create the two branches and all of their components
         retval = dsl_branch_new_component_add_many('branch-1',
-            ['pgie-1', 'tracker-1', 'tiler-1', 'osd-1', 'window-sink-1', None])
+            ['pgie-1', 'tracker-1', 'tiler-1', 'osd-1', 'egl-sink-1', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_branch_new_component_add_many('branch-2',
-            ['pgie-2', 'tracker-2', 'osd-2', 'window-sink-2', None])
+            ['pgie-2', 'tracker-2', 'osd-2', 'egl-sink-2', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

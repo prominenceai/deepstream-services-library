@@ -55,7 +55,7 @@ TRACKER = 'tracker'
 TILER = 'tiler'
 DISPLAY_TYPE_PPH = 'display-type-pph'
 OSD = 'on-screen_display'
-WINDOW_SINK = 'window-sink'
+WINDOW_SINK = 'egl-sink'
 
 BUTTON_SIDE_LENGTH = 48
 BUTTON_FRAME_SIDE_LENGTH = 52

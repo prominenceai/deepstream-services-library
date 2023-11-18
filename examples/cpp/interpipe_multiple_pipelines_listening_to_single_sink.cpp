@@ -77,7 +77,7 @@ struct ClientData
         pgie = L"pgie-" + std::to_wstring(id);
         tracker = L"tracker-" + std::to_wstring(id);
         osd = L"osd-" + std::to_wstring(id);
-        window_sink = L"window-sink-" + std::to_wstring(id);    
+        window_sink = L"egl-sink-" + std::to_wstring(id);    
     }
 
     std::wstring pipeline;
@@ -171,7 +171,7 @@ DslReturnType create_pipeline(ClientData* client_data)
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // New Window Sink using the global dimensions
-    retval = dsl_sink_window_new(client_data->window_sink.c_str(),
+    retval = dsl_sink_window_egl_new(client_data->window_sink.c_str(),
         0, 0, sink_width, sink_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 

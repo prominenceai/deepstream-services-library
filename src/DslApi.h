@@ -6633,24 +6633,24 @@ DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 
 /**
- * @brief creates a new, uniquely named 3D Sink component
- * @param[in] name unique component name for the new 3D Sink
+ * @brief creates a new, uniquely named 3D WindowSink component
+ * @param[in] name unique component name for the new 3D Window Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the 3D Sink in pixels
- * @param[in] heigth height of the 3D Sink in pixels
+ * @param[in] width width of the 3D Window Sink in pixels
+ * @param[in] heigth height of the 3D Window Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_3d_new(const wchar_t* name, 
+DslReturnType dsl_sink_window_3d_new(const wchar_t* name, 
     uint offset_x, uint offset_y, uint width, uint height);
 
 /**
- * @brief Creates a new, uniquely named Window Sink component
- * @param[in] name unique component name for the new Overlay Sink
+ * @brief Creates a new, uniquely named EGL Window Sink component
+ * @param[in] name unique component name for the new EGL Window Sink
  * @param[in] offset_x upper left corner offset in the X direction in pixels
  * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the Window Sink in pixels
- * @param[in] heigth height of the Window Sink in pixels
+ * @param[in] width width of the EGL Window Sink in pixels
+ * @param[in] heigth height of the EGL Window Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_window_egl_new(const wchar_t* name, 

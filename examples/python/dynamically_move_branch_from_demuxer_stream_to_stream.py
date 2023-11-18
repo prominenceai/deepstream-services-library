@@ -192,28 +192,28 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink',
+        retval = dsl_sink_window_egl_new('egl-sink',
             300, 300, 1280, 720)
 
         # IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
         # be set to false to support dynamic Pipeline updates.ties.
-        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        retval = dsl_sink_sync_enabled_set('egl-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Create the dynamic branch with the OSD and Window Sink.
         retval = dsl_branch_new_component_add_many('branch-0',
-            ['on-screen-display', 'window-sink', None])
+            ['on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

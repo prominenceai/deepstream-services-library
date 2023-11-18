@@ -72,7 +72,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_sink_3d_new('3d-sink', 100, 100, 1280, 720)
+        retval = dsl_sink_window_3d_new('3d-sink', 100, 100, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 

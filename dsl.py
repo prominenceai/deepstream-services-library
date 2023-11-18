@@ -5393,15 +5393,15 @@ def dsl_sink_fake_new(name):
     return int(result)
 
 ##
-## dsl_sink_3d_new()
+## dsl_sink_window_3d_new()
 ##
-_dsl.dsl_sink_3d_new.argtypes = [c_wchar_p, 
+_dsl.dsl_sink_window_3d_new.argtypes = [c_wchar_p, 
     c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_3d_new.restype = c_uint
-def dsl_sink_3d_new(name, 
+_dsl.dsl_sink_window_3d_new.restype = c_uint
+def dsl_sink_window_3d_new(name, 
     offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_3d_new(name, 
+    result =_dsl.dsl_sink_window_3d_new(name, 
         offset_x, offset_y, width, height)
     return int(result)
 

@@ -159,16 +159,16 @@ def main(args):
             break
         
         ## New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -177,7 +177,7 @@ def main(args):
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-h264', 'uri-h265', 'pgie', 'iou-tracker', 
             'carcolor-sgie', 'carmake-sgie', 'vehicletype-sgie', 
-            'tiler', 'on-screen-display', 'window-sink', None])
+            'tiler', 'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -60,7 +60,7 @@ def xwindow_key_event_handler(key_string, client_data):
             cur_3d_sink_count += 1
             sink_name = '3d-sink-' + str(cur_3d_sink_count)
             print('adding sink ', sink_name)
-            dsl_sink_3d_new(sink_name, 100*cur_3d_sink_count, 
+            dsl_sink_window_3d_new(sink_name, 100*cur_3d_sink_count, 
                 100*cur_3d_sink_count, 360, 180)
             dsl_sink_sync_enabled_set(sink_name, False)
             dsl_pipeline_component_add('pipeline', sink_name)
@@ -113,23 +113,23 @@ def main(args):
             break
 
         ## New Window Sink, same dimensions as tiler
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'window-sink', None])
+            ['uri-source', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

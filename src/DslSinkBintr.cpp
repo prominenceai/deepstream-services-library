@@ -622,20 +622,93 @@ namespace DSL
         }
     };
 
-    void  WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
+    void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
     {
         LOG_FUNC();
         
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_offsetX = attrs.x;
+            m_offsetY = attrs.y;
+        }
+        
         *offsetX = m_offsetX;
         *offsetY = m_offsetY;
+    }
+
+    bool WindowSinkBintr::SetOffsets(uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+
+        m_offsetX = offsetX;
+        m_offsetY = offsetY;
+
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        else
+        {
+            m_pSink->SetAttribute("window-x", m_offsetX);
+            m_pSink->SetAttribute("window-y", m_offsetY);
+        }
+        return true;
     }
 
     void WindowSinkBintr::GetDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
+        // If the Pipeline is linked and has an XWindow, then we need to get the 
+        // current XWindow attributes as the window may have been moved.
+        if (m_pXWindow)
+        {
+            XWindowAttributes attrs;
+            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
+            m_width = attrs.width;
+            m_height = attrs.height;
+        }
+
         *width = m_width;
         *height = m_height;
+    }
+
+    bool WindowSinkBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        // If the Pipeline is linked and has an XWindow, then we need to set  
+        // XWindow attributes to actually resize the window
+        if (m_pXWindow)
+        {
+            if ((width > m_XDisplayWidth) or (height > m_XDisplayHeight))
+            {
+                LOG_WARN("Specified Window dimension exceed Display Dimensions");
+            }
+            m_width = std::min(width, m_XDisplayWidth);
+            m_height = std::min(height, m_XDisplayHeight);
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+        }
+        else
+        {
+            m_width = width;
+            m_height = height;
+
+            // Values will be checked on XWindow creation
+            m_pSink->SetAttribute("window-width", m_width);
+            m_pSink->SetAttribute("window-height", m_height);
+        }
+        return true;
     }
 
     bool WindowSinkBintr::GetForceAspectRatio()
@@ -835,6 +908,21 @@ namespace DSL
             LOG_ERROR("Failed to create new XDisplay");
             return false;
         }
+        // Get the XDisplay defaults
+        int defaultScreen = XDefaultScreen(m_pXDisplay);
+        m_XDisplayWidth = XDisplayWidth(m_pXDisplay, defaultScreen);
+        m_XDisplayHeight = XDisplayHeight(m_pXDisplay, defaultScreen);        
+
+        if ((m_width > m_XDisplayWidth) or (m_height > m_XDisplayHeight))
+        {
+            LOG_WARN("Specified Window dimension exceed Display Dimensions");
+        }
+        m_width = std::min(m_width, m_XDisplayWidth);
+        m_height = std::min(m_height, m_XDisplayHeight);
+
+        LOG_INFO("XDisplay screen dimensions: width = " << m_XDisplayWidth 
+            << ", height = " << m_XDisplayHeight 
+            << " for WindowSinkBintr '" << GetName() << "'");
         
         // Create new simple XWindow either in 'full-screen-enabled' or using 
         // the Window Sink offsets and dimensions
@@ -856,7 +944,7 @@ namespace DSL
                 << ", width = " << m_width 
                 << ", height = " << m_height 
                 << " for WindowSinkBintr '" << GetName() << "'");
-        
+
             m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
                 RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
                 m_offsetX, m_offsetY, m_width, m_height, 2, 0, 0);
@@ -1149,32 +1237,6 @@ namespace DSL
         m_isLinked = false;
     }
 
-    bool ThreeDSinkBintr::SetOffsets(uint offsetX, uint offsetY)
-    {
-        LOG_FUNC();
-
-        m_offsetX = offsetX;
-        m_offsetY = offsetY;
-
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        
-        return true;
-    }
-
-    bool ThreeDSinkBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-        
-        m_width = width;
-        m_height = height;
-
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        
-        return true;
-    }
-
     //-------------------------------------------------------------------------
 
     EglSinkBintr::EglSinkBintr(const char* name, 
@@ -1381,86 +1443,6 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void EglSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        // If the Pipeline is linked and has an XWindow, then we need to get the 
-        // current XWindow attributes as the window may have been moved.
-        if (m_pXWindow)
-        {
-            XWindowAttributes attrs;
-            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
-            m_offsetX = attrs.x;
-            m_offsetY = attrs.y;
-        }
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-
-    bool EglSinkBintr::SetOffsets(uint offsetX, uint offsetY)
-    {
-        LOG_FUNC();
-
-        m_offsetX = offsetX;
-        m_offsetY = offsetY;
-
-        // If the Pipeline is linked and has an XWindow, then we need to set  
-        // XWindow attributes to actually resize the window
-        if (m_pXWindow)
-        {
-            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-                m_offsetX, m_offsetY, 
-                m_width, m_height);
-        }
-        // Set the EglGles plugin values regardless of XWindow existence.
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        
-        return true;
-    }
-
-    void EglSinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        // If the Pipeline is linked and has an XWindow, then we need to get the 
-        // current XWindow attributes as the window may have been moved.
-        if (m_pXWindow)
-        {
-            XWindowAttributes attrs;
-            XGetWindowAttributes(m_pXDisplay, m_pXWindow, &attrs);
-            m_width = attrs.width;
-            m_height = attrs.height;
-        }
-
-        *width = m_width;
-        *height = m_height;
-    }
-
-    bool EglSinkBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-        
-        m_width = width;
-        m_height = height;
-
-        // If the Pipeline is linked and has an XWindow, then we need to set  
-        // XWindow attributes to actually resize the window
-        if (m_pXWindow)
-        {
-            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-                m_offsetX, m_offsetY, 
-                m_width, m_height);
-        }
-        // Set the EglGles plugin values regardless of XWindow existence.
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        
-        return true;
-    }
-
     bool EglSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
