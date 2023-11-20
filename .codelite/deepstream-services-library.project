@@ -267,6 +267,7 @@
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
+      <File Name="../examples/python/nvidia_pyds_pad_probe_handler.py"/>
       <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_3d.py"/>
       <File Name="../examples/python/1uri_https_window_dynamic_3d.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_demuxer_osd_3d_window.py"/>
@@ -277,7 +278,6 @@
       <File Name="../examples/python/8uri_file_pph_meter_performace_reporting.py"/>
       <File Name="../examples/python/message_broker_azure_device_client.py"/>
       <File Name="../examples/python/multiple_pipelines.py"/>
-      <File Name="../examples/python/nvidia_osd_sink_pad_buffer_probe.py"/>
       <File Name="../examples/python/ode_always_trigger_display_source_info.py"/>
       <File Name="../examples/python/ode_count_trigger_display_meta.py"/>
       <File Name="../examples/python/ode_distance_trigger_fill_object.py"/>

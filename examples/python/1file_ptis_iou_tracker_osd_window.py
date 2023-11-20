@@ -61,12 +61,12 @@ iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
-source_width = 960
-source_height = 540
+SOURCE_WIDTH = 960
+SOURCE_HEIGHT = 540
 
 # Window Sink dimensions same as Streammux dimensions - no scaling.
-sink_width = source_width
-sink_height = source_height
+SINK_WIDTH = SOURCE_WIDTH
+sink_height = SOURCE_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -129,30 +129,37 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, sink_width, sink_height)
+        # New Window Sink with x/y offsets and dimensions.
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only.
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add("egl-sink", 
+        retval = dsl_sink_window_key_event_handler_add("window-sink", 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add("egl-sink", 
+        retval = dsl_sink_window_delete_event_handler_add("window-sink", 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-tis', 'iou-tracker', 'on-screen-display', 'egl-sink', None])
+            ['file-source', 'primary-tis', 'iou-tracker', 'on-screen-display', 
+            'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Update the Pipeline's Streammux dimensions to match the source dimensions.
         retval = dsl_pipeline_streammux_dimensions_set('pipeline',
-            source_width, source_height)
+            SOURCE_WIDTH, SOURCE_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -154,8 +154,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions
-        # EGL Sink runs on both platforms. 3D Sink is Jetson only
+        # New Window Sink with x/y offsets and dimensions.
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only.
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
             retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
                 WINDOW_WIDTH, WINDOW_HEIGHT)

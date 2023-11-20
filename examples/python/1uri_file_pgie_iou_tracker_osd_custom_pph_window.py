@@ -49,8 +49,8 @@
 import sys
 from dsl import *
 
-# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+# Import NVIDIA's pyds Pad Probe Handler example
+from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
 uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
@@ -134,7 +134,7 @@ def main(args):
         # New Custom Pad Probe Handler to call Nvidia's example callback 
         # for handling the Batched Meta Data
         retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=osd_sink_pad_buffer_probe, client_data=None)
+            client_handler=custom_pad_buffer_probe, client_data=None)
         
         # Add the custom PPH to the Sink pad of the OSD
         retval = dsl_osd_pph_add('on-screen-display', 
