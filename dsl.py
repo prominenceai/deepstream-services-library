@@ -5416,6 +5416,54 @@ def dsl_sink_window_egl_new(name, offset_x, offset_y, width, height):
     return int(result)
 
 ##
+## dsl_sink_window_offsets_get()
+##
+_dsl.dsl_sink_window_offsets_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_window_offsets_get.restype = c_uint
+def dsl_sink_window_offsets_get(name):
+    global _dsl
+    offset_x = c_uint(0)
+    offset_y = c_uint(0)
+    result = _dsl.dsl_sink_window_offsets_get(name, 
+        DSL_UINT_P(offset_x), DSL_UINT_P(offset_y))
+    return int(result), offset_x.value, offset_y.value 
+
+##
+## dsl_sink_window_offsets_set()
+##
+_dsl.dsl_sink_window_offsets_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_window_offsets_set.restype = c_uint
+def dsl_sink_window_offsets_set(name, offset_x, offset_y):
+    global _dsl
+    result = _dsl.dsl_sink_window_offsets_set(name, offset_x, offset_y)
+    return int(result)
+
+##
+## dsl_sink_window_dimensions_get()
+##
+_dsl.dsl_sink_window_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_window_dimensions_get.restype = c_uint
+def dsl_sink_window_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_sink_window_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_sink_window_dimensions_set()
+##
+_dsl.dsl_sink_window_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_window_dimensions_set.restype = c_uint
+def dsl_sink_window_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_sink_window_dimensions_set(name, width, height)
+    return int(result)
+
+##
 ## dsl_sink_window_handle_get()
 ##
 _dsl.dsl_sink_window_handle_get.argtypes = [c_wchar_p, POINTER(c_uint64)]
@@ -5444,27 +5492,6 @@ _dsl.dsl_sink_window_clear.restype = c_uint
 def dsl_sink_window_clear(name):
     global _dsl
     result = _dsl.dsl_sink_window_clear(name)
-    return int(result)
-
-##
-## dsl_sink_window_force_aspect_ratio_get()
-##
-_dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_sink_window_force_aspect_ratio_get.restype = c_uint
-def dsl_sink_window_force_aspect_ratio_get(name):
-    global _dsl
-    force = c_bool(False)
-    result =_dsl.dsl_sink_window_force_aspect_ratio_get(name, DSL_BOOL_P(force))
-    return int(result), force.value
-
-##
-## dsl_sink_window_force_aspect_ratio_set()
-##
-_dsl.dsl_sink_window_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_sink_window_force_aspect_ratio_set.restype = c_uint
-def dsl_sink_window_force_aspect_ratio_set(name, force):
-    global _dsl
-    result =_dsl.dsl_sink_window_force_aspect_ratio_set(name, force)
     return int(result)
 
 ##
@@ -5576,25 +5603,24 @@ def dsl_sink_window_delete_event_handler_remove(name, client_handler):
     return int(result)
 
 ##
-## dsl_sink_render_dimensions_get()
+## dsl_sink_window_egl_force_aspect_ratio_get()
 ##
-_dsl.dsl_sink_render_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_sink_render_dimensions_get.restype = c_uint
-def dsl_sink_render_dimensions_get(name):
+_dsl.dsl_sink_window_egl_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_window_egl_force_aspect_ratio_get.restype = c_uint
+def dsl_sink_window_egl_force_aspect_ratio_get(name):
     global _dsl
-    width = c_uint(0)
-    height = c_uint(0)
-    result = _dsl.dsl_sink_render_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), width.value, height.value 
+    force = c_bool(False)
+    result =_dsl.dsl_sink_window_egl_force_aspect_ratio_get(name, DSL_BOOL_P(force))
+    return int(result), force.value
 
 ##
-## dsl_sink_render_dimensions_set()
+## dsl_sink_window_egl_force_aspect_ratio_set()
 ##
-_dsl.dsl_sink_render_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_sink_render_dimensions_set.restype = c_uint
-def dsl_sink_render_dimensions_set(name, width, height):
+_dsl.dsl_sink_window_egl_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_window_egl_force_aspect_ratio_set.restype = c_uint
+def dsl_sink_window_egl_force_aspect_ratio_set(name, force):
     global _dsl
-    result = _dsl.dsl_sink_render_dimensions_set(name, width, height)
+    result =_dsl.dsl_sink_window_egl_force_aspect_ratio_set(name, force)
     return int(result)
 
 ##

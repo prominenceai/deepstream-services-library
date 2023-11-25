@@ -6656,6 +6656,48 @@ DslReturnType dsl_sink_window_3d_new(const wchar_t* name,
 DslReturnType dsl_sink_window_egl_new(const wchar_t* name, 
     uint offset_x, uint offset_y, uint width, uint height);
 
+
+/**
+ * @brief returns the current X and Y offsets for the Render Sink
+ * @param[in] name name of the Render Sink to query - of type Overlay or Window
+ * @param[out] offset_x current offset in the X direction for the Render Sink in pixels
+ * @param[out] offset_y current offset in the Y direction for the Render Sink in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
+
+/**
+ * @brief sets the X and Y offsets for the On-Screen-Display clock
+ * @param[in] name name of the Render Sink to update - of type Overlay or Window
+ * @param[in] offset_x new offset for the Render Sink in the X direction in pixels
+ * @param[in] offset_y new offset for the Render Sink in the Y direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
+    
+/**
+ * @brief Returns the dimensions, width and height, in use by the Render Sink
+ * The Render Sink can be of type Window Sink or Overlay Sink
+ * @param[in] name name of the Render Sink to query
+ * @param[out] width current width of the video recording in pixels
+ * @param[out] height current height of the video recording in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ */
+DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the dimensions, width and height, for the Render Sink
+ * @param[in] name name of the Render Sink to update
+ * @param[in] width width to set the video recording in pixels
+ * @param[in] height height to set the video in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
 /**
  * @brief Gets the named Window Sinks's current XWindow handle. The handle will 
  * be NULL until one is created on Pipeline play, or provided prior to play by 
@@ -6682,25 +6724,6 @@ DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_clear(const wchar_t* name);
-
-/**
- * @brief Gets the current "force-aspect-ration" property setting for the 
- * named Window Sink.
- * @param[in] name unique name of the Window Sink to query.
- * @param[out] force true if the apect ratio is forced, false otherwise.
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
-    boolean* force);
-
-/**
- * @brief Sets the "force-aspect-ration" property for the named Window Sink
- * @param[in] name unique name of the Window Sink to update
- * @param[in] force set to true to force the apect ratio, false otherwise
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
-    boolean force);
 
 /**
  * @brief Gets the current full-screen-enabled setting for the named Window Sink
@@ -6783,56 +6806,25 @@ DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name,
  */
 DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_delete_event_handler_cb handler);
-
-/**
- * @brief returns the current X and Y offsets for the Render Sink
- * @param[in] name name of the Render Sink to query - of type Overlay or Window
- * @param[out] offset_x current offset in the X direction for the Render Sink in pixels
- * @param[out] offset_y current offset in the Y direction for the Render Sink in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
-    uint* offset_x, uint* offset_y);
-
-/**
- * @brief sets the X and Y offsets for the On-Screen-Display clock
- * @param[in] name name of the Render Sink to update - of type Overlay or Window
- * @param[in] offset_x new offset for the Render Sink in the X direction in pixels
- * @param[in] offset_y new offset for the Render Sink in the Y direction in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
-    uint offset_x, uint offset_y);
     
 /**
- * @brief Returns the dimensions, width and height, in use by the Render Sink
- * The Render Sink can be of type Window Sink or Overlay Sink
- * @param[in] name name of the Render Sink to query
- * @param[out] width current width of the video recording in pixels
- * @param[out] height current height of the video recording in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @brief Gets the current "force-aspect-ratio" property setting for the 
+ * named EGL Window Sink.
+ * @param[in] name unique name of the EGL Window Sink to query.
+ * @param[out] force true if the apect ratio is forced, false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
  */
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force);
 
 /**
- * @brief Sets the dimensions, width and height, for the Render Sink
- * @param[in] name name of the Render Sink to update
- * @param[in] width width to set the video recording in pixels
- * @param[in] height height to set the video in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @brief Sets the "force-aspect-ratio" property for the named EGL Window Sink
+ * @param[in] name unique name of the EGL Window Sink to update
+ * @param[in] force set to true to force the apect ratio, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
-    uint width, uint height);
-
-/**
- * @brief Resets the Render Sink causing it to close it's Rendering surface.
- * The Sink can only be reset when in a state of NULL or READY. 
- * A new surface will be created on Pipeline play, Overlay or Window.
- * @param[in] name unique name of the Render Sink to reset
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_reset(const wchar_t* name);
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force);
 
 /**
  * @brief creates a new, uniquely named File Sink component

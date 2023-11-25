@@ -494,19 +494,6 @@ namespace DSL
         virtual bool Reset(){return true;};
 
         /**
-         * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
-         * @return true if forced, false otherwise
-         */
-        bool GetForceAspectRatio();
-        
-        /**
-         * @brief Set the force-aspect-ration setting for the WindowSinkBinter
-         * @param[in] force set true to force-aspect-ration false otherwise
-         * @return 
-         */
-        bool SetForceAspectRatio(bool force);
-
-        /**
          * @brief Gets the current full-screen-enabled setting for the WindowSinkBintr
          * @retrun true if full-screen-mode is currently enabled, false otherwise
          */
@@ -648,8 +635,6 @@ namespace DSL
          */
         bool CreateXWindow();
         
-        bool m_forceAspectRatio;
-
         /**
          * @brief map of all currently registered XWindow-key-event-handlers
          * callback functions mapped with the user provided data
@@ -781,6 +766,19 @@ namespace DSL
         void UnlinkAll();
 
         /**
+         * @brief Gets the current force-aspect-ratio setting for the EglSinkBintr.
+         * @return true if forced, false otherwise.
+         */
+        bool GetForceAspectRatio();
+        
+        /**
+         * @brief Set the force-aspect-ration setting for the EglSinkBintr.
+         * @param[in] force set true to force-aspect-ration false otherwise
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetForceAspectRatio(bool force);
+
+        /**
          * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
          * @return true if successfully set, false otherwise.
          */
@@ -788,13 +786,18 @@ namespace DSL
 
         /**
          * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
-         * @brief nvbufMemType new memory type to use, one of the 
+         * @param[in] nvbufMemType new memory type to use, one of the 
          * DSL_NVBUF_MEM_TYPE constant values.
          * @return true if successfully set, false otherwise.
          */
         bool SetNvbufMemType(uint nvbufMemType);
 
     private:
+
+        /**
+         * @brief true if force-aspect-ratio is set, false otherwise. 
+         */
+        bool m_forceAspectRatio;
 
         /**
          * @brief Caps Filter required for dGPU EglSinkBintr

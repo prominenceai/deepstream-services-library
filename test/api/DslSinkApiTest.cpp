@@ -514,12 +514,12 @@ SCENARIO( "A 3D Sink's Offsets can be updated", "[sink-api]" )
 
             WHEN( "The Window Sink's Offsets are Set" ) 
             {
-                REQUIRE( dsl_sink_render_offsets_set(sink_name.c_str(), 
+                REQUIRE( dsl_sink_window_offsets_set(sink_name.c_str(), 
                     preOffsetX, preOffsetY) == DSL_RESULT_SUCCESS);
                 
                 THEN( "The correct values are returned on Get" ) 
                 {
-                    dsl_sink_render_offsets_get(sink_name.c_str(), &retOffsetX, &retOffsetY);
+                    dsl_sink_window_offsets_get(sink_name.c_str(), &retOffsetX, &retOffsetY);
                     REQUIRE( preOffsetX == retOffsetX);
                     REQUIRE( preOffsetY == retOffsetY);
 
@@ -555,12 +555,12 @@ SCENARIO( "A 3D Sink's Dimensions can be updated", "[sink-api]" )
 
             WHEN( "The 3D Sink's Dimensions are Set" ) 
             {
-                REQUIRE( dsl_sink_render_dimensions_set(sink_name.c_str(), 
+                REQUIRE( dsl_sink_window_dimensions_set(sink_name.c_str(), 
                     preSinkW, preSinkH) == DSL_RESULT_SUCCESS);
                 
                 THEN( "The correct values are returned on Get" ) 
                 {
-                    dsl_sink_render_dimensions_get(sink_name.c_str(), &retSinkW, &retSinkH);
+                    dsl_sink_window_dimensions_get(sink_name.c_str(), &retSinkW, &retSinkH);
                     REQUIRE( preSinkW == retSinkW);
                     REQUIRE( preSinkH == retSinkH);
 
@@ -861,14 +861,14 @@ SCENARIO( "A Window Sink can update its force-aspect-ratio setting", "[sink-api]
 
         WHEN( "A Window Sink's force-aspect-ratio is set" ) 
         {
-            REQUIRE( dsl_sink_window_force_aspect_ratio_set(windowSinkName.c_str(), 
+            REQUIRE( dsl_sink_window_egl_force_aspect_ratio_set(windowSinkName.c_str(), 
                 force) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
                 REQUIRE( dsl_component_list_size() == 1 );
                 boolean retForce(false);
-                REQUIRE( dsl_sink_window_force_aspect_ratio_get(windowSinkName.c_str(), &retForce) 
+                REQUIRE( dsl_sink_window_egl_force_aspect_ratio_get(windowSinkName.c_str(), &retForce) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( retForce == force );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -1093,12 +1093,12 @@ SCENARIO( "A Window Sink's Offsets can be updated", "[sink-api]" )
 
         WHEN( "The Window Sink's Offsets are Set" ) 
         {
-            REQUIRE( dsl_sink_render_offsets_set(sink_name.c_str(), 
+            REQUIRE( dsl_sink_window_offsets_set(sink_name.c_str(), 
                 preOffsetX, preOffsetY) == DSL_RESULT_SUCCESS);
             
             THEN( "The correct values are returned on Get" ) 
             {
-                dsl_sink_render_offsets_get(sink_name.c_str(), &retOffsetX, &retOffsetY);
+                dsl_sink_window_offsets_get(sink_name.c_str(), &retOffsetX, &retOffsetY);
                 REQUIRE( preOffsetX == retOffsetX);
                 REQUIRE( preOffsetY == retOffsetY);
 
@@ -1125,12 +1125,12 @@ SCENARIO( "A Window Sink's Dimensions can be updated", "[sink-api]" )
 
         WHEN( "The Window Sink's Dimensions are Set" ) 
         {
-            REQUIRE( dsl_sink_render_dimensions_set(sink_name.c_str(), 
+            REQUIRE( dsl_sink_window_dimensions_set(sink_name.c_str(), 
                 preSinkW, preSinkH) == DSL_RESULT_SUCCESS);
             
             THEN( "The correct values are returned on Get" ) 
             {
-                dsl_sink_render_dimensions_get(sink_name.c_str(), &retSinkW, &retSinkH);
+                dsl_sink_window_dimensions_get(sink_name.c_str(), &retSinkW, &retSinkH);
                 REQUIRE( preSinkW == retSinkW);
                 REQUIRE( preSinkH == retSinkH);
 
@@ -1141,6 +1141,10 @@ SCENARIO( "A Window Sink's Dimensions can be updated", "[sink-api]" )
     }
 }
 
+static void my_sink_window_key_event_handler_cb(const wchar_t* key, void* client_data)
+{
+}
+
 SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ", 
     "[sink-api]" )
 {
@@ -1149,7 +1153,6 @@ SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ",
         std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
-        dsl_sink_window_key_event_handler_cb handler;
         
         REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1157,20 +1160,23 @@ SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ",
         WHEN( "A XWindow Key Event Handler is added" )
         {
             REQUIRE( dsl_sink_window_key_event_handler_add(sink_name.c_str(),
-                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+                my_sink_window_key_event_handler_cb, 
+                (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
             REQUIRE( dsl_sink_window_key_event_handler_add(sink_name.c_str(),
-                handler, NULL) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
+                my_sink_window_key_event_handler_cb, 
+                NULL) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
 
             THEN( "The same handler can be successfully removed" ) 
             {
                 REQUIRE( dsl_sink_window_key_event_handler_remove(sink_name.c_str(),
-                    handler) == DSL_RESULT_SUCCESS );
+                    my_sink_window_key_event_handler_cb) == DSL_RESULT_SUCCESS );
 
                 // second attempt must fail
                 REQUIRE( dsl_sink_window_key_event_handler_remove(sink_name.c_str(),
-                    handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
+                    my_sink_window_key_event_handler_cb) 
+                    == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -1179,6 +1185,10 @@ SCENARIO( "Window Sink Key Event Handlers are added and removed correctly ",
     }
 }
    
+static void my_sink_window_button_event_handler_cb(uint button, 
+    int xpos, int ypos, void* client_data)
+{
+}
 
 SCENARIO( "Window Sink Button Event Handler are added and removded correctly", 
     "[sink-api]" )
@@ -1188,7 +1198,6 @@ SCENARIO( "Window Sink Button Event Handler are added and removded correctly",
         std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
-        dsl_sink_window_button_event_handler_cb handler;
         
         REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1196,20 +1205,23 @@ SCENARIO( "Window Sink Button Event Handler are added and removded correctly",
         WHEN( "A XWindow Button Event Handler is added" )
         {
             REQUIRE( dsl_sink_window_button_event_handler_add(sink_name.c_str(),
-                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+                my_sink_window_button_event_handler_cb, 
+                (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
             REQUIRE( dsl_sink_window_button_event_handler_add(sink_name.c_str(),
-                handler, (void*)0x12345678) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
+                my_sink_window_button_event_handler_cb, 
+                (void*)0x12345678) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
 
             THEN( "The same handler can't be added again" ) 
             {
                 REQUIRE( dsl_sink_window_button_event_handler_remove(sink_name.c_str(),
-                    handler) == DSL_RESULT_SUCCESS );
+                    my_sink_window_button_event_handler_cb) == DSL_RESULT_SUCCESS );
 
                 // second attempt must fail
                 REQUIRE( dsl_sink_window_button_event_handler_remove(sink_name.c_str(),
-                    handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
+                    my_sink_window_button_event_handler_cb) 
+                    == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -1217,6 +1229,11 @@ SCENARIO( "Window Sink Button Event Handler are added and removded correctly",
         }
     }
 }
+
+static void my_sink_window_delete_event_handler_cb(void* client_data)
+{
+}
+
    
 SCENARIO( "A XWindow Delete Event Handler must be unique", "[sink-api]" )
 {
@@ -1225,7 +1242,6 @@ SCENARIO( "A XWindow Delete Event Handler must be unique", "[sink-api]" )
         std::wstring sink_name = L"egl-sink";
         uint offsetX(100), offsetY(100);
         uint sinkW(1920), sinkH(1080);
-        dsl_sink_window_delete_event_handler_cb handler;
 
         REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
@@ -1233,18 +1249,20 @@ SCENARIO( "A XWindow Delete Event Handler must be unique", "[sink-api]" )
         WHEN( "A XWindow Delete Event Handler is added" )
         {
             REQUIRE( dsl_sink_window_delete_event_handler_add(sink_name.c_str(),
-                handler, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+                my_sink_window_delete_event_handler_cb, 
+                (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_sink_window_delete_event_handler_add(sink_name.c_str(),
-                handler, (void*)0x12345678) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
+                my_sink_window_delete_event_handler_cb, 
+                (void*)0x12345678) == DSL_RESULT_SINK_HANDLER_ADD_FAILED );
 
             THEN( "The same handler can't be added again" ) 
             {
                 REQUIRE( dsl_sink_window_delete_event_handler_remove(sink_name.c_str(),
-                    handler) == DSL_RESULT_SUCCESS );
+                    my_sink_window_delete_event_handler_cb) == DSL_RESULT_SUCCESS );
 
                 REQUIRE( dsl_sink_window_delete_event_handler_remove(sink_name.c_str(),
-                    handler) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
+                    my_sink_window_delete_event_handler_cb) == DSL_RESULT_SINK_HANDLER_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
@@ -2818,6 +2836,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         std::wstring otherName(L"other");
         
         uint cache_size(0), width(0), height(0), codec(0), container(0), 
+        offset_x(0), offset_y(0),
         bitrate(0), interval(0), udpPort(0), rtspPort(0), fps_n(0), fps_d(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
         
@@ -2838,11 +2857,33 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_window_3d_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_window_egl_new(NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_window_force_aspect_ratio_get(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_window_force_aspect_ratio_get(sink_name.c_str(), 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_window_force_aspect_ratio_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_3d_new(NULL, 
+                    0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_egl_new(NULL, 
+                    0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_offsets_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_offsets_get(sink_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_offsets_get(sink_name.c_str(), 
+                    &offset_x, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_offsets_set(NULL, 
+                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_dimensions_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_dimensions_get(sink_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_dimensions_get(sink_name.c_str(), 
+                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_dimensions_set(NULL, 
+                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_sink_window_egl_force_aspect_ratio_get(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_egl_force_aspect_ratio_get(sink_name.c_str(), 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_window_egl_force_aspect_ratio_set(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_file_new(sink_name.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );

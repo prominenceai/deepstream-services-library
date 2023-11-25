@@ -591,7 +591,6 @@ namespace DSL
         , m_pXDisplay(0)
         , m_pXWindow(0)
         , m_pXWindowCreated(false)
-        , m_forceAspectRatio(false)
         , m_xWindowfullScreenEnabled(false)
         , m_pSharedClientCbMutex(NULL)
     {
@@ -708,28 +707,6 @@ namespace DSL
             m_pSink->SetAttribute("window-width", m_width);
             m_pSink->SetAttribute("window-height", m_height);
         }
-        return true;
-    }
-
-    bool WindowSinkBintr::GetForceAspectRatio()
-    {
-        LOG_FUNC();
-        
-        return m_forceAspectRatio;
-    }
-    
-    bool WindowSinkBintr::SetForceAspectRatio(bool force)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        m_forceAspectRatio = force;
-        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
 
@@ -1242,6 +1219,7 @@ namespace DSL
     EglSinkBintr::EglSinkBintr(const char* name, 
         guint offsetX, guint offsetY, guint width, guint height)
         : WindowSinkBintr(name, offsetX, offsetY, width, height)
+        , m_forceAspectRatio(false)
 {
         LOG_FUNC();
 
@@ -1443,6 +1421,28 @@ namespace DSL
         m_isLinked = false;
     }
     
+    bool EglSinkBintr::GetForceAspectRatio()
+    {
+        LOG_FUNC();
+        
+        return m_forceAspectRatio;
+    }
+    
+    bool EglSinkBintr::SetForceAspectRatio(bool force)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_forceAspectRatio = force;
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        return true;
+    }
+
     bool EglSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();

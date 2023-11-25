@@ -381,9 +381,6 @@ class AppWindow(tk.Frame):
             dsl_main_loop_quit()
             self.dsl_main_loop_thread.join()
             self.dsl_main_loop_thread = None
-            
-            # reset the window sink so that the handle can be renegotiated on new Play
-            dsl_sink_render_reset(WINDOW_SINK)
 
     def pick_color(self):
         print(colorchooser.askcolor(title ="Choose color"))

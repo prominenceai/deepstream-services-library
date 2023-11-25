@@ -6909,6 +6909,58 @@ DslReturnType dsl_sink_window_egl_new(const wchar_t* name,
         offset_x, offset_y, width, height);
 }
 
+DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(offset_x);
+    RETURN_IF_PARAM_IS_NULL(offset_y);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowOffsetsGet(
+        cstrName.c_str(), offset_x, offset_y);
+}
+
+DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowOffsetsSet(
+        cstrName.c_str(), offset_x, offset_y);
+}
+
+DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowDimensionsSet(
+        cstrName.c_str(), width, height);
+}
+
 DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6942,7 +6994,7 @@ DslReturnType dsl_sink_window_clear(const wchar_t* name)
     return DSL::Services::GetServices()->SinkWindowClear(cstrName.c_str());
 }
  
-DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6951,11 +7003,11 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRatioGet(
+    return DSL::Services::GetServices()->SinkWindowEglForceAspectRatioGet(
         cstrName.c_str(), force);
 }
     
-DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name, 
     boolean force)    
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6963,7 +7015,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRatioSet(
+    return DSL::Services::GetServices()->SinkWindowEglForceAspectRatioSet(
         cstrName.c_str(), force);
 }
 
@@ -6995,6 +7047,7 @@ DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name,
 DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
     dsl_sink_window_key_event_handler_cb handler, void* client_data)
 {
+    std::cout << "handler = " << handler << std::endl;
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
@@ -7070,64 +7123,6 @@ DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name,
         SinkWindowDeleteEventHandlerRemove(cstrName.c_str(), handler);
 }
 
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
-    uint* offset_x, uint* offset_y)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderOffsetsGet(
-        cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
-    uint offset_x, uint offset_y)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderOffsetsSet(
-        cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderDimensionsGet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
-    uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderDimensionsSet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_sink_render_reset(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderReset(cstrName.c_str());
-}
-
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
      uint codec, uint container, uint bitrate, uint interval)
 {
@@ -7147,6 +7142,9 @@ DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* codec, uint* bitrate, uint* interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(codec);
+    RETURN_IF_PARAM_IS_NULL(bitrate);
+    RETURN_IF_PARAM_IS_NULL(interval);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

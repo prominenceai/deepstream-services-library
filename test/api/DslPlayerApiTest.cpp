@@ -333,8 +333,6 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
                 REQUIRE( dsl_player_render_image_new(NULL, NULL, 
                     DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-
                 REQUIRE( dsl_player_play(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_player_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_player_stop(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
