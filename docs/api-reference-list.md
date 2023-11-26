@@ -306,8 +306,8 @@
 * [`dsl_segvisual_new`](/docs/api-segvisual.md#dsl_segvisual_new)
 * [`dsl_segvisual_dimensions_get`](/docs/api-segvisual.md#dsl_segvisual_dimensions_get)
 * [`dsl_segvisual_dimensions_set`](/docs/api-segvisual.md#dsl_segvisual_dimensions_set)
-* [`dsl_segvisual_pph_add`](/docs/api-segvisual.md#dsl_segvisual_pph_add).
-* [`dsl_segvisual_pph_remove`](/docs/api-segvisual.md#dsl_segvisual_pph_remove).
+* [`dsl_segvisual_pph_add`](/docs/api-segvisual.md#dsl_segvisual_pph_add)
+* [`dsl_segvisual_pph_remove`](/docs/api-segvisual.md#dsl_segvisual_pph_remove)
 
 ## Tiler:
 * [Overview](/docs/api-tiler.md)
@@ -360,12 +360,12 @@
 * [`dsl_tee_branch_add_many`](/docs/api-tee.md#dsl_tee_branch_add_many)
 * [`dsl_tee_branch_remove`](/docs/api-tee.md#dsl_tee_branch_remove)
 * [`dsl_tee_branch_remove_many`](/docs/api-tee.md#dsl_tee_branch_remove_many)
-* [`dsl_tee_branch_remove_all`](/docs/api-tee.md#dsl_tee_branch_remove_all).
-* [`dsl_tee_branch_count_get`](/docs/api-tee.md#dsl_tee_branch_count_get).
+* [`dsl_tee_branch_remove_all`](/docs/api-tee.md#dsl_tee_branch_remove_all)
+* [`dsl_tee_branch_count_get`](/docs/api-tee.md#dsl_tee_branch_count_get)
 * [`dsl_tee_blocking_timeout_get`](/docs/api-tee.md#dsl_tee_blocking_timeout_get)
 * [`dsl_tee_blocking_timeout_set`](/docs/api-tee.md#dsl_tee_blocking_timeout_set)
-* [`dsl_tee_pph_add`](/docs/api-tee.md#dsl_tee_pph_add).
-* [`dsl_tee_pph_remove`](/docs/api-tee.md#dsl_tee_pph_remove).
+* [`dsl_tee_pph_add`](/docs/api-tee.md#dsl_tee_pph_add)
+* [`dsl_tee_pph_remove`](/docs/api-tee.md#dsl_tee_pph_remove)
 * [`dsl_tee_demuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_add_to)
 * [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to)
 * [`dsl_tee_demuxer_max_branches_get`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_get)
@@ -379,8 +379,8 @@
 ## Sink:
 * [Overview](/docs/api-sink.md)
 * [`dsl_sink_app_new`](/docs/api-sink.md#dsl_sink_app_new)
-* [`dsl_sink_overlay_new`](/docs/api-sink.md#dsl_sink_overlay_new)
-* [`dsl_sink_window_new`](/docs/api-sink.md#dsl_sink_window_new)
+* [`dsl_sink_window_3d_new`](/docs/api-sink.md#dsl_sink_window_3d_new)
+* [`dsl_sink_window_egl_new`](/docs/api-sink.md#dsl_sink_window_egl_new)
 * [`dsl_sink_v4l2_new`](/docs/api-sink.md#dsl_sink_v4l2_new)
 * [`dsl_sink_file_new`](/docs/api-sink.md#dsl_sink_file_new)
 * [`dsl_sink_record_new`](/docs/api-sink.md#dsl_sink_record_new)
@@ -405,14 +405,12 @@
 * [`dsl_sink_pph_remove`](/docs/api-sink.md#dsl_sink_pph_remove)
 * [`dsl_sink_app_data_type_get`](/docs/api-sink.md#dsl_sink_app_data_type_get)
 * [`dsl_sink_app_data_type_set`](/docs/api-sink.md#dsl_sink_app_data_type_set)
-* [`dsl_sink_render_offsets_get`](/docs/api-sink.md#dsl_sink_render_offsets_get)
-* [`dsl_sink_render_offsets_set`](/docs/api-sink.md#dsl_sink_render_offsets_set)
-* [`dsl_sink_render_dimensions_get`](/docs/api-sink.md#dsl_sink_render_dimensions_get)
-* [`dsl_sink_render_dimensions_set`](/docs/api-sink.md#dsl_sink_render_dimensions_set)
+* [`dsl_sink_window_offsets_get`](/docs/api-sink.md#dsl_sink_window_offsets_get)
+* [`dsl_sink_window_offsets_set`](/docs/api-sink.md#dsl_sink_window_offsets_set)
+* [`dsl_sink_window_dimensions_get`](/docs/api-sink.md#dsl_sink_window_dimensions_get)
+* [`dsl_sink_window_dimensions_set`](/docs/api-sink.md#dsl_sink_window_dimensions_set)
 * [`dsl_sink_window_handle_get`](/docs/api-sink.md#dsl_sink_window_handle_get)
 * [`dsl_sink_window_handle_set`](/docs/api-sink.md#dsl_sink_window_handle_set)
-* [`dsl_sink_window_force_aspect_ratio_get`](/docs/api-sink.md#dsl_sink_window_force_aspect_ratio_get)
-* [`dsl_sink_window_force_aspect_ratio_set`](/docs/api-sink.md#dsl_sink_window_force_aspect_ratio_set)
 * [`dsl_sink_window_fullscreen_enabled_get`](/docs/api-sink.md#dsl_sink_window_fullscreen_enabled_get)
 * [`dsl_sink_window_fullscreen_enabled_set`](/docs/api-sink.md#dsl_sink_window_fullscreen_enabled_set)
 * [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add)
@@ -421,6 +419,8 @@
 * [`dsl_sink_window_button_event_handler_remove`](/docs/api-sink.md#dsl_sink_window_button_event_handler_remove)
 * [`dsl_sink_window_delete_event_handler_add`](/docs/api-sink.md#dsl_sink_window_delete_event_handler_add)
 * [`dsl_sink_window_delete_event_handler_remove`](/docs/api-sink.md#dsl_sink_window_delete_event_handler_remove)
+* [`dsl_sink_window_egl_force_aspect_ratio_get`](/docs/api-sink.md#dsl_sink_window_egl_force_aspect_ratio_get)
+* [`dsl_sink_window_egl_force_aspect_ratio_set`](/docs/api-sink.md#dsl_sink_window_egl_force_aspect_ratio_set)
 * [`dsl_sink_v4l2_device_location_get`](/docs/api-sink.md#dsl_sink_v4l2_device_location_get)
 * [`dsl_sink_v4l2_device_location_set`](/docs/api-sink.md#dsl_sink_v4l2_device_location_set)
 * [`dsl_sink_v4l2_device_name_get`](/docs/api-sink.md#dsl_sink_v4l2_device_name_get)
