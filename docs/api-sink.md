@@ -245,7 +245,7 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000D
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
 #define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
@@ -254,7 +254,7 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
@@ -563,7 +563,7 @@ The constructor creates a uniquely named 3D Window Sink with given offsets and d
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`sink`](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`window sink`](#window-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`window sink`](#3d--egl-window-sink-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `3d window sink`
 
 **Parameters**
@@ -593,15 +593,15 @@ The constructor creates a uniquely named EGL Window Sink with given offsets and 
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`sink`](#sink-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`window sink`](#window-sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`window sink`](#3d--egl-window-sink-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `egl window sink`
 
 **Parameters**
 * `name` - [in] unique name for the EGL Window Sink to create.
-* `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the display in pixels.
-* `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner of the display in pixels.
-* `width` - [in] width of the Window Sink in pixels.
-* `height` - [in] height of the Window Sink in pixels.
+* `x_offset` - [out] offset in the X direction in pixels from the upper left most corner of the display.
+* `y_offset` - [out] offset in the Y direction in pixels from the upper left most corner of the display.
+* `width` - [in] width of the EGL Window Sink in pixels.
+* `height` - [in] height of the EGL Window Sink in pixels.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
@@ -1302,7 +1302,9 @@ retval, x_offset, y_offset = dsl_sink_window_offsets_get('my-window-sink')
 DslReturnType dsl_sink_window_offsets_set(const wchar_t* name,
     uint x_offset, uint y_offset);
 ```
-This service updates the X and Y offsets of a named Window Sink; 3D or EGL. Note: this service will fail if the Sink is currently linked.
+This service updates the X and Y offsets for the named Window Sink; 3D or EGL. 
+
+**IMPORTANT!** This service may be called while the Pipeline is playing.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -1346,7 +1348,9 @@ retval, width, height = dsl_sink_window_dimensions_get('my-window-sink')
 DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name,
     uint width, uint height);
 ```
-This service updates the dimensions of a named Window Sink; 3D or EGL. This service will fail if the Sink is currently linked.
+This service updates the dimensions of a named Window Sink; 3D or EGL. 
+
+**IMPORTANT!** This service may be called while the Pipeline is playing.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
@@ -1363,12 +1367,11 @@ retval = dsl_sink_window_dimensions_set('my-window-sink', 1280, 720)
 
 <br>
 
-## Window Sink Methods
 ### *dsl_sink_window_handle_get*
 ```C++
 DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
 ```
-This service returns the current XWindow handle in use by the named Window Sink. The handle is set to `Null` on Wink creation and will remain `Null` until,
+This service returns the current XWindow handle in use by the named Window Sink. The handle is set to `Null` on Sink creation and will remain `Null` until,
 1. The Sink creates an internal XWindow synchronized on Transition to a state of playing, or
 2. The Client Application passes an XWindow handle into the Pipeline by calling [`dsl_sink_window_handle_set`](#dsl_sink_window_handle_set).
 
@@ -1430,7 +1433,7 @@ retval, enabled = dsl_sink_window_fullscreen_enabled_get('my-window-sink')
 DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name, 
     boolean enabled);
 ```
-This service sets the current full-screen-enabled setting for the Window Sink's XWindow.
+This service sets the full-screen-enabled setting for the Window Sink's XWindow. The service will fail if called while the Pipeline is playing. 
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update
@@ -1549,7 +1552,7 @@ retval = dsl_sink_window_button_event_handler_remove('my-window-sink',
 DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name, 
     dsl_sink_window_delete_event_handler_cb handler, void* client_data);
 ```
-This service adds a callback function of type [`dsl_sink_window_delete_event_handler_cb`](#dsl_sink_window_delete_event_handler_cb) to a named Window Sink. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sink.
+This service adds a callback function of type [`dsl_sink_window_delete_event_handler_cb`](#dsl_sink_window_delete_event_handler_cb) to a named Window Sink; 3D or EGL. The function will be called on when the XWindow is closed/deleted. Multiple callback functions can be registered with one Window Sink, and one callback function can be registered with multiple Window Sink.
 
 **Parameters**
 * `name` - [in] unique name of the Window Sink to update.
