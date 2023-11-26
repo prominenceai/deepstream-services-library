@@ -232,16 +232,16 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -249,7 +249,7 @@ def main(args):
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker',
-            'on-screen-display', 'window-sink', None])
+            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

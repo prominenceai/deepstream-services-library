@@ -22,65 +22,29 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-################################################################################
-#
-# This simple example demonstrates how to process (infer-on) all .mp4 files
-# in a given folder. 
-#
-# The inference Pipeline is built with the following components:
-#   - URI Source
-#   - Primary GST Inference Engine (PGIE)
-#   - IOU Tracker
-#   - On-Screen Display (OSD)
-#   - Window Sink
-# 
-# A Custom Pad-Probe-Handler is added to the Sink-Pad of the OSD
-# to process the frame and object meta-data for each buffer received
-#
-# The example registers handler callback functions with the Pipeline for:
-#   - key-release events
-#   - delete-window events
-#   - end-of-stream EOS events
-#   - Pipeline change-of-state events.
-#
-# IMPORTANT! it is the end-of-stream (EOS) listener "eos_event_listener"
-# that stops the Pipeline on EOS, sets the URI to the next file in 
-# the list, and starts the Pipeline again.
-#  
-################################################################################
-
 #!/usr/bin/env python
 
 import sys
+import time
+
 from dsl import *
-import os
 
-# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
-
-# path to the directory that hold the mp4 files to process.
-dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams"
-
-# Filespecs (Jetson and dGPU) for the Primary GIE
+# Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
-# Filespec for the IOU Tracker config file
-iou_tracker_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-
-# List of files to process... populated at the top of main. 
-file_list = []
+MAX_3D_SINK_COUNT = 2 # hardware limited
+cur_3d_sink_count = 0
 
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
+    global MAX_3D_SINK_COUNT, cur_3d_sink_count
     print('key released = ', key_string)
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -89,6 +53,26 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
+
+    # Add a new 3D Sink
+    elif key_string == '+': 
+        if cur_3d_sink_count < MAX_3D_SINK_COUNT:
+            cur_3d_sink_count += 1
+            sink_name = '3d-sink-' + str(cur_3d_sink_count)
+            print('adding sink ', sink_name)
+            dsl_sink_window_3d_new(sink_name, 100*cur_3d_sink_count, 
+                100*cur_3d_sink_count, 360, 180)
+            dsl_sink_sync_enabled_set(sink_name, False)
+            dsl_pipeline_component_add('pipeline', sink_name)
+
+    # Remove the last sink added
+    elif key_string == '-': 
+        if cur_3d_sink_count > 0:
+            sink_name = '3d-sink-' + str(cur_3d_sink_count)
+            print('removing sink ', sink_name)
+            dsl_pipeline_component_remove('pipeline', sink_name)
+            dsl_component_delete(sink_name)
+            cur_3d_sink_count -= 1
  
 ## 
 # Function to be called on XWindow Delete event
@@ -98,23 +82,11 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
-## 
 # Function to be called on End-of-Stream (EOS) event
-## 
 def eos_event_listener(client_data):
-    global file_list
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
-    
-    # if there are more file to process, update the URI to the next
-    # file and Play the Pipeline again.
-    if (len(file_list)):
-        dsl_source_uri_uri_set('uri-source', file_list.pop(0))
-        dsl_pipeline_play('pipeline')
-
-    # else, all files have be processed, time to quit.
-    else:
-        dsl_main_loop_quit()
+    dsl_main_loop_quit()
 
 ## 
 # Function to be called on every change of Pipeline state
@@ -124,54 +96,24 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+
 def main(args):
+
+    print('*******************************************************')
+    print(' Press + to add new 3D Sink')
+    print(' Press - to remove last added 3D Sink')
+    print('*******************************************************')
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-    
-        global file_list
-        
-        for file in os.listdir(dir_path):
-            if file.endswith(".mp4"):
-                file_list.append(os.path.join(dir_path, file),)
 
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', file_list.pop(0), False, False, 0)
+        ## First new URI File Source
+        retval = dsl_source_uri_new('uri-source', source_uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New IOU Tracker, setting operational width and hieght
-        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, 
-            bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Custom Pad Probe Handler to call Nvidia's example callback 
-        # for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=osd_sink_pad_buffer_probe, client_data=None)
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', 
-            handler='custom-pph', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # New Window Sink, 0 x/y offsets and dimensions defined above.
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
-            WINDOW_WIDTH, WINDOW_HEIGHT)
+        ## New Window Sink, same dimensions as tiler
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -185,10 +127,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 
-            'on-screen-display', 'egl-sink', None])
+            ['uri-source', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -197,7 +138,8 @@ def main(args):
             state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -206,6 +148,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

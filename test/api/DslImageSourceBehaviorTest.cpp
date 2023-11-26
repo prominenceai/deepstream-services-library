@@ -74,7 +74,7 @@ static const uint offest_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 
 static const std::wstring ode_handler_name(L"ode-handler");
@@ -114,7 +114,7 @@ SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, 
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -137,7 +137,7 @@ SCENARIO( "A new Pipeline with a JPEG Image Source, Primary GIE, Tiled Display, 
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -179,7 +179,7 @@ SCENARIO( "A new Pipeline with a Single Image Source, Primary GIE, Tiled Display
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -202,7 +202,7 @@ SCENARIO( "A new Pipeline with a Single Image Source, Primary GIE, Tiled Display
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -247,7 +247,7 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -271,7 +271,7 @@ SCENARIO( "A new Pipeline with 4 JPEG Image Sources, Primary GIE, \
 
         const wchar_t* components[] = {L"image-source-1", L"image-source-2", 
             L"image-source-3", L"image-source-4", L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -310,7 +310,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -333,7 +333,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source, Primary GIE, Tiled Display
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -383,7 +383,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE,
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -406,7 +406,7 @@ SCENARIO( "A new Pipeline with a Image Stream Source (RGBA output), Primary GIE,
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -452,7 +452,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source, Primary GIE, Tiled Display,
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -475,7 +475,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source, Primary GIE, Tiled Display,
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -521,7 +521,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
             model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -544,7 +544,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-            L"window-sink", NULL};
+            L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -588,7 +588,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
 //            model_engine_file.c_str(), 
 //            0) == DSL_RESULT_SUCCESS );
 //        
-//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
@@ -611,7 +611,7 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
 //            DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
 //        
 //        const wchar_t* components[] = {L"image-source-1",L"primary-gie", L"tiler", 
-//            L"window-sink", NULL};
+//            L"egl-sink", NULL};
 //        
 //        
 //        WHEN( "When the Pipeline is Assembled" ) 
@@ -645,12 +645,12 @@ SCENARIO( "A new Pipeline with a Multi Image Source with start and stop indices 
 //        REQUIRE( dsl_source_image_multi_new(source_name1.c_str(), 
 //            jpeg_file_path_multi.c_str(), fps_n, fps_d) == DSL_RESULT_SUCCESS );
 //
-//        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+//        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
 //            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 //
 //        
 //        const wchar_t* components[] = {L"image-source-1",
-//            L"window-sink", NULL};
+//            L"egl-sink", NULL};
 //        
 //        WHEN( "When the Pipeline is Assembled" ) 
 //        {

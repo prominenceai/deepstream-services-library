@@ -34,7 +34,7 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-def osd_sink_pad_buffer_probe(buffer, user_data):
+def custom_pad_probe_handler(buffer, user_data):
     frame_number=0
     #Intiallizing object counter with 0.
     obj_counter = {

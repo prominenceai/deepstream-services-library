@@ -155,48 +155,11 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkOverlayNew(const char* name, uint display_id,
-        uint depth, uint offsetX, uint offsetY, uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // Get the Device properties
-            cudaDeviceProp deviceProp;
-            cudaGetDeviceProperties(&deviceProp, 0);
-            
-            if (!deviceProp.integrated)
-            {
-                LOG_ERROR("Overlay Sink is not supported on dGPU x86_64 builds");
-                return DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED;
-            }
-            
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Sink name '" << name << "' is not unique");
-                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = DSL_OVERLAY_SINK_NEW(
-                name, display_id, depth, offsetX, offsetY, width, height);
-
-            LOG_INFO("New Overlay Sink '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Sink '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
     DslReturnType Services::_sinkWindowRegister(DSL_BASE_PTR sink, 
         GstObject* element)
     {
-        LOG_FUNC();
+        LOG_FUNC(); 
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_windowRegistryMutex);
         
         if (m_windowSinkElements.find(sink)
             != m_windowSinkElements.end())
@@ -216,6 +179,7 @@ namespace DSL
     DslReturnType Services::_sinkWindowUnregister(DSL_BASE_PTR sink)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_windowRegistryMutex);
 
         if (m_windowSinkElements.find(sink)
             == m_windowSinkElements.end())
@@ -233,6 +197,7 @@ namespace DSL
     DSL_BASE_PTR Services::_sinkWindowGet(GstObject* element)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_windowRegistryMutex);
 
         for (const auto& imap: m_windowSinkElements)
         {
@@ -247,7 +212,45 @@ namespace DSL
         return nullptr;
     }
     
-    DslReturnType Services::SinkWindowNew(const char* name, 
+    DslReturnType Services::SinkWindow3dNew(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);
+            
+            if (!deviceProp.integrated)
+            {
+                LOG_ERROR("3D Sink is not supported on dGPU x86_64 builds");
+                return DSL_RESULT_SINK_3D_NOT_SUPPORTED;
+            }
+            
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_3D_SINK_NEW(
+                name, offsetX, offsetY, width, height);
+
+            LOG_INFO("New 3D Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New 3D Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkWindowEglNew(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
@@ -261,7 +264,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_WINDOW_SINK_NEW(name, 
+            m_components[name] = DSL_EGL_SINK_NEW(name, 
                 offsetX, offsetY, width, height);
 
             LOG_INFO("New Window Sink '" << name << "' created successfully");
@@ -275,6 +278,126 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkWindowOffsetsGet(const char* name, 
+        uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            pWindowSink->GetOffsets(offsetX, offsetY);
+            
+            LOG_INFO("Window Sink '" << name << "' returned Offset X = " 
+                << *offsetX << " and Offset Y = " << *offsetY << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name << "' threw an exception getting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowOffsetsSet(const char* name, 
+        uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSink->SetOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("Window Sink '" << name << "' failed to set offsets");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name << "' set Offset X = " 
+                << offsetX << " and Offset Y = " << offsetY << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name << "' threw an exception setting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            pWindowSink->GetDimensions(width, height);
+
+            LOG_INFO("Window Sink '" << name << "' returned Width = " 
+                << *width << " and Height = " << *height << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSink->SetDimensions(width, height))
+            {
+                LOG_ERROR("Window Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name << "' set Width = " 
+                << width << " and Height = " << height << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkWindowHandleGet(const char* name, uint64_t* handle) 
     {
         LOG_FUNC();
@@ -283,8 +406,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -313,8 +435,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -346,8 +467,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -370,71 +490,6 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::SinkWindowForceAspectRatioGet(const char* name, 
-        boolean* force)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
-
-            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
-                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
-
-            *force = pWindowSinkBintr->GetForceAspectRatio();
-            
-            LOG_INFO("Window Sink '" << name 
-            << "' returned Force Aspect Ration = " 
-                << *force  << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception getting 'force-aspect-ratio'");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkWindowForceAspectRatioSet(const char* name, 
-        boolean force)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
-
-            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
-                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
-
-            if (!pWindowSinkBintr->SetForceAspectRatio(force))
-            {
-                LOG_ERROR("Window Sink '" << name 
-                    << "' failed to Set 'force-aspec-ratio' property");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Window Sink '" << name << "' set force-aspect-ration = " 
-                << force  << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception setting force-apect-ratio property");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-        
     DslReturnType Services::SinkWindowFullScreenEnabledGet(const char* name, 
         boolean* enabled)
     {
@@ -444,8 +499,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -474,8 +528,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -509,8 +562,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -543,8 +595,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -577,8 +628,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -611,8 +661,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -645,8 +694,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -679,8 +727,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -704,8 +751,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRenderOffsetsGet(const char* name, 
-        uint* offsetX, uint* offsetY)
+    DslReturnType Services::SinkWindowEglForceAspectRatioGet(const char* name, 
+        boolean* force)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -713,27 +760,30 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                EglSinkBintr);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_EGL_SINK_PTR pEglWindowSinkBintr = 
+                std::dynamic_pointer_cast<EglSinkBintr>(m_components[name]);
 
-            pRenderSink->GetOffsets(offsetX, offsetY);
+            *force = pEglWindowSinkBintr->GetForceAspectRatio();
             
-            LOG_INFO("Render Sink '" << name << "' returned Offset X = " 
-                << *offsetX << " and Offset Y = " << *offsetY << "' successfully");
-
+            LOG_INFO("EGL Window Sink '" << name 
+            << "' returned force-aspect-ratio = " 
+                << *force  << " successfully");
+            
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception getting offsets");
+            LOG_ERROR("EGL Window Sink'" << name 
+                << "' threw an exception getting 'force-aspect-ratio'");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SinkRenderOffsetsSet(const char* name, 
-        uint offsetX, uint offsetY)
+    DslReturnType Services::SinkWindowEglForceAspectRatioSet(const char* name, 
+        boolean force)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -741,116 +791,31 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                EglSinkBintr);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_EGL_SINK_PTR pEglWindowSinkBintr = 
+                std::dynamic_pointer_cast<EglSinkBintr>(m_components[name]);
 
-            if (!pRenderSink->SetOffsets(offsetX, offsetY))
+            if (!pEglWindowSinkBintr->SetForceAspectRatio(force))
             {
-                LOG_ERROR("Render Sink '" << name << "' failed to set offsets");
+                LOG_ERROR("EGL Window Sink '" << name 
+                    << "' failed to Set force-aspec-ratio property");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
-            LOG_INFO("Render Sink '" << name << "' set Offset X = " 
-                << offsetX << " and Offset Y = " << offsetY << "' successfully");
-
+            LOG_INFO("EGL Window Sink '" << name << "' set force-aspect-ratio = " 
+                << force  << " successfully");
+            
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception setting offsets");
+            LOG_ERROR("EGL Window Sink'" << name 
+                << "' threw an exception setting force-apect-ratio property");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::SinkRenderDimensionsGet(const char* name, 
-        uint* width, uint* height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
-
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
-
-            pRenderSink->GetDimensions(width, height);
-
-            LOG_INFO("Render Sink '" << name << "' returned Width = " 
-                << *width << " and Height = " << *height << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception getting dimensions");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkRenderDimensionsSet(const char* name, 
-        uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
-
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
-
-            if (!pRenderSink->SetDimensions(width, height))
-            {
-                LOG_ERROR("Render Sink '" << name << "' failed to set dimensions");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Render Sink '" << name << "' set Width = " 
-                << width << " and Height = " << height << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception setting dimensions");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SinkRenderReset(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
-
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
-
-            if (!pRenderSink->Reset())
-            {
-                LOG_ERROR("Render Sink '" << name << "' failed to reset its render suface");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Render Sink '" << name << "' Reset successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception reseting its surface");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {

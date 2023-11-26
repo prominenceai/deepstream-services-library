@@ -272,7 +272,7 @@ namespace DSL
         bool SetZoom(uint zoom);
 
         /**
-         * @brief Resets the Sink element for this RenderSinkBintr
+         * @brief Resets the Sink element for this WindowSinkBintr
          * @return false if the sink is currently Linked. True otherwise
          */
         bool Reset();
@@ -295,9 +295,6 @@ namespace DSL
          * Important: must be called by the BusWatch or Event Handler context.
          */
         void HandleEos();
-
-        static const uint m_displayId;
-        static const uint m_depth;
         
     protected:
 
@@ -315,7 +312,7 @@ namespace DSL
         bool SetDimensions();
 
         /**
-         * @brief Sink Type, either DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+         * @brief Sink Type, either DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
          */
         uint m_renderType;
         

@@ -43,7 +43,7 @@ static const std::wstring tilerName(L"tiler");
 static const uint width(1280);
 static const uint height(720);
 
-static const std::wstring windowSinkName(L"window-sink");
+static const std::wstring windowSinkName(L"egl-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
 static const uint sinkW(1280);
@@ -68,11 +68,11 @@ SCENARIO( "A new Pipeline with four URI Sources can Play", "[PipelineSources]" )
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {
@@ -114,11 +114,11 @@ SCENARIO( "A new Pipeline with four URI Sources can Pause and Play", "[PipelineS
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Played and then Paused" ) 
         {
@@ -163,12 +163,12 @@ SCENARIO( "A new Pipeline with four URI Sources can Stop and Play", "[PipelineSo
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", 
             L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Played and then Paused" ) 
         {
@@ -214,12 +214,12 @@ SCENARIO( "A single Source of a multi-source Pipeline can Pause and Resume", "[P
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", 
             L"test-uri-source-3", L"test-uri-source-4", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled and Played" ) 
         {

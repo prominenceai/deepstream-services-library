@@ -49,8 +49,8 @@
 import sys
 from dsl import *
 
-# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+# Import NVIDIA's pyds Pad Probe Handler example
+from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
 uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
@@ -134,7 +134,7 @@ def main(args):
         # New Custom Pad Probe Handler to call Nvidia's example callback 
         # for handling the Batched Meta Data
         retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=osd_sink_pad_buffer_probe, client_data=None)
+            client_handler=custom_pad_buffer_probe, client_data=None)
         
         # Add the custom PPH to the Sink pad of the OSD
         retval = dsl_osd_pph_add('on-screen-display', 
@@ -143,17 +143,17 @@ def main(args):
             break
         
         # New Window Sink, 0 x/y offsets and dimensions defined above.
-        retval = dsl_sink_window_new('window-sink', 0, 0, 
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
             WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -161,7 +161,7 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker', 
-            'on-screen-display', 'window-sink', None])
+            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

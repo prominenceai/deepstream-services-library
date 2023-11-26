@@ -30,7 +30,7 @@ static const std::wstring uri(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
 static const std::wstring sourceName  = L"test-source";
-static const std::wstring windowSinkName = L"window-sink";
+static const std::wstring windowSinkName = L"egl-sink";
 static const std::wstring tilerName = L"tiler";
 static const std::wstring pgieName = L"pgie";
 static const std::wstring osdName = L"osd";
@@ -63,7 +63,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
 
             REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), 
                 false, 0, 0) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+            REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
                 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_tiler_new(tilerName.c_str(), 
                 1280, 720) == DSL_RESULT_SUCCESS );
@@ -117,7 +117,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         REQUIRE( dsl_osd_new(osdName.c_str(), 
             true, true, true, false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 
@@ -157,7 +157,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             else
             {
                 const wchar_t* components[] = {L"test-source", L"dewarper", L"pgie", 
-                    L"iou-tracker", L"tiler", L"osd", L"window-sink", L"file-sink", NULL};
+                    L"iou-tracker", L"tiler", L"osd", L"egl-sink", L"file-sink", NULL};
                 REQUIRE( dsl_component_gpuid_set_many(components, newGpuId) == DSL_RESULT_SUCCESS );
             }
 
@@ -232,7 +232,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         }
         REQUIRE( dsl_osd_new(osdName.c_str(), 
             true, true, true, false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
@@ -276,7 +276,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
                 newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
             }
 
-//            const wchar_t* components[] = {L"test-source", L"pgie", L"tiler", L"osd", L"window-sink", NULL};
+//            const wchar_t* components[] = {L"test-source", L"pgie", L"tiler", L"osd", L"egl-sink", NULL};
 //            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
             const wchar_t* components[] = {L"test-source", L"pgie", L"tiler", L"osd", NULL};
             REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );

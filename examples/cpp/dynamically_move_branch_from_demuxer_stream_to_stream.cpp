@@ -198,27 +198,27 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_new(L"window-sink", 
+        retval = dsl_sink_window_egl_new(L"egl-sink", 
             300, 300, 1280, 720);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
         // be set to false to support dynamic Pipeline updates.ties.
-        retval = dsl_sink_sync_enabled_set(L"window-sink", FALSE);
+        retval = dsl_sink_sync_enabled_set(L"egl-sink", FALSE);
         if (retval != DSL_RESULT_SUCCESS) break;
             
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a list of dynamic branch components.
        const wchar_t* branch_components[] = {
-            L"on-screen-display", L"window-sink", NULL};
+            L"on-screen-display", L"egl-sink", NULL};
             
         // Add the branch components to a new branch
         retval = dsl_branch_new_component_add_many(L"branch-0",

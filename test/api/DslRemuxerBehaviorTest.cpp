@@ -116,13 +116,13 @@ SCENARIO( "Two File Sources, Remuxer, and two branches with Tilers and Window Si
         REQUIRE( dsl_tiler_new(tiler_name2.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, width, height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), 
             false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, width, height) 
             == DSL_RESULT_SUCCESS );
 
@@ -199,13 +199,13 @@ each added to a single stream can play",
         REQUIRE( dsl_source_file_new(source_name2.c_str(), uri.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, width, height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), 
             false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, width, height) 
             == DSL_RESULT_SUCCESS );
 
@@ -313,13 +313,13 @@ each added to a single stream can play",
             ode_trigger_name2.c_str()) == DSL_RESULT_SUCCESS );
 
 
-        REQUIRE( dsl_sink_window_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, width, height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), 
             false) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, width, height) 
             == DSL_RESULT_SUCCESS );
 

@@ -1237,9 +1237,6 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
-        DslReturnType SinkOverlayNew(const char* name, uint display_id,
-            uint depth, uint offsetX, uint offsetY, uint width, uint height);
-        
         // ---------------------------------------------------------------------------
         // The following three internal services provide access to the
         // database of active Window Sinks
@@ -1250,8 +1247,23 @@ namespace DSL {
         DSL_BASE_PTR _sinkWindowGet(GstObject* element);
         // ---------------------------------------------------------------------------
     
-        DslReturnType SinkWindowNew(const char* name, 
+        DslReturnType SinkWindow3dNew(const char* name,
             uint offsetX, uint offsetY, uint width, uint height);
+        
+        DslReturnType SinkWindowEglNew(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height);
+            
+        DslReturnType SinkWindowOffsetsGet(const char* name, 
+            uint* offsetX, uint* offsetY);
+
+        DslReturnType SinkWindowOffsetsSet(const char* name, 
+            uint offsetX, uint offsetY);
+        
+        DslReturnType SinkWindowDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkWindowDimensionsSet(const char* name, 
+            uint width, uint height);
 
         DslReturnType SinkWindowHandleGet(const char* name, uint64_t* handle);
 
@@ -1259,12 +1271,6 @@ namespace DSL {
         
         DslReturnType SinkWindowClear(const char* name);
         
-        DslReturnType SinkWindowForceAspectRatioGet(const char* name, 
-            boolean* force);
-
-        DslReturnType SinkWindowForceAspectRatioSet(const char* name, 
-            boolean force);
-            
         DslReturnType SinkWindowFullScreenEnabledGet(const char* name, 
             boolean* enabled);
         
@@ -1288,21 +1294,13 @@ namespace DSL {
 
         DslReturnType SinkWindowDeleteEventHandlerRemove(const char* name, 
             dsl_sink_window_delete_event_handler_cb handler);
+        
+        DslReturnType SinkWindowEglForceAspectRatioGet(const char* name, 
+            boolean* force);
+
+        DslReturnType SinkWindowEglForceAspectRatioSet(const char* name, 
+            boolean force);
             
-        DslReturnType SinkRenderOffsetsGet(const char* name, 
-            uint* offsetX, uint* offsetY);
-
-        DslReturnType SinkRenderOffsetsSet(const char* name, 
-            uint offsetX, uint offsetY);
-        
-        DslReturnType SinkRenderDimensionsGet(const char* name, 
-            uint* width, uint* height);
-
-        DslReturnType SinkRenderDimensionsSet(const char* name, 
-            uint width, uint height);
-        
-        DslReturnType SinkRenderReset(const char* name);
-
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bit_rate, uint interval);
             
@@ -2022,9 +2020,14 @@ namespace DSL {
         std::map <std::string, uint> m_inferProcessModes;
         
         /**
-         * @brief map of all Window-Sinks to their nveglglessink object pointer
+         * @brief map of all Window-Sinks to their 3d/egl plugin object pointer.
          */
         std::map <DSL_BASE_PTR, GstObject*> m_windowSinkElements;
+
+        /**
+         * @brief mutex to prevent Window registry re-entry
+         */
+        DslMutex m_windowRegistryMutex;
         
         /**
          * @brief map of all mailer objects by name

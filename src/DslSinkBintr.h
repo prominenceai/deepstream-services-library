@@ -51,17 +51,17 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
-    #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
-
-    #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
-    #define DSL_OVERLAY_SINK_NEW(name, displayId, depth, offsetX, offsetY, width, height) \
-        std::shared_ptr<OverlaySinkBintr>( \
-        new OverlaySinkBintr(name, displayId, depth, offsetX, offsetY, width, height))
-
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
-    #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
-        std::shared_ptr<WindowSinkBintr>( \
-        new WindowSinkBintr(name, offsetX, offsetY, width, height))
+
+    #define DSL_3D_SINK_PTR std::shared_ptr<ThreeDSinkBintr>
+    #define DSL_3D_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<ThreeDSinkBintr>( \
+        new ThreeDSinkBintr(name, offsetX, offsetY, width, height))
+
+    #define DSL_EGL_SINK_PTR std::shared_ptr<EglSinkBintr>
+    #define DSL_EGL_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<EglSinkBintr>( \
+        new EglSinkBintr(name, offsetX, offsetY, width, height))
 
     #define DSL_ENCODE_SINK_PTR std::shared_ptr<EncodeSinkBintr>
         
@@ -445,165 +445,15 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class RenderSinkBintr : public SinkBintr
-    {
-    public: 
-    
-        RenderSinkBintr(const char* name, 
-            uint offsetX, uint offsetY, uint width, uint height);
-
-        ~RenderSinkBintr();
-        
-        /**
-         * @brief Gets the current X and Y offset settings for this RenderSinkBintr
-         * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction in pixels
-         */ 
-        virtual void GetOffsets(uint* offsetX, uint* offsetY);
-
-        /**
-         * @brief Sets the current X and Y offset settings for this RednerSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direct to set in pixels
-         * @param[in] offsetY the offset in the Y direct to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        virtual bool SetOffsets(uint offsetX, uint offsetY) = 0;
-
-        /**
-         * @brief Gets the current width and height settings for this RenderSinkBintr
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        virtual void GetDimensions(uint* width, uint* height);
-        
-        /**
-         * @brief Sets the current width and height settings for this RenderSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the sink is currently Linked. True otherwise
-         */ 
-        virtual bool SetDimensions(uint width, uint hieght) = 0;
-        
-        /**
-         * @brief Resets the Sink element for this RenderSinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        virtual bool Reset() = 0;
-
-    protected:
-
-        /**
-         * @brief offset from the left edge in uints of pixels
-         */
-        uint m_offsetX;
-
-        /**
-         * @brief offset from the top edge in uints of pixels
-         */
-        uint m_offsetY;
-
-        /**
-         * @brief Width property for the SinkBintr in uints of pixels
-         */
-        uint m_width;
-
-        /**
-         * @brief Height property for the SinkBintr in uints of pixels
-         */
-        uint m_height;
-    };
-    
-    //-------------------------------------------------------------------------
-
-    class OverlaySinkBintr : public RenderSinkBintr
-    {
-    public: 
-    
-        OverlaySinkBintr(const char* name, uint displayId, uint depth, 
-            uint offsetX, uint offsetY, uint width, uint height);
-
-        ~OverlaySinkBintr();
-
-        /**
-         * @brief Resets the Sink element for this OverlaySinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        bool Reset();
-  
-        /**
-         * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
-         * Calling UnlinkAll when in an unlinked state has no effect.
-         */
-        void UnlinkAll();
-
-        int GetDisplayId();
-
-        bool SetDisplayId(int id);
-
-        /**
-         * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direct to set in pixels
-         * @param[in] offsetY the offset in the Y direct to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetOffsets(uint offsetX, uint offsetY);
-        
-        /**
-         * @brief Sets the current width and height settings for this OverlaySinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetDimensions(uint width, uint hieght);
-
-        static std::list<uint> s_uniqueIds;
-        
-    private:
-
-        uint m_displayId;
-        uint m_uniqueId;
-        uint m_depth;
-    };
-
-    //-------------------------------------------------------------------------
-
-    class WindowSinkBintr : public RenderSinkBintr
+    class WindowSinkBintr : public SinkBintr
     {
     public: 
     
         WindowSinkBintr(const char* name, 
-            guint offsetX, guint offsetY, guint width, guint height);
+            uint offsetX, uint offsetY, uint width, uint height);
 
         ~WindowSinkBintr();
-  
-        /**
-         * @brief Resets the Sink element for this WindowSinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        bool Reset();
         
-        /**
-         * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
-         * Calling UnlinkAll when in an unlinked state has no effect.
-         */
-        void UnlinkAll();
-
         /**
          * @brief Gets the current X and Y offset settings for this WindowSinkBintr
          * @param[out] offsetX the current offset in the X direction in pixels
@@ -612,42 +462,36 @@ namespace DSL
         void GetOffsets(uint* offsetX, uint* offsetY);
 
         /**
-         * @brief Sets the current X and Y offset settings for this WindowSinkBintr
+         * @brief Sets the current X and Y offset settings for this RednerSinkBintr
          * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direction to set in pixels
-         * @param[in] offsetY the offset in the Y direction to set in pixels
+         * @param[in] offsetX the offset in the X direct to set in pixels
+         * @param[in] offsetY the offset in the Y direct to set in pixels
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
-        
+
         /**
          * @brief Gets the current width and height settings for this WindowSinkBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
-
+        
         /**
          * @brief Sets the current width and height settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
+         * @return false if the sink is currently Linked. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
-
-        /**
-         * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
-         * @return true if forced, false otherwise
-         */
-        bool GetForceAspectRatio();
         
         /**
-         * @brief Set the force-aspect-ration setting for the WindowSinkBinter
-         * @param[in] force set true to force-aspect-ration false otherwise
-         * @return 
+         * @brief Resets the Sink element for this WindowSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         * IMPORTANT! this is now only used by the EGL Window Sink. 
          */
-        bool SetForceAspectRatio(bool force);
+        virtual bool Reset(){return true;};
 
         /**
          * @brief Gets the current full-screen-enabled setting for the WindowSinkBintr
@@ -759,22 +603,29 @@ namespace DSL
          */
         bool Clear();
         
-        /**
-         * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetGpuId(uint gpuId);
+
+    protected:
 
         /**
-         * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
-         * @brief nvbufMemType new memory type to use, one of the 
-         * DSL_NVBUF_MEM_TYPE constant values.
-         * @return true if successfully set, false otherwise.
+         * @brief offset from the left edge in uints of pixels
          */
-        bool SetNvbufMemType(uint nvbufMemType);
+        uint m_offsetX;
 
-    private:
+        /**
+         * @brief offset from the top edge in uints of pixels
+         */
+        uint m_offsetY;
 
+        /**
+         * @brief Width property for the SinkBintr in uints of pixels
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the SinkBintr in uints of pixels
+         */
+        uint m_height;
+        
         /**
          * @brief Creates a new XWindow for the current XDisplay
          * @param[in] 
@@ -784,8 +635,6 @@ namespace DSL
          */
         bool CreateXWindow();
         
-        bool m_forceAspectRatio;
-
         /**
          * @brief map of all currently registered XWindow-key-event-handlers
          * callback functions mapped with the user provided data
@@ -808,10 +657,19 @@ namespace DSL
             m_xWindowDeleteEventHandlers;
         
         /**
-         * @brief Pointer to the XDisplay once connected withe server.
+         * @brief Pointer to the XDisplay opened in CreateXWindow().
          */
         Display* m_pXDisplay;
         
+        /**
+         * @brief Width of the XDisplay's default screen.
+         */
+        uint m_XDisplayWidth;
+        
+        /**
+         * @brief Height of the XDisplay's default screen.
+         */
+        uint m_XDisplayHeight;
         
         /**
          * @brief Mutex to ensures mutual exclusion for the m_pXDisplay member
@@ -849,19 +707,109 @@ namespace DSL
          */
         bool m_xWindowfullScreenEnabled;
 
+    };
+
+    static gpointer XWindowEventThread(gpointer pWindowSink);
+    
+    //-------------------------------------------------------------------------
+
+    class ThreeDSinkBintr : public WindowSinkBintr
+    {
+    public: 
+    
+        ThreeDSinkBintr(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height);
+
+        ~ThreeDSinkBintr();
+
         /**
-         * @brief Caps Filter required for dGPU WindowSinkBintr
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+    };
+
+    //-------------------------------------------------------------------------
+
+    class EglSinkBintr : public WindowSinkBintr
+    {
+    public: 
+    
+        EglSinkBintr(const char* name, 
+            guint offsetX, guint offsetY, guint width, guint height);
+
+        ~EglSinkBintr();
+  
+        /**
+         * @brief Resets the Sink element for this EglSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         */
+        bool Reset();
+        
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current force-aspect-ratio setting for the EglSinkBintr.
+         * @return true if forced, false otherwise.
+         */
+        bool GetForceAspectRatio();
+        
+        /**
+         * @brief Set the force-aspect-ration setting for the EglSinkBintr.
+         * @param[in] force set true to force-aspect-ration false otherwise
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetForceAspectRatio(bool force);
+
+        /**
+         * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
+         * @param[in] nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
+    private:
+
+        /**
+         * @brief true if force-aspect-ratio is set, false otherwise. 
+         */
+        bool m_forceAspectRatio;
+
+        /**
+         * @brief Caps Filter required for dGPU EglSinkBintr
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
 
         /**
-         * @brief Platform specific Transform element WindowSinkBintr
+         * @brief Platform specific Transform element EglSinkBintr
          */
         DSL_ELEMENT_PTR m_pTransform;
         
     };
-
-    static gpointer XWindowEventThread(gpointer pWindowSink);
 
     //-------------------------------------------------------------------------
 

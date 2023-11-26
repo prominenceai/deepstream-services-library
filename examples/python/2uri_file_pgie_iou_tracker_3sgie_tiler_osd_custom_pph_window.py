@@ -26,7 +26,7 @@
 
 import sys
 from dsl import *
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
 uri_h264 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
@@ -57,6 +57,14 @@ sgie3_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
 sgie3_model_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_int8.engine'
+
+# Tiler Output Dimensions
+TILER_WIDTH = 1920
+TILER_HEIGHT = 720
+
+# Window Sink Dimensions
+WINDOW_WIDTH = TILER_WIDTH
+WINDOW_HEIGHT = TILER_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -134,10 +142,23 @@ def main(args):
 
         # New Tiled Display, setting width and height, use default cols/rows 
         # set by source count
-        retval = dsl_tiler_new('tiler', 1920, 720)
+        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
  
+        # New Custom Pad Probe Handler to call Nvidia's example callback 
+        # for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', 
+            client_handler=custom_pad_probe_handler, client_data=None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # Add the custom PPH to the Sink pad (input) of the Tiler
+        retval = dsl_tiler_pph_add('tiler', 
+            handler='custom-pph', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, 
@@ -145,21 +166,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to call Nvidia's example callback 
-        # for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=osd_sink_pad_buffer_probe, client_data=None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', 
-            handler='custom-pph', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        ## New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
+        # New Window Sink with 0 x/y offsets and dimensions
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

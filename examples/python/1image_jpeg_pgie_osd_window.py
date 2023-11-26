@@ -64,8 +64,8 @@ primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
 # Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -125,8 +125,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        # New Window Sink with 0 x/y offsets and dimensions
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

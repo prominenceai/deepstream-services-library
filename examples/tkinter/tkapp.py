@@ -134,7 +134,7 @@ class App(tk.Tk):
             return retval
 
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display	
-        retval = dsl_sink_window_new(WINDOW_SINK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)	
+        retval = dsl_sink_window_egl_new(WINDOW_SINK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)	
         if retval != DSL_RETURN_SUCCESS:	
             return retval
             

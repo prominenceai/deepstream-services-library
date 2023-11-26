@@ -269,28 +269,28 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Two new Window Sinks, one for each Branch
-        retval = dsl_sink_window_new(L"window-sink-1",
+        retval = dsl_sink_window_egl_new(L"egl-sink-1",
             0, 0, SINK_1_WIDTH, SINK_1_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_new(L"window-sink-2",
+        retval = dsl_sink_window_egl_new(L"egl-sink-2",
             300, 300, SINK_2_WIDTH, SINK_2_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above to both Window Sinks
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink-1", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink-1", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink-2", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink-2", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink-1", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink-1", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink-2", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink-2", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
@@ -298,10 +298,10 @@ int main(int argc, char** argv)
         // Create the two branches and all of their components
 
         const wchar_t* branch_components1[] = {
-            L"pgie-1", L"tracker-1", L"tiler-1", L"osd-1", L"window-sink-1", NULL};
+            L"pgie-1", L"tracker-1", L"tiler-1", L"osd-1", L"egl-sink-1", NULL};
 
         const wchar_t* branch_components2[] = {
-            L"pgie-2", L"tracker-2", L"osd-2", L"window-sink-2", NULL};
+            L"pgie-2", L"tracker-2", L"osd-2", L"egl-sink-2", NULL};
             
         retval = dsl_branch_new_component_add_many(L"branch-1", branch_components1);
         if (retval != DSL_RESULT_SUCCESS) break;

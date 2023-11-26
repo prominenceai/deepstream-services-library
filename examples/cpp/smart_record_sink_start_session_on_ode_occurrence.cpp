@@ -345,26 +345,26 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets and same dimensions as streammuxer    
-        retval = dsl_sink_window_new(L"window-sink", 
+        retval = dsl_sink_window_egl_new(L"egl-sink", 
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Live Source so best to set the Window-Sink's sync enabled setting to false.
-        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
+        retval = dsl_sink_sync_enabled_set(L"egl-sink", false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"rtsp-source", L"primary-gie", L"iou-tracker", 
-            L"on-screen-display", L"window-sink", L"record-sink", nullptr};
+            L"on-screen-display", L"egl-sink", L"record-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;

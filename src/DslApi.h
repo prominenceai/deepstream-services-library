@@ -131,7 +131,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000D
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
 #define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
@@ -140,13 +140,13 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
 #define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
-
+    
 /**
  * OSD API Return Values
  */
@@ -682,7 +682,7 @@ THE SOFTWARE.
 #define DSL_V4L2_DEVICE_TYPE_NONE                                   0x00000000 
 #define DSL_V4L2_DEVICE_TYPE_CAPTURE                                0x00000001
 #define DSL_V4L2_DEVICE_TYPE_OUTPUT                                 0x00000002
-#define DSL_V4L2_DEVICE_TYPE_OVERLAY                                0x00000004
+#define DSL_V4L2_DEVICE_TYPE_3D                                     0x00000004
 #define DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE                            0x00000010
 #define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
 #define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
@@ -914,7 +914,7 @@ THE SOFTWARE.
 /**
  * @brief Sink Types for Render Players
  */
-#define DSL_RENDER_TYPE_OVERLAY                                     0
+#define DSL_RENDER_TYPE_3D                                          0
 #define DSL_RENDER_TYPE_WINDOW                                      1
 
 /**
@@ -6626,37 +6626,77 @@ DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
 DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
     
 /**
- * @brief creates a new, uniquely named Fake Sink component
- * @param[in] name unique component name for the new Fake Sink
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @brief Creates a new, uniquely named Fake Sink component.
+ * @param[in] name unique component name for the new Fake Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 
 /**
- * @brief creates a new, uniquely named Ovelay Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @param[in] display_id Id of the display to overlay, 0 = main display
- * @param[in] depth overlay depth for this Overlay Sink
- * @param[in] offset_x upper left corner offset in the X direction in pixels
- * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the Ovelay Sink in pixels
- * @param[in] heigth height of the Overlay Sink in pixels
+ * @brief Creates a new, uniquely named 3D Window Sink component.
+ * @param[in] name unique component name for the new 3D Window Sink.
+ * @param[in] offset_x upper left corner offset in the X direction in pixels.
+ * @param[in] offset_y upper left corner offset in the Y direction in pixels.
+ * @param[in] width width of the 3D Window Sink in pixels
+ * @param[in] heigth height of the 3D Window Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
-    uint depth, uint offset_x, uint offset_y, uint width, uint height);
+DslReturnType dsl_sink_window_3d_new(const wchar_t* name, 
+    uint offset_x, uint offset_y, uint width, uint height);
 
 /**
- * @brief Creates a new, uniquely named Window Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @param[in] offset_x upper left corner offset in the X direction in pixels
- * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the Window Sink in pixels
- * @param[in] heigth height of the Window Sink in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @brief Creates a new, uniquely named EGL Window Sink component.
+ * @param[in] name unique component name for the new EGL Window Sink.
+ * @param[in] offset_x upper left corner offset in the X direction in pixels.
+ * @param[in] offset_y upper left corner offset in the Y direction in pixels.
+ * @param[in] width width of the EGL Window Sink in pixels.
+ * @param[in] heigth height of the EGL Window Sink in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT.
  */
-DslReturnType dsl_sink_window_new(const wchar_t* name, 
+DslReturnType dsl_sink_window_egl_new(const wchar_t* name, 
     uint offset_x, uint offset_y, uint width, uint height);
+
+/**
+ * @brief returns the current X and Y offsets for named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to query.
+ * @param[out] offset_x current offset in the X direction for the Window Sink 
+ * in pixels.
+ * @param[out] offset_y current offset in the Y direction for the Window Sink 
+ * in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
+
+/**
+ * @brief sets the X and Y offsets for the named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to update - of type Overlay or Window
+ * @param[in] offset_x new offset for the Window Sink in the X direction in pixels
+ * @param[in] offset_y new offset for the Window Sink in the Y direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
+    
+/**
+ * @brief Returns the current dimensions for the named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to query.
+ * @param[out] width current width of Window Sink in pixels.
+ * @param[out] height current height of the Window Sink in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT.
+ */
+DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the dimensionsfor the named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] width width to set the video recording in pixels.
+ * @param[in] height height to set the video in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
 
 /**
  * @brief Gets the named Window Sinks's current XWindow handle. The handle will 
@@ -6679,34 +6719,15 @@ DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
 DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
 
 /**
- * @brief clears the named Window Sinks's XWindow.
+ * @brief Clears the named Window Sinks's XWindow; 3D or EGL.
  * @param[in] name name of the Window Sink to update.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_clear(const wchar_t* name);
 
 /**
- * @brief Gets the current "force-aspect-ration" property setting for the 
- * named Window Sink.
- * @param[in] name unique name of the Window Sink to query.
- * @param[out] force true if the apect ratio is forced, false otherwise.
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
-    boolean* force);
-
-/**
- * @brief Sets the "force-aspect-ration" property for the named Window Sink
- * @param[in] name unique name of the Window Sink to update
- * @param[in] force set to true to force the apect ratio, false otherwise
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
-    boolean force);
-
-/**
- * @brief Gets the current full-screen-enabled setting for the named Window Sink
- * @param[in] name name of the Window Sink to query
+ * @brief Gets the current full-screen-enabled setting for the named Window Sink.
+ * @param[in] name name of the Window Sink to query; 3D or EGL.
  * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
   * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
 */
@@ -6715,7 +6736,7 @@ DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name,
 
 /**
  * @brief Sets the full-screen-enabled setting for the named Window Sink to use.
- * @param[in] name name of the Window Sink to update.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] enabled if true, sets the XWindow to full-screen on creation.
  * The service will fail if called after the XWindow has been created.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6724,9 +6745,9 @@ DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name,
     boolean enabled);
 
 /**
- * @brief adds a callback to a named Window Sink to be notified on Window 
+ * @brief Adds a callback to a named Window Sink to be notified on Window 
  * KeyRelease events.
- * @param[in] name name of the Window Sink to update
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to handle Window key events.
  * @param[in] client_data pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6737,7 +6758,7 @@ DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name,
 /**
  * @brief Removes a callback from a named Window Sink previously added with 
  * dsl_sink_window_key_event_handler_add.
- * @param[in] name name of the Window Sink to update.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
@@ -6747,7 +6768,7 @@ DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name,
 /**
  * @brief Adds a callback to a named Window Sink be notified on Window 
  * ButtonPress Event
- * @param[in] name name of the Window Sink to update
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to handle Window button events.
  * @param[in] client_data pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6757,9 +6778,9 @@ DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name,
 
 /**
  * @brief Removes a callback from a named Window Sink previously added with 
- * dsl_sink_window_button_event_handler_add
- * @param[in] name name of the Window Sink to update
- * @param[in] handler pointer to the client's function to remove
+ * dsl_sink_window_button_event_handler_add.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
+ * @param[in] handler pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */ 
 DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
@@ -6767,8 +6788,8 @@ DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name,
 
 /**
  * @brief Adds a callback to a named Window Sink to be notified on Window 
- * Delete message event
- * @param[in] name name of the Window Sink to update
+ * Delete message event.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to handle a Window Delete event.
  * @param[in] client_data pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6778,63 +6799,32 @@ DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name,
 
 /**
  * @brief removes a callback from a named Window Sink previously added with 
- * dsl_sink_window_delete_event_handler_add
- * @param[in] name name of the Window Sink to update
- * @param[in] handler pointer to the client's function to remove
+ * dsl_sink_window_delete_event_handler_add.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
+ * @param[in] handler pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_delete_event_handler_cb handler);
-
-/**
- * @brief returns the current X and Y offsets for the Render Sink
- * @param[in] name name of the Render Sink to query - of type Overlay or Window
- * @param[out] offset_x current offset in the X direction for the Render Sink in pixels
- * @param[out] offset_y current offset in the Y direction for the Render Sink in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
-    uint* offset_x, uint* offset_y);
-
-/**
- * @brief sets the X and Y offsets for the On-Screen-Display clock
- * @param[in] name name of the Render Sink to update - of type Overlay or Window
- * @param[in] offset_x new offset for the Render Sink in the X direction in pixels
- * @param[in] offset_y new offset for the Render Sink in the Y direction in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
-    uint offset_x, uint offset_y);
     
 /**
- * @brief Returns the dimensions, width and height, in use by the Render Sink
- * The Render Sink can be of type Window Sink or Overlay Sink
- * @param[in] name name of the Render Sink to query
- * @param[out] width current width of the video recording in pixels
- * @param[out] height current height of the video recording in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @brief Gets the current "force-aspect-ratio" property setting for the 
+ * named EGL Window Sink.
+ * @param[in] name unique name of the EGL Window Sink to query.
+ * @param[out] force true if the apect ratio is forced, false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
  */
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force);
 
 /**
- * @brief Sets the dimensions, width and height, for the Render Sink
- * @param[in] name name of the Render Sink to update
- * @param[in] width width to set the video recording in pixels
- * @param[in] height height to set the video in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @brief Sets the "force-aspect-ratio" property for the named EGL Window Sink
+ * @param[in] name unique name of the EGL Window Sink to update
+ * @param[in] force set to true to force the apect ratio, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
-    uint width, uint height);
-
-/**
- * @brief Resets the Render Sink causing it to close it's Rendering surface.
- * The Sink can only be reset when in a state of NULL or READY. 
- * A new surface will be created on Pipeline play, Overlay or Window.
- * @param[in] name unique name of the Render Sink to reset
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_reset(const wchar_t* name);
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force);
 
 /**
  * @brief creates a new, uniquely named File Sink component
@@ -8404,7 +8394,7 @@ DslReturnType dsl_player_new(const wchar_t* name,
  * @brief Creates a new, uniquely named Video Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the file to render
- * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
@@ -8418,7 +8408,7 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* f
  * @brief Creates a new, uniquely named Image Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the image to render
- * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
