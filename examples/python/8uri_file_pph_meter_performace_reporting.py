@@ -43,7 +43,7 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
+TILER_WIDTH = DSL_1K_HD_WIDTH
 TILER_HEIGHT = 720
 
 WINDOW_WIDTH = TILER_WIDTH

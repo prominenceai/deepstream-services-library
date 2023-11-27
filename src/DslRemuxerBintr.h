@@ -113,22 +113,6 @@ namespace DSL
          * @return true if batch-properties are succesfully set, false otherwise.
          */
         bool SetBatchProperties(uint batchSize, int batchTimeout);
-
-        /**
-         * @brief Gets the current dimensions for the RemuxerBranchBintr's 
-         * Streammuxer.
-         * @param[out] width width in pixels for the current setting
-         * @param[out] height height in pixels for the curren setting
-         */
-        void GetDimensions(uint* width, uint* height);
-
-        /**
-         * @brief Set the dimensions for the RemuxerBranchBintr's Streammuxer
-         * @param width width in pixels to set the streammux Output
-         * @param height height in pixels to set the Streammux output
-         * @return true if the output dimensions could be set, false otherwise
-         */
-        bool SetDimensions(uint width, uint height);
         
     private:
     
@@ -143,16 +127,6 @@ namespace DSL
          */
         int m_batchTimeout;
         
-        /**
-         * @brief Streammuxer batched frame output width in pixels
-         */
-        uint m_width;
-
-        /**
-         * @brief Streammuxer batched frame output height in pixels
-         */
-        uint m_height;
-
         /**
          * @brief Child Branch to link to the Streammuxer
          */
@@ -289,23 +263,6 @@ namespace DSL
         bool SetBatchProperties(uint batchSize, int batchTimeout);
 
         /**
-         * @brief Gets the current output frame dimensions for the RemuxerBintr.
-         * Settings are used by all Streammuxers created for this RemuxerBintr.
-         * @param[out] width width in pixels for the current setting.
-         * @param[out] height height in pixels for the curren setting.
-         */
-        void GetDimensions(uint* width, uint* height);
-
-        /**
-         * @brief Set the frame dimensions for the RemuxerBintr to use.
-         * Settings are used by all Streammuxers created for this RemuxerBintr.
-         * @param width width in pixels to set the streamMux Output.
-         * @param height height in pixels to set the Streammux output.
-         * @return true if the output dimensions could be set, false otherwise.
-         */
-        bool SetDimensions(uint width, uint height);
-
-        /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
          */
@@ -335,16 +292,6 @@ namespace DSL
          */
         std::vector<GstPad*> m_requestedSrcPads;
         
-        /**
-         * @brief Batched frame output width in pixels for all branches.
-         */
-        uint m_width;
-
-        /**
-         * @brief Batched frame output height in pixels for all branches.
-         */
-        uint m_height;
-
         /**
          * @brief Streamdemuxer for the RemuxerBintr.
          */

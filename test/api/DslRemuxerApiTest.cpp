@@ -164,8 +164,6 @@ SCENARIO( "A Remuxer can Set and Get all properties", "[remuxer-api]" )
     GIVEN( "A new Remuxer" ) 
     {
         std::wstring remuxer_name(L"remuxer");
-        uint ret_width(0);
-        uint ret_height(0);
         uint ret_batch_size(0);
         int ret_batch_timeout(0);
 
@@ -175,12 +173,6 @@ SCENARIO( "A Remuxer can Set and Get all properties", "[remuxer-api]" )
             &ret_batch_size, &ret_batch_timeout) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_batch_size == 0 );
         REQUIRE( ret_batch_timeout == -1 );
-
-        // Check the defaults
-        REQUIRE( dsl_tee_remuxer_dimensions_get(remuxer_name.c_str(), 
-            &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_width == DSL_STREAMMUX_DEFAULT_WIDTH );
-        REQUIRE( ret_height == DSL_STREAMMUX_DEFAULT_HEIGHT );
 
         WHEN( "A Remuxer's Batch Properties are Set " ) 
         {
@@ -197,21 +189,6 @@ SCENARIO( "A Remuxer can Set and Get all properties", "[remuxer-api]" )
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        WHEN( "A Remuxer's Dimensions are Set " ) 
-        {
-            uint new_width(640), new_height(360);
-            REQUIRE( dsl_tee_remuxer_dimensions_set(remuxer_name.c_str(), 
-                new_width, new_height) == DSL_RESULT_SUCCESS);
-            
-            THEN( "The correct values are returned on Get" ) 
-            {
-                REQUIRE( dsl_tee_remuxer_dimensions_get(remuxer_name.c_str(), 
-                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS);
-                REQUIRE( ret_width == new_width );
-                REQUIRE( ret_height == new_height );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-            }
-        }
     }
 }
 
@@ -222,20 +199,11 @@ SCENARIO( "The Remuxer API checks for NULL input parameters", "[remuxer-api]" )
         std::wstring remuxer_name(L"remuxer");
         
         uint batch_size(0);
-        uint width(0);
 
         WHEN( "When NULL pointers are used as input" ) 
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_tee_remuxer_dimensions_get(NULL, 
-                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_remuxer_dimensions_get(remuxer_name.c_str(), 
-                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_remuxer_dimensions_get(remuxer_name.c_str(), 
-                    &batch_size, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tee_remuxer_dimensions_set(NULL, 
-                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
             }
         }
     }

@@ -39,8 +39,6 @@ namespace DSL
         , m_pChildBranch(pChildBranch)
         , m_linkSelectiveStreams(numStreamIds)   // true if numStreamIds > 0
         , m_batchTimeout(-1)                     
-        , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
     {
         LOG_FUNC();
 
@@ -66,8 +64,6 @@ namespace DSL
         LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
         LOG_INFO("  child-branch           : " << m_pChildBranch->GetName());
         LOG_INFO("  stream-ids             : " << ssStreamIds.str());
-        LOG_INFO("  width                  : " << m_width);
-        LOG_INFO("  height                 : " << m_height);
         LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
        
         // Add both the ChildBranch and new Streammuxer to this RemuxerBranchBintr
@@ -299,40 +295,10 @@ namespace DSL
         return true;
     }
     
-    void RemuxerBranchBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
-    }
-
-    bool RemuxerBranchBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update dimensions for RemuxerBranchBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_width = width;
-        m_height = height;
-
-        m_pStreammuxer->SetAttribute("width", m_width);
-        m_pStreammuxer->SetAttribute("height", m_height);
-        
-        return true;
-    }
-
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
         : TeeBintr(name)
-        , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
         , m_batchTimeout(-1)
         , m_batchSizeSetByClient(false)
         // m_batchSize initialized to 0 in Bintr ctor
@@ -348,8 +314,6 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
-        LOG_INFO("  width                  : " << m_width);
-        LOG_INFO("  height                 : " << m_height);
         LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
         
         // Add the demuxer as child and elevate as sink ghost pad
@@ -520,7 +484,6 @@ namespace DSL
         for (auto const& imap: m_childBranches)
         {
             if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
-                !imap.second->SetDimensions(m_width, m_height) or
                 !imap.second->LinkAll() or
                 !imap.second->LinkToSourceTees(m_tees))
             {
@@ -652,29 +615,6 @@ namespace DSL
         return true;
     }
     
-    void RemuxerBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-
-        *width = m_width;
-        *height = m_height;
-    }
-
-    bool RemuxerBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set Streammuxer dimension for RemuxerBintr '" 
-                << GetName() << "' as it is currently linked");
-            return false;
-        }
-        m_width = width;
-        m_height = height;
-        return true;
-    }
-
     bool RemuxerBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();

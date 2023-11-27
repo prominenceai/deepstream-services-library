@@ -106,20 +106,6 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    uint PipelineBintr::GetStreammuxNvbufMemType()
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->GetStreammuxNvbufMemType();
-    }
-
-    bool PipelineBintr::SetStreammuxNvbufMemType(uint type)
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->SetStreammuxNvbufMemType(type);
-    }
-
     void PipelineBintr::GetStreammuxBatchProperties(uint* batchSize, 
         int* batchTimeout)
     {
@@ -138,34 +124,6 @@ namespace DSL
             SetStreammuxBatchProperties(batchSize, batchTimeout);
     }
 
-    void PipelineBintr::GetStreammuxDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-
-        m_pPipelineSourcesBintr->GetStreammuxDimensions(width, height);
-    }
-
-    bool PipelineBintr::SetStreammuxDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->SetStreammuxDimensions(width, height);
-    }
-    
-    bool PipelineBintr::GetStreammuxPadding()
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->GetStreammuxPaddingEnabled();
-    }
-    
-    bool PipelineBintr::SetStreammuxPadding(boolean enabled)
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->SetStreammuxPaddingEnabled(enabled);
-    }
-    
     uint PipelineBintr::GetStreammuxNumSurfacesPerFrame()
     {
         LOG_FUNC();

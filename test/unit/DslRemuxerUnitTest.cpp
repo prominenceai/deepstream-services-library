@@ -69,11 +69,6 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids is created correctly",
                     &retBatchTimeout);
                 REQUIRE( retBatchSize == 0 );
                 REQUIRE( retBatchTimeout == -1 );
-                
-                uint retWidth(0), retHeight(0);
-                pRemuxerBranchBintr->GetDimensions(&retWidth, &retHeight);
-                REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
-                REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
             }
         }
     }
@@ -105,11 +100,6 @@ SCENARIO( "A RemuxerBranchBintr whith no specific stream-ids is created correctl
                     &retBatchTimeout);
                 REQUIRE( retBatchSize == 0 );
                 REQUIRE( retBatchTimeout == -1 );
-                
-                uint retWidth(0), retHeight(0);
-                pRemuxerBranchBintr->GetDimensions(&retWidth, &retHeight);
-                REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
-                REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
             }
         }
     }
@@ -255,11 +245,6 @@ SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
             {
                 REQUIRE( pRemuxerBintr->GetName() == remuxerBintrName );
                 REQUIRE( pRemuxerBintr->GetNumChildren() == 0 );
-                
-                uint retWidth(0), retHeight(0);
-                pRemuxerBintr->GetDimensions(&retWidth, &retHeight);
-                REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
-                REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
                 
                 uint retBatchSize(99);
                 int retBatchTimeout(0);

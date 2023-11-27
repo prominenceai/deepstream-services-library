@@ -67,8 +67,8 @@ use-case -- can play]", "[dewarper-behavior]")
             
         uint camera_id(6); // for sample_cam6.mp4
 
-        uint muxer_width(960);
-        uint muxer_height(752);
+        uint sink_width(960);
+        uint sink_height(752);
         uint muxer_batch_timeout_usec(33000);
         
         REQUIRE( dsl_component_list_size() == 0 );
@@ -83,10 +83,10 @@ use-case -- can play]", "[dewarper-behavior]")
             dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
-            muxer_width, muxer_height*4) == DSL_RESULT_SUCCESS );
+            sink_width, sink_height*4) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
-            offest_x, offest_y, muxer_width/2, muxer_height*2) == DSL_RESULT_SUCCESS );
+            offest_x, offest_y, sink_width/2, sink_height*2) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is assembled" ) 
         {
@@ -100,9 +100,6 @@ use-case -- can play]", "[dewarper-behavior]")
             REQUIRE( dsl_dewarper_num_batch_buffers_get(dewarper_name.c_str(), 
                 &num_surfaces) == DSL_RESULT_SUCCESS );
                 
-            REQUIRE( dsl_pipeline_streammux_dimensions_set(
-                pipeline_name.c_str(), muxer_width, muxer_height) 
-                    == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_streammux_batch_properties_set(
                 pipeline_name.c_str(), num_surfaces, muxer_batch_timeout_usec) 
                     == DSL_RESULT_SUCCESS );
@@ -140,8 +137,8 @@ Projection use-case -- can play]", "[dewarper-behavior]")
             
         uint camera_id(0); // csv files are not used 
 
-        uint muxer_width(3680);
-        uint muxer_height(2428);        
+        uint sink_width(3680);
+        uint sink_height(2428);        
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -158,7 +155,7 @@ Projection use-case -- can play]", "[dewarper-behavior]")
             dewarper_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
-            offest_x, offest_y, muxer_width, muxer_height) == DSL_RESULT_SUCCESS );
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is assembled" ) 
         {
@@ -168,10 +165,6 @@ Projection use-case -- can play]", "[dewarper-behavior]")
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_pipeline_streammux_dimensions_set(
-                pipeline_name.c_str(), muxer_width, muxer_height) 
-                    == DSL_RESULT_SUCCESS );
-                
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 

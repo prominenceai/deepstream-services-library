@@ -1593,24 +1593,12 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
-        DslReturnType PipelineStreammuxNvbufMemTypeGet(const char* name, 
-            uint* type);
-
-        DslReturnType PipelineStreammuxNvbufMemTypeSet(const char* name, 
-            uint type);
-
         DslReturnType PipelineStreammuxBatchPropertiesGet(const char* name,
             uint* batchSize, int* batchTimeout);
 
         DslReturnType PipelineStreammuxBatchPropertiesSet(const char* name,
             uint batchSize, int batchTimeout);
 
-        DslReturnType PipelineStreammuxDimensionsGet(const char* name,
-            uint* width, uint* height);
-
-        DslReturnType PipelineStreammuxDimensionsSet(const char* name,
-            uint width, uint height);
-            
         DslReturnType PipelineStreammuxPaddingGet(const char* name, boolean* enabled);
 
         DslReturnType PipelineStreammuxPaddingSet(const char* name, boolean enabled);

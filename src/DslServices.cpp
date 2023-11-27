@@ -131,11 +131,20 @@ namespace DSL
                 // initialize the GStreamer library
                 gst_init(&argc, &argv);
                 doGstDeinit = true;
-                
             }
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
+            
+            std::string value = getenv("USE_NEW_NVSTREAMMUX");
+            if (value != "yes")
+            {
+                LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to yes");
+                std::cout << "ERROR! USE_NEW_NVSTREAMMUX must be set to yes, use" 
+                    << std::endl;
+                std::cout << "$ export USE_NEW_NVSTREAMMUX=yes" << std::endl;
+                throw;
+            }
             
             _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
             

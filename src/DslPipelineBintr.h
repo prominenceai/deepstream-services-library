@@ -158,34 +158,6 @@ namespace DSL
         bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
 
         /**
-         * @brief Gets the current dimensions for the Pipeline's Stream Muxer
-         * @param[out] width width in pixels for the current setting
-         * @param[out] height height in pixels for the curren setting
-         */
-        void GetStreammuxDimensions(uint* width, uint* height);
-
-        /**
-         * @brief Set the dimensions for the Pipeline's Stream Muxer
-         * @param width width in pixels to set the streamMux Output
-         * @param height height in pixels to set the Streammux output
-         * @return true if the output dimensions could be set, false otherwise
-         */
-        bool SetStreammuxDimensions(uint width, uint height);
-        
-        /**
-         * @brief Gets the current setting for the Pipeline's Muxer padding
-         * @return true if padding is enabled, false otherwisee
-         */
-        bool GetStreammuxPadding();
-
-        /**
-         * @brief Sets, enables/disables the Pipeline's Stream Muxer padding.
-         * @param enabled set to true to enable padding, false otherwise.
-         * @return true if the Padding enabled setting could be set, false otherwise.
-         */
-        bool SetStreammuxPadding(boolean enabled);
-        
-        /**
          * @brief Gets the current setting for the Pipeline's Streammuxer
          * num-surfaces-per-frame seting
          * @return current setting for the number of surfaces [1..4].

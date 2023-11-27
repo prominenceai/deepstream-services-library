@@ -54,8 +54,8 @@ dwarper_config_file = \
 streammux_width = 3680
 streammux_height = 2428
 
-sink_width = DSL_STREAMMUX_DEFAULT_WIDTH
-sink_height = DSL_STREAMMUX_DEFAULT_HEIGHT
+sink_width = DSL_1K_HD_WIDTH
+sink_height = DSL_1K_HD_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event

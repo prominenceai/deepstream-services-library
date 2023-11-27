@@ -6494,32 +6494,6 @@ DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name,
         cstrName.c_str(), batch_size, batch_timeout);
 }
 
-DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(width);
-    RETURN_IF_PARAM_IS_NULL(height);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->TeeRemuxerDimensionsGet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
-    uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->TeeRemuxerDimensionsSet(
-        cstrName.c_str(), width, height);
-}    
-
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -9022,31 +8996,6 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
-    uint* type)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(type);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeGet(cstrName.c_str(),
-        type);
-}
-
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
-    uint type)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeSet(cstrName.c_str(),
-        type);
-}
-
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
     uint* batch_size, int* batch_timeout)
 {
@@ -9071,57 +9020,6 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesSet(
         cstrName.c_str(), batch_size, batch_timeout);
-}
-
-DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(width);
-    RETURN_IF_PARAM_IS_NULL(height);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineStreammuxDimensionsGet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name, 
-    uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineStreammuxDimensionsSet(
-        cstrName.c_str(), width, height);
-}    
-
-DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
-    boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(enabled);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineStreammuxPaddingGet(
-        cstrName.c_str(), enabled);
-}
-
-DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
-    boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->PipelineStreammuxPaddingSet(
-        cstrName.c_str(), enabled);
 }
 
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(

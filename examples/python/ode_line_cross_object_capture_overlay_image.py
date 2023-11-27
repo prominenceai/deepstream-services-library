@@ -45,8 +45,7 @@ from dsl import *
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs for the Primary GIE
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_infer_config_file = \DSL_1K_HD_deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
 
@@ -59,8 +58,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+WINDOW_WIDTH = DSL_1K_HD_WIDTH
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT
 
 # Minimum Inference confidence level to Trigger ODE Occurrence
 # Used for all ODE Triggers
