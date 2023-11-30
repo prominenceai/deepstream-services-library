@@ -136,8 +136,9 @@ namespace DSL
             // Safe to start logging
             LOG_INFO("Services Initialization");
             
-            std::string value = getenv("USE_NEW_NVSTREAMMUX");
-            if (value != "yes")
+            
+            const char* value = getenv("USE_NEW_NVSTREAMMUX");
+            if (!value or std::string(value) != "yes")
             {
                 LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to yes");
                 std::cout << "ERROR! USE_NEW_NVSTREAMMUX must be set to yes, use" 

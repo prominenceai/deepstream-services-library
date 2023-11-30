@@ -74,21 +74,18 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
         uint batch_size(0); 
         int batch_timeout(0);
         
-        dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
-            &batch_size, &batch_timeout);
+        REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+            &batch_size) == DSL_RESULT_SUCCESS );
         REQUIRE( batch_size == 0 );
-        REQUIRE( batch_timeout == -1 ); // default for plugin
         
         WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
         {
             uint new_batch_size(6); 
-            int new_batch_timeout(50000);
-            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), 
-                new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
-            dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
-                &batch_size, &batch_timeout);
+            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipelineName.c_str(), 
+                new_batch_size) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+                &batch_size) == DSL_RESULT_SUCCESS );
             REQUIRE( batch_size == new_batch_size );
-            REQUIRE( batch_timeout == new_batch_timeout );
         
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
@@ -97,10 +94,9 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
 
             THEN( "The updated Stream Muxer Batch Size is used" )
             {
-                dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
-                    &batch_size, &batch_timeout);
+                REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+                    &batch_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( batch_size == new_batch_size );
-                REQUIRE( batch_timeout == new_batch_timeout );
                 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -159,30 +155,30 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
         
         uint batch_size(0); 
-        int batch_timeout(0);
         
-        dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+        REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+            &batch_size) == DSL_RESULT_SUCCESS );
         REQUIRE( batch_size == 0 );
-        REQUIRE( batch_timeout == -1 );
         
-        WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
+        WHEN( "The Pipeline's Stream Muxer Batch Size is set to less than the number of sources" ) 
         {
-            uint new_batch_size(1), new_batch_timeout(50000);
-            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), 
-                new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
-            dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+            uint new_batch_size(1);
+            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipelineName.c_str(), 
+                new_batch_size) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+                &batch_size) == DSL_RESULT_SUCCESS );
             REQUIRE( batch_size == new_batch_size );
-            REQUIRE( batch_timeout == new_batch_timeout );
         
-            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The updated Stream Muxer Batch Size is used" )
             {
-                dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+                REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+                    &batch_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( batch_size == new_batch_size );
-                REQUIRE( batch_timeout == new_batch_timeout );
                 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
@@ -232,40 +228,40 @@ SCENARIO( "The sync-inputs property for a Pipeline's Streammuxer can be read and
     }
 }
 
-SCENARIO( "The GPUID for a Pipeline's Streammuxer can be read and updated", 
-    "[pipeline-streammux]" )
-{
-    GIVEN( "A new Pipeline with its built-in streammuxer" ) 
-    {
-        std::wstring pipelineName  = L"test-pipeline";
-
-        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        
-        uint ret_gpuid(99);
-        
-        REQUIRE( dsl_pipeline_streammux_gpuid_get(pipelineName.c_str(), 
-            &ret_gpuid)  == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_gpuid == 0 );
-        
-        WHEN( "The Pipeline's Streammuxer's GPU ID is updated" ) 
-        {
-            uint new_gpuid(1);
-
-            REQUIRE( dsl_pipeline_streammux_gpuid_set(pipelineName.c_str(), 
-                new_gpuid) == DSL_RESULT_SUCCESS );
-
-            THEN( "The updated Streammuxer NVIDIA buffer memory type  is returned" )
-            {
-                REQUIRE( dsl_pipeline_streammux_gpuid_get(pipelineName.c_str(), 
-                    &ret_gpuid) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_gpuid == new_gpuid );
-                
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-            }
-        }
-    }
-}
+//SCENARIO( "The GPUID for a Pipeline's Streammuxer can be read and updated", 
+//    "[pipeline-streammux]" )
+//{
+//    GIVEN( "A new Pipeline with its built-in streammuxer" ) 
+//    {
+//        std::wstring pipelineName  = L"test-pipeline";
+//
+//        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+//        
+//        uint ret_gpuid(99);
+//        
+//        REQUIRE( dsl_pipeline_streammux_gpuid_get(pipelineName.c_str(), 
+//            &ret_gpuid)  == DSL_RESULT_SUCCESS );
+//        REQUIRE( ret_gpuid == 0 );
+//        
+//        WHEN( "The Pipeline's Streammuxer's GPU ID is updated" ) 
+//        {
+//            uint new_gpuid(1);
+//
+//            REQUIRE( dsl_pipeline_streammux_gpuid_set(pipelineName.c_str(), 
+//                new_gpuid) == DSL_RESULT_SUCCESS );
+//
+//            THEN( "The updated Streammuxer NVIDIA buffer memory type  is returned" )
+//            {
+//                REQUIRE( dsl_pipeline_streammux_gpuid_get(pipelineName.c_str(), 
+//                    &ret_gpuid) == DSL_RESULT_SUCCESS );
+//                REQUIRE( ret_gpuid == new_gpuid );
+//                
+//                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+//                REQUIRE( dsl_pipeline_list_size() == 0 );
+//            }
+//        }
+//    }
+//}
 
 SCENARIO( "A Tiler can be added to and removed from a Pipeline's Streammuxer output", 
     "[pipeline-streammux]" )
@@ -344,14 +340,12 @@ SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipel
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_pipeline_streammux_batch_properties_get(NULL, 
-                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
-                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), 
-                    &batch_size, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_batch_properties_set(NULL, 
-                    1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_batch_size_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_batch_size_get(pipelineName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_batch_size_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -367,11 +361,11 @@ SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipel
                 REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_set(NULL, 
                     true) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_pipeline_streammux_gpuid_get(NULL, 
+                REQUIRE( dsl_pipeline_streammux_max_latency_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_gpuid_get(pipelineName.c_str(), 
+                REQUIRE( dsl_pipeline_streammux_max_latency_get(pipelineName.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_gpuid_set(NULL, 
+                REQUIRE( dsl_pipeline_streammux_max_latency_set(NULL, 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_pipeline_streammux_tiler_add(NULL, 

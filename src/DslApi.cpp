@@ -6468,30 +6468,29 @@ DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name,
         cstrBranch.c_str(), stream_ids, num_stream_ids);
 }
 
-DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, int* batch_timeout)
+DslReturnType dsl_tee_remuxer_batch_size_get(const wchar_t* name, 
+    uint* batch_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
-    RETURN_IF_PARAM_IS_NULL(batch_timeout);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesGet(
-        cstrName.c_str(), batch_size, batch_timeout);
+    return DSL::Services::GetServices()->TeeRemuxerBatchSizeGet(
+        cstrName.c_str(), batch_size);
 }
 
-DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
-    uint batch_size, int batch_timeout)
+DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name, 
+    uint batch_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesSet(
-        cstrName.c_str(), batch_size, batch_timeout);
+    return DSL::Services::GetServices()->TeeRemuxerBatchSizeSet(
+        cstrName.c_str(), batch_size);
 }
 
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
@@ -8987,7 +8986,9 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     {
         std::wstring wstrComponent(*component);
         std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentRemove(cstrName.c_str(), cstrComponent.c_str());
+        DslReturnType retval = 
+            DSL::Services::GetServices()->PipelineComponentRemove(cstrName.c_str(), 
+                cstrComponent.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -8996,30 +8997,29 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, int* batch_timeout)
+DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
+    uint* batch_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
-    RETURN_IF_PARAM_IS_NULL(batch_timeout);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesGet(
-        cstrName.c_str(), batch_size, batch_timeout);
+    return DSL::Services::GetServices()->PipelineStreammuxBatchSizeGet(
+        cstrName.c_str(), batch_size);
 }
 
-DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, int batch_timeout)
+DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
+    uint batch_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesSet(
-        cstrName.c_str(), batch_size, batch_timeout);
+    return DSL::Services::GetServices()->PipelineStreammuxBatchSizeSet(
+        cstrName.c_str(), batch_size);
 }
 
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
@@ -9072,27 +9072,29 @@ DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name
         cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
+DslReturnType dsl_pipeline_streammux_max_latency_get(const wchar_t* name, 
+    uint* max_latency)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(gpuid);
+    RETURN_IF_PARAM_IS_NULL(max_latency);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxGpuIdGet(
-        cstrName.c_str(), gpuid);
+    return DSL::Services::GetServices()->PipelineStreammuxMaxLatencyGet(
+        cstrName.c_str(), max_latency);
 }
 
-DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
+DslReturnType dsl_pipeline_streammux_max_latency_set(const wchar_t* name, 
+    uint max_latency)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxGpuIdSet(
-        cstrName.c_str(), gpuid);
+    return DSL::Services::GetServices()->PipelineStreammuxMaxLatencySet(
+        cstrName.c_str(), max_latency);
 }
 
 DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 

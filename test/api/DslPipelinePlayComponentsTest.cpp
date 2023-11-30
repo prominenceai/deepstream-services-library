@@ -799,8 +799,6 @@ Window Sink, and Tiled Display can play", "[pipeline-play]" )
         
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
             
-            dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 8, 40000 );
-
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );

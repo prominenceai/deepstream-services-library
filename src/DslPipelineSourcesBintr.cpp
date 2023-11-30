@@ -47,21 +47,23 @@ namespace DSL
         m_pStreammux = DSL_ELEMENT_NEW("nvstreammux", name);
         
         // Get property defaults that aren't specifically set
-        m_pStreammux->GetAttribute("batched-push-timeout", &m_batchTimeout);
         m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        m_pStreammux->GetAttribute("gpu-id", &m_gpuId);
         m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
         m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
+        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
         m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
-
+    
+        gboolean drop_pipeline_eos;
+        m_pStreammux->GetAttribute("drop-pipeline-eos", &drop_pipeline_eos);
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for Streammux '" << name << "'");
-        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
-        LOG_INFO("  gpu-id                 : " << m_gpuId);
         LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
         LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
+        LOG_INFO("  max-latency            : " << m_maxLatency);
         LOG_INFO("  frame-duration         : " << m_frameDuration);
+        LOG_INFO("  drop-pipeline-eos      : " << drop_pipeline_eos);
 
         AddChild(m_pStreammux);
 
@@ -394,32 +396,26 @@ namespace DSL
         return true;
     }
 
-    void PipelineSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
-        int* batchTimeout)
+    uint PipelineSourcesBintr::GetStreammuxBatchSize()
     {
         LOG_FUNC();
 
-        *batchSize = m_batchSize;
-        *batchTimeout = m_batchTimeout;
+        return m_batchSize;
     }
 
-    bool PipelineSourcesBintr::SetStreammuxBatchProperties(uint batchSize, 
-        int batchTimeout)
+    bool PipelineSourcesBintr::SetStreammuxBatchSize(uint batchSize)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update batch properties for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update batch-size for PipelineSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
 
         m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-
         m_pStreammux->SetAttribute("batch-size", m_batchSize);
-        m_pStreammux->SetAttribute("batched-push-timeout", m_batchTimeout);
         
         return true;
     }
@@ -437,7 +433,8 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update num-surfaces-per-frame property for PipelineSourcesBintr '" 
+            LOG_ERROR(
+                "Can't update num-surfaces-per-frame for PipelineSourcesBintr '"
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -472,25 +469,30 @@ namespace DSL
         return true;
     }
 
-    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
+    boolean PipelineSourcesBintr::GetStreammuxMaxLatency()
     {
         LOG_FUNC();
         
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_gpuId = gpuId;
-        m_pStreammux->SetAttribute("gpu-id", m_gpuId);
-        
-        LOG_INFO("PipelineSourcesBintr '" << GetName() 
-            << "' - new GPU ID = " << m_gpuId );
-            
-        return true;
+        return m_maxLatency;
     }
     
+    bool PipelineSourcesBintr::SetStreammuxMaxLatency(uint maxLatency)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update max-latency property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_maxLatency = maxLatency;
+        m_pStreammux->SetAttribute("max-latency", m_maxLatency);
+        
+        return true;
+    }
+
     void PipelineSourcesBintr::DisableEosConsumers()
     {
         for (auto const& imap: m_pChildSources)

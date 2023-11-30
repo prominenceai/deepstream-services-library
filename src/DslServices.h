@@ -1119,11 +1119,11 @@ namespace DSL {
         DslReturnType TeeRemuxerBranchAddTo(const char* name, const char* branch,
             uint* streamIds, uint numStreamIds);
 
-        DslReturnType TeeRemuxerBatchPropertiesGet(const char* name,
-            uint* batchSize, int* batchTimeout);
+        DslReturnType TeeRemuxerBatchSizeGet(const char* name,
+            uint* batchSize);
 
-        DslReturnType TeeRemuxerBatchPropertiesSet(const char* name,
-            uint batchSize, int batchTimeout);
+        DslReturnType TeeRemuxerBatchSizeSet(const char* name,
+            uint batchSize);
 
         DslReturnType TeeRemuxerDimensionsGet(const char* name,
             uint* width, uint* height);
@@ -1593,15 +1593,11 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
-        DslReturnType PipelineStreammuxBatchPropertiesGet(const char* name,
-            uint* batchSize, int* batchTimeout);
+        DslReturnType PipelineStreammuxBatchSizeGet(const char* name,
+            uint* batchSize);
 
-        DslReturnType PipelineStreammuxBatchPropertiesSet(const char* name,
-            uint batchSize, int batchTimeout);
-
-        DslReturnType PipelineStreammuxPaddingGet(const char* name, boolean* enabled);
-
-        DslReturnType PipelineStreammuxPaddingSet(const char* name, boolean enabled);
+        DslReturnType PipelineStreammuxBatchSizeSet(const char* name,
+            uint batchSize);
 
         DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
             uint* num);
@@ -1615,9 +1611,11 @@ namespace DSL {
         DslReturnType PipelineStreammuxSyncInputsEnabledSet(const char* name, 
             boolean enabled);
 
-        DslReturnType PipelineStreammuxGpuIdGet(const char* name, uint* gpuid);
+        DslReturnType PipelineStreammuxMaxLatencyGet(const char* name, 
+            uint* maxLatency);
         
-        DslReturnType PipelineStreammuxGpuIdSet(const char* name, uint gpuid);
+        DslReturnType PipelineStreammuxMaxLatencySet(const char* name, 
+            uint maxLatency);
         
         DslReturnType PipelineStreammuxTilerAdd(const char* name, const char* tiler);
 

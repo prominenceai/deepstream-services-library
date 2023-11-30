@@ -186,8 +186,8 @@ SCENARIO( "A Pipeline can add a Source and Overlay-Sink dynamically",
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
-            2, 40000) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+            2) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -313,8 +313,8 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
-            3, 400000) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+            3) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -430,8 +430,8 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
-            4, 400000) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+            4) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -516,7 +516,7 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
 }
 
 SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynamic Branch", 
-    "[demuxer-behavior]")
+    "[temp]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sinks" ) 
     {

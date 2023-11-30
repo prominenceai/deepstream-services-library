@@ -106,22 +106,20 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    void PipelineBintr::GetStreammuxBatchProperties(uint* batchSize, 
-        int* batchTimeout)
-    {
-        LOG_FUNC();
-
-        m_pPipelineSourcesBintr->
-            GetStreammuxBatchProperties(batchSize, batchTimeout);
-    }
-
-    bool PipelineBintr::SetStreammuxBatchProperties(uint batchSize, 
-        int batchTimeout)
+    uint PipelineBintr::GetStreammuxBatchSize()
     {
         LOG_FUNC();
 
         return m_pPipelineSourcesBintr->
-            SetStreammuxBatchProperties(batchSize, batchTimeout);
+            GetStreammuxBatchSize();
+    }
+
+    bool PipelineBintr::SetStreammuxBatchSize(uint batchSize)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->
+            SetStreammuxBatchSize(batchSize);
     }
 
     uint PipelineBintr::GetStreammuxNumSurfacesPerFrame()
@@ -150,6 +148,20 @@ namespace DSL
         LOG_FUNC();
 
         return m_pPipelineSourcesBintr->SetStreammuxSyncInputsEnabled(enabled);
+    }
+    
+    uint PipelineBintr::GetStreammuxMaxLatency()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxMaxLatency();
+    }
+    
+    bool PipelineBintr::SetStreammuxMaxLatency(uint maxLatency)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxMaxLatency(maxLatency);
     }
     
     bool PipelineBintr::AddStreammuxTiler(DSL_BASE_PTR pTilerBintr)
@@ -219,8 +231,7 @@ namespace DSL
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
-        int batchTimeout(0); // we don't care about batch-timeout
-        GetStreammuxBatchProperties(&m_batchSize, &batchTimeout);
+        m_batchSize = GetStreammuxBatchSize();
 
         if (m_pStreammuxTilerBintr)
         {

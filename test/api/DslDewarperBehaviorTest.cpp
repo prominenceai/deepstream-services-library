@@ -100,8 +100,8 @@ use-case -- can play]", "[dewarper-behavior]")
             REQUIRE( dsl_dewarper_num_batch_buffers_get(dewarper_name.c_str(), 
                 &num_surfaces) == DSL_RESULT_SUCCESS );
                 
-            REQUIRE( dsl_pipeline_streammux_batch_properties_set(
-                pipeline_name.c_str(), num_surfaces, muxer_batch_timeout_usec) 
+            REQUIRE( dsl_pipeline_streammux_batch_size_set(
+                pipeline_name.c_str(), num_surfaces) 
                     == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_set(
                 pipeline_name.c_str(), num_surfaces) == DSL_RESULT_SUCCESS );

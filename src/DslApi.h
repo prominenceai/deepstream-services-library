@@ -6309,26 +6309,22 @@ DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name,
     const wchar_t* branch, uint* stream_ids, uint num_stream_ids);
 
 /**
- * @brief Gets the current batch-size and batch-push-timeout properties for the 
- * named Remuxer.
+ * @brief Gets the current batch-size setting for the named Remuxer.
  * @param[in] name unique name of the Remuxer to query
  * @param[out] batch_size the current batch size in use.
- * @param[out] batch_timeout the current batch timeout in use. 
- * Default = -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
  */
-DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, int* batch_timeout);
+DslReturnType dsl_tee_remuxer_batch_size_get(const wchar_t* name, 
+    uint* batch_size);
 
 /**
- * @brief Updates the named Remuxer's batch-size and batch-push-timeout properties
+ * @brief Updates the named Remuxer's batch-size setting
  * @param[in] name unique name of the Remuxer to update.
  * @param[out] batch_size the new batch size to use.
- * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
  */
-DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
-    uint batch_size, int batch_timeout);
+DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name, 
+    uint batch_size);
 
 /**
  * @brief adds a single Branch to a Demuxer, Remuxer, or Splitter Tee.
@@ -8016,31 +8012,32 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     const wchar_t** components);
 
 /**
- * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
+ * @brief Gets the current batch-size setting for the named Pipeline's Streammuxer.
+ * Note: the default batch_size, prior to running the Pipeline, is 0 unless
+ * explicity set. If not set, the batch-size will be set to the number of Sources
+ * when the Pipeline is called to play. 
  * @param[in] name unique name of the Pipeline to query
  * @param[out] batch_size the current batch size in use.
- * @param[out] batch_timeout the current batch timeout in use. 
- * Default = -1 for no timeout.
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, int* batch_timeout);
+DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
+    uint* batch_size);
 
 /**
- * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
+ * @brief Updates the batch-size property for the named Pipeline's Streammuxer.
  * @param[in] name unique name of the Pipeline to update.
- * @param[out] batch_size the new batch size to use.
- * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
+ * @param[in] batch_size the new batch size to use. If set to 0, the batch-size 
+ * will be set to the number of Sources when the Pipeline is called to play.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
-    uint batch_size, int batch_timeout);
+DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
+    uint batch_size);
 
 /**
- * @brief returns the current num-surfaces-per-frame stream-muxer setting 
- * for the named Pipeline.
+ * @brief returns the current num-surfaces-per-frame setting 
+ * for the named Pipeline's Streammuxer.
  * @param[in] name name of the Pipeline to query.
  * @param[out] num number of surfaces per frame [1..4].
  * @return DSL_RESULT_SUCCESS on successful query, one of 
@@ -8065,47 +8062,9 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
  * sync-inputs property for the named Pipeline.
  * @param[in] name name of the Pipeline to query
  * @param[out] enable true if the sync-inputs property is enabled, false if not.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
- */
-DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
-    boolean* enabled);
-
-/**
- * @brief Updates the current setting - enabled/disabled - for Streammux
- * sync-inputs property for the name Pipeline.
- * @param[in] name name of the Pipeline to update
- * @param[out] enable set to true to enable the sync-input property, false to disable.
- * @return DSL_RESULT_SUCCESS on successful update, one of 
- * DSL_RESULT_PIPELINE_RESULT on failure. 
- */
-DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
-    boolean enabled);
-
-/**
- * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
- * @param[in] name name of the Pipeline to query
- * @param[out] gpuid current GPU ID setting
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
-
-/**
- * @brief Sets the current stream-muxer GPU ID for the named Pipeline.
- * @param[in] name name of the Pipeline to update
- * @param[in] gpuid new GPU ID value to use
- * @return DSL_RESULT_SUCCESS on successful update, one of 
- * DSL_RESULT_PIPELINE_RESULT on failure. 
- */
-DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
-
-/**
- * @brief Returns the current setting - enabled/disabled - for the Streammux
- * sync-inputs property for the named Pipeline.
- * @param[in] name name of the Pipeline to query
- * @param[out] enable true if the sync-inputs property is enabled, false if not.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
- */
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
@@ -8113,12 +8072,36 @@ DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name
  * @brief Updates the current setting - enabled/disabled - for Streammux
  * sync-inputs property for the name Pipeline.
  * @param[in] name name of the Pipeline to update
- * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @param[in] enable set to true to enable the sync-input property, false to disable.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
     boolean enabled);
+
+/**
+ * @brief Returns the current max-latency setting for the named Pipeline's 
+ * Streammuxer.
+ * @param[in] name name of the Pipeline to query.
+ * @param[out] max_latency the maximum upstream latency in nanoseconds. 
+ * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_max_latency_get(const wchar_t* name, 
+    uint* max_latency);
+
+/**
+ * @brief Updates the current max-latency setting for the named Pipeline's 
+ * Streammuxer.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] max_latency the maximum upstream latency in nanoseconds. 
+ * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_max_latency_set(const wchar_t* name, 
+    uint max_latency);
 
 /**
  * @brief adds a named Tiler to a named Pipeline's Stream-Muxer output.

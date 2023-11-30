@@ -311,8 +311,8 @@ namespace DSL
         }
     }    
 
-    DslReturnType Services::TeeRemuxerBatchPropertiesGet(const char* name,
-        uint* batchSize, int* batchTimeout)    
+    DslReturnType Services::TeeRemuxerBatchSizeGet(const char* name,
+        uint* batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -323,26 +323,25 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 name, RemuxerBintr);
             
-            std::dynamic_pointer_cast<RemuxerBintr>(
-                m_components[name])->GetBatchProperties(batchSize, batchTimeout);
+            *batchSize = std::dynamic_pointer_cast<RemuxerBintr>(
+                m_components[name])->GetBatchSize();
             
             LOG_INFO("Remuxer Tee '" << name 
                 << "' returned batch-size = " 
-                << *batchSize << " and batch-timeout = " 
-                << *batchTimeout << "' successfully");
+                << *batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Remuxer Tee '" << name 
-                << "' threw an exception getting batch properties");
+                << "' threw an exception getting batch-size");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::TeeRemuxerBatchPropertiesSet(const char* name,
-        uint batchSize, int batchTimeout)    
+    DslReturnType Services::TeeRemuxerBatchSizeSet(const char* name,
+        uint batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -354,24 +353,22 @@ namespace DSL
                 name, RemuxerBintr);
             
             if (!std::dynamic_pointer_cast<RemuxerBintr>(
-                m_components[name])->SetBatchProperties(batchSize, batchTimeout))
+                m_components[name])->OverrideBatchSize(batchSize))
             {
                 LOG_ERROR("Remuxer Tee '" << name 
                     << "' failed to set batch-size = "
-                    << batchSize << " and batch-timeout = "
-                    << batchTimeout);
+                    << batchSize);
                 return DSL_RESULT_TEE_SET_FAILED;
             }
             LOG_INFO("Remuxer Tee '" << name << "' set batch-size = " 
-                << batchSize << " and batch-timeout = " 
-                << batchTimeout << "' successfully");
+                << batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Remuxer Tee '" << name 
-                << "' threw an exception setting batch properties");
+                << "' threw an exception setting batch-size");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }

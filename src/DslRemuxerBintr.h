@@ -100,33 +100,24 @@ namespace DSL
         /**
          * @brief Gets the current batch settings for the RemuxerBranchBintr's 
          * Streammuxer.
-         * @param[out] batchSize current batchSize, default == the number of source.
-         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
+         * @return current batch-size, default == the number of source.
          */
-        void GetBatchProperties(uint* batchSize, int* batchTimeout);
+        uint GetBatchSize();
 
         /**
-         * @brief Sets the current batch settings for the RemuxerBranchBintr's 
-         * er.
+         * @brief Sets the batch-size for the RemuxerBranchBintr's streammuxer. 
          * @param[in] batchSize new batchSize to set, default == the number of sources.
-         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
          * @return true if batch-properties are succesfully set, false otherwise.
          */
-        bool SetBatchProperties(uint batchSize, int batchTimeout);
+        bool SetBatchSize(uint batchSize);
         
     private:
     
         /**
          * @brief Child Streammuxer for the RemuxerBranchBintr
          */
-        DSL_ELEMENT_PTR m_pStreammuxer;
+        DSL_ELEMENT_PTR m_pStreammux;
 
-        /**
-         * @brief Stream-muxer batch timeout used when waiting for all sources
-         * to produce a frame when batching together
-         */
-        int m_batchTimeout;
-        
         /**
          * @brief Child Branch to link to the Streammuxer
          */
@@ -141,6 +132,40 @@ namespace DSL
          * @brief True if connecting to select stream-ids, false otherwise.
          */    
         bool m_linkSelectiveStreams;
+
+        /**
+         * @brief Number of surfaces-per-frame stream-muxer setting
+         */
+        int m_numSurfacesPerFrame;
+
+        /**
+         * @brief Attach system timestamp as ntp timestamp, otherwise ntp 
+         * timestamp calculated from RTCP sender reports.
+         */
+        boolean m_attachSysTs;
+        
+        /**
+         * @brief if true, sychronizes input frames using PTS.
+         */
+        boolean m_syncInputs;
+        
+        /**
+         * @brief The maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+         */
+        uint m_maxLatency;
+
+        /**
+         * @brief Duration of input frames in milliseconds for use in NTP timestamp 
+         * correction based on frame rate. If set to 0 (default), frame duration is 
+         * inferred automatically from PTS values seen at RTP jitter buffer. When 
+         * there is change in frame duration between the RTP jitter buffer and the 
+         * nvstreammux, this property can be used to indicate the correct frame rate 
+         * to the nvstreammux, for e.g. when there is an audiobuffersplit GstElement 
+         * before nvstreammux in the pipeline. If set to -1, disables frame rate 
+         * based NTP timestamp correction. 
+         */
+        int m_frameDuration;
 
         /**
          * @brief Container of Queues elements used to connect to Streammuxer.
@@ -249,25 +274,18 @@ namespace DSL
 
         /**
          * @brief Gets the current batch settings for the RemuxerBintr.
-         * @param[out] batchSize current batchSize, default == the number of source.
-         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
+         * @return Current batchSize, default == the number of sources, set by 
+         * the parent once the Pipeline is playing, if not overridden.
          */
-        void GetBatchProperties(uint* batchSize, int* batchTimeout);
+        uint GetBatchSize();
 
         /**
-         * @brief Sets the current batch settings for the RemuxerBintr.
+         * @brief Overrides the parent (branch) batchsize for the RemuxerBintr.
          * @param[in] batchSize new batchSize to set, default is set by parent.
-         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
-         * @return true if batch-properties are succesfully set, false otherwise.
+         * @return true if batch-size is succesfully set, false otherwise.
          */
-        bool SetBatchProperties(uint batchSize, int batchTimeout);
-
-        /**
-         * @brief Sets the GPU ID for all Elementrs
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetGpuId(uint gpuId);
-
+        bool OverrideBatchSize(uint batchSize);
+    
     private:
     
         /**
@@ -275,11 +293,6 @@ namespace DSL
          */
         uint m_maxStreamIds;
         
-        /**
-         * @brief Batch-timeout used for all branches, i.e. all Streammuxers 
-         */
-        int m_batchTimeout;
-
         /**
          * @brief true if batch-size explicity set by client, false by default.
          */

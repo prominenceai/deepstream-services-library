@@ -106,18 +106,16 @@ namespace DSL
 
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer.
-         * @param[out] batchSize current batchSize, default == the number of source.
-         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
+         * @return Current batchSize, default == the number of source.
          */
-        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout);
+        uint GetStreammuxBatchSize();
 
         /**
-         * @brief Sets the current batch settings for the SourcesBintr's Stream Muxer.
+         * @brief Sets the current batch size for the SourcesBintr's Stream Muxer.
          * @param[in] batchSize new batchSize to set, default == the number of sources.
-         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
-         * @return true if batch-properties are succesfully set, false otherwise.
+         * @return true if batch-size is succesfully set, false otherwise.
          */
-        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
+        bool SetStreammuxBatchSize(uint batchSize);
 
         /**
          * @brief Gets the current setting for the PipelineSourcesBintr's Streammuxer
@@ -150,10 +148,20 @@ namespace DSL
         bool SetStreammuxSyncInputsEnabled(boolean enabled);
         
         /**
-         * @brief Set the GPU ID for the PipelineSourcesBintr's Streammuxer
-         * @return true if successfully set, false otherwise.
+         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * Streammuxer max-latency property.
+         * @preturn The maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
          */
-        bool SetGpuId(uint gpuId);
+        uint GetStreammuxMaxLatency();
+        
+        /**
+         * @brief Sets the PipelineSourcesBintr's Streammuxer max-latency property.
+         * @param[in] maxLatency the maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+         * @return true if max-latency was succesfully set, false otherwise.
+         */
+        bool SetStreammuxMaxLatency(uint maxLatency);
         
         /**
          * @brief Calls on all child Sources to disable their EOS consumers.
@@ -227,12 +235,6 @@ namespace DSL
         bool m_areSourcesLive;
 
         /**
-         * @brief Stream-muxer batch timeout used when waiting for all sources
-         * to produce a frame when batching together
-         */
-        gint m_batchTimeout;
-        
-        /**
          * @brief Number of surfaces-per-frame stream-muxer setting
          */
         int m_numSurfacesPerFrame;
@@ -255,6 +257,12 @@ namespace DSL
          * @brief if true, sychronizes input frames using PTS.
          */
         boolean m_syncInputs;
+        
+        /**
+         * @brief The maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+         */
+        uint m_maxLatency;
         
         /**
          * @brief Duration of input frames in milliseconds for use in NTP timestamp 

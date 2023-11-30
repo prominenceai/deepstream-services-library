@@ -63,12 +63,7 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids is created correctly",
             THEN( "All members have been setup correctly" )
             {
                 REQUIRE( pRemuxerBranchBintr->GetName() == remuxerBranchBintrName0 );
-                uint retBatchSize(99);
-                int retBatchTimeout(0);
-                pRemuxerBranchBintr->GetBatchProperties(&retBatchSize,
-                    &retBatchTimeout);
-                REQUIRE( retBatchSize == 0 );
-                REQUIRE( retBatchTimeout == -1 );
+                REQUIRE( pRemuxerBranchBintr->GetBatchSize() == 0 );
             }
         }
     }
@@ -94,12 +89,7 @@ SCENARIO( "A RemuxerBranchBintr whith no specific stream-ids is created correctl
             THEN( "All members have been setup correctly" )
             {
                 REQUIRE( pRemuxerBranchBintr->GetName() == remuxerBranchBintrName0 );
-                uint retBatchSize(99);
-                int retBatchTimeout(0);
-                pRemuxerBranchBintr->GetBatchProperties(&retBatchSize,
-                    &retBatchTimeout);
-                REQUIRE( retBatchSize == 0 );
-                REQUIRE( retBatchTimeout == -1 );
+                REQUIRE( pRemuxerBranchBintr->GetBatchSize() == 0 );
             }
         }
     }
@@ -236,7 +226,7 @@ SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
 {
     GIVEN( "Attributes for a new RemuxerBintr" ) 
     {
-        WHEN( "The DemuxerBintr is created" )
+        WHEN( "The RemuxerBintr is created" )
         {
             DSL_REMUXER_PTR pRemuxerBintr = 
                 DSL_REMUXER_NEW(remuxerBintrName.c_str());
@@ -246,12 +236,7 @@ SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
                 REQUIRE( pRemuxerBintr->GetName() == remuxerBintrName );
                 REQUIRE( pRemuxerBintr->GetNumChildren() == 0 );
                 
-                uint retBatchSize(99);
-                int retBatchTimeout(0);
-                pRemuxerBintr->GetBatchProperties(&retBatchSize, &retBatchTimeout);
-
-                REQUIRE( retBatchSize == 0 );
-                REQUIRE( retBatchTimeout == -1 );
+                REQUIRE( pRemuxerBintr->GetBatchSize() == 0 );
             }
         }
     }

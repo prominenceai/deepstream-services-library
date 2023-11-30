@@ -214,11 +214,11 @@ int main(int argc, char** argv)
         // Update the current source count
         cur_source_count = 1;
 
-        // IMPORTANT: we need to explicitely set the stream-muxer Batch properties,
+        // IMPORTANT: we need to explicitely set the stream-muxer Batch size,
         // otherwise the Pipeline will use the current number of Sources when set to 
         // Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set(L"pipeline",
-            MAX_SOURCE_COUNT, 40000);
+        retval = dsl_pipeline_streammux_batch_size_set(L"pipeline",
+            MAX_SOURCE_COUNT);
 
         retval = dsl_pipeline_eos_listener_add(L"pipeline", 
             eos_event_listener, NULL);

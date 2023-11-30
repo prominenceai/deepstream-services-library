@@ -165,27 +165,24 @@ SCENARIO( "A Remuxer can Set and Get all properties", "[remuxer-api]" )
     {
         std::wstring remuxer_name(L"remuxer");
         uint ret_batch_size(0);
-        int ret_batch_timeout(0);
 
         REQUIRE( dsl_tee_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_tee_remuxer_batch_properties_get(remuxer_name.c_str(), 
-            &ret_batch_size, &ret_batch_timeout) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_remuxer_batch_size_get(remuxer_name.c_str(), 
+            &ret_batch_size) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_batch_size == 0 );
-        REQUIRE( ret_batch_timeout == -1 );
 
-        WHEN( "A Remuxer's Batch Properties are Set " ) 
+        WHEN( "A Remuxer's batch-size is Set " ) 
         {
-            uint new_batch_size(4), new_batch_timeout(40000);
-            REQUIRE( dsl_tee_remuxer_batch_properties_set(remuxer_name.c_str(), 
-                new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS);
+            uint new_batch_size(4);
+            REQUIRE( dsl_tee_remuxer_batch_size_set(remuxer_name.c_str(), 
+                new_batch_size) == DSL_RESULT_SUCCESS);
             
-            THEN( "The correct values are returned on Get" ) 
+            THEN( "The correct value is returned on Get" ) 
             {
-                REQUIRE( dsl_tee_remuxer_batch_properties_get(remuxer_name.c_str(), 
-                    &ret_batch_size, &ret_batch_timeout) == DSL_RESULT_SUCCESS);
+                REQUIRE( dsl_tee_remuxer_batch_size_get(remuxer_name.c_str(), 
+                    &ret_batch_size) == DSL_RESULT_SUCCESS);
                 REQUIRE( ret_batch_size == new_batch_size );
-                REQUIRE( ret_batch_timeout == new_batch_timeout );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
