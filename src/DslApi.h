@@ -8012,6 +8012,27 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     const wchar_t** components);
 
 /**
+ * @brief Gets the current Config File in use by the named Pipeline's Streammuxer.
+ * @param[in] name unique name of Pipeline to query
+ * @param[out] config_file absolute or relative Config file currently in use. 
+ * Default = NULL. Streammuxer will use all default vaules.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file);
+
+/**
+ * @brief Sets the Config File to use by the named Pipeline's Streammuxer.
+ * @param[in] name unique name of Pipeline to update.
+ * @param[in] config_file absolute or relative pathspec to new Config file to use.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
  * @brief Gets the current batch-size setting for the named Pipeline's Streammuxer.
  * Note: the default batch_size, prior to running the Pipeline, is 0 unless
  * explicity set. If not set, the batch-size will be set to the number of Sources

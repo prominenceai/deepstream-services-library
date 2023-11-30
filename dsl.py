@@ -6827,6 +6827,29 @@ def dsl_pipeline_component_remove_many(pipeline, components):
     return int(result)
 
 ##
+## dsl_pipeline_streammux_config_file_get()
+##
+_dsl.dsl_pipeline_streammux_config_file_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_pipeline_streammux_config_file_get.restype = c_uint
+def dsl_pipeline_streammux_config_file_get(name):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_pipeline_streammux_config_file_get(name, 
+        DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_pipeline_streammux_config_file_set()
+##
+_dsl.dsl_pipeline_streammux_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_config_file_set.restype = c_uint
+def dsl_pipeline_streammux_config_file_set(name, config_file):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_config_file_set(name, config_file)
+    return int(result)
+
+##
 ## dsl_pipeline_streammux_batch_size_get()
 ##
 _dsl.dsl_pipeline_streammux_batch_size_get.argtypes = [c_wchar_p, 

@@ -129,13 +129,28 @@ namespace DSL
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
 
         /**
-         * @brief Gets the current batch size for the Pipeline's Stream-Muxer
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
+         */
+        const char* GetStreammuxConfigFile();
+        
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(const char* configFile);
+        
+        /**
+         * @brief Gets the current batch size for the Pipeline's Streammuxer
          * @return current batchSize, default == the number of sources, once playing
          */
         uint GetStreammuxBatchSize();
 
         /**
-         * @brief Sets the current batch size for the Pipeline's Stream-Muxer
+         * @brief Sets the current batch size for the Pipeline's Streammuxer
          * @param[in] batchSize new batchSize to set, default == the number of sources
          * @return true if the batch properties could be set, false otherwise
          */

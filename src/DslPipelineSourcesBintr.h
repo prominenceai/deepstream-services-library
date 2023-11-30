@@ -105,6 +105,21 @@ namespace DSL
         bool StreammuxPlayTypeIsLiveSet(bool isLive);
 
         /**
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
+         */
+        const char* GetStreammuxConfigFile();
+        
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(const char* configFile);
+
+        /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer.
          * @return Current batchSize, default == the number of source.
          */
@@ -233,6 +248,11 @@ namespace DSL
          * @brief true if all sources are live, false if all sources are non-live
          */
         bool m_areSourcesLive;
+        
+        /**
+         * @brief Absolute or relative path to the Streammuxer config file.
+         */
+        std::string m_streammuxConfigFile;
 
         /**
          * @brief Number of surfaces-per-frame stream-muxer setting
@@ -275,6 +295,12 @@ namespace DSL
          * based NTP timestamp correction. 
          */
         int m_frameDuration;
+        
+        /**
+         * @brief property to control EOS propagation downstream from nvstreammux
+         * when all the sink pads are at EOS. (Experimental)
+         */
+        boolean m_dropPipelineEos;
     };
 
     

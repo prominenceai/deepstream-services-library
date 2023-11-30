@@ -8997,6 +8997,45 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
+DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->PipelineStreammuxConfigFileGet(
+        cstrName.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->DewarperConfigFileSet(cstrName.c_str(), 
+        cstrConfig.c_str());
+}
+
 DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
     uint* batch_size)
 {

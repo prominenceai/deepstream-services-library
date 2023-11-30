@@ -106,6 +106,22 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
+    const char* PipelineBintr::GetStreammuxConfigFile()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->
+            GetStreammuxConfigFile();
+    }
+
+    bool PipelineBintr::SetStreammuxConfigFile(const char* configFile)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->
+            SetStreammuxConfigFile(configFile);
+    }
+
     uint PipelineBintr::GetStreammuxBatchSize()
     {
         LOG_FUNC();

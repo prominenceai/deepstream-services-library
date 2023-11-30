@@ -1593,6 +1593,12 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
+        DslReturnType PipelineStreammuxConfigFileGet(const char* name, 
+            const char** configFile);
+            
+        DslReturnType PipelineStreammuxConfigFileSet(const char* name, 
+            const char* configFile);
+            
         DslReturnType PipelineStreammuxBatchSizeGet(const char* name,
             uint* batchSize);
 

@@ -182,6 +182,71 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::PipelineStreammuxConfigFileGet(const char* name, 
+        const char** configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            *configFile = m_pipelines[name]->GetStreammuxConfigFile();
+
+            LOG_INFO("Pipeline '" << name << "' returned Streammux config-file = '"
+                << *configFile << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw exception getting the Streammux config-file");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineStreammuxConfigFileSet(const char* name, 
+        const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, DewarperBintr);
+
+            std::ifstream streamConfigFile(configFile);
+            if (!streamConfigFile.good())
+            {
+                LOG_ERROR("Pipeline Streammux config file not found");
+                return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            if (!m_pipelines[name]->SetStreammuxConfigFile(configFile))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to set the Streammux config-file");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set Streammux config-file = '"
+                << configFile << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw exception setting config-file");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PipelineStreammuxBatchSizeGet(const char* name,
         uint* batchSize)    
     {
@@ -195,7 +260,7 @@ namespace DSL
             *batchSize = m_pipelines[name]->GetStreammuxBatchSize();
             
             LOG_INFO("Pipeline '" << name 
-                << "' returned Streammuxer batch-size = " 
+                << "' returned Streammuxe batch-size = " 
                 << *batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;

@@ -53,8 +53,7 @@ namespace DSL
         m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
         m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
     
-        gboolean drop_pipeline_eos;
-        m_pStreammux->GetAttribute("drop-pipeline-eos", &drop_pipeline_eos);
+        m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
         
         LOG_INFO("");
         LOG_INFO("Initial property values for Streammux '" << name << "'");
@@ -63,7 +62,7 @@ namespace DSL
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
         LOG_INFO("  max-latency            : " << m_maxLatency);
         LOG_INFO("  frame-duration         : " << m_frameDuration);
-        LOG_INFO("  drop-pipeline-eos      : " << drop_pipeline_eos);
+        LOG_INFO("  drop-pipeline-eos      : " << m_dropPipelineEos);
 
         AddChild(m_pStreammux);
 
@@ -396,6 +395,29 @@ namespace DSL
         return true;
     }
 
+    const char* PipelineSourcesBintr::GetStreammuxConfigFile()
+    {
+        return m_streammuxConfigFile.c_str();
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxConfigFile(const char* configFile)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update config-file for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_streammuxConfigFile = configFile;
+        m_pStreammux->SetAttribute("config-file-path", 
+            m_streammuxConfigFile.c_str());
+        
+        return true;
+    }
+    
     uint PipelineSourcesBintr::GetStreammuxBatchSize()
     {
         LOG_FUNC();
