@@ -35,6 +35,7 @@ namespace DSL
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
         , m_areSourcesLive(false)
+        , m_batchSizeSetByClient(false)
     {
         LOG_FUNC();
 
@@ -223,7 +224,11 @@ namespace DSL
                     << pChildSource->GetName() << "'");
                 return false;
             }
-            
+            if (!m_batchSizeSetByClient)
+            {
+                // Increment the current batch-size
+                m_batchSize++;
+            }            
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }
@@ -265,7 +270,7 @@ namespace DSL
                 
             // unlink the source from the Streammuxer
             if (!pChildSource->UnlinkFromSinkMuxer())
-            {   
+            {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" 
                     << pChildSource->GetName() << "'");
@@ -273,6 +278,12 @@ namespace DSL
             }
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
+
+            if (!m_batchSizeSetByClient)
+            {
+                // Decrement the current batch-size
+                m_batchSize--;
+            }
         }
         // Erase the Source the source from the name<->unique-id database.
         Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
@@ -317,10 +328,11 @@ namespace DSL
             }
         }
         // Set the Batch size to the nuber of sources owned if not already set
-        if (!m_batchSize)
+        // IMPORTANT! we no longer set batch-size with new nvstreammux, 
+        // by default, "adaptive-batching" is set to true, config file or not.
+        if (!m_batchSizeSetByClient)
         {
             m_batchSize = m_pChildSources.size();
-            m_pStreammux->SetAttribute("batch-size", m_batchSize);
         }
         m_isLinked = true;
         
@@ -351,6 +363,7 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             imap.second->UnlinkAll();
         }
+        m_batchSize = 0;
         m_isLinked = false;
     }
     
@@ -361,7 +374,7 @@ namespace DSL
         // Send EOS message to each source object.
         for (auto const& imap: m_pChildSources)
         {
-//            LOG_INFO("Send EOS message to Source "  << imap.second->GetName());
+            LOG_INFO("Sending EOS message to Source "  << imap.second->GetName());
             gst_element_send_event(imap.second->GetGstElement(), 
                 gst_event_new_eos());
         }
@@ -435,7 +448,8 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-
+        // Important! once set, this flag cannot be unset.
+        m_batchSizeSetByClient = true;
         m_batchSize = batchSize;
         m_pStreammux->SetAttribute("batch-size", m_batchSize);
         

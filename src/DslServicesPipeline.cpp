@@ -190,9 +190,7 @@ namespace DSL
 
         try
         {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, DewarperBintr);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
 
             *configFile = m_pipelines[name]->GetStreammuxConfigFile();
 
@@ -217,9 +215,7 @@ namespace DSL
 
         try
         {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, DewarperBintr);
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
 
             std::ifstream streamConfigFile(configFile);
             if (!streamConfigFile.good())

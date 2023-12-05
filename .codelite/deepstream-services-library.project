@@ -130,6 +130,10 @@
     <File Name="../src/DslRemuxerBintr.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
+    <VirtualDirectory Name="config">
+      <File Name="../test/config/all_sources_30fps_adaptive_batching_disabled.txt"/>
+      <File Name="../test/config/all_sources_30fps_adaptive_batching_enabled.txt"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="avfile">
       <File Name="../test/avfile/DslAvFileUnitTest.cpp"/>
     </VirtualDirectory>

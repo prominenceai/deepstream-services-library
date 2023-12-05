@@ -61,6 +61,8 @@ from dsl import *
 
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
+streammux_config_file = '../../test/config/all_sources_30fps_adaptive_batching_enabled.txt'
+
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
@@ -74,7 +76,7 @@ iou_tracker_config_file = \
 ##
 # Maximum number of sources that can be added to the Pipeline
 ##
-MAX_SOURCE_COUNT = 4
+MAX_SOURCE_COUNT = 8
 
 ##
 # Current number of sources added to the Pipeline
@@ -83,8 +85,8 @@ cur_source_count = 0
 
 ##
 # Number of rows and columns for the Multi-stream 2D Tiler
-TILER_COLS = 2
-TILER_ROWS = 2
+TILER_COLS = 4
+TILER_ROWS = 4
 
 # Function to be called on End-of-Stream (EOS) event
 def eos_event_listener(client_data):
@@ -187,23 +189,28 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add all the components to a new Pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['source-1' , 'primary-gie', 'iou-tracker', 'tiler', 
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Update the current source count
-        cur_source_count = 1
 
-        ### IMPORTANT: we need to explicitely set the stream-muxer batch-size, 
-        # otherwise the Pipeline will use the current number of Sources when set to 
-        # Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_size_set('pipeline', 
+        # Set the Pipeline's config-file
+        retval = dsl_pipeline_streammux_config_file_set('pipeline',
+            streammux_config_file)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_infer_batch_size_set('primary-gie',
+           MAX_SOURCE_COUNT)
+        retval = dsl_pipeline_streammux_batch_size_set('pipeline',
             MAX_SOURCE_COUNT)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Update the current source count
+        cur_source_count = 1
 
         retval = dsl_pipeline_eos_listener_add('pipeline', 
             eos_event_listener, None)

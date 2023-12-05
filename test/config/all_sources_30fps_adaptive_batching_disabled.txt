@@ -1,0 +1,5 @@
+[property]
+adaptive-batching=0
+max-fps-control=0
+overall-min-fps-n=30
+overall-min-fps-d=1

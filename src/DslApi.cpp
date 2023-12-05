@@ -9032,8 +9032,8 @@ DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name,
     std::wstring wstrConfig(config_file);
     std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
 
-    return DSL::Services::GetServices()->DewarperConfigFileSet(cstrName.c_str(), 
-        cstrConfig.c_str());
+    return DSL::Services::GetServices()->PipelineStreammuxConfigFileSet(
+        cstrName.c_str(), cstrConfig.c_str());
 }
 
 DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 

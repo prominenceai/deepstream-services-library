@@ -184,6 +184,7 @@ namespace DSL
         void DisableEosConsumers();
 
     private:
+    
         /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
@@ -203,6 +204,11 @@ namespace DSL
          * Id's (if greater than 0)
          */
         uint m_uniquePipelineId; 
+        
+        /**
+         * @brief true if Client explicity set by client, false by default.
+         */
+        bool m_batchSizeSetByClient;
          
         /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
