@@ -1,42 +1,44 @@
  # Pipeline API Reference
 Pipelines are the top level component in DSL. They manage and synchronize Child components when transitioning to states of `READY`, `PAUSED`, and `PLAYING`. There is no practical limit to the number of Pipelines that can be created, only the number of Sources, Secondary GIE's and Sinks that are in-use by one or more Pipelines at any one time; numbers that are constrained by the Jetson/dGPU hardware in use. 
 
-### Pipeline Streammuxer
-All DSL Pipelines are created with a built-in [NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-nvstreammux) providing the following critical services:
+## Pipeline Streammuxer
+All DSL Pipelines are created with a built-in **Streammuxer**  providing the following critical services:
 * To enable multiple sources to be added to every Pipeline before and while playing, with the frame-buffers from each batched together for efficient processing downstream.
 * To create and add the basic batch level metadata structure [`NvDsBatchMeta`](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_metadata.html#metadata-in-the-deepstream-sdk) to each batched buffer required for downstream preprocessing, inference, tracking, on-screen-display, etc.
 
-**IMPORTANT!** The Pipeline's Streammuxer is created with the [default properties](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-properties) left unchanged except for the `batch-size` and the output dimensions; `width` and `height`. 
+**IMPORTANT!** DSL uses the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html) which requires the following envirionment variable to be set
+```bash
+export USE_NEW_NVSTREAMMUX=yes
+```
+ The Pipeline's Streammuxer is created with the [default properties]([https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-properties](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#gst-properties)) except for the `batch-size`. 
 
-#### Batch-Properties
-The two Streammuxer batch properties are defined as:
-* `batch-size` -- _the maximum number of frames in a batch_ -- which is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicity set by the client.
-* `batch-timeout` -- _the timeout in microseconds to wait after the first buffer is available to push the batch even if a complete batch is not formed._ -- which has a default value of `-1` disabling the timeout.
-
-Both the `batch-size` and `batch-timeout` settings can be updated while the Pipeline is stopped (in a state of NULL) by calling [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set). The current values can be obtained at anytime by calling [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get).
+### Streammuxer Batch-Size
+The Streammuxer `batch-size` property -- defined as  _the maximum number of frames in a batch_ -- is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicity set by calling [dsl_pipeline_streammux_batch_size_set](#dsl_pipeline_streammux_batch_size_set). The current value can be obtained at anytime by calling [dsl_pipeline_streammux_batch_size_get](#dsl_pipeline_streammux_batch_size_get). 
 
 **IMPORTANT!** 
-1. If dynamically adding/removing sources at runtime (i.e. while the Pipeline is playing), the `batch-size` should be set to the maximum number of Sources that can be added.
-2. If using dynamic or live sources, the `batch-timeout` should be set to accommodate the slowest source's frame-rate -- i.e. set to a value just greater than the longest expected period between frames.
+1. DSL implements its own _adaptive-batching_ which overrides the configuration properties; `adaptive-batching` and `batch-size`.
+2. If dynamically adding/removing sources at runtime (i.e. while the Pipeline is playing), the `batch-size` should be explicity set to the maximum number of Sources that can be added.
 
-#### Output Dimensions
-The Streammuxer's output dimensions, initialized by the plugin to 0, are set by the Pipeline to `DSL_STREAMMUX_DEFAULT_WIDTH` and `DSL_STREAMMUX_DEFAULT_HEIGHT` as defined by the [Pipeline Streammuxer Constant Values](#pipeline-streammuxer-constant-values). The output dimensions can be updated by calling [`dsl_pipeline_streammux_dimensions_set`](#dsl_pipeline_streammux_dimensions_set) while the Pipeline is stopped. The current dimensions can be obtained by calling [`dsl_pipeline_streammux_dimensions_get`](#dsl_pipeline_streammux_dimensions_get)
+### Streammuxer Configuration
+A [Streammuxer Configuration File](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) is provided to the Pipeline by calling [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set). The current config-file in use can be queried by calling [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get). 
 
-### Pipeline Construction and Destruction
+Please review the [_NvStreamMux Tuning Solutions for specific use cases_](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#nvstreammux-tuning-solutions-for-specific-use-cases) for more information.
+
+## Pipeline Construction and Destruction
 Pipelines are constructed by calling [`dsl_pipeline_new`](#dsl_pipeline_new) or [`dsl_pipeline_new_many`](#dsl_pipeline_new_many).
 
 Pipelines are destructed by calling [`dsl_pipeline_delete`](#dsl_pipeline_delete), [`dsl_pipeline_delete_many`](#dsl_pipeline_delete_many), or [`dsl_pipeline_delete_all`](#dsl_pipeline_delete_all). Deleting a pipeline will not delete its child component, but will unlink them and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all).
 
-### Adding and Removing Components
+## Adding and Removing Components
 Child components -- Sources, Inference Engines, Trackers, Tiled-Displays, On Screen-Display, and Sinks -- are added to a Pipeline by calling [`dsl_pipeline_component_add`](#dsl_pipeline_component_add) and [`dsl_pipeline_component_add_many`](#dsl_pipeline_component_add_many). A Pipeline's current number of child components can be obtained by calling [`dsl_pipeline_component_list_size`](#dsl_pipeline_component_list_size)
 
 Child components can be removed from their Parent Pipeline by calling [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many), and [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
 
-### Playing, Pausing and Stopping a Pipeline
+## Playing, Pausing and Stopping a Pipeline
 
 Pipelines - with a minimum required set of components - can be **played** by calling [`dsl_pipeline_play`](#dsl_pipeline_play), **paused** by calling [`dsl_pipeline_pause`](#dsl_pipeline_pause) and **stopped** by calling [`dsl_pipeline_stop`](#dsl_pipeline_stop).
 
-### Pipeline Client-Listener Notifications
+## Pipeline Client-Listener Notifications
 Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
 * _Change of State_ - with [`dsl_pipeline_state_change_listener_add`](#dsl_pipeline_state_change_listener_add) / [`dsl_pipeline_state_change_listener_remove`](#dsl_pipeline_state_change_listener_remove).
 * _End of Stream (EOS)_ - with [`dsl_pipeline_eos_listener_add`](#dsl_pipeline_eos_listener_add) / [`dsl_pipeline_eos_listener_remove`](#dsl_pipeline_eos_listener_remove).
