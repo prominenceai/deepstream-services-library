@@ -66,16 +66,16 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove)
 * [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many)
 * [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
-* [`dsl_pipeline_streammux_batch_properties_get`](#dsl_pipeline_streammux_batch_properties_get)
-* [`dsl_pipeline_streammux_batch_properties_set`](#dsl_pipeline_streammux_batch_properties_set)
-* [`dsl_pipeline_streammux_dimensions_get`](#dsl_pipeline_streammux_dimensions_get)
-* [`dsl_pipeline_streammux_dimensions_set`](#dsl_pipeline_streammux_dimensions_set)
+* [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get)
+* [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set)
+* [`dsl_pipeline_streammux_batch_size_get`](#dsl_pipeline_streammux_batch_size_get)
+* [`dsl_pipeline_streammux_batch_size_set`](#dsl_pipeline_streammux_batch_size_set)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_get`](#dsl_pipeline_streammux_num_surfaces_per_frame_get)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_set`](#dsl_pipeline_streammux_num_surfaces_per_frame_set)
 * [`dsl_pipeline_streammux_sync_inputs_enabled_get`](#dsl_pipeline_streammux_sync_inputs_enabled_get)
 * [`dsl_pipeline_streammux_sync_inputs_enabled_set`](#dsl_pipeline_streammux_sync_inputs_enabled_set)
-* [`dsl_pipeline_streammux_gpuid_get`](#dsl_pipeline_streammux_gpuid_get)
-* [`dsl_pipeline_streammux_gpuid_set`](#dsl_pipeline_streammux_gpuid_set)
+* [`dsl_pipeline_streammux_max_latency_get`](#dsl_pipeline_streammux_max_latency_get)
+* [`dsl_pipeline_streammux_max_latency_set`](#dsl_pipeline_streammux_max_latency_set)
 * [`dsl_pipeline_streammux_tiler_add`](#dsl_pipeline_streammux_tiler_add)
 * [`dsl_pipeline_streammux_tiler_remove`](#dsl_pipeline_streammux_tiler_remove)
 * [`dsl_pipeline_state_get`](#dsl_pipeline_state_get)
@@ -128,18 +128,9 @@ The following return codes are used by the Pipeline API
 #define DSL_STATE_PLAYING                                           4
 #define DSL_STATE_IN_TRANSITION                                     5
 ```
+
 <br>
 
-## Pipeline Streammuxer Constant Values
-```C
-#define DSL_STREAMMUX_4K_UHD_WIDTH                                  3840
-#define DSL_STREAMMUX_4K_UHD_HEIGHT                                 2160
-#define DSL_STREAMMUX_1K_HD_WIDTH                                   1920
-#define DSL_STREAMMUX_1K_HD_HEIGHT                                  1080
-
-#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
-#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
-```
 ---
 
 ## Client Callback Typedefs
@@ -430,95 +421,96 @@ retval = dsl_pipeline_component_remove_all('my-pipeline')
 
 <br>
 
-### *dsl_pipeline_streammux_batch_properties_get*
+### *dsl_pipeline_streammux_config_file_get*
 ```C++
-DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline,
-    uint* batch_size, uint* batch_timeout);
+DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file);
 ```
-This service returns the current `batch_size` and `batch_timeout` for the named Pipeline.
+This service returns the current Streammuxer config file in use by the named Pipeline.
 
-**Note:** the Pipeline will set the `batch_size` to the current number of added Sources and the `batch_timeout` to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT` if not explicitly set.
+**IMPORTANT!** The Streammuxer will use default [configuration values](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) if a configuration file is not provided. 
 
 **Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components by default.
-* `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. Set to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT`.
+* `pipeline` - [in] unique name of the Pipeline to query.
+* `config_file` - [out] path specification for the current Streammuxer config file in use. Default = NULL. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful quesry. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, batch_size, batch_timeout = dsl_pipeline_streammux_batch_properties_get('my-pipeline')
+retval, config_file = dsl_pipeline_streammux_config_file_get('my-pipeline')
 ```
 
 <br>
 
-### *dsl_pipeline_streammux_batch_properties_set*
+### *dsl_pipeline_streammux_config_file_set*
 ```C++
-DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline,
-    uint batch_size, uint batch_timeout);
+DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
 ```
-This service sets the `batch_size` and `batch_timeout` for the named Pipeline to use.
+This service sets the Streammuxer configuration file for the named Pipeline to use.
 
-**Note:** the Pipeline will set the `batch_size` to the current number of added Sources and the `batch_timeout` to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT` if not explicitly set.
+**IMPORTANT!** The Streammuxer will use default [configuration values](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) if a configuration file is not provided. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `config_file` - [in] absolute or relative path to the Streammuxer configuration file to use
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_config_file_set('my-pipeline', config_file)
+```
+
+<br>
+
+### *dsl_pipeline_streammux_batch_size_get*
+```C++
+DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
+    uint* batch_size);
+```
+This service returns the current `batch_size` setting for the named Pipeline's Streammuxer.
+
+**IMPORTANT:** the Pipeline will set the `batch_size` -- once playing -- to the current number of added Sources if not explicitly set by calling [`dsl_pipeline_streammux_batch_size_set`](#dsl_pipeline_streammux_batch_size_set).
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components by default.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful quesry. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, batch_size = dsl_pipeline_streammux_batch_size_get('my-pipeline')
+```
+
+<br>
+
+### *dsl_pipeline_streammux_batch_size_set*
+```C++
+DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
+    uint batch_size);
+```
+This service sets the `batch_size` for the named Pipeline's Streammuxer to use.
+
+**IMPORTANT:** the Pipeline will set the `batch_size` -- once playing -- to the current number of added Sources if not explicitly set.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
 * `batch_size` - [in] the new batch size to use
-* `batch_timeout` - [in] the new timeout in milliseconds before a batch meta push is forced.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_streammux_batch_properties_set('my-pipeline',
-    batch_size, batch_timeout)
+retval = dsl_pipeline_streammux_batch_size_set('my-pipeline', 30)
 ```
 
-<br>
-
-### *dsl_pipeline_streammux_dimensions_get*
-```C++
-DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
-    uint* width, uint* height);
-```
-This service returns the current Streammuxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can be changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `width` - [out] width of the Streammuxer output in pixels.
-* `height` - [out] height of the Streammuxer output in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, width, height = dsl_pipeline_streammux_dimensions_get('my-pipeline')
-```
-<br>
-
-### *dsl_pipeline_streammux_dimensions_set*
-```C++
-DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
-    uint width, uint height);
-```
-This service sets the Streammuxer output dimensions for the uniquely named Pipeline. The dimensions cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `width` - [in] new width for the Streammuxer output in pixels.
-* `height` - [in] new height for the Streammuxer output in pixels.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
-```
 <br>
 
 ### *dsl_pipeline_streammux_num_surfaces_per_frame_get*
@@ -526,7 +518,7 @@ retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
     const wchar_t* name, uint* num);
 ```
-This service gets the current num-surfaces-per-frame Streammuxer setting for the named Pipeline.
+This service gets the current num-surfaces-per-frame setting for the named Pipeline's Streammuxer.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
@@ -546,7 +538,7 @@ retval, num_surfaces = dsl_pipeline_streammux_num_surfaces_per_frame_get('my-pip
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
     const wchar_t* name, uint num);
 ```
-This service sets the num-surfaces-per-frame Streammuxer setting for the uniquely named Pipeline. The setting cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
+This service sets the num-surfaces-per-frame setting for the named Pipeline's Streammuxer. The setting cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
@@ -601,41 +593,43 @@ retval = dsl_pipeline_streammux_sync_inputs_enabled_set('my-pipeline', True)
 ```
 <br>
 
-### *dsl_pipeline_streammux_gpuid_get*
+### *dsl_pipeline_streammux_max_latency_get*
 ```C++
-DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
+DslReturnType dsl_pipeline_streammux_max_latency_get(const wchar_t* name, 
+    uint* max_latency);
 ```
-This service returns the current Streammuxer GPU ID for the uniquely named Pipeline. The default GPU ID is 0. The value can be changed by calling [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
+This service gets the current max-latency setting in use by the named Pipeline's Streammuxer.
 
 **Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-* `gpuid` - [out] current GPU ID.
+* `pipeline` - [in] unique name of the Pipeline to query.
+* `max_latency` - [out] the maximum upstream latency in nanoseconds. When sync-inputs=1, buffers coming in after max-latency shall be dropped. Default = 0.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, gpuid = dsl_pipeline_streammux_gpuid_get('my-pipeline')
+retval, max_latency = dsl_pipeline_streammux_max_latency_get('my-pipeline')
 ```
 <br>
 
-### *dsl_pipeline_streammux_gpuid_set*
+### *dsl_pipeline_streammux_max_latency_set*
 ```C++
-DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+DslReturnType dsl_pipeline_streammux_max_latency_set(const wchar_t* name, 
+    uint max_latency);
 ```
-This service sets the Streammuxer GPU ID for the uniquely named Pipeline. The GPU ID cannot be updated while the Pipeline is linked and playing/paused.
+This service sets the max-latency setting for the named Pipeline's Streammuxer to use.
 
 **Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `gpuid` - [in] new GPU ID for the Streammuxer.
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `max_latency` - [in] the maximum upstream latency in nanoseconds. When sync-inputs=1, buffers coming in after max-latency shall be dropped.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_streammux_gpuid_set('my-pipeline', 1)
+retval = dsl_pipeline_streammux_max_latency_set('my-pipeline', 10000)
 ```
 <br>
 
