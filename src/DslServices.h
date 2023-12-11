@@ -1125,8 +1125,11 @@ namespace DSL {
         DslReturnType TeeRemuxerBatchSizeSet(const char* name,
             uint batchSize);
 
-        DslReturnType TeeRemuxerDimensionsGet(const char* name,
-            uint* width, uint* height);
+        DslReturnType TeeRemuxerBranchConfigFileGet(const char* name,
+            const char* branch, const char** configFile);
+
+        DslReturnType TeeRemuxerBranchConfigFileSet(const char* name,
+            const char* branch, const char* configFile);
 
         DslReturnType TeeRemuxerDimensionsSet(const char* name,
             uint width, uint height);

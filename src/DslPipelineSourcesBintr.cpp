@@ -53,8 +53,8 @@ namespace DSL
         m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
         m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
         m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
-    
         m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
+
         
         LOG_INFO("");
         LOG_INFO("Initial property values for Streammux '" << name << "'");
@@ -403,7 +403,9 @@ namespace DSL
         
         LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
             << "' for Streammuxer '" << GetName() << "'");
-        m_pStreammux->SetAttribute("live-source", m_areSourcesLive);
+        
+        // IMPORTANT! nvidia has removed the "is-live" property from the 
+        // new Streammux implementation.  Setting is used by the Pipeline only.
         
         return true;
     }

@@ -60,7 +60,13 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
             {
                 REQUIRE( pPipelineSourcesBintr->GetName() == pipelineSourcesName );
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
-                REQUIRE( pPipelineSourcesBintr->m_pStreammux != nullptr );
+                
+                std::string retConfigFile = pPipelineSourcesBintr->GetStreammuxConfigFile();
+                REQUIRE( retConfigFile == "" );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxBatchSize() == 0 );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame() == 1 );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled() == false );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxMaxLatency() == 0 );
             }
         }
     }

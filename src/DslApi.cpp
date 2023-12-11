@@ -6493,6 +6493,51 @@ DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name,
         cstrName.c_str(), batch_size);
 }
 
+DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t** config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+    
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->TeeRemuxerBranchConfigFileGet(
+        cstrName.c_str(), cstrBranch.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t* config_file)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBranchConfigFileSet(
+        cstrName.c_str(), cstrBranch.c_str(), cstrConfig.c_str());
+}
+    
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6503,10 +6548,12 @@ DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
     std::wstring wstrBranch(branch);
     std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
 
-    return DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+    return DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+        cstrBranch.c_str());
 }
 
-DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -6518,7 +6565,8 @@ DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branc
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        DslReturnType retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->
+            TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6537,10 +6585,12 @@ DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch)
     std::wstring wstrBranch(branch);
     std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
 
-    return DSL::Services::GetServices()->TeeBranchRemove(cstrName.c_str(), cstrBranch.c_str());
+    return DSL::Services::GetServices()->TeeBranchRemove(cstrName.c_str(), 
+        cstrBranch.c_str());
 }
 
-DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, 
+    const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -6552,7 +6602,8 @@ DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** br
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        DslReturnType retval = DSL::Services::GetServices()->TeeBranchRemove(cstrName.c_str(), cstrBranch.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->
+            TeeBranchRemove(cstrName.c_str(), cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;

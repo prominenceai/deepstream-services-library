@@ -5011,6 +5011,31 @@ def dsl_tee_remuxer_batch_size_set(name, batch_size):
     return int(result)
 
 ##
+## dsl_tee_remuxer_branch_config_file_get()
+##
+_dsl.dsl_tee_remuxer_branch_config_file_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_tee_remuxer_branch_config_file_get.restype = c_uint
+def dsl_tee_remuxer_branch_config_file_get(name, branch):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_tee_remuxer_branch_config_file_get(name, 
+        branch, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_tee_remuxer_branch_config_file_set()
+##
+_dsl.dsl_tee_remuxer_branch_config_file_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_remuxer_branch_config_file_set.restype = c_uint
+def dsl_tee_remuxer_branch_config_file_set(name, config_file, branch):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_branch_config_file_set(name, 
+        config_file, branch)
+    return int(result)
+
+##
 ## dsl_tee_splitter_new()
 ##
 _dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]

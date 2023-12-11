@@ -229,7 +229,6 @@ namespace DSL
          */
         DSL_PPH_SOURCE_ID_OFFSETTER_PTR m_pSourceIdOffsetter;
 
-    public:
 
         DSL_ELEMENT_PTR m_pStreammux;
         
@@ -300,7 +299,7 @@ namespace DSL
          * before nvstreammux in the pipeline. If set to -1, disables frame rate 
          * based NTP timestamp correction. 
          */
-        int m_frameDuration;
+        int64_t m_frameDuration;
         
         /**
          * @brief property to control EOS propagation downstream from nvstreammux

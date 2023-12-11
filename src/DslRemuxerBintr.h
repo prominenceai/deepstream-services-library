@@ -110,6 +110,21 @@ namespace DSL
          * @return true if batch-properties are succesfully set, false otherwise.
          */
         bool SetBatchSize(uint batchSize);
+
+        /**
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
+         */
+        const char* GetStreammuxConfigFile();
+        
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(const char* configFile);
         
     private:
     
@@ -132,6 +147,11 @@ namespace DSL
          * @brief True if connecting to select stream-ids, false otherwise.
          */    
         bool m_linkSelectiveStreams;
+
+        /**
+         * @brief Absolute or relative path to the Streammuxer config file.
+         */
+        std::string m_streammuxConfigFile;
 
         /**
          * @brief Number of surfaces-per-frame stream-muxer setting
@@ -166,6 +186,12 @@ namespace DSL
          * based NTP timestamp correction. 
          */
         int m_frameDuration;
+
+        /**
+         * @brief property to control EOS propagation downstream from nvstreammux
+         * when all the sink pads are at EOS. (Experimental)
+         */
+        boolean m_dropPipelineEos;
 
         /**
          * @brief Container of Queues elements used to connect to Streammuxer.
@@ -285,6 +311,24 @@ namespace DSL
          * @return true if batch-size is succesfully set, false otherwise.
          */
         bool OverrideBatchSize(uint batchSize);
+
+        /**
+         * @brief Gets the current config-file in use by the specified child branch.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] pChildComponent child branch to query.
+         * @return Current config file in use.
+         */
+        const char* GetStreammuxConfigFile(DSL_BINTR_PTR pChildComponent);
+        
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] pChildComponent child branch to update.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(DSL_BINTR_PTR pChildComponent,
+            const char* configFile);
     
     private:
     

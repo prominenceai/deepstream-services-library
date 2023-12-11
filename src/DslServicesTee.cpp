@@ -373,6 +373,90 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::TeeRemuxerBranchConfigFileGet(const char* name,
+        const char* branch, const char** configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+            
+            *configFile = std::dynamic_pointer_cast<RemuxerBintr>
+                (m_components[name])->GetStreammuxConfigFile(pBranchBintr);
+
+            LOG_INFO("Remuxer '" << name << "' return Config File = '"
+                << configFile << "for Branch '" << branch << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tracker '" << name 
+                << "' threw exception getting the Config File pathspec");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TeeRemuxerBranchConfigFileSet(const char* name,
+        const char* branch, const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+
+            std::string testPath(configFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Tracker config file: " << configFile);
+                
+                std::ifstream streamConfigFile(configFile);
+                if (!streamConfigFile.good())
+                {
+                    LOG_ERROR("Tracker Config File not found");
+                    return DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND;
+                }
+            }
+            
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            DSL_REMUXER_PTR pRemuxerBintr = 
+                std::dynamic_pointer_cast<RemuxerBintr>(m_components[name]);
+
+            if (!pRemuxerBintr->SetStreammuxConfigFile(pBranchBintr, configFile))
+            {
+                LOG_ERROR("Remuxer '" << name 
+                    << "' failed to set the Config file");
+                return DSL_RESULT_TEE_SET_FAILED;
+            }
+            LOG_INFO("Remuxer '" << name << "' set Config File = '"
+                << configFile << "for Branch '" << branch << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer '" << name 
+                << "' threw exception setting Config file");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+
     DslReturnType Services::TeeBranchAdd(const char* name, 
         const char* branch)
     {

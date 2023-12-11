@@ -6327,6 +6327,30 @@ DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name,
     uint batch_size);
 
 /**
+ * @brief Get the current Streammuxer config-file in use by a named Remuxer Branch 
+ * of a named Remuxer Tee.
+ * @param[in] name name of the Rumxer to update.
+ * @param[in] branch name of Branch to update.
+ * @param[out] config_file path to the Streammuxer config-file currently in use
+ * by the named Remuxer Branch.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t** config_file);
+
+/**
+ * @brief Get the current Streammuxer config-file in use by a named Remuxer Branch 
+ * of a named Remuxer Tee.
+ * @param[in] name name of the Rumxer to update.
+ * @param[in] branch name of Branch to update.
+ * @param[in] config_file absolute or relative path to a Streammuxer config-file for
+ * the named Remuxer Branch to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t* config_file);
+
+/**
  * @brief adds a single Branch to a Demuxer, Remuxer, or Splitter Tee.
  * @param[in] name name of the Tee to update
  * @param[in] branch name of Branch to add

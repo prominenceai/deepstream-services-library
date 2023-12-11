@@ -65,11 +65,11 @@ namespace DSL
 
         // Get property defaults that aren't specifically set
         m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-
         m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
         m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
         m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
         m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
+        m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
@@ -80,6 +80,7 @@ namespace DSL
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
         LOG_INFO("  max-latency            : " << m_maxLatency);
         LOG_INFO("  frame-duration         : " << m_frameDuration);
+        LOG_INFO("  drop-pipeline-eos      : " << m_dropPipelineEos);
        
         // Add both the ChildBranch and new Streammuxer to this RemuxerBranchBintr
         // so that we can link them together => streammuxer->branch.
@@ -301,6 +302,29 @@ namespace DSL
         }
         
         m_pStreammux->SetAttribute("batch-size", m_batchSize);
+        
+        return true;
+    }
+
+    const char* RemuxerBranchBintr::GetStreammuxConfigFile()
+    {
+        return m_streammuxConfigFile.c_str();
+    }
+    
+    bool RemuxerBranchBintr::SetStreammuxConfigFile(const char* configFile)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update config-file for RemuxerBranchBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_streammuxConfigFile = configFile;
+        m_pStreammux->SetAttribute("config-file-path", 
+            m_streammuxConfigFile.c_str());
         
         return true;
     }
@@ -618,4 +642,38 @@ namespace DSL
         }
         return true;
     }
+
+    const char* RemuxerBintr::GetStreammuxConfigFile(
+        DSL_BINTR_PTR pChildComponent)
+    {
+        if (!IsChild(pChildComponent))
+        {
+            LOG_ERROR("Can't get config-file for Branch '" 
+                << pChildComponent->GetName() 
+                << "' as it's not a child of Remuxer '"
+                << GetName() << "'");
+            return NULL;
+        }
+        return m_childBranches[pChildComponent->GetName()]->
+            GetStreammuxConfigFile();
+    }
+    
+    bool RemuxerBintr::SetStreammuxConfigFile(DSL_BINTR_PTR pChildComponent,
+            const char* configFile)
+    {
+        LOG_FUNC();
+
+        if (!IsChild(pChildComponent))
+        {
+            LOG_ERROR("Can't set config-file for Branch '" 
+                << pChildComponent->GetName() 
+                << "' as it's not a child of Remuxer '"
+                << GetName() << "'");
+            return false;
+        }
+        
+        return m_childBranches[pChildComponent->GetName()]->
+            SetStreammuxConfigFile(configFile);
+    }
+
 }

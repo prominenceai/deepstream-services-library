@@ -424,7 +424,8 @@ namespace DSL
             m_eosFlag = true;
             
             // Send an EOS event to the Pipline bin. 
-            SendEos();
+            //SendEos();
+            m_pPipelineSourcesBintr->EosAll();
             
             // once the EOS event has been received on all sink pads of all
             // elements, an EOS message will be posted on the bus. We need to
