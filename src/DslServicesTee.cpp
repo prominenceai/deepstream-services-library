@@ -389,17 +389,25 @@ namespace DSL
             DSL_BINTR_PTR pBranchBintr = 
                 std::dynamic_pointer_cast<Bintr>(m_components[branch]);
             
-            *configFile = std::dynamic_pointer_cast<RemuxerBintr>
-                (m_components[name])->GetStreammuxConfigFile(pBranchBintr);
+            DSL_REMUXER_PTR pRemuxerBintr = 
+                std::dynamic_pointer_cast<RemuxerBintr>(m_components[name]);
+                
+            if (!pRemuxerBintr->IsChild(pBranchBintr))
+            {
+                LOG_ERROR("Branch '" << branch 
+                    << "' is not a child of Remuxer Tee '" << name << "'");
+                return DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD;
+            }
+            *configFile = pRemuxerBintr->GetStreammuxConfigFile(pBranchBintr);
 
-            LOG_INFO("Remuxer '" << name << "' return Config File = '"
-                << configFile << "for Branch '" << branch << "' successfully");
+            LOG_INFO("Remuxer Tee '" << name << "' returned Config File = '"
+                << configFile << "' for Branch '" << branch << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Tracker '" << name 
+            LOG_ERROR("Remuxer Tee'" << name 
                 << "' threw exception getting the Config File pathspec");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
@@ -444,7 +452,7 @@ namespace DSL
                 return DSL_RESULT_TEE_SET_FAILED;
             }
             LOG_INFO("Remuxer '" << name << "' set Config File = '"
-                << configFile << "for Branch '" << branch << "' successfully");
+                << configFile << "' for Branch '" << branch << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }

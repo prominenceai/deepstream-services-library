@@ -6458,6 +6458,7 @@ DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name,
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branch);
+    RETURN_IF_PARAM_IS_NULL(stream_ids);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

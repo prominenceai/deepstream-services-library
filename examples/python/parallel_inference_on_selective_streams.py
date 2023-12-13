@@ -90,9 +90,9 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-# Scale all streammuxer output buffers to 720p
-MUXER_WIDTH = 1280
-MUXER_HEIGHT = 720
+# Source dimensions 720p
+SOURCE_WIDTH = 1280
+SOURCE_HEIGHT = 720
 
 # Branch 1 will use a Tiler to tile two streams. Branch 2 will process single stream
 TILER_1_WIDTH = 1920
@@ -102,9 +102,9 @@ TILER_1_HEIGHT = 540
 SINK_1_WIDTH = TILER_1_WIDTH
 SINK_1_HEIGHT = TILER_1_HEIGHT
 
-# Sink-2 (for Branch-2) to use same dimensions as the streammuxer
-SINK_2_WIDTH = MUXER_WIDTH
-SINK_2_HEIGHT = MUXER_HEIGHT
+# Sink-2 (for Branch-2) to use same dimensions as the Sources
+SINK_2_WIDTH = SOURCE_WIDTH
+SINK_2_HEIGHT = SOURCE_HEIGHT
 
 
 # Function to be called on XWindow Delete event
@@ -174,10 +174,10 @@ def main(args):
             break
 
         # Add one to each of the Tracker output source pads.
-        retval = dsl_tracker_pph_add('tracker-1', 'ode-pph-1', DSL_PAD_SRC)
+#        retval = dsl_tracker_pph_add('tracker-1', 'ode-pph-1', DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_tracker_pph_add('tracker-2', 'ode-pph-2', DSL_PAD_SRC)
+#        retval = dsl_tracker_pph_add('tracker-2', 'ode-pph-2', DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -245,7 +245,7 @@ def main(args):
         retval = dsl_tiler_new('tiler-1', TILER_1_WIDTH, TILER_1_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
-        #retval = dsl_tiler_tiles_set('tiler-1', columns=2, rows=1)
+#        retval = dsl_tiler_tiles_set('tiler-1', columns=2, rows=1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -314,8 +314,8 @@ def main(args):
             break
 
         # Define our stream-ids for each branch. Available stream-ids are [0,1,2]
-        stream_ids_1 = [1,2]
-        stream_ids_2 = [2]
+        stream_ids_1 = [0,2]
+        stream_ids_2 = [1]
         
         # IMPORTANT! Use the "add_to" service to add the Branch to specific stream,
         # or use the common base Tee "add" service to connect to all streams.
@@ -338,18 +338,6 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['source-1', 'source-2', 'source-3', 'remuxer', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        
-        #----------------------------------------------------------------------------
-        # Scale both muxers to the width and heigth specified at the top of the file.
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline',
-            MUXER_WIDTH, MUXER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_tee_remuxer_dimensions_set('remuxer',
-            MUXER_WIDTH, MUXER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

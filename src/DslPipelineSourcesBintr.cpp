@@ -36,6 +36,7 @@ namespace DSL
         , m_uniquePipelineId(uniquePipelineId)
         , m_areSourcesLive(false)
         , m_batchSizeSetByClient(false)
+        , m_frameDuration(-1)   // workaround for nvidia bug
     {
         LOG_FUNC();
 
@@ -52,9 +53,11 @@ namespace DSL
         m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
         m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
         m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
-        m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
         m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
 
+        // IMPORTANT! NVIDIA bug - always returns 18446744073709.
+//        m_pStreammux->GetAttribute("frame-duration", &frameDuration);
+        m_frameDuration = GST_CLOCK_TIME_NONE;
         
         LOG_INFO("");
         LOG_INFO("Initial property values for Streammux '" << name << "'");
@@ -462,6 +465,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
         return m_numSurfacesPerFrame;
     }
     
@@ -487,6 +491,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
         return m_syncInputs;
     }
     
@@ -496,13 +501,13 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update sync-input for PipelineSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
 
         m_syncInputs = enabled;
-        m_pStreammux->SetAttribute("enable-padding", m_syncInputs);
+        m_pStreammux->SetAttribute("sync-inputs", m_syncInputs);
         
         return true;
     }
@@ -511,6 +516,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
         return m_maxLatency;
     }
     

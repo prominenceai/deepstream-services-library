@@ -38,6 +38,7 @@ namespace DSL
         : Bintr(name, parentRemuxerBin)
         , m_pChildBranch(pChildBranch)
         , m_linkSelectiveStreams(numStreamIds)   // true if numStreamIds > 0
+        , m_frameDuration(GST_CLOCK_TIME_NONE)   // workaround for nvidia bug
     {
         LOG_FUNC();
 
@@ -68,9 +69,12 @@ namespace DSL
         m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
         m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
         m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
-        m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
         m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
-
+        
+        // IMPORTANT! NVIDIA bug - always returns 18446744073709.
+//        m_pStreammux->GetAttribute("frame-duration", &frameDuration);
+        m_frameDuration = GST_CLOCK_TIME_NONE;
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
         LOG_INFO("  child-branch           : " << m_pChildBranch->GetName());
@@ -301,6 +305,7 @@ namespace DSL
             m_batchSize = batchSize;
         }
         
+        LOG_WARN("*************************************");
         m_pStreammux->SetAttribute("batch-size", m_batchSize);
         
         return true;
@@ -536,6 +541,7 @@ namespace DSL
             LOG_ERROR("RemuxerBintr '" << m_name << "' is not linked");
             return;
         }
+
         for (auto const& imap: m_childBranches)
         {
             // Important to unlink from source Tees first, UnlinkAll will 
@@ -557,7 +563,7 @@ namespace DSL
             Bintr::RemoveChild(m_tees.back());
             m_tees.pop_back();
         }
-            
+        
         // We now free all of the pre-allocated requested pads
         while (m_requestedSrcPads.size())
         {

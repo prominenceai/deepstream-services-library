@@ -154,7 +154,7 @@ def main(args):
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
         retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
-            width=DSL_STREAMMUX_4K_UHD_WIDTH, height=DSL_STREAMMUX_4K_UHD_WIDTH)
+            width=DSL_4K_UHD_WIDTH, height=DSL_4K_UHD_WIDTH)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -174,11 +174,7 @@ def main(args):
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # Update the Pipeline's streammuxer dimensions 
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline', 
-            width=DSL_STREAMMUX_4K_UHD_WIDTH, height= DSL_STREAMMUX_4K_UHD_HEIGHT)
-        
+            
         ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:

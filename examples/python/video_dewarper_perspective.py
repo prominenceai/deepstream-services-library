@@ -51,9 +51,6 @@ dwarper_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper_perspective.txt'
 
 
-streammux_width = 3680
-streammux_height = 2428
-
 sink_width = DSL_1K_HD_WIDTH
 sink_height = DSL_1K_HD_HEIGHT
 

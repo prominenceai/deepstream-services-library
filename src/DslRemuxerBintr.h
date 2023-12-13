@@ -185,7 +185,7 @@ namespace DSL
          * before nvstreammux in the pipeline. If set to -1, disables frame rate 
          * based NTP timestamp correction. 
          */
-        int m_frameDuration;
+        int64_t m_frameDuration;
 
         /**
          * @brief property to control EOS propagation downstream from nvstreammux

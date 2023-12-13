@@ -48,7 +48,7 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
 
-# Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+# Source file dimensions are 960 × 540
 source_width = 960
 source_height = 540
 
@@ -157,12 +157,6 @@ def create_pipeline(client_data):
     retval = dsl_pipeline_new_component_add_many(client_data.pipeline,
         components=[client_data.source, client_data.sink, None]);
     if (retval != DSL_RETURN_SUCCESS):    
-        return retval    
-
-    # Update the Pipeline's Streammux dimensions to match the source dimensions.
-    retval = dsl_pipeline_streammux_dimensions_set(client_data.pipeline,
-        source_width, source_height)
-    if retval != DSL_RETURN_SUCCESS:
         return retval    
 
     # Add the listener callback functions defined above

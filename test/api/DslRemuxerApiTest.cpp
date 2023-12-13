@@ -189,11 +189,77 @@ SCENARIO( "A Remuxer can Set and Get all properties", "[remuxer-api]" )
     }
 }
 
+SCENARIO( "A Remuxer can set a Branch config-file correctly", "[remuxer-api]" )
+{
+    GIVEN( "A Remuxer and Branch" ) 
+    {
+        std::wstring remuxer_name(L"remuxer");
+        std::wstring branch_name(L"branch");
+
+        REQUIRE( dsl_tee_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_branch_new(branch_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 2 );
+
+        uint count(0);
+        uint stream_ids[] = {1,2,3,4};
+        
+        REQUIRE( dsl_tee_branch_count_get(remuxer_name.c_str(), 
+            &count) == DSL_RESULT_SUCCESS );
+        REQUIRE( count == 0 );
+
+        // ensure that the get fails prior to adding as branch
+        const wchar_t* c_ret_config_file;
+        REQUIRE( dsl_tee_remuxer_branch_config_file_get(remuxer_name.c_str(), 
+            branch_name.c_str(), &c_ret_config_file) == 
+            DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD );
+
+        REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+            branch_name.c_str(), stream_ids, 4) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tee_branch_count_get(remuxer_name.c_str(), 
+            &count) == DSL_RESULT_SUCCESS );
+        REQUIRE( count == 1 );
+
+        REQUIRE( dsl_tee_remuxer_branch_config_file_get(remuxer_name.c_str(), 
+            branch_name.c_str(), &c_ret_config_file) == DSL_RESULT_SUCCESS );
+            
+        std::wstring ret_config_file(c_ret_config_file);
+        REQUIRE( ret_config_file == L"" );
+
+        WHEN( "A the Remuxer is called to update the Branches config-file" ) 
+        {
+            std::wstring new_config_file(L"./test/config/all_sources_30fps.txt");
+            
+            REQUIRE( dsl_tee_remuxer_branch_config_file_set(remuxer_name.c_str(), 
+                branch_name.c_str(), new_config_file.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct config-file is returned on get" ) 
+            {
+                REQUIRE( dsl_tee_remuxer_branch_config_file_get(remuxer_name.c_str(), 
+                    branch_name.c_str(), &c_ret_config_file) == 
+                    DSL_RESULT_SUCCESS );
+                    
+                ret_config_file = c_ret_config_file;
+                REQUIRE( ret_config_file == new_config_file );
+                
+                REQUIRE( dsl_tee_branch_remove(remuxer_name.c_str(), 
+                    branch_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tee_branch_count_get(remuxer_name.c_str(), 
+                    &count) == DSL_RESULT_SUCCESS );
+                REQUIRE( count == 0 );
+                REQUIRE( dsl_component_delete(remuxer_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Remuxer API checks for NULL input parameters", "[remuxer-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
         std::wstring remuxer_name(L"remuxer");
+        std::wstring branch_name(L"branch");
         
         uint batch_size(0);
 
@@ -201,6 +267,43 @@ SCENARIO( "The Remuxer API checks for NULL input parameters", "[remuxer-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_tee_remuxer_new(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_tee_remuxer_new_branch_add_many(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_new_branch_add_many(remuxer_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_new_branch_add_many(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_tee_remuxer_branch_add_to(NULL, 
+                    NULL, NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+                    NULL, NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+                    branch_name.c_str(), NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tee_remuxer_batch_size_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_batch_size_get(remuxer_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_batch_size_set(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tee_remuxer_branch_config_file_get(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_branch_config_file_get(remuxer_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_branch_config_file_get(remuxer_name.c_str(), 
+                    branch_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tee_remuxer_branch_config_file_set(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_branch_config_file_set(remuxer_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tee_remuxer_branch_config_file_set(remuxer_name.c_str(), 
+                    branch_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
             }
         }
     }

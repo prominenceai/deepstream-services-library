@@ -221,7 +221,7 @@ namespace DSL
             if (!streamConfigFile.good())
             {
                 LOG_ERROR("Pipeline Streammux config file not found");
-                return DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND;
+                return DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND;
             }
             
             if (!m_pipelines[name]->SetStreammuxConfigFile(configFile))

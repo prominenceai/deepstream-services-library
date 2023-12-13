@@ -319,9 +319,8 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        retval = dsl_pipeline_streammux_dimensions_set(L"pipeline", 
-            source_width, source_height);
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", 

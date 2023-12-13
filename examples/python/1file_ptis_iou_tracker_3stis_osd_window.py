@@ -68,11 +68,11 @@ secondary_infer_config_file2 = \
 secondary_infer_config_file3 = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_vehicletypes.txt'
 
-# Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+# Source file dimensions are 960 × 540
 SOURCE_WIDTH = 960
 SOURCE_HEIGHT = 540
 
-# Window Sink dimensions same as Streammux dimensions - no scaling.
+# Window Sink dimensions same as Source dimensions - no scaling.
 SINK_WIDTH = SOURCE_WIDTH
 SINK_HEIGHT = SOURCE_HEIGHT
 
@@ -177,12 +177,6 @@ def main(args):
             ['file-source', 'primary-tis', 'iou-tracker', 'secondary-tis-1', 
             'secondary-tis-2', 'secondary-tis-3', 'on-screen-display', 
             'window-sink', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Update the Pipeline's Streammux dimensions to match the source dimensions.
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline',
-            SOURCE_WIDTH, SOURCE_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -91,9 +91,9 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-// Scale all streammuxer output buffers to 720p
-uint MUXER_WIDTH = 1280;
-uint MUXER_HEIGHT = 720;
+// Dimensions of input file
+uint SOURCE_WIDTH = 1280;
+uint SOURCE_HEIGHT = 720;
 
 // Branch 1 will use a Tiler to tile two streams. Branch 2 will process single stream
 uint TILER_1_WIDTH = 1920;
@@ -104,8 +104,8 @@ uint SINK_1_WIDTH = TILER_1_WIDTH;
 uint SINK_1_HEIGHT = TILER_1_HEIGHT;
 
 // Sink-2 (for Branch-2) to use same dimensions as the streammuxer
-uint SINK_2_WIDTH = MUXER_WIDTH;
-uint SINK_2_HEIGHT = MUXER_HEIGHT;
+uint SINK_2_WIDTH = SOURCE_WIDTH;
+uint SINK_2_HEIGHT = SOURCE_HEIGHT;
 
 // 
 // Function to be called on XWindow Delete event
@@ -346,18 +346,6 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_new_component_add_many(L"pipeline", 
             pipeline_components);
         if (retval != DSL_RESULT_SUCCESS) break;
-
-        
-        //----------------------------------------------------------------------------
-        // Scale both muxers to the width and heigth specified at the top of the file.
-        retval = dsl_pipeline_streammux_dimensions_set(L"pipeline",
-            MUXER_WIDTH, MUXER_HEIGHT);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_tee_remuxer_dimensions_set(L"remuxer",
-            MUXER_WIDTH, MUXER_HEIGHT);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
 
         // Play the pipeline
         retval = dsl_pipeline_play(L"pipeline"); 
