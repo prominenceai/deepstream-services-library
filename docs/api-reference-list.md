@@ -370,10 +370,10 @@
 * [`dsl_tee_demuxer_max_branches_get`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_get)
 * [`dsl_tee_demuxer_max_branches_set`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_set)
 * [`dsl_tee_remuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_remuxer_branch_add_to)
-* [`dsl_tee_remuxer_batch_properties_get`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_get)
-* [`dsl_tee_remuxer_batch_properties_set`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_set)
-* [`dsl_tee_remuxer_dimensions_get`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_get)
-* [`dsl_tee_remuxer_dimensions_set`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_set)
+* [`dsl_tee_remuxer_branch_config_file_get`](/docs/api-tee.md#dsl_tee_remuxer_branch_config_file_get)
+* [`dsl_tee_remuxer_branch_config_file_set`](/docs/api-tee.md#dsl_tee_remuxer_branch_config_file_set)
+* [`dsl_tee_remuxer_batch_size_get`](/docs/api-tee.md#dsl_tee_remuxer_batch_size_get)
+* [`dsl_tee_remuxer_batch_size_set`](/docs/api-tee.md#dsl_tee_remuxer_batch_size_set)
 
 ## Sink:
 * [Overview](/docs/api-sink.md)
