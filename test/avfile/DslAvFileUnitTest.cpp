@@ -100,7 +100,7 @@ SCENARIO( "An AvInputFile utility can read a MJPG file correctly",  "[AvFile]" )
     GIVEN( "A file path to a MJPG file" ) 
     {
         std::string filepath(
-            "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
+            "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p_mjpeg.mp4");
     
         WHEN( "When the AvInputFile object is created" )
         {

@@ -305,7 +305,6 @@ namespace DSL
             m_batchSize = batchSize;
         }
         
-        LOG_WARN("*************************************");
         m_pStreammux->SetAttribute("batch-size", m_batchSize);
         
         return true;
