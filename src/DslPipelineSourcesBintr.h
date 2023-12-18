@@ -105,62 +105,32 @@ namespace DSL
         bool StreammuxPlayTypeIsLiveSet(bool isLive);
 
         /**
-         * @brief Gets the current Streammuxer NVIDIA buffer memory type.
-         * @return one of the DSL_NVBUF_MEM_TYPE constant values.
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
          */
-        uint GetStreammuxNvbufMemType();
-
-        /**
-         * @brief Sets the Streammuxer's NVIDIA buffer memory type.
-         * @param[in] type one of the DSL_NVBUF_MEM_TYPE constant values.
-         * @return true if nvbuf-memory-type is succesfully set, false otherwise
-         */
-        bool SetStreammuxNvbufMemType(uint type);
+        const char* GetStreammuxConfigFile();
         
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(const char* configFile);
+
         /**
          * @brief Gets the current batch settings for the SourcesBintr's Stream Muxer.
-         * @param[out] batchSize current batchSize, default == the number of source.
-         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
+         * @return Current batchSize, default == the number of source.
          */
-        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout);
+        uint GetStreammuxBatchSize();
 
         /**
-         * @brief Sets the current batch settings for the SourcesBintr's Stream Muxer.
+         * @brief Sets the current batch size for the SourcesBintr's Stream Muxer.
          * @param[in] batchSize new batchSize to set, default == the number of sources.
-         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
-         * @return true if batch-properties are succesfully set, false otherwise.
+         * @return true if batch-size is succesfully set, false otherwise.
          */
-        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
-
-        /**
-         * @brief Gets the current dimensions for the SourcesBintr's Stream Muxer.
-         * @param[out] width width in pixels for the current setting.
-         * @param[out] height height in pixels for the curren setting.
-         */
-        void GetStreammuxDimensions(uint* width, uint* height);
-
-        /**
-         * @brief Set the dimensions for the SourcesBintr's Streammuxer.
-         * @param width width in pixels to set the streamMux Output.
-         * @param height height in pixels to set the Streammux output.
-         * @return true if dimensions are succesfully set, false otherwise.
-         */
-        bool SetStreammuxDimensions(uint width, uint height);
-        
-        /**
-         * @brief Gets the current setting for the PipelineSourcesBintr's 
-         * Streammuxer padding enabled property.
-         * @preturn true if enabled, false otherwise.
-         */
-        boolean GetStreammuxPaddingEnabled();
-
-        /**
-         * @brief Sets the PipelineSourcesBintr's Streammuxer padding 
-         * enabled property.
-         * @param enabled set to true to enable padding, false otherwise.
-         * @return true if padding enabled was succesfully set, false otherwise.
-         */
-        bool SetStreammuxPaddingEnabled(boolean enabled);
+        bool SetStreammuxBatchSize(uint batchSize);
 
         /**
          * @brief Gets the current setting for the PipelineSourcesBintr's Streammuxer
@@ -193,10 +163,20 @@ namespace DSL
         bool SetStreammuxSyncInputsEnabled(boolean enabled);
         
         /**
-         * @brief Set the GPU ID for the PipelineSourcesBintr's Streammuxer
-         * @return true if successfully set, false otherwise.
+         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * Streammuxer max-latency property.
+         * @preturn The maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
          */
-        bool SetGpuId(uint gpuId);
+        uint GetStreammuxMaxLatency();
+        
+        /**
+         * @brief Sets the PipelineSourcesBintr's Streammuxer max-latency property.
+         * @param[in] maxLatency the maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+         * @return true if max-latency was succesfully set, false otherwise.
+         */
+        bool SetStreammuxMaxLatency(uint maxLatency);
         
         /**
          * @brief Calls on all child Sources to disable their EOS consumers.
@@ -204,6 +184,7 @@ namespace DSL
         void DisableEosConsumers();
 
     private:
+    
         /**
          * @brief adds a child Elementr to this PipelineSourcesBintr
          * @param pChildElement a shared pointer to the Elementr to add
@@ -223,6 +204,11 @@ namespace DSL
          * Id's (if greater than 0)
          */
         uint m_uniquePipelineId; 
+        
+        /**
+         * @brief true if Client explicity set by client, false by default.
+         */
+        bool m_batchSizeSetByClient;
          
         /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
@@ -243,7 +229,6 @@ namespace DSL
          */
         DSL_PPH_SOURCE_ID_OFFSETTER_PTR m_pSourceIdOffsetter;
 
-    public:
 
         DSL_ELEMENT_PTR m_pStreammux;
         
@@ -268,34 +253,12 @@ namespace DSL
          * @brief true if all sources are live, false if all sources are non-live
          */
         bool m_areSourcesLive;
-
-        /**
-         * @brief current NVIDIA buffer memory type in use by the Streammuxer
-         * set to DLS_NVBUF_MEM_DEFAULT on creation.
-         */
-        uint m_nvbufMemType;
-
-        /**
-         * @brief Stream-muxer batch timeout used when waiting for all sources
-         * to produce a frame when batching together
-         */
-        gint m_batchTimeout;
         
         /**
-         * @brief Stream-muxer batched frame output width in pixels
+         * @brief Absolute or relative path to the Streammuxer config file.
          */
-        gint m_streamMuxWidth;
+        std::string m_streammuxConfigFile;
 
-        /**
-         * @brief Stream-muxer batched frame output height in pixels
-         */
-        gint m_streamMuxHeight;
-
-        /**
-         * @brief true if frame padding is enabled, false otherwise
-         */
-        boolean m_isPaddingEnabled;
-        
         /**
          * @brief Number of surfaces-per-frame stream-muxer setting
          */
@@ -310,26 +273,21 @@ namespace DSL
         uint m_computeHw;
         
         /**
-         * @brief Number of buffers in output buffer pool
-         */
-        uint m_bufferPoolSize;
-        
-        /**
          * @brief Attach system timestamp as ntp timestamp, otherwise ntp 
          * timestamp calculated from RTCP sender reports.
          */
         boolean m_attachSysTs;
         
         /**
-         * @brief Interpolation method - refer to enum NvBufSurfTransform_Inter 
-         * in nvbufsurftransform.h for valid values.
-         */
-        uint m_interpolationMethod;
-        
-        /**
          * @brief if true, sychronizes input frames using PTS.
          */
         boolean m_syncInputs;
+        
+        /**
+         * @brief The maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+         */
+        uint m_maxLatency;
         
         /**
          * @brief Duration of input frames in milliseconds for use in NTP timestamp 
@@ -341,7 +299,13 @@ namespace DSL
          * before nvstreammux in the pipeline. If set to -1, disables frame rate 
          * based NTP timestamp correction. 
          */
-        int m_frameDuration;
+        int64_t m_frameDuration;
+        
+        /**
+         * @brief property to control EOS propagation downstream from nvstreammux
+         * when all the sink pads are at EOS. (Experimental)
+         */
+        boolean m_dropPipelineEos;
     };
 
     

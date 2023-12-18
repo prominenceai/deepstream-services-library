@@ -62,10 +62,10 @@ Branches are added to a Tee by calling [`dsl_tee_branch_add`](api-branch.md#dsl_
 
 **Remuxer Tee Methods**
 * [`dsl_tee_remuxer_branch_add_to`](#dsl_tee_remuxer_branch_add_to)
-* [`dsl_tee_remuxer_batch_properties_get`](#dsl_tee_remuxer_batch_properties_get)
-* [`dsl_tee_remuxer_batch_properties_set`](#dsl_tee_remuxer_batch_properties_set)
-* [`dsl_tee_remuxer_dimensions_get`](#dsl_tee_remuxer_dimensions_get)
-* [`dsl_tee_remuxer_dimensions_set`](#dsl_tee_remuxer_dimensions_set)
+* [`dsl_tee_remuxer_branch_config_file_get`](#dsl_tee_remuxer_branch_config_file_get)
+* [`dsl_tee_remuxer_branch_config_file_set`](#dsl_tee_remuxer_branch_config_file_set)
+* [`dsl_tee_remuxer_batch_size_get`](#dsl_tee_remuxer_batch_size_get)
+* [`dsl_tee_remuxer_batch_size_set`](#dsl_tee_remuxer_batch_size_set)
 
 ## Return Values
 The following return codes are used by the Tee API
@@ -75,24 +75,21 @@ The following return codes are used by the Tee API
 #define DSL_RESULT_TEE_NAME_NOT_FOUND                               0x000A0002
 #define DSL_RESULT_TEE_NAME_BAD_FORMAT                              0x000A0003
 #define DSL_RESULT_TEE_THREW_EXCEPTION                              0x000A0004
-#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0005
-#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0006
-#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A0007
-#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A0008
-#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A0009
-#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000A
+#define DSL_RESULT_TEE_SET_FAILED                                   0x000A0005
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0006
+#define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0007
+#define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0008
+#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A0009
+#define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A000A
+#define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000B
+#define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000C
+#define DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE                         0x000A000D
 ```
 
 ## Constant Values
 The default blocking-timeout value used by both Splitter and Demuxer Tees. IMPORTANT! The timeout controls the amount of time the Tee will wait for a blocking PPH to be called to dynamically link or unlink a branch at runtime while the Pipeline is playing. This value will need to be extended if the frame-rate for the stream is less than 2 fps.  The timeout is needed in case the Source upstream has been removed or is in a bad state in which case the pad callback will never be called.
 ```C
 #define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
-```
-
-## Remuxer internal Streammuxer Constant Values
-```C
-#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
-#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
 ```
 
 ## Constructors
@@ -498,7 +495,7 @@ retval = dsl_tee_demuxer_max_branches_set('my-demuxer', 10)
 
 ---
 
-## Demuxer Tee Methods
+## Remuxer Tee Methods
 ### *dsl_tee_remuxer_branch_add_to*
 ```C++
 DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
@@ -526,61 +523,14 @@ retval = dsl_tee_remuxer_branch_add_to('my-demuxer', 'my-branch’,
 
 <br>
 
-### *dsl_tee_remuxer_batch_properties_get*
+### *dsl_tee_remuxer_branch_config_file_get*
 ```C++
-DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
-    uint* batch_size, int* batch_timeout);
+DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t** config_file);
 ```
-This service returns the current `batch_size` and `batch_timeout` for the named Remuxer. The `batch_size` is used by all internal Streammux plugins connecting to Branches that are to connect to all streams. The `batch_timeout` is used by all internal Streammux plugins allocated. 
+This service returns the current Streammuxer config-file in use by a named Remuxer Branch. 
 
-**Note:** the Remuxer's parent Pipeline or Branch will set the `batch_size` to current number of upstream added Sources at runtime, and the `batch_timeout` to -1 (disabled), if not explicitly set. A Branch connecting to a specific set of stream-ids will set the `batch-size` to the number of streams to connect to.
-
-**Parameters**
-* `name` - [in] unique name for the Remuxer to query.
-* `batch_size` - [out] the current batch size set for the Remuxer. Default = 0 until runtime or unless explicitly set.
-* `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. Set to -1 by default.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, batch_size, batch_timeout = dsl_tee_remuxer_batch_properties_get('my-remuxer')
-```
-
-<br>
-
-### *dsl_tee_remuxer_batch_properties_set*
-```C++
-DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
-    uint batch_size, int batch_timeout);
-```
-This service sets the `batch_size` and `batch_timeout` for the named Remxuer to use.  The `batch_size` is used by all internal Streammux plugins when connecting to Branches that are to connect to all streams. The `batch_timeout` is used by all internal Streammux plugins. 
-
-**Note:** the Remuxer's parent Pipeline or Branch will set the `batch_size` to current number of upstream added Sources at runtime, and the `batch_timeout` to -1 (disabled), if not explicitly set. A Branch connecting to a specific set of stream-ids will set the `batch-size` to the number of streams to connect to.
-
-**Parameters**
-* `name` - [in] unique name for the Remuxer to update.
-* `batch_size` - [in] the new batch size to use.
-* `batch_timeout` - [in] the new timeout in milliseconds before a batch meta push is forced.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_tee_remuxer_batch_properties_set('my-remuxer',
-    batch_size, batch_timeout)
-```
-
-<br>
-
-### *dsl_tee_remuxer_dimensions_get*
-```C++
-DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
-```
-This service returns the current output dimensions for all internal Steammuxer plugins for the uniquely named Remuxer. The [default dimensions](remuxer-internal-streammuxer-constant-values)  are assigned during Remuxer creation. 
+**IMPORTANT!** The named Branch must already be added to the named Remuxer or this service will fail.
 
 **Parameters**
 * `name` - [in] unique name of the Remuxer to query.
@@ -592,29 +542,84 @@ This service returns the current output dimensions for all internal Steammuxer p
 
 **Python Example**
 ```Python
-retval, width, height = dsl_tee_remuxer_dimensions_get('my-remuxer')
+retval, config_file = dsl_tee_remuxer_branch_config_file_get('my-remuxer', 'my-branch-a')
 ```
 <br>
 
-### *dsl_tee_remuxer_dimensions_set*
+### *dsl_tee_remuxer_branch_config_file_set*
 ```C++
-DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
-    uint width, uint height);
+DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t* config_file);
 ```
-This service sets the output dimensions for all internal Streammux plugins for the uniquely named Remuxer. The dimensions cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
+This service sets the Streammuxer config-file for a named Remuxer Branch to use.
+
+**IMPORTANT!** The named Branch must already be added to the named Remuxer or this service will fail.
 
 **Parameters**
 * `name` - [in] unique name of the Remuxer to update.
-* `width` - [in] new width for all internal Streammuxer's output in pixels.
-* `height` - [in] new height for all internal Streammuxer's output in pixels.
+* `branch` - [in] unique name of the Remuxer Branch to update.
+* `config_file` - [in] absolute or relative path to the new Streammux config-file to use.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tee_remuxer_dimensions_set('my-remuxer', 1280, 720)
+retval = dsl_tee_remuxer_branch_config_file_set('my-remuxer',
+    'my-branch-a', './streammux_a_config.txt)
 ```
+<br>
+
+### *dsl_tee_remuxer_batch_size_get*
+```C++
+DslReturnType dsl_tee_remuxer_batch_size_get(const wchar_t* name, 
+    uint* batch_size);
+```
+This service returns the current `batch_size` setting for the named Remuxer. The `batch_size` is used by each internal Streammux plugin for each added Branch that connects to all streams. 
+Branches that connect to a select set of stream-ids will set their `batch-size` to the number of streams selected.  
+
+**Note:** Unless explicity set with a call to [dsl_tee_remuxer_batch_size_set](#dsl_tee_remuxer_batch_size_set), the Remuxer will use the upstream batch-size when the Pipeline is linked and played. 
+
+**IMPORTANT!** If adding/removing Sources dynamically at runtime, you must set the batch-size to the maximum number of upstream Sources that can be added.
+
+**Parameters**
+* `name` - [in] unique name for the Remuxer to query.
+* `batch_size` - [out] the current batch size set for the Remuxer. Default = 0 until runtime or unless explicitly set.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, batch_size = dsl_tee_remuxer_batch_size_get('my-remuxer')
+```
+
+<br>
+
+### *dsl_tee_remuxer_batch_size_set*
+```C++
+DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name, 
+    uint batch_size);
+```
+This service sets the `batch_size` for the named Remxuer to use.  The `batch_size` is used by each internal Streammux plugin for each added Branch that connects to all streams. 
+Branches that connect to a select set of stream-ids will set their `batch-size` to the number of streams selected.
+
+**Note:** Unless explicity set with this service, the Remuxer will use the upstream batch-size when the Pipeline is linked and played. 
+
+**IMPORTANT!** If adding/removing Sources dynamically at runtime, you must set the batch-size to the maximum number of upstream Sources that can be added.
+
+**Parameters**
+* `name` - [in] unique name for the Remuxer to update.
+* `batch_size` - [in] the new batch size to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tee_remuxer_batch_size_set('my-remuxer', batch_size)
+```
+
 <br>
 
 ---

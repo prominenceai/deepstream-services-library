@@ -2057,6 +2057,8 @@ namespace DSL
             // aarch64 only
             if (m_cudaDeviceProp.integrated)
             {
+                // 6.2 and not 6.3?
+                g_object_set(pObject, "bufapi-version", TRUE, NULL);
                 g_object_set(pObject, "enable-max-performance", TRUE, NULL);
             }
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);

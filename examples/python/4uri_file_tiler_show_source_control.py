@@ -54,9 +54,9 @@ tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Window Sink Dimensions - used to create the sink, however, in this
-# example the Pipeline XWindow service is called to enabled full-sreen
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+# example the Sink's XWindow service is called to enabled full-sreen
+TILER_WIDTH = DSL_1K_HD_WIDTH
+TILER_HEIGHT = DSL_1K_HD_HEIGHT
 
 #WINDOW_WIDTH = TILER_WIDTH
 #WINDOW_HEIGHT = TILER_HEIGHT

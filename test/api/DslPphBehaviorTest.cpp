@@ -250,7 +250,7 @@ SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[hold]"
             buffer_timeout_name_4.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(),
-            DSL_STREAMMUX_DEFAULT_WIDTH, DSL_STREAMMUX_DEFAULT_HEIGHT) == DSL_RESULT_SUCCESS );
+            DSL_1K_HD_WIDTH, DSL_1K_HD_HEIGHT) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );

@@ -42,11 +42,11 @@ static const std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+// Source file dimensions are 960 × 540.
 int source_width = 960;
 int source_height = 540;
 
-// Window Sink dimensions same as Streammux dimensions - no scaling.
+// Window Sink dimensions same as Source dimensions - no scaling.
 int sink_width = source_width;
 int sink_height = source_height;
 
@@ -142,11 +142,6 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // Update the Pipeline's Streammux dimensions to match the source dimensions.
-        retval = dsl_pipeline_streammux_dimensions_set(L"pipeline",
-            source_width, source_height);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
             state_change_listener, nullptr);

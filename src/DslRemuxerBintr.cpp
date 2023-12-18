@@ -38,11 +38,12 @@ namespace DSL
         : Bintr(name, parentRemuxerBin)
         , m_pChildBranch(pChildBranch)
         , m_linkSelectiveStreams(numStreamIds)   // true if numStreamIds > 0
-        , m_batchTimeout(-1)                     
-        , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
+        , m_frameDuration(GST_CLOCK_TIME_NONE)   // workaround for nvidia bug
     {
         LOG_FUNC();
+
+        // Need to forward all children messages for this RemuxerBranchBintr,
+        g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
 
         std::stringstream ssStreamIds;
         // If linking to specific streams ids - not all.
@@ -53,6 +54,7 @@ namespace DSL
             std::copy(m_streamIds.begin(), m_streamIds.end(), 
                 std::ostream_iterator<uint>(ssStreamIds, " "));
         }
+
         // Create a new Streammuxer for this child branch with a unique name
         // derived from this RemuxerBranchBintr's name which comes from the
         // unique pChildBranch name - enforced by the client API.
@@ -60,20 +62,34 @@ namespace DSL
         
         // Each branch needs its own Streammuxer to connect back to the output Tees,
         // which are connected to the request-pads of the Demuxer.
-        m_pStreammuxer = DSL_ELEMENT_NEW("nvstreammux", streammuxerName.c_str());
+        m_pStreammux = DSL_ELEMENT_NEW("nvstreammux", streammuxerName.c_str());
 
+        // Get property defaults that aren't specifically set
+        m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
+        m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
+        m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
+        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
+        m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
+        
+        // IMPORTANT! NVIDIA bug - always returns 18446744073709.
+//        m_pStreammux->GetAttribute("frame-duration", &frameDuration);
+        m_frameDuration = GST_CLOCK_TIME_NONE;
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
         LOG_INFO("  child-branch           : " << m_pChildBranch->GetName());
         LOG_INFO("  stream-ids             : " << ssStreamIds.str());
-        LOG_INFO("  width                  : " << m_width);
-        LOG_INFO("  height                 : " << m_height);
-        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
+        LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
+        LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
+        LOG_INFO("  sync-inputs            : " << m_syncInputs);
+        LOG_INFO("  max-latency            : " << m_maxLatency);
+        LOG_INFO("  frame-duration         : " << m_frameDuration);
+        LOG_INFO("  drop-pipeline-eos      : " << m_dropPipelineEos);
        
         // Add both the ChildBranch and new Streammuxer to this RemuxerBranchBintr
         // so that we can link them together => streammuxer->branch.
         AddChild(m_pChildBranch);
-        AddChild(m_pStreammuxer);
+        AddChild(m_pStreammux);
 
     }
     
@@ -135,7 +151,7 @@ namespace DSL
             std::string sinkPadName = 
                 "sink_" + std::to_string(i);
             
-            if (!pQueue->LinkToSinkMuxer(m_pStreammuxer,
+            if (!pQueue->LinkToSinkMuxer(m_pStreammux,
                     sinkPadName.c_str()))
             {
                 return false;
@@ -146,7 +162,7 @@ namespace DSL
         // Then link the Streammuxer to the Child Branch
         m_pChildBranch->SetBatchSize(m_batchSize);
         if (!m_pChildBranch->LinkAll() or
-            !m_pStreammuxer->LinkToSink(m_pChildBranch))
+            !m_pStreammux->LinkToSink(m_pChildBranch))
         {
             return false;
         }
@@ -177,7 +193,7 @@ namespace DSL
         }
         // Delete all child Queue elements
         m_queues.clear();
-        m_pStreammuxer->UnlinkFromSink();
+        m_pStreammux->UnlinkFromSink();
         m_pChildBranch->UnlinkAll();
         
         // If we're not linking to specific stream-ids, clear the stream-id 
@@ -240,17 +256,14 @@ namespace DSL
         }
     }
 
-    void RemuxerBranchBintr::GetBatchProperties(uint* batchSize, 
-        int* batchTimeout)
+    uint RemuxerBranchBintr::GetBatchSize()
     {
         LOG_FUNC();
 
-        *batchSize = m_batchSize;
-        *batchTimeout = m_batchTimeout;
+        return m_batchSize;
     }
 
-    bool RemuxerBranchBintr::SetBatchProperties(uint batchSize, 
-        int batchTimeout)
+    bool RemuxerBranchBintr::SetBatchSize(uint batchSize)
     {
         LOG_FUNC();
 
@@ -291,49 +304,39 @@ namespace DSL
             // otherwise, use parent Remuxer batch-size
             m_batchSize = batchSize;
         }
-        m_batchTimeout = batchTimeout;
         
-        m_pStreammuxer->SetAttribute("batch-size", m_batchSize);
-        m_pStreammuxer->SetAttribute("batched-push-timeout", m_batchTimeout);
+        m_pStreammux->SetAttribute("batch-size", m_batchSize);
         
         return true;
     }
-    
-    void RemuxerBranchBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
-    }
 
-    bool RemuxerBranchBintr::SetDimensions(uint width, uint height)
+    const char* RemuxerBranchBintr::GetStreammuxConfigFile()
+    {
+        return m_streammuxConfigFile.c_str();
+    }
+    
+    bool RemuxerBranchBintr::SetStreammuxConfigFile(const char* configFile)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update dimensions for RemuxerBranchBintr '" 
+            LOG_ERROR("Can't update config-file for RemuxerBranchBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
 
-        m_width = width;
-        m_height = height;
-
-        m_pStreammuxer->SetAttribute("width", m_width);
-        m_pStreammuxer->SetAttribute("height", m_height);
+        m_streammuxConfigFile = configFile;
+        m_pStreammux->SetAttribute("config-file-path", 
+            m_streammuxConfigFile.c_str());
         
         return true;
     }
-
+    
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
         : TeeBintr(name)
-        , m_width(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_height(DSL_STREAMMUX_DEFAULT_HEIGHT)
-        , m_batchTimeout(-1)
         , m_batchSizeSetByClient(false)
         // m_batchSize initialized to 0 in Bintr ctor
     {
@@ -348,9 +351,6 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
-        LOG_INFO("  width                  : " << m_width);
-        LOG_INFO("  height                 : " << m_height);
-        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
         
         // Add the demuxer as child and elevate as sink ghost pad
         Bintr::AddChild(m_pDemuxer);
@@ -519,8 +519,7 @@ namespace DSL
         // to the Demuxer source Tees according to their select stream-ids.
         for (auto const& imap: m_childBranches)
         {
-            if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
-                !imap.second->SetDimensions(m_width, m_height) or
+            if (!imap.second->SetBatchSize(m_batchSize) or
                 !imap.second->LinkAll() or
                 !imap.second->LinkToSourceTees(m_tees))
             {
@@ -541,6 +540,7 @@ namespace DSL
             LOG_ERROR("RemuxerBintr '" << m_name << "' is not linked");
             return;
         }
+
         for (auto const& imap: m_childBranches)
         {
             // Important to unlink from source Tees first, UnlinkAll will 
@@ -562,7 +562,7 @@ namespace DSL
             Bintr::RemoveChild(m_tees.back());
             m_tees.pop_back();
         }
-            
+        
         // We now free all of the pre-allocated requested pads
         while (m_requestedSrcPads.size())
         {
@@ -616,27 +616,23 @@ namespace DSL
         return true;
     }
     
-    void RemuxerBintr::GetBatchProperties(uint* batchSize, 
-        int* batchTimeout)
+    uint RemuxerBintr::GetBatchSize()
     {
         LOG_FUNC();
 
-        *batchSize = m_batchSize;
-        *batchTimeout = m_batchTimeout;
+        return m_batchSize;
     }
 
-    bool RemuxerBintr::SetBatchProperties(uint batchSize, 
-        int batchTimeout)
+    bool RemuxerBintr::OverrideBatchSize(uint batchSize)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update batch properties for RemuxerBintr '" 
+            LOG_ERROR("Can't update batch size for RemuxerBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        m_batchTimeout = batchTimeout;
         m_batchSize = batchSize;
 
         if (!batchSize)
@@ -651,43 +647,38 @@ namespace DSL
         }
         return true;
     }
+
+    const char* RemuxerBintr::GetStreammuxConfigFile(
+        DSL_BINTR_PTR pChildComponent)
+    {
+        if (!IsChild(pChildComponent))
+        {
+            LOG_ERROR("Can't get config-file for Branch '" 
+                << pChildComponent->GetName() 
+                << "' as it's not a child of Remuxer '"
+                << GetName() << "'");
+            return NULL;
+        }
+        return m_childBranches[pChildComponent->GetName()]->
+            GetStreammuxConfigFile();
+    }
     
-    void RemuxerBintr::GetDimensions(uint* width, uint* height)
+    bool RemuxerBintr::SetStreammuxConfigFile(DSL_BINTR_PTR pChildComponent,
+            const char* configFile)
     {
         LOG_FUNC();
 
-        *width = m_width;
-        *height = m_height;
-    }
-
-    bool RemuxerBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
+        if (!IsChild(pChildComponent))
         {
-            LOG_ERROR("Can't set Streammuxer dimension for RemuxerBintr '" 
-                << GetName() << "' as it is currently linked");
+            LOG_ERROR("Can't set config-file for Branch '" 
+                << pChildComponent->GetName() 
+                << "' as it's not a child of Remuxer '"
+                << GetName() << "'");
             return false;
         }
-        m_width = width;
-        m_height = height;
-        return true;
-    }
-
-    bool RemuxerBintr::SetGpuId(uint gpuId)
-    {
-        LOG_FUNC();
         
-        if (m_isLinked)
-        {
-            LOG_ERROR("Unable to set GPU ID for OsdBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-
-        m_gpuId = gpuId;
-
-        return true;
+        return m_childBranches[pChildComponent->GetName()]->
+            SetStreammuxConfigFile(configFile);
     }
+
 }

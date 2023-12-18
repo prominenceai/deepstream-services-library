@@ -30,14 +30,10 @@ _dsl = CDLL('/usr/local/lib/libdsl.so')
 
 DSL_RETURN_SUCCESS = 0
 
-DSL_STREAMMUX_4K_UHD_WIDTH          = 3840
-DSL_STREAMMUX_4K_UHD_HEIGHT         = 2160
-DSL_STREAMMUX_1K_HD_WIDTH           = 1920
-DSL_STREAMMUX_1K_HD_HEIGHT          = 1080
-
-DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT = 4000000
-DSL_STREAMMUX_DEFAULT_WIDTH         = DSL_STREAMMUX_1K_HD_WIDTH
-DSL_STREAMMUX_DEFAULT_HEIGHT        = DSL_STREAMMUX_1K_HD_HEIGHT
+DSL_4K_UHD_WIDTH  = 3840
+DSL_4K_UHD_HEIGHT = 2160
+DSL_1K_HD_WIDTH   = 1920
+DSL_1K_HD_HEIGHT  = 1080
 
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
@@ -4993,51 +4989,50 @@ def dsl_tee_remuxer_branch_add_to(name, branch, stream_ids, num_stream_ids):
     return int(result)
 
 ##
-## dsl_tee_remuxer_batch_properties_get()
+## dsl_tee_remuxer_batch_size_get()
 ##
-_dsl.dsl_tee_remuxer_batch_properties_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_tee_remuxer_batch_properties_get.restype = c_uint
-def dsl_tee_remuxer_batch_properties_get(name):
+_dsl.dsl_tee_remuxer_batch_size_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_tee_remuxer_batch_size_get.restype = c_uint
+def dsl_tee_remuxer_batch_size_get(name):
     global _dsl
     batch_size = c_uint(0)
-    batch_timeout = c_uint(0)
-    result = _dsl.dsl_tee_remuxer_batch_properties_get(name, DSL_UINT_P(batch_size), 
-        DSL_UINT_P(batch_timeout))
-    return int(result), batch_size.value, batch_timeout.value 
+    result = _dsl.dsl_tee_remuxer_batch_size_get(name, DSL_UINT_P(batch_size))
+    return int(result), batch_size.value
 
 ##
-## dsl_tee_remuxer_batch_properties_set()
+## dsl_tee_remuxer_batch_size_set()
 ##
-_dsl.dsl_tee_remuxer_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tee_remuxer_batch_properties_set.restype = c_uint
-def dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout):
+_dsl.dsl_tee_remuxer_batch_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tee_remuxer_batch_size_set.restype = c_uint
+def dsl_tee_remuxer_batch_size_set(name, batch_size):
     global _dsl
-    result = _dsl.dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout)
+    result = _dsl.dsl_tee_remuxer_batch_size_set(name, batch_size)
     return int(result)
 
 ##
-## dsl_tee_remuxer_dimensions_get()
+## dsl_tee_remuxer_branch_config_file_get()
 ##
-_dsl.dsl_tee_remuxer_dimensions_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_tee_remuxer_dimensions_get.restype = c_uint
-def dsl_tee_remuxer_dimensions_get(name):
+_dsl.dsl_tee_remuxer_branch_config_file_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_tee_remuxer_branch_config_file_get.restype = c_uint
+def dsl_tee_remuxer_branch_config_file_get(name, branch):
     global _dsl
-    width = c_uint(0)
-    height = c_uint(0)
-    result = _dsl.dsl_tee_remuxer_dimensions_get(name, 
-        DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), width.value, height.value 
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_tee_remuxer_branch_config_file_get(name, 
+        branch, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
 
 ##
-## dsl_tee_remuxer_dimensions_set()
+## dsl_tee_remuxer_branch_config_file_set()
 ##
-_dsl.dsl_tee_remuxer_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tee_remuxer_dimensions_set.restype = c_uint
-def dsl_tee_remuxer_dimensions_set(name, width, height):
+_dsl.dsl_tee_remuxer_branch_config_file_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_remuxer_branch_config_file_set.restype = c_uint
+def dsl_tee_remuxer_branch_config_file_set(name, config_file, branch):
     global _dsl
-    result = _dsl.dsl_tee_remuxer_dimensions_set(name, width, height)
+    result = _dsl.dsl_tee_remuxer_branch_config_file_set(name, 
+        config_file, branch)
     return int(result)
 
 ##
@@ -6857,93 +6852,50 @@ def dsl_pipeline_component_remove_many(pipeline, components):
     return int(result)
 
 ##
-## dsl_pipeline_streammux_nvbuf_mem_type_get()
+## dsl_pipeline_streammux_config_file_get()
 ##
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.restype = c_uint
-def dsl_pipeline_streammux_nvbuf_mem_type_get(name):
+_dsl.dsl_pipeline_streammux_config_file_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_pipeline_streammux_config_file_get.restype = c_uint
+def dsl_pipeline_streammux_config_file_get(name):
     global _dsl
-    type = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_get(name, DSL_UINT_P(type))
-    return int(result), type.value
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_pipeline_streammux_config_file_get(name, 
+        DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
 
 ##
-## dsl_pipeline_streammux_nvbuf_mem_type_set()
+## dsl_pipeline_streammux_config_file_set()
 ##
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.restype = c_uint
-def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
+_dsl.dsl_pipeline_streammux_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_config_file_set.restype = c_uint
+def dsl_pipeline_streammux_config_file_set(name, config_file):
     global _dsl
-    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
+    result = _dsl.dsl_pipeline_streammux_config_file_set(name, config_file)
     return int(result)
 
 ##
-## dsl_pipeline_streammux_batch_properties_get()
+## dsl_pipeline_streammux_batch_size_get()
 ##
-_dsl.dsl_pipeline_streammux_batch_properties_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_batch_properties_get.restype = c_uint
-def dsl_pipeline_streammux_batch_properties_get(name):
+_dsl.dsl_pipeline_streammux_batch_size_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_batch_size_get.restype = c_uint
+def dsl_pipeline_streammux_batch_size_get(name):
     global _dsl
     batch_size = c_uint(0)
-    batch_timeout = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_batch_properties_get(name, DSL_UINT_P(batch_size), 
-        DSL_UINT_P(batch_timeout))
-    return int(result), batch_size.value, batch_timeout.value 
+    result = _dsl.dsl_pipeline_streammux_batch_size_get(name, 
+        DSL_UINT_P(batch_size))
+    return int(result), batch_size.value
 
 ##
-## dsl_pipeline_streammux_batch_properties_set()
+## dsl_pipeline_streammux_batch_size_set()
 ##
-_dsl.dsl_pipeline_streammux_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_pipeline_streammux_batch_properties_set.restype = c_uint
-def dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout):
+_dsl.dsl_pipeline_streammux_batch_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_batch_size_set.restype = c_uint
+def dsl_pipeline_streammux_batch_size_set(name, batch_size):
     global _dsl
-    result = _dsl.dsl_pipeline_streammux_batch_properties_set(name, batch_size, batch_timeout)
-    return int(result)
-
-##
-## dsl_pipeline_streammux_dimensions_get()
-##
-_dsl.dsl_pipeline_streammux_dimensions_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_dimensions_get.restype = c_uint
-def dsl_pipeline_streammux_dimensions_get(name):
-    global _dsl
-    width = c_uint(0)
-    height = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_dimensions_get(name, 
-        DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), width.value, height.value 
-
-##
-## dsl_pipeline_streammux_dimensions_set()
-##
-_dsl.dsl_pipeline_streammux_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_pipeline_streammux_dimensions_set.restype = c_uint
-def dsl_pipeline_streammux_dimensions_set(name, width, height):
-    global _dsl
-    result = _dsl.dsl_pipeline_streammux_dimensions_set(name, width, height)
-    return int(result)
-
-##
-## dsl_pipeline_streammux_padding_get()
-##
-_dsl.dsl_pipeline_streammux_padding_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_pipeline_streammux_padding_get.restype = c_uint
-def dsl_pipeline_streammux_padding_get(name):
-    global _dsl
-    enabled = c_bool(0)
-    result = _dsl.dsl_pipeline_streammux_padding_get(name, DSL_BOOL_P(enabled))
-    return int(result), enabled.value
-
-##
-## dsl_pipeline_streammux_padding_set()
-##
-_dsl.dsl_pipeline_streammux_padding_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
-def dsl_pipeline_streammux_padding_set(name, enabled):
-    global _dsl
-    result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    result = _dsl.dsl_pipeline_streammux_batch_size_set(name, 
+        batch_size)
     return int(result)
 
 ##
@@ -6996,24 +6948,28 @@ def dsl_pipeline_streammux_sync_inputs_enabled_set(name, enabled):
     return int(result)
 
 ##
-## dsl_pipeline_streammux_gpuid_get()
+## dsl_pipeline_streammux_max_latency_get()
 ##
-_dsl.dsl_pipeline_streammux_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_gpuid_get.restype = c_uint
-def dsl_pipeline_streammux_gpuid_get(name):
+_dsl.dsl_pipeline_streammux_max_latency_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_max_latency_get.restype = c_uint
+def dsl_pipeline_streammux_max_latency_get(name):
     global _dsl
-    gpuid = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_gpuid_get(name, DSL_UINT_P(gpuid))
-    return int(result), gpuid.value
+    max_latency = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_max_latency_get(name, 
+        DSL_UINT_P(max_latency))
+    return int(result), max_latency.value
 
 ##
-## dsl_pipeline_streammux_gpuid_set()
+## dsl_pipeline_streammux_max_latency_set()
 ##
-_dsl.dsl_pipeline_streammux_gpuid_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_pipeline_streammux_gpuid_set.restype = c_uint
-def dsl_pipeline_streammux_gpuid_set(name, gpuid):
+_dsl.dsl_pipeline_streammux_max_latency_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_pipeline_streammux_max_latency_set.restype = c_uint
+def dsl_pipeline_streammux_max_latency_set(name, max_latency):
     global _dsl
-    result =_dsl.dsl_pipeline_streammux_gpuid_set(name, gpuid)
+    result = _dsl.dsl_pipeline_streammux_max_latency_set(name, 
+        max_latency)
     return int(result)
 
 ##

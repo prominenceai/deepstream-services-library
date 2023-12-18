@@ -1119,14 +1119,17 @@ namespace DSL {
         DslReturnType TeeRemuxerBranchAddTo(const char* name, const char* branch,
             uint* streamIds, uint numStreamIds);
 
-        DslReturnType TeeRemuxerBatchPropertiesGet(const char* name,
-            uint* batchSize, int* batchTimeout);
+        DslReturnType TeeRemuxerBatchSizeGet(const char* name,
+            uint* batchSize);
 
-        DslReturnType TeeRemuxerBatchPropertiesSet(const char* name,
-            uint batchSize, int batchTimeout);
+        DslReturnType TeeRemuxerBatchSizeSet(const char* name,
+            uint batchSize);
 
-        DslReturnType TeeRemuxerDimensionsGet(const char* name,
-            uint* width, uint* height);
+        DslReturnType TeeRemuxerBranchConfigFileGet(const char* name,
+            const char* branch, const char** configFile);
+
+        DslReturnType TeeRemuxerBranchConfigFileSet(const char* name,
+            const char* branch, const char* configFile);
 
         DslReturnType TeeRemuxerDimensionsSet(const char* name,
             uint width, uint height);
@@ -1593,27 +1596,17 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
-        DslReturnType PipelineStreammuxNvbufMemTypeGet(const char* name, 
-            uint* type);
-
-        DslReturnType PipelineStreammuxNvbufMemTypeSet(const char* name, 
-            uint type);
-
-        DslReturnType PipelineStreammuxBatchPropertiesGet(const char* name,
-            uint* batchSize, int* batchTimeout);
-
-        DslReturnType PipelineStreammuxBatchPropertiesSet(const char* name,
-            uint batchSize, int batchTimeout);
-
-        DslReturnType PipelineStreammuxDimensionsGet(const char* name,
-            uint* width, uint* height);
-
-        DslReturnType PipelineStreammuxDimensionsSet(const char* name,
-            uint width, uint height);
+        DslReturnType PipelineStreammuxConfigFileGet(const char* name, 
+            const char** configFile);
             
-        DslReturnType PipelineStreammuxPaddingGet(const char* name, boolean* enabled);
+        DslReturnType PipelineStreammuxConfigFileSet(const char* name, 
+            const char* configFile);
+            
+        DslReturnType PipelineStreammuxBatchSizeGet(const char* name,
+            uint* batchSize);
 
-        DslReturnType PipelineStreammuxPaddingSet(const char* name, boolean enabled);
+        DslReturnType PipelineStreammuxBatchSizeSet(const char* name,
+            uint batchSize);
 
         DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
             uint* num);
@@ -1627,9 +1620,11 @@ namespace DSL {
         DslReturnType PipelineStreammuxSyncInputsEnabledSet(const char* name, 
             boolean enabled);
 
-        DslReturnType PipelineStreammuxGpuIdGet(const char* name, uint* gpuid);
+        DslReturnType PipelineStreammuxMaxLatencyGet(const char* name, 
+            uint* maxLatency);
         
-        DslReturnType PipelineStreammuxGpuIdSet(const char* name, uint gpuid);
+        DslReturnType PipelineStreammuxMaxLatencySet(const char* name, 
+            uint maxLatency);
         
         DslReturnType PipelineStreammuxTilerAdd(const char* name, const char* tiler);
 

@@ -613,7 +613,16 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
 //    }
 //}
 
-SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and Tiled Display can play", "[pipeline-play]" )
+static GThread* main_loop_thread_1(NULL);
+
+static void* main_loop_thread_func_1(void *data)
+{
+    dsl_main_loop_run();
+    
+    return NULL;
+}
+
+SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and Tiled Display can play", "[tmp]" )
 {
     GIVEN( "A Pipeline, URI source, DSL_CODEC_H264 RTSP Sink, and Tiled Display" ) 
     {
@@ -640,8 +649,14 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                
+                main_loop_thread_1 = g_thread_new("main-loop-1", 
+                    main_loop_thread_func_1, NULL);
+                
+                std::this_thread::sleep_for(std::chrono::milliseconds(4000));
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_main_loop_quit();
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
@@ -799,8 +814,6 @@ Window Sink, and Tiled Display can play", "[pipeline-play]" )
         
             REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
             
-            dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 8, 40000 );
-
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1088,8 +1101,8 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
             
-            const wchar_t* branchComps1[] = {L"tiler-1", L"3D-sink-1", NULL};
-            const wchar_t* branchComps2[] = {L"primary-gie", L"tiler-2", L"on-screen-display", L"3D-sink-2", NULL};
+            const wchar_t* branchComps1[] = {L"tiler-1", L"3d-sink-1", NULL};
+            const wchar_t* branchComps2[] = {L"primary-gie", L"tiler-2", L"on-screen-display", L"3d-sink-2", NULL};
             const wchar_t* branches[] = {L"branch-1", L"branch-2", NULL};
             const wchar_t* components[] = {L"uri-source-1", L"splitter", NULL};
 

@@ -182,8 +182,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::PipelineStreammuxNvbufMemTypeGet(const char* name, 
-        uint* type)
+    DslReturnType Services::PipelineStreammuxConfigFileGet(const char* name, 
+        const char** configFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -191,24 +191,24 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
-            
-            *type = m_pipelines[name]->GetStreammuxNvbufMemType();
-            
-            LOG_INFO("Pipeline '" << name << "' returned nvbuf memory type = " 
-                << *type << " successfully");
+
+            *configFile = m_pipelines[name]->GetStreammuxConfigFile();
+
+            LOG_INFO("Pipeline '" << name << "' returned Streammux config-file = '"
+                << *configFile << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception getting the Streammux nvbuf memory type");
+                << "' threw exception getting the Streammux config-file");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreammuxNvbufMemTypeSet(const char* name, 
-        uint type)
+    DslReturnType Services::PipelineStreammuxConfigFileSet(const char* name, 
+        const char* configFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -216,35 +216,35 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
-            
-            if (type > DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY)
+
+            std::ifstream streamConfigFile(configFile);
+            if (!streamConfigFile.good())
             {
-                LOG_INFO("Invalid nvbuf memory type " << type <<
-                    " for Pipeline '" << name <<"'");
-                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+                LOG_ERROR("Pipeline Streammux config file not found");
+                return DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND;
             }
-            if (!m_pipelines[name]->SetStreammuxNvbufMemType(type))
+            
+            if (!m_pipelines[name]->SetStreammuxConfigFile(configFile))
             {
                 LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Set the Streammux nvbuf memory type = "
-                    << type);
+                    << "' failed to set the Streammux config-file");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
-            LOG_INFO("Pipeline '" << name << "' set nvbuf memeory type = " 
-                << type << "  successfully");
-            
+            LOG_INFO("Pipeline '" << name << "' set Streammux config-file = '"
+                << configFile << "' successfully");
+
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Streammux nvbuf memory type");
+            LOG_ERROR("Dewarper '" << name 
+                << "' threw exception setting config-file");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreammuxBatchPropertiesGet(const char* name,
-        uint* batchSize, int* batchTimeout)    
+    DslReturnType Services::PipelineStreammuxBatchSizeGet(const char* name,
+        uint* batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -253,25 +253,24 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            m_pipelines[name]->GetStreammuxBatchProperties(batchSize, batchTimeout);
+            *batchSize = m_pipelines[name]->GetStreammuxBatchSize();
             
             LOG_INFO("Pipeline '" << name 
-                << "' returned Streammux batch-size = " 
-                << *batchSize << " and batch-timeout = " 
-                << *batchTimeout << "' successfully");
+                << "' returned Streammuxe batch-size = " 
+                << *batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception getting the Streammux batch properties");
+                << "' threw an exception getting the Streammux batch-size");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreammuxBatchPropertiesSet(const char* name,
-        uint batchSize, int batchTimeout)    
+    DslReturnType Services::PipelineStreammuxBatchSizeSet(const char* name,
+        uint batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -280,136 +279,26 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreammuxBatchProperties(batchSize, batchTimeout))
+            if (!m_pipelines[name]->SetStreammuxBatchSize(batchSize))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to set Streammux batch-size = "
-                    << batchSize << " and batch-timeout = "
-                    << batchTimeout);
+                    << batchSize );
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
             LOG_INFO("Pipeline '" << name << "' set batch-size = " 
-                << batchSize << " and batch-timeout = " 
-                << batchTimeout << "' successfully");
+                << batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Streammux batch properties");
+                << "' threw an exception setting the Streammux batch-size");
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::PipelineStreammuxDimensionsGet(const char* name,
-        uint* width, uint* height)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
-            
-            m_pipelines[name]->GetStreammuxDimensions(width, height);
-            
-            LOG_INFO("Pipeline '" << name << "' returned Streammux width = " 
-                << *width << " and  height = " << *height << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Streammux output dimensions");
-            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
-        }
-    }
-        
-    DslReturnType Services::PipelineStreammuxDimensionsSet(const char* name,
-        uint width, uint height)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
-            
-            if (!m_pipelines[name]->SetStreammuxDimensions(width, height))
-            {
-                LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Set the Streammux output dimensions");
-                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
-            }
-            LOG_INFO("Pipeline '" << name << "' set Streammux width = " 
-                << width << " and Streammux height = " << height << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting the Streammux output dimensions");
-            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
-        }
-    }
-        
-    DslReturnType Services::PipelineStreammuxPaddingGet(const char* name,
-        boolean* enabled)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
-            
-            *enabled = m_pipelines[name]->GetStreammuxPadding();
-
-            LOG_INFO("Pipeline '" << name << "' returned padding Enabled = " 
-                << *enabled << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Pipeline '" << name
-                << "' threw an exception getting Streammux padding enabled");
-            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
-        }
-    }
-        
-    DslReturnType Services::PipelineStreammuxPaddingSet(const char* name,
-        boolean enabled)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
-            
-            if (!m_pipelines[name]->SetStreammuxPadding(enabled))
-            {
-                LOG_ERROR("Pipeline '" << name 
-                    << "' failed to Set the Streammux padding enabled setting");
-                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
-            }
-            LOG_INFO("Pipeline '" << name << "' set Streammux padding enabled = " 
-                << enabled << "' successfully");
-                
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Pipeline '" << name 
-                << "' threw an exception setting Streammux padding enabled");
-            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
-        }
-    }
-        
     DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameGet(const char* name,
         uint* num)    
     {
@@ -485,7 +374,8 @@ namespace DSL
             
             *enabled = m_pipelines[name]->GetStreammuxSyncInputsEnabled();
             
-            LOG_INFO("Pipeline '" << name << "' returned sync-inputs enabled = " 
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammuxer sync-inputs enabled = " 
                 << *enabled << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -514,7 +404,8 @@ namespace DSL
                     << "' failed to Set the Streammux sync-inputs enabled setting");
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
-            LOG_INFO("Pipeline '" << name << "' set the sync-inputs enabled setting = " 
+            LOG_INFO("Pipeline '" << name 
+                << "' set the Streammuxer sync-inputs enabled setting = " 
                 << enabled << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -527,7 +418,8 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::PipelineStreammuxGpuIdGet(const char* name, uint* gpuid)
+    DslReturnType Services::PipelineStreammuxMaxLatencyGet(const char* name, 
+        uint* maxLatency)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -536,22 +428,24 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *gpuid = m_pipelines[name]->GetGpuId();
+            *maxLatency = m_pipelines[name]->GetStreammuxMaxLatency();
 
-            LOG_INFO("Current GPU ID = " << *gpuid 
-                << " for Pipeline '" << name << "'");
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammuxer max-latency = " 
+                << *maxLatency << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Pipeline '" << name 
-                << "' threw exception getting GPU ID");
+                << "' threw exception getting max-latency");
             return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::PipelineStreammuxGpuIdSet(const char* name, uint gpuid)
+    DslReturnType Services::PipelineStreammuxMaxLatencySet(const char* name, 
+        uint maxLatency)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -560,15 +454,17 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetGpuId(gpuid))
+            if (!m_pipelines[name]->SetStreammuxMaxLatency(maxLatency))
             {
                 LOG_INFO("Pipeline '" << name 
-                    << "' faild to set GPU ID = " << gpuid);
-                return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
+                    << "' faild to set Streammuxer max-latency = " 
+                    << maxLatency);
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
 
-            LOG_INFO("New GPU ID = " << gpuid 
-                << " for Pipeline '" << name << "'");
+            LOG_INFO("Pipeline '" << name 
+                << "' set the Streammuxer max-latency setting = " 
+                << maxLatency << "' successfully");
 
             return DSL_RESULT_SUCCESS;
             }

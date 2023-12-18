@@ -106,66 +106,38 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    uint PipelineBintr::GetStreammuxNvbufMemType()
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->GetStreammuxNvbufMemType();
-    }
-
-    bool PipelineBintr::SetStreammuxNvbufMemType(uint type)
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->SetStreammuxNvbufMemType(type);
-    }
-
-    void PipelineBintr::GetStreammuxBatchProperties(uint* batchSize, 
-        int* batchTimeout)
-    {
-        LOG_FUNC();
-
-        m_pPipelineSourcesBintr->
-            GetStreammuxBatchProperties(batchSize, batchTimeout);
-    }
-
-    bool PipelineBintr::SetStreammuxBatchProperties(uint batchSize, 
-        int batchTimeout)
+    const char* PipelineBintr::GetStreammuxConfigFile()
     {
         LOG_FUNC();
 
         return m_pPipelineSourcesBintr->
-            SetStreammuxBatchProperties(batchSize, batchTimeout);
+            GetStreammuxConfigFile();
     }
 
-    void PipelineBintr::GetStreammuxDimensions(uint* width, uint* height)
+    bool PipelineBintr::SetStreammuxConfigFile(const char* configFile)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->GetStreammuxDimensions(width, height);
+        return m_pPipelineSourcesBintr->
+            SetStreammuxConfigFile(configFile);
     }
 
-    bool PipelineBintr::SetStreammuxDimensions(uint width, uint height)
+    uint PipelineBintr::GetStreammuxBatchSize()
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxDimensions(width, height);
+        return m_pPipelineSourcesBintr->
+            GetStreammuxBatchSize();
     }
-    
-    bool PipelineBintr::GetStreammuxPadding()
+
+    bool PipelineBintr::SetStreammuxBatchSize(uint batchSize)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreammuxPaddingEnabled();
+        return m_pPipelineSourcesBintr->
+            SetStreammuxBatchSize(batchSize);
     }
-    
-    bool PipelineBintr::SetStreammuxPadding(boolean enabled)
-    {
-        LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxPaddingEnabled(enabled);
-    }
-    
     uint PipelineBintr::GetStreammuxNumSurfacesPerFrame()
     {
         LOG_FUNC();
@@ -192,6 +164,20 @@ namespace DSL
         LOG_FUNC();
 
         return m_pPipelineSourcesBintr->SetStreammuxSyncInputsEnabled(enabled);
+    }
+    
+    uint PipelineBintr::GetStreammuxMaxLatency()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxMaxLatency();
+    }
+    
+    bool PipelineBintr::SetStreammuxMaxLatency(uint maxLatency)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxMaxLatency(maxLatency);
     }
     
     bool PipelineBintr::AddStreammuxTiler(DSL_BASE_PTR pTilerBintr)
@@ -261,8 +247,7 @@ namespace DSL
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
-        int batchTimeout(0); // we don't care about batch-timeout
-        GetStreammuxBatchProperties(&m_batchSize, &batchTimeout);
+        m_batchSize = GetStreammuxBatchSize();
 
         if (m_pStreammuxTilerBintr)
         {

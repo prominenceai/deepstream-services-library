@@ -3190,6 +3190,7 @@ namespace DSL
             return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
         }
     }
+
     DslReturnType Services::DewarperCameraIdGet(const char* name, 
         uint* cameraId)
     {

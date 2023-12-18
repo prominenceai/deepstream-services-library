@@ -62,6 +62,8 @@ THE SOFTWARE.
 
 std::wstring uri_h265(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
+std::wstring streammux_config_file = L"../../test/config/all_sources_30fps.txt";
+
 // Config and model-engine files - Jetson and dGPU
 std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
@@ -75,7 +77,7 @@ std::wstring iou_tracker_config_file(
 //
 // Maximum number of sources that can be added to the Pipeline
 //
-uint MAX_SOURCE_COUNT = 4;
+uint MAX_SOURCE_COUNT = 8;
 
 //
 // Current number of sources added to the Pipeline
@@ -85,7 +87,7 @@ uint cur_source_count = 0;
 //
 // Number of rows and columns for the Multi-stream 2D Tiler
 //
-uint TILER_COLS = 2;
+uint TILER_COLS = 4;
 uint TILER_ROWS = 2;
 
 // 
@@ -206,19 +208,24 @@ int main(int argc, char** argv)
             L"source-1", L"primary-gie", L"iou-tracker", L"tiler", 
             L"on-screen-display", L"egl-sink", NULL};
 
+        // Update the current source count
+        cur_source_count = 1;
+
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline",
             pipeline_components);
         if (retval != DSL_RESULT_SUCCESS) break;
-            
-        // Update the current source count
-        cur_source_count = 1;
 
-        // IMPORTANT: we need to explicitely set the stream-muxer Batch properties,
+        // Set the Pipeline's config-file to configure the min-frame-rate
+        retval = dsl_pipeline_streammux_config_file_set(L"pipeline",
+            streammux_config_file.c_str());
+        if (retval != DSL_RESULT_SUCCESS) break;
+            
+        // IMPORTANT: we need to explicitely set the Streammuxer batch-size,
         // otherwise the Pipeline will use the current number of Sources when set to 
         // Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set(L"pipeline",
-            MAX_SOURCE_COUNT, 40000);
+        retval = dsl_pipeline_streammux_batch_size_set(L"pipeline",
+            MAX_SOURCE_COUNT);
 
         retval = dsl_pipeline_eos_listener_add(L"pipeline", 
             eos_event_listener, NULL);

@@ -64,15 +64,15 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Using the same values for streammux dimensions as found in NVIDIAs dewarper example
+# Using the same values for source dimensions as found in NVIDIAs dewarper example
 # /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/deepstream_dewarper_test.c.
-streammux_width = 960
-streammux_height = 752
+source_width = 960
+source_height = 752
 
 # Need to scale the tiler and sink so that all 4 dewarped surfaces -- output from 
 # the dewarper -- can be viewed.
-tiler_width = streammux_width//2
-tiler_height = streammux_height*2
+tiler_width = source_width//2
+tiler_height = source_height*2
 sink_width = tiler_width
 sink_height = tiler_height
 
@@ -189,17 +189,11 @@ def main(args):
         # -----------------------------------------------------------------------------
         # IMPORTANT! We need to set the Stream-muxer's batch-size equal to the
         # number of sources (1) times the number of surfaces per frame (4)
-        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
-            batch_size=4, batch_timeout=DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
+        retval = dsl_pipeline_streammux_batch_size_set('pipeline', 
+            batch_size=4)
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        # Update the Pipeline's Streammux dimensions to match the source dimensions.
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline',
-            streammux_width, streammux_height)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)

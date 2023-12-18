@@ -311,8 +311,8 @@ namespace DSL
         }
     }    
 
-    DslReturnType Services::TeeRemuxerBatchPropertiesGet(const char* name,
-        uint* batchSize, int* batchTimeout)    
+    DslReturnType Services::TeeRemuxerBatchSizeGet(const char* name,
+        uint* batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -323,26 +323,25 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 name, RemuxerBintr);
             
-            std::dynamic_pointer_cast<RemuxerBintr>(
-                m_components[name])->GetBatchProperties(batchSize, batchTimeout);
+            *batchSize = std::dynamic_pointer_cast<RemuxerBintr>(
+                m_components[name])->GetBatchSize();
             
             LOG_INFO("Remuxer Tee '" << name 
                 << "' returned batch-size = " 
-                << *batchSize << " and batch-timeout = " 
-                << *batchTimeout << "' successfully");
+                << *batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Remuxer Tee '" << name 
-                << "' threw an exception getting batch properties");
+                << "' threw an exception getting batch-size");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::TeeRemuxerBatchPropertiesSet(const char* name,
-        uint batchSize, int batchTimeout)    
+    DslReturnType Services::TeeRemuxerBatchSizeSet(const char* name,
+        uint batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -354,30 +353,28 @@ namespace DSL
                 name, RemuxerBintr);
             
             if (!std::dynamic_pointer_cast<RemuxerBintr>(
-                m_components[name])->SetBatchProperties(batchSize, batchTimeout))
+                m_components[name])->OverrideBatchSize(batchSize))
             {
                 LOG_ERROR("Remuxer Tee '" << name 
                     << "' failed to set batch-size = "
-                    << batchSize << " and batch-timeout = "
-                    << batchTimeout);
+                    << batchSize);
                 return DSL_RESULT_TEE_SET_FAILED;
             }
             LOG_INFO("Remuxer Tee '" << name << "' set batch-size = " 
-                << batchSize << " and batch-timeout = " 
-                << batchTimeout << "' successfully");
+                << batchSize << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Remuxer Tee '" << name 
-                << "' threw an exception setting batch properties");
+                << "' threw an exception setting batch-size");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::TeeRemuxerDimensionsGet(const char* name,
-        uint* width, uint* height)    
+    DslReturnType Services::TeeRemuxerBranchConfigFileGet(const char* name,
+        const char* branch, const char** configFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -387,55 +384,87 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
                 name, RemuxerBintr);
-            
-            std::dynamic_pointer_cast<RemuxerBintr>(
-                m_components[name])->GetDimensions(width, height);
-            
-            LOG_INFO("Remuxer Tee '" << name << "' returned width = " 
-                << *width << " and  height = " << *height << "' successfully");
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
 
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Remuxer Tee '" << name 
-                << "' threw an exception getting the output dimensions");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }
-        
-    DslReturnType Services::TeeRemuxerDimensionsSet(const char* name,
-        uint width, uint height)    
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, RemuxerBintr);
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
             
-            if (!std::dynamic_pointer_cast<RemuxerBintr>(
-                m_components[name])->SetDimensions(width, height))
+            DSL_REMUXER_PTR pRemuxerBintr = 
+                std::dynamic_pointer_cast<RemuxerBintr>(m_components[name]);
+                
+            if (!pRemuxerBintr->IsChild(pBranchBintr))
             {
-                LOG_ERROR("Remuxer Tee '" << name 
-                    << "' failed to Set the Streammux output dimensions");
+                LOG_ERROR("Branch '" << branch 
+                    << "' is not a child of Remuxer Tee '" << name << "'");
+                return DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD;
+            }
+            *configFile = pRemuxerBintr->GetStreammuxConfigFile(pBranchBintr);
+
+            LOG_INFO("Remuxer Tee '" << name << "' returned Config File = '"
+                << configFile << "' for Branch '" << branch << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Remuxer Tee'" << name 
+                << "' threw exception getting the Config File pathspec");
+            return DSL_RESULT_TEE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TeeRemuxerBranchConfigFileSet(const char* name,
+        const char* branch, const char* configFile)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RemuxerBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
+
+            std::string testPath(configFile);
+            if (testPath.size())
+            {
+                LOG_INFO("Tracker config file: " << configFile);
+                
+                std::ifstream streamConfigFile(configFile);
+                if (!streamConfigFile.good())
+                {
+                    LOG_ERROR("Tracker Config File not found");
+                    return DSL_RESULT_TRACKER_CONFIG_FILE_NOT_FOUND;
+                }
+            }
+            
+            DSL_BINTR_PTR pBranchBintr = 
+                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
+
+            DSL_REMUXER_PTR pRemuxerBintr = 
+                std::dynamic_pointer_cast<RemuxerBintr>(m_components[name]);
+
+            if (!pRemuxerBintr->SetStreammuxConfigFile(pBranchBintr, configFile))
+            {
+                LOG_ERROR("Remuxer '" << name 
+                    << "' failed to set the Config file");
                 return DSL_RESULT_TEE_SET_FAILED;
             }
-            LOG_INFO("Remuxer Tee '" << name << "' set width = " 
-                << width << " and height = " << height << "' successfully");
+            LOG_INFO("Remuxer '" << name << "' set Config File = '"
+                << configFile << "' for Branch '" << branch << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Remuxer Tee '" << name 
-                << "' threw an exception setting the output dimensions");
+            LOG_ERROR("Remuxer '" << name 
+                << "' threw exception setting Config file");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
-   
+
+
     DslReturnType Services::TeeBranchAdd(const char* name, 
         const char* branch)
     {

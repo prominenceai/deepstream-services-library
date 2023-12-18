@@ -100,58 +100,38 @@ namespace DSL
         /**
          * @brief Gets the current batch settings for the RemuxerBranchBintr's 
          * Streammuxer.
-         * @param[out] batchSize current batchSize, default == the number of source.
-         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
+         * @return current batch-size, default == the number of source.
          */
-        void GetBatchProperties(uint* batchSize, int* batchTimeout);
+        uint GetBatchSize();
 
         /**
-         * @brief Sets the current batch settings for the RemuxerBranchBintr's 
-         * er.
+         * @brief Sets the batch-size for the RemuxerBranchBintr's streammuxer. 
          * @param[in] batchSize new batchSize to set, default == the number of sources.
-         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
          * @return true if batch-properties are succesfully set, false otherwise.
          */
-        bool SetBatchProperties(uint batchSize, int batchTimeout);
+        bool SetBatchSize(uint batchSize);
 
         /**
-         * @brief Gets the current dimensions for the RemuxerBranchBintr's 
-         * Streammuxer.
-         * @param[out] width width in pixels for the current setting
-         * @param[out] height height in pixels for the curren setting
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
          */
-        void GetDimensions(uint* width, uint* height);
-
+        const char* GetStreammuxConfigFile();
+        
         /**
-         * @brief Set the dimensions for the RemuxerBranchBintr's Streammuxer
-         * @param width width in pixels to set the streammux Output
-         * @param height height in pixels to set the Streammux output
-         * @return true if the output dimensions could be set, false otherwise
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
          */
-        bool SetDimensions(uint width, uint height);
+        bool SetStreammuxConfigFile(const char* configFile);
         
     private:
     
         /**
          * @brief Child Streammuxer for the RemuxerBranchBintr
          */
-        DSL_ELEMENT_PTR m_pStreammuxer;
-
-        /**
-         * @brief Stream-muxer batch timeout used when waiting for all sources
-         * to produce a frame when batching together
-         */
-        int m_batchTimeout;
-        
-        /**
-         * @brief Streammuxer batched frame output width in pixels
-         */
-        uint m_width;
-
-        /**
-         * @brief Streammuxer batched frame output height in pixels
-         */
-        uint m_height;
+        DSL_ELEMENT_PTR m_pStreammux;
 
         /**
          * @brief Child Branch to link to the Streammuxer
@@ -167,6 +147,51 @@ namespace DSL
          * @brief True if connecting to select stream-ids, false otherwise.
          */    
         bool m_linkSelectiveStreams;
+
+        /**
+         * @brief Absolute or relative path to the Streammuxer config file.
+         */
+        std::string m_streammuxConfigFile;
+
+        /**
+         * @brief Number of surfaces-per-frame stream-muxer setting
+         */
+        int m_numSurfacesPerFrame;
+
+        /**
+         * @brief Attach system timestamp as ntp timestamp, otherwise ntp 
+         * timestamp calculated from RTCP sender reports.
+         */
+        boolean m_attachSysTs;
+        
+        /**
+         * @brief if true, sychronizes input frames using PTS.
+         */
+        boolean m_syncInputs;
+        
+        /**
+         * @brief The maximum upstream latency in nanoseconds. 
+         * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+         */
+        uint m_maxLatency;
+
+        /**
+         * @brief Duration of input frames in milliseconds for use in NTP timestamp 
+         * correction based on frame rate. If set to 0 (default), frame duration is 
+         * inferred automatically from PTS values seen at RTP jitter buffer. When 
+         * there is change in frame duration between the RTP jitter buffer and the 
+         * nvstreammux, this property can be used to indicate the correct frame rate 
+         * to the nvstreammux, for e.g. when there is an audiobuffersplit GstElement 
+         * before nvstreammux in the pipeline. If set to -1, disables frame rate 
+         * based NTP timestamp correction. 
+         */
+        int64_t m_frameDuration;
+
+        /**
+         * @brief property to control EOS propagation downstream from nvstreammux
+         * when all the sink pads are at EOS. (Experimental)
+         */
+        boolean m_dropPipelineEos;
 
         /**
          * @brief Container of Queues elements used to connect to Streammuxer.
@@ -275,42 +300,36 @@ namespace DSL
 
         /**
          * @brief Gets the current batch settings for the RemuxerBintr.
-         * @param[out] batchSize current batchSize, default == the number of source.
-         * @param[out] batchTimeout current batch timeout. Default = -1, disabled.
+         * @return Current batchSize, default == the number of sources, set by 
+         * the parent once the Pipeline is playing, if not overridden.
          */
-        void GetBatchProperties(uint* batchSize, int* batchTimeout);
+        uint GetBatchSize();
 
         /**
-         * @brief Sets the current batch settings for the RemuxerBintr.
+         * @brief Overrides the parent (branch) batchsize for the RemuxerBintr.
          * @param[in] batchSize new batchSize to set, default is set by parent.
-         * @param[in] batchTimeout timeout value to set in ms. Set to -1 to disable.
-         * @return true if batch-properties are succesfully set, false otherwise.
+         * @return true if batch-size is succesfully set, false otherwise.
          */
-        bool SetBatchProperties(uint batchSize, int batchTimeout);
+        bool OverrideBatchSize(uint batchSize);
 
         /**
-         * @brief Gets the current output frame dimensions for the RemuxerBintr.
-         * Settings are used by all Streammuxers created for this RemuxerBintr.
-         * @param[out] width width in pixels for the current setting.
-         * @param[out] height height in pixels for the curren setting.
+         * @brief Gets the current config-file in use by the specified child branch.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] pChildComponent child branch to query.
+         * @return Current config file in use.
          */
-        void GetDimensions(uint* width, uint* height);
-
+        const char* GetStreammuxConfigFile(DSL_BINTR_PTR pChildComponent);
+        
         /**
-         * @brief Set the frame dimensions for the RemuxerBintr to use.
-         * Settings are used by all Streammuxers created for this RemuxerBintr.
-         * @param width width in pixels to set the streamMux Output.
-         * @param height height in pixels to set the Streammux output.
-         * @return true if the output dimensions could be set, false otherwise.
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] pChildComponent child branch to update.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
          */
-        bool SetDimensions(uint width, uint height);
-
-        /**
-         * @brief Sets the GPU ID for all Elementrs
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetGpuId(uint gpuId);
-
+        bool SetStreammuxConfigFile(DSL_BINTR_PTR pChildComponent,
+            const char* configFile);
+    
     private:
     
         /**
@@ -318,11 +337,6 @@ namespace DSL
          */
         uint m_maxStreamIds;
         
-        /**
-         * @brief Batch-timeout used for all branches, i.e. all Streammuxers 
-         */
-        int m_batchTimeout;
-
         /**
          * @brief true if batch-size explicity set by client, false by default.
          */
@@ -335,16 +349,6 @@ namespace DSL
          */
         std::vector<GstPad*> m_requestedSrcPads;
         
-        /**
-         * @brief Batched frame output width in pixels for all branches.
-         */
-        uint m_width;
-
-        /**
-         * @brief Batched frame output height in pixels for all branches.
-         */
-        uint m_height;
-
         /**
          * @brief Streamdemuxer for the RemuxerBintr.
          */

@@ -55,7 +55,7 @@ static const std::wstring tracker_config_file(
 int source_width = 960;
 int source_height = 540;
 
-// Window Sink dimensions same as Streammux dimensions - no scaling.
+// Window Sink dimensions same as Source dimensions - no scaling.
 int sink_width = source_width;
 int sink_height = source_height;
 
@@ -193,11 +193,6 @@ DslReturnType create_pipeline(ClientData* client_data)
 
     retval = dsl_pipeline_new_component_add_many(client_data->pipeline.c_str(),
         component_names);
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    // Update the Pipeline's Streammux dimensions to match the source dimensions.
-    retval = dsl_pipeline_streammux_dimensions_set(client_data->pipeline.c_str(),
-        source_width, source_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Add the listener callback functions defined above

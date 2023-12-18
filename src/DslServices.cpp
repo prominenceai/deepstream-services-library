@@ -131,11 +131,21 @@ namespace DSL
                 // initialize the GStreamer library
                 gst_init(&argc, &argv);
                 doGstDeinit = true;
-                
             }
             
             // Safe to start logging
             LOG_INFO("Services Initialization");
+            
+            
+            const char* value = getenv("USE_NEW_NVSTREAMMUX");
+            if (!value or std::string(value) != "yes")
+            {
+                LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to yes");
+                std::cout << "ERROR! USE_NEW_NVSTREAMMUX must be set to yes, use" 
+                    << std::endl;
+                std::cout << "$ export USE_NEW_NVSTREAMMUX=yes" << std::endl;
+                throw;
+            }
             
             _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
             
@@ -534,6 +544,7 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED] = L"DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED] = L"DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED";
         m_returnValueToString[DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED] = L"DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED] = L"DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_PIPELINE_FAILED_TO_PLAY] = L"DSL_RESULT_PIPELINE_FAILED_TO_PLAY";

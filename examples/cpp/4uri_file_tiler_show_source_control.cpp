@@ -59,8 +59,8 @@ std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-int TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-int TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+int TILER_WIDTH = DSL_1K_HD_WIDTH;
+int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
 
 
 // Window Sink Dimensions - used to create the sink, however, in this
@@ -113,7 +113,7 @@ void xwindow_button_event_handler(uint button,
         // get the current XWindow dimensions - the XWindow was overlayed with our Window Sink
         uint width(0), height(0);
         
-        if (dsl_sink_render_dimensions_get(L"egl-sink", 
+        if (dsl_sink_window_dimensions_get(L"egl-sink", 
             &width, &height) == DSL_RESULT_SUCCESS)
             
             // call the Tiler to show the source based on the x and y button cooridantes

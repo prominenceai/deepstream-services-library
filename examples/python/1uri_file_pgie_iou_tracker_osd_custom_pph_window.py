@@ -52,7 +52,9 @@ from dsl import *
 # Import NVIDIA's pyds Pad Probe Handler example
 from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+#uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4"
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264"
+
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -134,16 +136,16 @@ def main(args):
         # New Custom Pad Probe Handler to call Nvidia's example callback 
         # for handling the Batched Meta Data
         retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=custom_pad_buffer_probe, client_data=None)
+            client_handler=custom_pad_probe_handler, client_data=None)
         
         # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', 
-            handler='custom-pph', pad=DSL_PAD_SINK)
+#        retval = dsl_osd_pph_add('on-screen-display', 
+#            handler='custom-pph', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # New Window Sink, 0 x/y offsets and dimensions defined above.
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
+        retval = dsl_sink_window_3d_new('egl-sink', 0, 0, 
             WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -160,8 +162,9 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 
-            'on-screen-display', 'egl-sink', None])
+            ['uri-source','egl-sink', None])
+#            ['uri-source', 'primary-gie', 'iou-tracker', 
+#            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

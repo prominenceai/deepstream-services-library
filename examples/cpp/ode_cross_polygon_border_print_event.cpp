@@ -80,8 +80,8 @@ static const std::wstring ode_print_action_name(L"print-action");
 static const std::wstring window_sink_name(L"egl-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
-static const uint sinkW(DSL_STREAMMUX_DEFAULT_WIDTH);
-static const uint sinkH(DSL_STREAMMUX_DEFAULT_HEIGHT);
+static const uint sinkW(DSL_1K_HD_WIDTH);
+static const uint sinkH(DSL_1K_HD_HEIGHT);
 
 // 
 // Function to be called on XWindow KeyRelease event

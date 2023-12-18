@@ -129,62 +129,33 @@ namespace DSL
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
 
         /**
-         * @brief Gets the current nvbuf memory type in use by the Stream-Muxer
-         * @return one of DSL_NVBUF_MEM_TYPE constant values
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
          */
-        uint GetStreammuxNvbufMemType();
+        const char* GetStreammuxConfigFile();
+        
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(const char* configFile);
+        
+        /**
+         * @brief Gets the current batch size for the Pipeline's Streammuxer
+         * @return current batchSize, default == the number of sources, once playing
+         */
+        uint GetStreammuxBatchSize();
 
         /**
-         * @brief Sets the nvbuf memory type for the Stream-Muxer to use
-         * @param[in] type one of DSL_NVBUF_MEM_TYPE constant values
-         * @return true if the memory type could be set, false otherwise
-         */
-        bool SetStreammuxNvbufMemType(uint type);
-
-        /**
-         * @brief Gets the current batch settings for the Pipeline's Stream-Muxer
-         * @param[out] batchSize current batchSize, default == the number of source
-         * @param[out] batchTimeout current batch timeout
-         * @return true if the batch properties could be read, false otherwise
-         */
-        void GetStreammuxBatchProperties(uint* batchSize, int* batchTimeout);
-
-        /**
-         * @brief Sets the current batch settings for the Pipeline's Stream-Muxer
+         * @brief Sets the current batch size for the Pipeline's Streammuxer
          * @param[in] batchSize new batchSize to set, default == the number of sources
-         * @param[in] batchTimeout timeout value to set in ms
          * @return true if the batch properties could be set, false otherwise
          */
-        bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
+        bool SetStreammuxBatchSize(uint batchSize);
 
-        /**
-         * @brief Gets the current dimensions for the Pipeline's Stream Muxer
-         * @param[out] width width in pixels for the current setting
-         * @param[out] height height in pixels for the curren setting
-         */
-        void GetStreammuxDimensions(uint* width, uint* height);
-
-        /**
-         * @brief Set the dimensions for the Pipeline's Stream Muxer
-         * @param width width in pixels to set the streamMux Output
-         * @param height height in pixels to set the Streammux output
-         * @return true if the output dimensions could be set, false otherwise
-         */
-        bool SetStreammuxDimensions(uint width, uint height);
-        
-        /**
-         * @brief Gets the current setting for the Pipeline's Muxer padding
-         * @return true if padding is enabled, false otherwisee
-         */
-        bool GetStreammuxPadding();
-
-        /**
-         * @brief Sets, enables/disables the Pipeline's Stream Muxer padding.
-         * @param enabled set to true to enable padding, false otherwise.
-         * @return true if the Padding enabled setting could be set, false otherwise.
-         */
-        bool SetStreammuxPadding(boolean enabled);
-        
         /**
          * @brief Gets the current setting for the Pipeline's Streammuxer
          * num-surfaces-per-frame seting
@@ -212,6 +183,21 @@ namespace DSL
          * @return true if the Padding enabled setting could be set, false otherwise.
          */
         bool SetStreammuxSyncInputsEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's Streammuxer
+         * max-latency setting.
+         * @return current setting for the max-latency property.
+         */
+        uint GetStreammuxMaxLatency();
+
+        /**
+         * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
+         * max-latency property
+         * @param[in] maxLatency new max-latency setting the Pipeline's Streammxuer.
+         * @return true if the max-latency setting could be set, false otherwisee
+         */
+        bool SetStreammuxMaxLatency(uint maxLatency);
         
         /**
          * @brief Adds a TilerBintr to be added to the Stream-muxers output

@@ -31,15 +31,11 @@ import tkinter as tk
 # RTSP Source URI	
 rtsp_uri = 'rtsp://user:pswd@192.168.1.64:554/Streaming/Channels/101'	
 
-# define stream-muxer output dimensions - typically set to common source dimensions
-STREAMMUX_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-STREAMMUX_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT	
-
 # Tiler and Sink Window dimensions default to the same. 
-TILER_WIDTH = STREAMMUX_WIDTH
-TILER_HEIGHT = STREAMMUX_HEIGHT	
-WINDOW_WIDTH = STREAMMUX_WIDTH	
-WINDOW_HEIGHT = STREAMMUX_HEIGHT	
+TILER_WIDTH = DSL_1K_HD_WIDTH
+TILER_HEIGHT = DSL_1K_HD_HEIGHT	
+WINDOW_WIDTH = DSL_1K_HD_WIDTH	
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT	
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \

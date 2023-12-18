@@ -149,12 +149,6 @@ class App(tk.Tk):
         if retval != DSL_RETURN_SUCCESS:	
             return retval
             
-        # Set the Stream-muxer dimensions using config settings
-        retval = dsl_pipeline_streammux_dimensions_set(PIPELINE,
-            width=STREAMMUX_WIDTH, height=STREAMMUX_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:	
-            return retval
-        
         # Setup the Pipeline's XWindow handle to use application's sink window frame. 
         return dsl_pipeline_xwindow_handle_set(PIPELINE, 
             self.app_window_frame.get_sink_window())

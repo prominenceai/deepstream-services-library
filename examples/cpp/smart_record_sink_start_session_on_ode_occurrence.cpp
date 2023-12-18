@@ -74,8 +74,8 @@ std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
-int WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-int WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+int WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+int WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 int PGIE_CLASS_ID_VEHICLE = 0;
 int PGIE_CLASS_ID_BICYCLE = 1;    

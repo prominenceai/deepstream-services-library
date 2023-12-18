@@ -130,6 +130,10 @@
     <File Name="../src/DslRemuxerBintr.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
+    <VirtualDirectory Name="config">
+      <File Name="../test/config/all_sources_1fps.txt"/>
+      <File Name="../test/config/all_sources_30fps.txt"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="avfile">
       <File Name="../test/avfile/DslAvFileUnitTest.cpp"/>
     </VirtualDirectory>
@@ -267,6 +271,7 @@
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
+      <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py.hld"/>
       <File Name="../examples/python/nvidia_pyds_pad_probe_handler.py"/>
       <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_3d.py"/>
       <File Name="../examples/python/1uri_https_window_dynamic_3d.py"/>
@@ -301,7 +306,6 @@
       <File Name="../examples/python/ode_occurrence_trigger_with_monitor_action.py"/>
       <File Name="../examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py"/>
       <File Name="../examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py"/>
-      <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py"/>
       <File Name="../examples/python/1csi_live_pgie_osd_window.py"/>
       <File Name="../examples/python/1file_ptis_dcf_tracker_osd_window.py"/>
       <File Name="../examples/python/1file_ptis_iou_tracker_3stis_osd_window.py"/>
