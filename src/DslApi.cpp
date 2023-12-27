@@ -5919,6 +5919,8 @@ DslReturnType dsl_tracker_dimensions_get(const wchar_t* name,
     uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5939,19 +5941,64 @@ DslReturnType dsl_tracker_dimensions_set(const wchar_t* name,
         width, height);
 }
 
-DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
-    boolean* enabled)
+DslReturnType dsl_tracker_tensor_meta_settings_get(const wchar_t* name, 
+    boolean* input_enabled, const wchar_t** track_on_gie)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(input_enabled);
+    RETURN_IF_PARAM_IS_NULL(track_on_gie);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cTrackOnGie;
+    static std::string cstrTrackOnGie;
+    static std::wstring wcstrTrackOnGie;
+    
+    uint retval = DSL::Services::GetServices()->TrackerTensorMetaSettingsGet(
+        cstrName.c_str(), input_enabled, &cTrackOnGie);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrTrackOnGie.assign(cTrackOnGie);
+        wcstrTrackOnGie.assign(cstrTrackOnGie.begin(), cstrTrackOnGie.end());
+        *track_on_gie = wcstrTrackOnGie.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name, 
+    boolean input_enabled, const wchar_t* track_on_gie)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrTrackOnGie;
+    if (track_on_gie)
+    {
+        std::wstring wstrTrackOnGie(track_on_gie);
+        cstrTrackOnGie.assign(wstrTrackOnGie.begin(), wstrTrackOnGie.end());
+    }
 
-    return DSL::Services::GetServices()->TrackerBatchProcessingEnabledGet(
+    return DSL::Services::GetServices()->TrackerTensorMetaSettingsSet(
+        cstrName.c_str(), input_enabled, cstrTrackOnGie.c_str());
+}
+    
+DslReturnType dsl_tracker_id_display_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TrackerIdDisplayEnabledGet(
         cstrName.c_str(), enabled);
 }
     
-DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name, 
     boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -5959,35 +6006,10 @@ DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerBatchProcessingEnabledSet(
+    return DSL::Services::GetServices()->TrackerIdDisplayEnabledSet(
         cstrName.c_str(), enabled);
 }
     
-DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
-    boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->TrackerPastFrameReportingEnabledGet(
-        cstrName.c_str(), 
-        enabled);
-}
-    
-DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
-    boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->TrackerPastFrameReportingEnabledSet(
-        cstrName.c_str(), enabled);
-}
-
 DslReturnType dsl_tracker_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad)
 {

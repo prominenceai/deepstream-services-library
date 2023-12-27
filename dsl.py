@@ -4655,45 +4655,51 @@ def dsl_tracker_dimensions_set(name, width, height):
     return int(result)
 
 ##
-## dsl_tracker_batch_processing_enabled_get()
+## dsl_tracker_tensor_meta_settings_get()
 ##
-_dsl.dsl_tracker_batch_processing_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_tracker_batch_processing_enabled_get.restype = c_uint
-def dsl_tracker_batch_processing_enabled_get(name):
+_dsl.dsl_tracker_tensor_meta_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_wchar_p)]
+_dsl.dsl_tracker_tensor_meta_settings_get.restype = c_uint
+def dsl_tracker_tensor_meta_settings_get(name):
     global _dsl
-    enabled = c_bool(0)
-    result = _dsl.dsl_tracker_batch_processing_enabled_get(name, DSL_BOOL_P(enabled))
-    return int(result), enabled.value
+    input_enabled = c_bool(0)
+    track_on_gie = c_wchar_p(0)
+    result = _dsl.dsl_tracker_tensor_meta_settings_get(name, 
+        DSL_BOOL_P(input_enabled), DSL_WCHAR_PP(track_on_gie))
+    return int(result), input_enabled.value, track_on_gie.value
 
 ##
-## dsl_tracker_batch_processing_enabled_set()
+## dsl_tracker_tensor_meta_settings_set()
 ##
-_dsl.dsl_tracker_batch_processing_enabled_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_tracker_batch_processing_enabled_set.restype = c_uint
-def dsl_tracker_batch_processing_enabled_set(name, enabled):
+_dsl.dsl_tracker_tensor_meta_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_wchar_p]
+_dsl.dsl_tracker_tensor_meta_settings_set.restype = c_uint
+def dsl_tracker_tensor_meta_settings_set(name, 
+    input_enabled, track_on_gie):
     global _dsl
-    result = _dsl.dsl_tracker_batch_processing_enabled_set(name, enabled)
+    result = _dsl.dsl_tracker_tensor_meta_settings_set(name, 
+        input_enabled, track_on_gie)
     return int(result)
 
 ##
-## dsl_tracker_past_frame_reporting_enabled_get()
+## dsl_tracker_id_display_enabled_get()
 ##
-_dsl.dsl_tracker_past_frame_reporting_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_tracker_past_frame_reporting_enabled_get.restype = c_uint
-def dsl_tracker_past_frame_reporting_enabled_get(name):
+_dsl.dsl_tracker_id_display_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tracker_id_display_enabled_get.restype = c_uint
+def dsl_tracker_id_display_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_tracker_past_frame_reporting_enabled_get(name, DSL_BOOL_P(enabled))
+    result = _dsl.dsl_tracker_id_display_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_tracker_past_frame_reporting_enabled_set()
+## dsl_tracker_id_display_enabled_set()
 ##
-_dsl.dsl_tracker_past_frame_reporting_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
-_dsl.dsl_tracker_past_frame_reporting_enabled_set.restype = c_uint
-def dsl_tracker_past_frame_reporting_enabled_set(name, enabled):
+_dsl.dsl_tracker_id_display_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
+_dsl.dsl_tracker_id_display_enabled_set.restype = c_uint
+def dsl_tracker_id_display_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_tracker_past_frame_reporting_enabled_set(name, enabled)
+    result = _dsl.dsl_tracker_id_display_enabled_set(name, enabled)
     return int(result)
 
 ##

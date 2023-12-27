@@ -5957,47 +5957,45 @@ DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint*
 DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint height);
 
 /**
- * @brief Gets the current "enable-batch-process" settings for the named 
- * Tracker component. 
+ * @brief Gets the current tensor-meta settings for the named Tracker component. 
  * @param[in] name unique name of the Tracker to query
- * @param[out] true if batch-processing is enabled, fale otherwise
+ * @param[out] if true, Tracker uses the tensor-meta from the Preprocessor if 
+ * available and the PGIE identified by track_on_gie
+ * @param[out] track_on_gie name of the PGIE to track on if input_enabled.  
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
-    boolean* enabled);
+DslReturnType dsl_tracker_tensor_meta_settings_get(const wchar_t* name, 
+    boolean* input_enabled, const wchar_t** track_on_gie);
 
 /**
- * @brief Sets the "enable-batch-process" settings for the named Tracker
- * component to use.
- * Note: This call is only effective if the low-level library supports 
- * both batch and per-stream processing.
- * @param[in] name unique name of the Tracker to query
- * @param[out] true to enable batch-processing enabled, fale otherwise
+ * @brief Sets the tensor-meta settings for the named Tracker component to use.
+ * @param[in] name unique name of the Tracker to update
+ * @param[in] if true, Tracker uses the tensor-meta from the Preprocessor if 
+ * available and the PGIE identified by track_on_gie
+ * @param[in] track_on_gie name of the PGIE to track on if input_enabled.  
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
-    boolean enabled);
+DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name, 
+    boolean input_enabled, const wchar_t* track_on_gie);
 
 /**
- * @brief Gets the current "enable-past-frame" settings for the named  
+ * @brief Gets the current "tracker-id-display-enabled" setting for the named  
  * Tracker component.
- * @param[in] name unique name of the Tracker to query
- * @param[out] true if past-frame reporting is enabled, fale otherwise.
+ * @param[in] name unique name of the Tracker to query.
+ * @param[out] enabled if true, tracking-ids will included in object labels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_id_display_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
- * @brief Sets current "enable-past-frame" settings for the named Tracker 
+ * @brief Sets current "tracker-id-display-enabled" settings for the named Tracker 
  * component to use
- * Note: This call is only effective if the low-level library supports 
- * past frame reporting.
- * @param[in] name unique name of the Tracker to query
- * @param[out] true if past frame reporting is enabled, fale otherwise.
+ * @param[in] name unique name of the Tracker to update.
+ * @param[out] enabled if true, tracking-ids will included in object labels.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name, 
     boolean enabled);
 
 /**

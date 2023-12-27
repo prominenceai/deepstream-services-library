@@ -63,76 +63,16 @@ SCENARIO( "A DCF Tracker is created correctly", "[TrackerBintr]" )
                 REQUIRE( retWidth == width );
                 REQUIRE( retHeight == height );
                 
-                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == batchProcessingEnabled );
-                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == pastFrameReportingEnabled );
-            }
-        }
-    }
-}
-
-
-SCENARIO( "A Tracker's enable-patch-processing and enable-past-frame settings can be updated", "[TrackerBintr]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::string trackerName("tracker");
-        uint width(64);
-        uint height(64);
-        bool batchProcessingEnabled(true);
-        bool pastFrameReportingEnabled(true);
-
-        DSL_TRACKER_PTR pTrackerBintr = 
-            DSL_TRACKER_NEW(trackerName.c_str(), "", width, height);
-
-        // check the defaults
-        REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == true );
-        REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == false );
-
-        WHEN( "The Trackers's demensions are Set" )
-        {
-            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
-            REQUIRE( pTrackerBintr->SetPastFrameReportingEnabled(true) == true );
-
-            THEN( "The Display's new demensions are returned on Get")
-            {
-                REQUIRE( pTrackerBintr->GetBatchProcessingEnabled() == false );
-                REQUIRE( pTrackerBintr->GetPastFrameReportingEnabled() == true );
-            }
-        }
-    }
-}
-
-SCENARIO( "A Tracker generates a warning if enable-patch-processing is false and batch-size > 1", "[TrackerBintr]" )
-{
-    GIVEN( "A new Tracker in memory" ) 
-    {
-        std::string trackerName("dcf-tracker");
-        uint width(64);
-        uint height(64);
-        bool batchProcessingEnabled(true);
-        bool pastFrameReportingEnabled(true);
-
-        DSL_TRACKER_PTR pTrackerBintr = 
-            DSL_TRACKER_NEW(trackerName.c_str(), "", width, height);
-
-        WHEN( "The Trackers's batch-processing is enabled when batch-size is set > 1" )
-        {
-            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(true) == true );
-            REQUIRE( pTrackerBintr->SetBatchSize(2) == true );
-
-            THEN( "The Tracker does NOT generate a WARN log")
-            {
-                // Note: this test requires manual/visual verification at this time.
-            }
-        }
-        WHEN( "The Trackers's batch-processing is disabled when batch-size is set > 1" )
-        {
-            REQUIRE( pTrackerBintr->SetBatchProcessingEnabled(false) == true );
-            REQUIRE( pTrackerBintr->SetBatchSize(2) == true );
-
-            THEN( "The Tracker generates a WARN log")
-            {
-                // Note: this test requires manual/visual verification at this time.
+                boolean retInputEnabled(true);
+                const char* cRetTrackOnGie;
+                
+                pTrackerBintr->GetTensorMetaSettings(&retInputEnabled,
+                    &cRetTrackOnGie);
+                std::string retTrackOnGie(cRetTrackOnGie);
+                REQUIRE( retInputEnabled == 0 );
+                REQUIRE( retTrackOnGie == "" );
+                
+                REQUIRE( pTrackerBintr->GetIdDisplayEnabled() == 1 );
             }
         }
     }
