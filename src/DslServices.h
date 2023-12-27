@@ -1083,17 +1083,17 @@ namespace DSL {
         DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType TrackerTensorMetaSettingsGet(const char* name, 
+            boolean* inputEnabled, const char** trackOnGie);
         
-        DslReturnType TrackerBatchProcessingEnabledGet(const char* name, 
+        DslReturnType TrackerTensorMetaSettingsSet(const char* name, 
+            boolean inputEnabled, const char* trackOnGie);
+        
+        DslReturnType TrackerIdDisplayEnabledGet(const char* name, 
             boolean* enabled);
         
-        DslReturnType TrackerBatchProcessingEnabledSet(const char* name, 
-            boolean enabled);
-
-        DslReturnType TrackerPastFrameReportingEnabledGet(const char* name, 
-            boolean* enabled);
-
-        DslReturnType TrackerPastFrameReportingEnabledSet(const char* name, 
+        DslReturnType TrackerIdDisplayEnabledSet(const char* name, 
             boolean enabled);
         
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
