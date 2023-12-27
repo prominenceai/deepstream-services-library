@@ -114,7 +114,6 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
 
 /**
  * Sink API Return Values
@@ -5958,22 +5957,22 @@ DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint h
 
 /**
  * @brief Gets the current tensor-meta settings for the named Tracker component. 
- * @param[in] name unique name of the Tracker to query
- * @param[out] if true, Tracker uses the tensor-meta from the Preprocessor if 
- * available and the PGIE identified by track_on_gie
+ * @param[in] name unique name of the Tracker to query.
+ * @param[out] input_enabled if true, Tracker uses the tensor-meta from the Preprocessor if 
+ * available, and the PGIE identified by track_on_gie.
  * @param[out] track_on_gie name of the PGIE to track on if input_enabled.  
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
 DslReturnType dsl_tracker_tensor_meta_settings_get(const wchar_t* name, 
     boolean* input_enabled, const wchar_t** track_on_gie);
 
 /**
  * @brief Sets the tensor-meta settings for the named Tracker component to use.
- * @param[in] name unique name of the Tracker to update
- * @param[in] if true, Tracker uses the tensor-meta from the Preprocessor if 
- * available and the PGIE identified by track_on_gie
+ * @param[in] name unique name of the Tracker to update.
+ * @param[in] input_enabled if true, Tracker uses the tensor-meta from the Preprocessor if 
+ * available, and the PGIE identified by track_on_gie.
  * @param[in] track_on_gie name of the PGIE to track on if input_enabled.  
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
 DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name, 
     boolean input_enabled, const wchar_t* track_on_gie);
@@ -5982,22 +5981,22 @@ DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name,
  * @brief Gets the current "tracker-id-display-enabled" setting for the named  
  * Tracker component.
  * @param[in] name unique name of the Tracker to query.
- * @param[out] enabled if true, tracking-ids will included in object labels.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @param[out] enabled if true, tracking-ids will be included in object labels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
 DslReturnType dsl_tracker_id_display_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
  * @brief Sets current "tracker-id-display-enabled" settings for the named Tracker 
- * component to use
+ * component to use.
  * @param[in] name unique name of the Tracker to update.
- * @param[out] enabled if true, tracking-ids will included in object labels.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @param[out] enabled if true, tracking-ids will be included in object labels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
 DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name, 
     boolean enabled);
-
+    
 /**
  * @brief Adds a pad-probe-handler to be called to process each frame buffer.
  * A Tracker can have multiple Sink and Source pad-probe-handlers
