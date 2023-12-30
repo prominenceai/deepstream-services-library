@@ -481,12 +481,38 @@ SCENARIO( "A new FrameNumberAdderPadProbeHandler is created correctly", "[PadPro
 
         WHEN( "The PadProbeHandler is created " )
         {
-            DSL_PPEH_FRAME_NUMBER_ADDER_PTR pPadProbeHandler = 
-                DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderHandlerName.c_str());
+            DSL_PPH_FRAME_NUMBER_ADDER_PTR pPadProbeHandler = 
+                DSL_PPH_FRAME_NUMBER_ADDER_NEW(adderHandlerName.c_str());
                 
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pPadProbeHandler->GetFrameNumber() == 0 );
+            }
+        }
+    }
+}
+
+void pph_stream_event_handler_cb(uint stream_event, 
+    uint stream_id, void* client_data)
+{
+    
+}
+
+SCENARIO( "A new StreamEventPadProbeEventHandler is created correctly", "[PadProbeHandler]" )
+{
+    GIVEN( "Attributes for a new StreamEventPadProbeEventHandler" ) 
+    {
+        std::string handlerName("stream-event-handler");
+
+        WHEN( "The PadProbeHandler is created " )
+        {
+            DSL_PPEH_STREAM_EVENT_PTR pPadProbeHandler = 
+                DSL_PPEH_STREAM_EVENT_NEW(handlerName.c_str(), 
+                    pph_stream_event_handler_cb, NULL);
+                
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pPadProbeHandler->GetName() == handlerName );
             }
         }
     }

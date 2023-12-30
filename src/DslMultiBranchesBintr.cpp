@@ -45,8 +45,8 @@ namespace DSL
         // Float the Queue sink pad as a Ghost Pad for this MultiBranchesBintr
         m_pQueue->AddGhostPadToParent("sink");
         
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("multi-comp-sink-pad-probe", 
-            "sink", m_pQueue);
+        // Add the Buffer and DS Event probes to the sink-pad of the tee element.
+        AddSinkPadProbes(m_pTee);
     }
     
     MultiBranchesBintr::~MultiBranchesBintr()

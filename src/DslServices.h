@@ -668,6 +668,9 @@ namespace DSL {
         DslReturnType PphEosNew(const char* name,
             dsl_pph_eos_handler_cb handler, void* clientData);
     
+        DslReturnType PphStreamEventNew(const char* name,
+            dsl_pph_stream_event_handler_cb handler, void* clientData);
+    
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
         DslReturnType PphEnabledSet(const char* name, boolean enabled);

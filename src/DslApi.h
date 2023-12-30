@@ -495,6 +495,13 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY                            4
 
 /**
+ * @brief DSL Pad Probe Handler - Stream Event Types
+ */
+#define DSL_PPH_EVENT_STREAM_ADDED                                  0
+#define DSL_PPH_EVENT_STREAM_DELETED                                1
+#define DSL_PPH_EVENT_STREAM_ENDED                                  2
+
+/**
  * @brief DSL Stream Format Types
  */
 // must match GstFormat values
@@ -1722,6 +1729,18 @@ typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_dat
  * allow the event to continue to the next component. 
  */
 typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * Streammux Stream Event Pad Probe Handler (PPH). Once the PPH is added to a 
+ * Component's Pad, the client callback will be called if a new Streammuxer 
+ * stream-event is received.
+ * @param[in] stream_event one of the DSL_PPH_EVENT_STREAM constant values.
+ * @param[in] stream_id the identifier of the stream added, deleted, or ended.
+ * @param[in] client_data opaque pointer to client's data.
+ */
+typedef void (*dsl_pph_stream_event_handler_cb)(uint stream_event, 
+    uint stream_id, void* client_data);
 
 /**
  * @brief Callback typedef for the App Source Component. The function is registered
@@ -4304,6 +4323,20 @@ DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,
  */
 DslReturnType dsl_pph_eos_new(const wchar_t* name,
     dsl_pph_eos_handler_cb handler, void* client_data);
+    
+/**
+ * @brief Creates a new, uniquely named Streammux Stream-Event Pad Probe Handler (PPH).
+ * Once the PPH is added to a Component's Pad, the client callback will be called 
+ * if one NVIDIA Streammux downstream stream-events; stream-added, stream-deleated,
+ * or stream-ended. 
+ * @param[in] name unique name for the new Pad Probe Handler.
+ * @param[in] handler function to be called on new stream-event.
+ * @param[in] client_data opaque pointer to client data to be passed back
+ * into the handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_stream_event_new(const wchar_t* name,
+    dsl_pph_stream_event_handler_cb handler, void* client_data);
     
 /**
  * @brief gets the current enabled setting for the named Pad Probe Handler

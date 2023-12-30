@@ -211,17 +211,18 @@ namespace DSL
         bool m_batchSizeSetByClient;
          
         /**
+         * @brief Pad Probe Event Handler to handle all dowstream nvstreammux
+         * custome events [GST_NVEVENT_PAD_ADDED, GST_NVEVENT_PAD_DELETED,
+         * GST_NVEVENT_STREAM_EOS, GST_NVEVENT_STREAM_SEGMENT]
+         */
+        DSL_PPEH_STREAM_EVENT_PTR m_pEventHandler;
+        
+        /**
          * @brief Pad Probe Event Handler to consume all dowstream EOS events
          * Will be created if and when a RTSP source is added to this 
          * PipelineSourcesBintr.
          */
         DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
-        
-        /**
-         * @brief Source PadBufferProbetr for the SourceIdOffsetterPadProbeHandler 
-         * m_pSourceIdOffsetter owned by this PipelineSourcesBintr.
-         */
-        DSL_PAD_BUFFER_PROBE_PTR m_pSrcPadBufferProbe;
         
         /**
          * @brief Pad Probe Handler to add the source-id offset (based on unique 

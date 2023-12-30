@@ -52,11 +52,15 @@ namespace DSL
         AddChild(m_pQueue);
         AddChild(m_pSegVisual);
         
+        // Float the queue element as a sink-ghost-pad for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
+
+        // Float the segvisual element as a src-ghost-pad for this Bintr.
         m_pSegVisual->AddGhostPadToParent("src");
         
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("segvisual-src-pad-probe", 
-            "src", m_pSegVisual);
+        // Add the Buffer and DS Event probes to the segvisual element.
+        AddSinkPadProbes(m_pSegVisual);
+        AddSrcPadProbes(m_pSegVisual);
     }
 
     SegVisualBintr::~SegVisualBintr()

@@ -68,6 +68,11 @@ namespace DSL
         std::shared_ptr<BufferTimeoutPadProbeHandler>(new BufferTimeoutPadProbeHandler( \
             name, timeout, handler, clientData))
 
+    #define DSL_PPEH_STREAM_EVENT_PTR std::shared_ptr<StreamEventPadProbeEventHandler>
+    #define DSL_PPEH_STREAM_EVENT_NEW(name, listener, clientData) \
+        std::shared_ptr<StreamEventPadProbeEventHandler>( \
+            new StreamEventPadProbeEventHandler(name, listener, clientData))
+        
     #define DSL_PPEH_EOS_CONSUMER_PTR std::shared_ptr<EosConsumerPadProbeEventHandler>
     #define DSL_PPEH_EOS_CONSUMER_NEW(name) \
         std::shared_ptr<EosConsumerPadProbeEventHandler>( \
@@ -78,12 +83,13 @@ namespace DSL
         std::shared_ptr<EosHandlerPadProbeEventHandler>( \
             new EosHandlerPadProbeEventHandler(name, clientHandler, clientData))
 
-    #define DSL_PPEH_FRAME_NUMBER_ADDER_PTR std::shared_ptr \
-        <FrameNumberAdderPadProbeEventHandler>
-    #define DSL_PPEH_FRAME_NUMBER_ADDER_NEW(name) \
-        std::shared_ptr<FrameNumberAdderPadProbeEventHandler>( \
-            new FrameNumberAdderPadProbeEventHandler(name))
+    #define DSL_PPH_FRAME_NUMBER_ADDER_PTR std::shared_ptr \
+        <FrameNumberAdderPadProbeBufferHandler>
+    #define DSL_PPH_FRAME_NUMBER_ADDER_NEW(name) \
+        std::shared_ptr<FrameNumberAdderPadProbeBufferHandler>( \
+            new FrameNumberAdderPadProbeBufferHandler(name))
 
+    //--------------------------------------------------------------------------------
     #define DSL_PAD_PROBE_PTR std::shared_ptr<PadProbetr>
 
     #define DSL_PAD_BUFFER_PROBE_PTR std::shared_ptr<PadBufferProbetr>
@@ -91,8 +97,8 @@ namespace DSL
         std::shared_ptr<PadBufferProbetr>(new PadBufferProbetr(name, \
             factoryName, parentElement))    
 
-    #define DSL_PAD_EVENT_DOWNSTREAM_PROBE_PTR std::shared_ptr<PadEventDownStreamProbetr>
-    #define DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(name, factoryName, parentElement) \
+    #define DSL_PAD_EVENT_DS_PROBE_PTR std::shared_ptr<PadEventDownStreamProbetr>
+    #define DSL_PAD_EVENT_DS_PROBE_NEW(name, factoryName, parentElement) \
         std::shared_ptr<PadEventDownStreamProbetr>(new PadEventDownStreamProbetr( \
             name, factoryName, parentElement))    
 
@@ -100,7 +106,6 @@ namespace DSL
      * @brief Pad Probe Handler Callback type
      */
     typedef boolean (*dsl_pph_client_handler_cb)(void* buffer, void* client_data);
-
         
     class PadProbeHandler : public Base
     {
@@ -110,9 +115,9 @@ namespace DSL
 
         ~PadProbeHandler();
 
-        bool AddToParent(DSL_BASE_PTR pParent, uint pad);
+        virtual bool AddToParent(DSL_BASE_PTR pParent, uint pad) = 0;
 
-        bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad);
+        virtual bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad) = 0;
         
         /**
          * @brief Gets the current state of the Handler enabled flag
@@ -151,6 +156,36 @@ namespace DSL
         DslMutex m_padHandlerMutex;
         
     };
+
+    //--------------------------------------------------------------------------------
+    
+    class PadProbeBufferHandler : public PadProbeHandler
+    {
+    public: 
+    
+        PadProbeBufferHandler(const char* name);
+
+        ~PadProbeBufferHandler();
+
+        bool AddToParent(DSL_BASE_PTR pParent, uint pad);
+
+        bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad);
+    };        
+    
+    //--------------------------------------------------------------------------------
+
+    class PadProbeEventHandler : public PadProbeHandler
+    {
+    public: 
+    
+        PadProbeEventHandler(const char* name);
+
+        ~PadProbeEventHandler();
+
+        bool AddToParent(DSL_BASE_PTR pParent, uint pad);
+
+        bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad);
+    };
     
     //--------------------------------------------------------------------------------
 
@@ -159,7 +194,7 @@ namespace DSL
      * @brief Implements a pad-probe-handler to offset the source id by a given
      * value (pipeline-id) to make each source-id unique accross all Pipelines.
      */
-    class SourceIdOffsetterPadProbeHandler : public PadProbeHandler
+    class SourceIdOffsetterPadProbeHandler : public PadProbeBufferHandler
     {
     public: 
     
@@ -201,7 +236,7 @@ namespace DSL
      * @class CustomPadProbeHandler
      * @brief 
      */
-    class CustomPadProbeHandler : public PadProbeHandler
+    class CustomPadProbeHandler : public PadProbeBufferHandler
     {
     public: 
     
@@ -245,10 +280,55 @@ namespace DSL
     //--------------------------------------------------------------------------------
 
     /**
+     * @class StreamEventPadProbeEventHandler
+     * @brief Pad Probe Handler to handle Custom (nvidia) events.
+     */
+    class StreamEventPadProbeEventHandler : public PadProbeEventHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the Pad Event Pad Probe Handler
+         * @param[in] name unique name for the PPH
+         */
+        StreamEventPadProbeEventHandler(const char* name,
+            dsl_pph_stream_event_handler_cb handler, void* clientData);
+
+        /**
+         * @brief dtor for the Pad Event Pad Probe Handler
+         */
+        ~StreamEventPadProbeEventHandler();
+
+        /**
+         * @brief ODE Pad Probe Handler
+         * @param[in] pBuffer Pad buffer
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         */
+        GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
+
+    private:
+    
+        /**
+         * @brief client callback funtion, called on each Stream Event
+         */
+        dsl_pph_stream_event_handler_cb m_clientHandler;
+        
+        /**
+         * @brief opaue pointer to client data, returned on callback
+         */
+        void* m_clientData;
+        
+    };
+    
+    //--------------------------------------------------------------------------------
+
+    /**
      * @class EosConsumerPadProbeEventHandler
      * @brief Pad Probe Handler to consume all downstream EOS events that cross the pad
      */
-    class EosConsumerPadProbeEventHandler : public PadProbeHandler
+    class EosConsumerPadProbeEventHandler : public PadProbeEventHandler
     {
     public: 
     
@@ -279,7 +359,7 @@ namespace DSL
      * @class EosHandlerPadProbeEventHandler
      * @brief Pad Probe Handler to call a client handler callback function on EOS event.
      */
-    class EosHandlerPadProbeEventHandler : public PadProbeHandler
+    class EosHandlerPadProbeEventHandler : public PadProbeEventHandler
     {
     public: 
     
@@ -322,13 +402,13 @@ namespace DSL
     //--------------------------------------------------------------------------------
 
     /**
-     * @class FrameNumberAdderPadProbeEventHandler
+     * @class FrameNumberAdderPadProbeBufferHandler
      * @brief Pad Probe Handler to add an incremental/unique frame number
      * to each frame_meta. This PPH will be (conditionally) added to the
      * source pad of 2D Tiler component. Why? Because the Tiler sets every
      * frame_muber to 0 removing any frame reference.
      */
-    class FrameNumberAdderPadProbeEventHandler : public PadProbeHandler
+    class FrameNumberAdderPadProbeBufferHandler : public PadProbeBufferHandler
     {
     public: 
     
@@ -336,12 +416,12 @@ namespace DSL
          * @brief ctor for the Frame Number Adder Pad Probe Handler
          * @param[in] name unique name for the PPH
          */
-        FrameNumberAdderPadProbeEventHandler(const char* name);
+        FrameNumberAdderPadProbeBufferHandler(const char* name);
 
         /**
          * @brief dtor for the Frame Number Adder Pad Probe Handler
          */
-        ~FrameNumberAdderPadProbeEventHandler();
+        ~FrameNumberAdderPadProbeBufferHandler();
         
         /**
          * @brief resets m_currentFrameNumber to 0.
@@ -379,7 +459,7 @@ namespace DSL
      * @brief Pad Probe Handler to Handle a collection ODE triggers
      * Note: ODE Triggers are added using the base AddChild function
      */
-    class OdePadProbeHandler : public PadProbeHandler
+    class OdePadProbeHandler : public PadProbeBufferHandler
     {
     public: 
     
@@ -456,7 +536,7 @@ namespace DSL
      * @class MeterPadProbeHandler
      * @brief 
      */
-    class MeterPadProbeHandler : public PadProbeHandler
+    class MeterPadProbeHandler : public PadProbeBufferHandler
     {
     public: 
 
@@ -544,7 +624,7 @@ namespace DSL
      * @class TimestampPadProbeHandler
      * @brief implements a timestamp that is updated on each call to handle buffer
      */
-    class TimestampPadProbeHandler : public PadProbeHandler
+    class TimestampPadProbeHandler : public PadProbeBufferHandler
     {
     public: 
     

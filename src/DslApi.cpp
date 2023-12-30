@@ -3616,6 +3616,19 @@ DslReturnType dsl_pph_eos_new(const wchar_t* name,
     return DSL::Services::GetServices()->PphEosNew(cstrName.c_str(), 
         handler, client_data);
 }
+
+DslReturnType dsl_pph_stream_event_new(const wchar_t* name,
+    dsl_pph_stream_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphStreamEventNew(cstrName.c_str(), 
+        handler, client_data);
+}
      
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
 {

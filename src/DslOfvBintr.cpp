@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,11 +45,17 @@ namespace DSL
         AddChild(m_pOptFlowVisualQueue);
         AddChild(m_pOptFlowVisual);
 
+        // Float the queue element as a sink-ghost-pad for this Bintr.
         m_pOptFlowQueue->AddGhostPadToParent("sink");
+        
+        // Float the nvofvisual element as a src-ghost-pad for this Bintr.
         m_pOptFlowVisual->AddGhostPadToParent("src");
 
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pOptFlowQueue);
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-src-pad-probe", "src", m_pOptFlowVisual);
+        // Add the sink-pad Buffer and DS Event probes to the nvof element.
+        AddSinkPadProbes(m_pOptFlow);
+
+        // Add the src-pad Buffer and DS Event probes to the nvofvisual element.
+        AddSrcPadProbes(m_pOptFlowVisual);
     }    
     
     OfvBintr::~OfvBintr()

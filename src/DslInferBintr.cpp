@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -400,11 +400,15 @@ namespace DSL
         AddChild(m_pVidConv);
         AddChild(m_pInferEngine);
 
+        // Float the queue element as a sink-ghost-pad for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
+
+        // Float the infer-engine as a src-ghost-pad for this Bintr.
         m_pInferEngine->AddGhostPadToParent("src");
         
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie/s-sink-pad-probe", "sink", m_pQueue);
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("gie-src-pad-probe", "src", m_pInferEngine);
+        // Add the Buffer and DS Event probes to the infer-engine element.
+        AddSinkPadProbes(m_pInferEngine);
+        AddSrcPadProbes(m_pInferEngine);
     }    
     
     PrimaryInferBintr::~PrimaryInferBintr()

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "DslPadProbeHandler.h"
 #include "DslBase.h"
 #include "DslBintr.h"
+#include <gst-nvevent.h>
 
 namespace DSL
 {
@@ -47,43 +48,6 @@ namespace DSL
             RemoveAllChildren();
         }
     }
-    
-    bool PadProbeHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
-        
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
-            
-        if (!pParentBintr->AddPadProbeHandler(shared_from_this(), pad))
-        {
-            LOG_ERROR("Failed to add PadProbeHandler '" << GetName() << 
-                "' to Parent '" << pParentBintr->GetName() << "'");
-            return false;
-        }
-        AssignParentName(pParentBintr->GetName());
-        return true;
-    }
-
-    bool PadProbeHandler::RemoveFromParent(DSL_BASE_PTR pParent, uint pad)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
-        
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
-        
-        if (!pParentBintr->RemovePadProbeHandler(shared_from_this(), pad))
-        {
-            LOG_ERROR("Failed to remove PadProbeHandler '" << GetName() << 
-                "' from Parent '" << pParentBintr->GetName() << "'");
-            return false;
-        }
-        ClearParentName();
-        return true;
-    }
-    
 
     bool PadProbeHandler::GetEnabled()
     {
@@ -107,11 +71,110 @@ namespace DSL
         return true;
     }
 
+    //--------------------------------------------------------------------------------
+    
+    PadProbeBufferHandler::PadProbeBufferHandler(const char* name)
+        : PadProbeHandler(name)
+    {
+        LOG_FUNC();
+    }
+
+    PadProbeBufferHandler::~PadProbeBufferHandler()
+    {
+        LOG_FUNC();
+    }
+
+    bool PadProbeBufferHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        DSL_BINTR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<Bintr>(pParent);
+            
+        if (!pParentBintr->AddPadProbeBufferHandler(shared_from_this(), pad))
+        {
+            LOG_ERROR("Failed to add PadProbeBufferHandler '" << GetName() << 
+                "' to Parent '" << pParentBintr->GetName() << "'");
+            return false;
+        }
+        AssignParentName(pParentBintr->GetName());
+        return true;
+    }
+
+    bool PadProbeBufferHandler::RemoveFromParent(DSL_BASE_PTR pParent, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        DSL_BINTR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<Bintr>(pParent);
+        
+        if (!pParentBintr->RemovePadProbeBufferHandler(shared_from_this(), pad))
+        {
+            LOG_ERROR("Failed to remove PadProbeHandler '" << GetName() << 
+                "' from Parent '" << pParentBintr->GetName() << "'");
+            return false;
+        }
+        ClearParentName();
+        return true;
+    }
+    
+    //--------------------------------------------------------------------------------
+    
+    PadProbeEventHandler::PadProbeEventHandler(const char* name)
+        : PadProbeHandler(name)
+    {
+        LOG_FUNC();
+    }
+
+    PadProbeEventHandler::~PadProbeEventHandler()
+    {
+        LOG_FUNC();
+    }
+
+    bool PadProbeEventHandler::AddToParent(DSL_BASE_PTR pParent, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        DSL_BINTR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<Bintr>(pParent);
+            
+        if (!pParentBintr->AddPadProbeEventHandler(shared_from_this(), pad))
+        {
+            LOG_ERROR("Failed to add PadProbeHandler '" << GetName() << 
+                "' to Parent '" << pParentBintr->GetName() << "'");
+            return false;
+        }
+        AssignParentName(pParentBintr->GetName());
+        return true;
+    }
+
+    bool PadProbeEventHandler::RemoveFromParent(DSL_BASE_PTR pParent, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        DSL_BINTR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<Bintr>(pParent);
+        
+        if (!pParentBintr->RemovePadProbeEventHandler(shared_from_this(), pad))
+        {
+            LOG_ERROR("Failed to remove PadProbeHandler '" << GetName() << 
+                "' from Parent '" << pParentBintr->GetName() << "'");
+            return false;
+        }
+        ClearParentName();
+        return true;
+    }
+    
+
     //----------------------------------------------------------------------------------------------
 
     SourceIdOffsetterPadProbeHandler::SourceIdOffsetterPadProbeHandler(
         const char* name, uint offset)
-        : PadProbeHandler(name)
+        : PadProbeBufferHandler(name)
         , m_offset(offset)
     {
         LOG_FUNC();
@@ -158,8 +221,8 @@ namespace DSL
 
     //----------------------------------------------------------------------------------------------
 
-    FrameNumberAdderPadProbeEventHandler::FrameNumberAdderPadProbeEventHandler(const char* name)
-        : PadProbeHandler(name)
+    FrameNumberAdderPadProbeBufferHandler::FrameNumberAdderPadProbeBufferHandler(const char* name)
+        : PadProbeBufferHandler(name)
         , m_currentFrameNumber(0)
     {
         LOG_FUNC();
@@ -171,12 +234,12 @@ namespace DSL
         }
     }
     
-    FrameNumberAdderPadProbeEventHandler::~FrameNumberAdderPadProbeEventHandler()
+    FrameNumberAdderPadProbeBufferHandler::~FrameNumberAdderPadProbeBufferHandler()
     {
         LOG_FUNC();
     }
 
-    void FrameNumberAdderPadProbeEventHandler::ResetFrameNumber()
+    void FrameNumberAdderPadProbeBufferHandler::ResetFrameNumber()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
@@ -184,7 +247,7 @@ namespace DSL
         m_currentFrameNumber = 0;
     }
     
-    uint64_t FrameNumberAdderPadProbeEventHandler::GetFrameNumber()
+    uint64_t FrameNumberAdderPadProbeBufferHandler::GetFrameNumber()
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
@@ -192,7 +255,7 @@ namespace DSL
         return m_currentFrameNumber;
     }
 
-    GstPadProbeReturn FrameNumberAdderPadProbeEventHandler::HandlePadData(
+    GstPadProbeReturn FrameNumberAdderPadProbeBufferHandler::HandlePadData(
         GstPadProbeInfo* pInfo)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
@@ -223,7 +286,7 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     OdePadProbeHandler::OdePadProbeHandler(const char* name)
-        : PadProbeHandler(name)
+        : PadProbeBufferHandler(name)
         , m_nextTriggerIndex(0)
         , m_displayMetaAllocSize(1)
     {
@@ -399,7 +462,7 @@ namespace DSL
 
     CustomPadProbeHandler::CustomPadProbeHandler(const char* name, 
         dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
-        : PadProbeHandler(name)
+        : PadProbeBufferHandler(name)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
     {
@@ -441,7 +504,7 @@ namespace DSL
 
     MeterPadProbeHandler::MeterPadProbeHandler(const char* name, 
         uint interval, dsl_pph_meter_client_handler_cb clientHandler, void* clientData)
-        : PadProbeHandler(name)
+        : PadProbeBufferHandler(name)
         , m_interval(interval)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
@@ -610,7 +673,7 @@ namespace DSL
     //----------------------------------------------------------------------------------------------
 
     TimestampPadProbeHandler::TimestampPadProbeHandler(const char* name)
-        : PadProbeHandler(name)
+        : PadProbeBufferHandler(name)
         , m_timestamp{0}
     {
         LOG_FUNC();
@@ -792,10 +855,86 @@ namespace DSL
             TimerHanlder();
     }
 
+    //--------------------------------------------------------------------------------
+
+    StreamEventPadProbeEventHandler::StreamEventPadProbeEventHandler(
+        const char* name, dsl_pph_stream_event_handler_cb handler, void* clientData)
+        : PadProbeEventHandler(name)
+        , m_clientHandler(handler)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+
+    StreamEventPadProbeEventHandler::~StreamEventPadProbeEventHandler()
+    {
+        LOG_FUNC();
+    }
+    
+    GstPadProbeReturn StreamEventPadProbeEventHandler::HandlePadData(
+        GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        
+        uint streamEvent(0);
+        uint streamId(0);
+        GstEvent *event = (GstEvent*)pInfo->data;
+
+        if ((uint)GST_EVENT_TYPE(event) == (uint)GST_NVEVENT_PAD_ADDED)
+        {
+            gst_nvevent_parse_pad_added(event, &streamId);
+            LOG_WARN("GST_NVEVENT_PAD_ADDED received for new stream-id="
+                << streamId);
+            streamEvent = DSL_PPH_EVENT_STREAM_ADDED;
+        }
+        else if ((uint)GST_EVENT_TYPE(event) == (uint)GST_NVEVENT_PAD_DELETED)
+        {
+            gst_nvevent_parse_pad_deleted(event, &streamId);
+            LOG_WARN("GST_NVEVENT_PAD_DELETED received for new stream-id="
+                << streamId);
+            streamEvent = DSL_PPH_EVENT_STREAM_DELETED;
+        }
+        else if ((uint)GST_EVENT_TYPE(event) == (uint)GST_NVEVENT_STREAM_EOS)
+        {
+            gst_nvevent_parse_stream_eos(event, &streamId);
+            LOG_WARN("GST_NVEVENT_PAD_DELETED received for new stream-id="
+                << streamId);
+            streamEvent = DSL_PPH_EVENT_STREAM_ENDED;
+        }
+        // It's not a stream event so bail out.
+        else
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        try
+        {
+            m_clientHandler(streamEvent, streamId, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Stream Event Pad ProbeHandler '" << GetName() 
+                << "' threw an exception calling client listener");
+            return GST_PAD_PROBE_REMOVE;
+        }
+        
+        return GST_PAD_PROBE_OK;
+    }
+ 
     //----------------------------------------------------------------------------------------------
 
     EosConsumerPadProbeEventHandler::EosConsumerPadProbeEventHandler(const char* name)
-        : PadProbeHandler(name)
+        : PadProbeEventHandler(name)
     {
         LOG_FUNC();
         
@@ -833,7 +972,7 @@ namespace DSL
 
     EosHandlerPadProbeEventHandler::EosHandlerPadProbeEventHandler(const char* name, 
         dsl_pph_eos_handler_cb clientHandler, void* clientData)
-        : PadProbeHandler(name)
+        : PadProbeEventHandler(name)
         , m_clientHandler(clientHandler)
         , m_clientData(clientData)
     {

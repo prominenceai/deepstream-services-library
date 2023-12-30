@@ -172,6 +172,11 @@ namespace DSL
          * @brief max frame height of the input buffer in pixels
          */
         uint m_height;
+
+        /**
+         * @brief Queue Elementr as Sink for this SegVisualBintr
+         */
+        DSL_ELEMENT_PTR  m_pQueue;
         
         /**
          * @brief Tracker Elementr for this TrackerBintr

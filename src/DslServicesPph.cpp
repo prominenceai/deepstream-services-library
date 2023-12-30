@@ -400,6 +400,37 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PphStreamEventNew(const char* name,
+        dsl_pph_stream_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Stream-Event Pad Probe Handler name '" 
+                    << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPEH_STREAM_EVENT_NEW(name,
+                handler, clientData);
+            
+            LOG_INFO("Stream-Event Pad Probe Handler '" 
+                << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New End of Stream Pad Probe Handler '" 
+                << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PphEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();

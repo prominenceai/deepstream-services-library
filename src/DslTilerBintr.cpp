@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -72,16 +72,22 @@ namespace DSL
         AddChild(m_pQueue);
         AddChild(m_pTiler);
 
+        // Float the queue element as a sink-ghost-pad for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
+
+        // Float the tiler element as a src-ghost-pad for this Bintr.
         m_pTiler->AddGhostPadToParent("src");
     
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-sink-pad-probe", "sink", m_pQueue);
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tiler-src-pad-probe", "src", m_pTiler);
+        // Add the Buffer and DS Event probes to the tiler element.
+        AddSinkPadProbes(m_pTiler);
+        AddSrcPadProbes(m_pTiler);
         
-        // temp solution to ensure PPH is always executed first - alphabetically
-        std::string adderName("___"); 
-        adderName += name;
-        m_pFrameNumberAdder = DSL_PPEH_FRAME_NUMBER_ADDER_NEW(adderName.c_str());
+        // Create the specialized PPH which will be (optionally) used to
+        // add a frame-number to each unbatched output buffer crossing the
+        // Tiler's src-pad. See SetFrameNumberingEnabled() below. 
+        // RE: Tiler plugin sets all frame-numbers to 0.
+        std::string adderName = GetName() + "-frame-number-adder";
+        m_pFrameNumberAdder = DSL_PPH_FRAME_NUMBER_ADDER_NEW(adderName.c_str());
     }
 
     TilerBintr::~TilerBintr()
@@ -211,9 +217,9 @@ namespace DSL
         
         if(m_frameNumberingEnabled)
         {
-            return AddPadProbeHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
+            return AddPadProbeBufferHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
         }
-        return RemovePadProbeHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
+        return RemovePadProbeBufferHandler(m_pFrameNumberAdder, DSL_PAD_SRC);
     }
     
 

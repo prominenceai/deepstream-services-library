@@ -92,17 +92,21 @@ namespace DSL
         LOG_INFO("  gpu-id            : " << m_gpuId);
         LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
         
-        // Add each of the 
+        // Add each of the elements as children to this Binter. 
         AddChild(m_pVidConvQueue);
         AddChild(m_pVidConv);
         AddChild(m_pOsdQueue);
         AddChild(m_pOsd);
 
+        // Float the queue element as a sink-ghost-pad for this Bintr.
         m_pVidConvQueue->AddGhostPadToParent("sink");
+        
+        // Float the osd as a src-ghost-pad for this Bintr.
         m_pOsd->AddGhostPadToParent("src");
 
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-sink-pad-probe", "sink", m_pOsdQueue);
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("osd-src-pad-probe", "src", m_pOsd);
+        // Add the Buffer and DS Event probes to the osd element.
+        AddSinkPadProbes(m_pOsd);
+        AddSrcPadProbes(m_pOsd);
     }    
     
     OsdBintr::~OsdBintr()
