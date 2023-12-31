@@ -6704,7 +6704,8 @@ DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler)
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TeePphAdd(cstrName.c_str(), cstrHandler.c_str());
+    return DSL::Services::GetServices()->TeePphAdd(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler)
@@ -6717,7 +6718,8 @@ DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler)
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TeePphRemove(cstrName.c_str(), cstrHandler.c_str());
+    return DSL::Services::GetServices()->TeePphRemove(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
@@ -9248,6 +9250,36 @@ DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name)
 
     return DSL::Services::GetServices()->PipelineStreammuxTilerRemove(
         cstrName.c_str());
+}
+
+DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name, 
+    const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PipelineStreammuxPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str());
+}
+
+DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
+    const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PipelineStreammuxPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
  
 DslReturnType dsl_pipeline_pause(const wchar_t* name)

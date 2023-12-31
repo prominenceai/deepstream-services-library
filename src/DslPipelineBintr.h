@@ -127,6 +127,15 @@ namespace DSL
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
+        
+        /**
+         * @brief Returns the Pipeline's MultiSourcesBintr.
+         * @return Shared pointer to the Pipelines MultiSourcesBintr.
+         */
+        DSL_PIPELINE_SOURCES_PTR GetPipelineSourcesBintr()
+        {
+            return m_pPipelineSourcesBintr;
+        }
 
         /**
          * @brief Gets the current config-file in use by the Pipeline's Streammuxer.

@@ -245,13 +245,15 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
 #define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
-#define DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND         0x0008000B
-#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000C
-#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000D
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000E
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x0008000F
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080010
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080011
+#define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_ADD_FAILED            0x0008000B
+#define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_REMOVE_FAILED         0x0008000C
+#define DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND         0x0008000D
+#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000E
+#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000F
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x00080010
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080011
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080012
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080013
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -1572,13 +1574,52 @@ typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages,
 typedef uint (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 
 /**
- * @brief callback typedef for a client listener function. Once added to a Pipeline, 
- * the function will be called when the Pipeline changes state.
- * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
- * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
+ * @brief callback typedef for a client handler function to be used with a
+ * Buffer Timeout Pad Probe Handler (PPH). Once the PPH is added to a Component's
+ * Pad, the client callback will be called if a new buffer is not received within 
+ * a configurable amount of time.
+ * @param[in] timeout the timeout value that was exceeded, in units of seconds.
  * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* client_data);
+typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_data);
+    
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * End of Stream (EOS) Pad Probe Handler (PPH). Once the PPH is added to a 
+ * Component's Pad, the client callback will be called if an End-of-Stream 
+ * event is received on the Pad.
+ * @param[in] client_data opaque pointer to client's data
+ * @return DSL_PAD_PROBE_DROP to drop/consume the event, DSL_PAD_PROBE_OK to  
+ * allow the event to continue to the next component. DSL_PAD_PROBE_REMOVE
+ * to automatically remove the handler.
+ */
+typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * Streammux Stream Event Pad Probe Handler (PPH). Once the PPH is added to a 
+ * Component's Pad, the client callback will be called if a new Streammuxer 
+ * stream-event is received.
+ * @param[in] stream_event one of the DSL_PPH_EVENT_STREAM constant values.
+ * @param[in] stream_id the identifier of the stream added, deleted, or ended.
+ * @param[in] client_data opaque pointer to client's data.
+ * @return DSL_PAD_PROBE_OK to allow the event to continue to the next component,
+ * or DSL_PAD_PROBE_REMOVE to automatically remove the handler.
+ */
+typedef uint (*dsl_pph_stream_event_handler_cb)(uint stream_event, 
+    uint stream_id, void* client_data);
+
+/**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline changes state.
+ * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous
+ * pipeline state.
+ * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current 
+ * pipeline state.
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_state_change_listener_cb)(uint prev_state, 
+    uint curr_state, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
@@ -1604,7 +1645,8 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* client_data);
+typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, 
+    void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. 
@@ -1633,7 +1675,8 @@ typedef void (*dsl_sink_window_delete_event_handler_cb)(void* client_data);
  * @param[in] info pointer to session info, see dsl_recording_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
+typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, 
+    void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for notification that an 
@@ -1641,7 +1684,8 @@ typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* c
  * @param[in] info pointer to capture info, see dsl_capture_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* client_data);
+typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, 
+    void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for Player termination events.
@@ -1650,9 +1694,11 @@ typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* c
 typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
 
 /**
- * @brief callback typedef for a client to listen for incoming Websocket connection events.
- * Important Note: Clients will be notified of the incoming connection prior to checking
- * for any available WebRTC Signaling Transceivers (WebRTC Sinks). This allows Client 
+ * @brief callback typedef for a client to listen for incoming Websocket connection
+ * events.
+ * Important Note: Clients will be notified of the incoming connection prior to
+ * checking.
+ * for any available WebRTC Signaling Transceivers (WebRTC Sinks). This allows Client
  * listeners to create and add a new WebRTC sink "on demand" - before returning. 
  * @param[in] path path for the incoming connection.
  * @param[in] client_data opaque pointer to client's user data
@@ -1709,39 +1755,6 @@ typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data,
 typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red, 
     double* green, double* blue, double* alpha, void* client_data);
     
-/**
- * @brief callback typedef for a client handler function to be used with a
- * Buffer Timeout Pad Probe Handler (PPH). Once the PPH is added to a Component's
- * Pad, the client callback will be called if a new buffer is not received within 
- * a configurable amount of time.
- * @param[in] timeout the timeout value that was exceeded, in units of seconds.
- * @param[in] client_data opaque pointer to client's data
- */
-typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_data);
-    
-/**
- * @brief callback typedef for a client handler function to be used with a
- * End of Stream (EOS) Pad Probe Handler (PPH). Once the PPH is added to a 
- * Component's Pad, the client callback will be called if an End-of-Stream 
- * event is received on the Pad.
- * @param[in] client_data opaque pointer to client's data
- * @return GST_PAD_PROBE_DROP to drop/consume the event, GST_PAD_PROBE_OK to  
- * allow the event to continue to the next component. 
- */
-typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
-
-/**
- * @brief callback typedef for a client handler function to be used with a
- * Streammux Stream Event Pad Probe Handler (PPH). Once the PPH is added to a 
- * Component's Pad, the client callback will be called if a new Streammuxer 
- * stream-event is received.
- * @param[in] stream_event one of the DSL_PPH_EVENT_STREAM constant values.
- * @param[in] stream_id the identifier of the stream added, deleted, or ended.
- * @param[in] client_data opaque pointer to client's data.
- */
-typedef void (*dsl_pph_stream_event_handler_cb)(uint stream_event, 
-    uint stream_id, void* client_data);
-
 /**
  * @brief Callback typedef for the App Source Component. The function is registered
  * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
@@ -6242,7 +6255,7 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
  * @param[in] name unique name for the new Stream Demuxer Tee
  * @param[in] max_branches maximum number of branches that can be
  * added/connected to this Demuxer, before or during Pipeline play.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
 
@@ -6250,7 +6263,7 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
  * @brief Creates a new Demuxer Tee and adds a list of Branches
  * @param[in] name name of the Tee to create
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
     uint max_branches, const wchar_t** branches);
@@ -6260,7 +6273,7 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
  * @param[in] name name of the Dumxer to update.
  * @param[in] branch name of Branch to add.
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
@@ -6271,7 +6284,7 @@ DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name,
  * @param[in] name name of the Dumxer to update.
  * @param[in] branch name of Branch to add.
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
@@ -6280,7 +6293,7 @@ DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name,
  * @brief Gets the current max-branches setting for the named Deumuxer Tee
  * @param[in] name name of the Demuxer Tee to query
  * @param[out] max_branches current setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
     uint* max_branches);
@@ -6289,7 +6302,7 @@ DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name,
  * @brief Sets the max-branches setting for the named Deumuxer Tee to use.
  * @param[in] name name of the Demuxer Tee to update
  * @param[in] max_branches new setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
     uint max_branches);
@@ -6297,23 +6310,23 @@ DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
  * @param[in] name unique name for the new Stream Splitter Tee
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
- * @param[in] name name of the Tee to create
- * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @param[in] name name of the Tee to create.
+ * @param[in] branches NULL terminated array of Branch names to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
     const wchar_t** branches);
 
 /**
- * @brief Creates a new, uniquely named Remuxer Tee component
- * @param[in] name unique name for the new Stream Remuxer Tee
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE
+ * @brief Creates a new, uniquely named Remuxer Tee component.
+ * @param[in] name unique name for the new Stream Remuxer Tee.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
 
@@ -6321,7 +6334,7 @@ DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
  * @brief Creates a new Remuxer Tee and adds a list of Branches to it.
  * @param[in] name unique name for the new Remuxer Tee.
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, 
     const wchar_t** branches);
@@ -6333,25 +6346,25 @@ DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name,
  * @param[in] branch name of Branch to add.
  * @param[in] stream_ids array of specific stream-ids to connect to.
  * @param[in] num_stream_ids number of ids in the stream-ids array.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint* stream_ids, uint num_stream_ids);
 
 /**
  * @brief Gets the current batch-size setting for the named Remuxer.
- * @param[in] name unique name of the Remuxer to query
+ * @param[in] name unique name of the Remuxer to query.
  * @param[out] batch_size the current batch size in use.
- * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_batch_size_get(const wchar_t* name, 
     uint* batch_size);
 
 /**
- * @brief Updates the named Remuxer's batch-size setting
+ * @brief Updates the named Remuxer's batch-size setting.
  * @param[in] name unique name of the Remuxer to update.
  * @param[out] batch_size the new batch size to use.
- * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name, 
     uint batch_size);
@@ -6363,7 +6376,7 @@ DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name,
  * @param[in] branch name of Branch to update.
  * @param[out] config_file path to the Streammuxer config-file currently in use
  * by the named Remuxer Branch.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
     const wchar_t* branch, const wchar_t** config_file);
@@ -6375,55 +6388,55 @@ DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name,
  * @param[in] branch name of Branch to update.
  * @param[in] config_file absolute or relative path to a Streammuxer config-file for
  * the named Remuxer Branch to use.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
     const wchar_t* branch, const wchar_t* config_file);
 
 /**
  * @brief adds a single Branch to a Demuxer, Remuxer, or Splitter Tee.
- * @param[in] name name of the Tee to update
- * @param[in] branch name of Branch to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE on failure
+ * @param[in] name name of the Tee to update.
+ * @param[in] branch name of Branch to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 
 /**
- * @brief adds a list of Branches to a Demuxer, Reuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief adds a list of Branches to a Demuxer, Reuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @param[in] branches NULL terminated array of Branch names to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches);
 
 /**
- * @brief removes a single Branch from a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @param[in] branch name of Branch to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief removes a single Branch from a Stream Demuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @param[in] branch name of Branch to remove.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
 
 /**
- * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
+ * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
  * @param[in] branches NULL terminated array of Branch names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches);
 
 /**
- * @brief removes all Branches from a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief removes all Branches from a Stream Demuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
 
 /**
- * @brief gets the current number of branches owned by Tee
- * @param[in] tee name of the tee to query
- * @param[out] count current number of branches 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief gets the current number of branches owned by the named Tee.
+ * @param[in] tee name of the tee to query.
+ * @param[out] count current number of branches.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
 
@@ -6435,10 +6448,10 @@ DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
  * will need to be extended it he frame-rate for the stream is less than 1 fps.
  * The timeout is needed in case the Source upstream has been removed or is in
  * a bad state in which case the pad callback will never be called.
- * @param[in] name name of the Demuxer Tee to query
+ * @param[in] name name of the Demuxer Tee to query.
  * @param[out] timeout current timeout value in units of seconds. 
  * Default = DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
     uint* timeout);
@@ -6451,9 +6464,9 @@ DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name,
  * will need to be extended it he frame-rate for the stream is less than 1 fps.
  * The timeout is needed in case the Source upstream has been removed or is in
  * a bad state in which case the pad callback will never be called.
- * @param[in] name name of the Demuxer Tee to query
+ * @param[in] name name of the Demuxer Tee to query.
  * @param[in] timeout new timeout value in units of seconds.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
     uint timeout);
@@ -6461,17 +6474,17 @@ DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name,
 /**
  * @brief Adds a pad-probe-handler to a named Tee.
  * One or more Pad Probe Handlers can be added to the SINK PAD only.
- * @param[in] name unique name of the Tee to update
- * @param[in] handler callback function to process each frame buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ * @param[in] name unique name of the Tee to update.
+ * @param[in] handler unique name of the pad probe handler to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
  * @brief Removes a pad-probe-handler from a named Tee.
- * @param[in] name unique name of the Tee to update
- * @param[in] handler unique name of the pad probe handler to had
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
+ * @param[in] name unique name of the Tee to update.
+ * @param[in] handler unique name of the pad probe handler to remove.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
 
@@ -8197,6 +8210,28 @@ DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name,
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name);
+
+/**
+ * @brief Adds a pad-probe-handler to a named Pipeline's Streammuxer.
+ * One or more Pad Probe Handlers can be added to the SOURCE PAD only.
+ * @param[in] name unique name of the Pipeline to update
+ * @param[in] handler unique name of the pad probe handler to add.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name, 
+    const wchar_t* handler);
+
+/**
+ * @brief Removes a pad-probe-handler from a named Pipeline's Streammuxer.
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[in] handler unique name of the pad probe handler to remove.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
+    const wchar_t* handler);
+
 
 /**
  * @brief pauses a Pipeline if in a state of playing

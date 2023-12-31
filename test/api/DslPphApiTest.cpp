@@ -302,10 +302,10 @@ SCENARIO( "A Buffer Timeout Handler's Enabled Setting can be disabled and re-ena
     }
 }
 
-void pph_stream_event_handler(uint stream_event, 
+uint pph_stream_event_handler(uint stream_event, 
     uint stream_id, void* client_data)
 {
-    
+    return DSL_PAD_PROBE_OK;
 }
 
 SCENARIO( "A Stream Event Pad Probe Handler can be created and deleted", "[pph-api]" )

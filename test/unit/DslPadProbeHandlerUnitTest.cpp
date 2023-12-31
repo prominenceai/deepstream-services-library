@@ -494,10 +494,10 @@ SCENARIO( "A new FrameNumberAdderPadProbeHandler is created correctly",
     }
 }
 
-void pph_stream_event_handler_cb(uint stream_event, 
+uint pph_stream_event_handler_cb(uint stream_event, 
     uint stream_id, void* client_data)
 {
-    
+    return DSL_PAD_PROBE_OK;
 }
 
 SCENARIO( "A new StreamEventPadProbeEventHandler is created correctly",

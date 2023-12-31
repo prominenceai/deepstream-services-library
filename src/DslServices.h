@@ -1633,6 +1633,12 @@ namespace DSL {
 
         DslReturnType PipelineStreammuxTilerRemove(const char* name);
 
+        DslReturnType PipelineStreammuxPphAdd(const char* name, 
+            const char* handler);
+
+        DslReturnType PipelineStreammuxPphRemove(const char* name, 
+            const char* handler);
+        
         DslReturnType PipelinePause(const char* name);
         
         DslReturnType PipelinePlay(const char* name);

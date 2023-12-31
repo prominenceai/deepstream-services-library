@@ -450,7 +450,7 @@ DSL_PPH_CUSTOM_CLIENT_HANDLER = \
 
 #dsl_pph_stream_event_handler_cb
 DSL_PPH_STREAM_EVENT_HANDLER = \
-    CFUNCTYPE(None, c_uint, c_uint, c_void_p)
+    CFUNCTYPE(c_uint, c_uint, c_uint, c_void_p)
 
 # dsl_state_change_listener_cb
 DSL_STATE_CHANGE_LISTENER = \
@@ -7019,6 +7019,26 @@ _dsl.dsl_pipeline_streammux_tiler_remove.restype = c_uint
 def dsl_pipeline_streammux_tiler_remove(name):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_tiler_remove(name)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_pph_add()
+##
+_dsl.dsl_pipeline_streammux_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_pph_add.restype = c_uint
+def dsl_pipeline_streammux_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_pph_remove()
+##
+_dsl.dsl_pipeline_streammux_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_pph_remove.restype = c_uint
+def dsl_pipeline_streammux_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_pph_remove(name, handler)
     return int(result)
 
 ##

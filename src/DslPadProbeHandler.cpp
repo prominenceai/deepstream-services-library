@@ -906,21 +906,21 @@ for Buffer Timer PPH '" << GetName() << "'");
         if ((uint)GST_EVENT_TYPE(event) == (uint)GST_NVEVENT_PAD_ADDED)
         {
             gst_nvevent_parse_pad_added(event, &streamId);
-            LOG_WARN("GST_NVEVENT_PAD_ADDED received for new stream-id="
+            LOG_INFO("GST_NVEVENT_PAD_ADDED received for new stream-id="
                 << streamId);
             streamEvent = DSL_PPH_EVENT_STREAM_ADDED;
         }
         else if ((uint)GST_EVENT_TYPE(event) == (uint)GST_NVEVENT_PAD_DELETED)
         {
             gst_nvevent_parse_pad_deleted(event, &streamId);
-            LOG_WARN("GST_NVEVENT_PAD_DELETED received for new stream-id="
+            LOG_INFO("GST_NVEVENT_PAD_DELETED received for new stream-id="
                 << streamId);
             streamEvent = DSL_PPH_EVENT_STREAM_DELETED;
         }
         else if ((uint)GST_EVENT_TYPE(event) == (uint)GST_NVEVENT_STREAM_EOS)
         {
             gst_nvevent_parse_stream_eos(event, &streamId);
-            LOG_WARN("GST_NVEVENT_PAD_DELETED received for new stream-id="
+            LOG_INFO("DSL_PPH_EVENT_STREAM_ENDED received for new stream-id="
                 << streamId);
             streamEvent = DSL_PPH_EVENT_STREAM_ENDED;
         }
@@ -929,9 +929,12 @@ for Buffer Timer PPH '" << GetName() << "'");
         {
             return GST_PAD_PROBE_OK;
         }
+        
+        // It is a stream event so call the client handler.
         try
         {
-            m_clientHandler(streamEvent, streamId, m_clientData);
+            return (GstPadProbeReturn)m_clientHandler(streamEvent, 
+                streamId, m_clientData);
         }
         catch(...)
         {
@@ -939,8 +942,6 @@ for Buffer Timer PPH '" << GetName() << "'");
                 << "' threw an exception calling client listener");
             return GST_PAD_PROBE_REMOVE;
         }
-        
-        return GST_PAD_PROBE_OK;
     }
  
     //--------------------------------------------------------------------------------
@@ -1170,20 +1171,26 @@ for Buffer Timer PPH '" << GetName() << "'");
                     }
                     catch(...)
                     {
-                        LOG_ERROR("Exception calling Pad Probe Handler for PadProbetr '" 
-                            << m_name 
-                            << "' - removing Pad Probe Handler");
+                        LOG_ERROR("Exception calling Pad Probe Handler '" 
+                            << pPadProbeHandler->GetName() 
+                            << "' removing from PadProbetr '" 
+                            << GetName() << "'");
                         removalList.push_back(pPadProbeHandler);
                     }
                     if (retval > DSL_PAD_PROBE_REMOVE)
                     {
-                        LOG_ERROR("Invalid return from Pad Probe Handler for PadProbetr '" 
-                            << m_name 
-                            << "' - removing Pad Probe Handler");
+                        LOG_ERROR("Invalid return from Pad Probe Handler '"
+                            << pPadProbeHandler->GetName() 
+                            << "' removing from PadProbetr '" 
+                            << GetName() << "'");
                         removalList.push_back(pPadProbeHandler);
                     }
                     if (retval == GST_PAD_PROBE_REMOVE)
                     {
+                        LOG_INFO("Removing Pad Probe Handler '"
+                            << pPadProbeHandler->GetName() 
+                            << "' from PadProbetr '" 
+                            << GetName() << "'");
                         removalList.push_back(pPadProbeHandler);
                     }
                 }
@@ -1236,8 +1243,10 @@ for Buffer Timer PPH '" << GetName() << "'");
                             pPadProbeHandler->HandlePadData(pInfo);
                         if (retval == GST_PAD_PROBE_REMOVE)
                         {
-                            LOG_INFO("Removing Pad Probe Handler from PadProbetr '" 
-                                << m_name << "'");
+                            LOG_INFO("Removing Pad Probe Handler '"
+                                << pPadProbeHandler->GetName() 
+                                << "' from PadProbetr '" 
+                                << GetName() << "'");
                             removalList.push_back(pPadProbeHandler);
                         }
                         else if (retval == GST_PAD_PROBE_DROP)
