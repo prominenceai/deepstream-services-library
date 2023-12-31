@@ -5707,7 +5707,7 @@ DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named Segmentation Visualizer.
  * One or more Pad Probe Handlers can be added to the SOURCE PAD only.
  * @param[in] name unique name of the Segmentation visualizer to update
  * @param[in] handler unique name of the pad probe handler to add
@@ -5716,8 +5716,7 @@ DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name,
 DslReturnType dsl_segvisual_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a pad probe handler callback function from a named
- * Segmentation visualizer.
+ * @brief Removes a pad-probe-handler from a named Segmentation Visualizer.
  * @param[in] name unique name of the Segmentation visualizer to update
  * @param[in] handler unique name of the pad probe handler to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
@@ -5809,7 +5808,7 @@ DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size);
 DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named Primary Inference Component.
  * A Primary GIE can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Primary GIE to update
  * @param[in] handler callback function to process pad probe data
@@ -5820,7 +5819,7 @@ DslReturnType dsl_infer_primary_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the Primary GIE
+ * @brief Removes a pad-probe-handler from a named Primary Inference Component.
  * @param[in] name unique name of the Primary GIE to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
@@ -6031,7 +6030,7 @@ DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name,
     boolean enabled);
     
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named Tracker.
  * A Tracker can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Tracker to update
  * @param[in] handler callback function to process pad probe data
@@ -6042,7 +6041,7 @@ DslReturnType dsl_tracker_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the name Tracker Component
+ * @brief Removes a pad-probe-handler from a named Tracker.
  * @param[in] name unique name of the Tracker to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
@@ -6218,7 +6217,7 @@ DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode);
 DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named On-Screen-Display.
  * An On-Screen-Display can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the OSD to update
  * @param[in] handler callback function to process pad probe data
@@ -6229,7 +6228,7 @@ DslReturnType dsl_osd_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the OSD
+ * @brief Removes a pad-probe-handler from a named On-Screen-Display.
  * @param[in] name unique name of the OSD to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
@@ -6460,8 +6459,8 @@ DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name,
     uint timeout);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @brief Adds a pad-probe-handler to a named Tee.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only.
  * @param[in] name unique name of the Tee to update
  * @param[in] handler callback function to process each frame buffer
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
@@ -6469,7 +6468,7 @@ DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name,
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a pad probe handler callback function from a named Tee
+ * @brief Removes a pad-probe-handler from a named Tee.
  * @param[in] name unique name of the Tee to update
  * @param[in] handler unique name of the pad probe handler to had
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
@@ -7820,8 +7819,8 @@ DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @brief Adds a pad-probe-handler to a named Sink.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only.
  * @param[in] name unique name of the Sink to update
  * @param[in] handler unique name of the pad probe handler to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
@@ -7829,7 +7828,7 @@ DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a pad probe handler callback function from a named Sink
+ * @brief Removes a pad-probe-handler from a named Sink.
  * @param[in] name unique name of the Sink to update
  * @param[in] handler unique name of the pad probe handler to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2022, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    //-------------------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     
     PadProbeHandler::PadProbeHandler(const char* name)
         : Base(name)
@@ -170,7 +170,7 @@ namespace DSL
     }
     
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     SourceIdOffsetterPadProbeHandler::SourceIdOffsetterPadProbeHandler(
         const char* name, uint offset)
@@ -219,9 +219,10 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
-    FrameNumberAdderPadProbeBufferHandler::FrameNumberAdderPadProbeBufferHandler(const char* name)
+    FrameNumberAdderPadProbeBufferHandler::FrameNumberAdderPadProbeBufferHandler(
+        const char* name)
         : PadProbeBufferHandler(name)
         , m_currentFrameNumber(0)
     {
@@ -283,7 +284,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     OdePadProbeHandler::OdePadProbeHandler(const char* name)
         : PadProbeBufferHandler(name)
@@ -390,8 +391,8 @@ namespace DSL
                 
                 for (auto i=0; i<m_displayMetaAllocSize; i++)
                 {
-                    // Acquire new Display meta for this frame, with each Trigger/Action(s)
-                    // adding meta as needed
+                    // Acquire new Display meta for this frame, with each 
+                    // Trigger/Action(s) adding meta as needed.
                     NvDsDisplayMeta* pDisplayMeta = 
                         nvds_acquire_display_meta_from_pool(pBatchMeta);
                     displayMetaData.push_back(pDisplayMeta);
@@ -439,8 +440,9 @@ namespace DSL
                     }
                 }
                 
-                // After each detected object is checked for ODE individually, post process 
-                // each frame for Absence events, Limit events, etc. (i.e. frame level events).
+                // After each detected object is checked for ODE individually, post 
+                // process each frame for Absence events, Limit events, etc. (i.e. frame 
+                // level events).
                 for (const auto &imap: m_pChildrenIndexed)
                 {
                     DSL_ODE_TRIGGER_PTR pOdeTrigger = 
@@ -458,7 +460,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     CustomPadProbeHandler::CustomPadProbeHandler(const char* name, 
         dsl_pph_custom_client_handler_cb clientHandler, void* clientData)
@@ -495,12 +497,13 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("CustomPadProbeHandler '" << GetName() << "' threw an exception processing Pad Buffer");
+            LOG_ERROR("CustomPadProbeHandler '" << GetName() 
+                << "' threw an exception processing Pad Buffer");
             return GST_PAD_PROBE_REMOVE;
         }
     }
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     MeterPadProbeHandler::MeterPadProbeHandler(const char* name, 
         uint interval, dsl_pph_meter_client_handler_cb clientHandler, void* clientData)
@@ -544,7 +547,8 @@ namespace DSL
         
         if (enabled)
         {
-            LOG_INFO("Enabling performance measurements for MeterPadProbeHandler '" << GetName() << "'");
+            LOG_INFO("Enabling performance measurements for MeterPadProbeHandler '" 
+                << GetName() << "'");
 
             // if have Source Meters, i.e we are currently linked, reset each.
             for (auto const &imap: m_sourceMeters)
@@ -555,11 +559,13 @@ namespace DSL
 
             return true;
         }
-        LOG_INFO("Disabling performance measurements for MeterPadProbeHandler '" << GetName() << "'");
+        LOG_INFO("Disabling performance measurements for MeterPadProbeHandler '" 
+            << GetName() << "'");
         
         if (m_timerId and !g_source_remove(m_timerId))
         {
-            LOG_ERROR("Interval-timer shutdown failed for MeterPadProbeHandler '" << GetName() << "' ");
+            LOG_ERROR("Interval-timer shutdown failed for MeterPadProbeHandler '" 
+                << GetName() << "' ");
             return false;
         }
         m_timerId = 0;
@@ -606,20 +612,24 @@ namespace DSL
         if (!m_timerId)
         {    
             LOG_INFO("Setting interval timer to " << m_interval*1000);
-            m_timerId = g_timeout_add(m_interval*1000, MeterIntervalTimeoutHandler, this);
+            m_timerId = g_timeout_add(m_interval*1000, 
+                MeterIntervalTimeoutHandler, this);
         }
         try
         {
-            for (NvDsMetaList* pFrame = pBatchMeta->frame_meta_list; pFrame; pFrame = pFrame->next)
+            for (NvDsMetaList* pFrame = pBatchMeta->frame_meta_list; pFrame; 
+                pFrame = pFrame->next)
             {
                 NvDsFrameMeta *pFrameMeta = (NvDsFrameMeta*) pFrame->data;
                 if (m_sourceMeters.find(pFrameMeta->pad_index) == m_sourceMeters.end())
                 {
-                    m_sourceMeters[pFrameMeta->pad_index] = DSL_SOURCE_METER_NEW(pFrameMeta->pad_index);
+                    m_sourceMeters[pFrameMeta->pad_index] = DSL_SOURCE_METER_NEW(
+                        pFrameMeta->pad_index);
                 }
 
                 m_sourceMeters[pFrameMeta->pad_index]->Timestamp();
-                // increment the frame counters, calculations will be made based on last timestamp and frame counts.
+                // increment the frame counters, calculations will be made based on 
+                // last timestamp and frame counts.
                 m_sourceMeters[pFrameMeta->pad_index]->IncrementFrameCounts();
             }
         }
@@ -651,8 +661,9 @@ namespace DSL
         
         try
         {
-            return m_clientHandler((double*)&sessionAverages[0], (double*)&intervalAverages[0], 
-                (uint)m_sourceMeters.size(), m_clientData);
+            return m_clientHandler((double*)&sessionAverages[0], 
+                (double*)&intervalAverages[0], (uint)m_sourceMeters.size(), 
+                m_clientData);
         }
         catch(...)
         {
@@ -662,7 +673,7 @@ namespace DSL
         }
     }
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     
     static int MeterIntervalTimeoutHandler(void* user_data)
     {
@@ -670,7 +681,7 @@ namespace DSL
             HandleIntervalTimeout();
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     TimestampPadProbeHandler::TimestampPadProbeHandler(const char* name)
         : PadProbeBufferHandler(name)
@@ -718,7 +729,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     BufferTimeoutPadProbeHandler::BufferTimeoutPadProbeHandler(const char* name, 
         uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData)
@@ -814,12 +825,13 @@ namespace DSL
 
         if (lastBufferTime.tv_sec == 0)
         {
-            LOG_DEBUG("Waiting for first buffer before checking for timeout \\\
-                for Buffer Timer PPH '" << GetName() << "'");
+            LOG_DEBUG("Waiting for first buffer before checking for timeout \
+for Buffer Timer PPH '" << GetName() << "'");
             return true;
         }
 
-        double timeSinceLastBufferMs = 1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
+        double timeSinceLastBufferMs = 
+            1000.0*(currentTime.tv_sec - lastBufferTime.tv_sec) + 
             (currentTime.tv_usec - lastBufferTime.tv_usec) / 1000.0;
 
         if (timeSinceLastBufferMs < (double)m_timeout*1000)
@@ -931,7 +943,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
  
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     EosConsumerPadProbeEventHandler::EosConsumerPadProbeEventHandler(const char* name)
         : PadProbeEventHandler(name)
@@ -950,7 +962,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    GstPadProbeReturn EosConsumerPadProbeEventHandler::HandlePadData(GstPadProbeInfo* pInfo)
+    GstPadProbeReturn EosConsumerPadProbeEventHandler::HandlePadData(
+        GstPadProbeInfo* pInfo)
     {
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
 
@@ -968,7 +981,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
  
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     EosHandlerPadProbeEventHandler::EosHandlerPadProbeEventHandler(const char* name, 
         dsl_pph_eos_handler_cb clientHandler, void* clientData)
@@ -992,7 +1005,8 @@ namespace DSL
         LOG_FUNC();
     }
     
-    GstPadProbeReturn EosHandlerPadProbeEventHandler::HandlePadData(GstPadProbeInfo* pInfo)
+    GstPadProbeReturn EosHandlerPadProbeEventHandler::HandlePadData(
+        GstPadProbeInfo* pInfo)
     {
         if (!m_isEnabled)
         {
@@ -1016,10 +1030,11 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
  
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     PadProbetr::PadProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement, GstPadProbeType padProbeType)
+        const char* factoryName, DSL_ELEMENT_PTR parentElement, 
+        GstPadProbeType padProbeType)
         : Base(name)
         , m_factoryName(factoryName)
         , m_pParentGstElement(parentElement->GetGstElement())
@@ -1056,16 +1071,19 @@ namespace DSL
         
         if (IsChild(pPadProbeHandler))
         {
-            LOG_ERROR("Pad Probe Handler is already a child of PadProbetr '" << m_name << "'");
+            LOG_ERROR("Pad Probe Handler is already a child of PadProbetr '" 
+                << m_name << "'");
             return false;
         }
         
         if (!m_padProbeId)
         {
-            m_pStaticPad = gst_element_get_static_pad(m_pParentGstElement, m_factoryName.c_str());
+            m_pStaticPad = gst_element_get_static_pad(m_pParentGstElement, 
+                m_factoryName.c_str());
             if (!m_pStaticPad)
             {
-                LOG_ERROR("Failed to get Static Pad for PadProbetr '" << m_name << "'");
+                LOG_ERROR("Failed to get Static Pad for PadProbetr '" 
+                    << m_name << "'");
                 return false;
             }
      
@@ -1096,7 +1114,8 @@ namespace DSL
         
         if (!IsChild(pPadProbeHandler))
         {
-            LOG_ERROR("Pad Probe Handler is not in use by PadProbetr '" << m_name << "'");
+            LOG_ERROR("Pad Probe Handler is not in use by PadProbetr '" 
+                << m_name << "'");
             return false;
         }
         
@@ -1108,7 +1127,7 @@ namespace DSL
         return true;
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     PadBufferProbetr::PadBufferProbetr(const char* name, 
         const char* factoryName, DSL_ELEMENT_PTR parentElement)
@@ -1122,7 +1141,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    GstPadProbeReturn PadBufferProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)
+    GstPadProbeReturn PadBufferProbetr::HandlePadProbe(GstPad* pPad, 
+        GstPadProbeInfo* pInfo)
     {
         if ((pInfo->type & GST_PAD_PROBE_TYPE_BUFFER))
         {
@@ -1133,13 +1153,15 @@ namespace DSL
         
                 if (!(GstBuffer*)pInfo->data)
                 {
-                    LOG_WARN("Unable to get data buffer for PadProbetr '" << m_name << "'");
+                    LOG_WARN("Unable to get data buffer for PadProbetr '" 
+                        << m_name << "'");
                     return GST_PAD_PROBE_OK;
                 }
             
                 for (auto const& imap: m_pChildrenIndexed)
                 {
-                    DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
+                    DSL_PPH_PTR pPadProbeHandler = 
+                        std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
                     
                     GstPadProbeReturn retval;
                     try
@@ -1148,13 +1170,15 @@ namespace DSL
                     }
                     catch(...)
                     {
-                        LOG_ERROR("Exception calling Pad Probe Handler for PadProbetr '" << m_name 
+                        LOG_ERROR("Exception calling Pad Probe Handler for PadProbetr '" 
+                            << m_name 
                             << "' - removing Pad Probe Handler");
                         removalList.push_back(pPadProbeHandler);
                     }
                     if (retval > DSL_PAD_PROBE_REMOVE)
                     {
-                        LOG_ERROR("Invalid return from Pad Probe Handler for PadProbetr '" << m_name 
+                        LOG_ERROR("Invalid return from Pad Probe Handler for PadProbetr '" 
+                            << m_name 
                             << "' - removing Pad Probe Handler");
                         removalList.push_back(pPadProbeHandler);
                     }
@@ -1172,11 +1196,12 @@ namespace DSL
         return GST_PAD_PROBE_OK;
     }
     
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     PadEventDownStreamProbetr::PadEventDownStreamProbetr(const char* name, 
         const char* factoryName, DSL_ELEMENT_PTR parentElement)
-        : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
+        : PadProbetr(name, factoryName, parentElement, 
+            GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
     {
         LOG_FUNC();
     }
@@ -1186,7 +1211,8 @@ namespace DSL
         LOG_FUNC();
     }
 
-    GstPadProbeReturn PadEventDownStreamProbetr::HandlePadProbe(GstPad* pPad, GstPadProbeInfo* pInfo)   
+    GstPadProbeReturn PadEventDownStreamProbetr::HandlePadProbe(GstPad* pPad, 
+        GstPadProbeInfo* pInfo)   
     {
         if (pInfo->type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
         {
@@ -1202,13 +1228,16 @@ namespace DSL
                 
                 for (auto const& imap: m_pChildrenIndexed)
                 {
-                    DSL_PPH_PTR pPadProbeHandler = std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
+                    DSL_PPH_PTR pPadProbeHandler = 
+                        std::dynamic_pointer_cast<PadProbeHandler>(imap.second);
                     try
                     {
-                        GstPadProbeReturn retval = pPadProbeHandler->HandlePadData(pInfo);
+                        GstPadProbeReturn retval = 
+                            pPadProbeHandler->HandlePadData(pInfo);
                         if (retval == GST_PAD_PROBE_REMOVE)
                         {
-                            LOG_INFO("Removing Pad Probe Handler from PadProbetr '" << m_name << "'");
+                            LOG_INFO("Removing Pad Probe Handler from PadProbetr '" 
+                                << m_name << "'");
                             removalList.push_back(pPadProbeHandler);
                         }
                         else if (retval == GST_PAD_PROBE_DROP)
@@ -1218,7 +1247,8 @@ namespace DSL
                     }
                     catch(...)
                     {
-                        LOG_INFO("Removing Pad Probe Handler for PadProbetr '" << m_name << "'");
+                        LOG_INFO("Removing Pad Probe Handler for PadProbetr '" 
+                            << m_name << "'");
                         removalList.push_back(pPadProbeHandler);
                     }
                 }
@@ -1231,7 +1261,7 @@ namespace DSL
         return GST_PAD_PROBE_OK;        
     }
 
-    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
     static GstPadProbeReturn PadProbeCB(GstPad* pPad, 
         GstPadProbeInfo* pInfo, gpointer pPadProbetr)
     {

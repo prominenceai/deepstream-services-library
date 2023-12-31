@@ -217,7 +217,7 @@ SCENARIO( "A Buffer Timeout Pad Probe Handler can be created and deleted", "[pph
     }
 }
 
-uint eos_handler_cb(void* client_data)
+static uint eos_handler_cb(void* client_data)
 {
     return DSL_PAD_PROBE_DROP;
 }
@@ -302,6 +302,47 @@ SCENARIO( "A Buffer Timeout Handler's Enabled Setting can be disabled and re-ena
     }
 }
 
+void pph_stream_event_handler(uint stream_event, 
+    uint stream_id, void* client_data)
+{
+    
+}
+
+SCENARIO( "A Stream Event Pad Probe Handler can be created and deleted", "[pph-api]" )
+{
+    GIVEN( "Atributes for a new Stream Event Pad Probe Handler" ) 
+    {
+        std::wstring pph_name(L"stream-event-pph");
+
+        REQUIRE( dsl_pph_list_size() == 0 );
+
+        WHEN( "The PPH is created" ) 
+        {
+            REQUIRE( dsl_pph_stream_event_new(pph_name.c_str(),
+                pph_stream_event_handler, NULL) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pph_list_size() == 1 );
+
+            // second call must fail
+            REQUIRE( dsl_pph_stream_event_new(pph_name.c_str(),
+                pph_stream_event_handler, NULL) == DSL_RESULT_PPH_NAME_NOT_UNIQUE );
+            
+            boolean enabled(0);
+            REQUIRE( dsl_pph_enabled_get(pph_name.c_str(), &enabled) 
+                == DSL_RESULT_SUCCESS);
+            REQUIRE( enabled == true );
+            
+            THEN( "The PPH can then be deleted" )
+            {
+                REQUIRE( dsl_pph_delete(pph_name.c_str()) == DSL_RESULT_SUCCESS );
+                
+                // second call must fail
+                REQUIRE( dsl_pph_delete(pph_name.c_str()) == DSL_RESULT_PPH_NAME_NOT_FOUND );
+                REQUIRE( dsl_pph_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Pad Probe Handler API checks for NULL input parameters", "[pph-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -346,6 +387,11 @@ SCENARIO( "The Pad Probe Handler API checks for NULL input parameters", "[pph-ap
                 REQUIRE( dsl_pph_eos_new(NULL, NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pph_eos_new(pphName.c_str(), NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pph_stream_event_new(NULL, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pph_stream_event_new(pphName.c_str(), NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_pph_enabled_get(NULL, &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );

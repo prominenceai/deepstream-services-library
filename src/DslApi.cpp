@@ -3276,7 +3276,8 @@ DslReturnType dsl_pph_custom_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PphCustomNew(cstrName.c_str(), client_handler, client_data);
+    return DSL::Services::GetServices()->PphCustomNew(cstrName.c_str(), 
+        client_handler, client_data);
 }
 
 DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,

@@ -44,6 +44,10 @@ DSL_PAD_PROBE_REMOVE  = 2
 DSL_PAD_PROBE_PASS    = 3
 DSL_PAD_PROBE_HANDLED = 4
 
+DSL_PPH_EVENT_STREAM_ADDED   = 0
+DSL_PPH_EVENT_STREAM_DELETED = 1
+DSL_PPH_EVENT_STREAM_ENDED   = 2
+
 DSL_SINK_APP_DATA_TYPE_SAMPLE = 0
 DSL_SINK_APP_DATA_TYPE_BUFFER = 1
 
@@ -443,6 +447,10 @@ DSL_PPH_METER_CLIENT_HANDLER = \
 # dsl_pph_custom_client_handler_cb
 DSL_PPH_CUSTOM_CLIENT_HANDLER = \
     CFUNCTYPE(c_uint, c_void_p, c_void_p)
+
+#dsl_pph_stream_event_handler_cb
+DSL_PPH_STREAM_EVENT_HANDLER = \
+    CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 
 # dsl_state_change_listener_cb
 DSL_STATE_CHANGE_LISTENER = \
@@ -3019,6 +3027,21 @@ def dsl_pph_buffer_timeout_new(name, timeout, handler, client_data):
     clientdata.append(c_client_data)
     result =_dsl.dsl_pph_buffer_timeout_new(name, 
         timeout, handler_cb, c_client_data)
+    return int(result)
+
+##
+## dsl_pph_stream_event_new()
+##
+_dsl.dsl_pph_stream_event_new.argtypes = [c_wchar_p, 
+    DSL_PPH_STREAM_EVENT_HANDLER, c_void_p]
+_dsl.dsl_pph_stream_event_new.restype = c_uint
+def dsl_pph_stream_event_new(name, client_handler, client_data):
+    global _dsl
+    client_handler_cb = DSL_PPH_STREAM_EVENT_HANDLER(client_handler)
+    callbacks.append(client_handler_cb)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result =_dsl.dsl_pph_stream_event_new(name, client_handler_cb, c_client_data)
     return int(result)
 
 ##

@@ -438,7 +438,8 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Sink Pad of a Bintr", "
     }
 }
 
-SCENARIO( "Multiple PadProbeHandlers can be added to the Source Pad of a Bintr", "[PadProbeHandler]" )
+SCENARIO( "Multiple Pad-Probe-Buffer-Handlers can be added to the Source Pad of a Bintr",
+    "[PadProbeHandler]" )
 {
     GIVEN( "A new Tracker and three new PadProbeHandlers" ) 
     {
@@ -473,7 +474,8 @@ SCENARIO( "Multiple PadProbeHandlers can be added to the Source Pad of a Bintr",
     }
 }
 
-SCENARIO( "A new FrameNumberAdderPadProbeHandler is created correctly", "[PadProbeHandler]" )
+SCENARIO( "A new FrameNumberAdderPadProbeHandler is created correctly",
+    "[PadProbeHandler]" )
 {
     GIVEN( "Attributes for a new FrameNumberAdderPadProbeHandler" ) 
     {
@@ -498,7 +500,8 @@ void pph_stream_event_handler_cb(uint stream_event,
     
 }
 
-SCENARIO( "A new StreamEventPadProbeEventHandler is created correctly", "[PadProbeHandler]" )
+SCENARIO( "A new StreamEventPadProbeEventHandler is created correctly",
+    "[PadProbeHandler]" )
 {
     GIVEN( "Attributes for a new StreamEventPadProbeEventHandler" ) 
     {
@@ -515,5 +518,72 @@ SCENARIO( "A new StreamEventPadProbeEventHandler is created correctly", "[PadPro
                 REQUIRE( pPadProbeHandler->GetName() == handlerName );
             }
         }
+    }
+}
+
+SCENARIO( "Multiple Pad-Probe-Event-Handlers can be added to the Pads of a Bintr",
+    "[PadProbeHandler]" )
+{
+    GIVEN( "A new Tracker and three new PadProbeEventHandlers" ) 
+    {
+        std::string trackerName("iou-tracker");
+        uint initWidth(200);
+        uint initHeight(100);
+        
+        std::string eventHandlerName1("ode-handler-1");
+        std::string eventHandlerName2("ode-handler-2");
+        std::string eventHandlerName3("ode-handler-3");
+
+        DSL_PPEH_STREAM_EVENT_PTR pPadProbeHandler1 = 
+            DSL_PPEH_STREAM_EVENT_NEW(eventHandlerName1.c_str(), 
+                pph_stream_event_handler_cb, NULL);
+        DSL_PPEH_STREAM_EVENT_PTR pPadProbeHandler2 = 
+            DSL_PPEH_STREAM_EVENT_NEW(eventHandlerName2.c_str(), 
+                pph_stream_event_handler_cb, NULL);
+        DSL_PPEH_STREAM_EVENT_PTR pPadProbeHandler3 = 
+            DSL_PPEH_STREAM_EVENT_NEW(eventHandlerName3.c_str(), 
+                pph_stream_event_handler_cb, NULL);
+
+        DSL_TRACKER_PTR pTrackerBintr = 
+            DSL_TRACKER_NEW(trackerName.c_str(), "", initWidth, initHeight);
+
+        WHEN( "Multiple PadProbeHandlers are added to the Sink " )
+        {
+            REQUIRE( pPadProbeHandler1->AddToParent(pTrackerBintr, 
+                DSL_PAD_SINK) == true );
+            REQUIRE( pPadProbeHandler2->AddToParent(pTrackerBintr, 
+                DSL_PAD_SINK) == true );
+            REQUIRE( pPadProbeHandler3->AddToParent(pTrackerBintr, 
+                DSL_PAD_SINK) == true );
+            
+            THEN( "All PadProbeHandlers can be removed " )
+            {
+                REQUIRE( pPadProbeHandler1->RemoveFromParent(pTrackerBintr, 
+                    DSL_PAD_SINK) == true );
+                REQUIRE( pPadProbeHandler3->RemoveFromParent(pTrackerBintr, 
+                    DSL_PAD_SINK) == true );
+                REQUIRE( pPadProbeHandler2->RemoveFromParent(pTrackerBintr, 
+                    DSL_PAD_SINK) == true );
+            }
+        } 
+        WHEN( "Multiple PadProbeHandlers are added to the Src pad " )
+        {
+            REQUIRE( pPadProbeHandler1->AddToParent(pTrackerBintr, 
+                DSL_PAD_SRC) == true );
+            REQUIRE( pPadProbeHandler2->AddToParent(pTrackerBintr, 
+                DSL_PAD_SRC) == true );
+            REQUIRE( pPadProbeHandler3->AddToParent(pTrackerBintr, 
+                DSL_PAD_SRC) == true );
+            
+            THEN( "All PadProbeHandlers can be removed " )
+            {
+                REQUIRE( pPadProbeHandler1->RemoveFromParent(pTrackerBintr, 
+                    DSL_PAD_SRC) == true );
+                REQUIRE( pPadProbeHandler3->RemoveFromParent(pTrackerBintr, 
+                    DSL_PAD_SRC) == true );
+                REQUIRE( pPadProbeHandler2->RemoveFromParent(pTrackerBintr, 
+                    DSL_PAD_SRC) == true );
+            }
+        } 
     }
 }

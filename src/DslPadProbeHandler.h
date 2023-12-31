@@ -102,21 +102,39 @@ namespace DSL
         std::shared_ptr<PadEventDownStreamProbetr>(new PadEventDownStreamProbetr( \
             name, factoryName, parentElement))    
 
+    //--------------------------------------------------------------------------------
+    
     /**
-     * @brief Pad Probe Handler Callback type
+     * @class PadProbeHandler
+     * @brief Parent class for all pad-probe-handlers.
      */
-    typedef boolean (*dsl_pph_client_handler_cb)(void* buffer, void* client_data);
-        
     class PadProbeHandler : public Base
     {
     public: 
     
+        /**
+         * @brief ctor for the PadProbeHandler.
+         * @param[in] name unique name for the new Handler.
+         */
         PadProbeHandler(const char* name);
 
+        /**
+         * @brief dtor for the PadProbeHandler.
+         */
         ~PadProbeHandler();
 
+        /**
+         * @brief Defines a function to add the derived PadProbeHandler to a
+         * parent Bintr; sink or source pad.
+         * @return true if successfully added, false otherwise.
+         */
         virtual bool AddToParent(DSL_BASE_PTR pParent, uint pad) = 0;
 
+        /**
+         * @brief Defines a function to removed the derived PadProbeHandler to a
+         * parent Bintr; sink or source pad.
+         * @return true if successfully added, false otherwise.
+         */
         virtual bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad) = 0;
         
         /**
@@ -159,31 +177,69 @@ namespace DSL
 
     //--------------------------------------------------------------------------------
     
+    /**
+     * @class PadProbeBufferHandler
+     * @brief Parent class for all pad-probe-buffer-handlers.
+     */
     class PadProbeBufferHandler : public PadProbeHandler
     {
     public: 
     
+        /**
+         * @brief ctor for the PadProbeBufferHandler.
+         * @param[in] name unique name for the new Handler.
+         */
         PadProbeBufferHandler(const char* name);
 
+        /**
+         * @brief dtor for the PadProbeBufferHandler.
+         */
         ~PadProbeBufferHandler();
 
+        /**
+         * @brief Adds this PadProbeHandler to a parent Bintr; sink or source pad.
+         * @return true if successfully added, false otherwise.
+         */
         bool AddToParent(DSL_BASE_PTR pParent, uint pad);
 
+        /**
+         * @brief Removes this PadProbeHandler from a parent Bintr; sink or source pad.
+         * @return true if successfully removed, false otherwise.
+         */
         bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad);
     };        
     
     //--------------------------------------------------------------------------------
 
+    /**
+     * @class PadProbeEventHandler
+     * @brief Parent class for all pad-probe-event-handlers.
+     */
     class PadProbeEventHandler : public PadProbeHandler
     {
     public: 
     
+        /**
+         * @brief ctor for the PadProbeBufferHandler.
+         * @param[in] name unique name for the new Handler.
+         */
         PadProbeEventHandler(const char* name);
 
+        /**
+         * @brief dtor for the PadProbeEventHandler.
+         */
         ~PadProbeEventHandler();
 
+        /**
+         * @brief Adds this PadProbeHandler to a parent Bintr; sink or source pad.
+         * @return true if successfully added, false otherwise.
+         */
         bool AddToParent(DSL_BASE_PTR pParent, uint pad);
 
+        /**
+         * @brief Removes this PadProbeHandler from a parent Bintr; sink or source pad.
+         * @return true if successfully removed, false otherwise.
+         */
         bool RemoveFromParent(DSL_BASE_PTR pParent, uint pad);
     };
     
@@ -199,7 +255,7 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the Custom Pad Probe Handler
+         * @brief ctor for the Source Id Offsetter Pad Probe Handler
          * @param[in] name unique name for the PPH
          * @param[in] offset value to offset all source-ids in all object metedata 
          * for all frame-metadata processed by this PPH. The offset value is shifted
@@ -208,12 +264,12 @@ namespace DSL
         SourceIdOffsetterPadProbeHandler(const char* name, uint offset);
 
         /**
-         * @brief dtor for the ODE Pad Probe Handler
+         * @brief dtor for the Source Id Offsetter Pad Probe Handler
          */
         ~SourceIdOffsetterPadProbeHandler();
 
         /**
-         * @brief Custom Pad Probe Handler
+         * @brief Source Id Offsetter Pad Probe Handler
          * @param[in]pBuffer Pad buffer
          * @return GstPadProbeReturn see GST reference, one of 
          * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
@@ -247,7 +303,7 @@ namespace DSL
          * @param[in] clientData return to the client when the handler is called
          */
         CustomPadProbeHandler(const char* name, 
-            dsl_pph_client_handler_cb clientHandler, void* clientData);
+            dsl_pph_custom_client_handler_cb clientHandler, void* clientData);
 
         /**
          * @brief dtor for the ODE Pad Probe Handler
@@ -288,14 +344,14 @@ namespace DSL
     public: 
     
         /**
-         * @brief ctor for the Pad Event Pad Probe Handler
+         * @brief ctor for the Stream Event Pad Probe Handler
          * @param[in] name unique name for the PPH
          */
         StreamEventPadProbeEventHandler(const char* name,
             dsl_pph_stream_event_handler_cb handler, void* clientData);
 
         /**
-         * @brief dtor for the Pad Event Pad Probe Handler
+         * @brief dtor for the Stream Event Pad Probe Handler
          */
         ~StreamEventPadProbeEventHandler();
 
@@ -344,7 +400,7 @@ namespace DSL
         ~EosConsumerPadProbeEventHandler();
 
         /**
-         * @brief ODE Pad Probe Handler
+         * @brief EOS Consumer Pad Probe Handler
          * @param[in] pBuffer Pad buffer
          * @return GstPadProbeReturn see GST reference, one of 
          * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
@@ -378,7 +434,7 @@ namespace DSL
         ~EosHandlerPadProbeEventHandler();
 
         /**
-         * @brief Custom Pad Probe Handler
+         * @brief EOS Handler Pad Probe Handler
          * @param[in]pBuffer Pad buffer
          * @return GstPadProbeReturn see GST reference, one of 
          * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK]
