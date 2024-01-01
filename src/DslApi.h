@@ -4340,8 +4340,8 @@ DslReturnType dsl_pph_eos_new(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Streammux Stream-Event Pad Probe Handler (PPH).
  * Once the PPH is added to a Component's Pad, the client callback will be called 
- * if one NVIDIA Streammux downstream stream-events; stream-added, stream-deleated,
- * or stream-ended. 
+ * if one of the NVIDIA Streammux downstream stream-events --  stream-added, stream-deleted,
+ * or stream-ended -- crosses the component's pad.
  * @param[in] name unique name for the new Pad Probe Handler.
  * @param[in] handler function to be called on new stream-event.
  * @param[in] client_data opaque pointer to client data to be passed back
@@ -8231,7 +8231,6 @@ DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
     const wchar_t* handler);
-
 
 /**
  * @brief pauses a Pipeline if in a state of playing
