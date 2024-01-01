@@ -147,9 +147,6 @@ Used by the Callback Handler Functions
 #### Stream Events
 The following constants are used by the Streammuxer Stream Event Pad Probe Handler.
 ```c
-/**
- * @brief DSL Pad Probe Handler - Stream Event Types
- */
 #define DSL_PPH_EVENT_STREAM_ADDED                                  0
 #define DSL_PPH_EVENT_STREAM_DELETED                                1
 #define DSL_PPH_EVENT_STREAM_ENDED                                  2
@@ -228,12 +225,12 @@ typedef uint (*dsl_pph_stream_event_handler_cb)(uint stream_event,
     uint stream_id, void* client_data);
 ```
 
-This Type defines a Client Callback function that is added to a Stream Event Pad Probe Handler during handler construction (see [dsl_pph_stream_event_new](#dsl_pph_stream_event_new)). Once the PPH is added to a Component's Pad and the Pipeline is playing, the client callback will be called if a new Streammuxer [Stream Event](#stream_events) is received.
+This Type defines a Client Callback function that is added to a Stream Event Pad Probe Handler during handler construction (see [dsl_pph_stream_event_new](#dsl_pph_stream_event_new)). Once the PPH is added to a Component's Pad and the Pipeline is playing, the client callback will be called if a new Streammuxer [Stream Event](#stream-events) is received.
 
 **Parameters**
-* `stream_event` - [in] on of the [DSL_PPH_EVENT_STREAM](#stream_events) symbolic constants defining the event that occurred.
+* `stream_event` - [in] on of the [DSL_PPH_EVENT_STREAM](#stream-events) symbolic constants defining the event that occurred.
 * `stream_id` - [in] unique zero-based identifier of the stream that caused the event.
-* `client_data` - [in] opaque pointer to the client's data, provided on Buffer Timeout PPH construction.
+* `client_data` - [in] opaque pointer to the client's data, provided on PPH construction.
 
 **Returns**
 * `DSL_PAD_PROBE_OK` to continue handling Stream-Events, `DSL_PAD_PROBE_REMOVE` to self remove the Pad Probe Handler from the Pipeline component.
@@ -362,7 +359,7 @@ retval = dsl_pph_custom_new('my-custom-handler', my_client_callback, my_client_d
 DslReturnType dsl_pph_stream_event_new(const wchar_t* name,
     dsl_pph_stream_event_handler_cb handler, void* client_data);
 ```
-The constructor creates a uniquely named Streammuxer Stream Event Pad Probe Handler (PPH) with a client callback function and client data to return on callback. Once the PPH is added to a Component's Pad, the client callback will be called if one of the downstream [Stream Events](#stream_events) crosses the component's pad.
+The constructor creates a uniquely named Streammuxer Stream Event Pad Probe Handler (PPH) with a client callback function and client data to return on callback. Once the PPH is added to a Component's Pad, the client callback will be called if one of the downstream [Stream Events](#stream-events) crosses the component's pad.
 
 
 **Parameters**
