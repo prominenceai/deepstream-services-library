@@ -416,6 +416,63 @@ SCENARIO( "A Tiler can be added to and removed from a Pipeline's Streammuxer out
     }
 }
 
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
+{
+    return true;
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a Pipeline's Streammuxer", 
+    "[pipeline-streammux]" )
+{
+    GIVEN( "A new Pipeline with its built-in streammuxer and Custom PPH" ) 
+    {
+        std::wstring pipeline_name  = L"test-pipeline";
+
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, 
+            NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Probe Handler is added to the Pipeline's Streammuxer" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_pipeline_streammux_pph_remove(pipeline_name.c_str(), 
+                customPpmName.c_str()) == 
+                    DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_pipeline_streammux_pph_add(pipeline_name.c_str(), 
+                customPpmName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_pipeline_streammux_pph_remove(pipeline_name.c_str(), 
+                    customPpmName.c_str()) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Source Pad Probe Handler is added to the Pipeline's Streammuxer" ) 
+        {
+            REQUIRE( dsl_pipeline_streammux_pph_add(pipeline_name.c_str(), 
+                customPpmName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_pipeline_streammux_pph_add(pipeline_name.c_str(), 
+                    customPpmName.c_str()) == 
+                        DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_pipeline_streammux_pph_remove(pipeline_name.c_str(), 
+                    customPpmName.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipeline-streammux]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -475,6 +532,14 @@ SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipel
                 REQUIRE( dsl_pipeline_streammux_tiler_remove(NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_pipeline_streammux_pph_add(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_pph_add(pipeline_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_pph_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_pph_remove(pipeline_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );

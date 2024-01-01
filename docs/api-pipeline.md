@@ -80,6 +80,8 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_streammux_max_latency_set`](#dsl_pipeline_streammux_max_latency_set)
 * [`dsl_pipeline_streammux_tiler_add`](#dsl_pipeline_streammux_tiler_add)
 * [`dsl_pipeline_streammux_tiler_remove`](#dsl_pipeline_streammux_tiler_remove)
+* [`dsl_pipeline_streammux_pph_add`](#dsl_pipeline_streammux_pph_add)
+* [`dsl_pipeline_streammux_pph_remove`](#dsl_pipeline_streammux_pph_remove)
 * [`dsl_pipeline_state_get`](#dsl_pipeline_state_get)
 * [`dsl_pipeline_state_change_listener_add`](#dsl_pipeline_state_change_listener_add)
 * [`dsl_pipeline_state_change_listener_remove`](#dsl_pipeline_state_change_listener_remove)
@@ -674,6 +676,49 @@ This service removes a named Tiler from a named Pipeline's Streammuxer previousl
 retval = dsl_pipeline_streammux_tiler_remove('my-pipeline')
 ```
 <br>
+
+### *dsl_pipeline_streammux_pph_add*
+```C++
+DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name, 
+    const wchar_t* handler);
+```
+This service adds a named Pad-Probe-Handler to a named Pipeline's Streammuxer. One or more Pad Probe Handlers can be added to the SOURCE PAD only.
+
+**Parameters**
+ * `name` [in] unique name of the Pipeline to update
+ * `handler` [in] unique name of the PPH to add
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_pph_add('my-pipeline', 'my-source-meter-pph')
+```
+
+<br>
+
+### *dsl_pipeline_streammux_pph_remove*
+```C++
+DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
+    const wchar_t* handler);
+```
+This service removes a named Pad-Probe-Handler from a named Pipeline's Streammuxer.
+
+**Parameters**
+ * `name` [in] unique name of the Pipeline to update.
+ * `handler` [in] unique name of the Pad probe handler to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_pph_remove('my-pipeline', 'my-source-meter-pph')
+```
+
+<br>
+
 
 ### *dsl_pipeline_state_change_listener_add*
 ```C++

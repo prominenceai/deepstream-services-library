@@ -202,7 +202,7 @@ namespace DSL
          * to add frame_numbers to each frame crossing the Source
          * pad of the TilerBintr - when endabled
          */
-        DSL_PPEH_FRAME_NUMBER_ADDER_PTR m_pFrameNumberAdder;
+        DSL_PPH_FRAME_NUMBER_ADDER_PTR m_pFrameNumberAdder;
         
         /**
          * @brief Queue Elementr as Sink for this TilerBintr

@@ -534,6 +534,70 @@ namespace DSL
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::PipelineStreammuxPphAdd(const char* name, 
+        const char* handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to add itself to the Tee as a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(
+                m_pipelines[name]->GetPipelineSourcesBintr(), DSL_PAD_SRC))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_ADD_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler 
+                << "' added to Pipeline '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::PipelineStreammuxPphRemove(const char* name, 
+        const char* handler) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            // call on the Handler to remove itself from the Tee
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(
+                m_pipelines[name]->GetPipelineSourcesBintr(), DSL_PAD_SRC))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of Pipeline '" << name << "'");
+                return DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_REMOVE_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler 
+                << "' removed from Pipeline '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception removing Pad Probe Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
             
     DslReturnType Services::PipelinePause(const char* name)
     {

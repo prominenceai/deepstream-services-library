@@ -718,7 +718,6 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
         
         try
         {

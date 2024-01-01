@@ -88,12 +88,15 @@ cur_source_count = 0
 TILER_COLS = 4
 TILER_ROWS = 2
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
@@ -132,8 +135,23 @@ def xwindow_key_event_handler(key_string, client_data):
             dsl_pipeline_component_remove('pipeline', source_name)
             dsl_component_delete(source_name)
             cur_source_count -= 1
+  
+##  
+#  Client handler for our Stream-Event Pad Probe Handler
+## 
+def stream_event_handler(stream_event, stream_id, client_data):
+    if stream_event == DSL_PPH_EVENT_STREAM_ADDED:
+        print('Stream Id =', stream_id, ' added to Pipeline')
+    elif stream_event == DSL_PPH_EVENT_STREAM_ENDED:
+        print('Stream Id =', stream_id, ' ended')
+    elif stream_event == DSL_PPH_EVENT_STREAM_DELETED:
+        print('Stream Id =', stream_id, ' deleted from Pipeline')
         
+    return DSL_PAD_PROBE_OK
 
+##  
+#  Application main.
+## 
 def main(args):
 
     global MAX_SOURCE_COUNT, cur_source_count
@@ -213,6 +231,19 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create a Stream-Event Pad Probe Handler (PPH) to manage new Streammuxer 
+        # stream-events: stream-added, stream-ended, and stream-deleted.
+        retval = dsl_pph_stream_event_new('stream-event-pph',
+            stream_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Add the PPH to the source (output) pad of the Pipeline's Streammuxer
+        retval = dsl_pipeline_streammux_pph_add('pipeline',
+            'stream-event-pph')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         retval = dsl_pipeline_eos_listener_add('pipeline', 
             eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:

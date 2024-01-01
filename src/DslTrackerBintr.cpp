@@ -40,7 +40,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // New Tracker element for this TrackerBintr
+        // New Queue and Tracker element for this TrackerBintr
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
         m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
@@ -68,13 +69,18 @@ namespace DSL
         LOG_INFO("  input-tensor-meta    : " << m_tensorInputEnabled);
         LOG_INFO("  gpu-id               : " << m_gpuId);
 
+        AddChild(m_pQueue);
         AddChild(m_pTracker);
 
-        m_pTracker->AddGhostPadToParent("sink");
+        // Float the queue element as a sink-ghost-pad for this Bintr.
+        m_pQueue->AddGhostPadToParent("sink");
+
+        // Float the tracker element as a src-ghost-pad for this Bintr.
         m_pTracker->AddGhostPadToParent("src");
         
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tracker-sink-pad-probe", "sink", m_pTracker);
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tracker-src-pad-probe", "src", m_pTracker);
+        // Add the Buffer and DS Event probes to the tracker element.
+        AddSinkPadProbes(m_pTracker);
+        AddSrcPadProbes(m_pTracker);
     }
 
     TrackerBintr::~TrackerBintr()
@@ -115,7 +121,10 @@ namespace DSL
             return false;
         }
 
-        // Nothing to link with single Elementr
+        if (!m_pQueue->LinkToSink(m_pTracker))
+        {
+            return false;
+        }
         m_isLinked = true;
         
         return true;
@@ -130,7 +139,8 @@ namespace DSL
             LOG_ERROR("TrackerBintr '" << m_name << "' is not linked");
             return;
         }
-        // Nothing to unlink with single Elementr
+        m_pQueue->UnlinkFromSink();
+
         m_isLinked = false;
     }
 

@@ -57,6 +57,9 @@ namespace DSL
         
         // Float the Queue as sink (input) ghost pad for this SinkBintr
         m_pQueue->AddGhostPadToParent("sink");
+        
+        // Add the Buffer and DS Event probes to the sink-pad of the queue element.
+        AddSinkPadProbes(m_pQueue);
     }
 
     SinkBintr::~SinkBintr()

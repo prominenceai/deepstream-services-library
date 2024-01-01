@@ -72,6 +72,9 @@ namespace DSL
 
         // Float the Streammux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreammux->AddGhostPadToParent("src");
+
+        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
+        AddSrcPadProbes(m_pStreammux);
         
         // If the unqiue pipeline-id is greater than 0, then we need to add the
         // SourceIdOffsetterPadProbeHandler to offset every source-id found in
@@ -80,11 +83,6 @@ namespace DSL
         {
             LOG_INFO("Adding source-id-offsetter to PipelineSourcesBintr '"
                 << GetName() << "' with unique Pipeline-id = " << m_uniquePipelineId);
-            // Create the buffer-pad-probe to probe all buffers flowing over the 
-            // streammuxer's source pad. 
-            std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
-            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
-                padBufferProbeName.c_str(), "src", m_pStreammux);
 
             // Create the specialized pad-probe-handler to offset all source-ids'
             std::string bufferHandlerName = GetName() + "-source-id-offsetter";
@@ -159,11 +157,7 @@ namespace DSL
 
                 std::string eventHandlerName = GetName() + "-eos-consumer";
                 m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
-
-                std::string padEventProbeName = GetName() + "-src-pad-event-probe";
-                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(
-                    padEventProbeName.c_str(), "src", m_pStreammux);
-                m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
+                m_pSrcPadDsEventProbe->AddPadProbeHandler(m_pEosConsumer);
             }
         }
         
@@ -547,7 +541,7 @@ namespace DSL
         // needs to be removed. 
         if (m_pEosConsumer)
         {
-            m_pSrcPadProbe->RemovePadProbeHandler(m_pEosConsumer);
+            m_pSrcPadDsEventProbe->RemovePadProbeHandler(m_pEosConsumer);
         }
     }
 }

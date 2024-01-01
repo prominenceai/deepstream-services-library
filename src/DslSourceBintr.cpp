@@ -184,7 +184,7 @@ namespace DSL
             throw;
         }
 
-        // ---- SinkQueue as ghost pad to connect to Streammuxer
+        // ---- Queue as ghost pad to connect to Streammuxer
         
         m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
         
@@ -195,10 +195,9 @@ namespace DSL
 
         // Source (output) queue is "src" ghost-pad for all SourceBintrs
         m_pSourceQueue->AddGhostPadToParent("src");
-        
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pSourceQueue);
+
+        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
+        AddSrcPadProbes(m_pSourceQueue);
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -3110,10 +3109,7 @@ namespace DSL
         std::string handlerName = GetName() + "-timestamp-pph";
         m_TimestampPph = DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
         
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pBufferOutVidConv);
-        m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
+        m_pSrcPadBufferProbe->AddPadProbeHandler(m_TimestampPph);
         
         // Set the default connection param values
         m_connectionData.sleep = DSL_RTSP_CONNECTION_SLEEP_S;
@@ -3132,7 +3128,7 @@ namespace DSL
 
         // Note: don't need t worry about stopping the one-shot m_listenerNotifierTimerId
         
-        m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
+        m_pSrcPadBufferProbe->RemovePadProbeHandler(m_TimestampPph);
     }
     
     bool RtspSourceBintr::LinkAll()

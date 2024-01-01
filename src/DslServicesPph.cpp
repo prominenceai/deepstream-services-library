@@ -41,18 +41,22 @@ namespace DSL
             // ensure handler name uniqueness 
             if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
             {   
-                LOG_ERROR("Custom Pad Probe Handler name '" << name << "' is not unique");
+                LOG_ERROR("Custom Pad Probe Handler name '" 
+                    << name << "' is not unique");
                 return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
             }
-            m_padProbeHandlers[name] = DSL_PPH_CUSTOM_NEW(name, clientHandler, clientData);
+            m_padProbeHandlers[name] = DSL_PPH_CUSTOM_NEW(name, 
+                clientHandler, clientData);
 
-            LOG_INFO("New Custom Pad Probe Handler '" << name << "' created successfully");
+            LOG_INFO("New Custom Pad Probe Handler '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Custom Pad Prove handler '" << name << "' threw exception on create");
+            LOG_ERROR("New Custom Pad Prove handler '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
@@ -68,24 +72,28 @@ namespace DSL
             // ensure handler name uniqueness 
             if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
             {   
-                LOG_ERROR("Meter Pad Probe Handler name '" << name << "' is not unique");
+                LOG_ERROR("Meter Pad Probe Handler name '" << name 
+                    << "' is not unique");
                 return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
             }
             if (!interval)
             {
-                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set property, interval must be greater than 0");
+                LOG_ERROR("Meter Pad Probe Handler '" << name 
+                    << "' failed to set property, interval must be greater than 0");
                 return DSL_RESULT_PPH_METER_INVALID_INTERVAL;
             }
             m_padProbeHandlers[name] = DSL_PPH_METER_NEW(name, 
                 interval, clientHandler, clientData);
 
-            LOG_INFO("New Meter Pad Probe Handler '" << name << "' created successfully");
+            LOG_INFO("New Meter Pad Probe Handler '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New Meter Pad Prove handler '" << name << "' threw exception on create");
+            LOG_ERROR("New Meter Pad Prove handler '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
@@ -99,10 +107,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                MeterPadProbeHandler);
 
             DSL_PPH_METER_PTR pMeter = 
-                std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
+                std::dynamic_pointer_cast<MeterPadProbeHandler>(
+                    m_padProbeHandlers[name]);
 
             *interval = pMeter->GetInterval();
 
@@ -113,7 +123,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Meter Sink '" << name << "' threw an exception getting reporting interval");
+            LOG_ERROR("Meter Sink '" << name 
+                << "' threw an exception getting reporting interval");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
@@ -126,20 +137,24 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, MeterPadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                MeterPadProbeHandler);
             
             if (!interval)
             {
-                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set property, interval must be greater than 0");
+                LOG_ERROR("Meter Pad Probe Handler '" << name 
+                    << "' failed to set property, interval must be greater than 0");
                 return DSL_RESULT_PPH_METER_INVALID_INTERVAL;
             }
 
             DSL_PPH_METER_PTR pMeter = 
-                std::dynamic_pointer_cast<MeterPadProbeHandler>(m_padProbeHandlers[name]);
+                std::dynamic_pointer_cast<MeterPadProbeHandler>(
+                    m_padProbeHandlers[name]);
 
             if (!pMeter->SetInterval(interval))
             {
-                LOG_ERROR("Meter Pad Probe Handler '" << name << "' failed to set reporting interval");
+                LOG_ERROR("Meter Pad Probe Handler '" << name 
+                    << "' failed to set reporting interval");
                 return DSL_RESULT_PPH_SET_FAILED;
             }
             LOG_INFO("Meter Pad Probe Handler '" << name << "' set Interval = "
@@ -149,7 +164,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Meter Pad Probe Handler '" << name << "' threw an exception setting reporting interval");
+            LOG_ERROR("Meter Pad Probe Handler '" << name 
+                << "' threw an exception setting reporting interval");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
@@ -164,18 +180,21 @@ namespace DSL
             // ensure handler name uniqueness 
             if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
             {   
-                LOG_ERROR("ODE Pad Probe Handler name '" << name << "' is not unique");
+                LOG_ERROR("ODE Pad Probe Handler name '" << name 
+                    << "' is not unique");
                 return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
             }
             m_padProbeHandlers[name] = DSL_PPH_ODE_NEW(name);
             
-            LOG_INFO("New ODE Pad Probe Handler '" << name << "' created successfully");
+            LOG_INFO("New ODE Pad Probe Handler '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Pad Probe Handler '" << name << "' threw exception on create");
+            LOG_ERROR("New ODE Pad Probe Handler '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_PPH_THREW_EXCEPTION;
         }
     }
@@ -188,7 +207,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                OdePadProbeHandler);
             DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
 
             // Can't add Events if they're In use by another Handler
@@ -200,7 +220,8 @@ namespace DSL
             }
 
             DSL_PPH_ODE_PTR pOde = 
-                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+                std::dynamic_pointer_cast<OdePadProbeHandler>(
+                    m_padProbeHandlers[name]);
 
             if (!pOde->AddChild(m_odeTriggers[trigger]))
             {
@@ -209,7 +230,8 @@ namespace DSL
                 return DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED;
             }
             LOG_INFO("ODE Trigger '" << trigger 
-                << "' was added to ODE Pad Probe Handler '" << name << "' successfully");
+                << "' was added to ODE Pad Probe Handler '" << name 
+                << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -221,7 +243,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PphOdeTriggerRemove(const char* name, const char* trigger)
+    DslReturnType Services::PphOdeTriggerRemove(const char* name, 
+        const char* trigger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -229,7 +252,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                OdePadProbeHandler);
             DSL_RETURN_IF_ODE_TRIGGER_NAME_NOT_FOUND(m_odeTriggers, trigger);
 
             if (!m_odeTriggers[trigger]->IsParent(m_padProbeHandlers[name]))
@@ -246,7 +270,8 @@ namespace DSL
                 return DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED;
             }
             LOG_INFO("ODE Trigger '" << trigger 
-                << "' was removed from ODE Pad Probe Handler '" << name << "' successfully");
+                << "' was removed from ODE Pad Probe Handler '" 
+                << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -266,11 +291,13 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                OdePadProbeHandler);
             
             m_padProbeHandlers[name]->RemoveAllChildren();
 
-            LOG_INFO("All ODE Triggers removed from ODE Pad Probe Handler '" << name << "' successfully");
+            LOG_INFO("All ODE Triggers removed from ODE Pad Probe Handler '" 
+                << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -282,7 +309,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PphOdeDisplayMetaAllocSizeGet(const char* name, uint* size)
+    DslReturnType Services::PphOdeDisplayMetaAllocSizeGet(const char* name, 
+        uint* size)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -290,15 +318,18 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                OdePadProbeHandler);
 
             DSL_PPH_ODE_PTR pOde = 
-                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]);
+                std::dynamic_pointer_cast<OdePadProbeHandler>(
+                    m_padProbeHandlers[name]);
             
             *size = pOde->GetDisplayMetaAllocSize();
 
             LOG_INFO("ODE Pad Probe Handler '" << name 
-                << "' returned a Display Meta size of " << *size << " successfully");
+                << "' returned a Display Meta size of " << *size 
+                << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -310,7 +341,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::PphOdeDisplayMetaAllocSizeSet(const char* name, uint size)
+    DslReturnType Services::PphOdeDisplayMetaAllocSizeSet(const char* name, 
+        uint size)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -318,10 +350,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, OdePadProbeHandler);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                OdePadProbeHandler);
             
             DSL_PPH_ODE_PTR pOde = 
-                std::dynamic_pointer_cast<OdePadProbeHandler>(m_padProbeHandlers[name]); 
+                std::dynamic_pointer_cast<OdePadProbeHandler>(
+                    m_padProbeHandlers[name]); 
 
             pOde->SetDisplayMetaAllocSize(size);
 
@@ -388,6 +422,37 @@ namespace DSL
                 handler, clientData);
             
             LOG_INFO("End of Stream Pad Probe Handler '" 
+                << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New End of Stream Pad Probe Handler '" 
+                << name << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphStreamEventNew(const char* name,
+        dsl_pph_stream_event_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("Stream-Event Pad Probe Handler name '" 
+                    << name << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPEH_STREAM_EVENT_NEW(name,
+                handler, clientData);
+            
+            LOG_INFO("Stream-Event Pad Probe Handler '" 
                 << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;

@@ -148,6 +148,27 @@ void eos_event_listener(void* client_data)
     dsl_main_loop_quit();
 }    
 
+//  
+//  Client handler for our Stream-Event Pad Probe Handler
+// 
+uint stream_event_handler(uint stream_event, 
+    uint stream_id, void* client_data)
+{
+    if (stream_event == DSL_PPH_EVENT_STREAM_ADDED) {
+        std::wcout << L"Stream Id = " << stream_id 
+            << L" added to Pipeline" << std::endl;
+    }
+    else if (stream_event == DSL_PPH_EVENT_STREAM_ENDED) {
+        std::wcout << L"Stream Id = " << stream_id 
+            << L" ended" << std::endl;
+    }
+    else if (stream_event == DSL_PPH_EVENT_STREAM_DELETED) {
+        std::wcout << L"Stream Id = " << stream_id 
+            << L" deleted from Pipeline" << std::endl;
+    }
+        
+    return DSL_PAD_PROBE_OK;
+}
 
 int main(int argc, char** argv)
 {
@@ -226,6 +247,18 @@ int main(int argc, char** argv)
         // Playing, which would be 1 and too small
         retval = dsl_pipeline_streammux_batch_size_set(L"pipeline",
             MAX_SOURCE_COUNT);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Create a Stream-Event Pad Probe Handler (PPH) to manage new Streammuxer 
+        // stream-events: stream-added, stream-ended, and stream-deleted.
+        retval = dsl_pph_stream_event_new(L"stream-event-pph",
+            stream_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+            
+        // Add the PPH to the source (output) pad of the Pipeline's Streammuxer
+        retval = dsl_pipeline_streammux_pph_add(L"pipeline",
+            L"stream-event-pph");
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         retval = dsl_pipeline_eos_listener_add(L"pipeline", 
             eos_event_listener, NULL);
