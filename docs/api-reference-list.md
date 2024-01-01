@@ -75,6 +75,8 @@
 * [`dsl_pipeline_streammux_max_latency_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_max_latency_set)
 * [`dsl_pipeline_streammux_tiler_add`](/docs/api-pipeline.md#dsl_pipeline_streammux_tiler_add)
 * [`dsl_pipeline_streammux_tiler_remove`](/docs/api-pipeline.md#dsl_pipeline_streammux_tiler_remove)
+* [`dsl_pipeline_streammux_pph_add`](/docs/api-pipeline.md#dsl_pipeline_streammux_pph_add)
+* [`dsl_pipeline_streammux_pph_remove`](/docs/api-pipeline.md#dsl_pipeline_streammux_pph_remove)
 * [`dsl_pipeline_state_change_listener_add`](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_add)
 * [`dsl_pipeline_state_change_listener_remove`](/docs/api-pipeline.md#dsl_pipeline_state_change_listener_remove)
 * [`dsl_pipeline_eos_listener_add`](/docs/api-pipeline.md#dsl_pipeline_eos_listener_add)
