@@ -52,8 +52,9 @@ As a general rule
 * **`qos`** :If `qos=true`, the property will enable the quality-of-service features of the Sink which gather statistics about the real-time performance of the clock synchronization. For each buffer received in the Sink, statistics are gathered and a QOS event is sent upstream with these numbers. This information can then be used by upstream elements to reduce their processing rate, for example. See [`dsl_sink_qos_enabled_get`](#dsl_sink_qos_enabled_get) and [`dsl_sink_qos_enabled_set`](#dsl_sink_qos_enabled_set).
 
 **IMPORTANT!** All DSL Sink Components use the default property values assigned to their GStreamer (GST) Sink Plugins, except for.
-1. All set their `async` property to false on construction.  Synchronization is required to support multiple levels of multiple [Secondary Inference](/docs/api-infer.md)
-2. All use a QOS value assigned to false (disabled)
+1. All set their `async` property to `false` on construction.  Synchronization is required to support multiple levels of multiple [Secondary Inference](/docs/api-infer.md)
+2. All disable `max-latness` by setting the property to `-1`.
+3. All set their `qos` value to `false` (disabled).
 
 #### Sink common property values
 * A single value indicates that the gstreamer-default is used.
@@ -61,9 +62,9 @@ As a general rule
 
 | Sink               |  GST Plugin    | sync  |    async    | max-lateness |     qos     |
 | -------------------|----------------|-------|------------ | ------------ | ----------- |
-| 3D Window Sink     | nv3dsink       | true  | true/false  |   20000000   | true/false  |
-| EGL Window Sink    | nveglglessink  | true  | true/false  |   20000000   | true/false  |
-| V4L2 Sink          | v4l2sink       | true  | true/false  |   20000000   | true/false  |
+| 3D Window Sink     | nv3dsink       | true  | true/false  |  5000000/-1  | true/false  |
+| EGL Window Sink    | nveglglessink  | true  | true/false  |  5000000/-1  | true/false  |
+| V4L2 Sink          | v4l2sink       | true  | true/false  |  5000000/-1  | true/false  |
 | File Sink          | filesink       | false | true/false  |      -1      | false       |
 | Record Sink<sup id="a1">[1](#f1)</sup>        | na             |  na   |  na         |      na      |  na         |
 | RTMP Sink          | rtmpsink       | true  | true/false  |      -1      | false       |
