@@ -104,6 +104,8 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pSink->GetAttribute("sync", &m_sync);
+
         return m_sync;
     }
     
@@ -127,6 +129,8 @@ namespace DSL
     gboolean SinkBintr::GetAsyncEnabled()
     {
         LOG_FUNC();
+        
+        m_pSink->GetAttribute("async", &m_async);
         
         return m_async;
     }
@@ -152,6 +156,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
         return m_maxLateness;
     }
 
@@ -175,6 +180,8 @@ namespace DSL
     gboolean SinkBintr::GetQosEnabled()
     {
         LOG_FUNC();
+        
+        m_pSink->GetAttribute("qos", &m_qos);
         
         return m_qos;
     }
