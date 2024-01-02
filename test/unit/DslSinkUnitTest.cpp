@@ -182,7 +182,7 @@ SCENARIO( "A new 3dSinkBintr is created correctly",  "[SinkBintr]" )
                 {
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                     REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                    REQUIRE( pSinkBintr->GetMaxLateness() == 5000000 );
+                    REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                     REQUIRE( pSinkBintr->GetQosEnabled() == false );
                 }
             }
@@ -387,7 +387,7 @@ SCENARIO( "A new EglSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == 5000000 );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
@@ -1939,7 +1939,7 @@ SCENARIO( "A new V4l2SinkBintr is created correctly",  "[SinkBintr]" )
                 
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == 5000000 );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }

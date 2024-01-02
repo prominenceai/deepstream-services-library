@@ -1143,7 +1143,6 @@ namespace DSL
         
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
 
         // Set the qos property to the common default.
         m_pSink->SetAttribute("qos", m_qos);
@@ -1154,7 +1153,10 @@ namespace DSL
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
-        // Set the  DSL values
+        // Override the default of 20000000 with -1 to disable.
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+
+        // Set the Window attributes
         m_pSink->SetAttribute("window-x", m_offsetX);
         m_pSink->SetAttribute("window-y", m_offsetY);
         m_pSink->SetAttribute("window-width", m_width);
@@ -1237,7 +1239,6 @@ namespace DSL
         
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
 
         // Set the qos property to the common default.
         m_pSink->SetAttribute("qos", m_qos);
@@ -1248,7 +1249,10 @@ namespace DSL
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
-        // Update all default DSL values
+        // Override the default of 20000000 with -1 to disable.
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+
+        // Set the Window attributes
         m_pSink->SetAttribute("window-x", m_offsetX);
         m_pSink->SetAttribute("window-y", m_offsetY);
         m_pSink->SetAttribute("window-width", m_width);
@@ -3055,7 +3059,6 @@ namespace DSL
 
         // Get the property defaults
         m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
 
         m_pSink->GetAttribute("device-fd", &m_deviceFd);
         m_pSink->GetAttribute("flags", &m_deviceFlags);
@@ -3071,6 +3074,9 @@ namespace DSL
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Override the default of 20000000 with -1 to disable.
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
 
         // Set the unique device location for the Sink
         m_pSink->SetAttribute("device", deviceLocation);
