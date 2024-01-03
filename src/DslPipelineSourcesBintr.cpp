@@ -506,6 +506,31 @@ namespace DSL
         return true;
     }
 
+    boolean PipelineSourcesBintr::GetStreammuxAttachSysTsEnabled()
+    {
+        LOG_FUNC();
+        
+        m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
+        return m_attachSysTs;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxAttachSysTsEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update sync-input for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_attachSysTs = enabled;
+        m_pStreammux->SetAttribute("attach-sys-ts", m_attachSysTs);
+        
+        return true;
+    }
+
     boolean PipelineSourcesBintr::GetStreammuxMaxLatency()
     {
         LOG_FUNC();

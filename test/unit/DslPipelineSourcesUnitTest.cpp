@@ -65,7 +65,8 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
                 REQUIRE( retConfigFile == "" );
                 REQUIRE( pPipelineSourcesBintr->GetStreammuxBatchSize() == 0 );
                 REQUIRE( pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame() == 1 );
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled() == false );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxAttachSysTsEnabled() == TRUE );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled() == FALSE );
                 REQUIRE( pPipelineSourcesBintr->GetStreammuxMaxLatency() == 0 );
             }
         }

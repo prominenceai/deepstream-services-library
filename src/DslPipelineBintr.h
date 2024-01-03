@@ -181,15 +181,30 @@ namespace DSL
         bool SetStreammuxNumSurfacesPerFrame(uint num);
         
         /**
+         * @brief Gets the current setting for the Pipeline's Muxer attach-sys-ts.
+         * @return true if attach-sys-ts is enabled, false otherwisee
+         */
+        bool GetStreammuxAttachSysTsEnabled();
+
+        /**
+         * @brief Sets the Pipeline's Streammuxer attach-sys-ts property.
+         * @param enabled set to true to enable attach-sys-ts, false otherwise.
+         * @return true if the attach-sys-ts enabled setting could be set, 
+         * false otherwise.
+         */
+        bool SetStreammuxAttachSysTsEnabled(boolean enabled);
+        
+        /**
          * @brief Gets the current setting for the Pipeline's Muxer padding
          * @return true if padding is enabled, false otherwisee
          */
         bool GetStreammuxSyncInputsEnabled();
 
         /**
-         * @brief Sets the Pipeline's Streammuxer padding.
+         * @brief Sets the Pipeline's Streammuxer sync-inputs.
          * @param enabled set to true to enable sync-inputs, false otherwise.
-         * @return true if the Padding enabled setting could be set, false otherwise.
+         * @return true if the sync-inputs enabled setting could be set, 
+         *  false otherwise.
          */
         bool SetStreammuxSyncInputsEnabled(boolean enabled);
         

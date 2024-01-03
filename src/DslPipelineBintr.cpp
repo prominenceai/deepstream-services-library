@@ -152,6 +152,20 @@ namespace DSL
         return m_pPipelineSourcesBintr->SetStreammuxNumSurfacesPerFrame(num);
     }
     
+    bool PipelineBintr::GetStreammuxAttachSysTsEnabled()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxAttachSysTsEnabled();
+    }
+    
+    bool PipelineBintr::SetStreammuxAttachSysTsEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxAttachSysTsEnabled(enabled);
+    }
+    
     bool PipelineBintr::GetStreammuxSyncInputsEnabled()
     {
         LOG_FUNC();

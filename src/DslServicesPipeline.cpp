@@ -362,6 +362,62 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PipelineStreammuxAttachSysTsEnabledGet(const char* name,
+        boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *enabled = m_pipelines[name]->GetStreammuxAttachSysTsEnabled();
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammuxer attach-sys-inputs enabled = " 
+                << *enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Streammux attach-sys-inputs enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxAttachSysTsEnabledSet(const char* name,
+        boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetStreammuxAttachSysTsEnabled(enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Streammux attach-sys-inputs enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' set the Streammuxer attach-sys-inputs enabled setting = " 
+                << enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting Streammux attach-sys-inputs enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::PipelineStreammuxSyncInputsEnabledGet(const char* name,
         boolean* enabled)    
     {
