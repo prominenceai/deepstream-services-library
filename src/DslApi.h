@@ -8147,6 +8147,28 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
 
 /**
  * @brief Returns the current setting - enabled/disabled - for the Streammux
+ * attach-sys-ts property for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the attach-sys-ts property is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current setting - enabled/disabled - for Streammux
+ * attach-sys-ts property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[in] enable set to true to enable the attach-sys-ts property, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Returns the current setting - enabled/disabled - for the Streammux
  * sync-inputs property for the named Pipeline.
  * @param[in] name name of the Pipeline to query
  * @param[out] enable true if the sync-inputs property is enabled, false if not.

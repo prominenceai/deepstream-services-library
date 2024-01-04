@@ -248,6 +248,40 @@ SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeli
     }
 }
 
+SCENARIO( "The attach-sys-ts property for a Pipeline's Streammuxer can be read and updated", 
+    "[pipeline-streammux]" )
+{
+    GIVEN( "A new Pipeline with its built-in streammuxer" ) 
+    {
+        std::wstring pipeline_name  = L"test-pipeline";
+
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        boolean ret_attach_sys_ts(FALSE);
+        
+        REQUIRE( dsl_pipeline_streammux_attach_sys_ts_enabled_get(pipeline_name.c_str(), 
+            &ret_attach_sys_ts)  == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_attach_sys_ts == TRUE );
+        
+        WHEN( "The Pipeline's Streammuxer's attach-sys-ts is updated" ) 
+        {
+            boolean new_attach_sys_ts(FALSE);
+
+            REQUIRE( dsl_pipeline_streammux_attach_sys_ts_enabled_set(
+                pipeline_name.c_str(), new_attach_sys_ts) == DSL_RESULT_SUCCESS );
+
+            THEN( "The updated Streammuxer attach-sys-ts  is returned" )
+            {
+                REQUIRE( dsl_pipeline_streammux_attach_sys_ts_enabled_get(pipeline_name.c_str(), 
+                    &ret_attach_sys_ts) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_attach_sys_ts == new_attach_sys_ts );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
 
 SCENARIO( "The sync-inputs property for a Pipeline's Streammuxer can be read and updated", 
     "[pipeline-streammux]" )
@@ -264,14 +298,14 @@ SCENARIO( "The sync-inputs property for a Pipeline's Streammuxer can be read and
             &ret_sync_inputs)  == DSL_RESULT_SUCCESS );
         REQUIRE( ret_sync_inputs == FALSE );
         
-        WHEN( "The Pipeline's Streammuxer's GPU ID is updated" ) 
+        WHEN( "The Pipeline's Streammuxer's sync-inputs is updated" ) 
         {
             boolean new_sync_inputs(TRUE);
 
             REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_set(
                 pipeline_name.c_str(), new_sync_inputs) == DSL_RESULT_SUCCESS );
 
-            THEN( "The updated Streammuxer NVIDIA buffer memory type  is returned" )
+            THEN( "The updated Streammuxer sync-inputs  is returned" )
             {
                 REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_get(pipeline_name.c_str(), 
                     &ret_sync_inputs) == DSL_RESULT_SUCCESS );
@@ -506,15 +540,22 @@ SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipel
 
                 REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(pipeline_name.c_str(), 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(
+                    pipeline_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_set(NULL, 
                     1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_pipeline_streammux_attach_sys_ts_enabled_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_attach_sys_ts_enabled_get(
+                    pipeline_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_attach_sys_ts_enabled_set(NULL, 
+                    true) == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_get(pipeline_name.c_str(), 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_get(
+                    pipeline_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pipeline_streammux_sync_inputs_enabled_set(NULL, 
                     true) == DSL_RESULT_INVALID_INPUT_PARAM );
 

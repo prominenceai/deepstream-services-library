@@ -9176,6 +9176,31 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
         cstrName.c_str(), num);
 }
 
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxAttachSysTsEnabledGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxAttachSysTsEnabledSet(
+        cstrName.c_str(), enabled);
+}
+
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
     boolean* enabled)
 {

@@ -69,6 +69,8 @@
 * [`dsl_pipeline_streammux_batch_size_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_batch_size_set)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_get`](/docs/api-pipeline.md#dsl_pipeline_streammux_num_surfaces_per_frame_get)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_num_surfaces_per_frame_set)
+* [`dsl_pipeline_streammux_attach_sys_ts_enabled_get`](/docs/api-pipeline.md#dsl_pipeline_streammux_attach_sys_ts_enabled_get)
+* [`dsl_pipeline_streammux_attach_sys_ts_enabled_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_attach_sys_ts_enabled_set)
 * [`dsl_pipeline_streammux_sync_inputs_enabled_get`](/docs/api-pipeline.md#dsl_pipeline_streammux_sync_inputs_enabled_get)
 * [`dsl_pipeline_streammux_sync_inputs_enabled_set`](/docs/api-pipeline.md#dsl_pipeline_streammux_sync_inputs_enabled_set)
 * [`dsl_pipeline_streammux_max_latency_get`](/docs/api-pipeline.md#dsl_pipeline_streammux_max_latency_get)

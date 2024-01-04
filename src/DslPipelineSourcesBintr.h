@@ -158,9 +158,24 @@ namespace DSL
          * @brief Sets the PipelineSourcesBintr's Streammuxer sync-inputs 
          * enabled property.
          * @param enabled set to true to enable sync-inputs, false otherwise.
-         * @return true if padding enabled was succesfully set, false otherwise.
+         * @return true if sync-inputs enabled was succesfully set, false otherwise.
          */
         bool SetStreammuxSyncInputsEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current setting for the PipelineSourcesBintr's 
+         * Streammuxer attach-sys-ts enabled property.
+         * @preturn true if attach-sys-ts is enabled, false otherwise.
+         */
+        boolean GetStreammuxAttachSysTsEnabled();
+        
+        /**
+         * @brief Sets the PipelineSourcesBintr's Streammuxer attach-sys-ts 
+         * enabled property.
+         * @param enabled set to true to enable attach-sys-ts, false otherwise.
+         * @return true if attach-sys-ts enabled was succesfully set, false otherwise.
+         */
+        bool SetStreammuxAttachSysTsEnabled(boolean enabled);
         
         /**
          * @brief Gets the current setting for the PipelineSourcesBintr's 

@@ -1617,6 +1617,12 @@ namespace DSL {
         DslReturnType PipelineStreammuxNumSurfacesPerFrameSet(const char* name, 
             uint num);
         
+        DslReturnType PipelineStreammuxAttachSysTsEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType PipelineStreammuxAttachSysTsEnabledSet(const char* name, 
+            boolean enabled);
+
         DslReturnType PipelineStreammuxSyncInputsEnabledGet(const char* name, 
             boolean* enabled);
 
