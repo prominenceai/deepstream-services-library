@@ -10,7 +10,19 @@ All DSL Pipelines are created with a built-in **Streammuxer**  providing the fol
 ```bash
 export USE_NEW_NVSTREAMMUX=yes
 ```
- The Pipeline's Streammuxer is created with the [default properties]([https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-properties](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#gst-properties)) except for the `batch-size`. 
+ The Pipeline's Streammuxer is created with the [default properties]([https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-properties](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#gst-properties)) except for the `batch-size`.  
+
+### Streammuxer Default Settings
+Below are the Streammux plugin default property values as logged by the Pipeline Sources-bin on creation. (`$ export GST_DEBUG=1,DSL:4`)
+```
+PipelineSourcesBintr:  : Initial property values for Streammux 'pipeline-sources-bin'
+PipelineSourcesBintr:  :   num-surfaces-per-frame : 1
+PipelineSourcesBintr:  :   attach-sys-ts          : 1
+PipelineSourcesBintr:  :   sync-inputs            : 0
+PipelineSourcesBintr:  :   max-latency            : 0
+PipelineSourcesBintr:  :   frame-duration         : -1
+PipelineSourcesBintr:  :   drop-pipeline-eos      : 0
+``` 
 
 ### Streammuxer Batch-Size
 The Streammuxer `batch-size` property -- defined as  _the maximum number of frames in a batch_ -- is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicity set by calling [dsl_pipeline_streammux_batch_size_set](#dsl_pipeline_streammux_batch_size_set). The current value can be obtained at anytime by calling [dsl_pipeline_streammux_batch_size_get](#dsl_pipeline_streammux_batch_size_get). 
@@ -23,6 +35,14 @@ The Streammuxer `batch-size` property -- defined as  _the maximum number of fram
 A [Streammuxer Configuration File](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) is provided to the Pipeline by calling [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set). The current config-file in use can be queried by calling [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get). 
 
 Please review the [_NvStreamMux Tuning Solutions for specific use cases_](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#nvstreammux-tuning-solutions-for-specific-use-cases) for more information.
+
+### Streammuxer NTP Timestamp Support
+
+From the [DeepStream Streammuxer documentation](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#gst-nvstreammux-new), _"The muxer supports calculation of NTP timestamps for source frames. It supports two modes. In the system timestamp mode, the muxer attaches the current system time as NTP timestamp. In the RTCP timestamp mode, the muxer uses RTCP Sender Report to calculate NTP timestamp of the frame when the frame was generated at source. The NTP timestamp is set in ntp_timestamp field of NvDsFrameMeta."_
+
+**Note:** See the [NTP Timestamp in DeepStream](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_NTP_Timestamp.html#ntp-timestamp-in-deepstream) section under the DeepStream Development Guide for more information.
+
+The _system timestamp mode_ can be enabled/disabled by calling [dsl_pipeline_streammux_attach_sys_ts_enabled_set](#dsl_pipeline_streammux_attach_sys_ts_enabled_set). The default value is
 
 ## Pipeline Construction and Destruction
 Pipelines are constructed by calling [`dsl_pipeline_new`](#dsl_pipeline_new) or [`dsl_pipeline_new_many`](#dsl_pipeline_new_many).
@@ -74,6 +94,8 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_streammux_batch_size_set`](#dsl_pipeline_streammux_batch_size_set)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_get`](#dsl_pipeline_streammux_num_surfaces_per_frame_get)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_set`](#dsl_pipeline_streammux_num_surfaces_per_frame_set)
+* [`dsl_pipeline_streammux_attach_sys_ts_enabled_get`](#dsl_pipeline_streammux_attach_sys_ts_enabled_get)
+* [`dsl_pipeline_streammux_attach_sys_ts_enabled_set`](#dsl_pipeline_streammux_attach_sys_ts_enabled_set)
 * [`dsl_pipeline_streammux_sync_inputs_enabled_get`](#dsl_pipeline_streammux_sync_inputs_enabled_get)
 * [`dsl_pipeline_streammux_sync_inputs_enabled_set`](#dsl_pipeline_streammux_sync_inputs_enabled_set)
 * [`dsl_pipeline_streammux_max_latency_get`](#dsl_pipeline_streammux_max_latency_get)
@@ -557,12 +579,52 @@ retval = dsl_pipeline_streammux_num_surfaces_per_frame_set('my-pipeline', 2)
 ```
 <br>
 
+### *dsl_pipeline_streammux_attach_sys_ts_enabled_get*
+```C++
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service gets the current setting - enabled/disabled - for the Streammuxer attach-sys-ts property for the named Pipeline.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `enabled` - [out] true if the attach-sys-ts property is enabled, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_pipeline_streammux_attach_sys_ts_enabled_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_attach_sys_ts_enabled_set*
+```C++
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the attach-sys-ts Streammuxer setting for the named Pipeline. The setting cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `enabled` - [in] set to true to enabled the attach-sys-ts property, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_attach_sys_ts_enabled_set('my-pipeline', False)
+```
+<br>
+
 ### *dsl_pipeline_streammux_sync_inputs_enabled_get*
 ```C++
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
     boolean* enabled);
 ```
-This service gets the current setting - enabled/disabled - for the Streammuxer sync-inputs property for the named Pipeline..
+This service gets the current setting - enabled/disabled - for the Streammuxer attach-sys-ts property for the named Pipeline..
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to query.
