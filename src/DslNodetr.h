@@ -767,6 +767,8 @@ namespace DSL
             }
             m_releaseRequestedPadOnUnlink = true;
 
+            LOG_INFO("Requested source pad for pad-name '" << padName 
+                << "' = " << pRequestedSrcPad);
             LOG_INFO("Linking requested source pad'" << pRequestedSrcPad 
                 << "' for GstNodetr '" << GetName() << "'");
 

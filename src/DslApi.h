@@ -44,6 +44,7 @@ THE SOFTWARE.
 #define DSL_RESULT_INVALID_INPUT_PARAM                              0x00000005
 #define DSL_RESULT_THREW_EXCEPTION                                  0x00000006
 #define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
+#define DSL_RESULT_INVALID_RESULT_CODE                              UINT32_MAX
 
 /**
  * Component API Return Values
@@ -2749,52 +2750,6 @@ DslReturnType dsl_ode_action_action_enable_new(const wchar_t* name, const wchar_
  */
 DslReturnType dsl_ode_action_tiler_source_show_new(const wchar_t* name, 
     const wchar_t* tiler, uint timeout, boolean has_precedence);
-
-/**
- * @brief Creates a uniquely named Add Branch Action that adds a named Branch
- * (or Sink) to a named Demuxer or Splitter Tee.
- * @param[in] name unique name for the ODE Add Branch Action 
- * @param[in] tee unique name of the Demuxer or Splitter to add the Branch to.
- * @param[in] Branch unique name of the Branch to add to the Tee
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_branch_add_new(const wchar_t* name,
-    const wchar_t* tee, const wchar_t* branch);
-
-/**
- * @brief Creates a uniquely named "Add-Branch-To" Action that adds a named Branch
- * (or Sink) to a named Demuxer Tee at the current stream-id of the frame-metadata/
- * object/meta-data that Triggered the Object Detection Event.
- * @param[in] name unique name for the ODE "Add-Branch-To" Action 
- * @param[in] tee unique name of the Demuxer to add the Branch to.
- * @param[in] Branch unique name of the Branch to add to the Demuxer.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_branch_add_to_new(const wchar_t* name,
-    const wchar_t* demuxer, const wchar_t* branch);
-
-/**
- * @brief Creates a uniquely named "Move-Branch-To" Action that moves a named Branch
- * (or Sink) connected to a Demuxer to the current stream-id of the frame-metadata/
- * object/meta-data that Triggered the Object Detection Event -- of the same Demuxer.
- * @param[in] name unique name for the ODE "Move-Branch-To" Action 
- * @param[in] tee unique name of the Demuxer to Move the Branch within.
- * @param[in] Branch unique name of the Branch to move within the Demuxer.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_branch_move_to_new(const wchar_t* name,
-    const wchar_t* demuxer, const wchar_t* branch);
-
-/**
- * @brief Creates a uniquely named Remove Branch Action that removes a named Branch
- * (or Sink) from a named Demuxer or Splitter Tee.
- * @param[in] name unique name for the ODE Remove Action 
- * @param[in] tee unique name of the Demuxer or Splitter to remove from the Branch from.
- * @param[in] Branch unique name of the Branch to add to the Tee.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
- */
-DslReturnType dsl_ode_action_branch_remove_new(const wchar_t* name,
-    const wchar_t* tee, const wchar_t* branch);
 
 /**
  * @brief Gets the current enabled setting for the ODE Action
@@ -6253,11 +6208,9 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Demuxer Tee component
  * @param[in] name unique name for the new Stream Demuxer Tee
- * @param[in] max_branches maximum number of branches that can be
- * added/connected to this Demuxer, before or during Pipeline play.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
-DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
+DslReturnType dsl_tee_demuxer_new(const wchar_t* name);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
@@ -6266,7 +6219,7 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
-    uint max_branches, const wchar_t** branches);
+    const wchar_t** branches);
 
 /**
  * @brief Adds a single Branch to a specific stream of a named Demuxer Tee 
@@ -6277,35 +6230,6 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
  */
 DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
-
-/**
- * @brief Moves a single Branch to a specific stream of a named Demuxer Tee.
- * This service will fail if the Branch is not currently added to the Demuxer.
- * @param[in] name name of the Dumxer to update.
- * @param[in] branch name of Branch to add.
- * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
- */
-DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
-    const wchar_t* branch, uint stream_id);
-
-/**
- * @brief Gets the current max-branches setting for the named Deumuxer Tee
- * @param[in] name name of the Demuxer Tee to query
- * @param[out] max_branches current setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
- */
-DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
-    uint* max_branches);
-
-/**
- * @brief Sets the max-branches setting for the named Deumuxer Tee to use.
- * @param[in] name name of the Demuxer Tee to update
- * @param[in] max_branches new setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
- */
-DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
-    uint max_branches);
 
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
@@ -6439,37 +6363,6 @@ DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
-
-/**
- * @brief Gets the current blocking-timeout for the named Demuxer Tee. 
- * The timeout controls the amount of time the demuxer will wait for a 
- * blocking PPH to be called to dynamically link or unlink a branch at
- * runtime while the Pipeline is playing. The default = 1s. This value
- * will need to be extended it he frame-rate for the stream is less than 1 fps.
- * The timeout is needed in case the Source upstream has been removed or is in
- * a bad state in which case the pad callback will never be called.
- * @param[in] name name of the Demuxer Tee to query.
- * @param[out] timeout current timeout value in units of seconds. 
- * Default = DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
- */
-DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
-    uint* timeout);
-
-/**
- * @brief Sets the blocking-timeout for the named Demuxer Tee to use. 
- * The timeout controls the amount of time the demuxer will wait for a 
- * blocking PPH to be called to dynamically link or unlink a branch at
- * runtime while the Pipeline is playing. The default = 1s. This value
- * will need to be extended it he frame-rate for the stream is less than 1 fps.
- * The timeout is needed in case the Source upstream has been removed or is in
- * a bad state in which case the pad callback will never be called.
- * @param[in] name name of the Demuxer Tee to query.
- * @param[in] timeout new timeout value in units of seconds.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
- */
-DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
-    uint timeout);
 
 /**
  * @brief Adds a pad-probe-handler to a named Tee.

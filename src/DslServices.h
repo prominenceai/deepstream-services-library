@@ -306,18 +306,6 @@ namespace DSL {
 
         DslReturnType OdeActionTriggerResetNew(const char* name, const char* trigger);
 
-        DslReturnType OdeActionBranchAddNew(const char* name, 
-            const char* tee, const char* branch);
-
-        DslReturnType OdeActionBranchAddToNew(const char* name, 
-            const char* demuxer, const char* branch);
-
-        DslReturnType OdeActionBranchMoveToNew(const char* name, 
-            const char* demuxer, const char* branch);
-
-        DslReturnType OdeActionBranchRemoveNew(const char* name, 
-            const char* tee, const char* branch);
-
         DslReturnType OdeActionEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);
@@ -1103,18 +1091,11 @@ namespace DSL {
 
         DslReturnType TrackerPphRemove(const char* name, const char* handler, uint pad);
         
-        DslReturnType TeeDemuxerNew(const char* name, uint maxBranches);
+        DslReturnType TeeDemuxerNew(const char* name);
 
-        DslReturnType TeeDemuxerMaxBranchesGet(const char* name, uint* maxBranches);
-        
-        DslReturnType TeeDemuxerMaxBranchesSet(const char* name, uint maxBranches);
-        
         DslReturnType TeeDemuxerBranchAddTo(const char* name, 
             const char* branch, uint stream_id);
 
-        DslReturnType TeeDemuxerBranchMoveTo(const char* name, 
-            const char* branch, uint stream_id);
-            
         DslReturnType TeeSplitterNew(const char* name);
             
         DslReturnType TeeRemuxerNew(const char* name);
@@ -1145,10 +1126,6 @@ namespace DSL {
 
         DslReturnType TeeBranchCountGet(const char* name, uint* count);
 
-        DslReturnType TeeBlockingTimeoutGet(const char* name, uint* timeout);
-        
-        DslReturnType TeeBlockingTimeoutSet(const char* name, uint timeout);
-        
         DslReturnType TeePphAdd(const char* name, const char* handler);
 
         DslReturnType TeePphRemove(const char* name, const char* handler);

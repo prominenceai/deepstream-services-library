@@ -225,11 +225,7 @@ int main(int argc, char** argv)
             branch_components);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // IMPORTANT! when creating the Demuxer, we need to set the maximum number
-        // of branches equal to the number of Source Streams, even though we will 
-        // only be using one branch. The Demuxer needs to allocate a source-pad
-        // for each stream prior to playing so that the dynamic Branch can be 
-        // moved from stream to stream while the Pipeline is in a state of PLAYING.
+        // New Demuxer
         retval = dsl_tee_demuxer_new(L"demuxer", num_streams);
         if (retval != DSL_RESULT_SUCCESS) break;
 

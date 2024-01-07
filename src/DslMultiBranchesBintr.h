@@ -44,8 +44,8 @@ namespace DSL
         std::shared_ptr<MultiSinksBintr>(new MultiSinksBintr(name))
 
     #define DSL_DEMUXER_PTR std::shared_ptr<DemuxerBintr>
-    #define DSL_DEMUXER_NEW(name, maxBranches) \
-        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name, maxBranches))
+    #define DSL_DEMUXER_NEW(name) \
+        std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name))
 
     #define DSL_SPLITTER_PTR std::shared_ptr<SplitterBintr>
     #define DSL_SPLITTER_NEW(name) \
@@ -66,7 +66,6 @@ namespace DSL
          */
         TeeBintr(const char* name) 
             : Bintr(name)
-            , m_blockingTimeout(DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC)
         {
             LOG_FUNC();
         };
@@ -106,37 +105,6 @@ namespace DSL
          * TeeBintr
          */
         virtual uint GetNumChildren() = 0;
-
-        uint GetBlockingTimeout()
-        {
-            LOG_FUNC();
-            
-            return m_blockingTimeout;
-        };
-     
-        bool SetBlockingTimeout(uint timeout)
-        {
-            LOG_FUNC();
-            
-            if (IsLinked())
-            {
-                LOG_ERROR("Unable to set blocking-timeout for Tee '" << GetName() 
-                    << "' as it's currently linked");
-                return false;
-            }
-            m_blockingTimeout = timeout;
-            
-            return true;
-        };
-        
-    protected:
-
-        /**
-         * @brief current blocking-timeout for this TeeBintr. Controls
-         * how long the TeeBintr will block/wait for the blocking PPH
-         * callback to be called. Needs to be > seconds/frame for all streams.
-         */
-        uint m_blockingTimeout;
     
     };
 
@@ -306,10 +274,8 @@ namespace DSL
         /**
          * @brief ctor for the DemuxerBintr
          * @param[in] name name to give the new Bintr
-         * @param[in] maxBranches the maximum number of branches that can be
-         * added/connected to this Demuxer, before or during Pipeline play.
          */
-        DemuxerBintr(const char* name, uint maxBranches);
+        DemuxerBintr(const char* name);
         
         /**
          * @brief Adds the DemuxerBintr to a Parent Branch/Pipeline Bintr
@@ -336,16 +302,6 @@ namespace DSL
          */
         bool AddChildTo(DSL_BINTR_PTR pChildComponent, uint streamId);
         
-        /**
-         * @brief Moves a child ComponentBintr, owned by this DemuxerBintr, from its
-         * current stream to a new stream.
-         * stream-id and Demuxer source pd.
-         * @param[in] pChildComponent shared pointer to ComponentBintr to move
-         * @param[in] stream_id the destination stream-id to move to.
-         * @return true if the ComponentBintr was moved correctly, false otherwise
-         */
-        bool MoveChildTo(DSL_BINTR_PTR pChildComponent, uint streamId);
-        
         /** 
          * @brief links all child Component Bintrs and their elements. We need to 
          * override the parent class because we pre-allocate the requested pads.
@@ -358,20 +314,6 @@ namespace DSL
          * @brief unlinks all child Component Bintrs and their Elementrs.
          */
         void UnlinkAll();
-        
-        /**
-         * @brief Gets the current max-branches setting for this DemuxerBintr
-         * @return current max-branches setting
-         */
-        uint GetMaxBranches();
-        
-        /**
-         * @brief Set the max-branches setting for this DemuxerBintr.
-         * @param[in] maxBranches the maximum number of branches that can be
-         * added/connected to this Demuxer, before or during Pipeline play.
-         * @return 
-         */
-        bool SetMaxBranches(uint maxBranches);
 
     private:
 
@@ -382,19 +324,6 @@ namespace DSL
          * @return true if the ComponentBintr was added correctly, false otherwise
          */
         bool _completeAddChild(DSL_BINTR_PTR pChildComponent, uint streamId);
-    
-        /**
-         * @brief maximum number of branches this DemuxerBintr can connect.
-         * Specifies the number of source pads to request prior to playing.
-         */
-        uint m_maxBranches;
-        
-        /**
-         * @brief list of reguest pads -- maxBranches in length -- for the 
-         * for the DemuxerBintr. The pads are preallocated on Bintr LinkAll
-         * and released on UnlinkAll.
-         */
-        std::vector<GstPad*> m_requestedSrcPads;
         
     };
 

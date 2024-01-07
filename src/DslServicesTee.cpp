@@ -31,8 +31,7 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    DslReturnType Services::TeeDemuxerNew(const char* name, 
-        uint maxBranches)
+    DslReturnType Services::TeeDemuxerNew(const char* name)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -45,8 +44,7 @@ namespace DSL
                 LOG_ERROR("Demuxer Tee name '" << name << "' is not unique");
                 return DSL_RESULT_TEE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name,
-                maxBranches));
+            m_components[name] = std::shared_ptr<Bintr>(new DemuxerBintr(name));
             
             LOG_INFO("New Demuxer Tee '" << name << "' created successfully");
             
@@ -58,71 +56,6 @@ namespace DSL
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::TeeDemuxerMaxBranchesGet(const char* name, 
-        uint* maxBranches)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                DemuxerBintr);
-            
-            DSL_DEMUXER_PTR pDemuxerBintr 
-                = std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
-            
-            *maxBranches = pDemuxerBintr->GetMaxBranches();
-                
-            LOG_INFO("Demuxer '" << name 
-                << "' returned max-brances = " << *maxBranches << "' successfully");
-                
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Demuxer '" << name 
-                << "' threw an exception getting max-branches");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }    
-    
-    DslReturnType Services::TeeDemuxerMaxBranchesSet(const char* name, 
-        uint maxBranches)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                DemuxerBintr);
-            
-            DSL_DEMUXER_PTR pDemuxerBintr 
-                = std::dynamic_pointer_cast<DemuxerBintr>(m_components[name]);
-            
-            if (!pDemuxerBintr->SetMaxBranches(maxBranches))
-            {
-                LOG_ERROR("Demuxer '" << name << 
-                    "' failed set max-branches = " << maxBranches);
-                return DSL_RESULT_TEE_SET_FAILED;
-            }
-                
-            LOG_INFO("Demuxer '" << name 
-                << "' set max-brances = " << maxBranches << "' successfully");
-                
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Demuxer '" << name 
-                << "' threw an exception setting max-branches");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }    
 
     DslReturnType Services::TeeSplitterNew(const char* name)
     {
@@ -193,46 +126,6 @@ namespace DSL
         {
             LOG_ERROR("Demuxer Tee '" << name 
                 << "' threw an exception adding branch '" << branch << "'");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }    
-
-    DslReturnType Services::TeeDemuxerBranchMoveTo(const char* name, 
-        const char* branch, uint streamId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, DemuxerBintr);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(m_components, branch);
-            
-            DSL_BINTR_PTR pBranchBintr = 
-                std::dynamic_pointer_cast<Bintr>(m_components[branch]);
-
-            if (!std::dynamic_pointer_cast<DemuxerBintr>(
-                    m_components[name])->MoveChildTo(pBranchBintr, streamId))
-            {
-                LOG_ERROR("Demuxer '" << name << 
-                    "' failed to move branch '" << branch 
-                    << "' to stream-id = " << streamId);
-                return DSL_RESULT_TEE_BRANCH_MOVE_FAILED;
-            }
-                
-            LOG_INFO("Branch '" << branch 
-                << "' was moved to stream-id = " << streamId 
-                <<  " for Demuxer Tee '" << name << "' successfully");
-                
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Demuxer Tee '" << name 
-                << "' threw an exception moving branch '" << branch << "'");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }
     }    
@@ -619,70 +512,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TeeBlockingTimeoutGet(const char* name, 
-        uint* timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
-            
-            DSL_TEE_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<TeeBintr>(m_components[name]);
-            
-            *timeout = pTeeBintr->GetBlockingTimeout();
-                
-            LOG_INFO("Tee '" << name 
-                << "' returned blocking-timeout = " << *timeout 
-                << "' successfully");
-                
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Tee '" << name 
-                << "' threw an exception getting blocking-timeout");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }    
-    
-    DslReturnType Services::TeeBlockingTimeoutSet(const char* name, 
-        uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(m_components, name);
-            
-            DSL_TEE_PTR pTeeBintr = 
-                std::dynamic_pointer_cast<TeeBintr>(m_components[name]);
-            
-            if (!pTeeBintr->SetBlockingTimeout(timeout))
-            {
-                LOG_ERROR("Tee '" << name << 
-                    "' failed to set blocking-timeout = " << timeout);
-                return DSL_RESULT_TEE_SET_FAILED;
-            }
-                
-            LOG_INFO("Tee '" << name 
-                << "' set blocking-timeout = " << timeout << "' successfully");
-                
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Tee '" << name 
-                << "' threw an exception setting blocking-timeout");
-            return DSL_RESULT_TEE_THREW_EXCEPTION;
-        }
-    }    
-
     DslReturnType Services::TeePphAdd(const char* name, const char* handler)
     {
         LOG_FUNC();
@@ -708,7 +537,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Tiler '" << name 
+            LOG_ERROR("Tee '" << name 
                 << "' threw an exception adding Pad Probe Handler");
             return DSL_RESULT_TEE_THREW_EXCEPTION;
         }

@@ -1427,45 +1427,6 @@ def dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence):
     result =_dsl.dsl_ode_action_tiler_source_show_new(name, tiler, timeout, has_precedence)
     return int(result)
 
-##
-## dsl_ode_action_branch_add_new()
-##
-_dsl.dsl_ode_action_branch_add_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_branch_add_new.restype = c_uint
-def dsl_ode_action_branch_add_new(name, tee, branch):
-    global _dsl
-    result =_dsl.dsl_ode_action_branch_add_new(name, tee, branch)
-    return int(result)
-
-##
-## dsl_ode_action_branch_add_to_new()
-##
-_dsl.dsl_ode_action_branch_add_to_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_branch_add_to_new.restype = c_uint
-def dsl_ode_action_branch_add_to_new(name, demuxer, branch):
-    global _dsl
-    result =_dsl.dsl_ode_action_branch_add_to_new(name, demuxer, branch)
-    return int(result)
-
-##
-## dsl_ode_action_branch_move_to_new()
-##
-_dsl.dsl_ode_action_branch_move_to_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_branch_move_to_new.restype = c_uint
-def dsl_ode_action_branch_move_to_new(name, demuxer, branch):
-    global _dsl
-    result =_dsl.dsl_ode_action_branch_move_to_new(name, demuxer, branch)
-    return int(result)
-
-##
-## dsl_ode_action_branch_remove_new()
-##
-_dsl.dsl_ode_action_branch_remove_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p]
-_dsl.dsl_ode_action_branch_remove_new.restype = c_uint
-def dsl_ode_action_branch_remove_new(name, tee, branch):
-    global _dsl
-    result =_dsl.dsl_ode_action_branch_remove_new(name, tee, branch)
-    return int(result)
 
 ##
 ## dsl_ode_action_enabled_get()
@@ -4942,11 +4903,11 @@ def dsl_osd_pph_remove(name, handler, pad):
 ##
 ## dsl_tee_demuxer_new()
 ##
-_dsl.dsl_tee_demuxer_new.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tee_demuxer_new.argtypes = [c_wchar_p]
 _dsl.dsl_tee_demuxer_new.restype = c_uint
 def dsl_tee_demuxer_new(name, max_branches):
     global _dsl
-    result =_dsl.dsl_tee_demuxer_new(name, max_branches)
+    result =_dsl.dsl_tee_demuxer_new(name)
     return int(result)
 
 ##
@@ -4954,32 +4915,11 @@ def dsl_tee_demuxer_new(name, max_branches):
 ##
 #_dsl.dsl_tee_demuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
 _dsl.dsl_tee_demuxer_new_branch_add_many.restype = c_uint
-def dsl_tee_demuxer_new_branch_add_many(name, max_branches, branches):
+def dsl_tee_demuxer_new_branch_add_many(name, branches):
     global _dsl
     arr = (c_wchar_p * len(branches))()
     arr[:] = branches
-    result =_dsl.dsl_tee_demuxer_new_branch_add_many(name, max_branches, arr)
-    return int(result)
-
-##
-## dsl_tee_demuxer_max_branches_get()
-##
-_dsl.dsl_tee_demuxer_max_branches_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_tee_demuxer_max_branches_get.restype = c_uint
-def dsl_tee_demuxer_max_branches_get(name):
-    global _dsl
-    max_branches = c_uint(0)
-    result = _dsl.dsl_tee_demuxer_max_branches_get(name, DSL_UINT_P(max_branches))
-    return int(result), max_branches.value 
-
-##
-## dsl_tee_demuxer_max_branches_set()
-##
-_dsl.dsl_tee_demuxer_max_branches_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_tee_demuxer_max_branches_set.restype = c_uint
-def dsl_tee_demuxer_max_branches_set(name, max_branches):
-    global _dsl
-    result = _dsl.dsl_tee_demuxer_max_branches_set(name, max_branches)
+    result =_dsl.dsl_tee_demuxer_new_branch_add_many(name, arr)
     return int(result)
 
 ##
@@ -5097,16 +5037,6 @@ def dsl_tee_demuxer_branch_add_to(name, branch, stream_id):
     return int(result)
     
 ##
-## dsl_tee_demuxer_branch_move_to()
-##
-_dsl.dsl_tee_demuxer_branch_move_to.argtypes = [c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_tee_demuxer_branch_move_to.restype = c_uint
-def dsl_tee_demuxer_branch_move_to(name, branch, stream_id):
-    global _dsl
-    result =_dsl.dsl_tee_demuxer_branch_move_to(name, branch, stream_id)
-    return int(result)
-    
-##
 ## dsl_tee_branch_add()
 ##
 _dsl.dsl_tee_branch_add.argtypes = [c_wchar_p, c_wchar_p]
@@ -5148,27 +5078,6 @@ def dsl_tee_branch_remove_many(name, branches):
     arr = (c_wchar_p * len(branches))()
     arr[:] = branches
     result =_dsl.dsl_tee_branch_remove_many(name, arr)
-    return int(result)
-
-##
-## dsl_tee_blocking_timeout_get()
-##
-_dsl.dsl_tee_blocking_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_tee_blocking_timeout_get.restype = c_uint
-def dsl_tee_blocking_timeout_get(name):
-    global _dsl
-    timeout = c_uint(0)
-    result = _dsl.dsl_tee_blocking_timeout_get(name, DSL_UINT_P(timeout))
-    return int(result), timeout.value 
-
-##
-## dsl_tee_blocking_timeout_set()
-##
-_dsl.dsl_tee_blocking_timeout_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_tee_blocking_timeout_set.restype = c_uint
-def dsl_tee_blocking_timeout_set(name, timeout):
-    global _dsl
-    result = _dsl.dsl_tee_blocking_timeout_set(name, timeout)
     return int(result)
 
 ##

@@ -150,44 +150,6 @@ namespace DSL
         return Bintr::RemoveChild(pChildElement);
     }
 
-    /**
-     * @class _asyncData
-     * @brief structure of data required for asynchronous linking and unlinking.
-     */
-    typedef struct _asyncData
-    {
-        DslMutex asynMutex;
-        DslCond asyncCond;
-        GstNodetr* pChildComponent;
-        GstPad* pSinkPad;
-    } AsyncData;
-    
-    /**
-     * @brief Blocking PPH to unlink and EOS a branch
-     * @param pad unused
-     * @param info unused
-     * @param pData pointer to AsyncData structure
-     * @return GST_PAD_PROBE_REMOVE to remove the probe always.
-     */
-    static GstPadProbeReturn unlink_from_source_tee_cb(GstPad* pad, 
-        GstPadProbeInfo *info, gpointer pData)
-    {
-        AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
-
-        LOG_INFO("Unlinking and EOS'ing branch '" 
-            << pAsyncData->pChildComponent->GetName() << "'");
-        
-        pAsyncData->pChildComponent->UnlinkFromSourceTee();
-        
-        gst_pad_send_event(pAsyncData->pSinkPad, 
-            gst_event_new_eos());
-
-        g_cond_signal(&(pAsyncData->asyncCond));
-
-        return GST_PAD_PROBE_REMOVE;
-    }
-
     bool MultiBranchesBintr::RemoveChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
@@ -200,76 +162,13 @@ namespace DSL
         }
         if (pChildComponent->IsLinkedToSource())
         {  
-            GstState currentState;
-            GetState(currentState, 0);
-            LOG_INFO("MultiBranchesBintr '" << GetName() << "' is in the state '" 
-                << currentState << "' while removing branch '" 
-                << pChildComponent->GetName() 
-                << "' from stream-id = " << pChildComponent->GetRequestPadId());
-                
-            if (currentState == GST_STATE_PLAYING)
-            {
-                AsyncData asyncData;
-                asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
-        
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncData.asynMutex);
-                
-                GstPad* pStaticSinkPad = gst_element_get_static_pad(
-                    pChildComponent->GetGstElement(), "sink");
-
-                asyncData.pSinkPad = pStaticSinkPad;
-                    
-                GstPad* pRequestedSrcPad = gst_pad_get_peer(pStaticSinkPad);
-                    
-                gulong probeId = gst_pad_add_probe(pRequestedSrcPad, 
-                    GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
-                    (GstPadProbeCallback)unlink_from_source_tee_cb, 
-                    &asyncData, NULL);
-
-                gint64 endTime = g_get_monotonic_time() + (G_TIME_SPAN_SECOND *
-                    m_blockingTimeout);
-                    
-                if (!g_cond_wait_until(&asyncData.asyncCond, 
-                    &asyncData.asynMutex, endTime))
-                {
-                    // timeout - individual source must be paused or not linked.
-                    
-                    LOG_WARN("Timout waiting for blocking pad probe removing branch '" 
-                        << pChildComponent->GetName() << "' from Parent Demuxer");
-                    LOG_WARN("Upstream source must be in a non-playing state");
-
-                    if (!pChildComponent->UnlinkFromSourceTee())
-                    {   
-                        LOG_ERROR("MultiBranchesBintr '" << GetName() 
-                            << "' failed to Unlink Child Branch '" 
-                            << pChildComponent->GetName() << "'");
-                        return false;
-                    }                
-                    // remove the probe since it timed out.
-                    gst_pad_remove_probe(pRequestedSrcPad, probeId);
-                }
-                
-                gst_object_unref(pStaticSinkPad);
-                gst_object_unref(pRequestedSrcPad);
-                
-                // TODO: need to revisit.  Need to wait on EOS event to be
-                // received by final sink... not yet implemented.
-                // interim solution is to sleep this process and give the branch 
-                // enough time to complete the EOS process. 
-                g_usleep(100000);
-                pChildComponent->SetState(GST_STATE_NULL, 
-                    DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
-            }
-            else
-            {
-                if (!pChildComponent->UnlinkFromSourceTee())
-                {   
-                    LOG_ERROR("MultiBranchesBintr '" << GetName() 
-                        << "' failed to Unlink Child Branch '" 
-                        << pChildComponent->GetName() << "'");
-                    return false;
-                }                
-            }
+            if (!pChildComponent->UnlinkFromSourceTee())
+            {   
+                LOG_ERROR("MultiBranchesBintr '" << GetName() 
+                    << "' failed to Unlink Child Branch '" 
+                    << pChildComponent->GetName() << "'");
+                return false;
+            }                
             pChildComponent->UnlinkAll();
         }
         // unreference and remove from the child-branch collections
@@ -374,7 +273,6 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for MultiSinksBintr '" << name << "'");
-        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
     }
     
     //--------------------------------------------------------------------------------
@@ -386,7 +284,6 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for SplitterBintr '" << name << "'");
-        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
     }
 
     bool SplitterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -400,16 +297,13 @@ namespace DSL
 
     //-------------------------------------------------------------------------------
     
-    DemuxerBintr::DemuxerBintr(const char* name, uint maxBranches)
+    DemuxerBintr::DemuxerBintr(const char* name)
         : MultiBranchesBintr(name, "nvstreamdemux")
-        , m_maxBranches(maxBranches)
     {
         LOG_FUNC();
         
         LOG_INFO("");
         LOG_INFO("Initial property values for DemuxerBintr '" << name << "'");
-        LOG_INFO("  max-branches     : " << m_maxBranches);
-        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
     }
     
     bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -421,27 +315,6 @@ namespace DSL
             AddDemuxerBintr(shared_from_this());
     }
 
-    static GstPadProbeReturn link_to_source_tee_cb(GstPad* pad, 
-        GstPadProbeInfo *info, gpointer pData)
-    {
-        AsyncData* pAsyncData = static_cast<AsyncData*>(pData);
-        
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&(pAsyncData->asynMutex));
-
-        LOG_INFO("Synchronizing branch '" 
-            << pAsyncData->pChildComponent->GetName() 
-            << "' with Parent Demuxer");
-
-        gst_element_sync_state_with_parent(
-            pAsyncData->pChildComponent->GetGstElement());
-
-        // Signal the blocked service (_completeAddChild) that the add 
-        // process is now complete.
-        g_cond_signal(&(pAsyncData->asyncCond));
-
-        return GST_PAD_PROBE_REMOVE;
-    }
-
     bool DemuxerBintr::AddChild(DSL_BINTR_PTR pChildComponent)
     {
         LOG_FUNC();
@@ -451,14 +324,6 @@ namespace DSL
         {
             LOG_ERROR("'" << pChildComponent->GetName() 
                 << "' is already a child of '" << GetName() << "'");
-            return false;
-        }
-        // Ensure that we are not exceeding max-branches
-        if ((m_pChildBranches.size()+1) > m_maxBranches)
-        {
-            LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
-                << "' to DemuxerBintr '" << GetName() 
-                << "' as it would exceed max-branches = " << m_maxBranches);
             return false;
         }
 
@@ -495,14 +360,6 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
-        // Ensure that we are not exceeding max-branches
-        if ((streamId+1) > m_maxBranches)
-        {
-            LOG_ERROR("Can't add Branch '" << pChildComponent->GetName() 
-                << "' to DemuxerBintr '" << GetName() 
-                << "' as it would exceed max-branches = " << m_maxBranches);
-            return false;
-        }
 
         // If the streamId has been used "ever", since bintr creation
         if ((streamId+1) <= m_usedRequestPadIds.size())
@@ -537,16 +394,7 @@ namespace DSL
         // now that we have the streamId
         return _completeAddChild(pChildComponent, streamId);
     }
-
-    bool DemuxerBintr::MoveChildTo(DSL_BINTR_PTR pChildComponent, uint streamId)
-    {
-        LOG_FUNC();
-        
-        return (RemoveChild(pChildComponent) and
-            AddChildTo(pChildComponent, streamId));
-    }
-
-    
+   
     bool DemuxerBintr::_completeAddChild(DSL_BINTR_PTR pChildComponent, uint streamId)
     {
         LOG_FUNC();
@@ -572,84 +420,84 @@ namespace DSL
         // linkAll Elementrs now and Link with the Stream
         if (IsLinked())
         {
-            GstState currentState;
-            GetState(currentState, 0);
-            LOG_INFO("Demuxer '" << GetName() << "' is in state '" << currentState 
-                << "' while adding branch '" << pChildComponent->GetName() 
-                << "' to stream-id = " << streamId);
-                
-            if (currentState == GST_STATE_PLAYING)
+//            GstState currentState;
+//            GetState(currentState, 0);
+//            LOG_INFO("Demuxer '" << GetName() << "' is in state '" << currentState 
+//                << "' while adding branch '" << pChildComponent->GetName() 
+//                << "' to stream-id = " << streamId);
+//                
+//            if (currentState == GST_STATE_PLAYING)
+//            {
+//                // When in a playing state, we need to do the final sync with the
+//                // parent state in the context of a PPH while blocking downstream.
+//                AsyncData asyncData;
+//                asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
+//        
+//                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncData.asynMutex);
+//
+//                // IMPORTANT: we need to install the blocking probe before we link
+//                // pads so that it can block the first buffer once linked.
+//                gulong probeId = gst_pad_add_probe(m_requestedSrcPads[streamId], 
+//                    GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
+//                    (GstPadProbeCallback)link_to_source_tee_cb, 
+//                    &asyncData, NULL);
+//
+//                // link back upstream to the Tee - now the src for the child branch.
+//                if (!pChildComponent->LinkAll() or 
+//                    !pChildComponent->LinkToSourceTee(m_pTee, 
+//                        m_requestedSrcPads[streamId]))
+//                {
+//                    LOG_ERROR("DemuxerBintr '" << GetName() 
+//                        << "' failed to Link Child Component '" 
+//                        << pChildComponent->GetName() << "'");
+//                    return false;
+//                }
+//
+//                gint64 endTime = g_get_monotonic_time() + (G_TIME_SPAN_SECOND *
+//                    m_blockingTimeout);
+//                    
+//                if (!g_cond_wait_until(&asyncData.asyncCond, 
+//                    &asyncData.asynMutex, endTime))
+//                {
+//                    // timeout - individual source must be paused or not linked.
+//                    
+//                    LOG_ERROR("Timout waiting for blocking pad probe adding branch '" 
+//                        << pChildComponent->GetName() << "' to Parent Demuxer");
+//                    LOG_ERROR("Upstream source must be in a non-playing state");
+//                    
+//                    pChildComponent->UnlinkFromSourceTee();
+//                    pChildComponent->UnlinkAll();
+//                    // remove the probe since it timed out.
+//                    gst_pad_remove_probe(m_requestedSrcPads[streamId], probeId);
+//                    return false;
+//                }
+//                else
+//                {
+//                    // branch has been succcessfully added while the Pipeline 
+//                    // and individual source stream were both playing.
+//                    return true;
+//                }
+//            }
+//            else
+//            {
+            std::string srcPadName = "src_" + 
+                std::to_string(pChildComponent->GetRequestPadId());
+    
+            if (!pChildComponent->LinkAll() or 
+                !pChildComponent->LinkToSourceTee(m_pTee, 
+                    srcPadName.c_str()))
             {
-                // When in a playing state, we need to do the final sync with the
-                // parent state in the context of a PPH while blocking downstream.
-                AsyncData asyncData;
-                asyncData.pChildComponent = (GstNodetr*)&*pChildComponent;
-        
-                LOCK_MUTEX_FOR_CURRENT_SCOPE(&asyncData.asynMutex);
-
-                // IMPORTANT: we need to install the blocking probe before we link
-                // pads so that it can block the first buffer once linked.
-                gulong probeId = gst_pad_add_probe(m_requestedSrcPads[streamId], 
-                    GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
-                    (GstPadProbeCallback)link_to_source_tee_cb, 
-                    &asyncData, NULL);
-
-                // link back upstream to the Tee - now the src for the child branch.
-                if (!pChildComponent->LinkAll() or 
-                    !pChildComponent->LinkToSourceTee(m_pTee, 
-                        m_requestedSrcPads[streamId]))
-                {
-                    LOG_ERROR("DemuxerBintr '" << GetName() 
-                        << "' failed to Link Child Component '" 
-                        << pChildComponent->GetName() << "'");
-                    return false;
-                }
-
-                gint64 endTime = g_get_monotonic_time() + (G_TIME_SPAN_SECOND *
-                    m_blockingTimeout);
-                    
-                if (!g_cond_wait_until(&asyncData.asyncCond, 
-                    &asyncData.asynMutex, endTime))
-                {
-                    // timeout - individual source must be paused or not linked.
-                    
-                    LOG_ERROR("Timout waiting for blocking pad probe adding branch '" 
-                        << pChildComponent->GetName() << "' to Parent Demuxer");
-                    LOG_ERROR("Upstream source must be in a non-playing state");
-                    
-                    pChildComponent->UnlinkFromSourceTee();
-                    pChildComponent->UnlinkAll();
-                    // remove the probe since it timed out.
-                    gst_pad_remove_probe(m_requestedSrcPads[streamId], probeId);
-                    return false;
-                }
-                else
-                {
-                    // branch has been succcessfully added while the Pipeline 
-                    // and individual source stream were both playing.
-                    return true;
-                }
+                LOG_ERROR("DemuxerBintr '" << GetName() 
+                    << "' failed to Link Child Component '" 
+                    << pChildComponent->GetName() << "'");
+                return false;
             }
-            else
-            {
-                // Else, we must be in a READY, or PAUSED state so we can
-                // link back upstream to the Tee now.
-                if (!pChildComponent->LinkAll() or 
-                    !pChildComponent->LinkToSourceTee(m_pTee, 
-                        m_requestedSrcPads[streamId]))
-                {
-                    LOG_ERROR("DemuxerBintr '" << GetName() 
-                        << "' failed to Link Child Component '" 
-                        << pChildComponent->GetName() << "'");
-                    return false;
-                }
-                // Sync the branch with the parent (this demuxer) state now.
-                LOG_INFO("Synchronizing branch '" << pChildComponent->GetName() 
-                    << "' with Parent Demuxer");
-                
-                return gst_element_sync_state_with_parent(
-                    pChildComponent->GetGstElement());
-            }
+            // Sync the branch with the parent (this demuxer) state now.
+            LOG_INFO("Synchronizing branch '" << pChildComponent->GetName() 
+                << "' with Parent Demuxer");
+            
+            return gst_element_sync_state_with_parent(
+                pChildComponent->GetGstElement());
         }
         return true;
     }
@@ -666,33 +514,15 @@ namespace DSL
         }
         m_pQueue->LinkToSink(m_pTee);
 
-        // We need to request all the needed source pads while the 
-        // nvstreamdemux plugin is in a NULL state. This is a workaround
-        // for the fact the the plugin does not support dynamic requests
-        for (uint i=0; i<m_maxBranches; i++)
-        {
-            std::string srcPadName = "src_" + std::to_string(i);
-                
-            GstPad* pRequestedSrcPad = gst_element_get_request_pad(
-                m_pTee->GetGstElement(), srcPadName.c_str());
-            if (!pRequestedSrcPad)
-            {
-                
-                LOG_ERROR("Failed to get a requested source pad for Demuxer '" 
-                    << GetName() << "'");
-                return false;
-            }
-            LOG_INFO("Allocated requested source pad = " << pRequestedSrcPad 
-                << " for DemuxerBintr '" << GetName() << "'");
-            m_requestedSrcPads.push_back(pRequestedSrcPad);
-        }
-
         for (auto const& imap: m_pChildBranchesIndexed)
         {
+            std::string srcPadName = "src_" + 
+                std::to_string(imap.second->GetRequestPadId());
+
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSourceTee(m_pTee, 
-                    m_requestedSrcPads[imap.second->GetRequestPadId()]))
+                    srcPadName.c_str()))
             {
                 LOG_ERROR("DemuxerBintr '" << GetName() 
                     << "' failed to Link Child Component '" 
@@ -716,44 +546,6 @@ namespace DSL
 
         // Call the parent class to do the actual unlinking
         MultiBranchesBintr::UnlinkAll();
- 
-        // We now free all of the pre-allocated requested pads
-        while (m_requestedSrcPads.size())
-        {
-            LOG_INFO("Releasing requested source pad = " << m_requestedSrcPads.back()
-                << " for DemuxerBintr '"<< GetName() << "'");
-                
-            gst_element_release_request_pad(m_pTee->GetGstElement(), 
-                m_requestedSrcPads.back());
-            m_requestedSrcPads.pop_back();
-        }
    }
    
-    uint DemuxerBintr::GetMaxBranches()
-    {
-        LOG_FUNC();
-        
-        return m_maxBranches;
-    }
-
-    bool DemuxerBintr::SetMaxBranches(uint maxBranches)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set max-branches for DemuxerBintr '" 
-                << GetName() << "' as it is linked");
-            return false;
-        }
-        if (maxBranches < m_pChildBranches.size())
-        {
-            LOG_ERROR("Can't set max-branches = " << maxBranches 
-                << " for DemuxerBintr '" << GetName() 
-                << "' as it is less than the current number of added branches");
-            return false;
-        }
-        m_maxBranches = maxBranches;
-        return true;
-    }
 }
