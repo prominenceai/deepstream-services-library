@@ -53,6 +53,11 @@ namespace DSL
         m_pOsdQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsosd");
         m_pOsd = DSL_ELEMENT_NEW("nvdsosd", name);
 
+        m_pVidConvQueue->SetAttribute("leaky", 2);
+        m_pVidConvQueue->SetAttribute("max-size-buffers", 2);
+        m_pOsdQueue->SetAttribute("leaky", 2);
+        m_pOsdQueue->SetAttribute("max-size-buffers", 2);
+
         // Get property defaults that aren't specifically set
         m_pVidConv->GetAttribute("gpu-id", &m_gpuId);
         m_pVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);

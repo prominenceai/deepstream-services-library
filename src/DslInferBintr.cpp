@@ -392,6 +392,8 @@ namespace DSL
         
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
         m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pQueue->SetAttribute("leaky", 2);
+        m_pQueue->SetAttribute("max-size-buffers", 2);
 
         m_pVidConv->SetAttribute("gpu-id", m_gpuId);
         m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);

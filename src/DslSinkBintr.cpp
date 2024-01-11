@@ -51,6 +51,8 @@ namespace DSL
         // or as a Branch to a Demuxer, Remuxer, or Splitter Tee.
         // In all cases a Tee - therefore we need a downstream queue as first element.
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        m_pQueue->SetAttribute("leaky", 2);
+        m_pQueue->SetAttribute("max-size-buffers", 2);
         
         // Add the Queue as a child of the SinkBintr
         AddChild(m_pQueue);

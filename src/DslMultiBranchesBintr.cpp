@@ -39,6 +39,8 @@ namespace DSL
         // Single Queue and Tee element for all Components
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
         m_pTee = DSL_ELEMENT_NEW(teeType, name);
+        m_pQueue->SetAttribute("leaky", 2);
+        m_pQueue->SetAttribute("max-size-buffers", 2);
 
         AddChild(m_pQueue);
         AddChild(m_pTee);
