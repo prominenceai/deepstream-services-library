@@ -193,6 +193,84 @@ namespace DSL
 
         return m_pPipelineSourcesBintr->SetStreammuxMaxLatency(maxLatency);
     }
+
+    void PipelineBintr::GetStreammuxBatchProperties(uint* batchSize, 
+        int* batchTimeout)
+    {
+        LOG_FUNC();
+
+        m_pPipelineSourcesBintr->
+            GetStreammuxBatchProperties(batchSize, batchTimeout);
+    }
+
+    bool PipelineBintr::SetStreammuxBatchProperties(uint batchSize, 
+        int batchTimeout)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->
+            SetStreammuxBatchProperties(batchSize, batchTimeout);
+    }
+
+    uint PipelineBintr::GetStreammuxNvbufMemType()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxNvbufMemType();
+    }
+
+    bool PipelineBintr::SetStreammuxNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxNvbufMemType(type);
+    }
+
+    uint PipelineBintr::GetGpuId()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetGpuId();
+    }
+
+    bool PipelineBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetGpuId(gpuId);
+    }
+
+    void PipelineBintr::GetStreammuxDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+
+        m_pPipelineSourcesBintr->GetStreammuxDimensions(width, height);
+    }
+
+    bool PipelineBintr::SetStreammuxDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxDimensions(width, height);
+    }
+    
+    bool PipelineBintr::GetStreammuxPadding()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxPaddingEnabled();
+    }
+    
+    bool PipelineBintr::SetStreammuxPadding(boolean enabled)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxPaddingEnabled(enabled);
+    }
+
+    // ---------------------------------------------------------------------------
+    // OLD STREAMMUX SERVICES - End
+    // ---------------------------------------------------------------------------
     
     bool PipelineBintr::AddStreammuxTiler(DSL_BASE_PTR pTilerBintr)
     {

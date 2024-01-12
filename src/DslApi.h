@@ -857,6 +857,9 @@ THE SOFTWARE.
 #define DSL_1K_HD_WIDTH                                             1920
 #define DSL_1K_HD_HEIGHT                                            1080
 
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
+
 #define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
@@ -8078,6 +8081,10 @@ DslReturnType dsl_pipeline_component_remove(const wchar_t* name,
 DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name, 
     const wchar_t** components);
 
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
 /**
  * @brief Gets the current Config File in use by the named Pipeline's Streammuxer.
  * @param[in] name unique name of Pipeline to query
@@ -8122,6 +8129,138 @@ DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
     uint batch_size);
+
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - End
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+// OLD NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
+/**
+ * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
+ * @param[in] name unique name of the Pipeline to query
+ * @param[out] batch_size the current batch size in use.
+ * @param[out] batch_timeout the current batch timeout in use. 
+ * Default = -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout);
+
+/**
+ * @brief Updates the named Pipeline's batch-size and batch-push-timeout properties
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[out] batch_size the new batch size to use.
+ * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout);
+
+/**
+ * @brief Queries the named Pipeline's stream-muxer for its current output dimensions.
+ * @param[in] name name of the pipeline to query
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief updates the named Pipeline's stream-muxer output dimensions.
+ * @param[in] name name of the pipeline to update
+  * @return DSL_RESULT_SUCCESS on successful update, one of 
+  * DSL_RESULT_PIPELINE_RESULT on failure. 
+*/
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief returns the current setting - enabled/disabled - for the Streammux padding
+ * property for the named Pipeline.
+ * @param[in] name name of the Display to query
+ * @param[out] enable true if the padding property is enabled, false if not
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief updates the current setting - enabled/disabled - for Streammux padding
+ * property for the name Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[out] enable set true to enable the padding property, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
+ * @param[in] name name of the pipeline to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+
+/**
+ * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
+ * @param[in] name name of the pipeline to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+    
+/**
+ * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] gpuid current GPU ID setting
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
+
+/**
+ * @brief Sets the current stream-muxer GPU ID for the named Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[in] gpuid new GPU ID value to use
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+
+/**
+ * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
+ * @param[in] name name of the pipeline to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+
+/**
+ * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
+ * @param[in] name name of the pipeline to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+
+//------------------------------------------------------------------------------------
+// COMMON NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
 
 /**
  * @brief returns the current num-surfaces-per-frame setting 
@@ -8254,6 +8393,9 @@ DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
     const wchar_t* handler);
 
+//------------------------------------------------------------------------------------
+// COMMON NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param[in] name unique name of the Pipeline to pause.

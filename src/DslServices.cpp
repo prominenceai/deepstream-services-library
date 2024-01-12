@@ -136,17 +136,6 @@ namespace DSL
             // Safe to start logging
             LOG_INFO("Services Initialization");
             
-            
-            const char* value = getenv("USE_NEW_NVSTREAMMUX");
-            if (!value or std::string(value) != "yes")
-            {
-                LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to yes");
-                std::cout << "ERROR! USE_NEW_NVSTREAMMUX must be set to yes, use" 
-                    << std::endl;
-                std::cout << "$ export USE_NEW_NVSTREAMMUX=yes" << std::endl;
-                throw;
-            }
-            
             _dsmeta_quark = g_quark_from_static_string (NVDS_META_STRING);
             
             // Single instantiation for the lib's lifetime
@@ -187,6 +176,7 @@ namespace DSL
         
     Services::Services(bool doGstDeinit)
         : m_doGstDeinit(doGstDeinit)
+        , m_useNewStreammux(false)
         , m_debugLogFileHandle(NULL)
         , m_pMainLoop(g_main_loop_new(NULL, FALSE))
     {
@@ -197,6 +187,13 @@ namespace DSL
             LOG_ERROR("DSL threw exception intializing Debug Settings");
             throw;
         }
+        const char* value = getenv("USE_NEW_NVSTREAMMUX");
+        if (value and std::string(value) == "yes")
+        {
+            m_useNewStreammux = true;
+            LOG_WARN("USE_NEW_NVSTREAMMUX is set to yes - enabling new Streammux Services");
+        }
+            
     }
 
     Services::~Services()

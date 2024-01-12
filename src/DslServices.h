@@ -57,6 +57,12 @@ namespace DSL {
          * @return instance pointer to singleton services object.
          */
         static Services* GetServices();
+        
+        /** 
+         * @brief Returns the state of the USE_NEW_NVSTREAMMUX env var.
+         * @return true if USE_NEW_NVSTREAMMUX=yes, false otherwise.
+         */
+        bool UseNewStreammux(){return m_useNewStreammux;};
 
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
@@ -1599,6 +1605,10 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
+        //----------------------------------------------------------------------------
+        // NEW STREAMMUX SERVICES - Start
+        //----------------------------------------------------------------------------
+
         DslReturnType PipelineStreammuxConfigFileGet(const char* name, 
             const char** configFile);
             
@@ -1610,6 +1620,10 @@ namespace DSL {
 
         DslReturnType PipelineStreammuxBatchSizeSet(const char* name,
             uint batchSize);
+
+        //----------------------------------------------------------------------------
+        // NEW STREAMMUX SERVICES - End
+        //----------------------------------------------------------------------------
 
         DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
             uint* num);
@@ -1634,7 +1648,41 @@ namespace DSL {
         
         DslReturnType PipelineStreammuxMaxLatencySet(const char* name, 
             uint maxLatency);
+
+        //----------------------------------------------------------------------------
+        // OLD STREAMMUX SERVICES - Start
+        //----------------------------------------------------------------------------
+
+        DslReturnType PipelineStreammuxBatchPropertiesGet(const char* name,
+            uint* batchSize, int* batchTimeout);
+
+        DslReturnType PipelineStreammuxBatchPropertiesSet(const char* name,
+            uint batchSize, int batchTimeout);
+
+        DslReturnType PipelineStreammuxNvbufMemTypeGet(const char* name, 
+            uint* type);
+
+        DslReturnType PipelineStreammuxNvbufMemTypeSet(const char* name, 
+            uint type);
+
+        DslReturnType PipelineStreammuxGpuIdGet(const char* name, uint* gpuid);
         
+        DslReturnType PipelineStreammuxGpuIdSet(const char* name, uint gpuid);
+
+        DslReturnType PipelineStreammuxDimensionsGet(const char* name,
+            uint* width, uint* height);
+
+        DslReturnType PipelineStreammuxDimensionsSet(const char* name,
+            uint width, uint height);
+            
+        DslReturnType PipelineStreammuxPaddingGet(const char* name, boolean* enabled);
+
+        DslReturnType PipelineStreammuxPaddingSet(const char* name, boolean enabled);
+        
+        //----------------------------------------------------------------------------
+        // OLD STREAMMUX SERVICES - End
+        //----------------------------------------------------------------------------
+
         DslReturnType PipelineStreammuxTilerAdd(const char* name, const char* tiler);
 
         DslReturnType PipelineStreammuxTilerRemove(const char* name);
@@ -1943,6 +1991,11 @@ namespace DSL {
          * @brief mutex to prevent Services re-entry
          */
         DslMutex m_servicesMutex;
+        
+        /**
+         * @brief boolean flag to indicate if USE_NEW_NVSTREAMMUX=yes
+         */
+        bool m_useNewStreammux;
         
         /**
          * @brief map of all default intrinsic RGBA Display Types
