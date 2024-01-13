@@ -8238,26 +8238,6 @@ DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
  */
 DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
 
-/**
- * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
- * @param[in] name name of the pipeline to query.
- * @param[out] type one of the DSL_NVBUF_MEM constant values.
- * @return DSL_RESULT_SUCCESS on successful query, one of 
- * DSL_RESULT_PIPELINE_RESULT on failure. 
- */
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
-    uint* type);
-
-/**
- * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
- * @param[in] name name of the pipeline to update.
- * @param[in] type one of the DSL_NVBUF_MEM constant values.
- * @return DSL_RESULT_SUCCESS on successful update, one of 
- * DSL_RESULT_PIPELINE_RESULT on failure. 
- */
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
-    uint type);
-
 //------------------------------------------------------------------------------------
 // COMMON NVSTREAMMUX SERVICES - Start
 //------------------------------------------------------------------------------------
@@ -9135,6 +9115,12 @@ void dsl_delete_all();
  * @return string representation of the current release
  */
 const wchar_t* dsl_info_version_get();
+
+/**
+ * @brief Used to determine if USE_NEW_NVSTREAMUX=yes at runtime.
+ * @return true if the env var is set to yes, false otherwise.
+ */
+boolean dsl_info_use_new_nvstreammux_get();
 
 /**
  * @brief Gets the GPU type for a specified GPU Id.

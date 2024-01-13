@@ -36,7 +36,7 @@ THE SOFTWARE.
 
 #define RETURN_IF_NEW_NVSTREAMMUX_ENABLED() do \
 { \
-    if (DSL::Services::GetServices()->UseNewStreammux()) \
+    if (DSL::Services::GetServices()->UseNewStreammuxGet()) \
     { \
         LOG_ERROR("USE_NEW_NVSTREAMMUX must NOT be set to 'yes' to enabled service"); \
         return DSL_RESULT_API_NOT_ENABLED; \
@@ -45,7 +45,7 @@ THE SOFTWARE.
 
 #define RETURN_IF_NEW_NVSTREAMMUX_DISABLED() do \
 { \
-    if (!DSL::Services::GetServices()->UseNewStreammux()) \
+    if (!DSL::Services::GetServices()->UseNewStreammuxGet()) \
     { \
         LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to 'yes' to enabled service"); \
         return DSL_RESULT_API_NOT_ENABLED; \
@@ -10523,6 +10523,11 @@ void dsl_delete_all()
 const wchar_t* dsl_info_version_get()
 {
     return DSL_VERSION;
+}
+
+boolean dsl_info_use_new_nvstreammux_get()
+{
+    return DSL::Services::GetServices()->UseNewStreammuxGet();
 }
 
 uint dsl_info_gpu_type_get(uint gpu_id)

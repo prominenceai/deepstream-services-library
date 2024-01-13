@@ -626,6 +626,7 @@ namespace DSL
             return false;
         }
 
+        m_batchSizeSetByClient = true;
         m_batchSize = batchSize;
         m_batchTimeout = batchTimeout;
 

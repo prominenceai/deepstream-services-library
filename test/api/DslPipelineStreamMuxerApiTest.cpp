@@ -32,53 +32,56 @@ SCENARIO( "A Pipeline's Streammuxer can set its config-file correctly", "[pipeli
 {
     GIVEN( "A Pipeline with its Streammuxer" ) 
     {
-        std::wstring pipeline_name  = L"test-pipeline";
-
-        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-        // Ensure default == empty string
-        const wchar_t* c_ret_config_file;
-        REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
-            &c_ret_config_file) == DSL_RESULT_SUCCESS );
-            
-        std::wstring ret_config_file(c_ret_config_file);
-        REQUIRE( ret_config_file == L"" );
-
-        WHEN( "The Pipeline's Streammuxer is called to update its config-file" ) 
+        if (dsl_info_use_new_nvstreammux_get())
         {
-            std::wstring new_config_file(L"./test/config/all_sources_30fps.txt");
-            
-            REQUIRE( dsl_pipeline_streammux_config_file_set(pipeline_name.c_str(), 
-                new_config_file.c_str()) == DSL_RESULT_SUCCESS );
+            std::wstring pipeline_name  = L"test-pipeline";
 
-            THEN( "The correct config-file is returned on get" ) 
-            {
-                REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
-                    &c_ret_config_file) == DSL_RESULT_SUCCESS );
-                    
-                ret_config_file = c_ret_config_file;
-                REQUIRE( ret_config_file == new_config_file );
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            // Ensure default == empty string
+            const wchar_t* c_ret_config_file;
+            REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
+                &c_ret_config_file) == DSL_RESULT_SUCCESS );
                 
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+            std::wstring ret_config_file(c_ret_config_file);
+            REQUIRE( ret_config_file == L"" );
+
+            WHEN( "The Pipeline's Streammuxer is called to update its config-file" ) 
+            {
+                std::wstring new_config_file(L"./test/config/all_sources_30fps.txt");
+                
+                REQUIRE( dsl_pipeline_streammux_config_file_set(pipeline_name.c_str(), 
+                    new_config_file.c_str()) == DSL_RESULT_SUCCESS );
+
+                THEN( "The correct config-file is returned on get" ) 
+                {
+                    REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
+                        &c_ret_config_file) == DSL_RESULT_SUCCESS );
+                        
+                    ret_config_file = c_ret_config_file;
+                    REQUIRE( ret_config_file == new_config_file );
+                    
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                }
             }
-        }
-        WHEN( "The Streammuxer service is called with an invalid config-file" ) 
-        {
-            std::wstring new_config_file(L"./bad/path/config.txt");
-            
-            REQUIRE( dsl_pipeline_streammux_config_file_set(pipeline_name.c_str(), 
-                new_config_file.c_str()) == 
-                DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND );
-
-            THEN( "The unset config-file is returned on get" ) 
+            WHEN( "The Streammuxer service is called with an invalid config-file" ) 
             {
-                REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
-                    &c_ret_config_file) == DSL_RESULT_SUCCESS );
-                    
-                ret_config_file = c_ret_config_file;
-                REQUIRE( ret_config_file == L"" );
+                std::wstring new_config_file(L"./bad/path/config.txt");
                 
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_streammux_config_file_set(pipeline_name.c_str(), 
+                    new_config_file.c_str()) == 
+                    DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND );
+
+                THEN( "The unset config-file is returned on get" ) 
+                {
+                    REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
+                        &c_ret_config_file) == DSL_RESULT_SUCCESS );
+                        
+                    ret_config_file = c_ret_config_file;
+                    REQUIRE( ret_config_file == L"" );
+                    
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                }
             }
         }
     }
@@ -88,161 +91,309 @@ SCENARIO( "The Batch Size for a Pipeline can be set greater than sources", "[pip
 {
     GIVEN( "A Pipeline with three sources and minimal components" ) 
     {
-        std::wstring sourceName1 = L"test-uri-source-1";
-        std::wstring sourceName2 = L"test-uri-source-2";
-        std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring tilerName = L"tiler";
-        uint width(1920);
-        uint height(720);
-
-        std::wstring windowSinkName = L"egl-sink";
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1920);
-        uint sinkH(720);
-
-        std::wstring pipeline_name  = L"test-pipeline";
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        // create for of the same types of source
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-            
-        const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"egl-sink", NULL};
-
-        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-        uint batch_size(0); 
-        int batch_timeout(0);
-        
-        REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
-            &batch_size) == DSL_RESULT_SUCCESS );
-        REQUIRE( batch_size == 0 );
-        
-        WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
+        if (dsl_info_use_new_nvstreammux_get())
         {
-            uint new_batch_size(6); 
-            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
-                new_batch_size) == DSL_RESULT_SUCCESS );
+            std::wstring sourceName1 = L"test-uri-source-1";
+            std::wstring sourceName2 = L"test-uri-source-2";
+            std::wstring sourceName3 = L"test-uri-source-3";
+            std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
+            uint intrDecode(false);
+            uint dropFrameInterval(0);
+
+            std::wstring tilerName = L"tiler";
+            uint width(1920);
+            uint height(720);
+
+            std::wstring windowSinkName = L"egl-sink";
+            uint offsetX(0);
+            uint offsetY(0);
+            uint sinkW(1920);
+            uint sinkH(720);
+
+            std::wstring pipeline_name  = L"test-pipeline";
+            
+            REQUIRE( dsl_component_list_size() == 0 );
+
+            // create for of the same types of source
+            REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
+                offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+                
+            const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
+                L"tiler", L"egl-sink", NULL};
+
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            uint batch_size(0); 
+            int batch_timeout(0);
+            
             REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
                 &batch_size) == DSL_RESULT_SUCCESS );
-            REQUIRE( batch_size == new_batch_size );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
-                components) == DSL_RESULT_SUCCESS );
-
-            REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-            THEN( "The updated Stream Muxer Batch Size is used" )
+            REQUIRE( batch_size == 0 );
+            
+            WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
             {
+                uint new_batch_size(6); 
+                REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+                    new_batch_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
                     &batch_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( batch_size == new_batch_size );
-                
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+                REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                    components) == DSL_RESULT_SUCCESS );
 
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                THEN( "The updated Stream Muxer Batch Size is used" )
+                {
+                    REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
+                        &batch_size) == DSL_RESULT_SUCCESS );
+                    REQUIRE( batch_size == new_batch_size );
+                    
+                    std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                    REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
+                }
             }
         }
     }
 }
 
-SCENARIO( "The Batch Size for a Pipeline can be set less than sources", "[pipeline-streammux]" )
+SCENARIO( "The Batch Size for a Pipeline with NEW Streammux can be set less than sources", 
+    "[pipeline-streammux]" )
 {
     GIVEN( "A Pipeline with three sources and minimal components" ) 
     {
-        std::wstring sourceName1 = L"test-uri-source-1";
-        std::wstring sourceName2 = L"test-uri-source-2";
-        std::wstring sourceName3 = L"test-uri-source-3";
-        std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
-        uint intrDecode(false);
-        uint dropFrameInterval(0);
-
-        std::wstring tilerName = L"tiler";
-        uint width(1920);
-        uint height(720);
-
-        std::wstring windowSinkName = L"egl-sink";
-        uint offsetX(0);
-        uint offsetY(0);
-        uint sinkW(1920);
-        uint sinkH(720);
-
-        std::wstring pipeline_name  = L"test-pipeline";
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        // create for of the same types of source
-        REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
-            false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
-            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
-            
-        const wchar_t* components[] = {L"test-uri-source-1", 
-            L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"egl-sink", NULL};
-
-        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-        uint batch_size(0); 
-        
-        REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
-            &batch_size) == DSL_RESULT_SUCCESS );
-        REQUIRE( batch_size == 0 );
-        
-        WHEN( "The Pipeline's Stream Muxer Batch Size is set to less than the number of sources" ) 
+        if (dsl_info_use_new_nvstreammux_get())
         {
-            uint new_batch_size(1);
-            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
-                new_batch_size) == DSL_RESULT_SUCCESS );
+            std::wstring sourceName1 = L"test-uri-source-1";
+            std::wstring sourceName2 = L"test-uri-source-2";
+            std::wstring sourceName3 = L"test-uri-source-3";
+            std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
+            uint intrDecode(false);
+            uint dropFrameInterval(0);
+
+            std::wstring tilerName = L"tiler";
+            uint width(1920);
+            uint height(720);
+
+            std::wstring windowSinkName = L"egl-sink";
+            uint offsetX(0);
+            uint offsetY(0);
+            uint sinkW(1920);
+            uint sinkH(720);
+
+            std::wstring pipeline_name  = L"test-pipeline";
+            
+            REQUIRE( dsl_component_list_size() == 0 );
+
+            // create for of the same types of source
+            REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
+                offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+                
+            const wchar_t* components[] = {L"test-uri-source-1", 
+                L"test-uri-source-2", L"test-uri-source-3", 
+                L"tiler", L"egl-sink", NULL};
+
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            uint batch_size(0); 
+            
             REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
                 &batch_size) == DSL_RESULT_SUCCESS );
-            REQUIRE( batch_size == new_batch_size );
-        
-            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
-                components) == DSL_RESULT_SUCCESS );
-
-            REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-            THEN( "The updated Stream Muxer Batch Size is used" )
+            REQUIRE( batch_size == 0 );
+            
+            WHEN( "The Pipeline's Stream Muxer Batch Size is set to less than the number of sources" ) 
             {
+                uint new_batch_size(1);
+                REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+                    new_batch_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
                     &batch_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( batch_size == new_batch_size );
-                
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+                REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                    components) == DSL_RESULT_SUCCESS );
 
-                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                THEN( "The updated Stream Muxer Batch Size is used" )
+                {
+                    REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
+                        &batch_size) == DSL_RESULT_SUCCESS );
+                    REQUIRE( batch_size == new_batch_size );
+                    
+                    std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                    REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
+                }
+            }
+        }
+    }
+}
+
+SCENARIO( "The Batch Size for a Pipeline with OLD Streammux can be set less than sources", 
+    "[pipeline-streammux]" )
+{
+    GIVEN( "A Pipeline with three sources and minimal components" ) 
+    {
+        if (!dsl_info_use_new_nvstreammux_get())
+        {
+            std::wstring sourceName1 = L"test-uri-source-1";
+            std::wstring sourceName2 = L"test-uri-source-2";
+            std::wstring sourceName3 = L"test-uri-source-3";
+            std::wstring uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
+            uint intrDecode(false);
+            uint dropFrameInterval(0);
+
+            std::wstring tilerName = L"tiler";
+            uint width(1920);
+            uint height(720);
+
+            std::wstring windowSinkName = L"window-sink";
+            uint offsetX(0);
+            uint offsetY(0);
+            uint sinkW(1920);
+            uint sinkH(720);
+
+            std::wstring pipelineName  = L"test-pipeline";
+            
+            REQUIRE( dsl_component_list_size() == 0 );
+
+            // create for of the same types of source
+            REQUIRE( dsl_source_uri_new(sourceName1.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_uri_new(sourceName2.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
+                false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(),
+                offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+                
+            const wchar_t* components[] = {L"test-uri-source-1", 
+                L"test-uri-source-2", L"test-uri-source-3", 
+                L"tiler", L"window-sink", NULL};
+
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            uint batch_size(0); 
+            int batch_timeout(0);
+            
+            dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+            REQUIRE( batch_size == 0 );
+            REQUIRE( batch_timeout == -1 );
+            
+            WHEN( "The Pipeline's Stream Muxer Batch Size is set to more than the number of sources" ) 
+            {
+                uint new_batch_size(1), new_batch_timeout(50000);
+                REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipelineName.c_str(), 
+                    new_batch_size, new_batch_timeout) == DSL_RESULT_SUCCESS );
+                dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+                REQUIRE( batch_size == new_batch_size );
+                REQUIRE( batch_timeout == new_batch_timeout );
+            
+                REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                THEN( "The updated Stream Muxer Batch Size is used" )
+                {
+                    dsl_pipeline_streammux_batch_properties_get(pipelineName.c_str(), &batch_size, &batch_timeout);
+                    REQUIRE( batch_size == new_batch_size );
+                    REQUIRE( batch_timeout == new_batch_timeout );
+                    
+                    std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                    REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_component_list_size() == 0 );
+                }
+            }
+        }
+    }
+}
+
+SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be read and updated", 
+    "[pipeline-streammux]" )
+{
+    GIVEN( "A new Pipeline with its built-in streammuxer" ) 
+    {
+        if (!dsl_info_use_new_nvstreammux_get())
+        {
+            std::wstring pipelineName  = L"test-pipeline";
+
+            REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+            
+            uint nvbuf_mem_type(99);
+            
+            REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+                &nvbuf_mem_type)  == DSL_RESULT_SUCCESS );
+            REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
+            
+            WHEN( "The Pipeline's Streammuxer's NVIDIA buffer memory type is updated" ) 
+            {
+                uint new_nvbuf_mem_type(DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED);
+
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(pipelineName.c_str(), 
+                    new_nvbuf_mem_type) == DSL_RESULT_SUCCESS );
+
+                THEN( "The updated Streammuxer NVIDIA buffer memory type  is returned" )
+                {
+                    REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+                        &nvbuf_mem_type) == DSL_RESULT_SUCCESS );
+                    REQUIRE( nvbuf_mem_type == new_nvbuf_mem_type );
+                    
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                }
+            }
+            WHEN( "An invalid NVIDIA buffer memory type is used on set" ) 
+            {
+                uint new_nvbuf_mem_type(99);
+
+                REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(pipelineName.c_str(), 
+                    new_nvbuf_mem_type) == DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED );
+
+                THEN( "The Streammuxer NVIDIA buffer memory type is unchanged" )
+                {
+                    REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
+                        &nvbuf_mem_type) == DSL_RESULT_SUCCESS );
+                    REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
+                    
+                    REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                }
             }
         }
     }
@@ -522,22 +673,59 @@ SCENARIO( "The Pipeline Streammux API checks for NULL input parameters", "[pipel
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
-                REQUIRE( dsl_pipeline_streammux_config_file_get(NULL, 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_config_file_set(NULL, 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_config_file_set(pipeline_name.c_str(), 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                if (dsl_info_use_new_nvstreammux_get())
+                {
+                    REQUIRE( dsl_pipeline_streammux_config_file_get(NULL, 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_config_file_get(pipeline_name.c_str(), 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_config_file_set(NULL, 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_config_file_set(pipeline_name.c_str(), 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_pipeline_streammux_batch_size_get(NULL, 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_pipeline_streammux_batch_size_set(NULL, 
-                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_batch_size_get(NULL, 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_batch_size_get(pipeline_name.c_str(), 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_batch_size_set(NULL, 
+                        1) == DSL_RESULT_INVALID_INPUT_PARAM );
+                }
+                else
+                {
+                    REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(NULL, 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipeline_name.c_str(), 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_set(NULL, 
+                        1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                    REQUIRE( dsl_pipeline_streammux_batch_properties_get(NULL, 
+                        NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_batch_properties_get(pipeline_name.c_str(), 
+                        NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_batch_properties_get(pipeline_name.c_str(), 
+                        &batch_size, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_batch_properties_set(NULL, 
+                        1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                    REQUIRE( dsl_pipeline_streammux_dimensions_get(NULL, 
+                        NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_dimensions_get(pipeline_name.c_str(), 
+                        NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_dimensions_get(pipeline_name.c_str(), 
+                        &batch_size, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_dimensions_set(NULL, 
+                        1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                    REQUIRE( dsl_pipeline_streammux_padding_get(NULL, 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_padding_get(pipeline_name.c_str(), 
+                        NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    REQUIRE( dsl_pipeline_streammux_padding_set(NULL, 
+                        true) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                }
                 REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_get(

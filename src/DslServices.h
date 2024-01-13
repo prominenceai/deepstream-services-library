@@ -62,7 +62,7 @@ namespace DSL {
          * @brief Returns the state of the USE_NEW_NVSTREAMMUX env var.
          * @return true if USE_NEW_NVSTREAMMUX=yes, false otherwise.
          */
-        bool UseNewStreammux(){return m_useNewStreammux;};
+        bool UseNewStreammuxGet(){return m_useNewStreammux;};
 
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
