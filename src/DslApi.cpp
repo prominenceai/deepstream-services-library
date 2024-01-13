@@ -6547,9 +6547,13 @@ DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name,
         cstrName.c_str(), batch_size);
 }
 
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+
 DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
     const wchar_t* branch, const wchar_t** config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branch);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -6577,6 +6581,7 @@ DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name,
 DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
     const wchar_t* branch, const wchar_t* config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branch);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -6591,7 +6596,67 @@ DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name,
     return DSL::Services::GetServices()->TeeRemuxerBranchConfigFileSet(
         cstrName.c_str(), cstrBranch.c_str(), cstrConfig.c_str());
 }
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - Start
+
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+    RETURN_IF_PARAM_IS_NULL(batch_timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesGet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesSet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsSet(
+        cstrName.c_str(), width, height);
+}
     
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - End
+
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
 {
     RETURN_IF_PARAM_IS_NULL(name);
