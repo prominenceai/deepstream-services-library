@@ -358,8 +358,8 @@ namespace DSL
         // Set the Batch size to the nuber of sources owned if not already set
         if (!m_batchSizeSetByClient)
         {
-            m_pStreammux->SetAttribute("batch-size", m_batchSize);
             m_batchSize = m_pChildSources.size();
+            m_pStreammux->SetAttribute("batch-size", m_batchSize);
         }
         m_isLinked = true;
         

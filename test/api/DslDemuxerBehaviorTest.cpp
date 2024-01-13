@@ -104,7 +104,7 @@ SCENARIO( "Two File Sources, Demuxer, and two Fake-Sinks can play",
 }
 
 SCENARIO( "Two File Sources, Demuxer, and two 3D-Sinks can play", 
-    "[new]")
+    "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, two File sources, Demuxer, and two Overlay-Sinks" ) 
     {
