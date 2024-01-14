@@ -6354,6 +6354,9 @@ DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name,
 DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint* stream_ids, uint num_stream_ids);
 
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - Start
+
 /**
  * @brief Gets the current batch-size setting for the named Remuxer.
  * @param[in] name unique name of the Remuxer to query.
@@ -6395,6 +6398,57 @@ DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name,
  */
 DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
     const wchar_t* branch, const wchar_t* config_file);
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - Start
+
+/**
+ * @brief Gets the current batch-size and batch-push-timeout properties for the 
+ * named Remuxer.
+ * @param[in] name unique name of the Remuxer to query
+ * @param[out] batch_size the current batch size in use.
+ * @param[out] batch_timeout the current batch timeout in use. 
+ * Default = -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout);
+
+/**
+ * @brief Updates the named Remuxer's batch-size and batch-push-timeout properties
+ * @param[in] name unique name of the Remuxer to update.
+ * @param[out] batch_size the new batch size to use.
+ * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout);
+
+/**
+ * @brief Get the current output frame dimensions for the named Remuxer.
+ * @param[in] name name of the Remuxer to query.
+ * @param[out] width current output frame width in units of pixels.
+ * @param[out] height current output frame height in units of pixels.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Set the output dimensions for the named Remuxer to use.
+ * @param[in] name name of the Remuxer to update.
+ * @param[in] width new output frame width to use in units of pixels.
+ * @param[in] height new output frame height to use in units of pixels.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+*/
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+    
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - End
 
 /**
  * @brief adds a single Branch to a Demuxer, Remuxer, or Splitter Tee.

@@ -39,6 +39,9 @@ namespace DSL
         , m_pChildBranch(pChildBranch)
         , m_linkSelectiveStreams(numStreamIds)   // true if numStreamIds > 0
         , m_frameDuration(GST_CLOCK_TIME_NONE)   // workaround for nvidia bug
+        , m_useNewStreammux(false)
+        , m_width(0)
+        , m_height(0)
     {
         LOG_FUNC();
 
@@ -446,12 +449,67 @@ namespace DSL
         return true;
     }
 
+    bool RemuxerBranchBintr::SetNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        if (m_useNewStreammux)
+        {
+            LOG_ERROR("Can't update nvbuf-memory-type for RemuxerBranchBintr '" 
+                << GetName() << "' USE_NEW_NVSTREAMMUX must NOT be set to 'yes'");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update nvbuf-memory-type for RemuxerBranchBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        if (m_nvbufMemType != type)
+        {
+            m_nvbufMemType = type;
+            m_pStreammux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        }
+        return true;
+    }
+
+    bool RemuxerBranchBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (m_useNewStreammux)
+        {
+            LOG_ERROR("Can't update gpu-id for RemuxerBranchBintr '" 
+                << GetName() << "' USE_NEW_NVSTREAMMUX must NOT be set to 'yes'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        if (m_gpuId != gpuId)
+        {
+            m_gpuId = gpuId;
+            m_pStreammux->SetAttribute("gpu-id", m_gpuId);
+            
+            LOG_INFO("PipelineSourcesBintr '" << GetName() 
+                << "' - new GPU ID = " << m_gpuId );
+        }
+        return true;
+    }
+
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
         : TeeBintr(name)
         , m_batchSizeSetByClient(false)
-        // m_batchSize initialized to 0 in Bintr ctor
+        , m_useNewStreammux(false)
+        , m_batchTimeout(-1)
+        , m_width(0)
+        , m_height(0)
+       // m_batchSize initialized to 0 in Bintr ctor
     {
         LOG_FUNC();
 
@@ -472,6 +530,20 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
+        
+        if (m_useNewStreammux)
+        {
+            LOG_INFO("  none applicable        : ");
+        }
+        else
+        {
+            SetDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
+                DSL_STREAMMUX_DEFAULT_HEIGHT);
+
+            LOG_INFO("  width                  : " << m_width);
+            LOG_INFO("  height                 : " << m_height);
+            LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);            
+        }
         
         // Add the demuxer as child and elevate as sink ghost pad
         Bintr::AddChild(m_pDemuxer);
@@ -652,6 +724,8 @@ namespace DSL
             else
             {
                 if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
+                    !imap.second->SetNvbufMemType(m_nvbufMemType) or
+                    !imap.second->SetGpuId(m_gpuId) or
                     !imap.second->SetDimensions(m_width, m_height) or
                     !imap.second->LinkAll() or
                     !imap.second->LinkToSourceTees(m_tees))
@@ -874,13 +948,40 @@ namespace DSL
         return true;
     }
 
+    bool RemuxerBintr::SetNvbufMemType(uint nvbufMemType)
+    {
+        LOG_FUNC();
+        
+        if (m_useNewStreammux)
+        {
+            LOG_ERROR("Can't update nvbuf-memory-type for RemuxerBintr '" 
+                << GetName() << "' USE_NEW_NVSTREAMMUX must be set to 'yes'");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for RemuxerBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = nvbufMemType;
+
+        return true;
+    }
+
     bool RemuxerBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
 
+        if (m_useNewStreammux)
+        {
+            LOG_ERROR("Can't update gpu-id for RemuxerBintr '" 
+                << GetName() << "' USE_NEW_NVSTREAMMUX must be set to 'yes'");
+            return false;
+        }
         if (m_isLinked)
         {
-            LOG_ERROR("Unable to set GPU ID for OsdBintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for RemuxerBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }

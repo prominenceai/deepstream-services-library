@@ -65,10 +65,27 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids is created correctly",
             THEN( "All members have been setup correctly" )
             {
                 REQUIRE( pRemuxerBranchBintr->GetName() == remuxerBranchBintrName0 );
-                REQUIRE( pRemuxerBranchBintr->GetBatchSize() == 0 );
-                std::string retConfigFile = 
-                    pRemuxerBranchBintr->GetStreammuxConfigFile();
-                REQUIRE( retConfigFile == "" );
+                if (pRemuxerBranchBintr->UseNewStreammux())
+                {
+                    REQUIRE( pRemuxerBranchBintr->GetBatchSize() == 0 );
+                    std::string retConfigFile = 
+                        pRemuxerBranchBintr->GetStreammuxConfigFile();
+                    REQUIRE( retConfigFile == "" );                    
+                }
+                else
+                {
+                    uint retBatchSize(99);
+                    int retBatchTimeout(0);
+                    pRemuxerBranchBintr->GetBatchProperties(&retBatchSize,
+                        &retBatchTimeout);
+                    REQUIRE( retBatchSize == 0 );
+                    REQUIRE( retBatchTimeout == -1 );
+
+                    uint retWidth(0), retHeight(0);
+                    pRemuxerBranchBintr->GetDimensions(&retWidth, &retHeight);
+                    REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
+                    REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+                }
             }
         }
     }
@@ -94,7 +111,27 @@ SCENARIO( "A RemuxerBranchBintr whith no specific stream-ids is created correctl
             THEN( "All members have been setup correctly" )
             {
                 REQUIRE( pRemuxerBranchBintr->GetName() == remuxerBranchBintrName0 );
-                REQUIRE( pRemuxerBranchBintr->GetBatchSize() == 0 );
+                if (pRemuxerBranchBintr->UseNewStreammux())
+                {
+                    REQUIRE( pRemuxerBranchBintr->GetBatchSize() == 0 );
+                    std::string retConfigFile = 
+                        pRemuxerBranchBintr->GetStreammuxConfigFile();
+                    REQUIRE( retConfigFile == "" );                    
+                }
+                else
+                {
+                    uint retBatchSize(99);
+                    int retBatchTimeout(0);
+                    pRemuxerBranchBintr->GetBatchProperties(&retBatchSize,
+                        &retBatchTimeout);
+                    REQUIRE( retBatchSize == 0 );
+                    REQUIRE( retBatchTimeout == -1 );
+
+                    uint retWidth(0), retHeight(0);
+                    pRemuxerBranchBintr->GetDimensions(&retWidth, &retHeight);
+                    REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
+                    REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+                }
             }
         }
     }
@@ -241,7 +278,24 @@ SCENARIO( "A RemuxerBintr is created correctly", "[RemuxerBintr]" )
                 REQUIRE( pRemuxerBintr->GetName() == remuxerBintrName );
                 REQUIRE( pRemuxerBintr->GetNumChildren() == 0 );
                 
-                REQUIRE( pRemuxerBintr->GetBatchSize() == 0 );
+                if (pRemuxerBintr->UseNewStreammux())
+                {
+                    REQUIRE( pRemuxerBintr->GetBatchSize() == 0 );
+                }
+                else
+                {
+                    uint retWidth(0), retHeight(0);
+                    pRemuxerBintr->GetDimensions(&retWidth, &retHeight);
+                    REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
+                    REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+
+                    uint retBatchSize(99);
+                    int retBatchTimeout(0);
+                    pRemuxerBintr->GetBatchProperties(&retBatchSize, &retBatchTimeout);
+
+                    REQUIRE( retBatchSize == 0 );
+                    REQUIRE( retBatchTimeout == -1 );            
+                }
             }
         }
     }
@@ -653,58 +707,61 @@ SCENARIO( "A RemuxerBintr can update each BranchBintr's config-file correctly",
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
-        DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
-        DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
-        DSL_BRANCH_PTR pBranchBintr2 = DSL_BRANCH_NEW(branchBintrName2.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr1 = DSL_FAKE_SINK_NEW(sinkName1.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr2 = DSL_FAKE_SINK_NEW(sinkName2.c_str());
-
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
-        REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
-        REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
-
-        REQUIRE( pRemuxerBintr->AddChildTo(
-            std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
-                 &streamIds0[0], streamIds0.size()) == true );
-        REQUIRE( pRemuxerBintr->IsChild(
-            std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
-        REQUIRE( pRemuxerBintr->AddChildTo(
-            std::dynamic_pointer_cast<Bintr>(pBranchBintr1),
-                 &streamIds1[0], streamIds1.size()) == true );
-        REQUIRE( pRemuxerBintr->IsChild(
-            std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
-        REQUIRE( pRemuxerBintr->AddChildTo(
-            std::dynamic_pointer_cast<Bintr>(pBranchBintr2),
-                 &streamIds2[0], streamIds2.size()) == true );
-        REQUIRE( pRemuxerBintr->IsChild(
-            std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
-        
-        WHEN( "The BranchBintrs are called to set their config-files" )
+        if (pRemuxerBintr->UseNewStreammux())
         {
-            REQUIRE( pRemuxerBintr->SetStreammuxConfigFile(
+            DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
+            DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
+            DSL_BRANCH_PTR pBranchBintr2 = DSL_BRANCH_NEW(branchBintrName2.c_str());
+            DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+            DSL_FAKE_SINK_PTR pSinkBintr1 = DSL_FAKE_SINK_NEW(sinkName1.c_str());
+            DSL_FAKE_SINK_PTR pSinkBintr2 = DSL_FAKE_SINK_NEW(sinkName2.c_str());
+
+            REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
+            REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
+            REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
+
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
-                     configFile1.c_str()) == true );
-            REQUIRE( pRemuxerBintr->SetStreammuxConfigFile(
+                     &streamIds0[0], streamIds0.size()) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr0)) == true );
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr1),
-                     configFile1.c_str()) == true );
-            REQUIRE( pRemuxerBintr->SetStreammuxConfigFile(
+                     &streamIds1[0], streamIds1.size()) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr1)) == true );
+            REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr2),
-                     configFile1.c_str()) == true );
+                     &streamIds2[0], streamIds2.size()) == true );
+            REQUIRE( pRemuxerBintr->IsChild(
+                std::dynamic_pointer_cast<Bintr>(pBranchBintr2)) == true );
             
-            THEN( "The same config-file pathspec is returned on get" )
+            WHEN( "The BranchBintrs are called to set their config-files" )
             {
-                std::string retConfigFile = pRemuxerBintr->GetStreammuxConfigFile(
-                    std::dynamic_pointer_cast<Bintr>(pBranchBintr0));
-                REQUIRE( retConfigFile == configFile1 );
+                REQUIRE( pRemuxerBintr->SetStreammuxConfigFile(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
+                         configFile1.c_str()) == true );
+                REQUIRE( pRemuxerBintr->SetStreammuxConfigFile(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr1),
+                         configFile1.c_str()) == true );
+                REQUIRE( pRemuxerBintr->SetStreammuxConfigFile(
+                    std::dynamic_pointer_cast<Bintr>(pBranchBintr2),
+                         configFile1.c_str()) == true );
+                
+                THEN( "The same config-file pathspec is returned on get" )
+                {
+                    std::string retConfigFile = pRemuxerBintr->GetStreammuxConfigFile(
+                        std::dynamic_pointer_cast<Bintr>(pBranchBintr0));
+                    REQUIRE( retConfigFile == configFile1 );
 
-                retConfigFile = pRemuxerBintr->GetStreammuxConfigFile(
-                    std::dynamic_pointer_cast<Bintr>(pBranchBintr1));
-                REQUIRE( retConfigFile == configFile1 );
+                    retConfigFile = pRemuxerBintr->GetStreammuxConfigFile(
+                        std::dynamic_pointer_cast<Bintr>(pBranchBintr1));
+                    REQUIRE( retConfigFile == configFile1 );
 
-                retConfigFile = pRemuxerBintr->GetStreammuxConfigFile(
-                    std::dynamic_pointer_cast<Bintr>(pBranchBintr2));
-                REQUIRE( retConfigFile == configFile1 );
+                    retConfigFile = pRemuxerBintr->GetStreammuxConfigFile(
+                        std::dynamic_pointer_cast<Bintr>(pBranchBintr2));
+                    REQUIRE( retConfigFile == configFile1 );
+                }
             }
         }
     }

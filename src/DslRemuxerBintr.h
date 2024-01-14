@@ -159,6 +159,21 @@ namespace DSL
          */
         bool SetDimensions(uint width, uint height);
 
+        /**
+         * @brief Sets the NVIDIA buffer memory type for the RemuxerBranchBintr's 
+         * Streammuxer.
+         * @brief nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
+        /**
+         * @brief Sets the GPU ID for the RemuxerBranchBintr's Streammuxer.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+        
         /** 
          * @brief Returns the state of the USE_NEW_NVSTREAMMUX env var.
          * @return true if USE_NEW_NVSTREAMMUX=yes, false otherwise.
@@ -430,10 +445,20 @@ namespace DSL
         bool SetDimensions(uint width, uint height);
 
         /**
-         * @brief Sets the GPU ID for all Elementrs
+         * @brief Sets the NVIDIA buffer memory type for all children of this
+         * RemuxerBintr.
+         * @brief nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
          * @return true if successfully set, false otherwise.
          */
-        bool SetGpuId(uint gpuId);    
+        bool SetNvbufMemType(uint nvbufMemType);
+
+        /**
+         * @brief Sets the GPU ID for all children of this RemuxerBintr.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+        
 
         /** 
          * @brief Returns the state of the USE_NEW_NVSTREAMMUX env var.
