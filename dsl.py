@@ -6994,27 +6994,6 @@ def dsl_pipeline_streammux_batch_size_set(name, batch_size):
 ## OLD STREAMMUX SERVICES - Start
 
 ##
-## dsl_pipeline_streammux_nvbuf_mem_type_get()
-##
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.restype = c_uint
-def dsl_pipeline_streammux_nvbuf_mem_type_get(name):
-    global _dsl
-    type = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_get(name, DSL_UINT_P(type))
-    return int(result), type.value
-
-##
-## dsl_pipeline_streammux_nvbuf_mem_type_set()
-##
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.restype = c_uint
-def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
-    global _dsl
-    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
-    return int(result)
-
-##
 ## dsl_pipeline_streammux_batch_properties_get()
 ##
 _dsl.dsl_pipeline_streammux_batch_properties_get.argtypes = [c_wchar_p, 
@@ -7081,6 +7060,49 @@ _dsl.dsl_pipeline_streammux_padding_set.restype = c_uint
 def dsl_pipeline_streammux_padding_set(name, enabled):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_padding_set(name, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_nvbuf_mem_type_get()
+##
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.restype = c_uint
+def dsl_pipeline_streammux_nvbuf_mem_type_get(name):
+    global _dsl
+    type = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_get(name, DSL_UINT_P(type))
+    return int(result), type.value
+
+##
+## dsl_pipeline_streammux_nvbuf_mem_type_set()
+##
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.restype = c_uint
+def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_gpuid_get()
+##
+_dsl.dsl_pipeline_streammux_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_gpuid_get.restype = c_uint
+def dsl_pipeline_streammux_gpuid_get(name):
+    global _dsl
+    gpuid = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_gpuid_get(name, DSL_UINT_P(gpuid))
+    return int(result), gpuid.value
+
+##
+## dsl_pipeline_streammux_gpuid_set()
+##
+_dsl.dsl_pipeline_streammux_gpuid_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_gpuid_set.restype = c_uint
+def dsl_pipeline_streammux_gpuid_set(name, gpuid):
+    global _dsl
+    result =_dsl.dsl_pipeline_streammux_gpuid_set(name, gpuid)
     return int(result)
 
 ## -----------------------------------------------------------------------------------
