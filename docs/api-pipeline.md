@@ -6,14 +6,57 @@ All DSL Pipelines are created with a built-in **Streammuxer**  providing the fol
 * To enable multiple sources to be added to every Pipeline before and while playing, with the frame-buffers from each batched together for efficient processing downstream.
 * To create and add the basic batch level metadata structure [`NvDsBatchMeta`](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_metadata.html#metadata-in-the-deepstream-sdk) to each batched buffer required for downstream preprocessing, inference, tracking, on-screen-display, etc.
 
-**IMPORTANT!** DSL uses the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html) which requires the following envirionment variable to be set
+DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html) 
+
+---
+
+### OLD Streammuxer
+The old NVIDIA Streammuxer is used by default, however, it will be removed in a future release of DeepStream (presumably, once the NEW Streammuxer is working correctly).
+
+#### Streammuxer Batch-Settings (OLD)
+The two Streammuxer batch properties are defined as:
+* `batch-size` -- _the maximum number of frames in a batch_ -- which is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicitly set by the client.
+* `batch-timeout` -- _the timeout in microseconds to wait after the first buffer is available to push the batch even if a complete batch is not formed._ -- which has a default value of `-1` disabling the timeout.
+
+Both the `batch-size` and `batch-timeout` settings can be updated while the Pipeline is stopped (in a state of NULL) by calling [dsl_pipeline_streammux_batch_properties_set](#dsl_pipeline_streammux_batch_properties_set). The current values can be obtained at anytime by calling [dsl_pipeline_streammux_batch_properties_get](#dsl_pipeline_streammux_batch_properties_get).
+
+**IMPORTANT!** 
+If dynamically adding/removing sources at runtime (i.e. while the Pipeline is playing), the `batch-size` should be explicitly set to the maximum number of Sources that can be added.
+
+#### Input Dimensions (OLD)
+The Streammuxer scales all input stream to a single resolution (i.e. all frames in the batch have the same resolution). This resolution can be specified using the `width` and `height` properties (i.e. dimensions). The Streammuxer's dimensions, initialized by the plugin to 0, are set by the Pipeline to `DSL_STREAMMUX_DEFAULT_WIDTH` and `DSL_STREAMMUX_DEFAULT_HEIGHT` as defined by the [Pipeline Streammuxer Constant Values](#pipeline-streammuxer-constant-values). The output dimensions can be updated by calling [`dsl_pipeline_streammux_dimensions_set`](#dsl_pipeline_streammux_dimensions_set) while the Pipeline is stopped. The current dimensions can be obtained by calling [`dsl_pipeline_streammux_dimensions_get`](#dsl_pipeline_streammux_dimensions_get)
+
+The enable-padding property can be set to true to preserve the input aspect ratio while scaling by padding with black bands. See * [`dsl_pipeline_streammux_padding_get`](#dsl_pipeline_streammux_padding_get) and [`dsl_pipeline_streammux_padding_set`](#dsl_pipeline_streammux_padding_set).
+
+---
+
+### NEW Streammuxer
+**IMPORTANT!** There is at least one critical bug in the NEW NVIDIA Streammuxer (DS 6.3 and 6.4) that prevents DSL from working correctly, especially if using a Stream Demuxer. See: [Pipelines with new nvstreammux and nvstreamdemux fail to play correctly in DS 6.3](https://forums.developer.nvidia.com/t/pipelines-with-new-nvstreammux-and-nvstreamdemux-fail-to-play-correctly-in-ds-6-3/278396).
+
+The NEW NVIDIA Streammuxer requires the following environment variable to be set
 ```bash
 export USE_NEW_NVSTREAMMUX=yes
 ```
- The Pipeline's Streammuxer is created with the [default properties]([https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html#gst-properties](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#gst-properties)) except for the `batch-size`.  
 
-### Streammuxer Default Settings
-Below are the Streammux plugin default property values as logged by the Pipeline Sources-bin on creation. (`$ export GST_DEBUG=1,DSL:4`)
+#### Streammuxer Batch-Size (NEW)
+The Streammuxer `batch-size` property -- defined as  _the **maximum** number of frames in a batch_ -- is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicitly set. 
+
+The batch size is set by calling [dsl_pipeline_streammux_batch_size_set](#dsl_pipeline_streammux_batch_size_set). The current value can be obtained at anytime by calling [dsl_pipeline_streammux_batch_size_get](#dsl_pipeline_streammux_batch_size_get).
+
+**IMPORTANT!** 
+1. DSL implements its own _adaptive-batching_ which overrides the configuration properties; `adaptive-batching` and `batch-size`.
+2. If dynamically adding/removing sources at runtime (i.e. while the Pipeline is playing), the `batch-size` should be explicitly set to the maximum number of Sources that can be added.
+  
+#### Streammuxer Configuration (NEW)
+A [Streammuxer Configuration File](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) is provided to the Pipeline by calling [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set). The current config-file in use can be queried by calling [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get). 
+
+Please review the [_NvStreamMux Tuning Solutions for specific use cases_](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#nvstreammux-tuning-solutions-for-specific-use-cases) for more information.
+
+--- 
+### Common Streammuxer Default Settings
+The Pipeline's Streammuxer is created with all default GST properties except for the `batch-size`.  
+
+Below are the Streammux plugin default property values as logged by the Pipeline Sources-bin on creation,. (`$ export GST_DEBUG=1,DSL:4`). The common default settings are the same for both the OLD and NEW Streammuxer.
 ```
 PipelineSourcesBintr:  : Initial property values for Streammux 'pipeline-sources-bin'
 PipelineSourcesBintr:  :   num-surfaces-per-frame : 1
@@ -23,18 +66,6 @@ PipelineSourcesBintr:  :   max-latency            : 0
 PipelineSourcesBintr:  :   frame-duration         : -1
 PipelineSourcesBintr:  :   drop-pipeline-eos      : 0
 ``` 
-
-### Streammuxer Batch-Size
-The Streammuxer `batch-size` property -- defined as  _the maximum number of frames in a batch_ -- is set to the number of Source components that have been added to the Pipeline when it transitions to a state of PLAYING, unless explicity set by calling [dsl_pipeline_streammux_batch_size_set](#dsl_pipeline_streammux_batch_size_set). The current value can be obtained at anytime by calling [dsl_pipeline_streammux_batch_size_get](#dsl_pipeline_streammux_batch_size_get). 
-
-**IMPORTANT!** 
-1. DSL implements its own _adaptive-batching_ which overrides the configuration properties; `adaptive-batching` and `batch-size`.
-2. If dynamically adding/removing sources at runtime (i.e. while the Pipeline is playing), the `batch-size` should be explicity set to the maximum number of Sources that can be added.
-
-### Streammuxer Configuration
-A [Streammuxer Configuration File](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) is provided to the Pipeline by calling [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set). The current config-file in use can be queried by calling [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get). 
-
-Please review the [_NvStreamMux Tuning Solutions for specific use cases_](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#nvstreammux-tuning-solutions-for-specific-use-cases) for more information.
 
 ### Streammuxer NTP Timestamp Support
 
@@ -81,17 +112,25 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_delete_many`](#dsl_pipeline_delete_many)
 * [`dsl_pipeline_delete_all`](#dsl_pipeline_delete_all)
 
-**Methods**
-* [`dsl_pipeline_component_add`](#dsl_pipeline_component_add)
-* [`dsl_pipeline_component_add_many`](#dsl_pipeline_component_add_many)
-* [`dsl_pipeline_component_list_size`](#dsl_pipeline_component_list_size)
-* [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove)
-* [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many)
-* [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
+**New Streammuxer Methods**
 * [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get)
 * [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set)
 * [`dsl_pipeline_streammux_batch_size_get`](#dsl_pipeline_streammux_batch_size_get)
 * [`dsl_pipeline_streammux_batch_size_set`](#dsl_pipeline_streammux_batch_size_set)
+
+**Old Streammuxer Methods**
+* [`dsl_pipeline_streammux_batch_properties_get`](#dsl_pipeline_streammux_batch_properties_get)
+* [`dsl_pipeline_streammux_batch_properties_set`](#dsl_pipeline_streammux_batch_properties_set)
+* [`dsl_pipeline_streammux_dimensions_get`](#dsl_pipeline_streammux_dimensions_get)
+* [`dsl_pipeline_streammux_dimensions_set`](#dsl_pipeline_streammux_dimensions_set)
+* [`dsl_pipeline_streammux_padding_get`](#dsl_pipeline_streammux_padding_get)
+* [`dsl_pipeline_streammux_padding_set`](#dsl_pipeline_streammux_padding_set)
+* [`dsl_pipeline_streammux_gpuid_get`](#dsl_pipeline_streammux_gpuid_get)
+* [`dsl_pipeline_streammux_gpuid_set`](#dsl_pipeline_streammux_gpuid_set)
+* [`dsl_pipeline_streammux_nvbuf_mem_type_get`](#dsl_pipeline_streammux_nvbuf_mem_type_get)
+* [`dsl_pipeline_streammux_nvbuf_mem_type_set`](#dsl_pipeline_streammux_nvbuf_mem_type_set)
+
+**Common Streammuxer Methods**
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_get`](#dsl_pipeline_streammux_num_surfaces_per_frame_get)
 * [`dsl_pipeline_streammux_num_surfaces_per_frame_set`](#dsl_pipeline_streammux_num_surfaces_per_frame_set)
 * [`dsl_pipeline_streammux_attach_sys_ts_enabled_get`](#dsl_pipeline_streammux_attach_sys_ts_enabled_get)
@@ -104,6 +143,14 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_streammux_tiler_remove`](#dsl_pipeline_streammux_tiler_remove)
 * [`dsl_pipeline_streammux_pph_add`](#dsl_pipeline_streammux_pph_add)
 * [`dsl_pipeline_streammux_pph_remove`](#dsl_pipeline_streammux_pph_remove)
+
+**Pipeline Methods**
+* [`dsl_pipeline_component_add`](#dsl_pipeline_component_add)
+* [`dsl_pipeline_component_add_many`](#dsl_pipeline_component_add_many)
+* [`dsl_pipeline_component_list_size`](#dsl_pipeline_component_list_size)
+* [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove)
+* [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many)
+* [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
 * [`dsl_pipeline_state_get`](#dsl_pipeline_state_get)
 * [`dsl_pipeline_state_change_listener_add`](#dsl_pipeline_state_change_listener_add)
 * [`dsl_pipeline_state_change_listener_remove`](#dsl_pipeline_state_change_listener_remove)
@@ -146,8 +193,24 @@ The following return codes are used by the Pipeline API
 #define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080010
 ```
 
+## Pipeline Streammuxer Constant Values
+```C
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
+```
+
+## NVIDIA Buffer Memory Types
+Jetson 0 & 4 only, dGPU 0 through 3 only
+```C
+#define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
+#define DSL_NVBUF_MEM_TYPE_CUDA_PINNED                              1
+#define DSL_NVBUF_MEM_TYPE_CUDA_DEVICE                              2
+#define DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED                             3
+#define DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY                            4
+```
+
 ## Pipeline States
-```C++
+```C
 #define DSL_STATE_NULL                                              1
 #define DSL_STATE_READY                                             2
 #define DSL_STATE_PAUSED                                            3
@@ -320,139 +383,14 @@ retval = dsl_pipeline_delete_all()
 <br>
 
 ---
-## Methods
 
-### *dsl_pipeline_component_add*
-```C++
-DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, const wchar_t* component);
-```
-Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, when the Pipeline already has one. The Component's `in-use` state will be set to `true` on successful add.
-
-If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `component` - [in] unique name of the Component to add.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
-retval = dsl_pipeline_new('my-pipeline')
-
-retval = dsl_pipeline_component_add('my-pipeline', 'my-camera-source')
-```
-
-<br>
-
-### *dsl_pipeline_component_add_many*
-```C++
-DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, const wchar_t** components);
-```
-Adds a list of named components to a named Pipeline. The add service will fail if any of the components are currently `in-use` by any Pipeline. The add service will fail if any of the components to add are a `one-only` type and the Pipeline already has one. All of the component's `in-use` states will be set to true on successful add.
-
-If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `components` - [in] a NULL terminated array of uniquely named Components to add.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
-retval = dsl_display_new('my-tiled-display', 1280, 720)
-retval = dsl_pipeline_new('my-pipeline')
-
-retval = dsl_pipeline_component_add_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
-```
-
-<br>
-
-### *dsl_pipeline_component_list_size*
-```C++
-uint dsl_pipeline_list_size(wchar_t* pipeline);
-```
-This method returns the size of the current list of Components `in-use` by the named Pipeline
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to query.
-
-**Returns**
-* The size of the list of Components currently in use
-
-<br>
-
-### *dsl_pipeline_component_remove*
-```C++
-DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, const wchar_t* component);
-```
-Removes a single named Component from a named Pipeline. The remove service will fail if the Component is not currently `in-use` by the Pipeline. The Component's `in-use` state will be set to `false` on successful removal.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `component` - [in] unique name of the Component to remove.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_pipeline_component_remove('my-pipeline', 'my-camera-source')
-```
-<br>
-
-### *dsl_pipeline_component_remove_many*
-```C++
-DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, const wchar_t** components);
-```
-Removes a list of named components from a named Pipeline. The remove service will fail if any of the components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal.
-
-If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-* `components` - [in] a NULL terminated array of uniquely named Components to add.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_pipeline_component_remove_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
-```
-
-<br>
-
-### *dsl_pipeline_component_remove_all*
-```C++
-DslReturnType dsl_pipeline_component_add_(const wchar_t* pipeline);
-```
-Removes all child components from a named Pipeline. The remove service will fail if any of the components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal.
-
-**Parameters**
-* `pipeline` - [in] unique name for the Pipeline to update.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_pipeline_component_remove_all('my-pipeline')
-```
-
-<br>
-
+## New Streammuxer Methods
 ### *dsl_pipeline_streammux_config_file_get*
 ```C++
 DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
     const wchar_t** config_file);
 ```
-This service returns the current Streammuxer config file in use by the named Pipeline.
+This service returns the current Streammuxer config file in use by the named Pipeline. To use this service, `export USE_NEW_NVSTREAMMUX=yes`.
 
 **IMPORTANT!** The Streammuxer will use default [configuration values](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) if a configuration file is not provided. 
 
@@ -461,7 +399,7 @@ This service returns the current Streammuxer config file in use by the named Pip
 * `config_file` - [out] path specification for the current Streammuxer config file in use. Default = NULL. 
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful quesry. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
@@ -475,7 +413,7 @@ retval, config_file = dsl_pipeline_streammux_config_file_get('my-pipeline')
 DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
     const wchar_t* config_file);
 ```
-This service sets the Streammuxer configuration file for the named Pipeline to use.
+This service sets the Streammuxer configuration file for the named Pipeline to use. To use this service, `export USE_NEW_NVSTREAMMUX=yes`.
 
 **IMPORTANT!** The Streammuxer will use default [configuration values](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html#mux-config-properties) if a configuration file is not provided. 
 
@@ -498,7 +436,7 @@ retval = dsl_pipeline_streammux_config_file_set('my-pipeline', config_file)
 DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
     uint* batch_size);
 ```
-This service returns the current `batch_size` setting for the named Pipeline's Streammuxer.
+This service returns the current `batch_size` setting for the named Pipeline's Streammuxer. To use this service, `export USE_NEW_NVSTREAMMUX=yes`.
 
 **IMPORTANT:** the Pipeline will set the `batch_size` -- once playing -- to the current number of added Sources if not explicitly set by calling [`dsl_pipeline_streammux_batch_size_set`](#dsl_pipeline_streammux_batch_size_set).
 
@@ -507,7 +445,7 @@ This service returns the current `batch_size` setting for the named Pipeline's S
 * `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components by default.
 
 **Returns**
-* `DSL_RESULT_SUCCESS` on successful quesry. One of the [Return Values](#return-values) defined above on failure
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
@@ -521,7 +459,7 @@ retval, batch_size = dsl_pipeline_streammux_batch_size_get('my-pipeline')
 DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
     uint batch_size);
 ```
-This service sets the `batch_size` for the named Pipeline's Streammuxer to use.
+This service sets the `batch_size` for the named Pipeline's Streammuxer to use. To use this service, `export USE_NEW_NVSTREAMMUX=yes`.
 
 **IMPORTANT:** the Pipeline will set the `batch_size` -- once playing -- to the current number of added Sources if not explicitly set.
 
@@ -539,6 +477,218 @@ retval = dsl_pipeline_streammux_batch_size_set('my-pipeline', 30)
 
 <br>
 
+## Old Streammuxer Methods
+### *dsl_pipeline_streammux_batch_properties_get*
+```C++
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* pipeline,
+    uint* batch_size, uint* batch_timeout);
+```
+This service returns the current `batch_size` and `batch_timeout` for the named Pipeline.
+
+**Note:** The Pipeline will set the `batch_size` to the current number of added Sources if not explicitly set.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `batch_size` - [out] the current batch size, set by the Pipeline according to the current number of child Source components by default.
+* `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. The default is -1 == disabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, batch_size, batch_timeout = dsl_pipeline_streammux_batch_properties_get('my-pipeline')
+```
+
+<br>
+
+### *dsl_pipeline_streammux_batch_properties_set*
+```C++
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* pipeline,
+    uint batch_size, uint batch_timeout);
+```
+This service sets the `batch_size` and `batch_timeout` for the named Pipeline to use.
+
+**Note:** The Pipeline will set the `batch_size` to the current number of added Sources and the `batch_timeout` to `DSL_DEFAULT_STREAMMUX_BATCH_TIMEOUT` if not explicitly set.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `batch_size` - [in] the new batch size to use
+* `batch_timeout` - [in] the new timeout in milliseconds before a batch meta push is forced.  The default is -1 == disabled.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_batch_properties_set('my-pipeline',
+    batch_size, batch_timeout)
+```
+
+<br>
+
+### *dsl_pipeline_streammux_dimensions_get*
+```C++
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* pipeline,
+    uint* width, uint* height);
+```
+This service returns the current Streammuxer output dimensions for the uniquely named Pipeline. The default dimensions, defined in `DslApi.h`, are assigned during Pipeline creation. The values can be changed after creation by calling [dsl_pipeline_streammux_dimensions_set](#dsl_pipeline_streammux_dimensions_set)
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `width` - [out] width of the Streammuxer output in pixels.
+* `height` - [out] height of the Streammuxer output in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, width, height = dsl_pipeline_streammux_dimensions_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_dimensions_set*
+```C++
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* pipeline,
+    uint width, uint height);
+```
+This service sets the Streammuxer output dimensions for the uniquely named Pipeline. The dimensions cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `width` - [in] new width for the Streammuxer output in pixels.
+* `height` - [in] new height for the Streammuxer output in pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_dimensions_set('my-pipeline', 1280, 720)
+```
+<br>
+
+### *dsl_pipeline_streammux_padding_get*
+```C++
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service returns the current Streammuxer padding-enabled setting for the uniquely named Pipeline. If enabled, each input stream's aspect ratio will be maintained on scaling by padding with black bands.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `endabled` - [out] current value for the padding-enabled property..
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_pipeline_streammux_padding_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_padding_set*
+```C++
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the Streammuxer padding-enabled for the uniquely named Pipeline. The property cannot be updated while the Pipeline is linked and playing/paused.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `enabled` - [in] If true, each input stream's aspect ratio will be maintained on scaling by padding with black bands.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_padding_set('my-pipeline', True)
+```
+<br>
+
+### *dsl_pipeline_streammux_gpuid_get*
+```C++
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
+```
+This service returns the current Streammuxer GPU ID for the uniquely named Pipeline. The default GPU ID is 0. The value can be changed by calling [dsl_pipeline_streammux_gpuid_set](#dsl_pipeline_streammux_gpuid_set)
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `gpuid` - [out] current GPU ID.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, gpuid = dsl_pipeline_streammux_gpuid_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_gpuid_set*
+```C++
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+```
+This service sets the Streammuxer GPU ID for the uniquely named Pipeline. The GPU ID cannot be updated while the Pipeline is linked and playing/paused.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `gpuid` - [in] new GPU ID for the Streammuxer.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_gpuid_set('my-pipeline', 1)
+```
+<br>
+
+### *dsl_pipeline_streammux_nvbuf_mem_type_get*
+```C++
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+```
+This service returns the current Streammuxer [NVIDIA buffer-memory-type](#nvidia-buffer-memory-types) for the uniquely named Pipeline. The default type is `DSL_NVBUF_MEM_TYPE_DEFAULT`. The value can be changed by calling [dsl_pipeline_streammux_nvbuf_mem_type_set](#dsl_pipeline_streammux_nvbuf_mem_type_set)
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `type` - [out] one of the `DSL_NVBUF_MEM_TYPE` [constant values](#nvidia-buffer-memory-types).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, type = dsl_pipeline_streammux_nvbuf_mem_type_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_streammux_nvbuf_mem_type_set*
+```C++
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+```
+This service sets the Streammuxer [NVIDIA buffer-memory-type](#nvidia-buffer-memory-types) for the uniquely named Pipeline. The memory type cannot be updated while the Pipeline is linked and playing/paused.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `type` - [in] one of the `DSL_NVBUF_MEM_TYPE` [constant values](#nvidia-buffer-memory-types).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_streammux_nvbuf_mem_type_set('my-pipeline',
+    DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED)
+```
+<br>
+
+## Common Streammuxer Methods
 ### *dsl_pipeline_streammux_num_surfaces_per_frame_get*
 ```C++
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
@@ -608,7 +758,7 @@ This service sets the attach-sys-ts Streammuxer setting for the named Pipeline. 
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
-* `enabled` - [in] set to true to enabled the attach-sys-ts property, false to disable.
+* `enabled` - [in] set to true to enable the attach-sys-ts property, false to disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
@@ -648,7 +798,7 @@ This service sets the sync-inputs Streammuxer setting for the named Pipeline. Th
 
 **Parameters**
 * `pipeline` - [in] unique name for the Pipeline to update.
-* `enabled` - [in] set to true to enabled the sync-inputs property, false to disable.
+* `enabled` - [in] set to true to enable the sync-inputs property, false to disable.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
@@ -781,6 +931,131 @@ retval = dsl_pipeline_streammux_pph_remove('my-pipeline', 'my-source-meter-pph')
 
 <br>
 
+## Pipeline Methods
+### *dsl_pipeline_component_add*
+```C++
+DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, const wchar_t* component);
+```
+Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, when the Pipeline already has one. The Component's `in-use` state will be set to `true` on successful add.
+
+If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `component` - [in] unique name of the Component to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
+retval = dsl_pipeline_new('my-pipeline')
+
+retval = dsl_pipeline_component_add('my-pipeline', 'my-camera-source')
+```
+
+<br>
+
+### *dsl_pipeline_component_add_many*
+```C++
+DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, const wchar_t** components);
+```
+Adds a list of named components to a named Pipeline. The add service will fail if any of the components are currently `in-use` by any Pipeline. The add service will fail if any of the components to add are a `one-only` type and the Pipeline already has one. All of the component's `in-use` states will be set to true on successful add.
+
+If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `components` - [in] a NULL terminated array of uniquely named Components to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
+retval = dsl_display_new('my-tiled-display', 1280, 720)
+retval = dsl_pipeline_new('my-pipeline')
+
+retval = dsl_pipeline_component_add_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
+```
+
+<br>
+
+### *dsl_pipeline_component_list_size*
+```C++
+uint dsl_pipeline_list_size(wchar_t* pipeline);
+```
+This method returns the size of the current list of Components `in-use` by the named Pipeline
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+
+**Returns**
+* The size of the list of Components currently in use
+
+<br>
+
+### *dsl_pipeline_component_remove*
+```C++
+DslReturnType dsl_pipeline_component_remove(const wchar_t* pipeline, const wchar_t* component);
+```
+Removes a single named Component from a named Pipeline. The remove service will fail if the Component is not currently `in-use` by the Pipeline. The Component's `in-use` state will be set to `false` on successful removal.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `component` - [in] unique name of the Component to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_component_remove('my-pipeline', 'my-camera-source')
+```
+<br>
+
+### *dsl_pipeline_component_remove_many*
+```C++
+DslReturnType dsl_pipeline_component_remove_many(const wchar_t* pipeline, const wchar_t** components);
+```
+Removes a list of named components from a named Pipeline. The remove service will fail if any of the components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal.
+
+If a Pipeline is in a `playing` or `paused` state, the service will attempt a dynamic update if possible, returning from the call with the Pipeline in the same state.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `components` - [in] a NULL terminated array of uniquely named Components to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_component_remove_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
+```
+
+<br>
+
+### *dsl_pipeline_component_remove_all*
+```C++
+DslReturnType dsl_pipeline_component_add_(const wchar_t* pipeline);
+```
+Removes all child components from a named Pipeline. The remove service will fail if any of the components are currently `not-in-use` by the named Pipeline.  All of the removed component's `in-use` state will be set to `false` on successful removal.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_component_remove_all('my-pipeline')
+```
+
+<br>
 
 ### *dsl_pipeline_state_change_listener_add*
 ```C++
@@ -1173,7 +1448,7 @@ Except for the prefix, this method performs the identical service as
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
+* [Demuxer, Remuxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pad-probe-handler.md)

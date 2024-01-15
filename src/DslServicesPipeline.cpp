@@ -182,6 +182,10 @@ namespace DSL
         }
     }
     
+    //----------------------------------------------------------------------------
+    // NEW STREAMMUX SERVICES - Start
+    //----------------------------------------------------------------------------
+    
     DslReturnType Services::PipelineStreammuxConfigFileGet(const char* name, 
         const char** configFile)
     {
@@ -298,6 +302,10 @@ namespace DSL
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
+
+    //----------------------------------------------------------------------------
+    // NEW STREAMMUX SERVICES - End
+    //----------------------------------------------------------------------------
 
     DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameGet(const char* name,
         uint* num)    
@@ -531,7 +539,296 @@ namespace DSL
             return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
     }
+
+    DslReturnType Services::PipelineStreammuxBatchPropertiesGet(const char* name,
+        uint* batchSize, int* batchTimeout)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            m_pipelines[name]->GetStreammuxBatchProperties(batchSize, batchTimeout);
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammux batch-size = " 
+                << *batchSize << " and batch-timeout = " 
+                << *batchTimeout << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception getting the Streammux batch properties");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    // OLD STREAMMUX SERVICES - Start
+    //----------------------------------------------------------------------------
+
+    DslReturnType Services::PipelineStreammuxBatchPropertiesSet(const char* name,
+        uint batchSize, int batchTimeout)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetStreammuxBatchProperties(batchSize, batchTimeout))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to set Streammux batch-size = "
+                    << batchSize << " and batch-timeout = "
+                    << batchTimeout);
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set batch-size = " 
+                << batchSize << " and batch-timeout = " 
+                << batchTimeout << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting the Streammux batch properties");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
     
+    DslReturnType Services::PipelineStreammuxNvbufMemTypeGet(const char* name, 
+        uint* type)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *type = m_pipelines[name]->GetStreammuxNvbufMemType();
+            
+            LOG_INFO("Pipeline '" << name << "' returned nvbuf memory type = " 
+                << *type << " successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception getting the Streammux nvbuf memory type");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineStreammuxNvbufMemTypeSet(const char* name, 
+        uint type)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (type > DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY)
+            {
+                LOG_INFO("Invalid nvbuf memory type " << type <<
+                    " for Pipeline '" << name <<"'");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            if (!m_pipelines[name]->SetStreammuxNvbufMemType(type))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Streammux nvbuf memory type = "
+                    << type);
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set nvbuf memeory type = " 
+                << type << "  successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting the Streammux nvbuf memory type");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineStreammuxGpuIdGet(const char* name, uint* gpuid)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *gpuid = m_pipelines[name]->GetGpuId();
+
+            LOG_INFO("Current GPU ID = " << *gpuid 
+                << " for Pipeline '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw exception getting GPU ID");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PipelineStreammuxGpuIdSet(const char* name, uint gpuid)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetGpuId(gpuid))
+            {
+                LOG_INFO("Pipeline '" << name 
+                    << "' faild to set GPU ID = " << gpuid);
+                return DSL_RESULT_COMPONENT_SET_GPUID_FAILED;
+            }
+
+            LOG_INFO("New GPU ID = " << gpuid 
+                << " for Pipeline '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+            }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw exception setting GPU Id");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PipelineStreammuxDimensionsGet(const char* name,
+        uint* width, uint* height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            m_pipelines[name]->GetStreammuxDimensions(width, height);
+            
+            LOG_INFO("Pipeline '" << name << "' returned Streammux width = " 
+                << *width << " and  height = " << *height << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting the Streammux output dimensions");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxDimensionsSet(const char* name,
+        uint width, uint height)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetStreammuxDimensions(width, height))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Streammux output dimensions");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set Streammux width = " 
+                << width << " and Streammux height = " << height << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting the Streammux output dimensions");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxPaddingGet(const char* name,
+        boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *enabled = m_pipelines[name]->GetStreammuxPadding();
+
+            LOG_INFO("Pipeline '" << name << "' returned padding Enabled = " 
+                << *enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Streammux padding enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxPaddingSet(const char* name,
+        boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetStreammuxPadding(enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Streammux padding enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name << "' set Streammux padding enabled = " 
+                << enabled << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting Streammux padding enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    //----------------------------------------------------------------------------
+    // OLD STREAMMUX SERVICES - End
+    //----------------------------------------------------------------------------
+
     DslReturnType Services::PipelineStreammuxTilerAdd(const char* name,
         const char* tiler)    
     {

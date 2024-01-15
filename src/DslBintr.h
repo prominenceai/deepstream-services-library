@@ -409,7 +409,7 @@ namespace DSL
          * @brief Gets the current GPU ID used by this Bintr
          * @return the ID for the current GPU in use.
          */
-        uint GetGpuId()
+        virtual uint GetGpuId()
         {
             LOG_FUNC();
 

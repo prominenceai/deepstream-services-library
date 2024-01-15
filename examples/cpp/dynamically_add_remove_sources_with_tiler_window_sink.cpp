@@ -237,18 +237,28 @@ int main(int argc, char** argv)
             pipeline_components);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Set the Pipeline's config-file to configure the min-frame-rate
-        retval = dsl_pipeline_streammux_config_file_set(L"pipeline",
-            streammux_config_file.c_str());
-        if (retval != DSL_RESULT_SUCCESS) break;
-            
         // IMPORTANT: we need to explicitely set the Streammuxer batch-size,
         // otherwise the Pipeline will use the current number of Sources when set to 
         // Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_size_set(L"pipeline",
-            MAX_SOURCE_COUNT);
-        if (retval != DSL_RESULT_SUCCESS) break;
 
+        // New Streammux uses config file with overall-min-fps
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            retval = dsl_pipeline_streammux_config_file_set(L"pipeline",
+                streammux_config_file.c_str());
+            if (retval != DSL_RESULT_SUCCESS) break;
+                
+            retval = dsl_pipeline_streammux_batch_size_set(L"pipeline",
+                MAX_SOURCE_COUNT);
+        }
+        // Old Streammux we set the batch-timeout along with the batch-size
+        else
+        {
+            retval = dsl_pipeline_streammux_batch_properties_set(L"pipeline", 
+                MAX_SOURCE_COUNT, 40000);
+        }
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
         // Create a Stream-Event Pad Probe Handler (PPH) to manage new Streammuxer 
         // stream-events: stream-added, stream-ended, and stream-deleted.
         retval = dsl_pph_stream_event_new(L"stream-event-pph",

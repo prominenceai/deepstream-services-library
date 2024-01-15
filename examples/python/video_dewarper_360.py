@@ -189,8 +189,13 @@ def main(args):
         # -----------------------------------------------------------------------------
         # IMPORTANT! We need to set the Stream-muxer's batch-size equal to the
         # number of sources (1) times the number of surfaces per frame (4)
-        retval = dsl_pipeline_streammux_batch_size_set('pipeline', 
-            batch_size=4)
+        if dsl_info_use_new_nvstreammux_get():
+            retval = dsl_pipeline_streammux_batch_size_set('pipeline', 
+                batch_size=4)
+        else:
+            retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
+                batch_size=4, batch_timeout=-1)
+        
         if retval != DSL_RETURN_SUCCESS:
             break
         

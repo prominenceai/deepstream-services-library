@@ -34,6 +34,23 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_NEW_NVSTREAMMUX_ENABLED() do \
+{ \
+    if (DSL::Services::GetServices()->UseNewStreammuxGet()) \
+    { \
+        LOG_ERROR("USE_NEW_NVSTREAMMUX must NOT be set to 'yes' to enabled service"); \
+        return DSL_RESULT_API_NOT_ENABLED; \
+    } \
+}while(0); 
+
+#define RETURN_IF_NEW_NVSTREAMMUX_DISABLED() do \
+{ \
+    if (!DSL::Services::GetServices()->UseNewStreammuxGet()) \
+    { \
+        LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to 'yes' to enabled service"); \
+        return DSL_RESULT_API_NOT_ENABLED; \
+    } \
+}while(0); 
 
 DslReturnType dsl_display_type_rgba_color_custom_new(const wchar_t* name, 
     double red, double green, double blue, double alpha)
@@ -6530,9 +6547,13 @@ DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name,
         cstrName.c_str(), batch_size);
 }
 
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+
 DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
     const wchar_t* branch, const wchar_t** config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branch);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -6560,6 +6581,7 @@ DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name,
 DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
     const wchar_t* branch, const wchar_t* config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branch);
     RETURN_IF_PARAM_IS_NULL(config_file);
@@ -6574,7 +6596,67 @@ DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name,
     return DSL::Services::GetServices()->TeeRemuxerBranchConfigFileSet(
         cstrName.c_str(), cstrBranch.c_str(), cstrConfig.c_str());
 }
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - Start
+
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+    RETURN_IF_PARAM_IS_NULL(batch_timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesGet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesSet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsSet(
+        cstrName.c_str(), width, height);
+}
     
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - End
+
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -9087,9 +9169,14 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
 DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
     const wchar_t** config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(config_file);
 
@@ -9114,6 +9201,7 @@ DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
     const wchar_t* config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(config_file);
     
@@ -9129,6 +9217,7 @@ DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
     uint* batch_size)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
 
@@ -9142,6 +9231,7 @@ DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
     uint batch_size)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -9150,6 +9240,153 @@ DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name,
     return DSL::Services::GetServices()->PipelineStreammuxBatchSizeSet(
         cstrName.c_str(), batch_size);
 }
+
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - End
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+// OLD NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+    RETURN_IF_PARAM_IS_NULL(batch_timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesGet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxBatchPropertiesSet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxDimensionsSet(
+        cstrName.c_str(), width, height);
+}    
+
+DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxPaddingGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxPaddingSet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeGet(cstrName.c_str(),
+        type);
+}
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeSet(cstrName.c_str(),
+        type);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(gpuid);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdGet(
+        cstrName.c_str(), gpuid);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdSet(
+        cstrName.c_str(), gpuid);
+}
+
+
+//------------------------------------------------------------------------------------
+// OLD NVSTREAMMUX SERVICES - End
+//------------------------------------------------------------------------------------
 
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
     const wchar_t* name, uint* num)
@@ -10351,6 +10588,11 @@ void dsl_delete_all()
 const wchar_t* dsl_info_version_get()
 {
     return DSL_VERSION;
+}
+
+boolean dsl_info_use_new_nvstreammux_get()
+{
+    return DSL::Services::GetServices()->UseNewStreammuxGet();
 }
 
 uint dsl_info_gpu_type_get(uint gpu_id)

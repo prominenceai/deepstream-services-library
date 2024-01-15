@@ -186,8 +186,16 @@ SCENARIO( "A Pipeline can add a Source and Overlay-Sink dynamically",
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
-            2) == DSL_RESULT_SUCCESS );
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+                2) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
+                2, -1) == DSL_RESULT_SUCCESS );
+        }
 
         REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -313,8 +321,16 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
-            3) == DSL_RESULT_SUCCESS );
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+                3) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
+                3, 40000) == DSL_RESULT_SUCCESS );
+        }
 
         REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );
@@ -430,8 +446,16 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
         REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
             components) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
-            4) == DSL_RESULT_SUCCESS );
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_pipeline_streammux_batch_size_set(pipeline_name.c_str(), 
+                4) == DSL_RESULT_SUCCESS );
+        }
+        else
+        {
+            REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
+                4, 40000) == DSL_RESULT_SUCCESS );
+        }
 
         REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );

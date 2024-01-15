@@ -100,9 +100,17 @@ use-case -- can play]", "[dewarper-behavior]")
             REQUIRE( dsl_dewarper_num_batch_buffers_get(dewarper_name.c_str(), 
                 &num_surfaces) == DSL_RESULT_SUCCESS );
                 
-            REQUIRE( dsl_pipeline_streammux_batch_size_set(
-                pipeline_name.c_str(), num_surfaces) 
-                    == DSL_RESULT_SUCCESS );
+            if (dsl_info_use_new_nvstreammux_get())
+            {
+                REQUIRE( dsl_pipeline_streammux_batch_size_set(
+                    pipeline_name.c_str(), num_surfaces) 
+                        == DSL_RESULT_SUCCESS );
+            }
+            else
+            {
+                REQUIRE( dsl_pipeline_streammux_batch_properties_set(pipeline_name.c_str(), 
+                    num_surfaces, -1) == DSL_RESULT_SUCCESS );
+            }
             REQUIRE( dsl_pipeline_streammux_num_surfaces_per_frame_set(
                 pipeline_name.c_str(), num_surfaces) == DSL_RESULT_SUCCESS );
                 
@@ -137,8 +145,8 @@ Projection use-case -- can play]", "[dewarper-behavior]")
             
         uint camera_id(0); // csv files are not used 
 
-        uint sink_width(3680);
-        uint sink_height(2428);        
+        uint muxer_width(3680);
+        uint muxer_height(2428);        
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -165,6 +173,12 @@ Projection use-case -- can play]", "[dewarper-behavior]")
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
 
+            if (!dsl_info_use_new_nvstreammux_get())
+            {
+                REQUIRE( dsl_pipeline_streammux_dimensions_set(
+                    pipeline_name.c_str(), muxer_width, muxer_height) 
+                        == DSL_RESULT_SUCCESS );
+            }
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 

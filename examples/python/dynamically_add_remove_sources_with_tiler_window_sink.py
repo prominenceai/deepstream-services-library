@@ -217,17 +217,24 @@ def main(args):
         # Update the current source count
         cur_source_count = 1
 
-        # Set the Pipeline's config-file
-        retval = dsl_pipeline_streammux_config_file_set('pipeline',
-            streammux_config_file)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
+        
         # IMPORTANT: we need to explicitely set the stream-muxer Batch size,
         # otherwise the Pipeline will use the current number of Sources when set to 
         # Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_size_set('pipeline',
-            MAX_SOURCE_COUNT)
+        
+        # New Streammux uses config file with overall-min-fps
+        if dsl_info_use_new_nvstreammux_get():
+            retval = dsl_pipeline_streammux_config_file_set('pipeline',
+                streammux_config_file)
+            if retval != DSL_RETURN_SUCCESS:
+                break
+            retval = dsl_pipeline_streammux_batch_size_set('pipeline',
+                MAX_SOURCE_COUNT)
+
+        # Old Streammux we set the batch-timeout along with the batch-size
+        else:
+            retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
+                MAX_SOURCE_COUNT, 40000)
         if retval != DSL_RETURN_SUCCESS:
             break
 

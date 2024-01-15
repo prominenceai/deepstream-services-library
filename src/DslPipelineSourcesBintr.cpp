@@ -37,8 +37,17 @@ namespace DSL
         , m_areSourcesLive(false)
         , m_batchSizeSetByClient(false)
         , m_frameDuration(-1)   // workaround for nvidia bug
+        , m_useNewStreammux(false)
     {
         LOG_FUNC();
+
+        const char* value = getenv("USE_NEW_NVSTREAMMUX");
+        if (value and std::string(value) == "yes")
+        {
+            LOG_WARN(
+                "USE_NEW_NVSTREAMMUX is set to yes - enabling new Streammux Services");
+            m_useNewStreammux = true;
+        }
 
         // Need to forward all children messages for this PipelineSourcesBintr,
         // which is the parent bin for the Pipeline's Streammux, so the Pipeline
@@ -67,6 +76,28 @@ namespace DSL
         LOG_INFO("  max-latency            : " << m_maxLatency);
         LOG_INFO("  frame-duration         : " << m_frameDuration);
         LOG_INFO("  drop-pipeline-eos      : " << m_dropPipelineEos);
+
+        if (!m_useNewStreammux)
+        {
+            // Must update the default dimensions of 0x0 or the Pipeline
+            // will fail to play;
+            SetStreammuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
+                DSL_STREAMMUX_DEFAULT_HEIGHT);
+                
+            m_pStreammux->GetAttribute("batched-push-timeout", &m_batchTimeout);
+            m_pStreammux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+            m_pStreammux->GetAttribute("gpu-id", &m_gpuId);
+            m_pStreammux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+            m_pStreammux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
+            
+            LOG_INFO("  width                  : " << m_streamMuxWidth);
+            LOG_INFO("  height                 : " << m_streamMuxHeight);
+            LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
+            LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
+            LOG_INFO("  gpu-id                 : " << m_gpuId);
+            LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
+            LOG_INFO("  buffer-pool-size       : " << m_bufferPoolSize);
+        }
 
         AddChild(m_pStreammux);
 
@@ -325,11 +356,10 @@ namespace DSL
             }
         }
         // Set the Batch size to the nuber of sources owned if not already set
-        // IMPORTANT! we no longer set batch-size with new nvstreammux, 
-        // by default, "adaptive-batching" is set to true, config file or not.
         if (!m_batchSizeSetByClient)
         {
             m_batchSize = m_pChildSources.size();
+            m_pStreammux->SetAttribute("batch-size", m_batchSize);
         }
         m_isLinked = true;
         
@@ -360,7 +390,11 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             imap.second->UnlinkAll();
         }
-        m_batchSize = 0;
+        // Set the Batch size to the nuber of sources owned if not already set
+        if (!m_batchSizeSetByClient)
+        {
+            m_batchSize = 0;
+        }
         m_isLinked = false;
     }
     
@@ -398,12 +432,13 @@ namespace DSL
 
         m_areSourcesLive = isLive;
         
-        LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
-            << "' for Streammuxer '" << GetName() << "'");
-        
-        // IMPORTANT! nvidia has removed the "is-live" property from the 
-        // new Streammux implementation.  Setting is used by the Pipeline only.
-        
+        if (!m_useNewStreammux)
+        {
+            LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
+                << "' for Streammuxer '" << GetName() << "'");
+            
+            m_pStreammux->SetAttribute("live-source", m_areSourcesLive);
+        }
         return true;
     }
 
@@ -569,4 +604,130 @@ namespace DSL
             m_pSrcPadDsEventProbe->RemovePadProbeHandler(m_pEosConsumer);
         }
     }
+
+    void PipelineSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
+        int* batchTimeout)
+    {
+        LOG_FUNC();
+
+        *batchSize = m_batchSize;
+        *batchTimeout = m_batchTimeout;
+    }
+
+    bool PipelineSourcesBintr::SetStreammuxBatchProperties(uint batchSize, 
+        int batchTimeout)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update batch properties for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_batchSizeSetByClient = true;
+        m_batchSize = batchSize;
+        m_batchTimeout = batchTimeout;
+
+        m_pStreammux->SetAttribute("batch-size", m_batchSize);
+        m_pStreammux->SetAttribute("batched-push-timeout", m_batchTimeout);
+        
+        return true;
+    }
+    
+    uint PipelineSourcesBintr::GetStreammuxNvbufMemType()
+    {
+        LOG_FUNC();
+
+        return m_nvbufMemType;
+    }
+
+    bool PipelineSourcesBintr::SetStreammuxNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update nvbuf-memory-type for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = type;
+        m_pStreammux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        
+        return true;
+    }
+
+    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_gpuId = gpuId;
+        m_pStreammux->SetAttribute("gpu-id", m_gpuId);
+        
+        LOG_INFO("PipelineSourcesBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+            
+        return true;
+    }
+
+    void PipelineSourcesBintr::GetStreammuxDimensions(uint* width, uint* height)
+    {
+        LOG_FUNC();
+        
+        *width = m_streamMuxWidth;
+        *height = m_streamMuxHeight;
+    }
+
+    bool PipelineSourcesBintr::SetStreammuxDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update Streammux dimensions for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_streamMuxWidth = width;
+        m_streamMuxHeight = height;
+
+        m_pStreammux->SetAttribute("width", m_streamMuxWidth);
+        m_pStreammux->SetAttribute("height", m_streamMuxHeight);
+        
+        return true;
+    }
+    
+    boolean PipelineSourcesBintr::GetStreammuxPaddingEnabled()
+    {
+        LOG_FUNC();
+        
+        return m_isPaddingEnabled;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxPaddingEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_isPaddingEnabled = enabled;
+        
+        m_pStreammux->SetAttribute("enable-padding", m_isPaddingEnabled);
+        return true;
+    }
+
 }
