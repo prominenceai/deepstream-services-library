@@ -3021,7 +3021,7 @@ _dsl.dsl_pph_buffer_timeout_new.argtypes = [c_wchar_p,
 _dsl.dsl_pph_buffer_timeout_new.restype = c_uint
 def dsl_pph_buffer_timeout_new(name, timeout, handler, client_data):
     global _dsl
-    handler_cb = DSL_PPH_BUFFER_TIMEOUT_HANDLER(client_handler)
+    handler_cb = DSL_PPH_BUFFER_TIMEOUT_HANDLER(handler)
     callbacks.append(handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
@@ -3035,13 +3035,13 @@ def dsl_pph_buffer_timeout_new(name, timeout, handler, client_data):
 _dsl.dsl_pph_stream_event_new.argtypes = [c_wchar_p, 
     DSL_PPH_STREAM_EVENT_HANDLER, c_void_p]
 _dsl.dsl_pph_stream_event_new.restype = c_uint
-def dsl_pph_stream_event_new(name, client_handler, client_data):
+def dsl_pph_stream_event_new(name, handler, client_data):
     global _dsl
-    client_handler_cb = DSL_PPH_STREAM_EVENT_HANDLER(client_handler)
-    callbacks.append(client_handler_cb)
+    handler_cb = DSL_PPH_STREAM_EVENT_HANDLER(handler)
+    callbacks.append(handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result =_dsl.dsl_pph_stream_event_new(name, client_handler_cb, c_client_data)
+    result =_dsl.dsl_pph_stream_event_new(name, handler_cb, c_client_data)
     return int(result)
 
 ##
