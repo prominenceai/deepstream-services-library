@@ -1469,8 +1469,12 @@ namespace DSL
         m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
-        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
-
+        
+        // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+        if (NVDS_VERSION_MINOR < 3)
+        {
+            m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        }
         // Set the full capabilities (format, dimensions, and framerate)
         // Note: nvarguscamerasrc supports NV12 and P010_10LE formats only.
         if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
@@ -1489,7 +1493,6 @@ namespace DSL
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  sensor-id         : " << m_sensorId);
-        LOG_INFO("  bufapi-version    : " << TRUE);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
@@ -2056,8 +2059,11 @@ namespace DSL
             // aarch64 only
             if (m_cudaDeviceProp.integrated)
             {
-                // 6.2 and not 6.3?
-                g_object_set(pObject, "bufapi-version", TRUE, NULL);
+                // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+                if (NVDS_VERSION_MINOR < 3)
+                {
+                    g_object_set(pObject, "bufapi-version", TRUE, NULL);
+                }
                 g_object_set(pObject, "enable-max-performance", TRUE, NULL);
             }
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
@@ -3068,6 +3074,11 @@ namespace DSL
         // aarch64 (Jetson) only
         if (m_cudaDeviceProp.integrated)
         {
+            // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+            if (NVDS_VERSION_MINOR < 3)
+            {
+                m_pDecoder->SetAttribute("bufapi-version", TRUE);
+            }
             m_pDecoder->SetAttribute("enable-max-performance", TRUE);
         }
         m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
