@@ -1541,9 +1541,13 @@ namespace DSL
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
-            m_pEncoder->SetAttribute("preset-level", true);
-            m_pEncoder->SetAttribute("insert-sps-pps", true);
-            m_pEncoder->SetAttribute("bufapi-version", true);
+            // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+            if (NVDS_VERSION_MINOR < 3)
+            {
+                m_pEncoder->SetAttribute("bufapi-version", TRUE);
+            }
+            m_pEncoder->SetAttribute("preset-level", TRUE);
+            m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
         }
         else // x86_64
         {
