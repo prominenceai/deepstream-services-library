@@ -45,7 +45,7 @@ The core function of DSL is to provide a [simple and intuitive API](/docs/api-re
 
 The general approach to using DSL is to:
 1. Create several uniquely named [Components](/docs/api-reference-list.md), each with a specific task to perform. 
-2. Define one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) and/or [Pad Probe Handlers](/docs/api-pph.md)(optional).
+2. Define one or more [Client callback functions](/docs/api-pipeline.md#client-callback-typedefs) and/or [Pad Probe Handlers](/docs/api-pph.md) (optional).
 4. Add the Components and Callback functions to a new [Pipeline](/docs/api-pipeline.md).
 5. Play the Pipeline and start/join the main execution loop.
 
@@ -74,7 +74,7 @@ retval += dsl_osd_new('my-osd', text_enabled=True, clock_enabled=True,
 
 # new X11/EGL Window Sink for video rendering - Pipeline will create a 
 # new XWindow if one is not provided.
-retval += dsl_sink_window_new('my-window-sink', width=1280, height=720)
+retval += dsl_sink_window_egl_new('my-window-sink', width=1280, height=720)
 
 if retval != DSL_RESULT_SUCCESS:
     # one of the components failed to create, handle error
@@ -123,17 +123,17 @@ There are nine primary classes of [Components](/docs/api-component.md) that can 
 [Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source (and one [Sink](/docs/api-sink.md)) to transition to a state of `PLAYING`. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Streammuxer -- as long as all Sources are of the same play-type; live vs. non-live. 
 
 There are eleven (11) types of Source components supported, all are currently Video ony. Audio-Video and Audo only Sources are currently in development.
-* **App Source** - Allows the application to insert raw samples or buffers into a DSL Pipeline.
-* **CSI Source** - Camera Serial Interface (CSI) Source - Jetson platform only.
-* **USB Source** - Universal Serial Bus (USB) Source.
-* **URI Source** - Uniform Resource Identifier ( URI ) Source.
-* **File Source** - Derived from URI Source with fixed inputs.
-* **RTSP Source** - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
-* **Interpipe Source** - Receives pipeline buffers and events from an Interpipe Sink.  See [Interpipe Services](interpipe-services) for more information.
-* **Single Image Source** - Single frame to EOS.
-* **Multi Image Source** - Streamed at one image file per frame.
-* **Streaming Image Source** - Single image streamed at a given frame rate.
-* **Duplicate Source** - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
+* [App Source](/docs/api-source.md#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
+* [CSI Source](/docs/api-source.md#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
+* [USB Source](/docs/api-source.md#dsl_source_usb_new) - Universal Serial Bus (USB) Source.
+* [URI Source](/docs/api-source.md#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
+* [File Source](/docs/api-source.md#dsl_source_file_new) - Derived from URI Source with fixed inputs.
+* [RTSP Source](/docs/api-source.md#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
+* [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new) - Receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Single Image Source](/docs/api-source.md#dsl_source_image_single_new) - Single frame to EOS.
+* [Multi Image Source](/docs/api-source.md#dsl_source_image_multi_new) - Streamed at one image file per frame.
+* [Streaming Image Source](/docs/api-source.md#dsl_source_image_stream_new)  - Single image streamed at a given frame rate. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Duplicate Source](/docs/api-source.md#dsl_source_duplicate_new) - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 
 All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components support multiple codec formats, including H.264, H.265, and JPEG. 
 
@@ -160,7 +160,7 @@ NVIDIA® GStreamer Inference Engines (GIEs) and Triton Inference Servers (TISs) 
 * Multiple Primary Gst Inference Engines (PGIE) or Primary Triton Inference Servers (PTIS) linked in succession to operate on the full frame
 * Multiple Secondary Gst Inference Engines (SGIEs) or Secondary Triton Inference Servers (STISs) that can Infer-on the output of either Primary or other Secondary GIEs/TISs. 
 
-After creation, GIEs and TISs can be updated to use a new model-engine (GIE only), config file, and/or inference interval 
+After creation, GIEs and TISs can be updated to use a new model-engine, config file (GIE only), and/or inference interval 
 
 With Primary GIEs and TISs, applications can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
@@ -181,7 +181,7 @@ Any custom library that implements the [NvDsTracker API](https://docs.nvidia.com
 
 Applications using Tracker components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
-See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Library Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.3.02.html#wwpID0E0Q20HA) for additional information.
+See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#low-level-tracker-comparisons-and-tradeoffs) for additional information.
 
 ## Multi-Source Tiler
 All Source components connect to the Pipeline's internal Streammuxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the muxed-batched-stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
@@ -192,7 +192,7 @@ Tiler components transform the batched-streams into a 2D grid array of tiles, on
 retval = dsl_pipeline_component_add_many('my-pipeline', 
     ['src-1', 'src-2', 'pgie', 'tiler', 'osd', 'rtsp-sink', 'window-sink', None])
 ```
-Tilers have dimensions, width and height in pixels, and rows and columns settings. The Tiler API provides services to show a single source with [`dsl_tiler_source_show_set`](/docs/api-timer.md#dsl_tiler_source_show_set) and return to the tiled view with [`dsl_tiler_source_show_all`](/docs/api-tiler.md#dsl_tiler_source_show_all). Refer to the section on [Dynamic Pipelines](#dynamic-pipelines) for more information.
+Tilers have dimensions, width and height in pixels, and rows and columns settings. The Tiler API provides services to show a single source with [`dsl_tiler_source_show_set`](docs/api-tiler.md#dsl_tiler_source_show_set) and return to the tiled view with [`dsl_tiler_source_show_all`](/docs/api-tiler.md#dsl_tiler_source_show_all). Refer to the section on [Dynamic Pipelines](#dynamic-pipelines) for more information.
 
 Applications using Tiler components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
@@ -206,25 +206,29 @@ See the [On-Screen Display API](/docs/api-osd.md) reference section for more inf
 Applications using On-Screen Display components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 ##  Sinks
-Sinks are the end components in each Pipeline or Branch. All Pipelines or Branches require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- a case where the `batch-meta-data` produced from the components in the Pipeline are the only data of interest. There are currently twelve (12) types of Sink Components that can be added.
+Sinks are the end components in each Pipeline or Branch. All Pipelines or Branches require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- a case where the `batch-meta-data` produced from the components in the Pipeline are the only data of interest. There are currently fifteen (15) types of Sink Components that can be added.
 
-1. **Overlay Sink** - renders/overlays video on a Parent display **(Jetson Platform Only)**
-2. **Window Sink** - renders/overlays video on a Parent XWindow
-3. **File Sink** - encodes video to a media container file
-4. **Record Sink** - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
-5. **RTSP Server Sink** - streams encoded video via an RTSP Server on a specified port
-6. **WebRTC Sink** - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
-7. **Message Sink** - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
-8. **Application Sink** - allows the application to receive buffers or samples from a DSL Pipeline.
-9. **Interpipe Sink** -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new).
-10. **Multi-Image Sink** - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
-11. **Frame-Capture Sink** - encodes and saves video frames to JPEG files on application/user demand.
-12. **Fake Sink** - consumes/drops all data.
-**Overlay** and **Window Sinks** have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
+* [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) - renders/overlays video on a Parent XWindow **(Jetson Platform Only)**... based on the 3D graphics rendering API.
+* [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) - renders/overlays video on a Parent XWindow... based on the EGL API.
+* [V4L2 Sink](/docs/api-sink.md#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
+* [File Sink](/docs/api-sink.md#dsl_sink_file_new) - encodes video to a media container file
+* [Record Sink](/docs/api-sink.md#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
+* [RTMP Sink](/docs/api-sink.md#dsl_sink_record_new) - streams encoded video using the Real-time Messaging Protocol (RTMP) to social media networks, live streaming platforms, and media servers.
+* [RTSP Client Sink](/docs/api-sink.md#dsl_sink_rtsp_client_new) - streams encoded video using the Real-time Streaming Protocol (RTSP) as a client of a media server. 
+* [RTSP Server Sink](/docs/api-sink.md#dsl_sink_rtsp_server_new) - streams encoded video via an RTSP (UDP) Server on a specified port.
+* [WebRTC Sink](/docs/api-sink.md#dsl_sink_webrtc_new) - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
+* [Message Sink](/docs/api-sink.md#dsl_sink_message_new) - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+* [Application Sink](/docs/api-sink.md#dsl_sink_app_new) - allows the application to receive buffers or samples from a DSL Pipeline.
+* [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new) -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Multi-Image Sink](/docs/api-sink.md#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
+* [Frame-Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on demand or on schedule. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+* [Fake Sink](/docs/api-sink.md#dsl_sink_fake_new) - consumes/drops all data.
 
-The **File** and **Record Encoder Sinks** support two codec formats: H.264 and H.265 with two media container formats: MP4 and MKV.  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
+**3D** and **EGL** **Window Sinks** have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 
 
-**RTSP Server Sinks** create RTSP servers that stream H.264 or H.265 encoded video, and are configured when the Pipeline is called to Play. The server is started and attached to the `main-loop` context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
+The **Encode Sinks** (File, Record, RTMP, RTSP Client, RTSP Server, and WebRTC) support two codec formats: H.264 and H.265. Sinks that stream to file support two media container formats: MP4 and MKV  See [Smart Recording](#smart-recording) below for more information on using Record Sinks.
+
+**RTSP Server Sinks** create RTSP servers - H.264 or H.265 - that are configured when the Pipeline is called to Play. The server is started and attached to the `main-loop` context once `[dsl_main_loop_run`](#dsl-main-loop-functions) is called. Once started, the server can accept connections based on the Sink's unique name and settings provided on creation. 
 
 With Sinks, clients can add one or more [Pad Probe Handlers](#pad-probe-handlers) to process the batched stream buffers and metadata for each frame and detected-object -- on the input (sink pad) only.
 
@@ -251,13 +255,26 @@ See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for m
 ## Pad Probe Handlers
 Pipeline components are linked together using directional ["pads"](https://gstreamer.freedesktop.org/documentation/gstreamer/gstpad.html?gi-language=c) with a Source Pad from one component as the producer of data connected to the Sink Pad of the next component as the consumer. Data flowing over the component’s pads can be monitored, inspected and updated using a Pad-Probe with a specific Handler function.
 
-There are three Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Sources, Taps and Secondary GIE's.
-1. New Buffer Timeout Pad Probe Handler - informs the client that a new buffer has not been received within a specified time limit.
-1. Pipeline Meter - measures the throughput for each source in the Pipeline.
-2. Object Detection Event Handler - manages a collection of [Triggers](/docs/api-ode-trigger.md) that invoke [Actions](/docs/api-ode-action.md) on the occurrence of specific frame and object metadata. 
-3. Custom Handler- allows the client to install a callback with custom behavior. 
-
+There are six Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Recording Taps and Secondary GIE's.
+1. [Custom PPH](/docs/api-pph.md#dsl_pph_custom_new) - allows the client to install a callback with custom behavior. 
+2. [Stream Event PPH](/docs/api-pph.md#dsl_pph_stream_event_new) - allows the client to listen for and handle Stream Added, Deleted, and Ended (EOS) events.
+3. [New Buffer Timeout PPH](/docs/api-pph.md#dsl_pph_buffer_timeout_new) - informs the client that a new buffer has not been received within a specified time limit.
+4. [Source Meter PPH](/docs/api-pph.md#dsl_pph_meter_new) - measures the throughput for each source in the Pipeline.
+5. [Object Detection Event PPH](/docs/api-pph.md#dsl_pph_ode_new) - manages a collection of [Triggers](/docs/api-ode-trigger.md) that invoke [Actions](/docs/api-ode-action.md) on the occurrence of specific frame and object metadata. 
+6. [Non-Maximum Processor PPH](/docs/api-pph.md#dsl_pph_nmp_new) - implements an inference cluster algorithm providing a more flexible alternative to the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin.
+ 
 See the [Pad Probe Handler API](/docs/api-pph.md) reference section for additional information.
+
+### Custom Pad Probe Handler
+Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
+
+### Streammuxer Stream Event Pad Probe Handler
+The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
+* The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
+   * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
+   * and when a new Source is added at runtime.
+* A `DSL_PPH_EVENT_STREAM_DELETED` event is sent if a Source is removed at runtime. 
+* A `DSL_PPH_EVENT_STREAM_ENDED` event is sent when the Stream ends (EOS) including when a Source is removed at runtime.
 
 ### New Buffer Timeout Pad Probe Handler
 It can be important for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applications, in the event of new-buffer-timeout, can take informative and/or corrective action.
@@ -267,9 +284,6 @@ The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler)
 
 ### Object Detection Event Pad Probe Handler
 The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
-
-### Custom Pad Probe Handler
-Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
 
 Using Python and [NVIDIA's python bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) for example:
 
@@ -323,7 +337,7 @@ There are seven types for displaying text and shapes.
 * RGBA Polygon
 * RGBA Circle
 
-And three types for displaying source information specific to each frame. 
+And four types for displaying source information specific to each frame. 
 * Source Stream-id
 * Source Unique-id
 * Source Name
@@ -949,7 +963,7 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+    retval = dsl_tracker_ktl_new('tracker', max_width=480, max_height=270)
     if (retval != DSL_RETURN_SUCCESS):
         break
 
@@ -966,8 +980,8 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_sink_rtsp_server_new('rtsp-server-sink', 
-        host='0.0.0.0', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=0, interval=0)
+    retval = dsl_sink_rtsp_new('rtsp-sink', 
+        host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
     if (retval != DSL_RETURN_SUCCESS):
         break
     
@@ -1346,8 +1360,7 @@ typedef uint DslReturnType
 ```Python
 from dsl import *
 
-retVal = dsl_sink_rtsp_server_new('rtsp-server-sink',
-    host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
+retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
 
 if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
     # handle error
@@ -1374,9 +1387,9 @@ The [deepstream-services-library-docker](https://github.com/prominenceai/deepstr
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
+* [Demuxer and Splitter Tees](/docs/api-tee)
 * [On-Screen Display](/docs/api-osd.md)
-* [Sink](/docs/api-sink.md)
+* [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
