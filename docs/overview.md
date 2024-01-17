@@ -120,9 +120,9 @@ There are nine primary classes of [Components](/docs/api-component.md) that can 
 ![DSL Pipeline Components](/Images/dsl-pipeline-components.png)
 
 ## Sources
-[Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source (and one [Sink](/docs/api-sink.md)) to transition to a state of `PLAYING`. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Streammuxer -- as long as all Sources are of the same play-type; live vs. non-live. 
+[Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source (and one [Sink](/docs/api-sink.md)) to transition to a state of `PLAYING`. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream Muxer -- as long as all Sources are of the same play-type; live vs. non-live. 
 
-There are eleven (11) types of Source components supported, all are currently Video ony. Audio-Video and Audo only Sources are currently in development.
+There are eleven (11) types of Source components supported, all are currently Video only. Audio-Video and Audio only Sources are currently in development.
 * [App Source](/docs/api-source.md#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](/docs/api-source.md#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
 * [USB Source](/docs/api-source.md#dsl_source_usb_new) - Universal Serial Bus (USB) Source.
@@ -184,7 +184,7 @@ Applications using Tracker components can add one or more [Pad Probe Handlers](#
 See the [Tracker API](/docs/api-tracker.md) reference section for more details. See NVIDIA's [Low-Level Tracker Comparisons and Tradeoffs](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#low-level-tracker-comparisons-and-tradeoffs) for additional information.
 
 ## Multi-Source Tiler
-All Source components connect to the Pipeline's internal Streammuxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the muxed-batched-stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
+All Source components connect to the Pipeline's internal Stream Muxer -- responsible for batching multiple sources and adding the meta-data structures to each frame -- even when there is only one. When using more that one source, the muxed-batched-stream must either be Tiled **or** Demuxed before reaching an On-Screen Display or Sink component downstream.
 
 Tiler components transform the batched-streams into a 2D grid array of tiles, one per Source component. Tilers output a single stream that can connect to a single On-Screen Display (OSD). When using a Tiler, the OSD (optional) and Sinks (minimum one) are added directly to the Pipeline or Branch to operate on the Tiler's single output stream.
 ```Python
@@ -268,7 +268,7 @@ See the [Pad Probe Handler API](/docs/api-pph.md) reference section for addition
 ### Custom Pad Probe Handler
 Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
 
-### Streammuxer Stream Event Pad Probe Handler
+### Stream Muxer Stream Event Pad Probe Handler
 The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
 * The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
    * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
@@ -388,7 +388,7 @@ Triggers have optional, settable criteria and filters:
 * **Inference Done** - filtering on the Object's inference-done flag.
 * **In-frame Areas** - filters on specific areas (see ODE Areas below) within the frame, with both areas of inclusion and exclusion supported.
 
-Triggers have definable event-limits and frame-limits which can be which can be set, reset when reached, and updated and anytime.  Refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md) for more information.
+Triggers have definable event-limits and frame-limits which can be set, reset when reached, and updated and anytime.  Refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md) for more information.
 
 ### ODE Actions
 **ODE Actions** handle the occurrence of Object Detection Events each with a specific action under the categories below. 
@@ -398,7 +398,7 @@ Triggers have definable event-limits and frame-limits which can be which can be 
 * **Actions on Recordings** - start a new recording session for a Record Tap or Sink.
 * **Actions on Pipelines** - play, pause, and stop Pipelines, add/remove Sources, add/remove Sinks.
 * **Actions on Players** - play, pause, and stop Players.
-* **Actions on Tees** - add/remove Sinks and Branches.
+* **Actions on Branches** - add/remove/move Sinks and Branches.
 * **Actions on Triggers** - disable/enable/reset Triggers
 * **Actions on Areas** - add/remove Areas
 * **Actions on Actions** - disable/enable Actions
@@ -416,7 +416,7 @@ Refer to the [ODE Action API Reference](/docs/api-ode-action.md) for more inform
 * **Polygon Areas** - criteria is met when a specific point of an object's bounding box - south, south-west, west, north-west, north, etc - is within the Polygon 
 
 The following image was produced using: 
-* An Occurrence Trigger to hide/exclude the Object Labels and Bounding Boxs for the detected objects. Note: Labels and Bounding Boxes may be disabled using the OSD API as well.
+* An Occurrence Trigger to hide/exclude the Object Labels and Bounding Boxes for the detected objects. Note: Labels and Bounding Boxes may be disabled using the OSD API as well.
 * Occurrence Trigger filtering on Person Class-Id as criteria, using:
   * A Polygon "Area of Inclusion" as additional criteria,
   * A Fill Object Action to fill the object's bounding-box with an opaque RGBA color when the Trigger criteria is met.
@@ -430,11 +430,11 @@ The above is produced with the following example
 
 # Create a Format Label Action to remove the Object Label from view
 # Note: the label can be disabled with the OSD API as well. 
-retval = dsl_ode_action_format_label_new('remove-label', 
+retval = dsl_ode_action_label_format_new('remove-label', 
     font=None, has_bg_color=False, bg_color=None)
             
 # Create a Format Bounding Box Action to remove the box border from view
-retval = dsl_ode_action_format_bbox_new('remove-border', border_width=0,
+retval = dsl_ode_action_bbox_format_new('remove-border', border_width=0,
     border_color=None, has_bg_color=False, bg_color=None)
 
 # Create an Any-Class Occurrence Trigger for our Hide Action
@@ -492,7 +492,7 @@ Refer to the [ODE Area API Reference](/docs/api-ode-area.md) for more informatio
 ---
 
 ### ODE Line Crossing Analytics
-The Python example [ode_line_cross_object_capture_overlay_image.py](/examples/python/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#dsl_ode_area_line_new()) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics. 
+The Python example [ode_line_cross_object_capture_overlay_image.py](/examples/python/ode_line_cross_object_capture_overlay_image.py) demonstrates how an [ODE Cross Trigger](/docs/api-ode-trigger.md#dsl_ode_trigger_cross_new) with an [ODE Line Area](/docs/api-ode-area.md#ode_area_line_multi_new) and [ODE Accumulator](/docs/api-ode-accumulator.md) can be used to perform line-crossing analytics. 
 
 **Important Note:** [Multi-Line Areas](/docs/api-ode-area.md#ode_area_line_multi_new) and [Polygon Inclusion Areas](/docs/api-ode-area.md#dsl_ode_area_inclusion_new) can be used as well. 
 
@@ -502,7 +502,7 @@ There are two methods of testing and displaying the Object Trace:
 1. using `ALL` points in the vector to generate the trace to test for line-cross. 
 2. using just the `END` points (earlier and latest) to generate the trace to test for line-cross. 
 
-Note that using `ALL` points will add overhead to the processing of each detected object and considerable allocation/deallocation overhead and memory usage if displayed. `End` points are used in the example which is why the traces appear as straight lines. The camera angle and proximity to the objects should be considered when choosing which method to use as well.
+Note that using `ALL` points will add overhead to the processing of each detected object and considerable allocation/deallocation overhead and memory usage if displayed. `End` points are used in the below example which is why the traces appear as straight lines. The camera angle and proximity to the objects should be considered when choosing which method to use as well.
 
 An [ODE Accumulator](/docs/api-ode-accumulator.md) with an [ODE Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) is added to the Cross Trigger to accumulate and display the number of line-crossing occurrences in the IN and OUT directions as shown in the image below.
 
@@ -557,7 +557,7 @@ retval = dsl_display_type_rgba_color_random_new('random-color',
 retval = dsl_ode_trigger_cross_view_settings_set('person-crossing-line',
     enabled=True, color='random-color', line_width=4)
 ```
-The example creates a new [Display Action](/docs/api-ode-action.mddsl_ode_action_display_new) and adds it to a new [ODE Accumulator](/docs/api-ode-accumulator.md). It then adds the Accumulator to the Trigger to complete the setup.
+The example creates a new [Display Action](/docs/api-ode-action.md#dsl_ode_action_display_new) and adds it to a new [ODE Accumulator](/docs/api-ode-accumulator.md). It then adds the Accumulator to the Trigger to complete the setup.
 ```Python
 # Create a new Display Action used to display the Accumulated ODE Occurrences.
 # Format the display string using the occurrences in and out tokens.
@@ -585,16 +585,16 @@ retval = dsl_ode_trigger_accumulator_add('person-crossing-line',
     'cross-accumulator')
    
 ```
-See the [complete example](/examples/python/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-accumulator.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
+See the [complete example](/examples/python/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
 
 ---
 
 ### ODE Heat Mapping
-[ODE Heat Mappers](/docs/api-ode-heat-mapper.md#dsl_ode_heat_mapper_new) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within the corresponding area within the source frame.
+[ODE Heat Mappers](/docs/api-ode-heat-mapper.md) are added to [ODE Triggers](/docs/api-md) to accumulate, map, and display the ODE occurrences over time. The source frame is partitioned into a configurable number of rows and columns, with each rectangle colored with a specific RGBA color value based on the number of occurrences that were detected within the corresponding area within the source frame.
 
 The client application can `get`, `print`, `log`, `file`, and `clear` the metric occurrence data at any time.
 
-The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py](https://github.com/prominenceai/deepstream-services-library/blob/complete_examples/examples/python/ode_occurrence_trigger_with_heat_mapper.py) Python example.
+The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py](/examples/python/ode_occurrence_trigger_with_heat_mapper.py) Python example.
 
 See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more information.
 
@@ -631,7 +631,7 @@ The application adds Source components to the Pipeline by calling [`dsl_pipeline
 Source components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). In the example above, an [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Source](/docs/api-ode-action.md#dsl_ode_action_source_add_new) and [Remove-Source](/docs/api-ode-action.md#dsl_ode_action_source_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Source Updates by the End-User
-The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Pipeline component add/remove service as described above. 
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to either a [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) or [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Pipeline component add/remove service as described above. 
 
 The following examples demonstrate how to add and remove Sources on keyboard input.
 * [`dynamically_add_remove_sources_with_tiler_window_sink.py`](/examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py)
@@ -658,12 +658,12 @@ There are similar services for adding and removing Sinks to and from a Branch. S
 Sink components can be added or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). In the example above, an [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. [Add-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_add_new) and [Remove-Sink](/docs/api-ode-action.md#dsl_ode_action_sink_remove_new) [ODE Actions](/docs/api-ode-action.md) are added to the ODE Trigger(s) to be invoked on the occurrence of an event.
 
 #### Dynamic Sink Updates by the End-User
-The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Pipeline component add/remove service as described above. 
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to either a [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) or [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Pipeline component add/remove service as described above. 
 
 <br>
 
 ### Dynamic Branch updates when using a Demuxer
-[Demuxer Tees](/docs/api-tee.md#demuxer-tee) demux the batched-stream -- batched together by the Pipeline's built-in Streammuxer -- into single-stream [Branches](/docs/api-branch.md). The stream-id for each Branch matches the [stream-id for the Source](/docs/api-source.md#stream-id) producing the stream.  The maximum number of Branches can be up to the maximum number of Sources. Branches can be added to the next available unconnected pad/stream, to a specific pad/stream specified by id, or moved from one pad/stream to another.
+[Demuxer Tees](/docs/api-tee.md#demuxer-tee) demux the batched-stream -- batched together by the Pipeline's built-in Stream Muxer -- into single-stream [Branches](/docs/api-branch.md). The stream-id for each Branch matches the [stream-id for the Source](/docs/api-source.md#stream-id) producing the stream.  The maximum number of Branches can be up to the maximum number of Sources. Branches can be added to the next available unconnected pad/stream, to a specific pad/stream specified by id, or moved from one pad/stream to another.
 
 **IMPORTANT!** When using a [Demuxer Tee](/docs/api-tee.md) , the maximum number of Branches must be specified prior to playing the Pipeline, a requirement imposed by NVIDIA's [nvstreamdemux](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) plugin. 
 
@@ -689,15 +689,15 @@ The following examples demonstrate how to move a Branch using the [`dsl_tee_demu
 
 #### Dynamic Branch Updates using ODE Services
 Branches can be added, moved, or removed on the occurrence of an [Object Detection Event (ODE)](#object-detection-event-ode-services). In the example above, an [ODE Pad Probe Handler (PPH)](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) is added to the source-pad (output) of the Object Tracker. The ODE PPH will process the batch-metadata flowing over each pad. One or more [ODE Triggers](/docs/api-ode-trigger.md) are added to the ODE PPH to analyze the object-metadata and trigger on specific events. The following [ODE Actions](/docs/api-ode-action.md) can be added to the ODE Trigger(s) to be invoked on the occurrence of an event.
-* A Branch can be added to a Slpitter or Demuxer Tee using an [Add-Branch Action](/docs/api-ode-action.md#dsl_ode_action_branch_add_new).
+* A Branch can be added to a Splitter or Demuxer Tee using an [Add-Branch Action](/docs/api-ode-action.md#dsl_ode_action_branch_add_new).
 * A Branch can be added to the "current-stream" of a Demuxer with an [Add-Branch-to Action](/docs/api-ode-action.md#dsl_ode_action_branch_add_to_new)
-* A Branch can be movded to the "current-stream" of a Demuxer with a [Move-Branch-to Action](/docs/api-ode-action.md#dsl_ode_action_branch_move_to_new)
+* A Branch can be moved to the "current-stream" of a Demuxer with a [Move-Branch-to Action](/docs/api-ode-action.md#dsl_ode_action_branch_move_to_new)
 * A Branch can be removed from a Splitter or Demuxer Tee using a [Remove-Branch Action](/docs/api-ode-action.md#dsl_ode_action_branch_remove_new)
 
-The "current-stream" == the stream with the frame and/or object metadata the caused the event.
+The "current-stream" == the stream with the frame and/or object metadata that caused the event.
 
 #### Dynamic Branch Updates by the End-User
-The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Tee add/remove service as described above. 
+The Application enables the end-user (Window-Sink viewer) by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to either a [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) or [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every key-release, calls the appropriate Tee add/remove service as described above. 
 
 <br>
 
@@ -729,7 +729,7 @@ The Tiler's source-stream selection can be updated on the occurrence of an [Obje
 
 #### Dynamic Tiler Updates by the End-User
 The Application enables the end-user (Window-Sink viewer)
-1. by adding a [`dsl_sink_window_button_event_handler_cb`](/docs/api-sink.md##dsl_sink_window_button_event_handler_cb) callback function to the [Window Sink](/docs/api-sink.md#dsl_sink_window_new) by calling [`dsl_sink_window_button_event_handler_add`](/docs/api-sink.md#dsl_sink_window_button_event_handler_add) The callback function, called on every mouse-button event with the current X and Y coordinates within the Window Sink, calls:
+1. by adding a [`dsl_sink_window_button_event_handler_cb`](/docs/api-sink.md##dsl_sink_window_button_event_handler_cb) callback function to either a [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) or [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) by calling [`dsl_sink_window_button_event_handler_add`](/docs/api-sink.md#dsl_sink_window_button_event_handler_add) The callback function, called on every mouse-button event with the current X and Y coordinates within the Window Sink, calls:
    1. [`dsl_sink_render_dimensions_get`](/docs/api-sink.md#dsl_sink_render_dimensions_get) to get the current dimensions of the Window Sink (user may have resized).
    2. [`dsl_tiler_source_show_select`](/docs/api-tiler.md#dsl_tiler_source_show_select) to show the Source corresponding to the X and Y coordinates from the mouse-click.
 2. by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the Window Sink by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
@@ -976,12 +976,12 @@ while True:
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_sink_window_new('window-sink', 0, 0, width=1280, height=720)
+    retval = dsl_sink_window_egl_new('window-sink', 0, 0, width=1280, height=720)
     if (retval != DSL_RETURN_SUCCESS):
         break
 
-    retval = dsl_sink_rtsp_new('rtsp-sink', 
-        host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=200000, interval=0)
+    retval = dsl_sink_rtsp_server_new('rtsp-sink', 
+        host='my-jetson.local', udp_port=5400, rtsp_port=8554, codec=DSL_CODEC_H265, bitrate=4000000, interval=0)
     if (retval != DSL_RETURN_SUCCESS):
         break
     
@@ -1043,7 +1043,7 @@ When creating an RTSP Source, the client application can specify a `next-buffer-
 
 The Stream manager uses three client settable parameters to control the connection behavior. 
 
-1. `initial-connection-timeout` - the the maximum time to wait for the RTSP Source to connect and generate the first buffer when the Pipeline is first played, in units of seconds.
+1. `initial-connection-timeout` - the maximum time to wait for the RTSP Source to connect and generate the first buffer when the Pipeline is first played, in units of seconds.
 2. `reconnection-sleep` - the time to sleep between failed connection attempts - also in seconds. 
 3. `reconnection-timeout` - the maximum time to wait for an asynchronous state change to complete before determining that reconnection has failed - also in seconds. 
 
@@ -1142,7 +1142,7 @@ Refer to the [Source API](/docs/api-source.md) documentation for more informatio
 ---
 
 ## X11 Window Services
-DSL provides X11 Window Services for Pipelines that use Window Sinks. An Application can create an XWindow - using GTK+ for example - and pass the window handle to a Window Sink prior to playing, or let each Window Sink create their own XWindow to use by default.
+DSL provides X11 Window Services for Pipelines that use either a [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new)(Jetson only) or [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new). An Application can create an XWindow - using GTK+ for example - and pass the window handle to a Window Sink prior to playing, or let each Window Sink create their own XWindow to use by default.
 
 The client application can register callback functions to handle window events -- `ButtonPress`, `KeyRelease`, and `WindowDelete` -- caused by user interaction. 
 
@@ -1167,9 +1167,7 @@ def XWindowButtonEventHandler(button, x_pos, y_pos, client_data):
 
     if (button == Button1):
         # get the Window Sink's current XWindow dimensions as the User may have resized it.
-        # The Window Sink is derived from the Render Sink class - use the Render Sink
-        # service to get the current width and height of Window Sink's XWindow.
-        retval, width, height = dsl_sink_render_dimensions_get('my-window-sink')
+        retval, width, height = dsl_sink_window_dimensions_get('my-window-sink')
         
         # call the Tiler to show the source based on the x and y button coordinates relative
         # to the current window dimensions obtained from the XWindow.
@@ -1232,7 +1230,7 @@ while True:
     if retval != DSL_RETURN_SUCCESS:
         break
 
-    retval = dsl_sink_window_new('my-window-sink', 0, 0, width=1280, height=720)
+    retval = dsl_sink_window_egl_new('my-window-sink', 0, 0, width=1280, height=720)
     if (retval != DSL_RETURN_SUCCESS):
         break
     # Add the XWindow event handler functions defined above
@@ -1292,7 +1290,7 @@ if retval != DSL_RETURN_SUCCESS:
 retval = dsl_player_render_video_new(
     name = 'video-player',
     file_path = None,
-    render_type = DSL_RENDER_TYPE_OVERLAY,
+    render_type = DSL_RENDER_TYPE_3D,
     offset_x = 500, 
     offset_y = 20, 
     zoom = 50,
@@ -1360,16 +1358,13 @@ typedef uint DslReturnType
 ```Python
 from dsl import *
 
-retVal = dsl_sink_rtsp_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
+retVal = dsl_sink_rtsp_server_new('rtsp-sink', host_uri, 5400, 8554, DSL_CODEC_H264, 4000000, 0)
 
 if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
     # handle error
 ```
 
 <br>
-
-## Docker Support
-The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container.
 
 ## Getting Started
 * [Installing Dependencies](/docs/installing-dependencies.md)
@@ -1387,7 +1382,7 @@ The [deepstream-services-library-docker](https://github.com/prominenceai/deepstr
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter Tees](/docs/api-tee)
+* [Demuxer, Remuxer, and Splitter Tees](/docs/api-tee)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
