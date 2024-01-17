@@ -730,7 +730,7 @@ The Tiler's source-stream selection can be updated on the occurrence of an [Obje
 #### Dynamic Tiler Updates by the End-User
 The Application enables the end-user (Window-Sink viewer)
 1. by adding a [`dsl_sink_window_button_event_handler_cb`](/docs/api-sink.md##dsl_sink_window_button_event_handler_cb) callback function to either a [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) or [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) by calling [`dsl_sink_window_button_event_handler_add`](/docs/api-sink.md#dsl_sink_window_button_event_handler_add) The callback function, called on every mouse-button event with the current X and Y coordinates within the Window Sink, calls:
-   1. [`dsl_sink_render_dimensions_get`](/docs/api-sink.md#dsl_sink_render_dimensions_get) to get the current dimensions of the Window Sink (user may have resized).
+   1. [`dsl_sink_window_dimensions_get`](/docs/api-sink.md#dsl_sink_window_dimensions_get) to get the current dimensions of the Window Sink (user may have resized).
    2. [`dsl_tiler_source_show_select`](/docs/api-tiler.md#dsl_tiler_source_show_select) to show the Source corresponding to the X and Y coordinates from the mouse-click.
 2. by adding a [`dsl_sink_window_key_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_key_event_handler_cb) callback function to the Window Sink by calling [`dsl_sink_window_key_event_handler_add`](/docs/api-sink.md#dsl_sink_window_key_event_handler_add). The callback function, called on every keyboard key-release, calls the appropriate Tee add/remove service as described above. 
 
