@@ -48,10 +48,8 @@ tracker_config_file = \
 
 # Config files for the Secondary GIEs
 sgie1_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt'
 sgie2_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt'
-sgie3_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
 
 TILER_WIDTH = DSL_1K_HD_WIDTH
@@ -93,16 +91,12 @@ def main(args):
             break
 
         # New Secondary GIEs using the filespecs above with interval = 0
-        retval = dsl_infer_gie_secondary_new('carcolor-sgie', 
+        retval = dsl_infer_gie_secondary_new('vehiclemake-sgie', 
             sgie1_config_file, None, 'primary-gie', 10)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_infer_gie_secondary_new('carmake-sgie', 
-            sgie2_config_file, None, 'primary-gie', 10)
-        if retval != DSL_RETURN_SUCCESS:
-            break
         retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
-            sgie3_config_file, None, 'primary-gie', 10)
+            sgie2_config_file, None, 'primary-gie', 10)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -128,8 +122,8 @@ def main(args):
         # Note: *** change 'iou-tracker' to 'ktl-tracker' to try both. KTL => higher CPU load 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 'Camera 6',  
-            'Camera 7', 'Camera 8', 'primary-gie', 'tracker', 'carcolor-sgie', 
-            'carmake-sgie', 'vehicletype-sgie', 'tiler', 'fake-sink', None])
+            'Camera 7', 'Camera 8', 'primary-gie', 'tracker', 'vehiclemake-sgie', 
+            'vehicletype-sgie', 'tiler', 'fake-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
