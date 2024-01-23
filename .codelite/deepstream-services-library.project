@@ -236,8 +236,8 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="root">
+    <File Name="../make_trafficcamnet_engine_files.py"/>
     <File Name="../dsl.py"/>
-    <File Name="../make_caffemodel_engine_files.py"/>
     <File Name="../README.md"/>
     <File Name="../.gitignore"/>
     <File Name="../Makefile"/>
