@@ -28,14 +28,14 @@ THE SOFTWARE.
 static std::string primaryGieName("primary-gie");
 static std::string secondaryGieName("secondary-gie");
 static std::string inferConfigFile(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
 static std::string modelEngineFile(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.resnet18.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
     
 static std::string newInferConfigFile(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
 static std::string newModelEngineFile(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
     
 static uint interval(1);
 

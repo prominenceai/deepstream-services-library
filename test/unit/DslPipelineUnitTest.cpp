@@ -55,7 +55,7 @@ static const std::string primaryGieName("primary-gie");
 static const std::string primaryInferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static const std::string primaryModelEngineFile(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
     
 static const std::string demuxerName("demuxer");
 static const std::string trackerName("iou-tracker");
@@ -64,9 +64,9 @@ static const uint trackerH(150);
 
 static const std::string secondaryGieName("secondary-gie");
 static const std::string secondaryInferConfigFile(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
 static const std::string secondaryModelEngineFile(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
 
 static const std::string osdName("on-screen-tiler");
         

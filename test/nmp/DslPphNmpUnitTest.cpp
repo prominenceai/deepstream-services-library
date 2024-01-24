@@ -32,7 +32,7 @@ static std::string labelFile1(
     "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/labels.txt");
 
 static std::string labelFile2(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/labels.txt");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/labels.txt");
 
 static std::string noLabelFile;
 
