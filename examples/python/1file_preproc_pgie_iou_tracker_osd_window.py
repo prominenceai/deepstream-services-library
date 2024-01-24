@@ -63,7 +63,7 @@ primary_infer_config_file = \
 # IMPORTANT! ensure that the model-engine was generated with the config from the Preprocessing example
 #  - apps/sample_apps/deepstream-preprocess-test/config_infer.txt
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
     
     
 # Filespec for the IOU Tracker config file

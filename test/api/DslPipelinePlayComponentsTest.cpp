@@ -49,7 +49,7 @@ static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Note: Creating segmantation model engine file with the below config files builds the
 // engine under the trtis_model_repo, even though we are not using the triton inference server
@@ -77,21 +77,15 @@ static const std::wstring tracker_config_file(
 
 static const std::wstring secondary_gie_name1(L"secondary-gie-1");
 static const std::wstring sgie_infer_config_file1(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
 static const std::wstring sgie_model_engine_file1(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_int8.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
         
 static const std::wstring secondary_gie_name2(L"secondary-gie-2");
 static const std::wstring sgie_infer_config_file2(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
 static const std::wstring sgie_model_engine_file2(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
-        
-static const std::wstring secondary_gie_name3(L"secondary-gie-3");
-static const std::wstring sgie_infer_config_file3(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
-static const std::wstring sgie_model_engine_file3(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_int8.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
 
 static const std::wstring tiler_name1(L"tiler-1");
 static const std::wstring tiler_name2(L"tiler-2");
@@ -770,7 +764,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
     }
 }
 
-SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Three Secondary GIEs, \
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Two Secondary GIEs, \
 Window Sink, and Tiled Display can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Primary GIE, Window Sink, and Tiled Display" ) 
@@ -789,9 +783,6 @@ Window Sink, and Tiled Display can play", "[pipeline-play]" )
         REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name2.c_str(), 
             sgie_infer_config_file1.c_str(), sgie_model_engine_file2.c_str(), 
                 primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name3.c_str(), 
-            sgie_infer_config_file1.c_str(), sgie_model_engine_file3.c_str(), 
-                primary_gie_name.c_str(), 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
             tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
@@ -806,7 +797,8 @@ Window Sink, and Tiled Display can play", "[pipeline-play]" )
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source-1",L"primary-gie", L"iou-tracker", 
-            L"secondary-gie-1", L"secondary-gie-2", L"secondary-gie-3", L"tiler-1", L"on-screen-display", L"egl-sink", NULL};
+            L"secondary-gie-1", L"secondary-gie-2", L"tiler-1", L"on-screen-display", 
+            L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

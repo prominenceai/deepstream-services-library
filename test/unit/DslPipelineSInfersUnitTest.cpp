@@ -37,23 +37,25 @@ static const std::string secondaryGieName("secondary-gie");
 static const std::string pgieInferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static const std::string pgieModelEngineFile(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 static const std::string secondaryGieName1("secondary-gie-1");
 static const std::string secondaryGieName2("secondary-gie-2");
 static const std::string secondaryGieName3("secondary-gie-3");
 static const std::string sgieInferConfigFile1(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
-static const std::string sgieModelEngineFile1(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_int8.engine");
-static const std::string sgieInferConfigFile2(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
-static const std::string sgieModelEngineFile2(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
-static const std::string sgieInferConfigFile3(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
+static const std::string sgieModelEngineFile1(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
+static const std::string sgieInferConfigFile2(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
+static const std::string sgieModelEngineFile2(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
+
+// There are only two secondary models as of 6.3 
+static const std::string sgieInferConfigFile3(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
 static const std::string sgieModelEngineFile3(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_int8.engine");
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
 
 static const uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
 static const uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());

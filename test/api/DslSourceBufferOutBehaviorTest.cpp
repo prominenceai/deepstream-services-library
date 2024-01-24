@@ -42,7 +42,7 @@ static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
@@ -53,9 +53,9 @@ static const std::wstring tracker_config_file(
 
 static const std::wstring secondary_gie_name1(L"secondary-gie-1");
 static const std::wstring sgie_infer_config_file1(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
 static const std::wstring sgie_model_engine_file1(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_int8.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
 
 static const std::wstring tiler_name1(L"tiler-1");
 

@@ -271,6 +271,7 @@
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
+      <File Name="../examples/python/2uri_file_pgie_iou_tracker_2sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py.hld"/>
       <File Name="../examples/python/nvidia_pyds_pad_probe_handler.py"/>
       <File Name="../examples/python/4uri_file_pgie_iou_tiler_osd_3d.py"/>
@@ -314,7 +315,6 @@
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_custom_pph_window.py"/>
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_window_h264_mkv.py"/>
       <File Name="../examples/python/1uri_file_pgie_iou_tracker_osd_window_h265_mp4.py"/>
-      <File Name="../examples/python/2uri_file_pgie_iou_tracker_3sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/segmentation_industrial.py"/>
       <File Name="../examples/python/segmentation_semantic.py"/>
       <File Name="../examples/python/video_dewarper_360.py"/>
