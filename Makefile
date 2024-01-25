@@ -161,7 +161,8 @@ CFLAGS+= -I./src/ffmpeg \
 endif	
 
 ifeq ($(BUILD_WITH_OPENCV),true)
-CFLAGS+= -I./src/opencv \
+CFLAGS+= -I /usr/include/opencv4 \
+	-I./src/opencv/ \
 	-I./test/avfile
 endif	
 
