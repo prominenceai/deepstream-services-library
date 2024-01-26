@@ -37,7 +37,7 @@ THE SOFTWARE.
 #include "DslMessageBroker.h"
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION >= 18
+#elif GSTREAMER_SUB_VERSION >= 20
     #include "DslSinkWebRtcBintr.h"
 #endif
 

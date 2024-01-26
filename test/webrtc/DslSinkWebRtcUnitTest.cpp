@@ -38,7 +38,7 @@ static std::string pipelineName("pipeline");
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(30000)
 
-SCENARIO( "A new WebRtcSinkBintr simple test",  "[test]" )
+SCENARIO( "A new WebRtcSinkBintr simple test",  "[WebRtcSinkBintr]" )
 {
     GIVEN( "Attributes for a new WebRtcSinkBintr" ) 
     {
