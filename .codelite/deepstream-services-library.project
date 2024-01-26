@@ -130,6 +130,13 @@
     <File Name="../src/DslRemuxerBintr.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="test">
+    <VirtualDirectory Name="webrtc">
+      <File Name="../test/webrtc/DslWebsocketServerApiTest.cpp"/>
+      <File Name="../test/webrtc/DslWebRtcSinkBehaviorTest.cpp"/>
+      <File Name="../test/webrtc/DslSoupServerMgrUnitTest.cpp"/>
+      <File Name="../test/webrtc/DslSinkWebRtcUnitTest.cpp"/>
+      <File Name="../test/webrtc/DslSinkWebRtcApiTest.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="config">
       <File Name="../test/config/all_sources_1fps.txt"/>
       <File Name="../test/config/all_sources_30fps.txt"/>

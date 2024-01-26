@@ -147,7 +147,7 @@ namespace DSL
          * @brief returns the current sync enabled property for the SinkBintr.
          * @return true if the sync property is enabled, false othewise.
          */
-        gboolean GetSyncEnabled();
+        virtual gboolean GetSyncEnabled();
         
         /**
          * @brief sets the sync enabled property for the SinkBintr.
@@ -159,7 +159,7 @@ namespace DSL
          * @brief returns the current async enabled property value for the SinkBintr.
          * @return true if the async property is enabled, false othewise.
          */
-        gboolean GetAsyncEnabled();
+        virtual gboolean GetAsyncEnabled();
         
         /**
          * @brief sets the async enabled property for the SinkBintr.
@@ -171,7 +171,7 @@ namespace DSL
          * @brief returns the current max-lateness property value for the SinkBintr.
          * @return current max-lateness (default = -1 unlimited).
          */
-        gint64 GetMaxLateness();
+        virtual gint64 GetMaxLateness();
         
         /**
          * @brief sets the max-lateness property for the SinkBintr.
@@ -183,7 +183,7 @@ namespace DSL
          * @brief returns the current qos enabled property value for the SinkBintr.
          * @return true if the qos property is enabled, false othewise.
          */
-        gboolean GetQosEnabled();
+        virtual gboolean GetQosEnabled();
         
         /**
          * @brief sets the qos enabled property for the SinkBintr.
