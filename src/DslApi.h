@@ -4623,49 +4623,115 @@ DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
     uint sensor_id);
 
 /**
- * @brief creates a new, uniquely named USB Camera Source component.  A unique 
- * device-location is assigned to each USB Source on creation, starting with 
- * "/dev/video0", followed by "/dev/video1", and so on. The default assignment 
- * can be overridden by calling dsl_source_usb_device_location_set. The call 
- * will fail if the given device-location is not unique. If a source is deleted, 
- * the device-location will be re-assigned to a new USB Source if one is created.
+ * @brief creates a new, uniquely named V4L2 Source component. 
  * @param[in] name unique name for the new Source
- * @param[in] width width of the source in pixels
- * @param[in] height height of the source in pixels
- * @param[in] fps-n frames/second fraction numerator
- * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_usb_new(const wchar_t* name,
-    uint width, uint height, uint fps_n, uint fps_d);
+DslReturnType dsl_source_v4l2_new(const wchar_t* name,
+    const wchar_t* device_location);
 
 /**
- * @brief Gets the device location setting for the named USB Source. A unique 
- * device-location is assigned to each USB Source on creation, starting with 
- * "/dev/video0", followed by "/dev/video1", and so on. The default assignment 
- * can be overridden by calling dsl_source_usb_device_location_set. The call 
- * will fail if the given device-location is not unique. If a source is deleted, 
- * the device-location will be re-assigned to a new USB Source if one is created.
- * @param[in] name unique name of the USB Source to query.
- * @param[out] device_location current device location setting. Default: /dev/video0.
+ * @brief Gets the device location setting for the named USB Source. 
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_location current device location setting.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_get(const wchar_t* name,
     const wchar_t** device_location);
     
 /**
- * @brief Sets the device location setting for the named USB Source. A unique 
- * device-location is assigned to each USB Source on creation, starting with 
- * "/dev/video0", followed by "/dev/video1", and so on. The service will 
- * fail if the given device-location is not unique. If a source is deleted, 
- * the device-location will be re-assigned to a new USB Source if one is created.
+ * @brief Sets the device location setting for the named USB Source. The service
+ * will fail if the given device-location is in use unique. 
  * @param[in] name unique name of the USB Source to update.
  * @param[in] device_location new device location setting to use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_set(const wchar_t* name,
     const wchar_t* device_location);
 
+/**
+ * @brief Sets the dimensions for the named V4L2 Source to use. 
+ * Set width and height to 0 to use the default device dimensions.
+ * @param[in] name unique name of the source to output.
+ * @param[in] width frame width for the V4L2 Device in pixels.
+ * @param[in] height frame height for the V4L2 Device in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief Sets the frame-rate as a fraction for the named V4L2 Source.
+ * Set fps_n and fps_d to 0 to use the default device frame-rate.
+ * @param[in] name unique name of the source to query
+ * @param[in] fps_n frames per second numerator
+ * @param[in] fps_d frames per second denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets the device name setting for the named V4L2 Source.
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+    
+/**
+ * @brief Gets the device file-descriptor setting for the named V4L2 Source.
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_fd current device file-descriptor setting. 
+ * Default = -1. Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd);
+
+/**
+ * @brief Gets the device flags setting for the named V4L2 Source. 
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_flags device flags setting. One or more of the
+ * DSL_V4L2_DEVICE_TYPE flags. Default = DSL_V4L2_DEVICE_TYPE_NONE. The
+ * value is updated at runtime after negotiation with the V4L2 device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags);
+
+/**
+ * @brief Gets the current picture brightness, contrast, and saturation settings
+ * for the named V4L2 Source.
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] brightness current brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[out] contrast current picture color contrast setting or luma gain.
+ * Default = 0.
+ * @param[out] saturation current picture color saturation setting or chroma gain.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* saturation);
+
+/**
+ * @brief Gets the picture brightness, contrast, and saturation settings
+ * for the named V4L2 Source to use.
+ * @param[in] name unique name of the V4L2 Source to update.
+ * @param[in] brightness new brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[in] contrast new picture contrast setting or luma gain.
+ * Default = 0.
+ * @param[in] saturation new picture color saturation setting or chroma gain.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int saturation);
+    
 /**
  * @brief creates a new, uniquely named URI Source component
  * @param[in] name unique name for the new URI Source

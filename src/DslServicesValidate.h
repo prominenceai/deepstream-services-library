@@ -179,7 +179,7 @@ THE SOFTWARE.
 { \
     if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
         !components[name]->IsType(typeid(CsiSourceBintr)) and  \
-        !components[name]->IsType(typeid(UsbSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageSourceBintr)) and  \

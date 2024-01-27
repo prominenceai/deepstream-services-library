@@ -3309,34 +3309,100 @@ def dsl_source_csi_new(name, width, height, fps_n, fps_d):
     return int(result)
 
 ##
-## dsl_source_usb_new()
+## dsl_source_v4l2_new()
 ##
-_dsl.dsl_source_usb_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_source_usb_new.restype = c_uint
-def dsl_source_usb_new(name, width, height, fps_n, fps_d):
+_dsl.dsl_source_v4l2_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_v4l2_new.restype = c_uint
+def dsl_source_v4l2_new(name, device_location):
     global _dsl
-    result =_dsl.dsl_source_usb_new(name, width, height, fps_n, fps_d)
+    result =_dsl.dsl_source_v4l2_new(name, device_location)
     return int(result)
 
 ##
-## dsl_source_usb_device_location_get()
+## dsl_source_v4l2_device_location_get()
 ##
-_dsl.dsl_source_usb_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_usb_device_location_get.restype = c_uint
-def dsl_source_usb_device_location_get(name):
+_dsl.dsl_source_v4l2_device_location_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_source_v4l2_device_location_get.restype = c_uint
+def dsl_source_v4l2_device_location_get(name):
     global _dsl
     device_location = c_wchar_p(0)
-    result = _dsl.dsl_source_usb_device_location_get(name, DSL_WCHAR_PP(device_location))
+    result = _dsl.dsl_source_v4l2_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
     return int(result), device_location.value 
 
 ##
-## dsl_source_usb_device_location_set()
+## dsl_source_v4l2_device_location_set()
 ##
-_dsl.dsl_source_usb_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_usb_device_location_set.restype = c_uint
-def dsl_source_usb_device_location_set(name, device_location):
+_dsl.dsl_source_v4l2_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_v4l2_device_location_set.restype = c_uint
+def dsl_source_v4l2_device_location_set(name, device_location):
     global _dsl
-    result = _dsl.dsl_source_usb_device_location_set(name, device_location)
+    result = _dsl.dsl_source_v4l2_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_source_v4l2_device_name_get()
+##
+_dsl.dsl_source_v4l2_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_v4l2_device_name_get.restype = c_uint
+def dsl_source_v4l2_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_source_v4l2_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
+## dsl_source_v4l2_device_fd_get()
+##
+_dsl.dsl_source_v4l2_device_fd_get.argtypes = [c_wchar_p, POINTER(c_int)]
+_dsl.dsl_source_v4l2_device_fd_get.restype = c_uint
+def dsl_source_v4l2_device_fd_get(name):
+    global _dsl
+    device_fd = c_int(0)
+    result = _dsl.dsl_source_v4l2_device_fd_get(name, 
+        DSL_INT_P(device_fd))
+    return int(result), device_fd.value 
+
+##
+## dsl_source_v4l2_device_flags_get()
+##
+_dsl.dsl_source_v4l2_device_flags_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_v4l2_device_flags_get.restype = c_uint
+def dsl_source_v4l2_device_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_source_v4l2_device_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value 
+
+##
+## dsl_source_v4l2_picture_settings_get()
+##
+_dsl.dsl_source_v4l2_picture_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+_dsl.dsl_source_v4l2_picture_settings_get.restype = c_uint
+def dsl_source_v4l2_picture_settings_get(name):
+    global _dsl
+    brightness = c_int(0)
+    contrast = c_int(0)
+    saturation = c_int(0)
+    result = _dsl.dsl_source_v4l2_picture_settings_get(name, 
+        DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(saturation))
+    return int(result), brightness.value, contrast.value, saturation.value
+
+##
+## dsl_source_v4l2_picture_settings_set()
+##
+_dsl.dsl_source_v4l2_picture_settings_set.argtypes = [c_wchar_p, 
+    c_int, c_int, c_int]
+_dsl.dsl_source_v4l2_picture_settings_set.restype = c_uint
+def dsl_source_v4l2_picture_settings_set(name, 
+    brightness, contrast, saturation):
+    global _dsl
+    result = _dsl.dsl_source_v4l2_picture_settings_set(name, 
+        brightness, contrast, saturation)
     return int(result)
 
 ##
@@ -5752,13 +5818,13 @@ def dsl_sink_v4l2_device_name_get(name):
 ##
 ## dsl_sink_v4l2_device_fd_get()
 ##
-_dsl.dsl_sink_v4l2_device_fd_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_device_fd_get.argtypes = [c_wchar_p, POINTER(c_int)]
 _dsl.dsl_sink_v4l2_device_fd_get.restype = c_uint
 def dsl_sink_v4l2_device_fd_get(name):
     global _dsl
-    device_fd = c_wchar_p(0)
+    device_fd = c_int(0)
     result = _dsl.dsl_sink_v4l2_device_fd_get(name, 
-        DSL_WCHAR_PP(device_name))
+        DSL_INT_P(device_fd))
     return int(result), device_fd.value 
 
 ##
@@ -5805,7 +5871,7 @@ def dsl_sink_v4l2_picture_settings_get(name):
     global _dsl
     brightness = c_int(0)
     contrast = c_int(0)
-    container = c_int(0)
+    saturation = c_int(0)
     result = _dsl.dsl_sink_v4l2_picture_settings_get(name, 
         DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(saturation))
     return int(result), brightness.value, contrast.value, saturation.value

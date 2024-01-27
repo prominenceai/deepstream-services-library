@@ -744,15 +744,36 @@ namespace DSL {
         DslReturnType SourceCsiSensorIdSet(const char* name, 
             uint sensorId);
         
-        DslReturnType SourceUsbNew(const char* name, 
-            uint width, uint height, uint fpsN, uint fpsD);
+        DslReturnType SourceV4l2New(const char* name, 
+            const char* deviceLocation);
 
-        DslReturnType SourceUsbDeviceLocationGet(const char* name, 
+        DslReturnType SourceV4l2DeviceLocationGet(const char* name, 
             const char** deviceLocation);
         
-        DslReturnType SourceUsbDeviceLocationSet(const char* name, 
+        DslReturnType SourceV4l2DeviceLocationSet(const char* name, 
             const char* deviceLocation);
         
+        DslReturnType SourceV4l2DimensionsSet(const char* name, 
+            uint width, uint height);
+
+        DslReturnType SourceV4l2FrameRateSet(const char* name, 
+            uint fps_n, uint fps_d);
+
+        DslReturnType SourceV4l2DeviceNameGet(const char* name, 
+            const char** deviceName);
+
+        DslReturnType SourceV4l2DeviceFdGet(const char* name, 
+            int* deviceFd);
+
+        DslReturnType SourceV4l2DeviceFlagsGet(const char* name, 
+            uint* deviceFlags);
+
+        DslReturnType SourceV4l2PictureSettingsGet(const char* name, 
+            int* brightness, int* contrast, int* saturation);
+
+        DslReturnType SourceV4l2PictureSettingsSet(const char* name, 
+            int brightness, int contrast, int saturation);
+
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint skipFrames, uint dropFrameInterval);
             

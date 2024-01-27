@@ -26,7 +26,7 @@
 #
 # The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - CSI Source
+#   - V4L2 Source - USB Camera
 #   - Primary GST Inference Engine (PGIE)
 #   - On-Screen Display
 #   - Window Sink
@@ -46,8 +46,8 @@ import sys
 import time
 from dsl import *
 
-SOURCE_WIDTH = 1920
-SOURCE_HEIGHT = 1080
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -81,9 +81,9 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New CSI Live Camera Source
-        retval = dsl_source_csi_new('csi-source', 
-            SOURCE_WIDTH, SOURCE_HEIGHT, 30, 1)
+        # New V4L2 Live Web Camera Source
+        retval = dsl_source_v4l2_new('v4l2-source', 
+            '/dev/video0')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -101,11 +101,16 @@ def main(args):
             break
 
         # New 3D Window Sink with 0 x/y offsets, and same dimensions as Camera Source
-        retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
-            SOURCE_WIDTH, SOURCE_HEIGHT)
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only.
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+        
         # Add the XWindow event handler functions defined above
         retval = dsl_sink_window_key_event_handler_add("window-sink", 
             xwindow_key_event_handler, None)
@@ -118,7 +123,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['csi-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
+            ['v4l2-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -127,6 +132,31 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        retval, device_name = dsl_source_v4l2_device_name_get('v4l2-source')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval, device_fd = dsl_source_v4l2_device_fd_get('v4l2-source')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval, device_flags = dsl_source_v4l2_device_flags_get('v4l2-source')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval, brightness, contrast, saturation = \
+            dsl_source_v4l2_picture_settings_get('v4l2-source')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        print('V4L2 Device Propertes')
+        print('   Name       :', device_name)
+        print('   File Desc  :', device_fd)
+        print('   Flags      :', device_flags)
+        print('   Brightness :', brightness)
+        print('   Contrast   :', contrast)
+        print('   Saturation :', saturation)
+        
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break

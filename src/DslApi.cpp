@@ -3931,19 +3931,24 @@ DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
         sensor_id);
 }
     
-DslReturnType dsl_source_usb_new(const wchar_t* name, 
-    uint width, uint height, uint fps_n, uint fps_d)
+DslReturnType dsl_source_v4l2_new(const wchar_t* name,
+    const wchar_t* device_location)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDeviceLocation(device_location);
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
 
-    return DSL::Services::GetServices()->SourceUsbNew(cstrName.c_str(), 
-        width, height, fps_n, fps_d);
+    return DSL::Services::GetServices()->SourceV4l2New(cstrName.c_str(), 
+        cstrDeviceLocation.c_str());
 }
 
-DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_get(const wchar_t* name,
     const wchar_t** device_location)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3956,19 +3961,21 @@ DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
     static std::string cstrDeviceLocation;
     static std::wstring wcstrDeviceLocation;
     
-    uint retval = DSL::Services::GetServices()->SourceUsbDeviceLocationGet(cstrName.c_str(), 
+    uint retval = DSL::Services::GetServices()->
+        SourceV4l2DeviceLocationGet(cstrName.c_str(), 
         &cDeviceLocation);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrDeviceLocation.assign(cDeviceLocation);
-        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), cstrDeviceLocation.end());
+        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), 
+            cstrDeviceLocation.end());
         *device_location = wcstrDeviceLocation.c_str();
     }
     return retval;
 }
     
 
-DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_set(const wchar_t* name,
     const wchar_t* device_location)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3977,10 +3984,112 @@ DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrDeviceLocation(device_location);
-    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), wstrDeviceLocation.end());
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
     
-    return DSL::Services::GetServices()->SourceUsbDeviceLocationSet(
+    return DSL::Services::GetServices()->SourceV4l2DeviceLocationSet(
         cstrName.c_str(), cstrDeviceLocation.c_str());
+}
+
+DslReturnType dsl_source_v4l2_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceV4l2DimensionsSet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_source_v4l2_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceV4l2FrameRateSet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+    
+DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cDeviceName;
+    static std::string cstrDeviceName;
+    static std::wstring wcstrDeviceName;
+    
+    uint retval = DSL::Services::GetServices()->SourceV4l2DeviceNameGet(
+        cstrName.c_str(), &cDeviceName);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceName.assign(cDeviceName);
+        wcstrDeviceName.assign(cstrDeviceName.begin(), cstrDeviceName.end());
+        *device_name = wcstrDeviceName.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_fd);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2DeviceFdGet(
+        cstrName.c_str(), device_fd);
+}
+
+DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2DeviceFlagsGet(
+        cstrName.c_str(), device_flags);
+}
+
+DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* saturation)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(brightness);
+    RETURN_IF_PARAM_IS_NULL(contrast);
+    RETURN_IF_PARAM_IS_NULL(saturation);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2PictureSettingsGet(
+        cstrName.c_str(), brightness, contrast, saturation);
+}
+
+DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int saturation)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2PictureSettingsSet(
+        cstrName.c_str(), brightness, contrast, saturation);
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 

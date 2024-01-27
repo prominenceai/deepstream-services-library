@@ -1670,7 +1670,7 @@ namespace DSL
         bool SetBufferInFormat(const char* format);
 
         /**
-         * @brief Gets the current buffer-in-format for this V4l2SinkBintr.
+         * @brief Gets the current picture settings for this V4l2SinkBintr.
          * @param[out] brightness current brightness (actually darkness) level.
          * @param[out] contrast current picture contrast or luna gain level.
          * @param[out] saturation current color saturation or chroma gain level.
@@ -1678,7 +1678,7 @@ namespace DSL
         void GetPictureSettings(int* brightness, int* contrast, int* saturation);
         
         /**
-         * @brief Sets the buffer-in-format for the V4l2SinkBintr.
+         * @brief Sets the picture settings for the V4l2SinkBintr to use.
          * @param[in] brightness new brightness (actually darkness) level.
          * @param[in] contrast new picture contrast or luna level.
          * @param[in] saturation new color saturation or chroma level.

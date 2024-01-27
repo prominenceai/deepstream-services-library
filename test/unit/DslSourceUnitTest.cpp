@@ -310,8 +310,8 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
         WHEN( "The UsbSourceBintr is created " )
         {
         
-            DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
-                sourceName.c_str(), width, height, fps_n, fps_d);
+            DSL_V4L2_SOURCE_PTR pSourceBintr = DSL_V4L2_SOURCE_NEW(
+                sourceName.c_str(), defDeviceLocation.c_str());
 
             THEN( "All memeber variables are initialized correctly" )
             {
@@ -322,14 +322,6 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 std::string retDeviceLocaton = pSourceBintr->GetDeviceLocation();
                 REQUIRE( retDeviceLocaton == defDeviceLocation );
-                
-                uint retWidth, retHeight, retFpsN, retFpsD;
-                pSourceBintr->GetDimensions(&retWidth, &retHeight);
-                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
-                REQUIRE( width == retWidth );
-                REQUIRE( height == retHeight );
-                REQUIRE( fps_n == retFpsN );
-                REQUIRE( fps_d == retFpsD );
 
                 std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
@@ -338,107 +330,22 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
     }
 }
 
-SCENARIO( "Unique device-locations are managed by UsbSourceBintrs correctly",  "[SourceBintr]" )
-{
-    GIVEN( "A names for new UsbSourceBintr" ) 
-    {
-        std::string sourceName1("test-source-1");
-        std::string sourceName2("test-source-2");
-        std::string sourceName3("test-source-3");
-        
-        WHEN( "Three UsbSourceBintrs are created " )
-        {
-            DSL_USB_SOURCE_PTR pSourceBintr1 = DSL_USB_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
 
-            DSL_USB_SOURCE_PTR pSourceBintr2 = DSL_USB_SOURCE_NEW(
-                sourceName2.c_str(), width, height, fps_n, fps_d);
-
-            DSL_USB_SOURCE_PTR pSourceBintr3 = DSL_USB_SOURCE_NEW(
-                sourceName3.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "Their device-location values are assigned correctly" )
-            {
-                std::string retDeviceLocaton = pSourceBintr1->GetDeviceLocation();
-                REQUIRE( retDeviceLocaton == "/dev/video0" );
-                
-                retDeviceLocaton = pSourceBintr2->GetDeviceLocation();
-                REQUIRE( retDeviceLocaton == "/dev/video1" );
-                
-                retDeviceLocaton = pSourceBintr3->GetDeviceLocation();
-                REQUIRE( retDeviceLocaton == "/dev/video2" );
-            }
-        }
-        WHEN( "Three UsbSourceBintrs are created with sernsor id updates" )
-        {
-            DSL_USB_SOURCE_PTR pSourceBintr1 = DSL_USB_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
-                
-            REQUIRE( pSourceBintr1->SetDeviceLocation("/dev/video1") == true );
-            
-            DSL_USB_SOURCE_PTR pSourceBintr2 = DSL_USB_SOURCE_NEW(
-                sourceName2.c_str(), width, height, fps_n, fps_d);
-
-            DSL_USB_SOURCE_PTR pSourceBintr3 = DSL_USB_SOURCE_NEW(
-                sourceName3.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "Their device-location values are assigned correctly" )
-            {
-                std::string retDeviceLocaton = pSourceBintr1->GetDeviceLocation();
-                REQUIRE( retDeviceLocaton == "/dev/video1" );
-                
-                retDeviceLocaton = pSourceBintr2->GetDeviceLocation();
-                REQUIRE( retDeviceLocaton == "/dev/video0" );
-                
-                retDeviceLocaton = pSourceBintr3->GetDeviceLocation();
-                REQUIRE( retDeviceLocaton == "/dev/video2" );
-            }
-        }
-        WHEN( "A non unique device-location is used on set" )
-        {
-            DSL_USB_SOURCE_PTR pSourceBintr1 = DSL_USB_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
-            
-            DSL_USB_SOURCE_PTR pSourceBintr2 = DSL_USB_SOURCE_NEW(
-                sourceName2.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "The SetDeviceLocation call fails" )
-            {
-                REQUIRE( pSourceBintr1->SetDeviceLocation("/dev/video1") == false );
-            }
-        }
-        WHEN( "Invalid device location strings are used" )
-        {
-            DSL_USB_SOURCE_PTR pSourceBintr1 = DSL_USB_SOURCE_NEW(
-                sourceName1.c_str(), width, height, fps_n, fps_d);
-
-            THEN( "The SetDeviceLocation call fails" )
-            {
-                REQUIRE( pSourceBintr1->SetDeviceLocation("/invalid/string") == false );
-                REQUIRE( pSourceBintr1->SetDeviceLocation("/dev/videokk") == false );
-            }
-        }
-    }
-}
-
-SCENARIO( "A UsbSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
+SCENARIO( "A V4l2SourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
     GIVEN( "A new UsbSourceBintr in memory" ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName("usb-source");
+        std::string sourceName("v4l2-source");
+        static std::string defDeviceLocation("/dev/video0");
 
-        DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
+        DSL_V4L2_SOURCE_PTR pSourceBintr = DSL_V4L2_SOURCE_NEW(
+            sourceName.c_str(), defDeviceLocation.c_str());
 
-        WHEN( "The UsbSourceBintr is called to LinkAll" )
+        WHEN( "The V4l2SourceBintr is called to LinkAll" )
         {
             REQUIRE( pSourceBintr->LinkAll() == true );
 
-            THEN( "The UsbSourceBintr IsLinked state is updated correctly" )
+            THEN( "The V4l2SourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == true );
             }
@@ -446,27 +353,24 @@ SCENARIO( "A UsbSourceBintr can LinkAll child Elementrs correctly",  "[SourceBin
     }
 }
 
-SCENARIO( "A UsbSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+SCENARIO( "A V4l2SourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new, linked UsbSourceBintr " ) 
+    GIVEN( "A new, linked V4l2SourceBintr " ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName("usb-source");
+        std::string sourceName("v4l2-source");
+        static std::string defDeviceLocation("/dev/video0");
 
-        DSL_USB_SOURCE_PTR pSourceBintr = DSL_USB_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
+        DSL_V4L2_SOURCE_PTR pSourceBintr = DSL_V4L2_SOURCE_NEW(
+            sourceName.c_str(), defDeviceLocation.c_str());
 
         pSourceBintr->LinkAll();
         REQUIRE( pSourceBintr->IsLinked() == true );
 
-        WHEN( "The UsbSourceBintr is called to UnlinkAll" )
+        WHEN( "The V4l2SourceBintr is called to UnlinkAll" )
         {
             pSourceBintr->UnlinkAll();
 
-            THEN( "The UsbSourceBintr IsLinked state is updated correctly" )
+            THEN( "The V4l2SourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == false );
             }
@@ -478,27 +382,24 @@ SCENARIO( "A UsbSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
     GIVEN( "A new UsbSourceBintr in memory" ) 
     {
-        uint width(1280);
-        uint height(720);
-        uint fps_n(30);
-        uint fps_d(1);
-        std::string sourceName("usb-source");
+        std::string sourceName("v4l2-source");
+        static std::string defDeviceLocation("/dev/video0");
 
-        DSL_USB_SOURCE_PTR pUsbSourceBintr = DSL_USB_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
+        DSL_V4L2_SOURCE_PTR pSourceBintr = DSL_V4L2_SOURCE_NEW(
+            sourceName.c_str(), defDeviceLocation.c_str());
 
         uint GPUID0(0);
         uint GPUID1(1);
 
-        REQUIRE( pUsbSourceBintr->GetGpuId() == GPUID0 );
+        REQUIRE( pSourceBintr->GetGpuId() == GPUID0 );
         
-        WHEN( "The UsbSourceBintr's  GPU ID is set" )
+        WHEN( "The V4l2SourceBintr's  GPU ID is set" )
         {
-            REQUIRE( pUsbSourceBintr->SetGpuId(GPUID1) == true );
+            REQUIRE( pSourceBintr->SetGpuId(GPUID1) == true );
 
             THEN( "The correct GPU ID is returned on get" )
             {
-                REQUIRE( pUsbSourceBintr->GetGpuId() == GPUID1 );
+                REQUIRE( pSourceBintr->GetGpuId() == GPUID1 );
             }
         }
     }
@@ -1513,11 +1414,11 @@ SCENARIO( "Multiple DuplicateSourceBintrs can be added and linked with a VideoSo
         std::string duplicateSourceName4("duplicate-source-4");
         bool isLive(true);
         
-//        DSL_FILE_SOURCE_PTR pVideoSourceBintr = DSL_FILE_SOURCE_NEW(
-//            originalSourceName.c_str(), filePath.c_str(), isLive);
+        std::string sourceName("v4l2-source");
+        static std::string defDeviceLocation("/dev/video0");
 
-        DSL_USB_SOURCE_PTR pVideoSourceBintr = DSL_USB_SOURCE_NEW(
-            sourceName.c_str(), width, height, fps_n, fps_d);
+        DSL_V4L2_SOURCE_PTR pVideoSourceBintr = DSL_V4L2_SOURCE_NEW(
+            sourceName.c_str(), defDeviceLocation.c_str());
 
         DSL_DUPLICATE_SOURCE_PTR pDuplicateSourceBintr1 = DSL_DUPLICATE_SOURCE_NEW(
             duplicateSourceName1.c_str(), originalSourceName.c_str(), isLive);
