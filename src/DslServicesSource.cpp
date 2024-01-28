@@ -943,7 +943,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceV4l2PictureSettingsGet(const char* name, 
-        int* brightness, int* contrast, int* saturation)
+        int* brightness, int* contrast, int* hue)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -957,7 +957,7 @@ namespace DSL
             DSL_V4L2_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
 
-            pSourceBintr->GetPictureSettings(brightness, contrast, saturation);
+            pSourceBintr->GetPictureSettings(brightness, contrast, hue);
 
             LOG_INFO("V4L2 Source '" << name 
                 << "' returned picture-settings successfully");
@@ -973,7 +973,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceV4l2PictureSettingsSet(const char* name, 
-        int brightness, int contrast, int saturation)
+        int brightness, int contrast, int hue)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -987,7 +987,7 @@ namespace DSL
             DSL_V4L2_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
 
-            if (!pSourceBintr->SetPictureSettings(brightness, contrast, saturation))
+            if (!pSourceBintr->SetPictureSettings(brightness, contrast, hue))
             {
                 LOG_ERROR("Failed to set picture-settings for V4L2 Source '" 
                     << name << "'");

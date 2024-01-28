@@ -26,8 +26,9 @@
 #
 # The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - V4L2 Source - USB Camera
+#   - V4L2 Source - Web Camera
 #   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
 # ...and how to add them to a new Pipeline and play
@@ -35,9 +36,17 @@
 # The example registers handler callback functions with the Pipeline for:
 #   - key-release events
 #   - delete-window events
-#  
-# IMPORTANT! this examples uses a CSI Camera Source and 3D Sink - Jetson only!
 #
+# The key-release handler function will update the V4L2 device picture settings
+# based on the key value as follows during runtime.
+#   * brightness - or more correctly the black level. 
+#                  enter 'B' to increase, 'b' to decrease
+#   * contrast   - color contrast setting or luma gain.
+#                  enter 'C' to increase, 'c' to decrease
+#   * hue        - color hue or color balence.
+#                  enter 'H' to increase, 'h' to decrease
+#
+# The Picture Settings are all integer values, range 
 ################################################################################
 
 #!/usr/bin/env python
@@ -46,8 +55,10 @@ import sys
 import time
 from dsl import *
 
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+# Picture settings, read after device negotiation.
+brightness=0 
+contrast=0
+hue=0 
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -55,18 +66,63 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
+
+    global brightness, contrast, hue
     print('key released = ', key_string)
-    if key_string.upper() == 'P':
+    update = False
+    
+    # Upper case 'B' - increase the picture brighness by 10
+    if key_string == 'B':
+        brightness += 10
+        update = True
+        
+    # Lower case 'b' - decrease the picture brighness by 10
+    elif key_string == 'b':
+        brightness -= 10
+        update = True
+        
+    # Upper case 'C' - increase the picture contrast (luma gain) by 10
+    elif key_string == 'C':
+        contrast += 10
+        update = True
+        
+    # Lower case 'c' - decrease the picture contrast (luma gain) by 10
+    elif key_string == 'c':
+        contrast -= 10
+        update = True
+        
+    # Upper case 'H' - increase the picture hue (color balence) by 10
+    elif key_string == 'H':
+        hue += 10
+        update = True
+        
+    # Lower case 'h' - decrease the picture hue (color balence) by 10
+    elif key_string == 'h':
+        hue -= 10
+        update = True
+
+    elif key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
+
+    if update:
+        retval = dsl_source_v4l2_picture_settings_set('v4l2-source',
+            brightness, contrast, hue)
 
 ## 
 # Function to be called on XWindow Delete event
@@ -80,7 +136,7 @@ def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
+    
         # New V4L2 Live Web Camera Source
         retval = dsl_source_v4l2_new('v4l2-source', 
             '/dev/video0')
@@ -90,6 +146,11 @@ def main(args):
         # New Primary GIE using the filespecs above, with inference interval=0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -123,7 +184,8 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['v4l2-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
+            ['v4l2-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -132,10 +194,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Once playing, we can retrieve the device information: 
+        # name, file-descriptor, and device-flags
         retval, device_name = dsl_source_v4l2_device_name_get('v4l2-source')
         if retval != DSL_RETURN_SUCCESS:
             break
-
         retval, device_fd = dsl_source_v4l2_device_fd_get('v4l2-source')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -144,7 +207,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval, brightness, contrast, saturation = \
+        # Global variables for picture settings - updated in key-release handler
+        global brightness, contrast, hue
+
+        # Get the initial values updated after the Pipeline is playing.
+        retval, brightness, contrast, hue = \
             dsl_source_v4l2_picture_settings_get('v4l2-source')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -155,14 +222,17 @@ def main(args):
         print('   Flags      :', device_flags)
         print('   Brightness :', brightness)
         print('   Contrast   :', contrast)
-        print('   Saturation :', saturation)
-        
+        print('   Hue        :', hue)
+
+        # Start and join the main loop 
         dsl_main_loop_run()
+        
+        # main loop has exited update the final return value to succes
         retval = DSL_RETURN_SUCCESS
         break
 
-        # Print out the final result
-        print(dsl_return_value_to_string(retval))
+    # Print out the final result
+    print(dsl_return_value_to_string(retval))
 
     dsl_pipeline_delete_all()
     dsl_component_delete_all()

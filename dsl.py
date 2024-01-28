@@ -3387,10 +3387,10 @@ def dsl_source_v4l2_picture_settings_get(name):
     global _dsl
     brightness = c_int(0)
     contrast = c_int(0)
-    saturation = c_int(0)
+    hue = c_int(0)
     result = _dsl.dsl_source_v4l2_picture_settings_get(name, 
-        DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(saturation))
-    return int(result), brightness.value, contrast.value, saturation.value
+        DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(hue))
+    return int(result), brightness.value, contrast.value, hue.value
 
 ##
 ## dsl_source_v4l2_picture_settings_set()
@@ -3399,10 +3399,10 @@ _dsl.dsl_source_v4l2_picture_settings_set.argtypes = [c_wchar_p,
     c_int, c_int, c_int]
 _dsl.dsl_source_v4l2_picture_settings_set.restype = c_uint
 def dsl_source_v4l2_picture_settings_set(name, 
-    brightness, contrast, saturation):
+    brightness, contrast, hue):
     global _dsl
     result = _dsl.dsl_source_v4l2_picture_settings_set(name, 
-        brightness, contrast, saturation)
+        brightness, contrast, hue)
     return int(result)
 
 ##

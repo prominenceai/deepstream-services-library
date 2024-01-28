@@ -804,16 +804,31 @@ SCENARIO( "A new V4L2 Source returns the correct attribute values", "[source-api
                     &device_location) == DSL_RESULT_SUCCESS );
                 std::wstring ret_device_location(device_location);
                 REQUIRE( ret_device_location == def_device_location );
-//                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
-//                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
-//                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
-//                REQUIRE( ret_width == width );
-//                REQUIRE( ret_height == height );
-//                REQUIRE( ret_fps_n == fps_n );
-//                REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
 
+                const wchar_t* c_ret_device_name;
+                REQUIRE( dsl_source_v4l2_device_name_get(source_name.c_str(), 
+                    &c_ret_device_name) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_name(c_ret_device_name);
+                REQUIRE( ret_device_name == L"" );
+
+                int ret_device_fd;
+                REQUIRE( dsl_source_v4l2_device_fd_get(source_name.c_str(), 
+                    &ret_device_fd) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_device_fd == -1 );
+
+                uint ret_device_flags;
+                REQUIRE( dsl_source_v4l2_device_flags_get(source_name.c_str(), 
+                    &ret_device_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_device_flags == DSL_V4L2_DEVICE_TYPE_NONE );
+
+                int retBrightness(0), retContrast(0), retHue(0);
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    &retBrightness, &retContrast, &retHue) == DSL_RESULT_SUCCESS );
+                REQUIRE( retBrightness == 0 );
+                REQUIRE( retContrast == 0 );
+                REQUIRE( retHue == 0 );
+                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -1588,6 +1603,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         
         int start_index(0);
         uint left(0), top(0), width(0), fps_n(0), fps_d(0);
+        int brightness(0), contrast(0);
         dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -1645,7 +1661,15 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_v4l2_device_location_set(source_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                
+                REQUIRE( dsl_source_v4l2_picture_settings_get(NULL, 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    &brightness, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    &brightness, &contrast, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
                 REQUIRE( dsl_source_uri_new(NULL, NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new(source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

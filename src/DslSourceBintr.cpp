@@ -1619,7 +1619,7 @@ namespace DSL
         m_pSourceElement->GetAttribute("flags", &m_deviceFlags);
         m_pSourceElement->GetAttribute("brightness", &m_brightness);
         m_pSourceElement->GetAttribute("contrast", &m_contrast);
-        m_pSourceElement->GetAttribute("saturation", &m_saturation);
+        m_pSourceElement->GetAttribute("hue", &m_hue);
         
         m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
@@ -1650,7 +1650,7 @@ namespace DSL
         LOG_INFO("  flags             : " << int_to_hex(m_deviceFlags));
         LOG_INFO("  brightness        : " << m_brightness);
         LOG_INFO("  contrast          : " << m_contrast);
-        LOG_INFO("  saturation        : " << m_saturation);
+        LOG_INFO("  hue               : " << m_hue);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
@@ -1837,38 +1837,45 @@ namespace DSL
     }
     
     void V4l2SourceBintr::GetPictureSettings(int* brightness, 
-        int* contrast, int* saturation)
+        int* contrast, int* hue)
     {
         LOG_FUNC();
         
         m_pSourceElement->GetAttribute("brightness", &m_brightness);
         m_pSourceElement->GetAttribute("contrast", &m_contrast);
-        m_pSourceElement->GetAttribute("saturation", &m_saturation);
+        m_pSourceElement->GetAttribute("hue", &m_hue);
 
         *brightness = m_brightness;
         *contrast = m_contrast;
-        *saturation = m_saturation;
+        *hue = m_hue;
     }
 
     bool V4l2SourceBintr::SetPictureSettings(int brightness, 
-        int contrast, int saturation)
+        int contrast, int hue)
     {
         LOG_FUNC();
 
-        if (m_isLinked)
+        if (m_brightness != brightness)
         {
-            LOG_ERROR("Can't set picture-settings for V4l2SourceBintr '" 
-                << GetName() << "' as it is currently in a linked state");
-            return false;
+            m_brightness = brightness;
+            m_pSourceElement->SetAttribute("brightness", m_brightness);
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set brightness level to " << m_brightness);
         }
-        m_brightness = brightness;
-        m_contrast = contrast;
-        m_saturation = saturation;
-
-        m_pSourceElement->SetAttribute("brightness", m_brightness);
-        m_pSourceElement->SetAttribute("contrast", m_contrast);
-        m_pSourceElement->SetAttribute("saturation", m_saturation);
-        
+        if (m_contrast != contrast)
+        {
+            m_contrast = contrast;
+            m_pSourceElement->SetAttribute("contrast", m_contrast);            
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set contrast level to " << m_contrast);
+        }
+        if (m_hue != hue)
+        {
+            m_hue = hue;
+            m_pSourceElement->SetAttribute("hue", m_hue);
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set hue level to " << m_hue);
+        }
         return true;
     }
 

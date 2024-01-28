@@ -769,10 +769,10 @@ namespace DSL {
             uint* deviceFlags);
 
         DslReturnType SourceV4l2PictureSettingsGet(const char* name, 
-            int* brightness, int* contrast, int* saturation);
+            int* brightness, int* contrast, int* hue);
 
         DslReturnType SourceV4l2PictureSettingsSet(const char* name, 
-            int brightness, int contrast, int saturation);
+            int brightness, int contrast, int hue);
 
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint skipFrames, uint dropFrameInterval);

@@ -300,14 +300,14 @@ SCENARIO( "A CsiSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
     }
 }
 
-SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
+SCENARIO( "A new V4l2SourceBintr is created correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A name for a new UsbSourceBintr" ) 
+    GIVEN( "A name for a new V4l2SourceBintr" ) 
     {
 
         static std::string defDeviceLocation("/dev/video0");
 
-        WHEN( "The UsbSourceBintr is created " )
+        WHEN( "The V4l2SourceBintr is created " )
         {
         
             DSL_V4L2_SOURCE_PTR pSourceBintr = DSL_V4L2_SOURCE_NEW(
@@ -333,7 +333,7 @@ SCENARIO( "A new UsbSourceBintr is created correctly",  "[SourceBintr]" )
 
 SCENARIO( "A V4l2SourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
 {
-    GIVEN( "A new UsbSourceBintr in memory" ) 
+    GIVEN( "A new V4l2SourceBintr in memory" ) 
     {
         std::string sourceName("v4l2-source");
         static std::string defDeviceLocation("/dev/video0");
@@ -378,9 +378,9 @@ SCENARIO( "A V4l2SourceBintr can UnlinkAll all child Elementrs correctly",  "[So
     }
 }
 
-SCENARIO( "A UsbSourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
+SCENARIO( "A V4l2SourceBintr can Get and Set its GPU ID",  "[SourceBintr]" )
 {
-    GIVEN( "A new UsbSourceBintr in memory" ) 
+    GIVEN( "A new V4l2SourceBintr in memory" ) 
     {
         std::string sourceName("v4l2-source");
         static std::string defDeviceLocation("/dev/video0");

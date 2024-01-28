@@ -4703,34 +4703,34 @@ DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
     uint* device_flags);
 
 /**
- * @brief Gets the current picture brightness, contrast, and saturation settings
+ * @brief Gets the current picture brightness, contrast, and hue settings
  * for the named V4L2 Source.
  * @param[in] name unique name of the V4L2 Source to query.
  * @param[out] brightness current brightness level, or more precisely, the 
  * black level. Default = 0.
  * @param[out] contrast current picture color contrast setting or luma gain.
  * Default = 0.
- * @param[out] saturation current picture color saturation setting or chroma gain.
+ * @param[out] hue current picture color hue setting or color balence.
  * Default = 0.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
-    int* brightness, int* contrast, int* saturation);
+    int* brightness, int* contrast, int* hue);
 
 /**
- * @brief Gets the picture brightness, contrast, and saturation settings
+ * @brief Gets the picture brightness, contrast, and hue settings
  * for the named V4L2 Source to use.
  * @param[in] name unique name of the V4L2 Source to update.
  * @param[in] brightness new brightness level, or more precisely, the 
  * black level. Default = 0.
  * @param[in] contrast new picture contrast setting or luma gain.
  * Default = 0.
- * @param[in] saturation new picture color saturation setting or chroma gain.
+ * @param[in] hue new picture color hue setting or color balence.
  * Default = 0.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
  */
 DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
-    int brightness, int contrast, int saturation);
+    int brightness, int contrast, int hue);
     
 /**
  * @brief creates a new, uniquely named URI Source component

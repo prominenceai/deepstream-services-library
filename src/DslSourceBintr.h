@@ -1071,18 +1071,18 @@ namespace DSL
          * @brief Gets the current picture settings for this V4l2SourceBintr.
          * @param[out] brightness current brightness (actually darkness) level.
          * @param[out] contrast current picture contrast or luna gain level.
-         * @param[out] saturation current color saturation or chroma gain level.
+         * @param[out] hue current color hue or chroma gain level.
          */
-        void GetPictureSettings(int* brightness, int* contrast, int* saturation);
+        void GetPictureSettings(int* brightness, int* contrast, int* hue);
         
         /**
          * @brief Sets the picture settings for the V4l2SourceBintr to use.
          * @param[in] brightness new brightness (actually darkness) level.
          * @param[in] contrast new picture contrast or luna level.
-         * @param[in] saturation new color saturation or chroma level.
+         * @param[in] hue new color hue or color balence.
          * @return true if successfully set, false otherwise.
          */
-        bool SetPictureSettings(int brightness, int contrast, int saturation);
+        bool SetPictureSettings(int brightness, int contrast, int hue);
     private:
 
         /**
@@ -1117,9 +1117,9 @@ namespace DSL
         int m_contrast;
         
         /**
-         * @brief Picture color saturation level, or chroma. 
+         * @brief Picture color hue level, or color balance. 
          */
-        int m_saturation;
+        int m_hue;
 
         /**
          * @brief If TRUE, the base class will automatically timestamp outgoing buffers

@@ -58,6 +58,13 @@ def xwindow_delete_event_handler(client_data):
     dsl_player_stop('rtsp-player')
     dsl_main_loop_quit()
 
+## 
+# Function to be called on every change of RTSP Source state
+## 
+def rtsp_state_change_listener(old_state, new_state, client_data):
+    print('RTSP Source previous state = ', 
+        old_state, ', new state = ', new_state)
+
 def main(args):    
 
     # Since we're not using args, we can Let DSL initialize GST on first call    
@@ -74,6 +81,12 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 
+        # Add the RTSP state-change listener calback to our RTSP Source
+        retval = dsl_source_rtsp_state_change_listener_add('rtsp-source',
+            rtsp_state_change_listener, None)
+        if retval != DSL_RETURN_SUCCESS:    
+            break
+            
         # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display    
         retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)    
         if retval != DSL_RETURN_SUCCESS:    

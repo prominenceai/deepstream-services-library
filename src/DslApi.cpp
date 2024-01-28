@@ -4066,22 +4066,22 @@ DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
 }
 
 DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
-    int* brightness, int* contrast, int* saturation)
+    int* brightness, int* contrast, int* hue)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(brightness);
     RETURN_IF_PARAM_IS_NULL(contrast);
-    RETURN_IF_PARAM_IS_NULL(saturation);
+    RETURN_IF_PARAM_IS_NULL(hue);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SourceV4l2PictureSettingsGet(
-        cstrName.c_str(), brightness, contrast, saturation);
+        cstrName.c_str(), brightness, contrast, hue);
 }
 
 DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
-    int brightness, int contrast, int saturation)    
+    int brightness, int contrast, int hue)    
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -4089,7 +4089,7 @@ DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SourceV4l2PictureSettingsSet(
-        cstrName.c_str(), brightness, contrast, saturation);
+        cstrName.c_str(), brightness, contrast, hue);
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
