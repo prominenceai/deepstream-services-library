@@ -1714,7 +1714,7 @@ DslReturnType dsl_sink_v4l2_device_fd_get(const wchar_t* name,
 ```
 This service gets the device-file-descriptor setting for the named V4L2 Sink.
 
-**IMPORTANT!** The default-file-descriptor = "" on Sink creation. The value is updated after negotiation with the V4L2 device.
+**IMPORTANT!** The default-file-descriptor = 0 on Sink creation. The value is updated after negotiation with the V4L2 device.
 
 **Parameters**
 * `name` - [in] unique name of the V4L2 Sink to query.
