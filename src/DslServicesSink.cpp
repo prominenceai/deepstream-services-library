@@ -2899,7 +2899,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception getting device-location");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -2933,7 +2933,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception setting device-location");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -2963,7 +2963,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception getting device-name");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -2993,7 +2993,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception getting device-fd");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -3022,8 +3022,8 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("V4L2 Sink '" << name 
-                << "' threw exception getting device-fd");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+                << "' threw exception getting device-flags");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
     
@@ -3053,7 +3053,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception getting buffer-in-format");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -3087,7 +3087,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception setting buffer-in-format");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -3117,7 +3117,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception getting picture-settings");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
@@ -3151,7 +3151,7 @@ namespace DSL
         {
             LOG_ERROR("V4L2 Sink '" << name 
                 << "' threw exception setting picture-settings");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
             

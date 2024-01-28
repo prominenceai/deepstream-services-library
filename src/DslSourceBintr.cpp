@@ -1597,14 +1597,10 @@ namespace DSL
     }
 
     //*********************************************************************************
-    // Initilize the unique device id list for all UsbSourceBintrs 
-    std::list<uint> UsbSourceBintr::s_uniqueDeviceIds;
-    std::list<std::string> UsbSourceBintr::s_deviceLocations;
 
-    UsbSourceBintr::UsbSourceBintr(const char* name, 
-        guint width, guint height, guint fpsN, guint fpsD)
+    V4l2SourceBintr::V4l2SourceBintr(const char* name, const char* deviceLocation)
         : VideoSourceBintr(name)
-        , m_deviceId(0)
+        , m_deviceLocation(deviceLocation)
     {
         LOG_FUNC();
 
@@ -1617,29 +1613,15 @@ namespace DSL
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
             L_bufferOutFormat.end());
 
-        // Update the frame dimensions and framerate
-        m_width = width;
-        m_height = height;
-        m_fpsN = fpsN;
-        m_fpsD = fpsD;
-        
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
-        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
-        // Find the first available unique device-id
-        while(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
-            m_deviceId) != s_uniqueDeviceIds.end())
-        {
-            m_deviceId++;
-        }
-        s_uniqueDeviceIds.push_back(m_deviceId);
+        m_pSourceElement->GetAttribute("device-fd", &m_deviceFd);
+        m_pSourceElement->GetAttribute("flags", &m_deviceFlags);
+        m_pSourceElement->GetAttribute("brightness", &m_brightness);
+        m_pSourceElement->GetAttribute("contrast", &m_contrast);
+        m_pSourceElement->GetAttribute("hue", &m_hue);
         
-        // create the device-location by adding the device-id as suffex to /dev/video
-        m_deviceLocation = "/dev/video" + std::to_string(m_deviceId);
-        s_deviceLocations.push_back(m_deviceLocation);
-        
-        LOG_INFO("Setting device-location = '" << m_deviceLocation 
-            << "' for UsbSourceBintr '" << name << "'");
+        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
 
@@ -1660,14 +1642,20 @@ namespace DSL
         }
         
         LOG_INFO("");
-        LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
+        LOG_INFO("Initial property values for V4l2SourceBintr '" << name << "'");
         LOG_INFO("  is-live           : " << m_isLive);
-        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  device            : " << m_deviceLocation.c_str());
+        LOG_INFO("  device-name       : " << m_deviceName);
+        LOG_INFO("  device-fd         : " << m_deviceFd);
+        LOG_INFO("  flags             : " << int_to_hex(m_deviceFlags));
+        LOG_INFO("  brightness        : " << m_brightness);
+        LOG_INFO("  contrast          : " << m_contrast);
+        LOG_INFO("  hue               : " << m_hue);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
@@ -1683,23 +1671,18 @@ namespace DSL
         AddChild(m_pSourceCapsFilter);
     }
 
-    UsbSourceBintr::~UsbSourceBintr()
+    V4l2SourceBintr::~V4l2SourceBintr()
     {
         LOG_FUNC();
-        
-        // remove from lists so values can be reused by next
-        // new USB Source
-        s_uniqueDeviceIds.remove(m_deviceId);
-        s_deviceLocations.remove(m_deviceLocation);
     }
 
-    bool UsbSourceBintr::LinkAll()
+    bool V4l2SourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("UsbSourceBintr '" << GetName() << "' is already in a linked state");
+            LOG_ERROR("V4l2SourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
         
@@ -1726,13 +1709,13 @@ namespace DSL
         return true;
     }
 
-    void UsbSourceBintr::UnlinkAll()
+    void V4l2SourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("UsbSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("V4l2SourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
         
@@ -1748,68 +1731,154 @@ namespace DSL
         m_isLinked = false;
     }
 
-    const char* UsbSourceBintr::GetDeviceLocation()
+    const char* V4l2SourceBintr::GetDeviceLocation()
     {
         LOG_FUNC();
 
         return m_deviceLocation.c_str();
     }
     
-    bool UsbSourceBintr::SetDeviceLocation(const char* deviceLocation)
+    bool V4l2SourceBintr::SetDeviceLocation(const char* deviceLocation)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set device-location for UsbSourceBintr '" << GetName() 
+            LOG_ERROR("Can't set device-location for V4l2SourceBintr '" << GetName() 
                 << "' as it is currently in a linked state");
             return false;
         }
         
-        // Ensure that the device-location is unique.
-        std::string newLocation(deviceLocation);
-        
-        if (newLocation.find("/dev/video") == std::string::npos)
-        {
-            LOG_ERROR("Can't set device-location = '" << deviceLocation 
-                << "' for UsbSourceBintr '" << GetName() 
-                << "'. The string is invalid");
-            return false;
-        }
-        uint newDeviceId(0);
-        try
-        {
-            newDeviceId = std::stoi(newLocation.substr(10, 
-                newLocation.size()-10));
-        }
-        catch(...)
-        {
-            LOG_ERROR("Can't set device-location = '" << deviceLocation 
-                << "' for UsbSourceBintr '" << GetName() 
-                << "'. The string is invalid");
-            return false;
-        }
-        
-        if(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
-            newDeviceId) != s_uniqueDeviceIds.end())
-        {
-            LOG_ERROR("Can't set device-location = '" << deviceLocation 
-                << "' for UsbSourceBintr '" << GetName() 
-                << "'. The location string is not unqiue");
-            return false;
-        }
-        // remove the old device-id and location before updating
-        s_uniqueDeviceIds.remove(m_deviceId);
-        s_deviceLocations.remove(m_deviceLocation);
-
-        m_deviceId = newDeviceId;
         m_deviceLocation = deviceLocation;
-        s_uniqueDeviceIds.push_back(m_deviceId);
-        s_deviceLocations.push_back(m_deviceLocation);
         
-        m_pSourceElement->SetAttribute("device", deviceLocation);
+        m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
         return true;
     }
+
+    bool V4l2SourceBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set dimensions for V4l2SourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_width = width;
+        m_height = height;
+
+        // Set the capabilities - do not set the format. 
+        // Dimensions and framerate are set conditionally (non zero).
+        DslCaps Caps(m_mediaType.c_str(), NULL, 
+            m_width, m_height, m_fpsN, m_fpsD, false);
+
+        m_pSourceCapsFilter->SetAttribute("caps", &Caps);
+        
+        return true;
+    }
+    
+    bool V4l2SourceBintr::SetFrameRate(uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set frame-rate for V4l2SourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
+        
+        // Set the capabilities - do not set the format. 
+        // Dimensions and framerate are set conditionally (non zero).
+        DslCaps Caps(m_mediaType.c_str(), NULL, 
+            m_width, m_height, m_fpsN, m_fpsD, false);
+
+        m_pSourceCapsFilter->SetAttribute("caps", &Caps);
+        
+        return true;
+    }
+    
+    const char* V4l2SourceBintr::GetDeviceName()
+    {
+        LOG_FUNC();
+        
+        // default to no device-name
+        m_deviceName = "";
+
+        const char* deviceName(NULL);
+        m_pSourceElement->GetAttribute("device-name", &deviceName);
+        
+        // Update if set
+        if (deviceName)
+        {
+            m_deviceName = deviceName;
+        }
+            
+        return m_deviceName.c_str();
+    }
+    
+    int V4l2SourceBintr::GetDeviceFd()
+    {
+        LOG_FUNC();
+
+        m_pSourceElement->GetAttribute("device-fd", &m_deviceFd);
+        return m_deviceFd;
+    }
+    
+    uint V4l2SourceBintr::GetDeviceFlags()
+    {
+        LOG_FUNC();
+
+        m_pSourceElement->GetAttribute("flags", &m_deviceFlags);
+        return m_deviceFlags;
+    }
+    
+    void V4l2SourceBintr::GetPictureSettings(int* brightness, 
+        int* contrast, int* hue)
+    {
+        LOG_FUNC();
+        
+        m_pSourceElement->GetAttribute("brightness", &m_brightness);
+        m_pSourceElement->GetAttribute("contrast", &m_contrast);
+        m_pSourceElement->GetAttribute("hue", &m_hue);
+
+        *brightness = m_brightness;
+        *contrast = m_contrast;
+        *hue = m_hue;
+    }
+
+    bool V4l2SourceBintr::SetPictureSettings(int brightness, 
+        int contrast, int hue)
+    {
+        LOG_FUNC();
+
+        if (m_brightness != brightness)
+        {
+            m_brightness = brightness;
+            m_pSourceElement->SetAttribute("brightness", m_brightness);
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set brightness level to " << m_brightness);
+        }
+        if (m_contrast != contrast)
+        {
+            m_contrast = contrast;
+            m_pSourceElement->SetAttribute("contrast", m_contrast);            
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set contrast level to " << m_contrast);
+        }
+        if (m_hue != hue)
+        {
+            m_hue = hue;
+            m_pSourceElement->SetAttribute("hue", m_hue);
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set hue level to " << m_hue);
+        }
+        return true;
+    }
+
 
     //*********************************************************************************
 

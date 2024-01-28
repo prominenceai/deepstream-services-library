@@ -251,6 +251,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
+      <File Name="../examples/cpp/1v4l2_pgie_iou_tracker_osd_window.cpp"/>
       <File Name="../examples/cpp/multiple_pipelines.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
       <File Name="../examples/cpp/ode_cross_polygon_border_print_event.cpp"/>
@@ -278,6 +279,7 @@
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
+      <File Name="../examples/python/1v4l2_pgie_iou_tracker_osd_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_2sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py.hld"/>
       <File Name="../examples/python/nvidia_pyds_pad_probe_handler.py"/>

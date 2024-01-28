@@ -58,7 +58,7 @@ There are eleven Video Source components supported, three of which are [Image Vi
 
 * [App Source](#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
-* [USB Source](#dsl_source_usb_new) - Universal Serial Bus (USB) Source.
+* [V4L2 Source](#dsl_source_v4l2_new) - Stream from any V4L2 compatable device - a USB Webcam for example.
 * [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
 * [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
 * [RTSP Source](#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
@@ -130,7 +130,7 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 **Constructors:**
 * [`dsl_source_app_new`](#dsl_source_app_new)
 * [`dsl_source_csi_new`](#dsl_source_csi_new)
-* [`dsl_source_usb_new`](#dsl_source_usb_new)
+* [`dsl_source_v4l2_new`](#dsl_source_v4l2_new)
 * [`dsl_source_uri_new`](#dsl_source_uri_new)
 * [`dsl_source_file_new`](#dsl_source_file_new)
 * [`dsl_source_rtsp_new`](#dsl_source_rtsp_new)
@@ -145,7 +145,7 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [`dsl_source_stream_id_get`](#dsl_source_stream_id_get)
 * [`dsl_source_name_get`](#dsl_source_name_get)
 * [`dsl_source_media_type_get`](#dsl_source_media_type_get)
-* [`dsl_source_framerate get`](#dsl_source_framerate_get)
+* [`dsl_source_frame_rate_get`](#dsl_source_frame_rate_get)
 * [`dsl_source_is_live`](#dsl_source_is_live)
 * [`dsl_source_pause`](#dsl_source_pause)
 * [`dsl_source_resume`](#dsl_source_resume)
@@ -187,9 +187,16 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [`dsl_source_csi_sensor_id_get`](#dsl_source_csi_sensor_id_get)
 * [`dsl_source_csi_sensor_id_set`](#dsl_source_csi_sensor_id_set)
 
-**USB Source Methods**
-* [`dsl_source_usb_device_location_get`](#dsl_source_usb_device_location_get)
-* [`dsl_source_usb_device_location_set`](#dsl_source_usb_device_location_set)
+**V4L2 Source Methods**
+* [`dsl_source_v4l2_dimensions_set`](#dsl_source_v4l2_dimensions_set)
+* [`dsl_source_v4l2_frame_rate_set`](#dsl_source_v4l2_frame_rate_set)
+* [`dsl_source_v4l2_device_location_get`](#dsl_source_v4l2_device_location_get)
+* [`dsl_source_v4l2_device_location_set`](#dsl_source_v4l2_device_location_set)
+* [`dsl_source_v4l2_device_name_get`](#dsl_source_v4l2_device_name_get)
+* [`dsl_source_v4l2_device_fd_get`](#dsl_source_v4l2_device_fd_get)
+* [`dsl_source_v4l2_device_flags_get`](#dsl_source_v4l2_device_flags_get)
+* [`dsl_source_v4l2_picture_settings_get`](#dsl_source_v4l2_picture_settings_get)
+* [`dsl_source_v4l2_picture_settings_set`](#dsl_source_v4l2_picture_settings_set)
 
 **URI Source Methods**
 * [`dsl_source_uri_uri_get`](#dsl_source_uri_uri_get)
@@ -263,8 +270,7 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_DEWARPER_ADD_FAILED                       0x0002000C
 #define DSL_RESULT_SOURCE_DEWARPER_REMOVE_FAILED                    0x0002000D
-#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            
-
+#define DSL_RESULT_SOURCE_TAP_ADD_FAILED                            0x0002000E
 #define DSL_RESULT_SOURCE_TAP_REMOVE_FAILED                         0x0002000F
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE                   0x00020010
 #define DSL_RESULT_SOURCE_COMPONENT_IS_NOT_DECODE_SOURCE            0x00020011
@@ -275,7 +281,6 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 #define DSL_RESULT_SOURCE_HANDLER_ADD_FAILED                        0x00020017
 #define DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED                     0x00020018
-
 ```
 
 ## DSL State Values
@@ -312,6 +317,18 @@ Streaming Source Methods use the following return codes, in addition to the gene
 #define DSL_NVBUF_MEM_TYPE_PINNED                                   1
 #define DSL_NVBUF_MEM_TYPE_DEVICE                                   2
 #define DSL_NVBUF_MEM_TYPE_UNIFIED                                  3
+```
+
+## V4L2 Device Type Flags
+```C
+#define DSL_V4L2_DEVICE_TYPE_NONE                                   0x00000000 
+#define DSL_V4L2_DEVICE_TYPE_CAPTURE                                0x00000001
+#define DSL_V4L2_DEVICE_TYPE_OUTPUT                                 0x00000002
+#define DSL_V4L2_DEVICE_TYPE_OVERLAY                                0x00000004
+#define DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE                            0x00000010
+#define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
+#define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
+#define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
 ```
 
 ## RTP Protocols
@@ -510,34 +527,29 @@ retval = dsl_source_csi_new('my-csi-source', 1280, 720, 30, 1)
 
 <br>
 
-### *dsl_source_usb_new*
+### *dsl_source_v4l2_new*
 ```C
-DslReturnType dsl_source_usb_new(const wchar_t* name,
-    uint width, uint height, uint fps_n, uint fps_d);
+DslReturnType dsl_source_v4l2_new(const wchar_t* name,
+    const wchar_t* device_location);
 ```
-Creates a new, uniquely named USB Camera Source component.
-
-**Important:** A unique device-location is assigned to each USB Source on creation, starting with `/dev/video0`, followed by `/dev/video1`, and so on. The default assignment can be overridden by calling [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set). The call will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
+Creates a new, uniquely named V4L2 Source component.
 
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `usb source`
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `v4l2 source`
 
 **Parameters**
 * `name` - [in] unique name for the new Source
-* `width` - [in] width of the source in pixels
-* `height` - [in] height of the source in pixels
-* `fps-n` - [in] frames per second fraction numerator
-* `fps-d` - [in] frames per second fraction denominator
+* `device_location` - [in] device location for the new Source (/dev/video0 for example)
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_source_usb_new('my-usb-source', 1280, 720, 30, 1)
+retval = dsl_source_v4l2_new('my-v4l2-source', '/dev/video0')
 ```
 <br>
 
@@ -907,7 +919,7 @@ retval, media_type = dsl_source_media_type_get('my-source')
 
 <br>
 
-### *dsl_source_framerate_get*
+### *dsl_source_frame_rate_get*
 ```C
 DslReturnType dsl_source_frame_rate_get(const wchar_t* name, uint* fps_n, uint* fps_n);
 ```
@@ -923,7 +935,7 @@ This service returns the fractional frames per second as numerator and denominat
 
 **Python Example**
 ```Python
-retval, fps_n, fps_d = dsl_source_dimensions_get('my-uri-source')
+retval, fps_n, fps_d = dsl_source_frame_rate_get('my-uri-source')
 ```
 
 <br>
@@ -1655,15 +1667,62 @@ retval = dsl_source_csi_sensor_id_set('my-csi-source', 1)
 
 <br>
 
-## USB Source Methods
-### *dsl_source_usb_device_location_get*
+## V4L2 Source Methods
+### *dsl_source_v4l2_dimensions_set*
+```C++
+DslReturnType dsl_source_v4l2_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+```
+This service sets the dimensions for the named V4L2 Source to use. The current dimensions can be queried by calling [`dsl_source_video_dimensions_get`](#dsl_source_video_dimensions_get) 
+
+**IMPORTANT!** The device must support settable dimensions or the Pipeline will fail to link and play.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to update.
+* `width` - [in] new width setting in units of pixels. Set to 0 to use the device default. 
+* `height` - [in] new width setting in units of pixels. Set to 0 to use the device default. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_v4l2_dimensions_set('my-v4l2-source', 640, 360)
+```
+
+<br>
+
+### *dsl_source_v4l2_frame_rate_set*
+```C++
+DslReturnType dsl_source_v4l2_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+```
+This service sets the frame-rate for the named V4L2 Source to use. The current frame-rate can be queried by calling [`dsl_source_frame_rate_get`](#dsl_source_frame_rate_get) 
+
+**IMPORTANT!** The device must support a controllable frame-rate or the Pipeline will fail to link and play.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to update.
+* `fps_n` - [in] new frames per second numerator. Set to 0 for no rate-change. 
+* `fps_d` - [in] new frames per second denominator. Set to 0 for no rate-change. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_v4l2_frame_rate_set('my-v4l2-source', 10, 1)
+```
+
+<br>
+
+### *dsl_source_v4l2_device_location_get*
 
 ```C
-DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_get(const wchar_t* name,
     const wchar_t** device_location);
 ```
-This service gets the device-location setting for the named USB Source. A unique device-location is assigned to each USB Source on creation starting with `/dev/video0`, followed by `/dev/video1`, and so on. The default assignment can be overridden by calling [dsl_source_usb_device_location_set](#dsl_source_usb_device_location_set). The call will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
-
+This service gets the device-location setting for the named USB Source. 
 
 **Parameters**
 * `name` - [in] unique name of the Source to query.
@@ -1674,16 +1733,16 @@ This service gets the device-location setting for the named USB Source. A unique
 
 **Python Example**
 ```Python
-retval, device_location = dsl_source_usb_device_location_get('my-usb-source')
+retval, device_location = dsl_source_v4l2_device_location_get('my-v4l2-source')
 ```
 <br>
 
-### *dsl_source_usb_device_location_set*
+### *dsl_source_v4l2_device_location_set*
 ```C
-DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_set(const wchar_t* name,
     const wchar_t* device_location);
 ```
-This service sets the sensor-id setting for the named CSI Source to use.  A unique device-location is assigned to each USB Source on creation, starting with `/dev/video0`, followed by `/dev/video1`, and so on. This service will fail if the given device-location is not unique. If a source is deleted, the device-location will be re-assigned to a new USB Source if one is created.
+This service sets the device_location setting for the named V4L2 Source to use.
 
 **Parameters**
 * `name` - [in] unique name of the Source to update.
@@ -1694,7 +1753,122 @@ This service sets the sensor-id setting for the named CSI Source to use.  A uniq
 
 **Python Example**
 ```Python
-retval = dsl_source_usb_device_location_set('my-usb-source', '/dev/video1')
+retval = dsl_source_v4l2_device_location_set('my-v4l2-source', '/dev/video1')
+```
+
+<br>
+
+### *dsl_source_v4l2_device_name_get*
+```C++
+DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+```
+This service gets the device-name setting for the named V4L2 Source.
+
+**IMPORTANT!** The default value = "" on Source creation. The value is updated after negotiation with the V4L2 device.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to query.
+* `device_name` - [out] device-name of the v4l2 device once connected. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_name = dsl_source_v4l2_device_name_get('my-v4l2-source')
+```
+
+<br>
+
+### *dsl_source_v4l2_device_fd_get*
+```C++
+DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd);
+```
+This service gets the device-file-descriptor setting for the named V4L2 Source.
+
+**IMPORTANT!** The default-file-descriptor = 0 on Source creation. The value is updated after negotiation with the V4L2 device.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to query.
+* `device_fd` - [out] file-descriptor of the v4l2 device once connected. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_fd = dsl_source_v4l2_device_fd_get('my-v4l2-source')
+```
+
+<br>
+
+### *dsl_source_v4l2_device_flags_get*
+```C++
+DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags);
+```
+This service gets the device-flags setting for the named V4L2 Source.
+
+**IMPORTANT!** The default-flags = `DSL_V4L2_DEVICE_TYPE_NONE` on Source creation. The value is updated after negotiation with the V4L2 device.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to query.
+* `device_flags` - [out] mask of [V4L2 Device Type Flags](#v4l2-device-type-flags) 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_flags = dsl_source_v4l2_device_flags_get('my-v4l2-source')
+```
+
+<br>
+
+### *dsl_source_v4l2_picture_settings_get*
+```C++
+DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* hue);
+```
+This service gets the current picture brightness, contrast, and hue settings for the named V4L2 Source.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to query.
+* `brightness` - [out] current picture brightness level, or more precisely, the black level. Default = 0.
+* `contrast` - [out] current picture color contrast setting or luma gain. Default = 0.
+* `hue` - [out] current picture color hue setting or color balence. Default = 0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, brightness, contrast, hue = dsl_source_v4l2_picture_settings_get('my-v4l2-source')
+```
+
+<br>
+
+### *dsl_source_v4l2_picture_settings_set*
+```C++
+DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int hue);
+```
+This service sets the current picture brightness, contrast, and hue settings for the named V4L2 Source to use.
+
+**Parameters**
+* `name` - [in] unique name of the V4L2 Source to update.
+* `brightness` - [in] new picture brightness level, or more precisely, the black level to use.
+* `contrast` - [in] new picture contrast setting, or luma gain, to use.
+* `hue` - [in] new color hue setting, or color balence, to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_v4l2_picture_settings_set('my-v4l2-source', -10, 14, 0)
 ```
 
 <br>
