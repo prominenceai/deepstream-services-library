@@ -134,7 +134,7 @@ def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
         # Get the current XWindow dimensions from our Window Sink
         # The Window Sink is derived from Render Sink parent class so  
         # use the Render Sink API to get the dimensions.
-        retval, width, height = dsl_sink_render_dimensions_get('egl-sink')
+        retval, width, height = dsl_sink_window_dimensions_get('window-sink')
         
         # call the Tiler to show the source based on the x and y button cooridantes
         # and the current window dimensions obtained from the XWindow
@@ -251,26 +251,32 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        # New 3D Window Sink with 0 x/y offsets, and same dimensions as Tiler output
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only.
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Enabled full-screen-mode for our Window Sink
-        retval = dsl_sink_window_fullscreen_enabled_set('egl-sink', enabled=True)
+        retval = dsl_sink_window_fullscreen_enabled_set('window-sink', enabled=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_button_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_button_event_handler_add('window-sink', 
             xwindow_button_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -278,7 +284,7 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', ['file-source-1', 
             'file-source-2', 'file-source-3', 'file-source-4', 'primary-gie', 
-            'iou-tracker', 'tiler', 'on-screen-display', 'egl-sink', None])
+            'iou-tracker', 'tiler', 'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

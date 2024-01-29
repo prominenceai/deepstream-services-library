@@ -55,8 +55,8 @@ import sys
 from dsl import *
 import os
 
-# Import NVIDIA's OSD Sink Pad Buffer Probe (pyds) example
-from nvidia_osd_sink_pad_buffer_probe import osd_sink_pad_buffer_probe
+# Import NVIDIA's pyds Pad Probe Handler example
+from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
 # path to the directory that hold the mp4 files to process.
 dir_path = "/opt/nvidia/deepstream/deepstream/samples/streams"
@@ -151,21 +151,21 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New Custom Pad Probe Handler to call Nvidia's example callback 
+        # for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', 
+            client_handler=custom_pad_probe_handler, client_data=None)
+
+        # Add the custom PPH to the Sink pad of the OSD
+        retval = dsl_tracker_pph_add('iou-tracker', 
+            handler='custom-pph', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, 
             bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Custom Pad Probe Handler to call Nvidia's example callback 
-        # for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=osd_sink_pad_buffer_probe, client_data=None)
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', 
-            handler='custom-pph', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
         

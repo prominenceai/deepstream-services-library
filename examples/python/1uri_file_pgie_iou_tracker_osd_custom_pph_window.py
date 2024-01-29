@@ -139,8 +139,8 @@ def main(args):
             client_handler=custom_pad_probe_handler, client_data=None)
         
         # Add the custom PPH to the Sink pad of the OSD
-#        retval = dsl_osd_pph_add('on-screen-display', 
-#            handler='custom-pph', pad=DSL_PAD_SINK)
+        retval = dsl_osd_pph_add('on-screen-display', 
+            handler='custom-pph', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -162,9 +162,8 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source','egl-sink', None])
-#            ['uri-source', 'primary-gie', 'iou-tracker', 
-#            'on-screen-display', 'egl-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 
+            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

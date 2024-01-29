@@ -116,8 +116,9 @@ def main(args):
             break
 
         # Create an Any-Class Occurrence Trigger for our Hide Action
-        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
+            source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
@@ -125,7 +126,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
+            red=1.0, green=0.0, blue=0.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -142,7 +144,8 @@ def main(args):
             
         # Create the Polygon display type 
         retval = dsl_display_type_rgba_polygon_new('polygon1', 
-            coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+            coordinates=coordinates, num_coordinates=len(coordinates), 
+            border_width=4, color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -158,9 +161,11 @@ def main(args):
             if retval != DSL_RETURN_SUCCESS:
                 break
 
-        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit 
+        # on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
+            source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_PERSON, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -172,7 +177,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
@@ -184,7 +189,7 @@ def main(args):
             break
         
         
-        ############################################################################################
+        ###############################################################################
         #
         # Create the remaining Pipeline components
         
