@@ -1561,7 +1561,7 @@ def dsl_ode_action_list_size():
 ##
 ## dsl_ode_area_inclusion_new()
 ##
-_dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_inclusion_new.restype = c_uint
 def dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
@@ -1571,7 +1571,7 @@ def dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point):
 ##
 ## dsl_ode_area_exclusion_new()
 ##
-_dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_exclusion_new.restype = c_uint
 def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
