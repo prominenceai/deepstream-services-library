@@ -122,7 +122,7 @@ def main(args):
             break
         
         # Example of how to force the aspect ratio during window resize
-        dsl_sink_window_force_aspect_ratio_set('egl-sink', force=True)
+        dsl_sink_window_egl_force_aspect_ratio_set('egl-sink', force=True)
         if retval != DSL_RETURN_SUCCESS:
             break
 

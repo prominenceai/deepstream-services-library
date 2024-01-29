@@ -275,7 +275,6 @@
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
       <File Name="../examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp"/>
       <File Name="../examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp"/>
-      <File Name="../examples/cpp/parallel_inference_on_selective_streams.cpp"/>
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
@@ -339,7 +338,6 @@
       <File Name="../examples/python/process_all_mp4_files_in_folder.py"/>
       <File Name="../examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py"/>
       <File Name="../examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py"/>
-      <File Name="../examples/python/parallel_inference_on_selective_streams.py"/>
       <File Name="../examples/python/encode_and_save_frame_to_jpeg_from_custom_pph.py"/>
     </VirtualDirectory>
     <VirtualDirectory Name="tkinter">
