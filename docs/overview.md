@@ -125,7 +125,7 @@ There are nine primary classes of [Components](/docs/api-component.md) that can 
 There are eleven (11) types of Source components supported, all are currently Video only. Audio-Video and Audio only Sources are currently in development.
 * [App Source](/docs/api-source.md#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](/docs/api-source.md#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
-* [USB Source](/docs/api-source.md#dsl_source_usb_new) - Universal Serial Bus (USB) Source.
+* [V4L2 Source](/docs/api-source.md#dsl_source_v4l2_new) - Stream from any V4L2 compatable device - a USB Webcam for example.
 * [URI Source](/docs/api-source.md#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
 * [File Source](/docs/api-source.md#dsl_source_file_new) - Derived from URI Source with fixed inputs.
 * [RTSP Source](/docs/api-source.md#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
