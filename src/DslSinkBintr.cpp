@@ -57,6 +57,9 @@ namespace DSL
         
         // Float the Queue as sink (input) ghost pad for this SinkBintr
         m_pQueue->AddGhostPadToParent("sink");
+        
+        // Add the Buffer and DS Event probes to the sink-pad of the queue element.
+        AddSinkPadProbes(m_pQueue);
     }
 
     SinkBintr::~SinkBintr()
@@ -101,6 +104,8 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pSink->GetAttribute("sync", &m_sync);
+
         return m_sync;
     }
     
@@ -124,6 +129,8 @@ namespace DSL
     gboolean SinkBintr::GetAsyncEnabled()
     {
         LOG_FUNC();
+        
+        m_pSink->GetAttribute("async", &m_async);
         
         return m_async;
     }
@@ -149,6 +156,7 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
         return m_maxLateness;
     }
 
@@ -172,6 +180,8 @@ namespace DSL
     gboolean SinkBintr::GetQosEnabled()
     {
         LOG_FUNC();
+        
+        m_pSink->GetAttribute("qos", &m_qos);
         
         return m_qos;
     }
@@ -407,7 +417,7 @@ namespace DSL
     
     bool FrameCaptureSinkBintr::Initiate()
     {
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureNextMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
         if (!IsLinked())
         {
@@ -420,24 +430,38 @@ namespace DSL
         return true;
     }
     
+    bool FrameCaptureSinkBintr::Schedule(uint64_t frameNumber)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
+        
+        if (!IsLinked())
+        {
+            LOG_ERROR("Unable schedule a frame-capture with FrameCaptureSinkBintr '"
+                << GetName() << "' as it's not in a linked/playing state");
+            return false;
+        }
+        
+        m_captureFrameNumbers.emplace(frameNumber);
+        return true;
+    }
+    
     uint FrameCaptureSinkBintr::HandleNewBuffer(void* buffer)
     {
         // don't log function
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureNextMutex);
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_captureMutex);
         
-        if (m_captureNextBuffer)
+        if (m_captureNextBuffer or m_captureFrameNumbers.size())
         {
+            // flag for final determination to capture this frame.
+            bool captureThisFrame(false);
+            
+            // get the batch metadata for the current buffer
             NvDsBatchMeta* pBatchMeta = 
                 gst_buffer_get_nvds_batch_meta((GstBuffer*)buffer);
             
-            // For each frame in the batched meta data
+            // Although it's a list, there will only be one frame
             NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
             
-            if (pFrameMetaList->next)
-            {
-                LOG_WARN("MetaList should only include one frame-meta struct");
-            }
-
             // Check for valid frame data
             NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*) (pFrameMetaList->data);
             if (pFrameMeta == NULL)
@@ -446,15 +470,41 @@ namespace DSL
                 return GST_FLOW_OK;
             }
             
-            // Need to up-cast the base pointer to our frame-capture action
-            DSL_ODE_ACTION_CAPTURE_FRAME_PTR pCaptureAction =
-                std::dynamic_pointer_cast<CaptureFrameOdeAction>(m_pFrameCaptureAction);
-            
-            
-            pCaptureAction->HandleOccurrence((GstBuffer*)buffer, pFrameMeta, NULL);
-            
-            // clear the client flag before returning
-            m_captureNextBuffer = false;
+            // If there are frame-numbers schedule for capture
+            if (m_captureFrameNumbers.size())
+            {
+                // First, check to see if we've already missed the frame to capture
+                if (pFrameMeta->frame_num > m_captureFrameNumbers.front())
+                {
+                    LOG_ERROR("Current frame-number (" << pFrameMeta->frame_num
+                        << ") is greater than the scheduled frame-number (" 
+                        << m_captureFrameNumbers.front()
+                        << ") for FrameCaptureSinkBintr '" << GetName() << "'");
+                    m_captureFrameNumbers.pop();
+                }
+                // Else, check to see if this is the scheduled frame.
+                else if (m_captureFrameNumbers.front() == pFrameMeta->frame_num)
+                {
+                    captureThisFrame = true;
+                    m_captureFrameNumbers.pop();
+                }
+            }
+            // both conditions can be true, however, we only capture the frame once.
+            if (m_captureNextBuffer)
+            {
+                captureThisFrame = true;
+                m_captureNextBuffer = false;
+            }
+                
+            if (captureThisFrame)
+            {
+                // Need to up-cast the base pointer to our frame-capture action
+                DSL_ODE_ACTION_CAPTURE_FRAME_PTR pCaptureAction =
+                    std::dynamic_pointer_cast<CaptureFrameOdeAction>(m_pFrameCaptureAction);
+                
+                
+                pCaptureAction->HandleOccurrence((GstBuffer*)buffer, pFrameMeta, NULL);
+            }
         }
         
         return GST_FLOW_OK;
@@ -541,319 +591,26 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    RenderSinkBintr::RenderSinkBintr(const char* name, 
+    WindowSinkBintr::WindowSinkBintr(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
         : SinkBintr(name)
         , m_offsetX(offsetX)
         , m_offsetY(offsetY)
         , m_width(width)
         , m_height(height)
-    {
-        LOG_FUNC();
-    };
-
-    RenderSinkBintr::~RenderSinkBintr()
-    {
-        LOG_FUNC();
-    };
-
-    void  RenderSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
-    {
-        LOG_FUNC();
-        
-        *offsetX = m_offsetX;
-        *offsetY = m_offsetY;
-    }
-
-    void RenderSinkBintr::GetDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_width;
-        *height = m_height;
-    }
-    
-    std::list<uint> OverlaySinkBintr::s_uniqueIds;
-    //-------------------------------------------------------------------------
-
-    OverlaySinkBintr::OverlaySinkBintr(const char* name, uint displayId, 
-        uint depth, uint offsetX, uint offsetY, uint width, uint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height)
-        , m_displayId(displayId)
-        , m_depth(depth)
-        , m_uniqueId(1)
-    {
-        LOG_FUNC();
-        
-        if (!m_cudaDeviceProp.integrated)
-        {
-            LOG_ERROR("Overlay Sink is only supported on the aarch64 Platform'");
-            throw;
-        }
-        
-        // Find the first available unique Id
-        while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
-        {
-            m_uniqueId++;
-        }
-        s_uniqueIds.push_back(m_uniqueId);
-        
-        m_pSink = DSL_ELEMENT_NEW("nvoverlaysink", GetCStrName());
-        
-        // Get the property defaults
-        m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-
-        // Set the qos property to the common default.
-        m_pSink->SetAttribute("qos", m_qos);
-
-        // Set the async property to the common default (must be false)
-        m_pSink->SetAttribute("async", m_async);
-
-        // Disable the last-sample property for performance reasons.
-        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-
-        // Update all default DSL values
-        m_pSink->SetAttribute("overlay", m_uniqueId);
-        m_pSink->SetAttribute("display-id", m_displayId);
-
-        LOG_INFO("");
-        LOG_INFO("Initial property values for OverlaySinkBintr '" << name << "'");
-        LOG_INFO("  unique-id          : " << m_uniqueId);
-        LOG_INFO("  display-id         : " << m_displayId);
-        LOG_INFO("  offset-x           : " << offsetX);
-        LOG_INFO("  offset-y           : " << offsetY);
-        LOG_INFO("  width              : " << m_width);
-        LOG_INFO("  height             : " << m_height);
-        LOG_INFO("  sync               : " << m_sync);
-        LOG_INFO("  async              : " << m_async);
-        LOG_INFO("  max-lateness       : " << m_maxLateness);
-        LOG_INFO("  qos                : " << m_qos);
-        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
-        
-        AddChild(m_pSink);
-    }
-    
-    bool OverlaySinkBintr::Reset()
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() 
-                << "' is currently linked and cannot be reset");
-            return false;
-        }
-
-        // Need to clear and then reset the Overlay attributes. Note this is
-        // a workaround see 
-        // https://forums.developer.nvidia.com/t/nvoverlaysink-ignores-properties-when-pipeline-is-restarted/179379
-        m_pSink->SetAttribute("overlay-x", 0);
-        m_pSink->SetAttribute("overlay-y", 0);
-        m_pSink->SetAttribute("overlay-w", 0);
-        m_pSink->SetAttribute("overlay-h", 0);
-
-        m_pSink->SetAttribute("overlay-x", m_offsetX);
-        m_pSink->SetAttribute("overlay-y", m_offsetY);
-        m_pSink->SetAttribute("overlay-w", m_width);
-        m_pSink->SetAttribute("overlay-h", m_height);
-
-        return true;
-    }
-    
-    OverlaySinkBintr::~OverlaySinkBintr()
-    {
-        LOG_FUNC();
-        
-        s_uniqueIds.remove(m_uniqueId);
-    }
-
-    bool OverlaySinkBintr::LinkAll()
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is already linked");
-            return false;
-        }
-
-        if (!Reset())
-        {
-            LOG_ERROR("Failed to create/reset Overlay pluggin");
-            return false;
-        }
-        if (!m_pQueue->LinkToSink(m_pSink))
-        {
-            return false;
-        }
-        m_isLinked = true;
-        return true;
-    }
-    
-    void OverlaySinkBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-        
-        if (!m_isLinked)
-        {
-            LOG_ERROR("OverlaySinkBintr '" << GetName() << "' is not linked");
-            return;
-        }
-        
-        m_pQueue->UnlinkFromSink();
-
-        m_isLinked = false;
-    }
-
-    int OverlaySinkBintr::GetDisplayId()
-    {
-        LOG_FUNC();
-        
-        return m_displayId;
-    }
-    
-    bool OverlaySinkBintr::SetDisplayId(int id)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set DisplayId for OverlaySinkBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_displayId = id;
-        m_pSink->SetAttribute("display-id", m_displayId);
-        
-        return true;
-    }
-    
-    bool OverlaySinkBintr::SetOffsets(uint offsetX, uint offsetY)
-    {
-        LOG_FUNC();
-
-        m_offsetX = offsetX;
-        m_offsetY = offsetY;
-
-        // workaround for NVIDIA bug... need to reset offsets
-        // before setting them to new values.
-        m_pSink->SetAttribute("overlay-x", 0);
-        m_pSink->SetAttribute("overlay-y", 0);
-        m_pSink->SetAttribute("overlay-x", m_offsetX);
-        m_pSink->SetAttribute("overlay-y", m_offsetY);
-        
-        return true;
-    }
-
-    bool OverlaySinkBintr::SetDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-        
-        m_width = width;
-        m_height = height;
-
-        m_pSink->SetAttribute("overlay-w", m_width);
-        m_pSink->SetAttribute("overlay-h", m_height);
-        
-        return true;
-    }
-
-    //-------------------------------------------------------------------------
-
-    WindowSinkBintr::WindowSinkBintr(const char* name, 
-        guint offsetX, guint offsetY, guint width, guint height)
-        : RenderSinkBintr(name, offsetX, offsetY, width, height)
         , m_pXDisplay(0)
         , m_pXWindow(0)
         , m_pXWindowCreated(false)
-        , m_forceAspectRatio(false)
         , m_xWindowfullScreenEnabled(false)
         , m_pSharedClientCbMutex(NULL)
-{
+    {
         LOG_FUNC();
+    };
 
-        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
-        
-        // Get the property defaults
-        m_pSink->GetAttribute("sync", &m_sync);
-        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-
-        // Set the qos property to the common default.
-        m_pSink->SetAttribute("qos", m_qos);
-
-        // Set the async property to the common default (must be false)
-        m_pSink->SetAttribute("async", m_async);
-
-        // Disable the last-sample property for performance reasons.
-        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-
-        // Update all default DSL values
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        // x86_64
-        if (!m_cudaDeviceProp.integrated)
-        {
-            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
-            m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-
-            GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
-            if (!pCaps)
-            {
-                LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-                throw;  
-            }
-
-            GstCapsFeatures *feature = NULL;
-            feature = gst_caps_features_new("memory:NVMM", NULL);
-            gst_caps_set_features(pCaps, 0, feature);
-
-            m_pCapsFilter->SetAttribute("caps", pCaps);
-            
-            gst_caps_unref(pCaps);        
-            
-            m_pTransform->SetAttribute("gpu-id", m_gpuId);
-            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-            
-            AddChild(m_pCapsFilter);
-        
-        }
-        // aarch_64
-        else
-        {
-            m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
-        }
-        
-        LOG_INFO("");
-        LOG_INFO("Initial property values for WindowSinkBintr '" << name << "'");
-        LOG_INFO("  offset-x           : " << offsetX);
-        LOG_INFO("  offset-y           : " << offsetY);
-        LOG_INFO("  width              : " << m_width);
-        LOG_INFO("  height             : " << m_height);
-        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
-        LOG_INFO("  sync               : " << m_sync);
-        LOG_INFO("  async              : " << m_async);
-        LOG_INFO("  max-lateness       : " << m_maxLateness);
-        LOG_INFO("  qos                : " << m_qos);
-        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
-        
-        AddChild(m_pTransform);
-        AddChild(m_pSink);
-}
-    
     WindowSinkBintr::~WindowSinkBintr()
     {
         LOG_FUNC();
 
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
         // cleanup all resources
         if (m_pXDisplay)
         {
@@ -872,124 +629,8 @@ namespace DSL
             }
             g_thread_join(m_pXWindowEventThread);
         }
-    }
+    };
 
-    bool WindowSinkBintr::Reset()
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() 
-                << "' is currently linked and cannot be reset");
-            return false;
-        }
-
-        // We only reset if the pointer to the sink element is null
-        if (m_pSink != nullptr)
-        {    
-            return false;
-        }
-        
-        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
-        
-        // Set the property defaults
-        m_pSink->SetAttribute("sync", m_sync);
-        m_pSink->SetAttribute("async", m_async);
-        m_pSink->SetAttribute("max-lateness", m_maxLateness);
-        m_pSink->SetAttribute("qos", m_qos);
-
-        // Disable the last-sample property for performance reasons.
-        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-
-        // Update all default DSL values
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
-        
-        AddChild(m_pSink);
-        
-        return true;
-    }
-
-    bool WindowSinkBintr::LinkAll()
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is already linked");
-            return false;
-        }
-        
-        // Do a conditional reset, i.e. a reconstruction of the Sink element
-        // This is a workaround for the fact that the nveglglessink plugin
-        // fails to work correctly once its state is set to NULL.
-        Reset();
-        
-        // register this Window-Sink's nveglglessink plugin.
-        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
-            m_pSink->GetGstObject());
-
-        // x86_64
-        if (!m_cudaDeviceProp.integrated)
-        {
-            if (!m_pQueue->LinkToSink(m_pTransform) or
-                !m_pTransform->LinkToSink(m_pCapsFilter) or
-                !m_pCapsFilter->LinkToSink(m_pSink))
-            {
-                return false;
-            }
-        }
-        else // aarch_64
-        {
-            if (!m_pQueue->LinkToSink(m_pTransform) or
-                !m_pTransform->LinkToSink(m_pSink))
-            {
-                return false;
-            }
-        }
-        m_isLinked = true;
-        return true;
-    }
-    
-    void WindowSinkBintr::UnlinkAll()
-    {
-        LOG_FUNC();
-        
-        if (!m_isLinked)
-        {
-            LOG_ERROR("WindowSinkBintr '" << GetName() << "' is not linked");
-            return;
-        }
-
-        m_pQueue->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        
-        // x86_64
-        if (!m_cudaDeviceProp.integrated)
-        {
-            m_pCapsFilter->UnlinkFromSink();
-        }
-        // unregister this Window-Sink's nveglglessink plugin.
-        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
-
-        m_isLinked = false;
-        
-        if(OwnsXWindow())
-        {
-            XUnmapWindow(m_pXDisplay, m_pXWindow);
-        }
-
-        // Remove the existing element from the objects bin
-        // this ensures that we can recreate the Sink if linked-up again
-        gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
-        RemoveChild(m_pSink);
-        m_pSink = nullptr;
-    }
-    
     void WindowSinkBintr::GetOffsets(uint* offsetX, uint* offsetY)
     {
         LOG_FUNC();
@@ -1023,10 +664,11 @@ namespace DSL
                 m_offsetX, m_offsetY, 
                 m_width, m_height);
         }
-        // Set the EglGles plugin values regardless of XWindow existence.
-        m_pSink->SetAttribute("window-x", m_offsetX);
-        m_pSink->SetAttribute("window-y", m_offsetY);
-        
+        else
+        {
+            m_pSink->SetAttribute("window-x", m_offsetX);
+            m_pSink->SetAttribute("window-y", m_offsetY);
+        }
         return true;
     }
 
@@ -1051,44 +693,30 @@ namespace DSL
     bool WindowSinkBintr::SetDimensions(uint width, uint height)
     {
         LOG_FUNC();
-        
-        m_width = width;
-        m_height = height;
 
         // If the Pipeline is linked and has an XWindow, then we need to set  
         // XWindow attributes to actually resize the window
         if (m_pXWindow)
         {
+            if ((width > m_XDisplayWidth) or (height > m_XDisplayHeight))
+            {
+                LOG_WARN("Specified Window dimension exceed Display Dimensions");
+            }
+            m_width = std::min(width, m_XDisplayWidth);
+            m_height = std::min(height, m_XDisplayHeight);
             XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
                 m_offsetX, m_offsetY, 
                 m_width, m_height);
         }
-        // Set the EglGles plugin values regardless of XWindow existence.
-        m_pSink->SetAttribute("window-width", m_width);
-        m_pSink->SetAttribute("window-height", m_height);
-        
-        return true;
-    }
-
-    bool WindowSinkBintr::GetForceAspectRatio()
-    {
-        LOG_FUNC();
-        
-        return m_forceAspectRatio;
-    }
-    
-    bool WindowSinkBintr::SetForceAspectRatio(bool force)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
+        else
         {
-            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
+            m_width = width;
+            m_height = height;
+
+            // Values will be checked on XWindow creation
+            m_pSink->SetAttribute("window-width", m_width);
+            m_pSink->SetAttribute("window-height", m_height);
         }
-        m_forceAspectRatio = force;
-        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
         return true;
     }
 
@@ -1120,7 +748,7 @@ namespace DSL
         if (m_xWindowKeyEventHandlers.find(handler) != 
             m_xWindowKeyEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " is not unique for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1138,7 +766,7 @@ namespace DSL
         if (m_xWindowKeyEventHandlers.find(handler) == 
             m_xWindowKeyEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " was not found for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1156,7 +784,7 @@ namespace DSL
         if (m_xWindowButtonEventHandlers.find(handler) != 
             m_xWindowButtonEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " is not unique for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1174,7 +802,7 @@ namespace DSL
         if (m_xWindowButtonEventHandlers.find(handler) == 
             m_xWindowButtonEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " was not found for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1192,7 +820,7 @@ namespace DSL
         if (m_xWindowDeleteEventHandlers.find(handler) != 
             m_xWindowDeleteEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " is not unique for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1210,7 +838,7 @@ namespace DSL
         if (m_xWindowDeleteEventHandlers.find(handler) == 
             m_xWindowDeleteEventHandlers.end())
         {   
-            LOG_ERROR("handler = " << std::hex << handler
+            LOG_ERROR("handler = " << int_to_hex(handler)
                 << " was not found for WindowSinkBintr '" 
                 << GetName() << "'");
             return false;
@@ -1225,27 +853,34 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (!HasXWindow())
+        if (GST_IS_VIDEO_OVERLAY(m_pSink->GetGstObject()))
         {
-            if (!CreateXWindow())
+            if (!HasXWindow())
             {
-                return false;
+                if (!CreateXWindow())
+                {
+                    return false;
+                }
+                m_pSharedClientCbMutex = pSharedClientCbMutex;
             }
-            m_pSharedClientCbMutex = pSharedClientCbMutex;
+            else
+            {
+                XMapRaised(m_pXDisplay, m_pXWindow);
+            }
+            gst_video_overlay_set_window_handle(
+                GST_VIDEO_OVERLAY(m_pSink->GetGstObject()), m_pXWindow);
+
+            XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
+                m_offsetX, m_offsetY, 
+                m_width, m_height);
+
+            gst_video_overlay_expose(
+                GST_VIDEO_OVERLAY(m_pSink->GetGstObject()));
         }
         else
         {
-            XMapRaised(m_pXDisplay, m_pXWindow);
+            LOG_WARN("Prepare Window called for non-overlay sink");
         }
-        gst_video_overlay_set_window_handle(
-            GST_VIDEO_OVERLAY(m_pSink->GetGstObject()), m_pXWindow);
-
-        XMoveResizeWindow(m_pXDisplay, m_pXWindow, 
-            m_offsetX, m_offsetY, 
-            m_width, m_height);
-
-        gst_video_overlay_expose(
-            GST_VIDEO_OVERLAY(m_pSink->GetGstObject()));
         return true;
     }
 
@@ -1260,6 +895,21 @@ namespace DSL
             LOG_ERROR("Failed to create new XDisplay");
             return false;
         }
+        // Get the XDisplay defaults
+        int defaultScreen = XDefaultScreen(m_pXDisplay);
+        m_XDisplayWidth = XDisplayWidth(m_pXDisplay, defaultScreen);
+        m_XDisplayHeight = XDisplayHeight(m_pXDisplay, defaultScreen);        
+
+        if ((m_width > m_XDisplayWidth) or (m_height > m_XDisplayHeight))
+        {
+            LOG_WARN("Specified Window dimension exceed Display Dimensions");
+        }
+        m_width = std::min(m_width, m_XDisplayWidth);
+        m_height = std::min(m_height, m_XDisplayHeight);
+
+        LOG_INFO("XDisplay screen dimensions: width = " << m_XDisplayWidth 
+            << ", height = " << m_XDisplayHeight 
+            << " for WindowSinkBintr '" << GetName() << "'");
         
         // Create new simple XWindow either in 'full-screen-enabled' or using 
         // the Window Sink offsets and dimensions
@@ -1281,7 +931,7 @@ namespace DSL
                 << ", width = " << m_width 
                 << ", height = " << m_height 
                 << " for WindowSinkBintr '" << GetName() << "'");
-        
+
             m_pXWindow = XCreateSimpleWindow(m_pXDisplay, 
                 RootWindow(m_pXDisplay, DefaultScreen(m_pXDisplay)), 
                 m_offsetX, m_offsetY, m_width, m_height, 2, 0, 0);
@@ -1467,21 +1117,360 @@ namespace DSL
         XClearWindow(m_pXDisplay, m_pXWindow);
         return true;
     }
+
+    static gpointer XWindowEventThread(gpointer pRenderSink)
+    {
+        static_cast<WindowSinkBintr*>(pRenderSink)->HandleXWindowEvents();
+       
+        return NULL;
+    }
     
-    bool WindowSinkBintr::SetGpuId(uint gpuId)
+    //-------------------------------------------------------------------------
+
+    ThreeDSinkBintr::ThreeDSinkBintr(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
+        : WindowSinkBintr(name, offsetX, offsetY, width, height)
+    {
+        LOG_FUNC();
+        
+        if (!m_cudaDeviceProp.integrated)
+        {
+            LOG_ERROR("3D Sink is only supported on the Jetson Platform'");
+            throw;
+        }
+        
+        m_pSink = DSL_ELEMENT_NEW("nv3dsink", GetCStrName());
+        
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Override the default of 20000000 with -1 to disable.
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+
+        // Set the Window attributes
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for ThreeDSinkBintr '" << name << "'");
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        
+        AddChild(m_pSink);
+    }
+    
+    ThreeDSinkBintr::~ThreeDSinkBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool ThreeDSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("ThreeDSinkBintr '" << GetName() 
+                << "' is already linked");
+            return false;
+        }
+        // register this 3D-Sink's nv3dsink plugin.
+        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
+            m_pSink->GetGstObject());
+
+        if (!m_pQueue->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void ThreeDSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("ThreeDSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        
+        m_pQueue->UnlinkFromSink();
+
+        // unregister this 3D-Sink's nv3dsink plugin.
+        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
+        
+        if(OwnsXWindow())
+        {
+            XUnmapWindow(m_pXDisplay, m_pXWindow);
+        }
+        m_isLinked = false;
+    }
+
+    //-------------------------------------------------------------------------
+
+    EglSinkBintr::EglSinkBintr(const char* name, 
+        guint offsetX, guint offsetY, guint width, guint height)
+        : WindowSinkBintr(name, offsetX, offsetY, width, height)
+        , m_forceAspectRatio(false)
+{
+        LOG_FUNC();
+
+        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Override the default of 20000000 with -1 to disable.
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+
+        // Set the Window attributes
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+            m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+            GstCaps * pCaps = gst_caps_new_empty_simple("video/x-raw");
+            if (!pCaps)
+            {
+                LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
+                throw;  
+            }
+
+            GstCapsFeatures *feature = NULL;
+            feature = gst_caps_features_new("memory:NVMM", NULL);
+            gst_caps_set_features(pCaps, 0, feature);
+
+            m_pCapsFilter->SetAttribute("caps", pCaps);
+            
+            gst_caps_unref(pCaps);        
+            
+            m_pTransform->SetAttribute("gpu-id", m_gpuId);
+            m_pTransform->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+            
+            AddChild(m_pCapsFilter);
+        
+        }
+        // aarch_64
+        else
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvegltransform", name);
+        }
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for EglSinkBintr '" << name << "'");
+        LOG_INFO("  offset-x           : " << offsetX);
+        LOG_INFO("  offset-y           : " << offsetY);
+        LOG_INFO("  width              : " << m_width);
+        LOG_INFO("  height             : " << m_height);
+        LOG_INFO("  force-aspect-ratio : " << m_forceAspectRatio);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        
+        AddChild(m_pTransform);
+        AddChild(m_pSink);
+}
+    
+    EglSinkBintr::~EglSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool EglSinkBintr::Reset()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("EglSinkBintr '" << GetName() 
+                << "' is currently linked and cannot be reset");
+            return false;
+        }
+
+        // We only reset if the pointer to the sink element is null
+        if (m_pSink != nullptr)
+        {    
+            return false;
+        }
+        
+        m_pSink = DSL_ELEMENT_NEW("nveglglessink", GetCStrName());
+        
+        // Set the property defaults
+        m_pSink->SetAttribute("sync", m_sync);
+        m_pSink->SetAttribute("async", m_async);
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Update all default DSL values
+        m_pSink->SetAttribute("window-x", m_offsetX);
+        m_pSink->SetAttribute("window-y", m_offsetY);
+        m_pSink->SetAttribute("window-width", m_width);
+        m_pSink->SetAttribute("window-height", m_height);
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        
+        AddChild(m_pSink);
+        
+        return true;
+    }
+
+    bool EglSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("EglSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        
+        // Do a conditional reset, i.e. a reconstruction of the Sink element
+        // This is a workaround for the fact that the nveglglessink plugin
+        // fails to work correctly once its state is set to NULL.
+        Reset();
+        
+        // register this Window-Sink's nveglglessink plugin.
+        Services::GetServices()->_sinkWindowRegister(shared_from_this(), 
+            m_pSink->GetGstObject());
+
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            if (!m_pQueue->LinkToSink(m_pTransform) or
+                !m_pTransform->LinkToSink(m_pCapsFilter) or
+                !m_pCapsFilter->LinkToSink(m_pSink))
+            {
+                return false;
+            }
+        }
+        else // aarch_64
+        {
+            if (!m_pQueue->LinkToSink(m_pTransform) or
+                !m_pTransform->LinkToSink(m_pSink))
+            {
+                return false;
+            }
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void EglSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("EglSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pQueue->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        
+        // x86_64
+        if (!m_cudaDeviceProp.integrated)
+        {
+            m_pCapsFilter->UnlinkFromSink();
+        }
+        // unregister this Window-Sink's nveglglessink plugin.
+        DSL::Services::GetServices()->_sinkWindowUnregister(shared_from_this());
+        
+        if(OwnsXWindow())
+        {
+            XUnmapWindow(m_pXDisplay, m_pXWindow);
+        }
+
+        // Remove the existing element from the objects bin
+        // this ensures that we can recreate the Sink if linked-up again
+        gst_element_set_state(m_pSink->GetGstElement(), GST_STATE_NULL);
+        RemoveChild(m_pSink);
+        m_pSink = nullptr;
+
+        m_isLinked = false;
+    }
+    
+    bool EglSinkBintr::GetForceAspectRatio()
+    {
+        LOG_FUNC();
+        
+        return m_forceAspectRatio;
+    }
+    
+    bool EglSinkBintr::SetForceAspectRatio(bool force)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set 'force-aspce-ration' for WindowSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_forceAspectRatio = force;
+        m_pSink->SetAttribute("force-aspect-ratio", m_forceAspectRatio);
+        return true;
+    }
+
+    bool EglSinkBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
         
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
-            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" 
+            LOG_ERROR("Unable to set GPU ID for EglSinkBintr '" 
                 << GetName() << "' - property is not supported on aarch_64");
             return false;
         }
         if (m_isLinked)
         {
-            LOG_ERROR("Unable to set GPU ID for WindowSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for EglSinkBintr '" << GetName() 
                 << "' as it's currently linked");
             return false;
         }
@@ -1489,27 +1478,27 @@ namespace DSL
         m_gpuId = gpuId;
         m_pTransform->SetAttribute("gpu-id", m_gpuId);
         
-        LOG_INFO("WindowSinkBintr '" << GetName() 
+        LOG_INFO("EglSinkBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );
 
         return true;
     }
 
-    bool WindowSinkBintr::SetNvbufMemType(uint nvbufMemType)
+    bool EglSinkBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
         
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for EglSinkBintr '" 
                 << GetName() << "' - property is not supported on aarch_64");
             return false;
         }
 
         if (m_isLinked)
         {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for WindowSinkBintr '" 
+            LOG_ERROR("Unable to set NVIDIA buffer memory type for EglSinkBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
@@ -1519,13 +1508,6 @@ namespace DSL
         return true;
     }    
 
-    static gpointer XWindowEventThread(gpointer pWindowSink)
-    {
-        static_cast<WindowSinkBintr*>(pWindowSink)->HandleXWindowEvents();
-       
-        return NULL;
-    }
-    
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
@@ -1541,7 +1523,6 @@ namespace DSL
         
         m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
-        m_pTransform->SetAttribute("gpu-id", m_gpuId);
 
         switch (codec)
         {
@@ -1560,8 +1541,19 @@ namespace DSL
         // aarch_64
         if (m_cudaDeviceProp.integrated)
         {
-            m_pEncoder->SetAttribute("bufapi-version", true);
-        }      
+            // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+            if (NVDS_VERSION_MINOR < 3)
+            {
+                m_pEncoder->SetAttribute("bufapi-version", TRUE);
+            }
+            m_pEncoder->SetAttribute("preset-level", TRUE);
+            m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
+        }
+        else // x86_64
+        {
+            m_pTransform->SetAttribute("gpu-id", m_gpuId);
+        }
+
         
         // Get the default bitrate
         m_pEncoder->GetAttribute("bitrate", &m_defaultBitrate);
@@ -1916,10 +1908,145 @@ namespace DSL
         m_isLinked = false;
     }
 
-    //******************************************************************************************
+    //-------------------------------------------------------------------------
     
-    RtspSinkBintr::RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
-         uint codec, uint bitrate, uint interval)
+    RtmpSinkBintr::RtmpSinkBintr(const char* name, 
+        const char* uri, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, DSL_CODEC_H264, bitrate, interval)
+        , m_uri(uri)
+    {
+        LOG_FUNC();
+        
+        m_pSink = DSL_ELEMENT_NEW("rtmpsink", name);
+        m_pFlvmux = DSL_ELEMENT_NEW("flvmux", name);
+        
+        // Set the RTMP URI (location) for the sink
+        m_pSink->SetAttribute("location", m_uri.c_str());
+        
+        m_pFlvmux->SetAttribute("name", "mux");
+        m_pFlvmux->SetAttribute("streamable", true);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
+        LOG_INFO("  uri                : " << m_uri);
+        LOG_INFO("  codec              : " << m_codec);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
+        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+
+        AddChild(m_pFlvmux);
+        AddChild(m_pSink);
+    }
+    
+    RtmpSinkBintr::~RtmpSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RtmpSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RtmpSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pFlvmux) or
+            !m_pFlvmux->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RtmpSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RtmpSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pFlvmux->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    const char* RtmpSinkBintr::GetUri()
+    {
+        LOG_FUNC();
+        
+        return m_uri.c_str();
+    }
+    
+    bool RtmpSinkBintr::SetUri(const char* uri)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set Uri for RtmpSinkBintr '" << GetName() 
+                << "' as it's currently Linked");
+            return false;
+        }
+        m_uri = uri;
+        m_pSink->SetAttribute("location", m_uri.c_str());
+        
+        return true;
+    }
+
+    
+    
+    //-------------------------------------------------------------------------
+    
+    RtspServerSinkBintr::RtspServerSinkBintr(const char* name, 
+        const char* host, uint udpPort, uint rtspPort,
+        uint codec, uint bitrate, uint interval)
         : EncodeSinkBintr(name, codec, bitrate, interval)
         , m_host(host)
         , m_udpPort(udpPort)
@@ -1969,22 +2096,9 @@ namespace DSL
         // Update all default DSL values
         m_pSink->SetAttribute("host", m_host.c_str());
         m_pSink->SetAttribute("port", m_udpPort);
-
-        // aarch_64
-        if (m_cudaDeviceProp.integrated)
-        {
-            m_pEncoder->SetAttribute("preset-level", true);
-            m_pEncoder->SetAttribute("insert-sps-pps", true);
-            m_pEncoder->SetAttribute("bufapi-version", true);
-        }
-        else // x86_64
-        {
-            m_pEncoder->SetAttribute("gpu-id", m_gpuId);
-        }
-
         
         LOG_INFO("");
-        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
         LOG_INFO("  host               : " << m_host);
         LOG_INFO("  port               : " << m_udpPort);
         LOG_INFO("  codec              : " << m_codec);
@@ -2009,7 +2123,7 @@ namespace DSL
         AddChild(m_pSink);
     }
     
-    RtspSinkBintr::~RtspSinkBintr()
+    RtspServerSinkBintr::~RtspServerSinkBintr()
     {
         LOG_FUNC();
 
@@ -2019,13 +2133,13 @@ namespace DSL
         }
     }
 
-    bool RtspSinkBintr::LinkAll()
+    bool RtspServerSinkBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("RtspSinkBintr '" << GetName() << "' is already linked");
+            LOG_ERROR("RtspServerSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
         
@@ -2043,7 +2157,7 @@ namespace DSL
         m_pFactory = gst_rtsp_media_factory_new();
         gst_rtsp_media_factory_set_launch(m_pFactory, udpSrc.c_str());
 
-        LOG_INFO("UDP Src for RtspSinkBintr '" << GetName() << "' = " << udpSrc);
+        LOG_INFO("UDP Src for RtspServerSinkBintr '" << GetName() << "' = " << udpSrc);
 
         // Get a handle to the Mount-Points object from the new RTSP Server
         GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);
@@ -2085,17 +2199,17 @@ namespace DSL
         return GST_RTSP_FILTER_REMOVE;
     }
 
-    void RtspSinkBintr::UnlinkAll()
+    void RtspServerSinkBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("RtspSinkBintr '" << GetName() << "' is not linked");
+            LOG_ERROR("RtspServerSinkBintr '" << GetName() << "' is not linked");
             return;
         }
 
-        // remove the mount point for this RtspSinkBintr's server
+        // remove the mount point for this RtspServerSinkBintr's server
         GstRTSPMountPoints* pMounts = gst_rtsp_server_get_mount_points(m_pServer);        
         std::string uniquePath = "/" + GetName();
         gst_rtsp_mount_points_remove_factory(pMounts, uniquePath.c_str());
@@ -2105,7 +2219,7 @@ namespace DSL
         if (g_main_loop_is_running(
             DSL::Services::GetServices()->GetMainLoopHandle()))
         {
-            LOG_INFO("Adding server filter to remove clients for RtspSourceBintr '"
+            LOG_INFO("Adding server filter to remove clients for RtspServerSinkBintr '"
                 << GetName() << "'");
             gst_rtsp_server_client_filter(m_pServer, client_filter_cb, NULL);
         }
@@ -2132,7 +2246,7 @@ namespace DSL
         m_isLinked = false;
     }
     
-    void RtspSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort)
+    void RtspServerSinkBintr::GetServerSettings(uint* udpPort, uint* rtspPort)
     {
         LOG_FUNC();
         
@@ -2140,6 +2254,216 @@ namespace DSL
         *rtspPort = m_rtspPort;
     }
     
+    //-------------------------------------------------------------------------
+    
+    RtspClientSinkBintr::RtspClientSinkBintr(const char* name, const char* uri, 
+        uint codec, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, codec, bitrate, interval)
+    {
+        LOG_FUNC();
+        
+        m_pSink = DSL_ELEMENT_NEW("rtspclientsink", name);
+
+        // IMPORTANT RTSP Client Sink is NOT derived from GST Base Sink
+        // Therefore, common properties -- sync, async, max-lateness, qos -- do
+        // not apply.
+
+        // Get the property defaults
+        m_pSink->GetAttribute("latency", &m_latency);
+        m_pSink->GetAttribute("profiles", &m_profiles);
+        m_pSink->GetAttribute("protocols", &m_protocols);
+        m_pSink->GetAttribute("tls-validation-flags", &m_tlsValidationFlags);
+
+        // Set the location for the output file
+        m_pSink->SetAttribute("location", uri);
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for RtspClientSinkBintr '" << name << "'");
+        LOG_INFO("  uri                  : " << uri);
+        LOG_INFO("  latency              : " << m_latency);
+        LOG_INFO("  profiles             : " << int_to_hex(m_profiles));
+        LOG_INFO("  protocols            : " << int_to_hex(m_protocols));
+        LOG_INFO("  tls-validation-flags : " << int_to_hex(m_tlsValidationFlags));
+        LOG_INFO("  codec                : " << m_codec);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate              : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate              : " << m_defaultBitrate);
+        }
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  converter-width      : " << m_width);
+        LOG_INFO("  converter-height     : " << m_height);
+        LOG_INFO("  sync                 : " << "na");
+        LOG_INFO("  async                : " << "na");
+        LOG_INFO("  max-lateness         : " << "na");
+        LOG_INFO("  qos                  : " << "na");
+
+        AddChild(m_pSink);
+    }
+    
+    RtspClientSinkBintr::~RtspClientSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool RtspClientSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or
+            !m_pCapsFilter->LinkToSink(m_pEncoder) or
+            !m_pEncoder->LinkToSink(m_pParser) or
+            !m_pParser->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void RtspClientSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pParser->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    bool RtspClientSinkBintr::SetCredentials(const char* userId, 
+        const char* userPw)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set credentials for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        // Note! we do not persist or log the actual credentials.
+        m_pSink->SetAttribute("user-id", userId);
+        m_pSink->SetAttribute("user-pw", userPw);
+    
+        return true;
+    }
+
+    uint RtspClientSinkBintr::GetLatency()
+    {
+        LOG_FUNC();
+
+        return m_latency;
+    }
+
+    bool RtspClientSinkBintr::SetLatency(uint latency)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set latency for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_latency = latency;
+        m_pSink->SetAttribute("latency", m_latency);
+    
+        return true;
+    }
+    
+    uint RtspClientSinkBintr::GetProfiles()
+    {
+        LOG_FUNC();
+
+        return m_profiles;
+    }
+    
+    bool RtspClientSinkBintr::SetProfiles(uint profiles)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set tls-validation-flags for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_profiles = profiles;
+        m_pSink->SetAttribute("profiles", m_profiles);
+    
+        return true;
+    }
+
+    uint RtspClientSinkBintr::GetProtocols()
+    {
+        LOG_FUNC();
+
+        return m_protocols;
+    }
+    
+    bool RtspClientSinkBintr::SetProtocols(uint protocols)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set lower-protocols for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_protocols = protocols;
+        m_pSink->SetAttribute("protocols", m_protocols);
+    
+        return true;
+    }
+
+    uint RtspClientSinkBintr::GetTlsValidationFlags()
+    {
+        LOG_FUNC();
+
+        return m_tlsValidationFlags;
+    }
+    
+    bool RtspClientSinkBintr::SetTlsValidationFlags(uint flags)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set tls-validation-flags for RtspClientSinkBintr '" 
+                << GetName() << "' as it's currently in use");
+            return false;
+        }
+        m_tlsValidationFlags = flags;
+        m_pSink->SetAttribute("tls-validation-flags", 
+            m_tlsValidationFlags);
+    
+        return true;
+    }
+
+
     // -------------------------------------------------------------------------------
     
     MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
@@ -2723,6 +3047,250 @@ namespace DSL
         }
         m_pCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+
+    V4l2SinkBintr::V4l2SinkBintr(const char* name, 
+        const char* deviceLocation)
+        : SinkBintr(name)
+        , m_deviceLocation(deviceLocation)
+    {
+        LOG_FUNC();
+
+        m_pSink = DSL_ELEMENT_NEW("v4l2sink", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+
+        m_pSink->GetAttribute("device-fd", &m_deviceFd);
+        m_pSink->GetAttribute("flags", &m_deviceFlags);
+        m_pSink->GetAttribute("brightness", &m_brightness);
+        m_pSink->GetAttribute("contrast", &m_contrast);
+        m_pSink->GetAttribute("saturation", &m_saturation);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Override the default of 20000000 with -1 to disable.
+        m_pSink->SetAttribute("max-lateness", m_maxLateness);
+
+        // Set the unique device location for the Sink
+        m_pSink->SetAttribute("device", deviceLocation);
+        
+        m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
+
+        // Setup the default caps/buffer-format to YUY2
+        std::wstring L_bufferInFormat(DSL_VIDEO_FORMAT_YUY2);
+        std::string bufferInFormat(L_bufferInFormat.begin(), 
+            L_bufferInFormat.end());
+        SetBufferInFormat(bufferInFormat.c_str());
+        
+        m_pIdentity = DSL_ELEMENT_NEW("identity", name);
+        m_pIdentity->SetAttribute("drop-allocation", 1);
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for v4L2SinkBintr '" << name << "'");
+        LOG_INFO("  device-location    : " << m_deviceLocation);
+        LOG_INFO("  device-name        : " << m_deviceName);
+        LOG_INFO("  device-fd          : " << m_deviceFd);
+        LOG_INFO("  flags              : " << int_to_hex(m_deviceFlags));
+        LOG_INFO("  buffer-in-format   : " << m_bufferInFormat);
+        LOG_INFO("  brightness         : " << m_brightness);
+        LOG_INFO("  contrast           : " << m_contrast);
+        LOG_INFO("  saturation         : " << m_saturation);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        
+        AddChild(m_pSink);
+        AddChild(m_pTransform);
+        AddChild(m_pCapsFilter);
+        AddChild(m_pIdentity);
+    }
+    
+    V4l2SinkBintr::~V4l2SinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool V4l2SinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        
+        if (!m_pQueue->LinkToSink(m_pTransform) or
+            !m_pTransform->LinkToSink(m_pCapsFilter) or    
+            !m_pCapsFilter->LinkToSink(m_pIdentity) or
+            !m_pIdentity->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void V4l2SinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pQueue->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pIdentity->UnlinkFromSink();
+
+        m_isLinked = false;
+    }
+
+    const char* V4l2SinkBintr::GetDeviceLocation()
+    {
+        LOG_FUNC();
+
+        return m_deviceLocation.c_str();
+    }
+    
+    bool V4l2SinkBintr::SetDeviceLocation(const char* deviceLocation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set device-location for V4l2SinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        
+        m_deviceLocation = deviceLocation;
+        
+        m_pSink->SetAttribute("device", deviceLocation);
+        return true;
+    }
+
+    const char* V4l2SinkBintr::GetDeviceName()
+    {
+        LOG_FUNC();
+        
+        // default to no device-name
+        m_deviceName = "";
+
+        const char* deviceName(NULL);
+        m_pSink->GetAttribute("device-name", &deviceName);
+        
+        // Update if set
+        if (deviceName)
+        {
+            m_deviceName = deviceName;
+        }
+            
+        return m_deviceName.c_str();
+    }
+    
+    int V4l2SinkBintr::GetDeviceFd()
+    {
+        LOG_FUNC();
+
+        m_pSink->GetAttribute("device-fd", &m_deviceFd);
+        return m_deviceFd;
+    }
+    
+    uint V4l2SinkBintr::GetDeviceFlags()
+    {
+        LOG_FUNC();
+
+        m_pSink->GetAttribute("flags", &m_deviceFlags);
+        return m_deviceFlags;
+    }
+    
+    const char* V4l2SinkBintr::GetBufferInFormat()
+    {
+        LOG_FUNC();
+        
+        return m_bufferInFormat.c_str();
+    }
+    
+    bool V4l2SinkBintr::SetBufferInFormat(const char* format)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for V4l2SinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        
+        m_bufferInFormat = format;
+
+        // Define the default video caps - media and format only.
+        GstCaps* pCaps = gst_caps_new_simple("video/x-raw", 
+            "format", G_TYPE_STRING, m_bufferInFormat.c_str(), NULL);
+        if (!pCaps)
+        {
+            LOG_ERROR("Failed to create caps for V4l2SinkBintr '"
+                << GetName() << "'");
+            throw;
+        }
+        m_pCapsFilter->SetAttribute("caps", pCaps);
+        gst_caps_unref(pCaps);
+
+        return true;
+    }
+
+    void V4l2SinkBintr::GetPictureSettings(int* brightness, 
+        int* contrast, int* saturation)
+    {
+        LOG_FUNC();
+        
+        *brightness = m_brightness;
+        *contrast = m_contrast;
+        *saturation = m_saturation;
+    }
+
+    bool V4l2SinkBintr::SetPictureSettings(int brightness, 
+        int contrast, int saturation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set picture-settings for V4l2SinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_brightness = brightness;
+        m_contrast = contrast;
+        m_saturation = saturation;
+
+        m_pSink->SetAttribute("brightness", m_brightness);
+        m_pSink->SetAttribute("contrast", m_contrast);
+        m_pSink->SetAttribute("saturation", m_saturation);
+        
         return true;
     }
 

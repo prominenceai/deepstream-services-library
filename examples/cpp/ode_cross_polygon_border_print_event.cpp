@@ -38,9 +38,9 @@ static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/stream
 // Filespecs for the Primary GIE    
 static const std::wstring primary_gie_name(L"primary-gie");
 static const std::wstring primary_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static const std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -77,11 +77,11 @@ static const std::wstring exclude_bbox_action(L"exclude-bbox-action");
 static const std::wstring ode_print_action_name(L"print-action");
 
 // Window Sink name and attributes.
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
-static const uint sinkW(DSL_STREAMMUX_DEFAULT_WIDTH);
-static const uint sinkH(DSL_STREAMMUX_DEFAULT_HEIGHT);
+static const uint sinkW(DSL_1K_HD_WIDTH);
+static const uint sinkH(DSL_1K_HD_HEIGHT);
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -280,7 +280,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // New Window Sink to render the video stream. 
-        retval = dsl_sink_window_new(window_sink_name.c_str(),
+        retval = dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH);
         if (retval != DSL_RESULT_SUCCESS) break;
 
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
     
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source", 
-            L"primary-gie", L"iou-tracker", L"osd", L"window-sink", NULL};
+            L"primary-gie", L"iou-tracker", L"osd", L"egl-sink", NULL};
         
         // Create a new Pipeline and add the above components in the next call.
         retval = dsl_pipeline_new_component_add_many(

@@ -937,7 +937,11 @@ namespace DSL
                     std::dynamic_pointer_cast<OdeArea>(imap.second);
                 if (pOdeArea->IsBboxInside(pObjectMeta->rect_params))
                 {
-                    return !pOdeArea->IsType(typeid(OdeExclusionArea));
+                    return pOdeArea->IsType(typeid(OdeInclusionArea));
+                }
+                else
+                {
+                    return pOdeArea->IsType(typeid(OdeExclusionArea));                    
                 }
             }
             return false;

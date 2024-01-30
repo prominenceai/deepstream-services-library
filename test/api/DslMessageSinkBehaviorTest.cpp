@@ -40,9 +40,9 @@ static const uint drop_frame_interval(0);
 
 static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 static const std::wstring tracker_name(L"iou-tracker");
 static const uint tracker_width(480);
@@ -63,7 +63,7 @@ static const uint offest_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 
 static const std::wstring message_sink_name(L"message-sink");
 static const std::wstring converter_config_file(
@@ -94,7 +94,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
             model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
@@ -125,7 +125,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Tiled Display, Window 
             DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {L"uri-source",L"primary-gie", L"tiler", 
-            L"window-sink", L"message-sink", NULL};
+            L"egl-sink", L"message-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

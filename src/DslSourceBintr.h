@@ -51,9 +51,9 @@ namespace DSL
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fpsN, fpsD))
         
-    #define DSL_USB_SOURCE_PTR std::shared_ptr<UsbSourceBintr>
-    #define DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD) \
-        std::shared_ptr<UsbSourceBintr>(new UsbSourceBintr(name, width, height, fpsN, fpsD))
+    #define DSL_V4L2_SOURCE_PTR std::shared_ptr<V4l2SourceBintr>
+    #define DSL_V4L2_SOURCE_NEW(name, deviceLocation) \
+        std::shared_ptr<V4l2SourceBintr>(new V4l2SourceBintr(name, deviceLocation))
 
     #define DSL_RESOURCE_SOURCE_PTR std::shared_ptr<ResourceSourceBintr>
         
@@ -992,17 +992,16 @@ namespace DSL
 
     //*********************************************************************************
     /**
-     * @class UsbSourceBintr
+     * @class V4l2SourceBintr
      * @brief 
      */
-    class UsbSourceBintr : public VideoSourceBintr
+    class V4l2SourceBintr : public VideoSourceBintr
     {
     public: 
     
-        UsbSourceBintr(const char* name, uint width, uint height, 
-            uint fpsN, uint fpsD);
+        V4l2SourceBintr(const char* name, const char* deviceLocation);
 
-        ~UsbSourceBintr();
+        ~V4l2SourceBintr();
 
         /**
          * @brief Links all Child Elementrs owned by this Source Bintr
@@ -1022,36 +1021,105 @@ namespace DSL
         const char* GetDeviceLocation();
         
         /**
-         * @brief Sets the device location setting for the UsbSourceBintr.
+         * @brief Sets the device location setting for the V4l2SourceBintr.
          * @param[in] new device location for the Source Bintr to use.
          * @return true if successfully set, false otherwise.
          */
         bool SetDeviceLocation(const char* deviceLocation);
+
+        /**
+         * @brief Sets the dimensions for the V4l2SourceBintr.
+         * @param[in] width new width value for the Source in pixels
+         * @param[in] height new height value for the Source in pixels
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDimensions(uint width, uint height);
+
+        /**
+         * @brief Sets the frame-rate for the V4l2SourceBintr.
+         * Set fps_n and fps_d to 0 to indicate no scaling.
+         * @param[in] fpsN new fpsN value for the Source.
+         * @param[in] fpsD new fpsN value Source.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetFrameRate(uint fpsN, uint fpsD);
+
+        /**
+         * @brief Gets the current device-name setting for the V4l2SourceBintr
+         * Default = "". Updated after negotiation with the V4L2 Device.
+         * @return current device location.
+         */
+        const char* GetDeviceName();
         
+        /**
+         * @brief Gets the current device-fd (file-descriptor) setting for 
+         * the V4l2SourceBintr. Default = -1 (unset). Updated at runtime after
+         * negotiation with the V4l2 Device.
+         * @return current device location.
+         */
+        int GetDeviceFd();
+        
+        /**
+         * @brief Gets the current device-flags setting for the V4l2SourceBintr. 
+         * Default = 0 (none). Updated at runtime after negotiation with the 
+         * V4l2 Device.
+         * @return current device location.
+         */
+        uint GetDeviceFlags();
+                
+        /**
+         * @brief Gets the current picture settings for this V4l2SourceBintr.
+         * @param[out] brightness current brightness (actually darkness) level.
+         * @param[out] contrast current picture contrast or luna gain level.
+         * @param[out] hue current color hue or chroma gain level.
+         */
+        void GetPictureSettings(int* brightness, int* contrast, int* hue);
+        
+        /**
+         * @brief Sets the picture settings for the V4l2SourceBintr to use.
+         * @param[in] brightness new brightness (actually darkness) level.
+         * @param[in] contrast new picture contrast or luna level.
+         * @param[in] hue new color hue or color balence.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetPictureSettings(int brightness, int contrast, int hue);
     private:
 
         /**
-         * @brief static list of unique device IDs to be used/recycled by all
-         * UsbSourceBintrs
-         */
-        static std::list<uint> s_uniqueDeviceIds;
-
-        /**
-         * @brief static list of unique device locations to be used/recycled by all
-         * UsbSourceBintrs
-         */
-        static std::list<std::string> s_deviceLocations;
-        
-        /**
-         * @brief unique device-id for the UsbSourceBintr starting with 0. The
-         * device-id is used as the numeric sufix for the device-location.
-         */
-        uint m_deviceId;
-        
-        /**
-         * @brief current device location for the USB Source
+         * @brief current device location for the V4L2 Source
          */
         std::string m_deviceLocation;
+
+        /**
+         * @brief Device name string for this V4l2SourceBintr. Default size=0
+         */
+        std::string m_deviceName;
+        
+        /**
+         * @brief Device file-descriptor for this V4l2SourceBintr. Default = -1
+         */
+        int m_deviceFd;
+        
+        /**
+         * @brief Device type-flags for this V4l2SourceBintr. 
+         * Default = DSL_V4L2_DEVICE_TYPE_NONE
+         */
+        uint m_deviceFlags;
+
+        /**
+         * @brief Picture brightness level, or more accurately, darkness level. 
+         */
+        int m_brightness;
+        
+        /**
+         * @brief Picture contrast level, or luma. 
+         */
+        int m_contrast;
+        
+        /**
+         * @brief Picture color hue level, or color balance. 
+         */
+        int m_hue;
 
         /**
          * @brief If TRUE, the base class will automatically timestamp outgoing buffers
@@ -1066,7 +1134,7 @@ namespace DSL
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
         
         /**
-         * @brief Video converter, first of two, for the USB Source if dGPU
+         * @brief Video converter, first of two, for the V4L2 Source if dGPU
          */
         DSL_ELEMENT_PTR m_pdGpuVidConv;
 
@@ -1108,7 +1176,7 @@ namespace DSL
         }
         
         /**
-         * @brief Virtual method to be implented by eached derived Resource Source
+         * @brief Virtual method to be implented by each derived Resource Source
          * @param uri Source specific use of URI varries.
          * @return true on successful update, false otherwise
          */
@@ -1922,7 +1990,7 @@ namespace DSL
         
         /**
          * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the
-         * RTSP server certificat.
+         * RTSP server certificate.
          */
         uint m_tlsValidationFlags;
 

@@ -258,6 +258,110 @@ SCENARIO( "A Preprocessor returns its unique id correctly",  "[preproc-api]" )
     }
 }
 
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
+{
+    return true;
+}
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
+{
+    return true;
+}    
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Preprocessor", "[preproc-api]" )
+{
+    GIVEN( "A new Preprocessor and Custom PPH" ) 
+    {
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the Preprocessor" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SINK) == 
+                DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Preprocessor" ) 
+        {
+            REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_PREPROC_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a Preprocessor", "[preproc-api]" )
+{
+    GIVEN( "A new Preprocessor and Custom PPH" ) 
+    {
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the Preprocessor" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Preprocessor" ) 
+        {
+            REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_PREPROC_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Preprocessor API checks for NULL input parameters", "[preproc-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -292,6 +396,16 @@ SCENARIO( "The Preprocessor API checks for NULL input parameters", "[preproc-api
                     &retId) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_preproc_unique_id_get(preproc_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_preproc_pph_add(NULL, 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_preproc_pph_add(preproc_name.c_str(), 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_preproc_pph_remove(NULL, 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_preproc_pph_remove(preproc_name.c_str(), 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+
             }
         }
     }

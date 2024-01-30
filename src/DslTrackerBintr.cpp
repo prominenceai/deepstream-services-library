@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslServices.h"
 #include "DslTrackerBintr.h"
 #include "DslBranchBintr.h"
 
@@ -35,15 +36,16 @@ namespace DSL
         , m_llConfigFile(configFile)
         , m_width(width)
         , m_height(height)
+        , m_trackOnGieId(0)
     {
         LOG_FUNC();
 
-        // New Tracker element for this TrackerBintr
+        // New Queue and Tracker element for this TrackerBintr
+        m_pQueue = DSL_ELEMENT_NEW("queue", name);
         m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);
-        m_pTracker->SetAttribute("gpu-id", m_gpuId);
         m_pTracker->SetAttribute("ll-lib-file", m_llLibFile.c_str());
 
         // set the low-level configuration file property if provided.
@@ -53,9 +55,9 @@ namespace DSL
         }
 
         // Get property defaults that aren't specifically set
+        m_pTracker->GetAttribute("input-tensor-meta", &m_tensorInputEnabled);
+        m_pTracker->GetAttribute("display-tracking-id", &m_idDisplayEnabled);
         m_pTracker->GetAttribute("gpu-id", &m_gpuId);
-        m_pTracker->GetAttribute("enable-batch-process", &m_batchProcessingEnabled);
-        m_pTracker->GetAttribute("enable-past-frame", &m_pastFrameReporting);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for TrackerBintr '" << name << "'");
@@ -63,17 +65,22 @@ namespace DSL
         LOG_INFO("  tracker-height       : " << m_height);
         LOG_INFO("  ll-lib-file          : " << m_llLibFile);
         LOG_INFO("  ll-config-file       : " << m_llConfigFile);
+        LOG_INFO("  display-tracking-id  : " << m_idDisplayEnabled);
+        LOG_INFO("  input-tensor-meta    : " << m_tensorInputEnabled);
         LOG_INFO("  gpu-id               : " << m_gpuId);
-        LOG_INFO("  enable-batch-process : " << m_batchProcessingEnabled);
-        LOG_INFO("  enable-past-frame    : " << m_pastFrameReporting);
 
+        AddChild(m_pQueue);
         AddChild(m_pTracker);
 
-        m_pTracker->AddGhostPadToParent("sink");
+        // Float the queue element as a sink-ghost-pad for this Bintr.
+        m_pQueue->AddGhostPadToParent("sink");
+
+        // Float the tracker element as a src-ghost-pad for this Bintr.
         m_pTracker->AddGhostPadToParent("src");
         
-        m_pSinkPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tracker-sink-pad-probe", "sink", m_pTracker);
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW("tracker-src-pad-probe", "src", m_pTracker);
+        // Add the Buffer and DS Event probes to the tracker element.
+        AddSinkPadProbes(m_pTracker);
+        AddSrcPadProbes(m_pTracker);
     }
 
     TrackerBintr::~TrackerBintr()
@@ -113,7 +120,11 @@ namespace DSL
             LOG_ERROR("TrackerBintr '" << m_name << "' is already linked");
             return false;
         }
-        // Nothing to link with single Elementr
+
+        if (!m_pQueue->LinkToSink(m_pTracker))
+        {
+            return false;
+        }
         m_isLinked = true;
         
         return true;
@@ -128,7 +139,8 @@ namespace DSL
             LOG_ERROR("TrackerBintr '" << m_name << "' is not linked");
             return;
         }
-        // Nothing to unlink with single Elementr
+        m_pQueue->UnlinkFromSink();
+
         m_isLinked = false;
     }
 
@@ -213,7 +225,7 @@ namespace DSL
         
         if (IsInUse())
         {
-            LOG_ERROR("Unable to set GPU ID for FileSinkBintr '" << GetName() 
+            LOG_ERROR("Unable to set GPU ID for TrackerBintr '" << GetName() 
                 << "' as it's currently in use");
             return false;
         }
@@ -227,60 +239,75 @@ namespace DSL
         return true;
     }
 
-    boolean TrackerBintr::GetBatchProcessingEnabled()
+    void TrackerBintr::GetTensorMetaSettings(boolean* inputEnabled, 
+        const char** trackOnGie)
     {
         LOG_FUNC();
 
-        return m_batchProcessingEnabled;
+        *inputEnabled = m_tensorInputEnabled;
+        *trackOnGie = m_trackOnGieName.c_str();
     }
     
-    bool TrackerBintr::SetBatchProcessingEnabled(boolean enabled)
+    bool TrackerBintr::SetTensorMetaSettings(boolean inputEnabled, 
+        const char* trackOnGie)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set the enable-batch-processing setting for TrackerBintr '" 
-                << GetName() << "' as it's currently in use");
+            LOG_ERROR("Unable to set the tensor-meta-settings for TrackerBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
+        m_tensorInputEnabled = inputEnabled;
+        m_trackOnGieName = trackOnGie;
         
-        m_batchProcessingEnabled = enabled;
-        m_pTracker->SetAttribute("enable-batch-process", m_batchProcessingEnabled);
+        m_pTracker->SetAttribute("input-tensor-meta", m_tensorInputEnabled);
+
+        if (m_tensorInputEnabled)
+        {
+            // Query the Services lib for the Id of the GIE to track on. 
+            
+            uint inferOnProcessMode; // do we care about process mode????
+            
+            if (Services::GetServices()->_inferAttributesGetByName(
+                m_trackOnGieName.c_str(), m_trackOnGieId, inferOnProcessMode) 
+                    != DSL_RESULT_SUCCESS)
+            {
+                LOG_ERROR("TrackerBintr '" << GetName() 
+                    << "' failed to Get unique Id for InferBintr '" 
+                    << m_trackOnGieName << "'");
+                return false;
+            }   
+            
+            LOG_INFO("Setting tensor-meta-gie-id for TrackerBintr   '" 
+                << GetName() << "' to " << m_trackOnGieId);
+                
+            m_pTracker->SetAttribute("tensor-meta-gie-id", m_trackOnGieId);
+        }    
         return true;
     }
     
-    boolean TrackerBintr::GetPastFrameReportingEnabled()
+    boolean TrackerBintr::GetIdDisplayEnabled()
     {
         LOG_FUNC();
 
-        return m_pastFrameReporting;
+        m_pTracker->GetAttribute("display-tracking-id", &m_idDisplayEnabled);
+        return m_idDisplayEnabled;
     }
     
-    bool TrackerBintr::SetPastFrameReportingEnabled(boolean enabled)
+    bool TrackerBintr::SetIdDisplayEnabled(boolean enabled)
     {
         LOG_FUNC();
         
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set the enable-past-frame setting for TrackerBintr '" 
-                << GetName() << "' as it's currently in use");
+            LOG_ERROR("Unable to set the display-tracking-id for TrackerBintr '" 
+                << GetName() << "' as it's currently in linked");
             return false;
         }
-        m_pastFrameReporting = enabled;
-        m_pTracker->SetAttribute("enable-past-frame", m_pastFrameReporting);
-        return true;
-    }
-
-    bool TrackerBintr::SetBatchSize(uint batchSize)
-    {
-        LOG_FUNC();
-        
-        if (batchSize > 1 and !m_batchProcessingEnabled)
-        {
-            LOG_WARN("The Pipeline's batch-size is set to " << batchSize 
-                << " while the Tracker's batch processing is disable!");
-        }
+        m_idDisplayEnabled = enabled;
+        m_pTracker->SetAttribute("display-tracking-id", m_idDisplayEnabled);
         return true;
     }
     

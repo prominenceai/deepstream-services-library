@@ -41,26 +41,26 @@ THE SOFTWARE.
 
 // File path for the single File Source
 std::wstring file_path1(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_1080p_h265.mp4");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 std::wstring file_path2(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_qHD.mp4");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 std::wstring file_path3(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_ride_bike.mov");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov");
 std::wstring file_path4(
-    L"/opt/nvidia/deepstream/deepstream-6.0/samples/streams/sample_walk.mov");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov");
 
 std::wstring primary_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-int TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-int TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+int TILER_WIDTH = DSL_1K_HD_WIDTH;
+int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
 
 
 // Window Sink Dimensions - used to create the sink, however, in this
@@ -113,7 +113,7 @@ void xwindow_button_event_handler(uint button,
         // get the current XWindow dimensions - the XWindow was overlayed with our Window Sink
         uint width(0), height(0);
         
-        if (dsl_sink_render_dimensions_get(L"window-sink", 
+        if (dsl_sink_window_dimensions_get(L"egl-sink", 
             &width, &height) == DSL_RESULT_SUCCESS)
             
             // call the Tiler to show the source based on the x and y button cooridantes
@@ -227,8 +227,13 @@ int main(int argc, char** argv)
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Tiler, setting width and height, use default cols/rows set by source count
+        // New Tiler, setting width and height
         retval = dsl_tiler_new(L"tiler", TILER_WIDTH, TILER_HEIGHT);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // IMPORTANT! we must explicitly set the number of cols/rows in order to
+        // use/call dsl_tiler_source_show_set (see xwindow_key_event_handler)
+        retval = dsl_tiler_tiles_set(L"tiler", 2, 2);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the ODE Pad Probe Handler to the Sink pad of the Tiler
@@ -240,30 +245,30 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_button_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_button_event_handler_add(L"egl-sink", 
             xwindow_button_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Enabled the XWindow for full-screen-mode
-        retval = dsl_sink_window_fullscreen_enabled_set(L"window-sink", true);
+        retval = dsl_sink_window_fullscreen_enabled_set(L"egl-sink", true);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source-1", L"uri-source-2", 
             L"uri-source-3", L"uri-source-4", L"primary-gie", L"iou-tracker", 
-            L"tiler", L"on-screen-display", L"window-sink", NULL};
+            L"tiler", L"on-screen-display", L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

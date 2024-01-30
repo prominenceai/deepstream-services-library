@@ -64,8 +64,8 @@ SCENARIO( "A New PlayerBintr is created correctly", "[PlayerBintr]" )
         DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
             sourceName.c_str(), mp4FilePath1.c_str(), false);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         WHEN( "The new PlayerBintr is created" )
         {
@@ -94,8 +94,8 @@ SCENARIO( "A New PlayerBintr can Link its Child Bintrs correctly", "[PlayerBintr
         DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
             sourceName.c_str(), mp4FilePath1.c_str(), false);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
@@ -122,8 +122,8 @@ SCENARIO( "A New PlayerBintr can Unlink its Child Bintrs correctly", "[PlayerBin
         DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
             sourceName.c_str(), mp4FilePath1.c_str(), false);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
@@ -151,9 +151,9 @@ SCENARIO( "A New PlayerBintr with a File Source and Overlay Sink can Play and St
             DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
                 sourceName.c_str(), mp4FilePath1.c_str(), false);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, 
-                    depth, offsetX, offsetY, sinkH, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(),
+                    offsetX, offsetY, sinkH, sinkH);
 
             DSL_PLAYER_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
@@ -180,8 +180,8 @@ SCENARIO( "A New PlayerBintr with a File Source and Window Sink can Play and Sto
         DSL_FILE_SOURCE_PTR pSourceBintr = DSL_FILE_SOURCE_NEW(
             sourceName.c_str(), mp4FilePath1.c_str(), false);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
@@ -211,9 +211,9 @@ SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and OverlaySinkBintr ca
             // use the image size for the Window sink dimensions
             pSourceBintr->GetDimensions(&sinkW, &sinkH);
             
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, 
-                    depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
+                    offsetX, offsetY, sinkW, sinkH);
 
             DSL_PLAYER_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
@@ -232,7 +232,7 @@ SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and OverlaySinkBintr ca
     }
 }
 
-SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and EglSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new PipelineBintr" ) 
     {
@@ -243,8 +243,8 @@ SCENARIO( "A New PlayerBintr with ImageStreamSourceBintr and WindowSinkBintr can
         // use the image size for the Window sink dimensions
         pSourceBintr->GetDimensions(&sinkW, &sinkH);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         DSL_PLAYER_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_BINTR_NEW(playerName.c_str(), pSourceBintr, pSinkBintr);
@@ -275,7 +275,7 @@ SCENARIO( "A New ImageRenderPlayerBintr with OverlaySinkBintr can Play and Stop 
 
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_3D, offsetX, offsetY, zoom, timeout);
 
             WHEN( "The new PlayerBintr is set to a state of PLAYING" )
             {
@@ -296,7 +296,7 @@ SCENARIO( "A New ImageRenderPlayerBintr with OverlaySinkBintr can Play and Stop 
     }
 }
 
-SCENARIO( "A New ImageRenderPlayerBintr with WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New ImageRenderPlayerBintr with EglSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new PipelineBintr" ) 
     {
@@ -339,7 +339,7 @@ SCENARIO( "A New VideoRenderPlayerBintr with OverlaySinkBintr can Play and Stop 
 
             DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                    mp4FilePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeatEnabled);
+                    mp4FilePath1.c_str(), DSL_RENDER_TYPE_3D, offsetX, offsetY, zoom, repeatEnabled);
 
             WHEN( "The new PlayerBintr is set to a state of PLAYING" )
             {
@@ -359,7 +359,7 @@ SCENARIO( "A New VideoRenderPlayerBintr with OverlaySinkBintr can Play and Stop 
     }
 }
 
-SCENARIO( "A New VideoRenderPlayerBintr with WindowSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
+SCENARIO( "A New VideoRenderPlayerBintr with EglSinkBintr can Play and Stop correctly", "[PlayerBintr]" )
 {
     GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
@@ -467,7 +467,7 @@ SCENARIO( "A ImageRenderPlayerBintr can Set/Get its File Path correctly", "[Play
     }
 }
 
-SCENARIO( "A ImageRenderPlayerBintr with a WindowSinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
+SCENARIO( "A ImageRenderPlayerBintr with a EglSinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
 {
     GIVEN( "A new ImageRenderPlayerBintr" ) 
     {
@@ -510,7 +510,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom
 
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_3D, offsetX, offsetY, zoom, timeout);
 
             REQUIRE( pPlayerBintr->Play() == true);
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -530,7 +530,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom
     }
 }
 
-SCENARIO( "A VideoRenderPlayerBintr with a WindowSinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
+SCENARIO( "A VideoRenderPlayerBintr with a EglSinkBintr can Set/Get its Zoom", "[PlayerBintr]" )
 {
     GIVEN( "A new VideoRenderPlayerBintr" ) 
     {
@@ -573,7 +573,7 @@ SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom
 
             DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                    mp4FilePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, repeatEnabled);
+                    mp4FilePath1.c_str(), DSL_RENDER_TYPE_3D, offsetX, offsetY, zoom, repeatEnabled);
 
             REQUIRE( pPlayerBintr->Play() == true);
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -593,7 +593,7 @@ SCENARIO( "A VideoRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Zoom
     }
 }
 
-SCENARIO( "A ImageRenderPlayerBintr with a WindowSinkBintr can Set/Get its Offsets", "[PlayerBintr]" )
+SCENARIO( "A ImageRenderPlayerBintr with a EglSinkBintr can Set/Get its Offsets", "[PlayerBintr]" )
 {
     GIVEN( "A new ImageRenderPlayerBintr" ) 
     {
@@ -639,7 +639,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a OverlaySinkBintr can Set/Get its Offs
 
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_3D, offsetX, offsetY, zoom, timeout);
 
             REQUIRE( pPlayerBintr->Play() == true);
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -821,7 +821,7 @@ SCENARIO( "A New ImageRenderPlayerBintr - Overlay Type - can Play after Reset", 
 
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_OVERLAY, offsetX, offsetY, zoom, timeout);
+                    jpgFilePath1.c_str(), DSL_RENDER_TYPE_3D, offsetX, offsetY, zoom, timeout);
 
             REQUIRE( pPlayerBintr->Play() == true );
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);

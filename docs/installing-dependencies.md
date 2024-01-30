@@ -4,17 +4,16 @@ The DeepStream Services Library (DSL) is built on the NVIDIA® [DeepStream SDK](
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
 ## Contents
-* [Minimal (Base) Install](#minimal-base-install)
+* [Base Install - Jetson and dGPU](#base-install---jetson-and-dgpu)
+* [Additional WebRTC Dependencies](#additional-webrtc-dependencies---deepstream-64--gstreamer-120)
 * [Enabling Extended Image Services (Optional)](#enabling-extended-image-services-optional)
 * [Enabling Interpipe Services (Optional)](#enabling-interpipe-services-optional)
 * [Documentation and Debug Dependencies (Optional)](#documentation-and-debug-dependencies-optional)
 
 ---
 
-## Minimal (Base) Install
-Copy and execute one of the following commands according to your Target Device, Jetson or dGPU.
-
-### Jetson Base Install
+## Base Install - Jetson and dGPU
+Enter the following command to install the minimal requirements to build DSL
 ```bash
 sudo apt update && sudo apt-get install \
     libgstrtspserver-1.0-dev \
@@ -27,62 +26,40 @@ sudo apt update && sudo apt-get install \
     libcurl4-openssl-dev
 ```    
 
-### dGPU Base Install
+## Additional WebRTC Dependencies - DeepStream 6.4 / GStreamer 1.20
+Enter the following command to install the additional WebRTC (Ubuntu 22.04)
 ```bash
-sudo apt update && sudo apt-get install \
-    libgstrtspserver-1.0-dev \
-    gstreamer1.0-rtsp \
-    libapr1 \
-    libapr1-dev \
-    libaprutil1 \
-    libaprutil1-dev \
-    libgeos-dev \
-    libcurl4-openssl-dev \
-    libjson-glib-1.0-0 \
+sudo apt-get install \
+    libjson-glib-dev \
     libsoup-gnome2.4-dev  
-```    
+```
+After installation, enter the following command to update the json-glib-1.0 package.
+```bash
+pkg-config --cflags json-glib-1.0
+```
 
 ---
 ## Enabling Extended Image Services (Optional)
-Additional installation steps are required to use DSL's extended image services, which include:
+DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https://opencv.org/) to implement the Extended Images Services, which include:
 * [Streaming Image Source](/docs/api-source.md#dsl_source_image_stream_new)
 * [Object](/docs/api-ode-action.md#dsl_ode_action_capture_object_new) and [Frame](/docs/api-ode-action.md#dsl_ode_action_capture_frame_new) Capture [ODE Actions](/docs/api-ode-action.md).
 * [Frame Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new)
 
-DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https://opencv.org/). Note: that installing OpenCV when using a dGPU NVIDIA Docker Image can be problematic.  
+### Using FFmpeg
+Building with FFmpeg requies the following development libraries, intalled by default with DeepStream 6.4, Ubuntu 22.04.
+- avformat
+- avcodec
+- avutil
+- swscale
+- z
+- pthread
+- swresample
 
-### Building FFmpeg
-To use FFmpeg, DSL requires that you clone, build and install the latest version of the FFmpeg development libraries. Any previously installed versions of FFmpeg must be removed first. Enter the following command to check for an existing version.
-```bash
-$ ffmpeg -version
-```
-If a version exists, enter the following command to remove it.
-```bash
-$ sudo apt-get autoremove ffmpeg
-```
-
-Copy and execute each of the following commands, one at a time, to setup the required dependencies.
-```bash
-$ mkdir ~/ffmpeg; cd ~/ffmpeg
-$ git clone https://github.com/FFmpeg/FFmpeg.git
-$ cd FFmpeg
-$ ./configure --enable-shared --disable-lzma
-$ make
-$ sudo make install
-```
-**Important Notes:**
-* Building the FFmpeg libraries can take > 15 minutes, depending on the platform. 
-* If builing in an NVIDIA DeepStream container, you may need to install yasm first 
-  * `apt-get install yasm`
-
-### Installing OpenCV
-Copy and execute the following command to install the OpenCV development library (as an alternative to using FFmpeg). 
-```bash
-sudo apt-get install -y libopencv-dev
-```
+### Using OpenCV
+If using OpenCV, it is recommended to use the NVIDIA SDK Manager to install OpenCV, or an NVIDIA DeepStream Docker container with OpenCV pre-installed.
 
 ### Updating the Makefile
-After installing FFmpeg or OpenCV, search for the following section in the DSL Makefile and set the appropriate BUILD_WITH flag to true.
+To enable the Extended Image Services, search for the following section in the DSL Makefile and set the appropriate BUILD_WITH flag to true.
 ```
 # To enable the extended Image Services, install either the FFmpeg or OpenCV 
 # development libraries (See /docs/installing-dependencies.md), and

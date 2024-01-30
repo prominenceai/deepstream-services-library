@@ -70,6 +70,11 @@ static std::wstring buffer_in_format(DSL_VIDEO_FORMAT_I420);
 
 
 static std::wstring def_device_location(L"/dev/video0");
+static std::wstring video1_device_location(L"/dev/video1");
+static std::wstring video2_device_location(L"/dev/video2");
+static std::wstring video3_device_location(L"/dev/video3");
+static std::wstring video4_device_location(L"/dev/video4");
+static std::wstring video5_device_location(L"/dev/video5");
 
 
 SCENARIO( "The Components container is updated correctly on new source", 
@@ -81,8 +86,8 @@ SCENARIO( "The Components container is updated correctly on new source",
 
         WHEN( "A new Source is created" ) 
         {
-            REQUIRE( dsl_source_usb_new(source_name.c_str(), 
-                width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+                def_device_location.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -101,8 +106,8 @@ SCENARIO( "The Components container is updated correctly on Source Delete",
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_usb_new(source_name.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
         
         WHEN( "The Source is deleted" )
@@ -126,8 +131,8 @@ SCENARIO( "A Source in use can't be deleted",
 
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_usb_new(source_name.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) 
             == DSL_RESULT_SUCCESS );
 
@@ -157,8 +162,8 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted",
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_usb_new(source_name.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
@@ -192,8 +197,8 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
 
         int ret_unique_id(99);
         int ret_stream_id(99);
-        REQUIRE( dsl_source_usb_new(source_name0.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name0.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
            &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
@@ -203,8 +208,8 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
 
         ret_unique_id = 99;
         ret_stream_id = 99;
-        REQUIRE( dsl_source_usb_new(source_name1.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name1.c_str(), 
+            video1_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
            &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
@@ -214,8 +219,8 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
 
         ret_unique_id = 99;
         ret_stream_id = 99;
-        REQUIRE( dsl_source_usb_new(source_name2.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name2.c_str(), 
+            video2_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
            &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
@@ -225,8 +230,8 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
 
         ret_unique_id = 99;
         ret_stream_id = 99;
-        REQUIRE( dsl_source_usb_new(source_name3.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name3.c_str(), 
+            video3_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
            &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
@@ -236,8 +241,8 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
 
         ret_unique_id = 99;
         ret_stream_id = 99;
-        REQUIRE( dsl_source_usb_new(source_name4.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name4.c_str(), 
+            video4_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
            &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
@@ -247,8 +252,8 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
 
         ret_unique_id = 99;
         ret_stream_id = 99;
-        REQUIRE( dsl_source_usb_new(source_name5.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name5.c_str(), 
+            video5_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
            &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
@@ -781,64 +786,81 @@ SCENARIO( "A new CIS Camera Source set/get its sensor-id correctly", "[source-ap
     }
 }    
 
-SCENARIO( "A new USB Camera Source returns the correct attribute values", "[source-api]" )
+SCENARIO( "A new V4L2 Source returns the correct attribute values", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        WHEN( "A new USB Source is created" ) 
+        WHEN( "A new V4L2 Source is created" ) 
         {
-            REQUIRE( dsl_source_usb_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+                def_device_location.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
-                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
                 const wchar_t* device_location;
-                REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), 
+                REQUIRE( dsl_source_v4l2_device_location_get(source_name.c_str(), 
                     &device_location) == DSL_RESULT_SUCCESS );
                 std::wstring ret_device_location(device_location);
                 REQUIRE( ret_device_location == def_device_location );
-                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
-                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
-                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_width == width );
-                REQUIRE( ret_height == height );
-                REQUIRE( ret_fps_n == fps_n );
-                REQUIRE( ret_fps_d == fps_d );
                 REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
 
+                const wchar_t* c_ret_device_name;
+                REQUIRE( dsl_source_v4l2_device_name_get(source_name.c_str(), 
+                    &c_ret_device_name) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_name(c_ret_device_name);
+                REQUIRE( ret_device_name == L"" );
+
+                int ret_device_fd;
+                REQUIRE( dsl_source_v4l2_device_fd_get(source_name.c_str(), 
+                    &ret_device_fd) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_device_fd == -1 );
+
+                uint ret_device_flags;
+                REQUIRE( dsl_source_v4l2_device_flags_get(source_name.c_str(), 
+                    &ret_device_flags) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_device_flags == DSL_V4L2_DEVICE_TYPE_NONE );
+
+                int retBrightness(0), retContrast(0), retHue(0);
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    &retBrightness, &retContrast, &retHue) == DSL_RESULT_SUCCESS );
+                REQUIRE( retBrightness == 0 );
+                REQUIRE( retContrast == 0 );
+                REQUIRE( retHue == 0 );
+                
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }    
 
-SCENARIO( "A new USB Camera Source can set/get its device location correctly", "[source-api]" )
+SCENARIO( "A new V4L2 Source can set/get its device location correctly", 
+    "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_usb_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
 
-        WHEN( "The USB Source's device-location is set" ) 
+        WHEN( "The V4L2 Source's device-location is set" ) 
         {
             // Check default first
             const wchar_t* device_location;
-            REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), 
+            REQUIRE( dsl_source_v4l2_device_location_get(source_name.c_str(), 
                 &device_location) == DSL_RESULT_SUCCESS );
             std::wstring ret_device_location(device_location);
             REQUIRE( ret_device_location == def_device_location );
             
             std::wstring new_device_location(L"/dev/video1");
-            REQUIRE( dsl_source_usb_device_location_set(source_name.c_str(), 
+            REQUIRE( dsl_source_v4l2_device_location_set(source_name.c_str(), 
                 new_device_location.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct updated value is returned on get" ) 
             {
-                REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), 
+                REQUIRE( dsl_source_v4l2_device_location_get(source_name.c_str(), 
                     &device_location) == DSL_RESULT_SUCCESS );
                 ret_device_location = device_location;
                 REQUIRE( ret_device_location == new_device_location );
@@ -1581,6 +1603,7 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
         
         int start_index(0);
         uint left(0), top(0), width(0), fps_n(0), fps_d(0);
+        int brightness(0), contrast(0);
         dsl_source_app_need_data_handler_cb data_handler_cb;
 
         WHEN( "When NULL pointers are used as input" ) 
@@ -1626,12 +1649,27 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_set(NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_source_usb_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_get(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_set(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_usb_device_location_set(source_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                
+                REQUIRE( dsl_source_v4l2_new(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_new(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_device_location_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_device_location_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_device_location_set(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_device_location_set(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(NULL, 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    &brightness, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_v4l2_picture_settings_get(source_name.c_str(), 
+                    &brightness, &contrast, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
                 REQUIRE( dsl_source_uri_new(NULL, NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_uri_new(source_name.c_str(), NULL, false, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_new(NULL, NULL, 0, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );

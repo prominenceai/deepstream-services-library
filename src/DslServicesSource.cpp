@@ -685,8 +685,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceUsbNew(const char* name,
-        uint width, uint height, uint fpsN, uint fpsD)
+    DslReturnType Services::SourceV4l2New(const char* name, 
+        const char* deviceLocation)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -699,20 +699,20 @@ namespace DSL
                 LOG_ERROR("Source name '" << name << "' is not unique");
                 return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_USB_SOURCE_NEW(name, width, height, fpsN, fpsD);
+            m_components[name] = DSL_V4L2_SOURCE_NEW(name, deviceLocation);
 
-            LOG_INFO("New USB Source '" << name << "' created successfully");
+            LOG_INFO("New V4L2 Source '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New USB Source '" << name << "' threw exception on create");
+            LOG_ERROR("New V4L2 Source '" << name << "' threw exception on create");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SourceUsbDeviceLocationGet(const char* name, 
+    DslReturnType Services::SourceV4l2DeviceLocationGet(const char* name, 
             const char** deviceLocation)
     {
         LOG_FUNC();
@@ -722,29 +722,29 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                UsbSourceBintr);
+                V4l2SourceBintr);
 
 
-            DSL_USB_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<UsbSourceBintr>(m_components[name]);
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
 
             *deviceLocation = pSourceBintr->GetDeviceLocation();
 
-            LOG_INFO("USB Source '" << name << "' returned device-location = '" 
+            LOG_INFO("V4L2 Source '" << name << "' returned device-location = '" 
                 << *deviceLocation << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("USB Source '" << name 
+            LOG_ERROR("V4L2 Source '" << name 
                 << "' threw exception getting device-location");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
             
 
-    DslReturnType Services::SourceUsbDeviceLocationSet(const char* name, 
+    DslReturnType Services::SourceV4l2DeviceLocationSet(const char* name, 
             const char* deviceLocation)
     {
         LOG_FUNC();
@@ -754,30 +754,258 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
-                UsbSourceBintr);
+                V4l2SourceBintr);
 
-            DSL_USB_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<UsbSourceBintr>(m_components[name]);
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
 
             if (!pSourceBintr->SetDeviceLocation(deviceLocation))
             {
                 LOG_ERROR("Failed to set device-location '" 
-                    << deviceLocation << "' for USB Source '" << name << "'");
+                    << deviceLocation << "' for V4L2 Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            LOG_INFO("USB Source '" << name << "' set device-location = '" 
+            LOG_INFO("V4L2 Source '" << name << "' set device-location = '" 
                 << deviceLocation << "' successfully");
             
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("USB Source '" << name 
+            LOG_ERROR("V4L2 Source '" << name 
                 << "' threw exception setting device-location");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
 
+    DslReturnType Services::SourceV4l2DimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetDimensions(width, height))
+            {
+                LOG_ERROR("Failed to set dimensions to width = " 
+                    << width << " and height = " << height  
+                    << " for V4L2 Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("V4L2 Source '" << name << "' set width = " 
+                << width << " and height = " << height 
+                << " for dimensions successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception setting dimensions");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+    
+    DslReturnType Services::SourceV4l2FrameRateSet(const char* name, 
+        uint fps_n, uint fps_d)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetFrameRate(fps_n, fps_d))
+            {
+                LOG_ERROR("Failed to set frame-rate to fps_n = " 
+                    << fps_n << " and fps_d = " << fps_d  
+                    << " for V4L2 Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("V4L2 Source '" << name << "' set fps_n = " 
+                << fps_n << " and fps_d = " << fps_d 
+                << " for frame-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception getting frame-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceV4l2DeviceNameGet(const char* name, 
+        const char** deviceName)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+
+            *deviceName = pSourceBintr->GetDeviceName();
+
+            LOG_INFO("V4L2 Source '" << name << "' returned device-name = '" 
+                << *deviceName << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception getting device-name");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceV4l2DeviceFdGet(const char* name, 
+        int* deviceFd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+
+            *deviceFd = pSourceBintr->GetDeviceFd();
+
+            LOG_INFO("V4L2 Source '" << name << "' returned device-fd = '" 
+                << *deviceFd << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception getting device-fd");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceV4l2DeviceFlagsGet(const char* name, 
+        uint* deviceFlags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+
+            *deviceFlags = pSourceBintr->GetDeviceFlags();
+
+            LOG_INFO("V4L2 Source '" << name << "' returned device-flags = '" 
+                << int_to_hex(*deviceFlags) << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception getting device-flags");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceV4l2PictureSettingsGet(const char* name, 
+        int* brightness, int* contrast, int* hue)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+
+            pSourceBintr->GetPictureSettings(brightness, contrast, hue);
+
+            LOG_INFO("V4L2 Source '" << name 
+                << "' returned picture-settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception getting picture-settings");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceV4l2PictureSettingsSet(const char* name, 
+        int brightness, int contrast, int hue)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                V4l2SourceBintr);
+            
+            DSL_V4L2_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<V4l2SourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetPictureSettings(brightness, contrast, hue))
+            {
+                LOG_ERROR("Failed to set picture-settings for V4L2 Source '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Source '" << name 
+                << "' set picture-settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Source '" << name 
+                << "' threw exception setting picture-settings");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
     DslReturnType Services::SourceUriNew(const char* name, const char* uri, 
         boolean isLive, uint skipFrames, uint dropFrameInterval)
     {
@@ -1971,6 +2199,7 @@ namespace DSL
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }                
+
     DslReturnType Services::SourceVideoBufferOutCropRectangleGet(const char* name, 
         uint cropAt, uint* left, uint* top, uint* width, uint* height)
     {
@@ -3190,6 +3419,7 @@ namespace DSL
             return DSL_RESULT_DEWARPER_THREW_EXCEPTION;
         }
     }
+
     DslReturnType Services::DewarperCameraIdGet(const char* name, 
         uint* cameraId)
     {

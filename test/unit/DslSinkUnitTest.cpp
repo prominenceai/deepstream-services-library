@@ -159,33 +159,30 @@ SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
+SCENARIO( "A new 3dSinkBintr is created correctly",  "[SinkBintr]" )
 {
-    GIVEN( "Attributes for a new Overlay Sink" ) 
+    GIVEN( "Attributes for a new 3D Sink" ) 
     {
         
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(100);
             uint offsetY(140);
             uint sinkW(1280);
             uint sinkH(720);
 
-            WHEN( "The OverlaySinkBintr is created " )
+            WHEN( "The 3dSinkBintr is created " )
             {
-                DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                    DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                        displayId, depth, offsetX, offsetY, sinkW, sinkH);
+                DSL_3D_SINK_PTR pSinkBintr = 
+                    DSL_3D_SINK_NEW(sinkName.c_str(), 
+                        offsetX, offsetY, sinkW, sinkH);
                 
                 THEN( "The correct attribute values are returned" )
                 {
-                    REQUIRE( pSinkBintr->GetDisplayId() == 0 );
                     REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                     REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                    REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                    REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                     REQUIRE( pSinkBintr->GetQosEnabled() == false );
                 }
             }
@@ -193,31 +190,29 @@ SCENARIO( "A new OverlaySinkBintr is created correctly",  "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A new 3dSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new OverlaySinkBintr in an Unlinked state" ) 
+    GIVEN( "A new 3dSinkBintr in an Unlinked state" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(100);
             uint offsetY(140);
             uint sinkW(1280);
             uint sinkH(720);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
+                    offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->IsLinked() == false );
 
-            WHEN( "A new OverlaySinkBintr is Linked" )
+            WHEN( "A new 3dSinkBintr is Linked" )
             {
                 REQUIRE( pSinkBintr->LinkAll() == true );
 
-                THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+                THEN( "The 3dSinkBintr's IsLinked state is updated correctly" )
                 {
                     REQUIRE( pSinkBintr->IsLinked() == true );
                 }
@@ -226,31 +221,29 @@ SCENARIO( "A new OverlaySinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A Linked 3dSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A OverlaySinkBintr in a linked state" ) 
+    GIVEN( "A 3dSinkBintr in a linked state" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(100);
             uint offsetY(140);
             uint sinkW(1280);
             uint sinkH(720);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), 
-                    displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
+                    offsetX, offsetY, sinkW, sinkH);
 
             REQUIRE( pSinkBintr->LinkAll() == true );
 
-            WHEN( "A OverlaySinkBintr is Unlinked" )
+            WHEN( "A 3dSinkBintr is Unlinked" )
             {
                 pSinkBintr->UnlinkAll();
 
-                THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+                THEN( "The 3dSinkBintr's IsLinked state is updated correctly" )
                 {
                     REQUIRE( pSinkBintr->IsLinked() == false );
                 }
@@ -259,87 +252,20 @@ SCENARIO( "A Linked OverlaySinkBintr can UnlinkAll Child Elementrs", "[SinkBintr
     }
 }
 
-SCENARIO( "A Linked OverlaySinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "An 3dSinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A newOverlaySinkBintr" ) 
+    GIVEN( "A new 3dSinkBintr in memory" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
-            uint offsetX(100);
-            uint offsetY(140);
-            uint sinkW(1280);
-            uint sinkH(720);
-
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-
-            WHEN( "A OverlaySinkBintr is Reset" )
-            {
-                REQUIRE( pSinkBintr->Reset() == true );
-
-                THEN( "The OverlaySinkBintr can LinkAll and UnlinkAll" )
-                {
-                    REQUIRE( pSinkBintr->LinkAll() == true );
-                    pSinkBintr->UnlinkAll();
-                    REQUIRE( pSinkBintr->IsLinked() == false );
-                }
-            }
-        }
-    }
-}
-
-SCENARIO( "An OverlaySinkBintr's Display Id can be updated",  "[SinkBintr]" )
-{
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
-    {
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
-            uint offsetX(100);
-            uint offsetY(140);
-            uint sinkW(1280);
-            uint sinkH(720);
-            uint newDisplayId(123);
-
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
-                
-            // ensure display id reflects not is use
-            REQUIRE( pSinkBintr->GetDisplayId() == 0 );
-
-            WHEN( "The OverlaySinkBintr's display Id is set " )
-            {
-                pSinkBintr->SetDisplayId(newDisplayId);
-                THEN( "The OverlaySinkBintr's new display Id is returned on Get" )
-                {
-                    REQUIRE( pSinkBintr->GetDisplayId() == newDisplayId );
-                }
-            }
-        }
-    }
-}
-
-SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
-{
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
-    {
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint initOffsetX(0);
             uint initOffsetY(0);
             uint sinkW(1280);
             uint sinkH(720);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, initOffsetX, initOffsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
                 
             uint currOffsetX(0);
             uint currOffsetY(0);
@@ -348,14 +274,14 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
             REQUIRE( currOffsetX == initOffsetX );
             REQUIRE( currOffsetY == initOffsetY );
 
-            WHEN( "The OverlaySinkBintr's Offsets are Set" )
+            WHEN( "The 3dSinkBintr's Offsets are Set" )
             {
                 uint newOffsetX(80);
                 uint newOffsetY(20);
                 
                 pSinkBintr->SetOffsets(newOffsetX, newOffsetY);
 
-                THEN( "The OverlaySinkBintr's new demensions are returned on Get")
+                THEN( "The 3dSinkBintr's new demensions are returned on Get")
                 {
                     pSinkBintr->GetOffsets(&currOffsetX, &currOffsetY);
                     REQUIRE( currOffsetX == newOffsetX );
@@ -367,22 +293,20 @@ SCENARIO( "An OverlaySinkBintr's Offsets can be updated", "[SinkBintr]" )
 }
 
 
-SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
+SCENARIO( "An 3dSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
+    GIVEN( "A new 3dSinkBintr in memory" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(0);
             uint offsetY(0);
             uint initSinkW(300);
             uint initSinkH(200);
 
-            DSL_OVERLAY_SINK_PTR pSinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, 
+            DSL_3D_SINK_PTR pSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), 
                     offsetX, offsetY, initSinkW, initSinkH);
                 
             uint currSinkW(0);
@@ -392,14 +316,14 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
             REQUIRE( currSinkW == initSinkW );
             REQUIRE( currSinkH == initSinkH );
 
-            WHEN( "The OverlaySinkBintr's dimensions are Set" )
+            WHEN( "The 3dSinkBintr's dimensions are Set" )
             {
                 uint newSinkW(1280);
                 uint newSinkH(720);
                 
                 pSinkBintr->SetDimensions(newSinkW, newSinkH);
 
-                THEN( "The OverlaySinkBintr's new dimensions are returned on Get")
+                THEN( "The 3dSinkBintr's new dimensions are returned on Get")
                 {
                     pSinkBintr->GetDimensions(&currSinkW, &currSinkH);
                     REQUIRE( currSinkW == newSinkW );
@@ -410,88 +334,86 @@ SCENARIO( "An OverlaySinkBintr's Dimensions can be updated", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A OverlaySinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
+SCENARIO( "A 3dSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
-    GIVEN( "A new OverlaySinkBintr in memory" ) 
+    GIVEN( "A new 3dSinkBintr in memory" ) 
     {
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            std::string sinkName("overlay-sink");
-            uint displayId(0);
-            uint depth(0);
+            std::string sinkName("3d-sink");
             uint offsetX(0);
             uint offsetY(0);
             uint sinkW(300);
             uint sinkH(200);
 
-            DSL_OVERLAY_SINK_PTR pOverlaySinkBintr = 
-                DSL_OVERLAY_SINK_NEW(sinkName.c_str(), displayId, depth, offsetX, offsetY, sinkW, sinkH);
+            DSL_3D_SINK_PTR p3dSinkBintr = 
+                DSL_3D_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
             
             uint GPUID0(0);
             uint GPUID1(1);
 
-            REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID0 );
+            REQUIRE( p3dSinkBintr->GetGpuId() == GPUID0 );
             
-            WHEN( "The OverlaySinkBintr's  GPU ID is set" )
+            WHEN( "The 3dSinkBintr's  GPU ID is set" )
             {
-                REQUIRE( pOverlaySinkBintr->SetGpuId(GPUID1) == true );
+                REQUIRE( p3dSinkBintr->SetGpuId(GPUID1) == true );
 
                 THEN( "The correct GPU ID is returned on get" )
                 {
-                    REQUIRE( pOverlaySinkBintr->GetGpuId() == GPUID1 );
+                    REQUIRE( p3dSinkBintr->GetGpuId() == GPUID1 );
                 }
             }
         }
     }
 }
 
-SCENARIO( "A new WindowSinkBintr is created correctly",  "[SinkBintr]" )
+SCENARIO( "A new EglSinkBintr is created correctly",  "[SinkBintr]" )
 {
-    GIVEN( "Attributes for a new Window Sink" ) 
+    GIVEN( "Attributes for a new EGL SInk" ) 
     {
-        std::string sinkName("window-sink");
+        std::string sinkName("egl-sink");
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
 
-        WHEN( "The WindowSinkBintr is created " )
+        WHEN( "The EglSinkBintr is created " )
         {
-            DSL_WINDOW_SINK_PTR pSinkBintr = 
-                DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+            DSL_EGL_SINK_PTR pSinkBintr = 
+                DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
             
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
                 REQUIRE( pSinkBintr->GetSyncEnabled() == true );
                 REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == 20000000 );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled() == false );
             }
         }
     }
 }
 
-SCENARIO( "A new WindowSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A new EglSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new WindowSinkBintr in an Unlinked state" ) 
+    GIVEN( "A new EglSinkBintr in an Unlinked state" ) 
     {
-        std::string sinkName("window-sink");
+        std::string sinkName("egl-sink");
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
-        WHEN( "A new WindowSinkBintr is Linked" )
+        WHEN( "A new EglSinkBintr is Linked" )
         {
             REQUIRE( pSinkBintr->LinkAll() == true );
 
-            THEN( "The WindowSinkBintr's IsLinked state is updated correctly" )
+            THEN( "The EglSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == true );
             }
@@ -499,26 +421,26 @@ SCENARIO( "A new WindowSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A Linked EglSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A WindowSinkBintr in a linked state" ) 
+    GIVEN( "A EglSinkBintr in a linked state" ) 
     {
-        std::string sinkName("window-sink");
+        std::string sinkName("egl-sink");
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
         REQUIRE( pSinkBintr->LinkAll() == true );
 
-        WHEN( "A WindowSinkBintr is Unlinked" )
+        WHEN( "A EglSinkBintr is Unlinked" )
         {
             pSinkBintr->UnlinkAll();
 
-            THEN( "The OverlaySinkBintr's IsLinked state is updated correctly" )
+            THEN( "The 3dSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }
@@ -526,20 +448,20 @@ SCENARIO( "A Linked WindowSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]
     }
 }
 
-SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A EglSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new WindowSinkBintr" ) 
+    GIVEN( "A new EglSinkBintr" ) 
     {
-        std::string sinkName("window-sink");
+        std::string sinkName("egl-sink");
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
         uint sinkH(720);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        WHEN( "A WindowSinkBintr has been linked and unlinked" )
+        WHEN( "A EglSinkBintr has been linked and unlinked" )
         {
             // A window Sink can only be reset after it has been linked/unlinked
             REQUIRE( pSinkBintr->Reset() == false );
@@ -548,7 +470,7 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
             pSinkBintr->UnlinkAll();
             REQUIRE( pSinkBintr->IsLinked() == false );
 
-            THEN( "The WindowSinkBintr can be reset correctly" )
+            THEN( "The EglSinkBintr can be reset correctly" )
             {
                 REQUIRE( pSinkBintr->Reset() == true );
 
@@ -557,11 +479,11 @@ SCENARIO( "A WindowSinkBintr can Reset, LinkAll and UnlinkAll Child Elementrs", 
     }
 }
 
-SCENARIO( "A WindowSinkBintr can LinkAll and UnlinkAll mutlple times", "[SinkBintr]" )
+SCENARIO( "A EglSinkBintr can LinkAll and UnlinkAll mutlple times", "[SinkBintr]" )
 {
-    GIVEN( "A new WindowSinkBintr" ) 
+    GIVEN( "A new EglSinkBintr" ) 
     {
-        std::string sinkName("window-sink");
+        std::string sinkName("egl-sink");
         uint offsetX(100);
         uint offsetY(140);
         uint sinkW(1280);
@@ -569,15 +491,15 @@ SCENARIO( "A WindowSinkBintr can LinkAll and UnlinkAll mutlple times", "[SinkBin
         std::shared_ptr<DslMutex> pSharedClientMutex = 
             std::shared_ptr<DslMutex>(new DslMutex());
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, sinkW, sinkH);
 
-        WHEN( "A WindowSinkBintr is Linked and its handle prepared" )
+        WHEN( "A EglSinkBintr is Linked and its handle prepared" )
         {
             REQUIRE( pSinkBintr->LinkAll() == true );
             REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
 
-            THEN( "The WindowSinkBintr can UnlinkAll and LinkAll and serveral times correctly" )
+            THEN( "The EglSinkBintr can UnlinkAll and LinkAll and serveral times correctly" )
             {
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 pSinkBintr->UnlinkAll();
@@ -612,15 +534,15 @@ SCENARIO( "A WindowSinkBintr can LinkAll and UnlinkAll mutlple times", "[SinkBin
 }
 
 
-SCENARIO( "Multiple Window Sinks can create their XWindow correctly", 
+SCENARIO( "Multiple EGL SInks can create their XWindow correctly", 
     "[SinkBintr]" )
 {
     GIVEN( "A PipelineBintr with valid XWindow dimensions" ) 
     {
-        std::string sinkName1("window-sink-1");
-        std::string sinkName2("window-sink-2");
-        std::string sinkName3("window-sink-3");
-        std::string sinkName4("window-sink-4");
+        std::string sinkName1("egl-sink-1");
+        std::string sinkName2("egl-sink-2");
+        std::string sinkName3("egl-sink-3");
+        std::string sinkName4("egl-sink-4");
         uint offsetX(0);
         uint offsetY(0);
         uint initSinkW(300);
@@ -628,13 +550,13 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly",
         std::shared_ptr<DslMutex> pSharedClientMutex = 
             std::shared_ptr<DslMutex>(new DslMutex());
 
-        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr1 = DSL_EGL_SINK_NEW(
             sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr2 = DSL_EGL_SINK_NEW(
             sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr3 = DSL_EGL_SINK_NEW(
             sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr4 = DSL_EGL_SINK_NEW(
             sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
 
         WHEN( "The new PipelineBintr's XWindow is created" )
@@ -657,15 +579,15 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly",
     }
 }
 
-SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full screen mode", 
+SCENARIO( "Multiple EGL SInks can create their XWindow correctly in full screen mode", 
     "[SinkBintr]" )
 {
-    GIVEN( "Four WindowSinkBintr's with valid XWindow dimensions" ) 
+    GIVEN( "Four EglSinkBintr's with valid XWindow dimensions" ) 
     {
-        std::string sinkName1("window-sink-1");
-        std::string sinkName2("window-sink-2");
-        std::string sinkName3("window-sink-3");
-        std::string sinkName4("window-sink-4");
+        std::string sinkName1("egl-sink-1");
+        std::string sinkName2("egl-sink-2");
+        std::string sinkName3("egl-sink-3");
+        std::string sinkName4("egl-sink-4");
         uint offsetX(0);
         uint offsetY(0);
         uint initSinkW(300);
@@ -673,16 +595,16 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full scre
         std::shared_ptr<DslMutex> pSharedClientMutex = 
             std::shared_ptr<DslMutex>(new DslMutex());
 
-        DSL_WINDOW_SINK_PTR pSinkBintr1 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr1 = DSL_EGL_SINK_NEW(
             sinkName1.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr2 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr2 = DSL_EGL_SINK_NEW(
             sinkName2.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr3 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr3 = DSL_EGL_SINK_NEW(
             sinkName3.c_str(), offsetX, offsetY, initSinkW, initSinkH);
-        DSL_WINDOW_SINK_PTR pSinkBintr4 = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr4 = DSL_EGL_SINK_NEW(
             sinkName4.c_str(), offsetX, offsetY, initSinkW, initSinkH);
 
-        WHEN( "The all WindowSinkBintr's XWindows are created" )
+        WHEN( "The all EglSinkBintr's XWindows are created" )
         {
             REQUIRE( pSinkBintr1->SetFullScreenEnabled(true) == true );
             REQUIRE( pSinkBintr2->SetFullScreenEnabled(true) == true );
@@ -706,11 +628,11 @@ SCENARIO( "Multiple Window Sinks can create their XWindow correctly in full scre
     }
 }
 
-SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
+SCENARIO( "A EglSinkBintr's Offsets can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A new WindowSinkBintr in memory" ) 
+    GIVEN( "A new EglSinkBintr in memory" ) 
     {
-        std::string sinkName("window-sink");
+        std::string sinkName("egl-sink");
         uint initOffsetX(0);
         uint initOffsetY(0);
         uint sinkW(1280);
@@ -718,8 +640,8 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
         std::shared_ptr<DslMutex> pSharedClientMutex = 
             std::shared_ptr<DslMutex>(new DslMutex());
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), initOffsetX, initOffsetY, sinkW, sinkH);
         REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
             
         uint currOffsetX(0);
@@ -729,7 +651,7 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
         REQUIRE( currOffsetX == initOffsetX );
         REQUIRE( currOffsetY == initOffsetY );
 
-        WHEN( "The WindowSinkBintr's Offsets are Set" )
+        WHEN( "The EglSinkBintr's Offsets are Set" )
         {
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             uint newOffsetX(80);
@@ -737,7 +659,7 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
             
             REQUIRE( pSinkBintr->SetOffsets(newOffsetX, newOffsetY) == true );
 
-            THEN( "The WindowSinkBintr's new offsets are returned on Get")
+            THEN( "The EglSinkBintr's new offsets are returned on Get")
             {
                 // must sleep to allow XWindow offset's to update
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -750,9 +672,9 @@ SCENARIO( "A WindowSinkBintr's Offsets can be updated", "[SinkBintr]" )
     }
 }
 
-SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
+SCENARIO( "An EglSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A new WindowSinkBintr in memory" ) 
+    GIVEN( "A new EglSinkBintr in memory" ) 
     {
         std::string sinkName("window-sink");
         uint offsetX(0);
@@ -762,7 +684,7 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
         std::shared_ptr<DslMutex> pSharedClientMutex = 
             std::shared_ptr<DslMutex>(new DslMutex());
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = DSL_WINDOW_SINK_NEW(
+        DSL_EGL_SINK_PTR pSinkBintr = DSL_EGL_SINK_NEW(
             sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
         REQUIRE( pSinkBintr->PrepareWindowHandle(pSharedClientMutex) == true );
             
@@ -773,14 +695,14 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
         REQUIRE( currSinkW == initSinkW );
         REQUIRE( currSinkH == initSinkH );
 
-        WHEN( "The WindowSinkBintr's dimensions are Set" )
+        WHEN( "The EglSinkBintr's dimensions are Set" )
         {
             std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
             uint newSinkW(1280);
             uint newSinkH(720);
             REQUIRE( pSinkBintr->SetDimensions(newSinkW, newSinkH) == true);
 
-            THEN( "The WindowSinkBintr's new dimensions are returned on Get")
+            THEN( "The EglSinkBintr's new dimensions are returned on Get")
             {
                 // must sleep to allow XWindow dimensions's to update
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -794,56 +716,56 @@ SCENARIO( "An WindowSinkBintr's Dimensions can be updated", "[SinkBintr]" )
 }
 
 // x86_64 build only
-//SCENARIO( "A WindowSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
+//SCENARIO( "A EglSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 //{
-//    GIVEN( "A new WindowSinkBintr in memory" ) 
+//    GIVEN( "A new EglSinkBintr in memory" ) 
 //    {
-//        std::string sinkName("overlay-sink");
+//        std::string sinkName("3d-sink");
 //        uint offsetX(0);
 //        uint offsetY(0);
 //        uint initSinkW(300);
 //        uint initSinkH(200);
 //
-//        DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
-//            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+//        DSL_EGL_SINK_PTR pEglSinkBintr = 
+//            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
 //        
 //        uint GPUID0(0);
 //        uint GPUID1(1);
 //
-//        REQUIRE( pWindowSinkBintr->GetGpuId() == GPUID0 );
+//        REQUIRE( pEglSinkBintr->GetGpuId() == GPUID0 );
 //        
-//        WHEN( "The WindowSinkBintr's  GPU ID is set" )
+//        WHEN( "The EglSinkBintr's  GPU ID is set" )
 //        {
-//            REQUIRE( pWindowSinkBintr->SetGpuId(GPUID1) == true );
+//            REQUIRE( pEglSinkBintr->SetGpuId(GPUID1) == true );
 //
 //            THEN( "The correct GPU ID is returned on get" )
 //            {
-//                REQUIRE( pWindowSinkBintr->GetGpuId() == GPUID1 );
+//                REQUIRE( pEglSinkBintr->GetGpuId() == GPUID1 );
 //            }
 //        }
 //    }
 //}
 
-SCENARIO( "An WindowSinkBintr's force-aspect-ration setting can be updated", "[SinkBintr]" )
+SCENARIO( "An EglSinkBintr's force-aspect-ration setting can be updated", "[SinkBintr]" )
 {
-    GIVEN( "A new WindowSinkBintr in memory" ) 
+    GIVEN( "A new EglSinkBintr in memory" ) 
     {
-        std::string sinkName("overlay-sink");
+        std::string sinkName("3d-sink");
         uint offsetX(0);
         uint offsetY(0);
         uint initSinkW(300);
         uint initSinkH(200);
 
-        DSL_WINDOW_SINK_PTR pSinkBintr = 
-            DSL_WINDOW_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
+        DSL_EGL_SINK_PTR pSinkBintr = 
+            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, initSinkW, initSinkH);
             
         REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
 
-        WHEN( "The WindowSinkBintr's force-aspect-ration setting is Set" )
+        WHEN( "The EglSinkBintr's force-aspect-ration setting is Set" )
         {
             REQUIRE( pSinkBintr->SetForceAspectRatio(true) == true );
 
-            THEN( "The WindowSinkBintr's new force-aspect-ration setting is returned on Get")
+            THEN( "The EglSinkBintr's new force-aspect-ration setting is returned on Get")
             {
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == true );
             }
@@ -1484,7 +1406,189 @@ SCENARIO( "A Linked DSL_CONTAINER_MP4 RecordSinkBintr can Link/UnlinkAll multipl
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBintr]" )
+SCENARIO( "A new RtmpSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new Rtmp Sink" ) 
+    {
+        std::string sinkName("rtmp-sink");
+        std::string uri("rtmp://localhost/path-to-stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        WHEN( "The DSL_CODEC_H264 RtspServerSinkBintr is created " )
+        {
+            DSL_RTMP_SINK_PTR pSinkBintr = 
+                DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
+                    bitrate, interval);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                std::string retUri(pSinkBintr->GetUri());
+                REQUIRE( retUri == uri );
+                
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RtmpSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new RtmpSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("rtmp-sink");
+        std::string uri("rtmp://localhost/path-to-stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        DSL_RTMP_SINK_PTR pSinkBintr = 
+            DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
+                bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new DSL_CODEC_H264 RtspServerSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The DSL_CODEC_H264 RtspServerSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked RtmpSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A RtmpSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("rtmp-sink");
+        std::string uri("rtmp://localhost/path-to-stream");
+        uint bitrate(0);
+        uint interval(0);
+
+        DSL_RTMP_SINK_PTR pSinkBintr = 
+            DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
+                bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A DSL_CODEC_H264 RtspServerSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The DSL_CODEC_H264 RtspServerSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CODEC_H264 RtspClientSinkBintr is created correctly",
+    "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new DSL_CODEC_H264 RTSP Client Sink" ) 
+    {
+        std::string sinkName("rtsp-client-sink");
+        std::string uri("rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(0); // use default
+        uint interval(0);
+
+        WHEN( "The DSL_CODEC_H264 RtspClientSinkBintr is created " )
+        {
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                DSL_RTSP_CLIENT_SINK_NEW(sinkName.c_str(), 
+                    uri.c_str(), codec, bitrate, interval);
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                REQUIRE( pSinkBintr->GetLatency() == 2000 );
+                REQUIRE( pSinkBintr->GetProfiles() == DSL_RTSP_PROFILE_AVP );
+                REQUIRE( pSinkBintr->GetProtocols() == (DSL_RTSP_LOWER_TRANS_TCP |
+                    DSL_RTSP_LOWER_TRANS_UDP_MCAST | DSL_RTSP_LOWER_TRANS_UDP) );
+                REQUIRE( pSinkBintr->GetTlsValidationFlags() == DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+
+                uint retCodec(0), retBitrate(0), retInterval(0);
+                pSinkBintr->GetEncoderSettings(&retCodec, &retBitrate, &retInterval);
+                REQUIRE( retCodec == codec );
+                REQUIRE( retBitrate == 4000000);
+                REQUIRE( retInterval == interval);
+                
+                uint retWidth(99), retHeight(99);
+                pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                
+            }
+        }
+    }
+}
+
+SCENARIO( "A new RtspClientSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new DSL_CODEC_H265 RtspClientSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("rtsp-client-sink");
+        std::string uri("rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(0); // use default
+        uint interval(0);
+
+        DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+            DSL_RTSP_CLIENT_SINK_NEW(sinkName.c_str(), 
+                uri.c_str(), codec, bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new RtspClientSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The RtspClientSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Linked RtspClientSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A MultiImageSinkBintr in a linked state" ) 
+    {
+        std::string sinkName("rtsp-client-sink");
+        std::string uri("rtsp://server_endpoint/stream");
+        uint codec(DSL_CODEC_H264);
+        uint bitrate(0); // use default
+        uint interval(0);
+
+        DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+            DSL_RTSP_CLIENT_SINK_NEW(sinkName.c_str(), 
+                uri.c_str(), codec, bitrate, interval);
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+        REQUIRE( pSinkBintr->LinkAll() == true );
+
+        WHEN( "A RtspClientSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+
+            THEN( "The RtspClientSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new DSL_CODEC_H264 RtspServerSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H264 File Sink" ) 
     {
@@ -1496,10 +1600,11 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBint
         uint bitrate(4000000);
         uint interval(0);
 
-        WHEN( "The DSL_CODEC_H264 RtspSinkBintr is created " )
+        WHEN( "The DSL_CODEC_H264 RtspServerSinkBintr is created " )
         {
-            DSL_RTSP_SINK_PTR pSinkBintr = 
-                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+            DSL_RTSP_SERVER_SINK_PTR pSinkBintr = 
+                DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                    udpPort, rtspPort, codec, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
@@ -1517,9 +1622,9 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr is created correctly",  "[SinkBint
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H264 RtspServerSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new DSL_CODEC_H264 RtspSinkBintr in an Unlinked state" ) 
+    GIVEN( "A new DSL_CODEC_H264 RtspServerSinkBintr in an Unlinked state" ) 
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
@@ -1529,16 +1634,17 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[Si
         uint bitrate(4000000);
         uint interval(0);
 
-        DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+        DSL_RTSP_SERVER_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
-        WHEN( "A new DSL_CODEC_H264 RtspSinkBintr is Linked" )
+        WHEN( "A new DSL_CODEC_H264 RtspServerSinkBintr is Linked" )
         {
             REQUIRE( pSinkBintr->LinkAll() == true );
 
-            THEN( "The DSL_CODEC_H264 RtspSinkBintr's IsLinked state is updated correctly" )
+            THEN( "The DSL_CODEC_H264 RtspServerSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == true );
             }
@@ -1546,9 +1652,9 @@ SCENARIO( "A new DSL_CODEC_H264 RtspSinkBintr can LinkAll Child Elementrs", "[Si
     }
 }
 
-SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A Linked DSL_CODEC_H264 RtspServerSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A DSL_CODEC_H264 RtspSinkBintr in a linked state" ) 
+    GIVEN( "A DSL_CODEC_H264 RtspServerSinkBintr in a linked state" ) 
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
@@ -1558,17 +1664,18 @@ SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs",
         uint bitrate(4000000);
         uint interval(0);
 
-        DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+        DSL_RTSP_SERVER_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );
 
-        WHEN( "A DSL_CODEC_H264 RtspSinkBintr is Unlinked" )
+        WHEN( "A DSL_CODEC_H264 RtspServerSinkBintr is Unlinked" )
         {
             pSinkBintr->UnlinkAll();
 
-            THEN( "The DSL_CODEC_H264 RtspSinkBintr's IsLinked state is updated correctly" )
+            THEN( "The DSL_CODEC_H264 RtspServerSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }
@@ -1576,7 +1683,7 @@ SCENARIO( "A Linked DSL_CODEC_H264 RtspSinkBintr can UnlinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[SinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H265 RtspServerSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_CODEC_H265 File Sink" ) 
     {
@@ -1588,10 +1695,11 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[SinkBint
         uint bitrate(4000000);
         uint interval(0);
 
-        WHEN( "The DSL_CODEC_H265 RtspSinkBintr is created " )
+        WHEN( "The DSL_CODEC_H265 RtspServerSinkBintr is created " )
         {
-            DSL_RTSP_SINK_PTR pSinkBintr = 
-                DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+            DSL_RTSP_SERVER_SINK_PTR pSinkBintr = 
+                DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                    udpPort, rtspPort, codec, bitrate, interval);
             
             THEN( "The correct attribute values are returned" )
             {
@@ -1605,9 +1713,9 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr is created correctly",  "[SinkBint
     }
 }
 
-SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A new DSL_CODEC_H265 RtspServerSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new DSL_CODEC_H265 RtspSinkBintr in an Unlinked state" ) 
+    GIVEN( "A new DSL_CODEC_H265 RtspServerSinkBintr in an Unlinked state" ) 
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
@@ -1617,16 +1725,17 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[Si
         uint bitrate(4000000);
         uint interval(0);
 
-        DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+        DSL_RTSP_SERVER_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
-        WHEN( "A new DSL_CODEC_H265 RtspSinkBintr is Linked" )
+        WHEN( "A new DSL_CODEC_H265 RtspServerSinkBintr is Linked" )
         {
             REQUIRE( pSinkBintr->LinkAll() == true );
 
-            THEN( "The DSL_CODEC_H265 RtspSinkBintr's IsLinked state is updated correctly" )
+            THEN( "The DSL_CODEC_H265 RtspServerSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == true );
             }
@@ -1634,9 +1743,9 @@ SCENARIO( "A new DSL_CODEC_H265 RtspSinkBintr can LinkAll Child Elementrs", "[Si
     }
 }
 
-SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A Linked DSL_CODEC_H265 RtspServerSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A DSL_CODEC_H265 RtspSinkBintr in a linked state" ) 
+    GIVEN( "A DSL_CODEC_H265 RtspServerSinkBintr in a linked state" ) 
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
@@ -1646,17 +1755,18 @@ SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs",
         uint bitrate(4000000);
         uint interval(0);
 
-        DSL_RTSP_SINK_PTR pSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+        DSL_RTSP_SERVER_SINK_PTR pSinkBintr = 
+            DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                udpPort, rtspPort, codec, bitrate, interval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );
 
-        WHEN( "A DSL_CODEC_H265 RtspSinkBintr is Unlinked" )
+        WHEN( "A DSL_CODEC_H265 RtspServerSinkBintr is Unlinked" )
         {
             pSinkBintr->UnlinkAll();
 
-            THEN( "The DSL_CODEC_H265 RtspSinkBintr's IsLinked state is updated correctly" )
+            THEN( "The DSL_CODEC_H265 RtspServerSinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }
@@ -1664,9 +1774,9 @@ SCENARIO( "A Linked DSL_CODEC_H265 RtspSinkBintr can UnlinkAll Child Elementrs",
     }
 }
 
-SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
+SCENARIO( "A RtspServerSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
 {
-    GIVEN( "A new RtspSinkBintr in memory" ) 
+    GIVEN( "A new RtspServerSinkBintr in memory" ) 
     {
         std::string sinkName("rtsp-sink");
         std::string host("224.224.255.255");
@@ -1679,18 +1789,19 @@ SCENARIO( "A RtspSinkBintr can Get and Set its GPU ID",  "[SinkBintr]" )
         uint GPUID0(0);
         uint GPUID1(1);
 
-        DSL_RTSP_SINK_PTR pRtspSinkBintr = 
-            DSL_RTSP_SINK_NEW(sinkName.c_str(), host.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+        DSL_RTSP_SERVER_SINK_PTR pRtspServerSinkBintr = 
+            DSL_RTSP_SERVER_SINK_NEW(sinkName.c_str(), host.c_str(), 
+                udpPort, rtspPort, codec, bitrate, interval);
 
-        REQUIRE( pRtspSinkBintr->GetGpuId() == GPUID0 );
+        REQUIRE( pRtspServerSinkBintr->GetGpuId() == GPUID0 );
         
-        WHEN( "The RtspSinkBintr's  GPU ID is set" )
+        WHEN( "The RtspServerSinkBintr's  GPU ID is set" )
         {
-            REQUIRE( pRtspSinkBintr->SetGpuId(GPUID1) == true );
+            REQUIRE( pRtspServerSinkBintr->SetGpuId(GPUID1) == true );
 
             THEN( "The correct GPU ID is returned on get" )
             {
-                REQUIRE( pRtspSinkBintr->GetGpuId() == GPUID1 );
+                REQUIRE( pRtspServerSinkBintr->GetGpuId() == GPUID1 );
             }
         }
     }
@@ -1741,7 +1852,7 @@ SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
 
 SCENARIO( "A new MultiImageSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
 {
-    GIVEN( "A new DSL_CODEC_H265 RtspSinkBintr in an Unlinked state" ) 
+    GIVEN( "A new DSL_CODEC_H265 MultiImageSinkBintr in an Unlinked state" ) 
     {
         std::string sinkName("multi-image-sink");
         
@@ -1789,6 +1900,97 @@ SCENARIO( "A Linked MultiImageSinkBintr can UnlinkAll Child Elementrs", "[SinkBi
             pSinkBintr->UnlinkAll();
 
             THEN( "The MultiImageSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new V4l2SinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new V4L2 Sink" ) 
+    {
+        std::string sinkName("v4l2-sink");
+        std::string deviceLocation("/dev/video0");
+
+        WHEN( "The V4l2SinkBintr is created" )
+        {
+            DSL_V4L2_SINK_PTR pSinkBintr = DSL_V4L2_SINK_NEW(sinkName.c_str(), 
+                deviceLocation.c_str());
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                std::string retDeviceLocation = pSinkBintr->GetDeviceLocation();
+                REQUIRE( retDeviceLocation == deviceLocation);
+
+                std::string retDeviceName = pSinkBintr->GetDeviceName();
+                REQUIRE( retDeviceName == "" );
+
+                REQUIRE( pSinkBintr->GetDeviceFd() ==  -1 );
+                REQUIRE( pSinkBintr->GetDeviceFlags() == DSL_V4L2_DEVICE_TYPE_NONE );
+                
+                int retBrightness(-99), retContrast(-99), retSaturation(-99);
+                pSinkBintr->GetPictureSettings(&retBrightness,
+                    &retContrast, &retSaturation);
+                REQUIRE( retBrightness == 0 );
+                REQUIRE( retContrast == 0 );
+                REQUIRE( retSaturation == 0 );
+                
+                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
+                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new V4l2SinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new V4l2SinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("v4l2-sink");
+        std::string deviceName("/dev/video0");
+
+        DSL_V4L2_SINK_PTR pSinkBintr = DSL_V4L2_SINK_NEW(sinkName.c_str(), 
+            deviceName.c_str());
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new V4l2SinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The V4l2SinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new V4l2SinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new V4l2SinkBintr in an Linked state" ) 
+    {
+        std::string sinkName("v4l2-sink");
+        std::string deviceName("/dev/video0");
+
+        DSL_V4L2_SINK_PTR pSinkBintr = DSL_V4L2_SINK_NEW(sinkName.c_str(), 
+            deviceName.c_str());
+
+        REQUIRE( pSinkBintr->LinkAll() == true );
+        REQUIRE( pSinkBintr->IsLinked() == true );
+
+        // second call should fail
+        REQUIRE( pSinkBintr->LinkAll() == false );
+
+        WHEN( "A the V4l2SinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+            
+            THEN( "The V4l2SinkBintr's IsLinked state is updated correctly" )
             {
                 REQUIRE( pSinkBintr->IsLinked() == false );
             }

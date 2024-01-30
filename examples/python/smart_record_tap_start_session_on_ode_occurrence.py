@@ -70,23 +70,19 @@ src_url_3 = 'rtsp://user:pwd@192.168.1.66:554/Streaming/Channels/101'
 src_url_4 = 'rtsp://user:pwd@192.168.1.67:554/Streaming/Channels/101'    
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file_jetson = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH    
-TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT    
-WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH    
-WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT    
+TILER_WIDTH = DSL_1K_HD_WIDTH    
+TILER_HEIGHT = DSL_1K_HD_HEIGHT    
+WINDOW_WIDTH = DSL_1K_HD_WIDTH    
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT    
 
 PGIE_CLASS_ID_VEHICLE = 0    
 PGIE_CLASS_ID_BICYCLE = 1    
@@ -356,12 +352,8 @@ def main(args):
             break    
 
         ## New Primary GIE using the filespecs above with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 4)
-        else:
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 4)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -396,21 +388,21 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and dimensions.
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Live Source so best to set the Window-Sink's sync enabled setting to false.
-        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        retval = dsl_sink_sync_enabled_set('egl-sink', False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -418,7 +410,7 @@ def main(args):
         # Add all the components to our pipeline    
         retval = dsl_pipeline_new_component_add_many('pipeline',     
             ['primary-gie', 'iou-tracker', 'tiler',
-            'on-screen-display', 'window-sink', None])    
+            'on-screen-display', 'egl-sink', None])    
         if retval != DSL_RETURN_SUCCESS:    
             break    
 

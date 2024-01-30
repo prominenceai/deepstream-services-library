@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslNodetr.h"
+#include "DslElementr.h"
 #include "DslPadProbeHandler.h"
 
 namespace DSL
@@ -74,6 +75,20 @@ namespace DSL
                 LOG_ERROR("Failed to create a new GST bin for Bintr '" << name << "'");
                 throw;  
             }
+        }
+        
+        Bintr(const char* name, GstObject* GstObj)
+            : GstNodetr(name)
+            , m_isPipeline(false)
+            , m_requestPadId(-1)
+            , m_isLinked(false)
+            , m_batchSize(0)
+            , m_gpuId(0)
+            , m_nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT)
+        { 
+            LOG_FUNC(); 
+
+            SetGstObjAsProxy(GstObj);
         }
         
         /**
@@ -191,12 +206,13 @@ namespace DSL
         
         /**
          * @brief sets the batch size for this Bintr
-         * @param the new batchSize to use
+         * @param[in] batchSize the new batchSize to use.
          */
         virtual bool SetBatchSize(uint batchSize)
         {
             LOG_FUNC();
-            LOG_INFO("Setting batch size to '" << batchSize << "' for Bintr '" << GetName() << "'");
+            LOG_INFO("Setting batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
             
             m_batchSize = batchSize;
             return true;
@@ -209,18 +225,56 @@ namespace DSL
         bool SetInterval(uint interval, uint timeout);
 
         /**
-         * @brief Adds a Pad Probe Handler callback function to the Bintr
+         * @brief Adds the "buffer" and "downstream event" Pad Probes to the sink-pad
+         * of a given Element.
+         * @param the Parent Element to add the Probes to.
+         */
+        void AddSinkPadProbes(DSL_ELEMENT_PTR parentElement)
+        {
+            LOG_FUNC();
+            
+            std::string padProbeName = GetName() + "-sink-pad-buffer-probe";
+            m_pSinkPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
+                padProbeName.c_str(), "sink", parentElement);
+                
+            padProbeName = GetName() + "-sink-pad-event-probe";
+            m_pSinkPadDsEventProbe = DSL_PAD_EVENT_DS_PROBE_NEW(
+                padProbeName.c_str(), "sink", parentElement);
+                
+        }
+        
+        /**
+         * @brief Adds the "buffer" and "downstream event" Pad Probes to the src-pad
+         * of a given Element.
+         * @param the Parent Element to add the Probes to.
+         */
+        void AddSrcPadProbes(DSL_ELEMENT_PTR parentElement)
+        {
+            LOG_FUNC();
+            
+            std::string padProbeName = GetName() + "-src-pad-buffer-probe";
+            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
+                padProbeName.c_str(), "src", parentElement);
+                
+            padProbeName = GetName() + "-src-pad-event-probe";
+            m_pSrcPadDsEventProbe = DSL_PAD_EVENT_DS_PROBE_NEW(
+                padProbeName.c_str(), "src", parentElement);
+        }
+        
+        /**
+         * @brief Adds a Pad Probe Buffer Handler to the Bintr
+         * @param[in] pPadProbeHandler shared pointer to the PPBH to add
          * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
-         * @param[in] pPadProbeHandler shared pointer to the PPH to add
          * @return true if successful, false otherwise
          */
-        bool AddPadProbeHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
+        bool AddPadProbeBufferHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
         {
             LOG_FUNC();
             
             if (pPadProbeHandler->IsInUse())
             {
-                LOG_ERROR("Can't add Pad Probe Handler = '" << pPadProbeHandler->GetName() 
+                LOG_ERROR("Can't add Pad Probe Handler = '" 
+                << pPadProbeHandler->GetName() 
                     << "' as it is currently in use");
                 return false;
             }
@@ -228,11 +282,86 @@ namespace DSL
 
             if (pad == DSL_PAD_SINK)
             {
-                result = m_pSinkPadProbe->AddPadProbeHandler(pPadProbeHandler);
+                result = m_pSinkPadBufferProbe->AddPadProbeHandler(
+                    pPadProbeHandler);
             }
             else if (pad == DSL_PAD_SRC)
             {
-                result = m_pSrcPadProbe->AddPadProbeHandler(pPadProbeHandler);
+                result = m_pSrcPadBufferProbe->AddPadProbeHandler(
+                    pPadProbeHandler);
+            }
+            else
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" 
+                    << GetName() << "'");
+            }
+            if (result)
+            {
+                pPadProbeHandler->AssignParentName(GetName());
+            }
+            return result;
+        }
+        
+        /**
+         * @brief Removes a Pad Probe Buffer Handler from the Bintr
+         * @param[in] pPadProbeHandler shared pointer to the PPBH to remove
+         * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+         * @return false if the Bintr does not own the Handler to remove.
+         */
+        bool RemovePadProbeBufferHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
+        {
+            LOG_FUNC();
+            
+            bool result(false);
+
+            if (pad == DSL_PAD_SINK)
+            {
+                result = m_pSinkPadBufferProbe->RemovePadProbeHandler(
+                    pPadProbeHandler);
+            }
+            else if (pad == DSL_PAD_SRC)
+            {
+                result = m_pSrcPadBufferProbe->RemovePadProbeHandler(
+                    pPadProbeHandler);
+            }
+            else
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for Bintr '" 
+                    << GetName() << "'");
+            }
+            if (result)
+            {
+                pPadProbeHandler->ClearParentName();
+            }
+            return result;
+        }
+
+        /**
+         * @brief Adds a Pad Probe Event Handler to the Bintr
+         * @param[in] pPadProbeHandler shared pointer to the PPEH to add
+         * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+         * @return true if successful, false otherwise
+         */
+        bool AddPadProbeEventHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
+        {
+            LOG_FUNC();
+            
+            if (pPadProbeHandler->IsInUse())
+            {
+                LOG_ERROR("Can't add Pad Probe Handler = '" 
+                    << pPadProbeHandler->GetName() 
+                    << "' as it is currently in use");
+                return false;
+            }
+            bool result(false);
+
+            if (pad == DSL_PAD_SINK)
+            {
+                result = m_pSinkPadDsEventProbe->AddPadProbeHandler(pPadProbeHandler);
+            }
+            else if (pad == DSL_PAD_SRC)
+            {
+                result = m_pSrcPadDsEventProbe->AddPadProbeHandler(pPadProbeHandler);
             }
             else
             {
@@ -246,11 +375,12 @@ namespace DSL
         }
             
         /**
-         * @brief Removes a Pad Probe Handler callback function from the Bintr
+         * @brief Removes a Pad Probe Event Handler from the Bintr
+         * @param[in] pPadProbeHandler shared pointer to the PPBH to remove
          * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
-         * @return false if the Bintr does not have a Meta Batch Handler to remove for the give pad.
+         * @return false if the Bintr does not own the Handler to remove.
          */
-        bool RemovePadProbeHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
+        bool RemovePadProbeEventHandler(DSL_BASE_PTR pPadProbeHandler, uint pad)
         {
             LOG_FUNC();
             
@@ -258,11 +388,11 @@ namespace DSL
 
             if (pad == DSL_PAD_SINK)
             {
-                result = m_pSinkPadProbe->RemovePadProbeHandler(pPadProbeHandler);
+                result = m_pSinkPadDsEventProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
             else if (pad == DSL_PAD_SRC)
             {
-                result = m_pSrcPadProbe->RemovePadProbeHandler(pPadProbeHandler);
+                result = m_pSrcPadDsEventProbe->RemovePadProbeHandler(pPadProbeHandler);
             }
             else
             {
@@ -275,12 +405,11 @@ namespace DSL
             return result;
         }
         
-        
         /**
          * @brief Gets the current GPU ID used by this Bintr
          * @return the ID for the current GPU in use.
          */
-        uint GetGpuId()
+        virtual uint GetGpuId()
         {
             LOG_FUNC();
 
@@ -372,14 +501,24 @@ namespace DSL
         uint m_nvbufMemType;
 
         /**
-         * @brief Sink PadProbetr for this Bintr
+         * @brief Sink Buffer PadProbetr for this Bintr
          */
-        DSL_PAD_PROBE_PTR m_pSinkPadProbe;
+        DSL_PAD_BUFFER_PROBE_PTR m_pSinkPadBufferProbe;
+
+        /**
+         * @brief Source Buffer PadProbetr for this Bintr
+         */
+        DSL_PAD_BUFFER_PROBE_PTR m_pSrcPadBufferProbe;
+
+        /**
+         * @brief Sink Event PadProbetr for this Bintr
+         */
+        DSL_PAD_EVENT_DS_PROBE_PTR m_pSinkPadDsEventProbe;
 
         /**
          * @brief Source PadProbetr for this Bintr
          */
-        DSL_PAD_PROBE_PTR m_pSrcPadProbe;
+        DSL_PAD_EVENT_DS_PROBE_PTR m_pSrcPadDsEventProbe;
     };
 
 } // DSL

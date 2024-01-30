@@ -55,9 +55,9 @@ uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -68,8 +68,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+TILER_WIDTH = DSL_1K_HD_
+TILER_HEIGHT = DSL_1K_HD_HEIGHT
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
@@ -223,7 +223,7 @@ def main(args):
         dsl_player_render_video_new(
             name = 'video-player',
             file_path = None,
-            render_type = DSL_RENDER_TYPE_OVERLAY,
+            render_type = DSL_RENDER_TYPE_3D,
             offset_x = 500, 
             offset_y = 20, 
             zoom = 50,
@@ -394,16 +394,16 @@ def main(args):
             break
  
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -411,7 +411,7 @@ def main(args):
         # Add all the components to our pipeline - except for our second source and overlay sink 
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker',
-            'on-screen-display', 'window-sink', 'record-sink', None])
+            'on-screen-display', 'egl-sink', 'record-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             

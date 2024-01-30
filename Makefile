@@ -31,24 +31,27 @@ LIB:= libdsl
 CXX = g++
 
 TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+
 ifeq ($(SUDO_USER),)
 	USER_SITE = "`python3 -m site --user-site`"
 else
-    USER_SITE = "`sudo -u ${SUDO_USER} python3 -m site --user-site`"
+	USER_SITE = "`sudo -u ${SUDO_USER} python3 -m site --user-site`"
 endif
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.27.b.alpha"'
+DSL_VERSION:='L"v0.28.alpha"'
 GLIB_VERSION:=2.0
+
+# Update GStreamer sub-version to 20 to enabled the WebRtcSink
 GSTREAMER_VERSION:=1.0
-GSTREAMER_SUB_VERSION:=16
+GSTREAMER_SUB_VERSION:=18
 GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
 JSON_GLIB_VERSION:=1.0
 
-# To enable the extended Image Services, install either the FFmpeg or OpenCV 
-# development libraries (See /docs/installing-dependencies.md), and
+# To enable the extended Image Services, ensure FFmpeg or OpenCV 
+# is installed (See /docs/installing-dependencies.md), and
 #  - set either BUILD_WITH_FFMPEG or BUILD_WITH_OPENCV:=true (NOT both)
 BUILD_WITH_FFMPEG:=false
 BUILD_WITH_OPENCV:=false
@@ -108,7 +111,7 @@ INCS+= $(wildcard ./test/*.hpp)
 TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
 SRCS+= $(wildcard ./src/webrtc/*.cpp)
 SRCS+= $(wildcard ./test/webrtc/*.cpp)
 INCS+= $(wildcard ./src/webrtc/*.h)
@@ -160,11 +163,12 @@ CFLAGS+= -I./src/ffmpeg \
 endif	
 
 ifeq ($(BUILD_WITH_OPENCV),true)
-CFLAGS+= -I./src/opencv \
+CFLAGS+= -I /usr/include/opencv4 \
+	-I./src/opencv/ \
 	-I./test/avfile
 endif	
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
 CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
 	-I/usr/include/json-glib-$(JSON_GLIB_VERSION) \
 	-I./src/webrtc
@@ -203,7 +207,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
 LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	-Llibsoup-$(LIBSOUP_VERSION) \
@@ -225,7 +229,7 @@ PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
 	x11
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 16; echo $$?),0)
+ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
 PKGS+= gstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	gstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	libsoup-$(LIBSOUP_VERSION) \

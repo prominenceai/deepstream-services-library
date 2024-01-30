@@ -71,23 +71,19 @@ std::wstring src_url_4 = L"rtsp://user:pwd@192.168.1.67:554/Streaming/Channels/1
 
    
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
-int TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-int TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
-int WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-int WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+int TILER_WIDTH = DSL_1K_HD_WIDTH;
+int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
+int WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+int WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 int PGIE_CLASS_ID_VEHICLE = 0;
 int PGIE_CLASS_ID_BICYCLE = 1;    
@@ -276,6 +272,7 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
+    return NULL;
 }
 
 //
@@ -384,18 +381,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(L"primary-gie", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame    
@@ -417,26 +405,26 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and dimensions.    
-        retval = dsl_sink_window_new(L"window-sink",
+        retval = dsl_sink_window_egl_new(L"egl-sink",
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Live Source so best to set the Window-Sink's sync enabled setting to false.
-        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
+        retval = dsl_sink_sync_enabled_set(L"egl-sink", false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"primary-gie", L"iou-tracker", 
-            L"on-screen-display", L"window-sink", nullptr};
+            L"on-screen-display", L"egl-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;

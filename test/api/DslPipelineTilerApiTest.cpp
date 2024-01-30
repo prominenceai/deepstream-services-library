@@ -44,7 +44,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
         uint width(1280);
         uint height(720);
 
-        std::wstring windowSinkName(L"window-sink");
+        std::wstring windowSinkName(L"egl-sink");
         uint offsetX(0);
         uint offsetY(0);
         uint sinkW(1280);
@@ -62,7 +62,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
         REQUIRE( dsl_source_uri_new(sourceName3.c_str(), uri.c_str(), 
             false, intrDecode, dropFrameInterval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(windowSinkName.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         // new tiler for this scenario
@@ -70,7 +70,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
     
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
-            L"tiler", L"window-sink", NULL};
+            L"tiler", L"egl-sink", NULL};
         
         WHEN( "When the Display Tiles are set, and the Pipeline is Assembled and Played" ) 
         {

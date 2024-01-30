@@ -48,29 +48,25 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 // RTSP Source URI for AMCREST Camera    
-std::wstring amcrest_rtsp_uri = 
+static const std::wstring amcrest_rtsp_uri = 
     L"rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0";
 
 // RTSP Source URI for HIKVISION Camera    
-std::wstring hikvision_rtsp_uri = 
+static const std::wstring hikvision_rtsp_uri = 
     L"rtsp://username:password@192.168.1.64:554/Streaming/Channels/101";
 
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+static const std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+static const std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
-std::wstring tracker_config_file(
+static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 
-int WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-int WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+int WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+int WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 int PGIE_CLASS_ID_VEHICLE = 0;
 int PGIE_CLASS_ID_BICYCLE = 1;    
@@ -170,6 +166,7 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
+    return NULL;
 }
 
 int main(int argc, char** argv)
@@ -265,18 +262,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(L"primary-gie", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame    
@@ -300,26 +288,26 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets and same dimensions as streammuxer    
-        retval = dsl_sink_window_new(L"window-sink", 
+        retval = dsl_sink_window_egl_new(L"egl-sink", 
             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Live Source so best to set the Window-Sink's sync enabled setting to false.
-        retval = dsl_sink_sync_enabled_set(L"window-sink", false);
+        retval = dsl_sink_sync_enabled_set(L"egl-sink", false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"rtsp-source", L"primary-gie", L"iou-tracker", 
-            L"on-screen-display", L"window-sink", L"record-sink", nullptr};
+            L"on-screen-display", L"egl-sink", L"record-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;

@@ -1,13 +1,24 @@
 # Pad Probe Handler API Reference
-Data flowing over a Pipeline Component’s Pads – link points between components – can be monitored and updated using a Pad Probe Handler. There are five types of Handlers supported in the current release.
-* Custom PPH
-* New Buffer Timeout PPH
-* Source Meter PPH
-* Object Detection Event PPH
-* Non-Maximum Processor PPH
+Data and downstream events flowing over a [Component’s](/docs/api-component.md) Pads –- link points between components –- can be monitored and updated using a Pad Probe Handler. There are six types of Handlers supported in the current release:
+* [Custom PPH](#dsl_pph_custom_new)
+* [Stream Event PPH](#dsl_pph_stream_event_new)
+* [New Buffer Timeout PPH](#dsl_pph_meter_new)
+* [Source Meter PPH](#dsl_pph_meter_new)
+* [Object Detection Event PPH](#dsl_pph_ode_new)
+* [Non-Maximum Processor PPH](#dsl_pph_nmp_new)
 
 ### Custom Pad Probe Handler
 The Custom PPH allows the client to add a custom callback function to a Pipeline Component's sink or source pad. The custom callback will be called with each buffer that crosses over the Component's pad.
+
+### Streammuxer Stream Event Pad Probe Handler
+The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
+* The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
+   * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
+   * and when a new Source is added at runtime.
+* A `DSL_PPH_EVENT_STREAM_DELETED` event is sent if a Source is removed at runtime. 
+* A `DSL_PPH_EVENT_STREAM_ENDED` event is sent when the Stream ends (EOS) including when a Source is removed at runtime.
+
+**IMPORTANT!** If removing a Source at runtime, the `DSL_PPH_EVENT_STREAM_DELETED` event will occur before the `DSL_PPH_EVENT_STREAM_ENDED`. 
 
 ### New Buffer Timeout Pad Probe Handler
 The Buffer Timeout PPH allows the client to add a callback function to a Component's Pad to be notified in the event that a new buffer is not received within a specified time limit. When using multiple Source Components, you can add a PPH to each Source's sink pad to be notified of individual Source stream timeouts. See [`dsl_source_pph_add`](/docs/api-source.md#dsl_source_pph_add).
@@ -71,11 +82,13 @@ ODE Triggers are added to an ODE Pad Probe Handler by calling [`dsl_pph_ode_trig
 ## ODE Handler API
 **Callback Types:**
 * [`dsl_pph_custom_client_handler_cb`](#dsl_pph_custom_client_handler_cb)
+* [`dsl_pph_stream_event_handler_cb`](#dsl_pph_stream_event_handler_cb)
 * [`dsl_pph_buffer_timeout_handler_cb`](#dsl_pph_buffer_timeout_handler_cb)
 * [`dsl_pph_meter_client_handler_cb`](#dsl_pph_meter_client_handler_cb)
 
 **Constructors:**
 * [`dsl_pph_custom_new`](#dsl_pph_custom_new)
+* [`dsl_pph_stream_event_new`](#dsl_pph_stream_event_new)
 * [`dsl_pph_buffer_timeout_new`](#dsl_pph_buffer_timeout_new)
 * [`dsl_pph_meter_new`](#dsl_pph_meter_new)
 * [`dsl_pph_ode_new`](#dsl_pph_ode_new)
@@ -123,6 +136,22 @@ The following return codes are used by the Pad Probe Handler API
 ```
 
 ## Symbolic Constants
+#### PPH Callback Return Values
+Used by the Callback Handler Functions
+```c
+#define DSL_PAD_PROBE_DROP                                          0
+#define DSL_PAD_PROBE_OK                                            1
+#define DSL_PAD_PROBE_REMOVE                                        2
+```
+
+#### Stream Events
+The following constants are used by the Streammuxer Stream Event Pad Probe Handler.
+```c
+#define DSL_PPH_EVENT_STREAM_ADDED                                  0
+#define DSL_PPH_EVENT_STREAM_DELETED                                1
+#define DSL_PPH_EVENT_STREAM_ENDED                                  2
+```
+
 The following constants are used by the Non-Maximum Processor (NMP) Pad Probe Handler API
 #### Process Methods
 ```C
@@ -150,7 +179,7 @@ This Type defines a Client Callback function that is added to a Custom Pad Probe
 * `client_data` - [in] opaque pointer to the client's data, provided on Custom PPH construction
 
 **Returns**
-* `True` to continue handling Pad Probe buffers, false to stop and remove the Pad Probe Handler from the Pipeline component.
+* `DSL_PAD_PROBE_OK` to continue handling Pad Probe buffers, `DSL_PAD_PROBE_REMOVE` to self remove the Pad Probe Handler from the Pipeline component.
 
 **Python Example**
 ```Python
@@ -185,8 +214,42 @@ def my_custom_pph_callback(buffer, client_data):
                 l_obj=l_obj.next
             except StopIteration:
                 break
-     return True
+     return DSL_PAD_PROBE_OK
 ```    
+
+<br>
+
+### *dsl_pph_stream_event_handler_cb*
+```c++
+typedef uint (*dsl_pph_stream_event_handler_cb)(uint stream_event, 
+    uint stream_id, void* client_data);
+```
+
+This Type defines a Client Callback function that is added to a Stream Event Pad Probe Handler during handler construction (see [dsl_pph_stream_event_new](#dsl_pph_stream_event_new)). Once the PPH is added to a Component's Pad and the Pipeline is playing, the client callback will be called if a new Streammuxer [Stream Event](#stream-events) is received.
+
+**Parameters**
+* `stream_event` - [in] on of the [DSL_PPH_EVENT_STREAM](#stream-events) symbolic constants defining the event that occurred.
+* `stream_id` - [in] unique zero-based identifier of the stream that caused the event.
+* `client_data` - [in] opaque pointer to the client's data, provided on PPH construction.
+
+**Returns**
+* `DSL_PAD_PROBE_OK` to continue handling Stream-Events, `DSL_PAD_PROBE_REMOVE` to self remove the Pad Probe Handler from the Pipeline component.
+
+**Python Example**
+```Python
+##  
+#  Client handler for our Stream-Event Pad Probe Handler
+## 
+def stream_event_handler(stream_event, stream_id, client_data):
+    if stream_event == DSL_PPH_EVENT_STREAM_ADDED:
+        print('Stream Id =', stream_id, ' added to Pipeline')
+    elif stream_event == DSL_PPH_EVENT_STREAM_ENDED:
+        print('Stream Id =', stream_id, ' ended')
+    elif stream_event == DSL_PPH_EVENT_STREAM_DELETED:
+        print('Stream Id =', stream_id, ' deleted from Pipeline')
+        
+    return DSL_PAD_PROBE_OK
+```
 
 <br>
 
@@ -287,6 +350,30 @@ The constructor creates a uniquely named Custom Pad Probe Handler with a client 
 **Python Example**
 ```Python
 retval = dsl_pph_custom_new('my-custom-handler', my_client_callback, my_client_data)
+```
+
+<br>
+
+### *dsl_pph_stream_event_new*
+```C++
+DslReturnType dsl_pph_stream_event_new(const wchar_t* name,
+    dsl_pph_stream_event_handler_cb handler, void* client_data);
+```
+The constructor creates a uniquely named Streammuxer Stream Event Pad Probe Handler (PPH) with a client callback function and client data to return on callback. Once the PPH is added to a Component's Pad, the client callback will be called if one of the downstream [Stream Events](#stream-events) crosses the component's pad.
+
+
+**Parameters**
+* `name` - [in] unique name for the Custom Pad Probe Handler to create.
+* `handler` - [in] client callback function of type [dsl_pph_stream_event_handler_cb](#dsl_pph_stream_event_handler_cb).
+* `client_data` - [in] opaque pointer to the client's data.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pph_stream_event_new('my-stream-event-handler',
+    my_stream_event_handler, my_client_data)
 ```
 
 <br>
@@ -903,7 +990,7 @@ pph_count = dsl_pph_list_size()
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter](/docs/api-tee.md)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * **Pad Probe Handler**

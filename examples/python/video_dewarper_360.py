@@ -56,23 +56,23 @@ dwarper_config_file = \
 
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Using the same values for streammux dimensions as found in NVIDIAs dewarper example
+# Using the same values for source dimensions as found in NVIDIAs dewarper example
 # /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/deepstream_dewarper_test.c.
-streammux_width = 960
-streammux_height = 752
+source_width = 960
+source_height = 752
 
 # Need to scale the tiler and sink so that all 4 dewarped surfaces -- output from 
 # the dewarper -- can be viewed.
-tiler_width = streammux_width//2
-tiler_height = streammux_height*2
+tiler_width = source_width//2
+tiler_height = source_height*2
 sink_width = tiler_width
 sink_height = tiler_height
 
@@ -158,16 +158,16 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -175,7 +175,7 @@ def main(args):
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 
-            'window-sink', None])
+            'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -189,17 +189,16 @@ def main(args):
         # -----------------------------------------------------------------------------
         # IMPORTANT! We need to set the Stream-muxer's batch-size equal to the
         # number of sources (1) times the number of surfaces per frame (4)
-        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
-            batch_size=4, batch_timeout=DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT)
+        if dsl_info_use_new_nvstreammux_get():
+            retval = dsl_pipeline_streammux_batch_size_set('pipeline', 
+                batch_size=4)
+        else:
+            retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
+                batch_size=4, batch_timeout=-1)
+        
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        # Update the Pipeline's Streammux dimensions to match the source dimensions.
-        retval = dsl_pipeline_streammux_dimensions_set('pipeline',
-            streammux_width, streammux_height)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)

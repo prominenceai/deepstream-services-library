@@ -31,9 +31,9 @@ uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -116,8 +116,9 @@ def main(args):
             break
 
         # Create an Any-Class Occurrence Trigger for our Hide Action
-        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
+            source=DSL_ODE_ANY_SOURCE, class_id=DSL_ODE_ANY_CLASS, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
@@ -125,7 +126,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, green=0.0, blue=0.0, alpha=0.3)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
+            red=1.0, green=0.0, blue=0.0, alpha=0.3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -142,7 +144,8 @@ def main(args):
             
         # Create the Polygon display type 
         retval = dsl_display_type_rgba_polygon_new('polygon1', 
-            coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+            coordinates=coordinates, num_coordinates=len(coordinates), 
+            border_width=4, color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -158,9 +161,11 @@ def main(args):
             if retval != DSL_RETURN_SUCCESS:
                 break
 
-        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit on the number of occurrences
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', source=DSL_ODE_ANY_SOURCE,
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        # New Occurrence Trigger, filtering on PERSON class_id, and with no limit 
+        # on the number of occurrences
+        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
+            source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_PERSON, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -172,7 +177,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #`````````````````````````````````````````````````````````````````````````````
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
@@ -184,7 +189,7 @@ def main(args):
             break
         
         
-        ############################################################################################
+        ###############################################################################
         #
         # Create the remaining Pipeline components
         
@@ -216,16 +221,16 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and dimensions
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -233,7 +238,7 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source', 'primary-gie', 'iou-tracker',
-            'on-screen-display', 'window-sink', None])
+            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

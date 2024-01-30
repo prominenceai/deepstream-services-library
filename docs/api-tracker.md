@@ -46,10 +46,10 @@ Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added 
 * [`dsl_tracker_config_file_set`](#dsl_tracker_config_file_set)
 * [`dsl_tracker_dimensions_get`](#dsl_tracker_dimensions_get)
 * [`dsl_tracker_dimensions_set`](#dsl_tracker_dimensions_set)
-* [`dsl_tracker_batch_processing_enabled_get`](#dsl_tracker_batch_processing_enabled_get)
-* [`dsl_tracker_batch_processing_enabled_set`](#dsl_tracker_batch_processing_enabled_set)
-* [`dsl_tracker_past_frame_reporting_enabled_get`](#dsl_tracker_past_frame_reporting_enabled_get)
-* [`dsl_tracker_past_frame_reporting_enabled_set`](#dsl_tracker_past_frame_reporting_enabled_set)
+* [`dsl_tracker_tensor_meta_settings_get`](#dsl_tracker_tensor_meta_settings_get)
+* [`dsl_tracker_tensor_meta_settings_set`](#dsl_tracker_tensor_meta_settings_set)
+* [`dsl_tracker_id_display_enabled_get`](#dsl_tracker_id_display_enabled_get)
+* [`dsl_tracker_id_display_enabled_set`](#dsl_tracker_id_display_enabled_set)
 * [`dsl_tracker_pph_add`](#dsl_tracker_pph_add)
 * [`dsl_tracker_pph_remove`](#dsl_tracker_pph_remove)
 
@@ -58,6 +58,7 @@ Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added 
 ## Return Values
 The following return codes are used specifically by the Tracker API
 ```C++
+#define DSL_RESULT_TRACKER_RESULT                                   0x00030000
 #define DSL_RESULT_TRACKER_NAME_NOT_UNIQUE                          0x00030001
 #define DSL_RESULT_TRACKER_NAME_NOT_FOUND                           0x00030002
 #define DSL_RESULT_TRACKER_NAME_BAD_FORMAT                          0x00030003
@@ -67,7 +68,6 @@ The following return codes are used specifically by the Tracker API
 #define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
 ```
 
 ## Constructors
@@ -226,87 +226,89 @@ retval = dsl_tracker_dimensions_set('my-tracker', 640, 368)
 
 <br>
 
-### *dsl_tracker_batch_processing_enabled_get*
+### *dsl_tracker_tensor_meta_settings_get*
 ```C++
-DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name,
-    boolean* enabled);
+DslReturnType dsl_tracker_tensor_meta_settings_get(const wchar_t* name, 
+    boolean* input_enabled, const wchar_t** track_on_gie);
 ```
 
-This service gets the current `enable-batch-process` setting for the named Tracker. The Tracker's low-level library must support batch-processing to use this setting. The NVIDIA reference low-level trackers enable this setting by default.
+This service gets the current current tensor-meta settings for the named Tracker. 
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to query.
-* `enabled` - [out] true if batch processing is enabled, false otherwise.
+* `input_enabled` - [out] if true, Tracker uses the tensor-meta from the Preprocessor if available and the PGIE identified by `track_on_gie`.
+* `track_on_gie` - [out] name of the PGIE to track on if `input_enabled`. 
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, enabled = dsl_tracker_batch_processing_enabled_get('my-tracker')
+retval, input_enabled, track_on_gie = dsl_tracker_tensor_meta_settings_get('my-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_batch_processing_enabled_set*
+### *dsl_tracker_tensor_meta_settings_set*
 ```C++
-DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name,
-    boolean enabled);
+DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name, 
+    boolean input_enabled, const wchar_t* track_on_gie);
 ```
-This service sets the `enable-batch-process` setting for the named Tracker object.  The Tracker's low-level library must support batch-processing to use this setting.
+This service sets the tensor-meta settings for the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
-* `enabled` - [in] set to true to enabled batch processing, false otherwise.
+* `input_enabled` - [in] if true, Tracker uses the tensor-meta from the Preprocessor if available and the PGIE identified by `track_on_gie`.
+* `track_on_gie` - [in] name of the PGIE to track on if `input_enabled`.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_batch_processing_enabled_set('my-tracker', True)
+retval = dsl_tracker_tensor_meta_settings_set('my-tracker', True, 'my-pgie')
 ```
 
 <br>
 
-### *dsl_tracker_past_frame_reporting_enabled_get*
+### *dsl_tracker_id_display_enabled_get*
 ```C++
-DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name,
+DslReturnType dsl_tracker_id_display_enabled_get(const wchar_t* name, 
     boolean* enabled);
 ```
-This service gets the current `enable-past-frame` setting for the named Tracker object. The Tracker's low-level library must support past-frame-reporting to use this setting.  If the past-frame data is retrieved from the low-level tracker, it will be reported as a user-meta, called `NvDsPastFrameObjBatch`.  See the [NVIDIA Tracker reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#gst-nvtracker) for more information.
+This service gets the current "tracker-id-display-enabled" setting for the named Tracker.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to query.
-* `enabled` - [out] true if past frame reporting is enabled, false otherwise.
+* `enabled` - [out] if true, tracking-ids will included in object labels. Default = True.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval, enabled = dsl_tracker_past_frame_reporting_enabled_get('my-tracker')
+retval, enabled = dsl_tracker_id_display_enabled_get('my-tracker')
 ```
 
 <br>
 
-### *dsl_tracker_past_frame_reporting_enabled_set*
+### *dsl_tracker_id_display_enabled_set*
 ```C++
-DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name,
+DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name, 
     boolean enabled);
 ```
-This service sets the `enable-past-frame` setting for the named Tracker object. The Tracker's low-level library must support past-frame-reporting to use this setting.  If the past-frame data is retrieved from the low-level tracker, it will be reported as a user-meta, called `NvDsPastFrameObjBatch`.  See the [NVIDIA Tracker reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvtracker.html#gst-nvtracker) for more information.
+This service sets the "tracker-id-display-enabled" setting for the named Tracker object.
 
 **Parameters**
 * `name` - [in] unique name of the Tracker to update.
-* `enabled` - [in] set to true to enable "past frame reporting", false otherwise.
+* `enabled` - [in] set to true to included tracking-ids in object labels, false to exclude.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
 
 **Python Example**
 ```Python
-retval = dsl_tracker_past_frame_reporting_enabled_set('my-tracker', True)
+retval = dsl_tracker_id_display_enabled_set('my-tracker', False)
 ```
 
 <br>
@@ -368,7 +370,7 @@ retval = dsl_tracker_pph_remove('my-tracker', 'my-pph-handler', `DSL_PAD_SINK`)
 * **Tracker**
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter](/docs/api-tee.md)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)

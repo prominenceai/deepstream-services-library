@@ -36,6 +36,8 @@
 #   - key-release events
 #   - delete-window events
 #  
+# IMPORTANT! this examples uses a CSI Camera Source and 3D Sink - Jetson only!
+#
 ################################################################################
 
 #!/usr/bin/env python
@@ -44,14 +46,14 @@ import sys
 import time
 from dsl import *
 
-source_width = 1920
-source_height = 1080
+SOURCE_WIDTH = 1920
+SOURCE_HEIGHT = 1080
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -80,11 +82,12 @@ def main(args):
     while True:
 
         # New CSI Live Camera Source
-        retval = dsl_source_csi_new('csi-source', source_width, source_height, 30, 1)
+        retval = dsl_source_csi_new('csi-source', 
+            SOURCE_WIDTH, SOURCE_HEIGHT, 30, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above, with interval and Id
+        # New Primary GIE using the filespecs above, with inference interval=0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
@@ -97,13 +100,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, source_width, source_height)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        # Example of how to force the aspect ratio during window resize
-        dsl_sink_window_force_aspect_ratio_set('window-sink', force=True)
+        # New 3D Window Sink with 0 x/y offsets, and same dimensions as Camera Source
+        retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+            SOURCE_WIDTH, SOURCE_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -127,7 +126,6 @@ def main(args):
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_pipeline_dump_to_dot('pipeline', "csi-source")
 
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS

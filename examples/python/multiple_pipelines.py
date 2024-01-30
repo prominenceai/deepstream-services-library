@@ -48,7 +48,7 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-trtis/config_infer_plan_engine_primary.txt'
 
-# Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+# Source file dimensions are 960 × 540
 source_width = 960
 source_height = 540
 
@@ -69,7 +69,7 @@ class ComponentNames:
     def __init__(self, id):    
         self.pipeline = 'pipeline-' + str(id)
         self.source = 'source-' + str(id)
-        self.sink = 'window-sink-' + str(id)
+        self.sink = 'egl-sink-' + str(id)
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -134,7 +134,7 @@ def create_pipeline(client_data):
         return retval    
 
     # New Window Sink using the global dimensions
-    retval = dsl_sink_window_new(client_data.sink,
+    retval = dsl_sink_window_egl_new(client_data.sink,
         0, 0, sink_width, sink_height)
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
@@ -157,12 +157,6 @@ def create_pipeline(client_data):
     retval = dsl_pipeline_new_component_add_many(client_data.pipeline,
         components=[client_data.source, client_data.sink, None]);
     if (retval != DSL_RETURN_SUCCESS):    
-        return retval    
-
-    # Update the Pipeline's Streammux dimensions to match the source dimensions.
-    retval = dsl_pipeline_streammux_dimensions_set(client_data.pipeline,
-        source_width, source_height)
-    if retval != DSL_RETURN_SUCCESS:
         return retval    
 
     # Add the listener callback functions defined above

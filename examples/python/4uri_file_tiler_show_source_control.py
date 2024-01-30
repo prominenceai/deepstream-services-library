@@ -46,17 +46,17 @@ file_path4 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov"
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Window Sink Dimensions - used to create the sink, however, in this
-# example the Pipeline XWindow service is called to enabled full-sreen
-TILER_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-TILER_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+# example the Sink's XWindow service is called to enabled full-sreen
+TILER_WIDTH = DSL_1K_HD_WIDTH
+TILER_HEIGHT = DSL_1K_HD_HEIGHT
 
 #WINDOW_WIDTH = TILER_WIDTH
 #WINDOW_HEIGHT = TILER_HEIGHT
@@ -134,7 +134,7 @@ def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
         # Get the current XWindow dimensions from our Window Sink
         # The Window Sink is derived from Render Sink parent class so  
         # use the Render Sink API to get the dimensions.
-        retval, width, height = dsl_sink_render_dimensions_get('window-sink')
+        retval, width, height = dsl_sink_window_dimensions_get('window-sink')
         
         # call the Tiler to show the source based on the x and y button cooridantes
         # and the current window dimensions obtained from the XWindow
@@ -251,8 +251,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        # New 3D Window Sink with 0 x/y offsets, and same dimensions as Tiler output
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only.
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

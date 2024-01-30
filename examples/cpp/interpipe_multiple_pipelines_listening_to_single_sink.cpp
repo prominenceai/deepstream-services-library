@@ -44,18 +44,10 @@ static const std::wstring file_path(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
 
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+static const std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
-    
-    
 static const std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -63,7 +55,7 @@ static const std::wstring tracker_config_file(
 int source_width = 960;
 int source_height = 540;
 
-// Window Sink dimensions same as Streammux dimensions - no scaling.
+// Window Sink dimensions same as Source dimensions - no scaling.
 int sink_width = source_width;
 int sink_height = source_height;
 
@@ -85,7 +77,7 @@ struct ClientData
         pgie = L"pgie-" + std::to_wstring(id);
         tracker = L"tracker-" + std::to_wstring(id);
         osd = L"osd-" + std::to_wstring(id);
-        window_sink = L"window-sink-" + std::to_wstring(id);    
+        window_sink = L"egl-sink-" + std::to_wstring(id);    
     }
 
     std::wstring pipeline;
@@ -179,7 +171,7 @@ DslReturnType create_pipeline(ClientData* client_data)
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // New Window Sink using the global dimensions
-    retval = dsl_sink_window_new(client_data->window_sink.c_str(),
+    retval = dsl_sink_window_egl_new(client_data->window_sink.c_str(),
         0, 0, sink_width, sink_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
@@ -201,11 +193,6 @@ DslReturnType create_pipeline(ClientData* client_data)
 
     retval = dsl_pipeline_new_component_add_many(client_data->pipeline.c_str(),
         component_names);
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    // Update the Pipeline's Streammux dimensions to match the source dimensions.
-    retval = dsl_pipeline_streammux_dimensions_set(client_data->pipeline.c_str(),
-        source_width, source_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Add the listener callback functions defined above
@@ -313,18 +300,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(), 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(), 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(client_data_1.pgie.c_str(), 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
 
         // New IOU Tracker, setting max width and height of input frame
         retval = dsl_tracker_new(client_data_1.tracker.c_str(), 
@@ -353,18 +331,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(client_data_2.pgie.c_str(), 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting max width and height of input frame

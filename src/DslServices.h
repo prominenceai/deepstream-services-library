@@ -37,7 +37,7 @@ THE SOFTWARE.
 #include "DslMessageBroker.h"
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION >= 18
+#elif GSTREAMER_SUB_VERSION >= 20
     #include "DslSinkWebRtcBintr.h"
 #endif
 
@@ -57,6 +57,12 @@ namespace DSL {
          * @return instance pointer to singleton services object.
          */
         static Services* GetServices();
+        
+        /** 
+         * @brief Returns the state of the USE_NEW_NVSTREAMMUX env var.
+         * @return true if USE_NEW_NVSTREAMMUX=yes, false otherwise.
+         */
+        bool UseNewStreammuxGet(){return m_useNewStreammux;};
 
         /***************************************************************
          **** all Services defined below are documented in DslApi.h ****
@@ -187,6 +193,14 @@ namespace DSL {
             
         DslReturnType OdeActionBBoxScaleNew(const char* name, uint scale);
 
+        DslReturnType OdeActionBBoxStyleCornersNew(const char* name, 
+            const char* color, uint length, uint maxLength,
+            dsl_threshold_value* thicknessValues, uint numValues);
+            
+        DslReturnType OdeActionBBoxStyleCrosshairNew(const char* name, 
+            const char* color, uint radius, uint maxRadius, uint innerRadius,
+            dsl_threshold_value* thicknessValues, uint numValues);
+            
         DslReturnType OdeActionLabelCustomizeNew(const char* name, 
             const uint* contentTypes, uint size);
 
@@ -660,6 +674,9 @@ namespace DSL {
         DslReturnType PphEosNew(const char* name,
             dsl_pph_eos_handler_cb handler, void* clientData);
     
+        DslReturnType PphStreamEventNew(const char* name,
+            dsl_pph_stream_event_handler_cb handler, void* clientData);
+    
         DslReturnType PphEnabledGet(const char* name, boolean* enabled);
         
         DslReturnType PphEnabledSet(const char* name, boolean enabled);
@@ -727,15 +744,36 @@ namespace DSL {
         DslReturnType SourceCsiSensorIdSet(const char* name, 
             uint sensorId);
         
-        DslReturnType SourceUsbNew(const char* name, 
-            uint width, uint height, uint fpsN, uint fpsD);
+        DslReturnType SourceV4l2New(const char* name, 
+            const char* deviceLocation);
 
-        DslReturnType SourceUsbDeviceLocationGet(const char* name, 
+        DslReturnType SourceV4l2DeviceLocationGet(const char* name, 
             const char** deviceLocation);
         
-        DslReturnType SourceUsbDeviceLocationSet(const char* name, 
+        DslReturnType SourceV4l2DeviceLocationSet(const char* name, 
             const char* deviceLocation);
         
+        DslReturnType SourceV4l2DimensionsSet(const char* name, 
+            uint width, uint height);
+
+        DslReturnType SourceV4l2FrameRateSet(const char* name, 
+            uint fps_n, uint fps_d);
+
+        DslReturnType SourceV4l2DeviceNameGet(const char* name, 
+            const char** deviceName);
+
+        DslReturnType SourceV4l2DeviceFdGet(const char* name, 
+            int* deviceFd);
+
+        DslReturnType SourceV4l2DeviceFlagsGet(const char* name, 
+            uint* deviceFlags);
+
+        DslReturnType SourceV4l2PictureSettingsGet(const char* name, 
+            int* brightness, int* contrast, int* hue);
+
+        DslReturnType SourceV4l2PictureSettingsSet(const char* name, 
+            int brightness, int contrast, int hue);
+
         DslReturnType SourceUriNew(const char* name, const char* uri, 
             boolean isLive, uint skipFrames, uint dropFrameInterval);
             
@@ -989,6 +1027,13 @@ namespace DSL {
         DslReturnType PreprocUniqueIdGet(const char* name, 
             uint* uniqueId);
 
+        DslReturnType PreprocPphAdd(const char* name, 
+            const char* handler, uint pad);
+
+        DslReturnType PreprocPphRemove(const char* name, 
+            const char* handler, uint pad);
+
+
         DslReturnType SegVisualNew(const char* name, uint width, uint height);
         
         DslReturnType SegVisualDimensionsGet(const char* name, uint* width, uint* height);
@@ -1068,17 +1113,17 @@ namespace DSL {
         DslReturnType TrackerDimensionsGet(const char* name, uint* width, uint* height);
         
         DslReturnType TrackerDimensionsSet(const char* name, uint width, uint height);
+
+        DslReturnType TrackerTensorMetaSettingsGet(const char* name, 
+            boolean* inputEnabled, const char** trackOnGie);
         
-        DslReturnType TrackerBatchProcessingEnabledGet(const char* name, 
+        DslReturnType TrackerTensorMetaSettingsSet(const char* name, 
+            boolean inputEnabled, const char* trackOnGie);
+        
+        DslReturnType TrackerIdDisplayEnabledGet(const char* name, 
             boolean* enabled);
         
-        DslReturnType TrackerBatchProcessingEnabledSet(const char* name, 
-            boolean enabled);
-
-        DslReturnType TrackerPastFrameReportingEnabledGet(const char* name, 
-            boolean* enabled);
-
-        DslReturnType TrackerPastFrameReportingEnabledSet(const char* name, 
+        DslReturnType TrackerIdDisplayEnabledSet(const char* name, 
             boolean enabled);
         
         DslReturnType TrackerPphAdd(const char* name, const char* handler, uint pad);
@@ -1091,14 +1136,43 @@ namespace DSL {
         
         DslReturnType TeeDemuxerMaxBranchesSet(const char* name, uint maxBranches);
         
-        DslReturnType TeeSplitterNew(const char* name);
-        
         DslReturnType TeeDemuxerBranchAddTo(const char* name, 
             const char* branch, uint stream_id);
 
         DslReturnType TeeDemuxerBranchMoveTo(const char* name, 
             const char* branch, uint stream_id);
+            
+        DslReturnType TeeSplitterNew(const char* name);
+            
+        DslReturnType TeeRemuxerNew(const char* name);
 
+        DslReturnType TeeRemuxerBranchAddTo(const char* name, const char* branch,
+            uint* streamIds, uint numStreamIds);
+
+        DslReturnType TeeRemuxerBatchSizeGet(const char* name,
+            uint* batchSize);
+
+        DslReturnType TeeRemuxerBatchSizeSet(const char* name,
+            uint batchSize);
+
+        DslReturnType TeeRemuxerBranchConfigFileGet(const char* name,
+            const char* branch, const char** configFile);
+
+        DslReturnType TeeRemuxerBranchConfigFileSet(const char* name,
+            const char* branch, const char* configFile);
+
+       DslReturnType TeeRemuxerBatchPropertiesGet(const char* name,
+            uint* batchSize, int* batchTimeout);
+
+        DslReturnType TeeRemuxerBatchPropertiesSet(const char* name,
+            uint batchSize, int batchTimeout);
+
+        DslReturnType TeeRemuxerDimensionsGet(const char* name,
+            uint* width, uint* height);
+
+        DslReturnType TeeRemuxerDimensionsSet(const char* name,
+            uint width, uint height);
+            
         DslReturnType TeeBranchAdd(const char* name, const char* branch);
         
         DslReturnType TeeBranchRemove(const char* name, const char* branch);
@@ -1205,9 +1279,6 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
-        DslReturnType SinkOverlayNew(const char* name, uint display_id,
-            uint depth, uint offsetX, uint offsetY, uint width, uint height);
-        
         // ---------------------------------------------------------------------------
         // The following three internal services provide access to the
         // database of active Window Sinks
@@ -1218,8 +1289,23 @@ namespace DSL {
         DSL_BASE_PTR _sinkWindowGet(GstObject* element);
         // ---------------------------------------------------------------------------
     
-        DslReturnType SinkWindowNew(const char* name, 
+        DslReturnType SinkWindow3dNew(const char* name,
             uint offsetX, uint offsetY, uint width, uint height);
+        
+        DslReturnType SinkWindowEglNew(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height);
+            
+        DslReturnType SinkWindowOffsetsGet(const char* name, 
+            uint* offsetX, uint* offsetY);
+
+        DslReturnType SinkWindowOffsetsSet(const char* name, 
+            uint offsetX, uint offsetY);
+        
+        DslReturnType SinkWindowDimensionsGet(const char* name, 
+            uint* width, uint* height);
+
+        DslReturnType SinkWindowDimensionsSet(const char* name, 
+            uint width, uint height);
 
         DslReturnType SinkWindowHandleGet(const char* name, uint64_t* handle);
 
@@ -1227,12 +1313,6 @@ namespace DSL {
         
         DslReturnType SinkWindowClear(const char* name);
         
-        DslReturnType SinkWindowForceAspectRatioGet(const char* name, 
-            boolean* force);
-
-        DslReturnType SinkWindowForceAspectRatioSet(const char* name, 
-            boolean force);
-            
         DslReturnType SinkWindowFullScreenEnabledGet(const char* name, 
             boolean* enabled);
         
@@ -1256,21 +1336,13 @@ namespace DSL {
 
         DslReturnType SinkWindowDeleteEventHandlerRemove(const char* name, 
             dsl_sink_window_delete_event_handler_cb handler);
+        
+        DslReturnType SinkWindowEglForceAspectRatioGet(const char* name, 
+            boolean* force);
+
+        DslReturnType SinkWindowEglForceAspectRatioSet(const char* name, 
+            boolean force);
             
-        DslReturnType SinkRenderOffsetsGet(const char* name, 
-            uint* offsetX, uint* offsetY);
-
-        DslReturnType SinkRenderOffsetsSet(const char* name, 
-            uint offsetX, uint offsetY);
-        
-        DslReturnType SinkRenderDimensionsGet(const char* name, 
-            uint* width, uint* height);
-
-        DslReturnType SinkRenderDimensionsSet(const char* name, 
-            uint width, uint height);
-        
-        DslReturnType SinkRenderReset(const char* name);
-
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bit_rate, uint interval);
             
@@ -1327,11 +1399,48 @@ namespace DSL {
         DslReturnType SinkEncodeSettingsSet(const char* name, 
             uint codec, uint bitrate, uint interval);
 
-        DslReturnType SinkRtspNew(const char* name, const char* host, 
+        DslReturnType SinkRtmpNew(const char* name, const char* uri, 
+            uint bitrate, uint interval);
+
+        DslReturnType SinkRtmpUriGet(const char* name, const char** uri);
+
+        DslReturnType SinkRtmpUriSet(const char* name, const char* uri);
+            
+        DslReturnType SinkRtspServerNew(const char* name, const char* host, 
             uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
+            
+        DslReturnType SinkRtspClientNew(const char* name, const char* uri, 
+            uint codec, uint bit_rate, uint interval);
+
+        DslReturnType SinkRtspClientCredentialsSet(const char* name, 
+            const char* userId, const char* userPw);
+
+        DslReturnType SinkRtspClientLatencyGet(const char* name, 
+            uint* latency);
+
+        DslReturnType SinkRtspClientLatencySet(const char* name, 
+            uint latency);
+        
+        DslReturnType SinkRtspClientProfilesGet(const char* name, 
+            uint* profiles);
+
+        DslReturnType SinkRtspClientProfilesSet(const char* name, 
+            uint profiles);
+            
+        DslReturnType SinkRtspClientProtocolsGet(const char* name, 
+            uint* protocols);
+
+        DslReturnType SinkRtspClientProtocolsSet(const char* name, 
+            uint protocols);
+            
+        DslReturnType SinkRtspClientTlsValidationFlagsGet(const char* name, 
+            uint* flags);
+
+        DslReturnType SinkRtspClientTlsValidationFlagsSet(const char* name, 
+            uint flags);
             
         DslReturnType SinkInterpipeNew(const char* name,
             boolean forward_eos, boolean forward_events);
@@ -1377,6 +1486,9 @@ namespace DSL {
             
         DslReturnType SinkFrameCaptureInitiate(const char* name);
             
+        DslReturnType SinkFrameCaptureSchedule(const char* name,
+            uint64_t frameNumber);
+            
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
             const char* turnServer, uint codec, uint bitrate, uint interval);
 
@@ -1393,6 +1505,35 @@ namespace DSL {
 
         DslReturnType SinkWebRtcClientListenerRemove(const char* name,
             dsl_sink_webrtc_client_listener_cb listener);
+
+        DslReturnType SinkV4l2New(const char* name, const char* deviceLocation);
+
+        DslReturnType SinkV4l2DeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SinkV4l2DeviceLocationSet(const char* name, 
+            const char* deviceLocation);
+
+        DslReturnType SinkV4l2DeviceNameGet(const char* name, 
+            const char** deviceName);
+
+        DslReturnType SinkV4l2DeviceFdGet(const char* name, 
+            int* deviceFd);
+
+        DslReturnType SinkV4l2DeviceFlagsGet(const char* name, 
+            uint* deviceFlags);
+
+        DslReturnType SinkV4l2BufferInFormatGet(const char* name, 
+            const char** format);
+
+        DslReturnType SinkV4l2BufferInFormatSet(const char* name, 
+            const char* format);
+
+        DslReturnType SinkV4l2PictureSettingsGet(const char* name, 
+            int* brightness, int* contrast, int* saturation);
+
+        DslReturnType SinkV4l2PictureSettingsSet(const char* name, 
+            int brightness, int contrast, int saturation);
 
         DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 
@@ -1494,17 +1635,69 @@ namespace DSL {
 
         DslReturnType PipelineComponentRemove(const char* name, const char* component);
 
-        DslReturnType PipelineStreammuxNvbufMemTypeGet(const char* name, 
-            uint* type);
+        //----------------------------------------------------------------------------
+        // NEW STREAMMUX SERVICES - Start
+        //----------------------------------------------------------------------------
 
-        DslReturnType PipelineStreammuxNvbufMemTypeSet(const char* name, 
-            uint type);
+        DslReturnType PipelineStreammuxConfigFileGet(const char* name, 
+            const char** configFile);
+            
+        DslReturnType PipelineStreammuxConfigFileSet(const char* name, 
+            const char* configFile);
+            
+        DslReturnType PipelineStreammuxBatchSizeGet(const char* name,
+            uint* batchSize);
+
+        DslReturnType PipelineStreammuxBatchSizeSet(const char* name,
+            uint batchSize);
+
+        //----------------------------------------------------------------------------
+        // NEW STREAMMUX SERVICES - End
+        //----------------------------------------------------------------------------
+
+        DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
+            uint* num);
+
+        DslReturnType PipelineStreammuxNumSurfacesPerFrameSet(const char* name, 
+            uint num);
+        
+        DslReturnType PipelineStreammuxAttachSysTsEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType PipelineStreammuxAttachSysTsEnabledSet(const char* name, 
+            boolean enabled);
+
+        DslReturnType PipelineStreammuxSyncInputsEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType PipelineStreammuxSyncInputsEnabledSet(const char* name, 
+            boolean enabled);
+
+        DslReturnType PipelineStreammuxMaxLatencyGet(const char* name, 
+            uint* maxLatency);
+        
+        DslReturnType PipelineStreammuxMaxLatencySet(const char* name, 
+            uint maxLatency);
+
+        //----------------------------------------------------------------------------
+        // OLD STREAMMUX SERVICES - Start
+        //----------------------------------------------------------------------------
 
         DslReturnType PipelineStreammuxBatchPropertiesGet(const char* name,
             uint* batchSize, int* batchTimeout);
 
         DslReturnType PipelineStreammuxBatchPropertiesSet(const char* name,
             uint batchSize, int batchTimeout);
+
+        DslReturnType PipelineStreammuxNvbufMemTypeGet(const char* name, 
+            uint* type);
+
+        DslReturnType PipelineStreammuxNvbufMemTypeSet(const char* name, 
+            uint type);
+
+        DslReturnType PipelineStreammuxGpuIdGet(const char* name, uint* gpuid);
+        
+        DslReturnType PipelineStreammuxGpuIdSet(const char* name, uint gpuid);
 
         DslReturnType PipelineStreammuxDimensionsGet(const char* name,
             uint* width, uint* height);
@@ -1515,27 +1708,21 @@ namespace DSL {
         DslReturnType PipelineStreammuxPaddingGet(const char* name, boolean* enabled);
 
         DslReturnType PipelineStreammuxPaddingSet(const char* name, boolean enabled);
-
-        DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
-            uint* num);
-
-        DslReturnType PipelineStreammuxNumSurfacesPerFrameSet(const char* name, 
-            uint num);
         
-        DslReturnType PipelineStreammuxSyncInputsEnabledGet(const char* name, 
-            boolean* enabled);
+        //----------------------------------------------------------------------------
+        // OLD STREAMMUX SERVICES - End
+        //----------------------------------------------------------------------------
 
-        DslReturnType PipelineStreammuxSyncInputsEnabledSet(const char* name, 
-            boolean enabled);
-
-        DslReturnType PipelineStreammuxGpuIdGet(const char* name, uint* gpuid);
-        
-        DslReturnType PipelineStreammuxGpuIdSet(const char* name, uint gpuid);
-        
         DslReturnType PipelineStreammuxTilerAdd(const char* name, const char* tiler);
 
         DslReturnType PipelineStreammuxTilerRemove(const char* name);
 
+        DslReturnType PipelineStreammuxPphAdd(const char* name, 
+            const char* handler);
+
+        DslReturnType PipelineStreammuxPphRemove(const char* name, 
+            const char* handler);
+        
         DslReturnType PipelinePause(const char* name);
         
         DslReturnType PipelinePlay(const char* name);
@@ -1836,6 +2023,11 @@ namespace DSL {
         DslMutex m_servicesMutex;
         
         /**
+         * @brief boolean flag to indicate if USE_NEW_NVSTREAMMUX=yes
+         */
+        bool m_useNewStreammux;
+        
+        /**
          * @brief map of all default intrinsic RGBA Display Types
          */
         std::map<std::string, DSL_BASE_PTR> m_intrinsicDisplayTypes;
@@ -1921,9 +2113,14 @@ namespace DSL {
         std::map <std::string, uint> m_inferProcessModes;
         
         /**
-         * @brief map of all Window-Sinks to their nveglglessink object pointer
+         * @brief map of all Window-Sinks to their 3d/egl plugin object pointer.
          */
         std::map <DSL_BASE_PTR, GstObject*> m_windowSinkElements;
+
+        /**
+         * @brief mutex to prevent Window registry re-entry
+         */
+        DslMutex m_windowRegistryMutex;
         
         /**
          * @brief map of all mailer objects by name

@@ -56,7 +56,7 @@
 
 # CodeLite
 *.session
-*.tags
+*.tags*
 *.db
 
 # files created running test

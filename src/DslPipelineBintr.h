@@ -127,19 +127,105 @@ namespace DSL
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
+        
+        /**
+         * @brief Returns the Pipeline's MultiSourcesBintr.
+         * @return Shared pointer to the Pipelines MultiSourcesBintr.
+         */
+        DSL_PIPELINE_SOURCES_PTR GetPipelineSourcesBintr()
+        {
+            return m_pPipelineSourcesBintr;
+        }
 
         /**
-         * @brief Gets the current nvbuf memory type in use by the Stream-Muxer
-         * @return one of DSL_NVBUF_MEM_TYPE constant values
+         * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @return Current config file in use.
          */
-        uint GetStreammuxNvbufMemType();
+        const char* GetStreammuxConfigFile();
+        
+        /**
+         * @brief Sets the config-file for the Pipeline's Streammuxer to use.
+         * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] configFile absolute or relative pathspec to new Config file.
+         * @return True if the config-file property could be set, false otherwise,
+         */
+        bool SetStreammuxConfigFile(const char* configFile);
+        
+        /**
+         * @brief Gets the current batch size for the Pipeline's Streammuxer
+         * @return current batchSize, default == the number of sources, once playing
+         */
+        uint GetStreammuxBatchSize();
 
         /**
-         * @brief Sets the nvbuf memory type for the Stream-Muxer to use
-         * @param[in] type one of DSL_NVBUF_MEM_TYPE constant values
-         * @return true if the memory type could be set, false otherwise
+         * @brief Sets the current batch size for the Pipeline's Streammuxer
+         * @param[in] batchSize new batchSize to set, default == the number of sources
+         * @return true if the batch properties could be set, false otherwise
          */
-        bool SetStreammuxNvbufMemType(uint type);
+        bool SetStreammuxBatchSize(uint batchSize);
+
+        /**
+         * @brief Gets the current setting for the Pipeline's Streammuxer
+         * num-surfaces-per-frame seting
+         * @return current setting for the number of surfaces [1..4].
+         */
+        uint GetStreammuxNumSurfacesPerFrame();
+
+        /**
+         * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
+         * num-surfaces-per-frame seting
+         * @param[in] num new value for the number of surfaces [1..4].
+         * @return true if the number setting could be set, false otherwisee
+         */
+        bool SetStreammuxNumSurfacesPerFrame(uint num);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's Muxer attach-sys-ts.
+         * @return true if attach-sys-ts is enabled, false otherwisee
+         */
+        bool GetStreammuxAttachSysTsEnabled();
+
+        /**
+         * @brief Sets the Pipeline's Streammuxer attach-sys-ts property.
+         * @param enabled set to true to enable attach-sys-ts, false otherwise.
+         * @return true if the attach-sys-ts enabled setting could be set, 
+         * false otherwise.
+         */
+        bool SetStreammuxAttachSysTsEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's Muxer padding
+         * @return true if padding is enabled, false otherwisee
+         */
+        bool GetStreammuxSyncInputsEnabled();
+
+        /**
+         * @brief Sets the Pipeline's Streammuxer sync-inputs.
+         * @param enabled set to true to enable sync-inputs, false otherwise.
+         * @return true if the sync-inputs enabled setting could be set, 
+         *  false otherwise.
+         */
+        bool SetStreammuxSyncInputsEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current setting for the Pipeline's Streammuxer
+         * max-latency setting.
+         * @return current setting for the max-latency property.
+         */
+        uint GetStreammuxMaxLatency();
+
+        /**
+         * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
+         * max-latency property
+         * @param[in] maxLatency new max-latency setting the Pipeline's Streammxuer.
+         * @return true if the max-latency setting could be set, false otherwisee
+         */
+        bool SetStreammuxMaxLatency(uint maxLatency);
+
+        //----------------------------------------------------------------------------
+        // OLD STREAMMUX SERVICES - Start
+        //----------------------------------------------------------------------------
 
         /**
          * @brief Gets the current batch settings for the Pipeline's Stream-Muxer
@@ -156,6 +242,31 @@ namespace DSL
          * @return true if the batch properties could be set, false otherwise
          */
         bool SetStreammuxBatchProperties(uint batchSize, int batchTimeout);
+
+        /**
+         * @brief Gets the current nvbuf memory type in use by the Stream-Muxer
+         * @return one of DSL_NVBUF_MEM_TYPE constant values
+         */
+        uint GetStreammuxNvbufMemType();
+
+        /**
+         * @brief Sets the nvbuf memory type for the Stream-Muxer to use
+         * @param[in] type one of DSL_NVBUF_MEM_TYPE constant values
+         * @return true if the memory type could be set, false otherwise
+         */
+        bool SetStreammuxNvbufMemType(uint type);
+
+        /**
+         * @brief Gets the current GPU ID used by this Pipeline's Streammuxer.
+         * @return the ID for the current GPU in use.
+         */
+        uint GetGpuId();
+
+        /**
+         * @brief Sets the GPU for the Pipeline's Streammuxer.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
 
         /**
          * @brief Gets the current dimensions for the Pipeline's Stream Muxer
@@ -184,35 +295,10 @@ namespace DSL
          * @return true if the Padding enabled setting could be set, false otherwise.
          */
         bool SetStreammuxPadding(boolean enabled);
-        
-        /**
-         * @brief Gets the current setting for the Pipeline's Streammuxer
-         * num-surfaces-per-frame seting
-         * @return current setting for the number of surfaces [1..4].
-         */
-        uint GetStreammuxNumSurfacesPerFrame();
 
-        /**
-         * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
-         * num-surfaces-per-frame seting
-         * @param[in] num new value for the number of surfaces [1..4].
-         * @return true if the number setting could be set, false otherwisee
-         */
-        bool SetStreammuxNumSurfacesPerFrame(uint num);
-        
-        /**
-         * @brief Gets the current setting for the Pipeline's Muxer padding
-         * @return true if padding is enabled, false otherwisee
-         */
-        bool GetStreammuxSyncInputsEnabled();
-
-        /**
-         * @brief Sets the Pipeline's Streammuxer padding.
-         * @param enabled set to true to enable sync-inputs, false otherwise.
-         * @return true if the Padding enabled setting could be set, false otherwise.
-         */
-        bool SetStreammuxSyncInputsEnabled(boolean enabled);
-        
+        // ---------------------------------------------------------------------------
+        // OLD STREAMMUX SERVICES - End
+        // ---------------------------------------------------------------------------
         /**
          * @brief Adds a TilerBintr to be added to the Stream-muxers output
          * on link and play.

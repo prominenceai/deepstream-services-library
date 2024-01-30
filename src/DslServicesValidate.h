@@ -179,7 +179,7 @@ THE SOFTWARE.
 { \
     if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
         !components[name]->IsType(typeid(CsiSourceBintr)) and  \
-        !components[name]->IsType(typeid(UsbSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr)) and  \
         !components[name]->IsType(typeid(ImageSourceBintr)) and  \
@@ -206,27 +206,19 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(OverlaySinkBintr)) and \
-        !components[name]->IsType(typeid(WindowSinkBintr)))\
-    { \
-        LOG_ERROR("ODE Action '" << name << "' is not the correct type"); \
-        return DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK; \
-    } \
-}while(0); 
-
 
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
+#elif GSTREAMER_SUB_VERSION < 20
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and \
-        !components[name]->IsType(typeid(RtspSinkBintr))) \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        LOG_ERROR("Component '" << name << "' is not a Encode Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
     } \
 }while(0); 
@@ -235,10 +227,12 @@ THE SOFTWARE.
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and \
-        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a Decode Source"); \
+        LOG_ERROR("Component '" << name << "' is not a Encode Sink"); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK; \
     } \
 }while(0);
@@ -288,10 +282,21 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(DemuxerBintr)) and  \
+        !components[name]->IsType(typeid(RemuxerBintr)) and  \
         !components[name]->IsType(typeid(SplitterBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Tee"); \
         return DSL_RESULT_TEE_COMPONENT_IS_NOT_TEE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(EglSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Window Sink"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK; \
     } \
 }while(0); 
 
@@ -301,14 +306,17 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
-        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
-        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(SplitterBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
@@ -320,18 +328,21 @@ THE SOFTWARE.
 
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
+#elif GSTREAMER_SUB_VERSION < 20
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
-        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
-        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr))) \
     { \
@@ -345,12 +356,15 @@ THE SOFTWARE.
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
-        !components[name]->IsType(typeid(OverlaySinkBintr)) and  \
-        !components[name]->IsType(typeid(WindowSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
         !components[name]->IsType(typeid(FileSinkBintr)) and  \
         !components[name]->IsType(typeid(RecordSinkBintr)) and  \
-        !components[name]->IsType(typeid(RtspSinkBintr)) and \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \

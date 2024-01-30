@@ -42,11 +42,11 @@ static const std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+// Source file dimensions are 960 × 540.
 int source_width = 960;
 int source_height = 540;
 
-// Window Sink dimensions same as Streammux dimensions - no scaling.
+// Window Sink dimensions same as Source dimensions - no scaling.
 int sink_width = source_width;
 int sink_height = source_height;
 
@@ -124,29 +124,24 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, sink_width, sink_height);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, sink_width, sink_height);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // # Add all the components to a new pipeline
         const wchar_t* components[] = { L"file-source",L"primary-tis",
-            L"iou-tracker",L"on-screen-display",L"window-sink",nullptr};
+            L"iou-tracker",L"on-screen-display",L"egl-sink",nullptr};
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);            
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // Update the Pipeline's Streammux dimensions to match the source dimensions.
-        retval = dsl_pipeline_streammux_dimensions_set(L"pipeline",
-            source_width, source_height);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
             state_change_listener, nullptr);

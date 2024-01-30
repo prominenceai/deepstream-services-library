@@ -68,14 +68,10 @@ std::wstring image_3(L"../../test/streams/sample_720p.3.png");
 std::wstring image_4(L"../../test/streams/sample_720p.4.png");
 
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
@@ -138,6 +134,8 @@ static int move_branch(void* user_data)
     << dsl_return_value_to_string(
         dsl_tee_demuxer_branch_move_to(L"demuxer", L"branch-0", stream_id)) 
         << std::endl;
+        
+    return true;
 }
 
 int main(int argc, char** argv)
@@ -180,18 +178,9 @@ int main(int argc, char** argv)
         // demux/split the batched streams back to individual source streams.
         
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(L"primary-gie", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting operational width and height of input frame
@@ -209,27 +198,27 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_new(L"window-sink", 
+        retval = dsl_sink_window_egl_new(L"egl-sink", 
             300, 300, 1280, 720);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
         // be set to false to support dynamic Pipeline updates.ties.
-        retval = dsl_sink_sync_enabled_set(L"window-sink", FALSE);
+        retval = dsl_sink_sync_enabled_set(L"egl-sink", FALSE);
         if (retval != DSL_RESULT_SUCCESS) break;
             
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a list of dynamic branch components.
        const wchar_t* branch_components[] = {
-            L"on-screen-display", L"window-sink", NULL};
+            L"on-screen-display", L"egl-sink", NULL};
             
         // Add the branch components to a new branch
         retval = dsl_branch_new_component_add_many(L"branch-0",

@@ -178,7 +178,8 @@ static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
 {
     return true;
 }    
-SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tiled Display", "[tiler-api]" )
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tiled Display", 
+    "[tiler-api]" )
 {
     GIVEN( "A new Tiled Display and Custom PPH" ) 
     {
@@ -188,33 +189,41 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tiled Displa
 
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == 
+            DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
-        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Sink Pad Probe Handler is added to the Tiler" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A Sink Pad Probe Handler is added to the Tiler" ) 
         {
-            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
-                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SINK) == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -222,7 +231,8 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tiled Displa
     }
 }
 
-SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Display", "[tiler-api]" )
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Display", 
+    "[tiler-api]" )
 {
     GIVEN( "A new Tiled Display and Custom PPH" ) 
     {
@@ -233,39 +243,46 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Disp
 
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == 
+            DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
-        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, 
+            NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
+        WHEN( "A Source Pad Probe Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
+        WHEN( "A Source Pad Probe Handler is added to the Tracker" ) 
         {
-            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
-            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
-                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SRC) == DSL_RESULT_TILER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
     }
 }
-
 
 SCENARIO( "An invalid Tiler is caught by all Set and Get API calls", "[tiler-api]" )
 {
@@ -467,6 +484,15 @@ SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tiler_frame_numbering_enabled_set(NULL, 
                     enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tiler_pph_add(NULL, 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_pph_remove(NULL, 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }

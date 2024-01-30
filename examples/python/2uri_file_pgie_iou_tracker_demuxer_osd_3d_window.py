@@ -33,15 +33,38 @@ uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+## 
+# Function to be called on XWindow KeyRelease event
+## 
+def xwindow_key_event_handler(key_string, client_data):
+    print('key released = ', key_string)
+    if key_string.upper() == 'P':
+        dsl_pipeline_pause('pipeline')
+    elif key_string.upper() == 'R':
+        dsl_pipeline_play('pipeline')
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+        dsl_pipeline_stop('pipeline')
+        dsl_main_loop_quit()
+ 
+## 
+# Function to be called on XWindow Delete event
+## 
+def xwindow_delete_event_handler(client_data):
+    print('delete window event')
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
+
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
@@ -52,17 +75,17 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New URI File Source
-        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 1)
+        # Two URI File Sources - using the same file.
+        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('uri-source-2', uri_h265, False, False, 1)
-        dsl_source_uri_new('uri-source-3', uri_h265, False, False, 1)
-        dsl_source_uri_new('uri-source-4', uri_h265, False, False, 1)
+        retval = dsl_source_uri_new('uri-source-2', uri_h265, False, False, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
-        # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 1)
+        # New Primary GIE using the filespecs above, with infer interval
+        retval = dsl_infer_gie_primary_new('primary-gie',
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -71,51 +94,68 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiler, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', 1280, 720)
+        # New 3D Sink with x/y offsets and Dimensions
+        retval = dsl_sink_window_3d_new('3d-sink', 100, 100, 360, 180)  
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 0, 0, 1280, 720)
+        # New Window Sink, with x/y offsets and dimensions
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 720, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
+            xwindow_key_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
+            xwindow_delete_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Branch for the PGIE, OSD and Window Sink
+        retval = dsl_branch_new_component_add_many('branch1', 
+            ['on-screen-display', 'egl-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add Branch1 and the overlay-sink as Branch2
+        retVal = dsl_tee_demuxer_new_branch_add_many('demuxer', 
+            max_branches=2, branches=['branch1', '3d-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the sources the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'uri-source-2', 'uri-source-3', 'uri-source-4', 
-            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'overlay-sink', None])
+            ['uri-source-1', 'uri-source-2', 'primary-gie', 'iou-tracker', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Pipeline to use with the above components
+        # Add the window delete handler and EOS listener callbacks to the Pipeline
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-
+            
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Once playing, we can dump the pipeline graph to dot file, which can be converted to an image file for viewing/debugging
-        dsl_pipeline_dump_to_dot('pipeline', 'state-playing')
-
         dsl_main_loop_run()
+        retval = DSL_RETURN_SUCCESS
         break
 
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

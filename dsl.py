@@ -30,14 +30,10 @@ _dsl = CDLL('/usr/local/lib/libdsl.so')
 
 DSL_RETURN_SUCCESS = 0
 
-DSL_STREAMMUX_4K_UHD_WIDTH          = 3840
-DSL_STREAMMUX_4K_UHD_HEIGHT         = 2160
-DSL_STREAMMUX_1K_HD_WIDTH           = 1920
-DSL_STREAMMUX_1K_HD_HEIGHT          = 1080
-
-DSL_STREAMMUX_DEFAULT_BATCH_TIMEOUT = 4000000
-DSL_STREAMMUX_DEFAULT_WIDTH         = DSL_STREAMMUX_1K_HD_WIDTH
-DSL_STREAMMUX_DEFAULT_HEIGHT        = DSL_STREAMMUX_1K_HD_HEIGHT
+DSL_4K_UHD_WIDTH  = 3840
+DSL_4K_UHD_HEIGHT = 2160
+DSL_1K_HD_WIDTH   = 1920
+DSL_1K_HD_HEIGHT  = 1080
 
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
@@ -47,6 +43,10 @@ DSL_PAD_PROBE_OK      = 1
 DSL_PAD_PROBE_REMOVE  = 2
 DSL_PAD_PROBE_PASS    = 3
 DSL_PAD_PROBE_HANDLED = 4
+
+DSL_PPH_EVENT_STREAM_ADDED   = 0
+DSL_PPH_EVENT_STREAM_DELETED = 1
+DSL_PPH_EVENT_STREAM_ENDED   = 2
 
 DSL_SINK_APP_DATA_TYPE_SAMPLE = 0
 DSL_SINK_APP_DATA_TYPE_BUFFER = 1
@@ -79,6 +79,9 @@ DSL_MEDIA_TYPE_AUDIO_XRAW = "audio/x-raw"
 DSL_VIDEO_FORMAT_I420    = "I420"
 DSL_VIDEO_FORMAT_NV12    = "NV12"
 DSL_VIDEO_FORMAT_RGBA    = "RGBA"   
+DSL_VIDEO_FORMAT_YUY2    = "YUY2"
+DSL_VIDEO_FORMAT_YVYU    = "YVYU"
+DSL_VIDEO_FORMAT_DEFAULT = DSL_VIDEO_FORMAT_NV12
 
 # Constants defining the two crop_at positions.
 DSL_VIDEO_CROP_AT_SRC  = 0
@@ -112,6 +115,28 @@ DSL_TLS_CERTIFICATE_REVOKED       = 0x00000010
 DSL_TLS_CERTIFICATE_INSECURE      = 0x00000020
 DSL_TLS_CERTIFICATE_GENERIC_ERROR = 0x00000040
 DSL_TLS_CERTIFICATE_VALIDATE_ALL  = 0x0000007f
+
+DSL_RTSP_PROFILE_UNKNOWN  = 0x00000000
+DSL_RTSP_PROFILE_AVP      = 0x00000001
+DSL_RTSP_PROFILE_SAVP     = 0x00000002
+DSL_RTSP_PROFILE_AVPF     = 0x00000004
+DSL_RTSP_PROFILE_SAVPF    = 0x00000008
+
+DSL_RTSP_LOWER_TRANS_UNKNOWN   = 0x00000000
+DSL_RTSP_LOWER_TRANS_UDP       = 0x00000001
+DSL_RTSP_LOWER_TRANS_UDP_MCAST = 0x00000002
+DSL_RTSP_LOWER_TRANS_TCP       = 0x00000004
+DSL_RTSP_LOWER_TRANS_HTTP      = 0x00000010
+DSL_RTSP_LOWER_TRANS_TLS       = 0x00000020
+
+DSL_V4L2_DEVICE_TYPE_NONE        = 0x00000000 
+DSL_V4L2_DEVICE_TYPE_CAPTURE     = 0x00000001
+DSL_V4L2_DEVICE_TYPE_OUTPUT      = 0x00000002
+DSL_V4L2_DEVICE_TYPE_OVERLAY     = 0x00000004
+DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE = 0x00000010
+DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT  = 0x00000020
+DSL_V4L2_DEVICE_TYPE_TUNER       = 0x00010000
+DSL_V4L2_DEVICE_TYPE_AUDIO       = 0x00020000
 
 DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
@@ -230,7 +255,7 @@ DSL_DISTANCE_METHOD_PERCENT_WIDTH_B  = 2
 DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A = 3
 DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B = 4
 
-DSL_RENDER_TYPE_OVERLAY = 0
+DSL_RENDER_TYPE_3D      = 0
 DSL_RENDER_TYPE_WINDOW  = 1
 
 DSL_RECORDING_EVENT_START = 0
@@ -422,6 +447,10 @@ DSL_PPH_METER_CLIENT_HANDLER = \
 # dsl_pph_custom_client_handler_cb
 DSL_PPH_CUSTOM_CLIENT_HANDLER = \
     CFUNCTYPE(c_uint, c_void_p, c_void_p)
+
+#dsl_pph_stream_event_handler_cb
+DSL_PPH_STREAM_EVENT_HANDLER = \
+    CFUNCTYPE(c_uint, c_uint, c_uint, c_void_p)
 
 # dsl_state_change_listener_cb
 DSL_STATE_CHANGE_LISTENER = \
@@ -1532,7 +1561,7 @@ def dsl_ode_action_list_size():
 ##
 ## dsl_ode_area_inclusion_new()
 ##
-_dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_area_inclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_inclusion_new.restype = c_uint
 def dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
@@ -1542,7 +1571,7 @@ def dsl_ode_area_inclusion_new(name, polygon, show, bbox_test_point):
 ##
 ## dsl_ode_area_exclusion_new()
 ##
-_dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool]
+_dsl.dsl_ode_area_exclusion_new.argtypes = [c_wchar_p, c_wchar_p, c_bool, c_uint]
 _dsl.dsl_ode_area_exclusion_new.restype = c_uint
 def dsl_ode_area_exclusion_new(name, polygon, show, bbox_test_point):
     global _dsl
@@ -2992,12 +3021,27 @@ _dsl.dsl_pph_buffer_timeout_new.argtypes = [c_wchar_p,
 _dsl.dsl_pph_buffer_timeout_new.restype = c_uint
 def dsl_pph_buffer_timeout_new(name, timeout, handler, client_data):
     global _dsl
-    handler_cb = DSL_PPH_BUFFER_TIMEOUT_HANDLER(client_handler)
+    handler_cb = DSL_PPH_BUFFER_TIMEOUT_HANDLER(handler)
     callbacks.append(handler_cb)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
     result =_dsl.dsl_pph_buffer_timeout_new(name, 
         timeout, handler_cb, c_client_data)
+    return int(result)
+
+##
+## dsl_pph_stream_event_new()
+##
+_dsl.dsl_pph_stream_event_new.argtypes = [c_wchar_p, 
+    DSL_PPH_STREAM_EVENT_HANDLER, c_void_p]
+_dsl.dsl_pph_stream_event_new.restype = c_uint
+def dsl_pph_stream_event_new(name, handler, client_data):
+    global _dsl
+    handler_cb = DSL_PPH_STREAM_EVENT_HANDLER(handler)
+    callbacks.append(handler_cb)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result =_dsl.dsl_pph_stream_event_new(name, handler_cb, c_client_data)
     return int(result)
 
 ##
@@ -3265,34 +3309,100 @@ def dsl_source_csi_new(name, width, height, fps_n, fps_d):
     return int(result)
 
 ##
-## dsl_source_usb_new()
+## dsl_source_v4l2_new()
 ##
-_dsl.dsl_source_usb_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_source_usb_new.restype = c_uint
-def dsl_source_usb_new(name, width, height, fps_n, fps_d):
+_dsl.dsl_source_v4l2_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_v4l2_new.restype = c_uint
+def dsl_source_v4l2_new(name, device_location):
     global _dsl
-    result =_dsl.dsl_source_usb_new(name, width, height, fps_n, fps_d)
+    result =_dsl.dsl_source_v4l2_new(name, device_location)
     return int(result)
 
 ##
-## dsl_source_usb_device_location_get()
+## dsl_source_v4l2_device_location_get()
 ##
-_dsl.dsl_source_usb_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_source_usb_device_location_get.restype = c_uint
-def dsl_source_usb_device_location_get(name):
+_dsl.dsl_source_v4l2_device_location_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_source_v4l2_device_location_get.restype = c_uint
+def dsl_source_v4l2_device_location_get(name):
     global _dsl
     device_location = c_wchar_p(0)
-    result = _dsl.dsl_source_usb_device_location_get(name, DSL_WCHAR_PP(device_location))
+    result = _dsl.dsl_source_v4l2_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
     return int(result), device_location.value 
 
 ##
-## dsl_source_usb_device_location_set()
+## dsl_source_v4l2_device_location_set()
 ##
-_dsl.dsl_source_usb_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_source_usb_device_location_set.restype = c_uint
-def dsl_source_usb_device_location_set(name, device_location):
+_dsl.dsl_source_v4l2_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_v4l2_device_location_set.restype = c_uint
+def dsl_source_v4l2_device_location_set(name, device_location):
     global _dsl
-    result = _dsl.dsl_source_usb_device_location_set(name, device_location)
+    result = _dsl.dsl_source_v4l2_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_source_v4l2_device_name_get()
+##
+_dsl.dsl_source_v4l2_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_v4l2_device_name_get.restype = c_uint
+def dsl_source_v4l2_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_source_v4l2_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
+## dsl_source_v4l2_device_fd_get()
+##
+_dsl.dsl_source_v4l2_device_fd_get.argtypes = [c_wchar_p, POINTER(c_int)]
+_dsl.dsl_source_v4l2_device_fd_get.restype = c_uint
+def dsl_source_v4l2_device_fd_get(name):
+    global _dsl
+    device_fd = c_int(0)
+    result = _dsl.dsl_source_v4l2_device_fd_get(name, 
+        DSL_INT_P(device_fd))
+    return int(result), device_fd.value 
+
+##
+## dsl_source_v4l2_device_flags_get()
+##
+_dsl.dsl_source_v4l2_device_flags_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_source_v4l2_device_flags_get.restype = c_uint
+def dsl_source_v4l2_device_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_source_v4l2_device_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value 
+
+##
+## dsl_source_v4l2_picture_settings_get()
+##
+_dsl.dsl_source_v4l2_picture_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+_dsl.dsl_source_v4l2_picture_settings_get.restype = c_uint
+def dsl_source_v4l2_picture_settings_get(name):
+    global _dsl
+    brightness = c_int(0)
+    contrast = c_int(0)
+    hue = c_int(0)
+    result = _dsl.dsl_source_v4l2_picture_settings_get(name, 
+        DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(hue))
+    return int(result), brightness.value, contrast.value, hue.value
+
+##
+## dsl_source_v4l2_picture_settings_set()
+##
+_dsl.dsl_source_v4l2_picture_settings_set.argtypes = [c_wchar_p, 
+    c_int, c_int, c_int]
+_dsl.dsl_source_v4l2_picture_settings_set.restype = c_uint
+def dsl_source_v4l2_picture_settings_set(name, 
+    brightness, contrast, hue):
+    global _dsl
+    result = _dsl.dsl_source_v4l2_picture_settings_set(name, 
+        brightness, contrast, hue)
     return int(result)
 
 ##
@@ -4346,6 +4456,26 @@ def dsl_preproc_unique_id_get(name):
     return int(result), id.value
 
 ##
+## dsl_preproc_pph_add()
+##
+_dsl.dsl_preproc_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_preproc_pph_add.restype = c_uint
+def dsl_preproc_pph_add(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_preproc_pph_add(name, handler, pad)
+    return int(result)
+
+##
+## dsl_preproc_pph_remove()
+##
+_dsl.dsl_preproc_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_preproc_pph_remove.restype = c_uint
+def dsl_preproc_pph_remove(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_preproc_pph_remove(name, handler, pad)
+    return int(result)
+
+##
 ## dsl_infer_gie_primary_new()
 ##
 _dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -4614,45 +4744,51 @@ def dsl_tracker_dimensions_set(name, width, height):
     return int(result)
 
 ##
-## dsl_tracker_batch_processing_enabled_get()
+## dsl_tracker_tensor_meta_settings_get()
 ##
-_dsl.dsl_tracker_batch_processing_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_tracker_batch_processing_enabled_get.restype = c_uint
-def dsl_tracker_batch_processing_enabled_get(name):
+_dsl.dsl_tracker_tensor_meta_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool), POINTER(c_wchar_p)]
+_dsl.dsl_tracker_tensor_meta_settings_get.restype = c_uint
+def dsl_tracker_tensor_meta_settings_get(name):
     global _dsl
-    enabled = c_bool(0)
-    result = _dsl.dsl_tracker_batch_processing_enabled_get(name, DSL_BOOL_P(enabled))
-    return int(result), enabled.value
+    input_enabled = c_bool(0)
+    track_on_gie = c_wchar_p(0)
+    result = _dsl.dsl_tracker_tensor_meta_settings_get(name, 
+        DSL_BOOL_P(input_enabled), DSL_WCHAR_PP(track_on_gie))
+    return int(result), input_enabled.value, track_on_gie.value
 
 ##
-## dsl_tracker_batch_processing_enabled_set()
+## dsl_tracker_tensor_meta_settings_set()
 ##
-_dsl.dsl_tracker_batch_processing_enabled_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_tracker_batch_processing_enabled_set.restype = c_uint
-def dsl_tracker_batch_processing_enabled_set(name, enabled):
+_dsl.dsl_tracker_tensor_meta_settings_set.argtypes = [c_wchar_p, 
+    c_bool, c_wchar_p]
+_dsl.dsl_tracker_tensor_meta_settings_set.restype = c_uint
+def dsl_tracker_tensor_meta_settings_set(name, 
+    input_enabled, track_on_gie):
     global _dsl
-    result = _dsl.dsl_tracker_batch_processing_enabled_set(name, enabled)
+    result = _dsl.dsl_tracker_tensor_meta_settings_set(name, 
+        input_enabled, track_on_gie)
     return int(result)
 
 ##
-## dsl_tracker_past_frame_reporting_enabled_get()
+## dsl_tracker_id_display_enabled_get()
 ##
-_dsl.dsl_tracker_past_frame_reporting_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_tracker_past_frame_reporting_enabled_get.restype = c_uint
-def dsl_tracker_past_frame_reporting_enabled_get(name):
+_dsl.dsl_tracker_id_display_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_tracker_id_display_enabled_get.restype = c_uint
+def dsl_tracker_id_display_enabled_get(name):
     global _dsl
     enabled = c_bool(0)
-    result = _dsl.dsl_tracker_past_frame_reporting_enabled_get(name, DSL_BOOL_P(enabled))
+    result = _dsl.dsl_tracker_id_display_enabled_get(name, DSL_BOOL_P(enabled))
     return int(result), enabled.value
 
 ##
-## dsl_tracker_past_frame_reporting_enabled_set()
+## dsl_tracker_id_display_enabled_set()
 ##
-_dsl.dsl_tracker_past_frame_reporting_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
-_dsl.dsl_tracker_past_frame_reporting_enabled_set.restype = c_uint
-def dsl_tracker_past_frame_reporting_enabled_set(name, enabled):
+_dsl.dsl_tracker_id_display_enabled_set.argtypes = [c_wchar_p, c_uint, c_bool]
+_dsl.dsl_tracker_id_display_enabled_set.restype = c_uint
+def dsl_tracker_id_display_enabled_set(name, enabled):
     global _dsl
-    result = _dsl.dsl_tracker_past_frame_reporting_enabled_set(name, enabled)
+    result = _dsl.dsl_tracker_id_display_enabled_set(name, enabled)
     return int(result)
 
 ##
@@ -4911,6 +5047,146 @@ def dsl_tee_demuxer_max_branches_set(name, max_branches):
     global _dsl
     result = _dsl.dsl_tee_demuxer_max_branches_set(name, max_branches)
     return int(result)
+
+##
+## dsl_tee_remuxer_new()
+##
+_dsl.dsl_tee_remuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_tee_remuxer_new.restype = c_uint
+def dsl_tee_remuxer_new(name):
+    global _dsl
+    result =_dsl.dsl_tee_remuxer_new(name)
+    return int(result)
+
+##
+## dsl_tee_remuxer_new_branch_add_many()
+##
+#_dsl.dsl_tee_remuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_remuxer_new_branch_add_many.restype = c_uint
+def dsl_tee_remuxer_new_branch_add_many(name, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_tee_remuxer_new_branch_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_tee_remuxer_branch_add_to()
+##
+# ??? _dsl.dsl_tee_remuxer_branch_add_to.argtypes = [c_wchar_p, c_wchar_p, 
+#    c_uint]
+_dsl.dsl_tee_remuxer_branch_add_to.restype = c_uint
+def dsl_tee_remuxer_branch_add_to(name, branch, stream_ids, num_stream_ids):
+    global _dsl
+    arr = (c_uint * num_stream_ids)()
+    arr[:] = stream_ids
+    result =_dsl.dsl_tee_remuxer_branch_add_to(name, branch, arr, num_stream_ids)
+    return int(result)
+
+##
+## dsl_tee_remuxer_batch_size_get()
+##
+_dsl.dsl_tee_remuxer_batch_size_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_tee_remuxer_batch_size_get.restype = c_uint
+def dsl_tee_remuxer_batch_size_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    result = _dsl.dsl_tee_remuxer_batch_size_get(name, DSL_UINT_P(batch_size))
+    return int(result), batch_size.value
+
+##
+## dsl_tee_remuxer_batch_size_set()
+##
+_dsl.dsl_tee_remuxer_batch_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tee_remuxer_batch_size_set.restype = c_uint
+def dsl_tee_remuxer_batch_size_set(name, batch_size):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_batch_size_set(name, batch_size)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## NEW STREAMMUX SERVICES - Start
+
+##
+## dsl_tee_remuxer_branch_config_file_get()
+##
+_dsl.dsl_tee_remuxer_branch_config_file_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_tee_remuxer_branch_config_file_get.restype = c_uint
+def dsl_tee_remuxer_branch_config_file_get(name, branch):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_tee_remuxer_branch_config_file_get(name, 
+        branch, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_tee_remuxer_branch_config_file_set()
+##
+_dsl.dsl_tee_remuxer_branch_config_file_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_tee_remuxer_branch_config_file_set.restype = c_uint
+def dsl_tee_remuxer_branch_config_file_set(name, config_file, branch):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_branch_config_file_set(name, 
+        config_file, branch)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## NEW STREAMMUX SERVICES - End
+## -----------------------------------------------------------------------------------
+## OLD STREAMMUX SERVICES - Start
+
+##
+## dsl_tee_remuxer_batch_properties_get()
+##
+_dsl.dsl_tee_remuxer_batch_properties_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tee_remuxer_batch_properties_get.restype = c_uint
+def dsl_tee_remuxer_batch_properties_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    batch_timeout = c_uint(0)
+    result = _dsl.dsl_tee_remuxer_batch_properties_get(name, DSL_UINT_P(batch_size), 
+        DSL_UINT_P(batch_timeout))
+    return int(result), batch_size.value, batch_timeout.value 
+
+##
+## dsl_tee_remuxer_batch_properties_set()
+##
+_dsl.dsl_tee_remuxer_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tee_remuxer_batch_properties_set.restype = c_uint
+def dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout)
+    return int(result)
+    
+## dsl_tee_remuxer_dimensions_get()
+##
+_dsl.dsl_tee_remuxer_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_tee_remuxer_dimensions_get.restype = c_uint
+def dsl_tee_remuxer_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_tee_remuxer_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_tee_remuxer_dimensions_set()
+##
+_dsl.dsl_tee_remuxer_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_tee_remuxer_dimensions_set.restype = c_uint
+def dsl_tee_remuxer_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_tee_remuxer_dimensions_set(name, width, height)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## OLD STREAMMUX SERVICES - End
 
 ##
 ## dsl_tee_splitter_new()
@@ -5265,26 +5541,74 @@ def dsl_sink_fake_new(name):
     return int(result)
 
 ##
-## dsl_sink_overlay_new()
+## dsl_sink_window_3d_new()
 ##
-_dsl.dsl_sink_overlay_new.argtypes = [c_wchar_p, 
-    c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_overlay_new.restype = c_uint
-def dsl_sink_overlay_new(name, 
-    display_id, depth, offset_x, offset_y, width, height):
+_dsl.dsl_sink_window_3d_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_window_3d_new.restype = c_uint
+def dsl_sink_window_3d_new(name, 
+    offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_overlay_new(name, 
-        display_id, depth, offset_x, offset_y, width, height)
+    result =_dsl.dsl_sink_window_3d_new(name, 
+        offset_x, offset_y, width, height)
     return int(result)
 
 ##
-## dsl_sink_window_new()
+## dsl_sink_window_egl_new()
 ##
-_dsl.dsl_sink_window_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_window_new.restype = c_uint
-def dsl_sink_window_new(name, offset_x, offset_y, width, height):
+_dsl.dsl_sink_window_egl_new.argtypes = [c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_window_egl_new.restype = c_uint
+def dsl_sink_window_egl_new(name, offset_x, offset_y, width, height):
     global _dsl
-    result =_dsl.dsl_sink_window_new(name, offset_x, offset_y, width, height)
+    result =_dsl.dsl_sink_window_egl_new(name, offset_x, offset_y, width, height)
+    return int(result)
+
+##
+## dsl_sink_window_offsets_get()
+##
+_dsl.dsl_sink_window_offsets_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_window_offsets_get.restype = c_uint
+def dsl_sink_window_offsets_get(name):
+    global _dsl
+    offset_x = c_uint(0)
+    offset_y = c_uint(0)
+    result = _dsl.dsl_sink_window_offsets_get(name, 
+        DSL_UINT_P(offset_x), DSL_UINT_P(offset_y))
+    return int(result), offset_x.value, offset_y.value 
+
+##
+## dsl_sink_window_offsets_set()
+##
+_dsl.dsl_sink_window_offsets_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_window_offsets_set.restype = c_uint
+def dsl_sink_window_offsets_set(name, offset_x, offset_y):
+    global _dsl
+    result = _dsl.dsl_sink_window_offsets_set(name, offset_x, offset_y)
+    return int(result)
+
+##
+## dsl_sink_window_dimensions_get()
+##
+_dsl.dsl_sink_window_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_window_dimensions_get.restype = c_uint
+def dsl_sink_window_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_sink_window_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_sink_window_dimensions_set()
+##
+_dsl.dsl_sink_window_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_window_dimensions_set.restype = c_uint
+def dsl_sink_window_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_sink_window_dimensions_set(name, width, height)
     return int(result)
 
 ##
@@ -5316,27 +5640,6 @@ _dsl.dsl_sink_window_clear.restype = c_uint
 def dsl_sink_window_clear(name):
     global _dsl
     result = _dsl.dsl_sink_window_clear(name)
-    return int(result)
-
-##
-## dsl_sink_window_force_aspect_ratio_get()
-##
-_dsl.dsl_sink_window_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
-_dsl.dsl_sink_window_force_aspect_ratio_get.restype = c_uint
-def dsl_sink_window_force_aspect_ratio_get(name):
-    global _dsl
-    force = c_bool(False)
-    result =_dsl.dsl_sink_window_force_aspect_ratio_get(name, DSL_BOOL_P(force))
-    return int(result), force.value
-
-##
-## dsl_sink_window_force_aspect_ratio_set()
-##
-_dsl.dsl_sink_window_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
-_dsl.dsl_sink_window_force_aspect_ratio_set.restype = c_uint
-def dsl_sink_window_force_aspect_ratio_set(name, force):
-    global _dsl
-    result =_dsl.dsl_sink_window_force_aspect_ratio_set(name, force)
     return int(result)
 
 ##
@@ -5448,25 +5751,142 @@ def dsl_sink_window_delete_event_handler_remove(name, client_handler):
     return int(result)
 
 ##
-## dsl_sink_render_dimensions_get()
+## dsl_sink_window_egl_force_aspect_ratio_get()
 ##
-_dsl.dsl_sink_render_dimensions_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_sink_render_dimensions_get.restype = c_uint
-def dsl_sink_render_dimensions_get(name):
+_dsl.dsl_sink_window_egl_force_aspect_ratio_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sink_window_egl_force_aspect_ratio_get.restype = c_uint
+def dsl_sink_window_egl_force_aspect_ratio_get(name):
     global _dsl
-    width = c_uint(0)
-    height = c_uint(0)
-    result = _dsl.dsl_sink_render_dimensions_get(name, DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), width.value, height.value 
+    force = c_bool(False)
+    result =_dsl.dsl_sink_window_egl_force_aspect_ratio_get(name, DSL_BOOL_P(force))
+    return int(result), force.value
 
 ##
-## dsl_sink_render_dimensions_set()
+## dsl_sink_window_egl_force_aspect_ratio_set()
 ##
-_dsl.dsl_sink_render_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_sink_render_dimensions_set.restype = c_uint
-def dsl_sink_render_dimensions_set(name, width, height):
+_dsl.dsl_sink_window_egl_force_aspect_ratio_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sink_window_egl_force_aspect_ratio_set.restype = c_uint
+def dsl_sink_window_egl_force_aspect_ratio_set(name, force):
     global _dsl
-    result = _dsl.dsl_sink_render_dimensions_set(name, width, height)
+    result =_dsl.dsl_sink_window_egl_force_aspect_ratio_set(name, force)
+    return int(result)
+
+##
+## dsl_sink_v4l2_new()
+##
+_dsl.dsl_sink_v4l2_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_v4l2_new.restype = c_uint
+def dsl_sink_v4l2_new(name, device_location):
+    global _dsl
+    result =_dsl.dsl_sink_v4l2_new(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_v4l2_device_location_get()
+##
+_dsl.dsl_sink_v4l2_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_device_location_get.restype = c_uint
+def dsl_sink_v4l2_device_location_get(name):
+    global _dsl
+    device_location = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
+    return int(result), device_location.value 
+
+##
+## dsl_sink_v4l2_device_location_set()
+##
+_dsl.dsl_sink_v4l2_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_v4l2_device_location_set.restype = c_uint
+def dsl_sink_v4l2_device_location_set(name, device_location):
+    global _dsl
+    result = _dsl.dsl_sink_v4l2_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_v4l2_device_name_get()
+##
+_dsl.dsl_sink_v4l2_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_device_name_get.restype = c_uint
+def dsl_sink_v4l2_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
+## dsl_sink_v4l2_device_fd_get()
+##
+_dsl.dsl_sink_v4l2_device_fd_get.argtypes = [c_wchar_p, POINTER(c_int)]
+_dsl.dsl_sink_v4l2_device_fd_get.restype = c_uint
+def dsl_sink_v4l2_device_fd_get(name):
+    global _dsl
+    device_fd = c_int(0)
+    result = _dsl.dsl_sink_v4l2_device_fd_get(name, 
+        DSL_INT_P(device_fd))
+    return int(result), device_fd.value 
+
+##
+## dsl_sink_v4l2_device_flags_get()
+##
+_dsl.dsl_sink_v4l2_device_flags_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_v4l2_device_flags_get.restype = c_uint
+def dsl_sink_v4l2_device_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_sink_v4l2_device_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value 
+
+##
+## dsl_sink_v4l2_buffer_in_format_get()
+##
+_dsl.dsl_sink_v4l2_buffer_in_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_v4l2_buffer_in_format_get.restype = c_uint
+def dsl_sink_v4l2_buffer_in_format_get(name):
+    global _dsl
+    format = c_wchar_p(0)
+    result = _dsl.dsl_sink_v4l2_buffer_in_format_get(name, 
+        DSL_WCHAR_PP(format))
+    return int(result), format.value 
+
+##
+## dsl_sink_v4l2_buffer_in_format_set()
+##
+_dsl.dsl_sink_v4l2_buffer_in_format_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_v4l2_buffer_in_format_set.restype = c_uint
+def dsl_sink_v4l2_buffer_in_format_set(name, format):
+    global _dsl
+    result = _dsl.dsl_sink_v4l2_buffer_in_format_set(name, format)
+    return int(result)
+
+##
+## dsl_sink_v4l2_picture_settings_get()
+##
+_dsl.dsl_sink_v4l2_picture_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+_dsl.dsl_sink_v4l2_picture_settings_get.restype = c_uint
+def dsl_sink_v4l2_picture_settings_get(name):
+    global _dsl
+    brightness = c_int(0)
+    contrast = c_int(0)
+    saturation = c_int(0)
+    result = _dsl.dsl_sink_v4l2_picture_settings_get(name, 
+        DSL_INT_P(brightness), DSL_INT_P(contrast), DSL_INT_P(saturation))
+    return int(result), brightness.value, contrast.value, saturation.value
+
+##
+## dsl_sink_v4l2_picture_settings_set()
+##
+_dsl.dsl_sink_v4l2_picture_settings_set.argtypes = [c_wchar_p, 
+    c_int, c_int, c_int]
+_dsl.dsl_sink_v4l2_picture_settings_set.restype = c_uint
+def dsl_sink_v4l2_picture_settings_set(name, 
+    brightness, contrast, saturation):
+    global _dsl
+    result = _dsl.dsl_sink_v4l2_picture_settings_set(name, 
+        brightness, contrast, saturation)
     return int(result)
 
 ##
@@ -5482,13 +5902,16 @@ def dsl_sink_file_new(name, filepath, codec, container, bitrate, interval):
 ##
 ## dsl_sink_record_new()
 ##
-_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, DSL_RECORD_CLIENT_LISTNER]
+_dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p, 
+    c_uint, c_uint, c_uint, c_uint, DSL_RECORD_CLIENT_LISTNER]
 _dsl.dsl_sink_record_new.restype = c_uint
-def dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, client_listener):
+def dsl_sink_record_new(name, outdir, 
+    codec, container, bitrate, interval, client_listener):
     global _dsl
     c_client_listener = DSL_RECORD_CLIENT_LISTNER(client_listener)
     callbacks.append(c_client_listener)
-    result =_dsl.dsl_sink_record_new(name, outdir, codec, container, bitrate, interval, c_client_listener)
+    result =_dsl.dsl_sink_record_new(name, outdir, 
+        codec, container, bitrate, interval, c_client_listener)
     return int(result)
     
 ##
@@ -5706,26 +6129,179 @@ def dsl_sink_encode_dimensions_set(name, width, height):
     return int(result)
 
 ##
-## dsl_sink_rtsp_new()
+## dsl_sink_rtmp_new()
 ##
-_dsl.dsl_sink_rtsp_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_rtsp_new.restype = c_uint
-def dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval):
+_dsl.dsl_sink_rtmp_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sink_rtmp_new.restype = c_uint
+def dsl_sink_rtmp_new(name, 
+    uri, bitrate, interval):
     global _dsl
-    result =_dsl.dsl_sink_rtsp_new(name, host, udp_port, rtsp_port, codec, bitrate, interval)
+    result =_dsl.dsl_sink_rtmp_new(name, 
+        uri, bitrate, interval)
+    return int(result)
+
+##
+## dsl_sink_rtmp_uri_get()
+##
+_dsl.dsl_sink_rtmp_uri_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_rtmp_uri_get.restype = c_uint
+def dsl_sink_rtmp_uri_get(name):
+    global _dsl
+    uri = c_wchar_p(0)
+    result = _dsl.dsl_sink_rtmp_uri_get(name, DSL_WCHAR_PP(uri))
+    return int(result), uri.value 
+
+##
+## dsl_sink_rtmp_uri_set()
+##
+_dsl.dsl_sink_rtmp_uri_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_rtmp_uri_set.restype = c_uint
+def dsl_sink_rtmp_uri_set(name, uir):
+    global _dsl
+    result = _dsl.dsl_sink_rtmp_uri_set(name, uir)
+    return int(result)
+
+##
+## dsl_sink_rtsp_server_new()
+##
+_dsl.dsl_sink_rtsp_server_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_rtsp_server_new.restype = c_uint
+def dsl_sink_rtsp_server_new(name, 
+    host, udp_port, rtsp_port, codec, bitrate, interval):
+    global _dsl
+    result =_dsl.dsl_sink_rtsp_server_new(name, 
+        host, udp_port, rtsp_port, codec, bitrate, interval)
     return int(result)
 
 ##
 ## dsl_sink_rtsp_server_settings_get()
 ##
-_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_server_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_sink_rtsp_server_settings_get.restype = c_uint
 def dsl_sink_rtsp_server_settings_get(name):
     global _dsl
     udp_port = c_uint(0)
     rtsp_port = c_uint(0)
-    result = _dsl.dsl_sink_rtsp_server_settings_get(name, DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port))
+    result = _dsl.dsl_sink_rtsp_server_settings_get(name, 
+        DSL_UINT_P(udp_port), DSL_UINT_P(rtsp_port))
     return int(result), udp_port.value, rtsp_port.value
+
+##
+## dsl_sink_rtsp_client_new()
+##
+_dsl.dsl_sink_rtsp_client_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_rtsp_client_new.restype = c_uint
+def dsl_sink_rtsp_client_new(name, 
+    uri, codec, bitrate, interval):
+    global _dsl
+    result =_dsl.dsl_sink_rtsp_client_new(name, 
+        uri, codec, bitrate, interval)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_credentials_set()
+##
+_dsl.dsl_sink_rtsp_client_credentials_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_rtsp_client_credentials_set.restype = c_uint
+def dsl_sink_rtsp_client_credentials_set(name, user_id, user_pw):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_credentials_set(name, 
+        user_id, user_pw)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_latency_get()
+##
+_dsl.dsl_sink_rtsp_client_latency_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_latency_get.restype = c_uint
+def dsl_sink_rtsp_client_latency_get(name):
+    global _dsl
+    latency = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_latency_get(name, DSL_UINT_P(latency))
+    return int(result), latency.value 
+
+##
+## dsl_sink_rtsp_client_latency_set()
+##
+_dsl.dsl_sink_rtsp_client_latency_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_latency_set.restype = c_uint
+def dsl_sink_rtsp_client_latency_set(name, latency):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_latency_set(name, latency)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_profiles_get()
+##
+_dsl.dsl_sink_rtsp_client_profiles_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_profiles_get.restype = c_uint
+def dsl_sink_rtsp_client_profiles_get(name):
+    global _dsl
+    profiles = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_profiles_get(name, DSL_UINT_P(profiles))
+    return int(result), profiles.value 
+
+##
+## dsl_sink_rtsp_client_profiles_set()
+##
+_dsl.dsl_sink_rtsp_client_profiles_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_profiles_set.restype = c_uint
+def dsl_sink_rtsp_client_profiles_set(name, profiles):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_profiles_set(name, profiles)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_protocols_get()
+##
+_dsl.dsl_sink_rtsp_client_protocols_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_protocols_get.restype = c_uint
+def dsl_sink_rtsp_client_protocols_get(name):
+    global _dsl
+    protocols = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_protocols_get(name, DSL_UINT_P(protocols))
+    return int(result), protocols.value 
+
+##
+## dsl_sink_rtsp_client_protocols_set()
+##
+_dsl.dsl_sink_rtsp_client_protocols_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_protocols_set.restype = c_uint
+def dsl_sink_rtsp_client_protocols_set(name, protocols):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_protocols_set(name, protocols)
+    return int(result)
+
+##
+## dsl_sink_rtsp_client_tls_validation_flags_get()
+##
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_get.restype = c_uint
+def dsl_sink_rtsp_client_tls_validation_flags_get(name):
+    global _dsl
+    flags = c_uint(0)
+    result = _dsl.dsl_sink_rtsp_client_tls_validation_flags_get(name, 
+        DSL_UINT_P(flags))
+    return int(result), flags.value 
+
+##
+## dsl_sink_rtsp_client_tls_validation_flags_set()
+##
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_rtsp_client_tls_validation_flags_set.restype = c_uint
+def dsl_sink_rtsp_client_tls_validation_flags_set(name, flags):
+    global _dsl
+    result = _dsl.dsl_sink_rtsp_client_tls_validation_flags_set(name, flags)
+    return int(result)
 
 ##
 ## dsl_sink_webrtc_new()
@@ -5963,6 +6539,16 @@ _dsl.dsl_sink_frame_capture_initiate.restype = c_uint
 def dsl_sink_frame_capture_initiate(name):
     global _dsl
     result =_dsl.dsl_sink_frame_capture_initiate(name)
+    return int(result)
+    
+##
+## dsl_sink_frame_capture_schedule()
+##
+_dsl.dsl_sink_frame_capture_schedule.argtypes = [c_wchar_p, c_uint64]
+_dsl.dsl_sink_frame_capture_schedule.restype = c_uint
+def dsl_sink_frame_capture_schedule(name, frame_number):
+    global _dsl
+    result =_dsl.dsl_sink_frame_capture_schedule(name, frame_number)
     return int(result)
     
 ##
@@ -6418,26 +7004,60 @@ def dsl_pipeline_component_remove_many(pipeline, components):
     result =_dsl.dsl_pipeline_component_remove_many(pipeline, arr)
     return int(result)
 
+## -----------------------------------------------------------------------------------
+## NEW STREAMMUX SERVICES - Start
+
+## dsl_pipeline_streammux_config_file_get()
 ##
-## dsl_pipeline_streammux_nvbuf_mem_type_get()
-##
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.argtypes = [c_wchar_p, POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.restype = c_uint
-def dsl_pipeline_streammux_nvbuf_mem_type_get(name):
+_dsl.dsl_pipeline_streammux_config_file_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_pipeline_streammux_config_file_get.restype = c_uint
+def dsl_pipeline_streammux_config_file_get(name):
     global _dsl
-    type = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_get(name, DSL_UINT_P(type))
-    return int(result), type.value
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_pipeline_streammux_config_file_get(name, 
+        DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
 
 ##
-## dsl_pipeline_streammux_nvbuf_mem_type_set()
+## dsl_pipeline_streammux_config_file_set()
 ##
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.restype = c_uint
-def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
+_dsl.dsl_pipeline_streammux_config_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_config_file_set.restype = c_uint
+def dsl_pipeline_streammux_config_file_set(name, config_file):
     global _dsl
-    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
+    result = _dsl.dsl_pipeline_streammux_config_file_set(name, config_file)
     return int(result)
+
+##
+## dsl_pipeline_streammux_batch_size_get()
+##
+_dsl.dsl_pipeline_streammux_batch_size_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_batch_size_get.restype = c_uint
+def dsl_pipeline_streammux_batch_size_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_batch_size_get(name, 
+        DSL_UINT_P(batch_size))
+    return int(result), batch_size.value
+
+##
+## dsl_pipeline_streammux_batch_size_set()
+##
+_dsl.dsl_pipeline_streammux_batch_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_batch_size_set.restype = c_uint
+def dsl_pipeline_streammux_batch_size_set(name, batch_size):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_batch_size_set(name, 
+        batch_size)
+    return int(result)
+
+##------------------------------------------------------------------------------------
+## NEW STREAMMUX SERVICES - End
+
+## -----------------------------------------------------------------------------------
+## OLD STREAMMUX SERVICES - Start
 
 ##
 ## dsl_pipeline_streammux_batch_properties_get()
@@ -6509,6 +7129,51 @@ def dsl_pipeline_streammux_padding_set(name, enabled):
     return int(result)
 
 ##
+## dsl_pipeline_streammux_nvbuf_mem_type_get()
+##
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_get.restype = c_uint
+def dsl_pipeline_streammux_nvbuf_mem_type_get(name):
+    global _dsl
+    type = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_get(name, DSL_UINT_P(type))
+    return int(result), type.value
+
+##
+## dsl_pipeline_streammux_nvbuf_mem_type_set()
+##
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_nvbuf_mem_type_set.restype = c_uint
+def dsl_pipeline_streammux_nvbuf_mem_type_set(name, type):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_nvbuf_mem_type_set(name, type)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_gpuid_get()
+##
+_dsl.dsl_pipeline_streammux_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_gpuid_get.restype = c_uint
+def dsl_pipeline_streammux_gpuid_get(name):
+    global _dsl
+    gpuid = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_gpuid_get(name, DSL_UINT_P(gpuid))
+    return int(result), gpuid.value
+
+##
+## dsl_pipeline_streammux_gpuid_set()
+##
+_dsl.dsl_pipeline_streammux_gpuid_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_streammux_gpuid_set.restype = c_uint
+def dsl_pipeline_streammux_gpuid_set(name, gpuid):
+    global _dsl
+    result =_dsl.dsl_pipeline_streammux_gpuid_set(name, gpuid)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## OLD STREAMMUX SERVICES - End
+
 ## dsl_pipeline_streammux_num_surfaces_per_frame_get()
 ##
 _dsl.dsl_pipeline_streammux_num_surfaces_per_frame_get.argtypes = [c_wchar_p, 
@@ -6530,6 +7195,31 @@ _dsl.dsl_pipeline_streammux_num_surfaces_per_frame_set.restype = c_uint
 def dsl_pipeline_streammux_num_surfaces_per_frame_set(name, num):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_num_surfaces_per_frame_set(name, num)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_attach_sys_ts_enabled_get()
+##
+_dsl.dsl_pipeline_streammux_attach_sys_ts_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_streammux_attach_sys_ts_enabled_get.restype = c_uint
+def dsl_pipeline_streammux_attach_sys_ts_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_streammux_attach_sys_ts_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_streammux_sync_inputs_enabled_set()
+##
+_dsl.dsl_pipeline_streammux_sync_inputs_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_streammux_sync_inputs_enabled_set.restype = c_uint
+def dsl_pipeline_streammux_sync_inputs_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_sync_inputs_enabled_set(name, 
+        enabled)
     return int(result)
 
 ##
@@ -6558,24 +7248,28 @@ def dsl_pipeline_streammux_sync_inputs_enabled_set(name, enabled):
     return int(result)
 
 ##
-## dsl_pipeline_streammux_gpuid_get()
+## dsl_pipeline_streammux_max_latency_get()
 ##
-_dsl.dsl_pipeline_streammux_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_pipeline_streammux_gpuid_get.restype = c_uint
-def dsl_pipeline_streammux_gpuid_get(name):
+_dsl.dsl_pipeline_streammux_max_latency_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_pipeline_streammux_max_latency_get.restype = c_uint
+def dsl_pipeline_streammux_max_latency_get(name):
     global _dsl
-    gpuid = c_uint(0)
-    result = _dsl.dsl_pipeline_streammux_gpuid_get(name, DSL_UINT_P(gpuid))
-    return int(result), gpuid.value
+    max_latency = c_uint(0)
+    result = _dsl.dsl_pipeline_streammux_max_latency_get(name, 
+        DSL_UINT_P(max_latency))
+    return int(result), max_latency.value
 
 ##
-## dsl_pipeline_streammux_gpuid_set()
+## dsl_pipeline_streammux_max_latency_set()
 ##
-_dsl.dsl_pipeline_streammux_gpuid_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_pipeline_streammux_gpuid_set.restype = c_uint
-def dsl_pipeline_streammux_gpuid_set(name, gpuid):
+_dsl.dsl_pipeline_streammux_max_latency_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_pipeline_streammux_max_latency_set.restype = c_uint
+def dsl_pipeline_streammux_max_latency_set(name, max_latency):
     global _dsl
-    result =_dsl.dsl_pipeline_streammux_gpuid_set(name, gpuid)
+    result = _dsl.dsl_pipeline_streammux_max_latency_set(name, 
+        max_latency)
     return int(result)
 
 ##
@@ -6596,6 +7290,26 @@ _dsl.dsl_pipeline_streammux_tiler_remove.restype = c_uint
 def dsl_pipeline_streammux_tiler_remove(name):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_tiler_remove(name)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_pph_add()
+##
+_dsl.dsl_pipeline_streammux_pph_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_pph_add.restype = c_uint
+def dsl_pipeline_streammux_pph_add(name, handler):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_pph_add(name, handler)
+    return int(result)
+
+##
+## dsl_pipeline_streammux_pph_remove()
+##
+_dsl.dsl_pipeline_streammux_pph_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pipeline_streammux_pph_remove.restype = c_uint
+def dsl_pipeline_streammux_pph_remove(name, handler):
+    global _dsl
+    result = _dsl.dsl_pipeline_streammux_pph_remove(name, handler)
     return int(result)
 
 ##
@@ -7393,6 +8107,14 @@ _dsl.dsl_info_version_get.restype = c_wchar_p
 def dsl_info_version_get():
     global _dsl
     return _dsl.dsl_info_version_get()
+
+##
+## dsl_info_use_new_nvstreammux_get()
+##
+_dsl.dsl_info_use_new_nvstreammux_get.restype = c_bool
+def dsl_info_use_new_nvstreammux_get():
+    global _dsl
+    return _dsl.dsl_info_use_new_nvstreammux_get()
 
 
 ##

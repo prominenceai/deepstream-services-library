@@ -65,8 +65,12 @@ SCENARIO( "An AvInputFile utility can read a MOV file correctly",  "[AvFile]" )
                 // based on imperical results for this .mov file
                 REQUIRE( avFile.videoWidth == 1920 );
                 REQUIRE( avFile.videoHeight == 1080 );
-                REQUIRE( avFile.fpsN == 30000 ); 
-                REQUIRE( avFile.fpsD == 1001 );
+                
+                // Updated for Ubuntu 22.04 / OpenCV 4.8.0
+                REQUIRE( avFile.fpsN == 29 ); 
+                REQUIRE( avFile.fpsD == 1 );
+//                REQUIRE( avFile.fpsN == 30000 ); 
+//                REQUIRE( avFile.fpsD == 1001 );
             }
         }
     }
@@ -100,7 +104,7 @@ SCENARIO( "An AvInputFile utility can read a MJPG file correctly",  "[AvFile]" )
     GIVEN( "A file path to a MJPG file" ) 
     {
         std::string filepath(
-            "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mjpeg");
+            "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p_mjpeg.mp4");
     
         WHEN( "When the AvInputFile object is created" )
         {

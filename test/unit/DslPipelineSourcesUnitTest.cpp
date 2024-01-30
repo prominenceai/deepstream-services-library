@@ -60,7 +60,29 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
             {
                 REQUIRE( pPipelineSourcesBintr->GetName() == pipelineSourcesName );
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
-                REQUIRE( pPipelineSourcesBintr->m_pStreammux != nullptr );
+                
+                if (pPipelineSourcesBintr->UseNewStreammux())
+                {
+                    std::string retConfigFile = pPipelineSourcesBintr->GetStreammuxConfigFile();
+                    REQUIRE( retConfigFile == "" );
+                    REQUIRE( pPipelineSourcesBintr->GetStreammuxBatchSize() == 0 );
+                } 
+                else
+                {
+                    uint retWidth(0), retHeight(0);
+                    pPipelineSourcesBintr->GetStreammuxDimensions(&retWidth, &retHeight);
+                    REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
+                    REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+                    REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == 
+                        DSL_NVBUF_MEM_TYPE_DEFAULT);
+                    REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+                    REQUIRE( pPipelineSourcesBintr->GetStreammuxPaddingEnabled() == 
+                        FALSE );
+                }
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame() == 1 );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxAttachSysTsEnabled() == TRUE );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled() == FALSE );
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxMaxLatency() == 0 );
             }
         }
     }
@@ -465,36 +487,40 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+        if (!pPipelineSourcesBintr->UseNewStreammux())
         {
-            REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
-                == DSL_NVBUF_MEM_TYPE_DEFAULT );
-        }
-        else
-        {
-            REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
-                == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE );
-        }
-            
-        WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
-        {
-            uint newNvbufMemType;
             if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
             {
-                newNvbufMemType = DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY;
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
+                    == DSL_NVBUF_MEM_TYPE_DEFAULT );
             }
             else
             {
-                newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
+                REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
+                    == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE );
             }
-        
-            pPipelineSourcesBintr->SetStreammuxNvbufMemType(newNvbufMemType);
-             
-            THEN( "The correct value is returned on get" )
+                
+            WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
             {
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == newNvbufMemType );
+                uint newNvbufMemType;
+                if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+                {
+                    newNvbufMemType = DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY;
+                }
+                else
+                {
+                    newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
+                }
+            
+                pPipelineSourcesBintr->SetStreammuxNvbufMemType(newNvbufMemType);
+                 
+                THEN( "The correct value is returned on get" )
+                {
+                    REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == newNvbufMemType );
+                }
             }
         }
     }
 }
+
 

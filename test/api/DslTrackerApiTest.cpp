@@ -25,6 +25,12 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslApi.h"
 
+static const std::wstring primary_gie_name(L"primary-gie");
+static std::wstring primary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
+
 SCENARIO( "The Components container is updated correctly on new Tracker", "[tracker-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -206,14 +212,14 @@ SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-ap
         REQUIRE( currWidth == width );
         REQUIRE( currHeight == height );
 
-        WHEN( "A the KTL Tracker's Max Dimensions are updated" ) 
+        WHEN( "The Tracker's Max Dimensions are updated" ) 
         {
             uint newWidth(300);
             uint newHeight(150);
             REQUIRE( dsl_tracker_dimensions_set(tracker_name.c_str(), 
                 newWidth, newHeight) == DSL_RESULT_SUCCESS );
 
-            THEN( "The list size and contents are updated correctly" ) 
+            THEN( "The correct dimensios are returned on get" ) 
             {
                 REQUIRE( dsl_tracker_dimensions_get(tracker_name.c_str(), 
                     &currWidth, &currHeight) == DSL_RESULT_SUCCESS );
@@ -226,63 +232,108 @@ SCENARIO( "The Trackers Max Dimensions can be queried and updated", "[tracker-ap
     }
 }
 
-SCENARIO( "A DCF Tracker can update its batch-processing-enabled and \
-    past-frame-reporting-enabled settings", "[tracker-api]" )
+SCENARIO( "The Trackers id-display-enabled can be queried and updated", "[tracker-api]" )
 {
-    GIVEN( "A new DCF Tracker in memory" ) 
+    GIVEN( "A new IOU Tracker in memory" ) 
     {
-        std::wstring tracker_name(L"dcf-tracker");
-        std::wstring dcf_perf_tracker_config_file(
-            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_perf.yml");
+        std::wstring tracker_name(L"iou-tracker");
+        std::wstring configFile(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
         uint width(480);
         uint height(272);
-        uint batch_processing_enabled(true);
-        uint past_frame_reporting_enabled(true);
 
-        REQUIRE( dsl_component_list_size() == 0 );
-        REQUIRE( dsl_tracker_new(tracker_name.c_str(), 
-            dcf_perf_tracker_config_file.c_str(), width, height) == 
-                DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_batch_processing_enabled_set(tracker_name.c_str(), 
-            batch_processing_enabled) == DSL_RESULT_SUCCESS );
+        boolean ret_id_display_enabled(0);
 
-        REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(tracker_name.c_str(), 
-            past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_tracker_id_display_enabled_get(tracker_name.c_str(), 
+            &ret_id_display_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_id_display_enabled == 1 );
 
-
-        boolean ret_batch_processing_enabled, ret_past_frame_reporting_enabled;
-        
-        REQUIRE( dsl_tracker_batch_processing_enabled_get(tracker_name.c_str(),
-            &ret_batch_processing_enabled) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_batch_processing_enabled == batch_processing_enabled);
-        
-        REQUIRE( dsl_tracker_past_frame_reporting_enabled_get(tracker_name.c_str(),
-            &ret_past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
-        REQUIRE( ret_past_frame_reporting_enabled == past_frame_reporting_enabled);
-
-        WHEN( "The batch processing and past frame reporting are disabled" ) 
+        WHEN( "The Tracker's id-display-enabled setting is updated" ) 
         {
-            boolean new_batch_processing_enabled(false), new_past_frame_reporting_enabled(false);
+            boolean new_id_display_enabled(false);
+            REQUIRE( dsl_tracker_id_display_enabled_set(tracker_name.c_str(), 
+                new_id_display_enabled) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_tracker_id_display_enabled_get(tracker_name.c_str(), 
+                    &ret_id_display_enabled) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_id_display_enabled == new_id_display_enabled );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A  Tracker can update its tensor-meta-settings correctly", "[tracker-api]" )
+{
+    GIVEN( "A new Tracker in memory" ) 
+    {
+        std::wstring tracker_name(L"tracker");
+        std::wstring configFile(
+            L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+        uint width(480);
+        uint height(272);
+
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
+
+        // check defaults first.
+        
+        boolean ret_input_enabled(true);
+        const wchar_t* c_ret_track_on_gie;
+        
+        REQUIRE( dsl_tracker_tensor_meta_settings_get(tracker_name.c_str(), 
+            &ret_input_enabled, &c_ret_track_on_gie) == DSL_RESULT_SUCCESS );
             
-            REQUIRE( dsl_tracker_batch_processing_enabled_set(tracker_name.c_str(),
-                new_batch_processing_enabled) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_input_enabled == 0 );
+
+        std::wstring ret_track_on_gie(c_ret_track_on_gie);
+        REQUIRE( ret_track_on_gie == L"" );
+
+        WHEN( "Using an invalid GIE name for track-on-gie" ) 
+        {
+            boolean new_input_enabled(true);
+            std::wstring new_track_on_gie(L"invalid-gie-name");
             
-            REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(tracker_name.c_str(),
-                new_past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
+            THEN( "The call to set the tensor-settings will fail" )
+            {
+                REQUIRE( dsl_tracker_tensor_meta_settings_set(tracker_name.c_str(),
+                    new_input_enabled, new_track_on_gie.c_str()) == 
+                        DSL_RESULT_TRACKER_SET_FAILED );
+                
+                REQUIRE( dsl_component_delete(tracker_name.c_str()) == 
+                    DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "Using a valid GIE name for track-on-gie" ) 
+        {
+            REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+                primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
+                0) == DSL_RESULT_SUCCESS );
+                
+            boolean new_input_enabled(true);
+
+            REQUIRE( dsl_tracker_tensor_meta_settings_set(tracker_name.c_str(),
+                new_input_enabled, primary_gie_name.c_str()) == 
+                    DSL_RESULT_SUCCESS );
             
             THEN( "The correct values are returned on get" )
             {
-                REQUIRE( dsl_tracker_batch_processing_enabled_get(tracker_name.c_str(),
-                    &ret_batch_processing_enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_batch_processing_enabled == new_batch_processing_enabled);
+                REQUIRE( dsl_tracker_tensor_meta_settings_get(tracker_name.c_str(), 
+                    &ret_input_enabled, &c_ret_track_on_gie) == DSL_RESULT_SUCCESS );
+                    
+                REQUIRE( ret_input_enabled == new_input_enabled );
+
+                ret_track_on_gie = c_ret_track_on_gie;
+                REQUIRE( ret_track_on_gie == primary_gie_name );
                 
-                REQUIRE( dsl_tracker_past_frame_reporting_enabled_get(tracker_name.c_str(),
-                    &ret_past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_past_frame_reporting_enabled == new_past_frame_reporting_enabled);
-                
-                REQUIRE( dsl_component_delete(tracker_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
@@ -313,30 +364,39 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Tracker", "[
 
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SINK) == 
+                    DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
-            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
-                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == 
+                        DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -359,30 +419,39 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tracker", 
 
         std::wstring customPpmName(L"custom-ppm");
 
-        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SRC) == 
+                    DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "The Padd Probe Handler can then be removed" ) 
             {
-                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
         WHEN( "A Sink Pad Probe Handler is added to the Tracker" ) 
         {
-            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+                customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
-                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == 
+                        DSL_RESULT_TRACKER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_tracker_pph_remove(tracker_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
@@ -459,18 +528,28 @@ SCENARIO( "The Tracker API checks for NULL input parameters", "[tracker-api]" )
 
                 REQUIRE( dsl_tracker_dimensions_get(NULL, &width, &height) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_dimensions_get(tracker_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_dimensions_get(tracker_name.c_str(), 
+                    &width, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_tracker_dimensions_set(NULL, width, height) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tracker_batch_processing_enabled_get(NULL, &enabled) == 
+                REQUIRE( dsl_tracker_id_display_enabled_get(NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tracker_batch_processing_enabled_set(NULL, enabled) == 
+                REQUIRE( dsl_tracker_id_display_enabled_get(tracker_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_id_display_enabled_set(NULL, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tracker_past_frame_reporting_enabled_get(NULL, 
-                    &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(NULL, 
-                    enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_tensor_meta_settings_get(NULL, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_tensor_meta_settings_get(tracker_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_tensor_meta_settings_get(tracker_name.c_str(), 
+                    &enabled, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tracker_tensor_meta_settings_set(NULL, 0, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_tracker_pph_add( NULL, NULL, 0) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );

@@ -114,7 +114,6 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
 #define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
-#define DSL_RESULT_TRACKER_PAD_TYPE_INVALID                         0x0003000A
 
 /**
  * Sink API Return Values
@@ -131,7 +130,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_RENDER_SINK                0x0004000D
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000D
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
 #define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
 #define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
@@ -140,13 +139,13 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
 #define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
 #define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED                       0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
 #define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
 #define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
-
+    
 /**
  * OSD API Return Values
  */
@@ -246,12 +245,15 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
 #define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
-#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000B
-#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000C
-#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x0008000D
-#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x0008000E
-#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x0008000F
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080010
+#define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_ADD_FAILED            0x0008000B
+#define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_REMOVE_FAILED         0x0008000C
+#define DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND         0x0008000D
+#define DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED                     0x0008000E
+#define DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED                  0x0008000F
+#define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x00080010
+#define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080011
+#define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080012
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080013
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -475,6 +477,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PREPROC_IN_USE                                   0x00B00005
 #define DSL_RESULT_PREPROC_SET_FAILED                               0x00B00006
 #define DSL_RESULT_PREPROC_IS_NOT_PREPROC                           0x00B00007
+#define DSL_RESULT_PREPROC_HANDLER_ADD_FAILED                       0x00B00008
+#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B00009
 
 /**
  * GPU Types
@@ -491,6 +495,13 @@ THE SOFTWARE.
 #define DSL_NVBUF_MEM_TYPE_CUDA_DEVICE                              2
 #define DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED                             3
 #define DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY                            4
+
+/**
+ * @brief DSL Pad Probe Handler - Stream Event Types
+ */
+#define DSL_PPH_EVENT_STREAM_ADDED                                  0
+#define DSL_PPH_EVENT_STREAM_DELETED                                1
+#define DSL_PPH_EVENT_STREAM_ENDED                                  2
 
 /**
  * @brief DSL Stream Format Types
@@ -510,7 +521,9 @@ THE SOFTWARE.
  */
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
-#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"   
+#define DSL_VIDEO_FORMAT_RGBA                                       L"RGBA"
+#define DSL_VIDEO_FORMAT_YUY2                                       L"YUY2"
+#define DSL_VIDEO_FORMAT_YVYU                                       L"YVYU"
 #define DSL_VIDEO_FORMAT_DEFAULT                                    DSL_VIDEO_FORMAT_NV12
 
 /**
@@ -651,6 +664,38 @@ THE SOFTWARE.
  @brief default UDP buffer size for RTSP Media Factory launc settings
   */
 #define DSL_DEFAULT_UDP_BUFER_SIZE                                  (512*1024)
+
+/**
+ * @brief RTSP Profile constants
+ */
+#define DSL_RTSP_PROFILE_UNKNOWN                                    0x00000000
+#define DSL_RTSP_PROFILE_AVP                                        0x00000001
+#define DSL_RTSP_PROFILE_SAVP                                       0x00000002
+#define DSL_RTSP_PROFILE_AVPF                                       0x00000004
+#define DSL_RTSP_PROFILE_SAVPF                                      0x00000008
+
+/**
+ * @brief RTSP Lower-Protocol constants
+ */
+#define DSL_RTSP_LOWER_TRANS_UNKNOWN                                0x00000000
+#define DSL_RTSP_LOWER_TRANS_UDP                                    0x00000001
+#define DSL_RTSP_LOWER_TRANS_UDP_MCAST                              0x00000002
+#define DSL_RTSP_LOWER_TRANS_TCP                                    0x00000004
+#define DSL_RTSP_LOWER_TRANS_HTTP                                   0x00000010
+#define DSL_RTSP_LOWER_TRANS_TLS                                    0x00000020
+
+/**
+ * @brief V4L2 Device Type Flags - must match GstV4l2DeviceTypeFlags
+ * see https://gstreamer.freedesktop.org/documentation/video4linux2/v4l2src.html?gi-language=c#GstV4l2DeviceTypeFlags
+ */
+#define DSL_V4L2_DEVICE_TYPE_NONE                                   0x00000000 
+#define DSL_V4L2_DEVICE_TYPE_CAPTURE                                0x00000001
+#define DSL_V4L2_DEVICE_TYPE_OUTPUT                                 0x00000002
+#define DSL_V4L2_DEVICE_TYPE_3D                                     0x00000004
+#define DSL_V4L2_DEVICE_TYPE_VBI_CAPTURE                            0x00000010
+#define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
+#define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
+#define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -807,13 +852,13 @@ THE SOFTWARE.
 #define DSL_IMAGE_EXT_JPG                                           "jpg"
 #define DSL_IMAGE_EXT_PNG                                           "png"
 
-#define DSL_STREAMMUX_4K_UHD_WIDTH                                  3840
-#define DSL_STREAMMUX_4K_UHD_HEIGHT                                 2160
-#define DSL_STREAMMUX_1K_HD_WIDTH                                   1920
-#define DSL_STREAMMUX_1K_HD_HEIGHT                                  1080
+#define DSL_4K_UHD_WIDTH                                            3840
+#define DSL_4K_UHD_HEIGHT                                           2160
+#define DSL_1K_HD_WIDTH                                             1920
+#define DSL_1K_HD_HEIGHT                                            1080
 
-#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_STREAMMUX_1K_HD_WIDTH
-#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_STREAMMUX_1K_HD_HEIGHT
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
 
 #define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
@@ -878,7 +923,7 @@ THE SOFTWARE.
 /**
  * @brief Sink Types for Render Players
  */
-#define DSL_RENDER_TYPE_OVERLAY                                     0
+#define DSL_RENDER_TYPE_3D                                          0
 #define DSL_RENDER_TYPE_WINDOW                                      1
 
 /**
@@ -1410,6 +1455,25 @@ typedef struct _dsl_ode_occurrence_info
        
 } dsl_ode_occurrence_info;
 
+/**
+ * @struct _dsl_threshold_value
+ * @brief defines an abstract class that contains two data points; a
+ * minimum threshold and a value to use if the threshold is met.
+ */
+typedef struct _dsl_threshold_value
+{
+    /**
+     * @brief the minimum threshold that defines when value is first valid.
+     */
+    uint threshold;
+
+    /**
+     * @brief the value to use if the minimum threshold is met.
+     */
+    uint value;
+    
+} dsl_threshold_value;
+
 //------------------------------------------------------------------------------------
 
 /**
@@ -1513,13 +1577,52 @@ typedef boolean (*dsl_pph_meter_client_handler_cb)(double* session_fps_averages,
 typedef uint (*dsl_pph_custom_client_handler_cb)(void* buffer, void* client_data);
 
 /**
- * @brief callback typedef for a client listener function. Once added to a Pipeline, 
- * the function will be called when the Pipeline changes state.
- * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous pipeline state
- * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current pipeline state
+ * @brief callback typedef for a client handler function to be used with a
+ * Buffer Timeout Pad Probe Handler (PPH). Once the PPH is added to a Component's
+ * Pad, the client callback will be called if a new buffer is not received within 
+ * a configurable amount of time.
+ * @param[in] timeout the timeout value that was exceeded, in units of seconds.
  * @param[in] client_data opaque pointer to client's data
  */
-typedef void (*dsl_state_change_listener_cb)(uint prev_state, uint curr_state, void* client_data);
+typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_data);
+    
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * End of Stream (EOS) Pad Probe Handler (PPH). Once the PPH is added to a 
+ * Component's Pad, the client callback will be called if an End-of-Stream 
+ * event is received on the Pad.
+ * @param[in] client_data opaque pointer to client's data
+ * @return DSL_PAD_PROBE_DROP to drop/consume the event, DSL_PAD_PROBE_OK to  
+ * allow the event to continue to the next component. DSL_PAD_PROBE_REMOVE
+ * to automatically remove the handler.
+ */
+typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
+
+/**
+ * @brief callback typedef for a client handler function to be used with a
+ * Streammux Stream Event Pad Probe Handler (PPH). Once the PPH is added to a 
+ * Component's Pad, the client callback will be called if a new Streammuxer 
+ * stream-event is received.
+ * @param[in] stream_event one of the DSL_PPH_EVENT_STREAM constant values.
+ * @param[in] stream_id the identifier of the stream added, deleted, or ended.
+ * @param[in] client_data opaque pointer to client's data.
+ * @return DSL_PAD_PROBE_OK to allow the event to continue to the next component,
+ * or DSL_PAD_PROBE_REMOVE to automatically remove the handler.
+ */
+typedef uint (*dsl_pph_stream_event_handler_cb)(uint stream_event, 
+    uint stream_id, void* client_data);
+
+/**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called when the Pipeline changes state.
+ * @param[in] prev_state one of DSL_PIPELINE_STATE constants for the previous
+ * pipeline state.
+ * @param[in] curr_state one of DSL_PIPELINE_STATE constants for the current 
+ * pipeline state.
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_state_change_listener_cb)(uint prev_state, 
+    uint curr_state, void* client_data);
 
 /**
  * @brief callback typedef for a client listener function. Once added to a Pipeline, 
@@ -1545,7 +1648,8 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
  * @param[in] key UNICODE key string for the key pressed
  * @param[in] client_data opaque pointer to client's user data
  */
-typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, void* client_data);
+typedef void (*dsl_sink_window_key_event_handler_cb)(const wchar_t* key, 
+    void* client_data);
 
 /**
  * @brief callback typedef for a client XWindow ButtonPress event handler function. 
@@ -1574,7 +1678,8 @@ typedef void (*dsl_sink_window_delete_event_handler_cb)(void* client_data);
  * @param[in] info pointer to session info, see dsl_recording_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* client_data);
+typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, 
+    void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for notification that an 
@@ -1582,7 +1687,8 @@ typedef void* (*dsl_record_client_listener_cb)(dsl_recording_info* info, void* c
  * @param[in] info pointer to capture info, see dsl_capture_info struct.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* client_data);
+typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, 
+    void* client_data);
 
 /**
  * @brief callback typedef for a client to listen for Player termination events.
@@ -1591,9 +1697,11 @@ typedef void (*dsl_capture_complete_listener_cb)(dsl_capture_info* info, void* c
 typedef void (*dsl_player_termination_event_listener_cb)(void* client_data);
 
 /**
- * @brief callback typedef for a client to listen for incoming Websocket connection events.
- * Important Note: Clients will be notified of the incoming connection prior to checking
- * for any available WebRTC Signaling Transceivers (WebRTC Sinks). This allows Client 
+ * @brief callback typedef for a client to listen for incoming Websocket connection
+ * events.
+ * Important Note: Clients will be notified of the incoming connection prior to
+ * checking.
+ * for any available WebRTC Signaling Transceivers (WebRTC Sinks). This allows Client
  * listeners to create and add a new WebRTC sink "on demand" - before returning. 
  * @param[in] path path for the incoming connection.
  * @param[in] client_data opaque pointer to client's user data
@@ -1650,27 +1758,6 @@ typedef void (*dsl_message_broker_send_result_listener_cb)(void* client_data,
 typedef void (*dsl_display_type_rgba_color_provider_cb)(double* red, 
     double* green, double* blue, double* alpha, void* client_data);
     
-/**
- * @brief callback typedef for a client handler function to be used with a
- * Buffer Timeout Pad Probe Handler (PPH). Once the PPH is added to a Component's
- * Pad, the client callback will be called if a new buffer is not received within 
- * a configurable amount of time.
- * @param[in] timeout the timeout value that was exceeded, in units of seconds.
- * @param[in] client_data opaque pointer to client's data
- */
-typedef void (*dsl_pph_buffer_timeout_handler_cb)(uint timeout, void* client_data);
-    
-/**
- * @brief callback typedef for a client handler function to be used with a
- * End of Stream (EOS) Pad Probe Handler (PPH). Once the PPH is added to a 
- * Component's Pad, the client callback will be called if an End-of-Stream 
- * event is received on the Pad.
- * @param[in] client_data opaque pointer to client's data
- * @return GST_PAD_PROBE_DROP to drop/consume the event, GST_PAD_PROBE_OK to  
- * allow the event to continue to the next component. 
- */
-typedef uint (*dsl_pph_eos_handler_cb)(void* client_data);
-
 /**
  * @brief Callback typedef for the App Source Component. The function is registered
  * with the App Source by calling dsl_source_app_data_handlers_add. Once the Pipeline 
@@ -2266,6 +2353,44 @@ DslReturnType dsl_ode_action_bbox_format_new(const wchar_t* name, uint border_wi
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale);
+
+/**
+ * @brief Creates a uniquely named "Style BBox Corners" ODE Action that styles
+ * the Objects BBox corners with RGBA Mutli-Lines.
+ * @param[in] name unique name for the "Scale Bounding Box" ODE Action. 
+ * @param[in] color RGBA Color to use for the styled BBox corners. 
+ * @param[in] length of each corner line defined as a percentage of the length of 
+ * the longest side of the Object's BBox.
+ * @param[in] max_length maximum length of each corner line defined as a percentage
+ * of the shortest side of the Object's BBox.
+ * @param[in] thickness_values an array of defined threshold values to use for each
+ * line's thickness.
+ * @param[in] num_values the number of values in the thickness_values array.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_style_corners_new(const wchar_t* name, 
+    const wchar_t* color, uint length, uint max_length,
+    dsl_threshold_value* thickness_values, uint num_values);
+
+/**
+ * @brief Creates a uniquely named "Style BBox Crosshair" ODE Action that styles
+ * the Objects BBox corners with RGBA Mutli-Lines.
+ * @param[in] name unique name for the "Scale Bounding Box" ODE Action. 
+ * @param[in] color RGBA Color to use for the styled BBox corners. 
+ * @param[in] radius of the crosshair defined as a percentage of the length of 
+ * the longest side of the Object's BBox.
+ * @param[in] max_radius maximum radius of crosshair defined as a percentage
+ * of the shortest side of the Object's BBox.
+ * @param[in] inner_radius radius of the crosshair-circle defined as a percentage of 
+ * the radius. 
+ * @param[in] thickness_values an array of defined threshold values to use for each
+ * line's thickness.
+ * @param[in] num_values the number of values in the thickness_values array.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_bbox_style_crosshair_new(const wchar_t* name, 
+    const wchar_t* color, uint radius, uint max_radius, uint inner_radius,
+    dsl_threshold_value* thickness_values, uint num_values);
 
 /**
  * @brief Creates a uniquely named Disable Handler Action that disables
@@ -4216,6 +4341,20 @@ DslReturnType dsl_pph_eos_new(const wchar_t* name,
     dsl_pph_eos_handler_cb handler, void* client_data);
     
 /**
+ * @brief Creates a new, uniquely named Streammux Stream-Event Pad Probe Handler (PPH).
+ * Once the PPH is added to a Component's Pad, the client callback will be called 
+ * if one of the NVIDIA Streammux downstream stream-events --  stream-added, stream-deleted,
+ * or stream-ended -- crosses the component's pad.
+ * @param[in] name unique name for the new Pad Probe Handler.
+ * @param[in] handler function to be called on new stream-event.
+ * @param[in] client_data opaque pointer to client data to be passed back
+ * into the handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
+ */
+DslReturnType dsl_pph_stream_event_new(const wchar_t* name,
+    dsl_pph_stream_event_handler_cb handler, void* client_data);
+    
+/**
  * @brief gets the current enabled setting for the named Pad Probe Handler
  * @param[in] name unique name of the Handler to query
  * @param[out] enabled true if the Handler is enabled, false otherwise
@@ -4484,49 +4623,115 @@ DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
     uint sensor_id);
 
 /**
- * @brief creates a new, uniquely named USB Camera Source component.  A unique 
- * device-location is assigned to each USB Source on creation, starting with 
- * "/dev/video0", followed by "/dev/video1", and so on. The default assignment 
- * can be overridden by calling dsl_source_usb_device_location_set. The call 
- * will fail if the given device-location is not unique. If a source is deleted, 
- * the device-location will be re-assigned to a new USB Source if one is created.
+ * @brief creates a new, uniquely named V4L2 Source component. 
  * @param[in] name unique name for the new Source
- * @param[in] width width of the source in pixels
- * @param[in] height height of the source in pixels
- * @param[in] fps-n frames/second fraction numerator
- * @param[in] fps-d frames/second fraction denominator
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_usb_new(const wchar_t* name,
-    uint width, uint height, uint fps_n, uint fps_d);
+DslReturnType dsl_source_v4l2_new(const wchar_t* name,
+    const wchar_t* device_location);
 
 /**
- * @brief Gets the device location setting for the named USB Source. A unique 
- * device-location is assigned to each USB Source on creation, starting with 
- * "/dev/video0", followed by "/dev/video1", and so on. The default assignment 
- * can be overridden by calling dsl_source_usb_device_location_set. The call 
- * will fail if the given device-location is not unique. If a source is deleted, 
- * the device-location will be re-assigned to a new USB Source if one is created.
- * @param[in] name unique name of the USB Source to query.
- * @param[out] device_location current device location setting. Default: /dev/video0.
+ * @brief Gets the device location setting for the named USB Source. 
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_location current device location setting.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_get(const wchar_t* name,
     const wchar_t** device_location);
     
 /**
- * @brief Sets the device location setting for the named USB Source. A unique 
- * device-location is assigned to each USB Source on creation, starting with 
- * "/dev/video0", followed by "/dev/video1", and so on. The service will 
- * fail if the given device-location is not unique. If a source is deleted, 
- * the device-location will be re-assigned to a new USB Source if one is created.
+ * @brief Sets the device location setting for the named USB Source. The service
+ * will fail if the given device-location is in use unique. 
  * @param[in] name unique name of the USB Source to update.
  * @param[in] device_location new device location setting to use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_set(const wchar_t* name,
     const wchar_t* device_location);
 
+/**
+ * @brief Sets the dimensions for the named V4L2 Source to use. 
+ * Set width and height to 0 to use the default device dimensions.
+ * @param[in] name unique name of the source to output.
+ * @param[in] width frame width for the V4L2 Device in pixels.
+ * @param[in] height frame height for the V4L2 Device in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+
+/**
+ * @brief Sets the frame-rate as a fraction for the named V4L2 Source.
+ * Set fps_n and fps_d to 0 to use the default device frame-rate.
+ * @param[in] name unique name of the source to query
+ * @param[in] fps_n frames per second numerator
+ * @param[in] fps_d frames per second denominator
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d);
+
+/**
+ * @brief Gets the device name setting for the named V4L2 Source.
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+    
+/**
+ * @brief Gets the device file-descriptor setting for the named V4L2 Source.
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_fd current device file-descriptor setting. 
+ * Default = -1. Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd);
+
+/**
+ * @brief Gets the device flags setting for the named V4L2 Source. 
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] device_flags device flags setting. One or more of the
+ * DSL_V4L2_DEVICE_TYPE flags. Default = DSL_V4L2_DEVICE_TYPE_NONE. The
+ * value is updated at runtime after negotiation with the V4L2 device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags);
+
+/**
+ * @brief Gets the current picture brightness, contrast, and hue settings
+ * for the named V4L2 Source.
+ * @param[in] name unique name of the V4L2 Source to query.
+ * @param[out] brightness current brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[out] contrast current picture color contrast setting or luma gain.
+ * Default = 0.
+ * @param[out] hue current picture color hue setting or color balence.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* hue);
+
+/**
+ * @brief Gets the picture brightness, contrast, and hue settings
+ * for the named V4L2 Source to use.
+ * @param[in] name unique name of the V4L2 Source to update.
+ * @param[in] brightness new brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[in] contrast new picture contrast setting or luma gain.
+ * Default = 0.
+ * @param[in] hue new picture color hue setting or color balence.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int hue);
+    
 /**
  * @brief creates a new, uniquely named URI Source component
  * @param[in] name unique name for the new URI Source
@@ -5023,6 +5228,7 @@ DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_rtsp_uri_set(const wchar_t* name, const wchar_t* uri);
+
 /**
  * @brief Gets the current buffer timeout for the named RTSP Source
  * @param[in] name name of the source object to query
@@ -5529,6 +5735,28 @@ DslReturnType dsl_preproc_unique_id_get(const wchar_t* name,
     uint* id);
 
 /**
+ * @brief Adds a pad-probe-handler to a named Preprocessor to be called to 
+ * process each frame buffer. A Preprocessor can have multiple Sink and Source
+ * pad-probe-handlers.
+ * @param[in] name unique name of the Preprocessor to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PREPROC_RESULT otherwise
+ */
+DslReturnType dsl_preproc_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from a named Preprocessor
+ * @param[in] name unique name of the Preprocessor to update
+ * @param[in] handler pad-probe-handler to remove.
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PREPROC_RESULT otherwise
+ */
+DslReturnType dsl_preproc_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
  * @brief Creates a new, uniquely named Segmentation Visualizer. Once created,
  * the Segmentation Visualizer can be added to a Primary GIE. 
  * @param[in] name unique name for the new Segmentation Visualizer
@@ -5561,7 +5789,7 @@ DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named Segmentation Visualizer.
  * One or more Pad Probe Handlers can be added to the SOURCE PAD only.
  * @param[in] name unique name of the Segmentation visualizer to update
  * @param[in] handler unique name of the pad probe handler to add
@@ -5570,8 +5798,7 @@ DslReturnType dsl_segvisual_dimensions_set(const wchar_t* name,
 DslReturnType dsl_segvisual_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a pad probe handler callback function from a named
- * Segmentation visualizer.
+ * @brief Removes a pad-probe-handler from a named Segmentation Visualizer.
  * @param[in] name unique name of the Segmentation visualizer to update
  * @param[in] handler unique name of the pad probe handler to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
@@ -5663,7 +5890,7 @@ DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size);
 DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named Primary Inference Component.
  * A Primary GIE can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the Primary GIE to update
  * @param[in] handler callback function to process pad probe data
@@ -5674,7 +5901,7 @@ DslReturnType dsl_infer_primary_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the Primary GIE
+ * @brief Removes a pad-probe-handler from a named Primary Inference Component.
  * @param[in] name unique name of the Primary GIE to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
@@ -5843,67 +6070,67 @@ DslReturnType dsl_tracker_dimensions_get(const wchar_t* name, uint* width, uint*
 DslReturnType dsl_tracker_dimensions_set(const wchar_t* name, uint width, uint height);
 
 /**
- * @brief Gets the current "enable-batch-process" settings for the named 
- * Tracker component. 
- * @param[in] name unique name of the Tracker to query
- * @param[out] true if batch-processing is enabled, fale otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @brief Gets the current tensor-meta settings for the named Tracker component. 
+ * @param[in] name unique name of the Tracker to query.
+ * @param[out] input_enabled if true, Tracker uses the tensor-meta from the Preprocessor if 
+ * available, and the PGIE identified by track_on_gie.
+ * @param[out] track_on_gie name of the PGIE to track on if input_enabled.  
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
-DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
-    boolean* enabled);
+DslReturnType dsl_tracker_tensor_meta_settings_get(const wchar_t* name, 
+    boolean* input_enabled, const wchar_t** track_on_gie);
 
 /**
- * @brief Sets the "enable-batch-process" settings for the named Tracker
- * component to use.
- * Note: This call is only effective if the low-level library supports 
- * both batch and per-stream processing.
- * @param[in] name unique name of the Tracker to query
- * @param[out] true to enable batch-processing enabled, fale otherwise
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @brief Sets the tensor-meta settings for the named Tracker component to use.
+ * @param[in] name unique name of the Tracker to update.
+ * @param[in] input_enabled if true, Tracker uses the tensor-meta from the Preprocessor if 
+ * available, and the PGIE identified by track_on_gie.
+ * @param[in] track_on_gie name of the PGIE to track on if input_enabled.  
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
-DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
-    boolean enabled);
+DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name, 
+    boolean input_enabled, const wchar_t* track_on_gie);
 
 /**
- * @brief Gets the current "enable-past-frame" settings for the named  
+ * @brief Gets the current "tracker-id-display-enabled" setting for the named  
  * Tracker component.
- * @param[in] name unique name of the Tracker to query
- * @param[out] true if past-frame reporting is enabled, fale otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @param[in] name unique name of the Tracker to query.
+ * @param[out] enabled if true, tracking-ids will be included in object labels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
-DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
+DslReturnType dsl_tracker_id_display_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
- * @brief Sets current "enable-past-frame" settings for the named Tracker 
- * component to use
- * Note: This call is only effective if the low-level library supports 
- * past frame reporting.
- * @param[in] name unique name of the Tracker to query
- * @param[out] true if past frame reporting is enabled, fale otherwise.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
+ * @brief Sets current "tracker-id-display-enabled" settings for the named Tracker 
+ * component to use.
+ * @param[in] name unique name of the Tracker to update.
+ * @param[out] enabled if true, tracking-ids will be included in object labels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise.
  */
-DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name, 
     boolean enabled);
-
+    
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * A Primary GIE can have multiple Sink and Source pad-probe-handlers
- * @param[in] name unique name of the Primary GIE to update
+ * @brief Adds a pad-probe-handler to a named Tracker.
+ * A Tracker can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the Tracker to update
  * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_tracker_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the Primary GIE
- * @param[in] name unique name of the Primary GIE to update
+ * @brief Removes a pad-probe-handler from a named Tracker.
+ * @param[in] name unique name of the Tracker to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TRACKER_RESULT otherwise
  */
-DslReturnType dsl_tracker_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_tracker_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
 
 /**
  * @brief creates a new, uniquely named Optical Flow Visualizer (OFV) obj
@@ -6072,7 +6299,7 @@ DslReturnType dsl_osd_process_mode_get(const wchar_t* name, uint* mode);
 DslReturnType dsl_osd_process_mode_set(const wchar_t* name, uint mode);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
+ * @brief Adds a pad-probe-handler to a named On-Screen-Display.
  * An On-Screen-Display can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the OSD to update
  * @param[in] handler callback function to process pad probe data
@@ -6083,7 +6310,7 @@ DslReturnType dsl_osd_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from the OSD
+ * @brief Removes a pad-probe-handler from a named On-Screen-Display.
  * @param[in] name unique name of the OSD to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
@@ -6097,7 +6324,7 @@ DslReturnType dsl_osd_pph_remove(const wchar_t* name,
  * @param[in] name unique name for the new Stream Demuxer Tee
  * @param[in] max_branches maximum number of branches that can be
  * added/connected to this Demuxer, before or during Pipeline play.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
 
@@ -6105,7 +6332,7 @@ DslReturnType dsl_tee_demuxer_new(const wchar_t* name, uint max_branches);
  * @brief Creates a new Demuxer Tee and adds a list of Branches
  * @param[in] name name of the Tee to create
  * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name, 
     uint max_branches, const wchar_t** branches);
@@ -6115,7 +6342,7 @@ DslReturnType dsl_tee_demuxer_new_branch_add_many(const wchar_t* name,
  * @param[in] name name of the Dumxer to update.
  * @param[in] branch name of Branch to add.
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
@@ -6126,7 +6353,7 @@ DslReturnType dsl_tee_demuxer_branch_add_to(const wchar_t* name,
  * @param[in] name name of the Dumxer to update.
  * @param[in] branch name of Branch to add.
  * @param[in] stream_id Source stream-id (demuxer source pad-id) to connect to.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name, 
     const wchar_t* branch, uint stream_id);
@@ -6135,7 +6362,7 @@ DslReturnType dsl_tee_demuxer_branch_move_to(const wchar_t* name,
  * @brief Gets the current max-branches setting for the named Deumuxer Tee
  * @param[in] name name of the Demuxer Tee to query
  * @param[out] max_branches current setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name, 
     uint* max_branches);
@@ -6144,7 +6371,7 @@ DslReturnType dsl_tee_demuxer_max_branches_get(const wchar_t* name,
  * @brief Sets the max-branches setting for the named Deumuxer Tee to use.
  * @param[in] name name of the Demuxer Tee to update
  * @param[in] max_branches new setting for max-branches
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name, 
     uint max_branches);
@@ -6152,63 +6379,187 @@ DslReturnType dsl_tee_demuxer_max_branches_set(const wchar_t* name,
 /**
  * @brief Creates a new, uniquely named Stream Splitter Tee component
  * @param[in] name unique name for the new Stream Splitter Tee
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
 
 /**
  * @brief Creates a new Demuxer Tee and adds a list of Branches
- * @param[in] name name of the Tee to create
- * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @param[in] name name of the Tee to create.
+ * @param[in] branches NULL terminated array of Branch names to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name, 
     const wchar_t** branches);
 
 /**
- * @brief adds a single Branch to a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @param[in] branch name of Branch to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief Creates a new, uniquely named Remuxer Tee component.
+ * @param[in] name unique name for the new Stream Remuxer Tee.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
+
+/**
+ * @brief Creates a new Remuxer Tee and adds a list of Branches to it.
+ * @param[in] name unique name for the new Remuxer Tee.
+ * @param[in] branches NULL terminated array of Branch names to add
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches);
+
+/**
+ * @brief Adds a single Branch to a Remuxer Tee to be linked to a specific set 
+ * of streams-ids.
+ * @param[in] name name of the Rumxer to update.
+ * @param[in] branch name of Branch to add.
+ * @param[in] stream_ids array of specific stream-ids to connect to.
+ * @param[in] num_stream_ids number of ids in the stream-ids array.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint* stream_ids, uint num_stream_ids);
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - Start
+
+/**
+ * @brief Gets the current batch-size setting for the named Remuxer.
+ * @param[in] name unique name of the Remuxer to query.
+ * @param[out] batch_size the current batch size in use.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_size_get(const wchar_t* name, 
+    uint* batch_size);
+
+/**
+ * @brief Updates the named Remuxer's batch-size setting.
+ * @param[in] name unique name of the Remuxer to update.
+ * @param[out] batch_size the new batch size to use.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name, 
+    uint batch_size);
+
+/**
+ * @brief Get the current Streammuxer config-file in use by a named Remuxer Branch 
+ * of a named Remuxer Tee.
+ * @param[in] name name of the Rumxer to update.
+ * @param[in] branch name of Branch to update.
+ * @param[out] config_file path to the Streammuxer config-file currently in use
+ * by the named Remuxer Branch.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t** config_file);
+
+/**
+ * @brief Get the current Streammuxer config-file in use by a named Remuxer Branch 
+ * of a named Remuxer Tee.
+ * @param[in] name name of the Rumxer to update.
+ * @param[in] branch name of Branch to update.
+ * @param[in] config_file absolute or relative path to a Streammuxer config-file for
+ * the named Remuxer Branch to use.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
+ */
+DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t* config_file);
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - Start
+
+/**
+ * @brief Gets the current batch-size and batch-push-timeout properties for the 
+ * named Remuxer.
+ * @param[in] name unique name of the Remuxer to query
+ * @param[out] batch_size the current batch size in use.
+ * @param[out] batch_timeout the current batch timeout in use. 
+ * Default = -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout);
+
+/**
+ * @brief Updates the named Remuxer's batch-size and batch-push-timeout properties
+ * @param[in] name unique name of the Remuxer to update.
+ * @param[out] batch_size the new batch size to use.
+ * @param[out] batch_timeout the new batch timeout to use. Set to -1 for no timeout.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout);
+
+/**
+ * @brief Get the current output frame dimensions for the named Remuxer.
+ * @param[in] name name of the Remuxer to query.
+ * @param[out] width current output frame width in units of pixels.
+ * @param[out] height current output frame height in units of pixels.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+ */
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Set the output dimensions for the named Remuxer to use.
+ * @param[in] name name of the Remuxer to update.
+ * @param[in] width new output frame width to use in units of pixels.
+ * @param[in] height new output frame height to use in units of pixels.
+ * @return DSL_RESULT_SUCCESS on successful query, one of DSL_RESULT_TEE on failure.
+*/
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
+    
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - End
+
+/**
+ * @brief adds a single Branch to a Demuxer, Remuxer, or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @param[in] branch name of Branch to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch);
 
 /**
- * @brief adds a list of Branches to a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @param[in] branches NULL terminated array of Branch names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief adds a list of Branches to a Demuxer, Reuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @param[in] branches NULL terminated array of Branch names to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches);
 
 /**
- * @brief removes a single Branch from a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @param[in] branch name of Branch to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief removes a single Branch from a Stream Demuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @param[in] branch name of Branch to remove.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch);
 
 /**
- * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
+ * @brief removes a list of Branches from a Stream Demuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
  * @param[in] branches NULL terminated array of Branch names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches);
 
 /**
- * @brief removes all Branches from a Stream Demuxer or Splitter Tee
- * @param[in] name name of the Tee to update
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief removes all Branches from a Stream Demuxer or Splitter Tee.
+ * @param[in] name name of the Tee to update.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_remove_all(const wchar_t* name);
 
 /**
- * @brief gets the current number of branches owned by Tee
- * @param[in] tee name of the tee to query
- * @param[out] count current number of branches 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @brief gets the current number of branches owned by the named Tee.
+ * @param[in] tee name of the tee to query.
+ * @param[out] count current number of branches.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
 
@@ -6220,10 +6571,10 @@ DslReturnType dsl_tee_branch_count_get(const wchar_t* name, uint* count);
  * will need to be extended it he frame-rate for the stream is less than 1 fps.
  * The timeout is needed in case the Source upstream has been removed or is in
  * a bad state in which case the pad callback will never be called.
- * @param[in] name name of the Demuxer Tee to query
+ * @param[in] name name of the Demuxer Tee to query.
  * @param[out] timeout current timeout value in units of seconds. 
  * Default = DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name, 
     uint* timeout);
@@ -6236,27 +6587,27 @@ DslReturnType dsl_tee_blocking_timeout_get(const wchar_t* name,
  * will need to be extended it he frame-rate for the stream is less than 1 fps.
  * The timeout is needed in case the Source upstream has been removed or is in
  * a bad state in which case the pad callback will never be called.
- * @param[in] name name of the Demuxer Tee to query
+ * @param[in] name name of the Demuxer Tee to query.
  * @param[in] timeout new timeout value in units of seconds.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_blocking_timeout_set(const wchar_t* name, 
     uint timeout);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
- * @param[in] name unique name of the Tee to update
- * @param[in] handler callback function to process each frame buffer
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_DEMUXER_RESULT otherwise
+ * @brief Adds a pad-probe-handler to a named Tee.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only.
+ * @param[in] name unique name of the Tee to update.
+ * @param[in] handler unique name of the pad probe handler to add.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a pad probe handler callback function from a named Tee
- * @param[in] name unique name of the Tee to update
- * @param[in] handler unique name of the pad probe handler to had
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TEE_RESULT otherwise
+ * @brief Removes a pad-probe-handler from a named Tee.
+ * @param[in] name unique name of the Tee to update.
+ * @param[in] handler unique name of the pad probe handler to remove.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TEE_RESULT on failure.
  */
 DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler);
 
@@ -6438,37 +6789,77 @@ DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
 DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
     
 /**
- * @brief creates a new, uniquely named Fake Sink component
- * @param[in] name unique component name for the new Fake Sink
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @brief Creates a new, uniquely named Fake Sink component.
+ * @param[in] name unique component name for the new Fake Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 
 /**
- * @brief creates a new, uniquely named Ovelay Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @param[in] display_id Id of the display to overlay, 0 = main display
- * @param[in] depth overlay depth for this Overlay Sink
- * @param[in] offset_x upper left corner offset in the X direction in pixels
- * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the Ovelay Sink in pixels
- * @param[in] heigth height of the Overlay Sink in pixels
+ * @brief Creates a new, uniquely named 3D Window Sink component.
+ * @param[in] name unique component name for the new 3D Window Sink.
+ * @param[in] offset_x upper left corner offset in the X direction in pixels.
+ * @param[in] offset_y upper left corner offset in the Y direction in pixels.
+ * @param[in] width width of the 3D Window Sink in pixels
+ * @param[in] heigth height of the 3D Window Sink in pixels
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
-    uint depth, uint offset_x, uint offset_y, uint width, uint height);
+DslReturnType dsl_sink_window_3d_new(const wchar_t* name, 
+    uint offset_x, uint offset_y, uint width, uint height);
 
 /**
- * @brief Creates a new, uniquely named Window Sink component
- * @param[in] name unique component name for the new Overlay Sink
- * @param[in] offset_x upper left corner offset in the X direction in pixels
- * @param[in] offset_y upper left corner offset in the Y direction in pixels
- * @param[in] width width of the Window Sink in pixels
- * @param[in] heigth height of the Window Sink in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ * @brief Creates a new, uniquely named EGL Window Sink component.
+ * @param[in] name unique component name for the new EGL Window Sink.
+ * @param[in] offset_x upper left corner offset in the X direction in pixels.
+ * @param[in] offset_y upper left corner offset in the Y direction in pixels.
+ * @param[in] width width of the EGL Window Sink in pixels.
+ * @param[in] heigth height of the EGL Window Sink in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT.
  */
-DslReturnType dsl_sink_window_new(const wchar_t* name, 
+DslReturnType dsl_sink_window_egl_new(const wchar_t* name, 
     uint offset_x, uint offset_y, uint width, uint height);
+
+/**
+ * @brief returns the current X and Y offsets for named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to query.
+ * @param[out] offset_x current offset in the X direction for the Window Sink 
+ * in pixels.
+ * @param[out] offset_y current offset in the Y direction for the Window Sink 
+ * in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y);
+
+/**
+ * @brief sets the X and Y offsets for the named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to update - of type Overlay or Window
+ * @param[in] offset_x new offset for the Window Sink in the X direction in pixels
+ * @param[in] offset_y new offset for the Window Sink in the Y direction in pixels
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y);
+    
+/**
+ * @brief Returns the current dimensions for the named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to query.
+ * @param[out] width current width of Window Sink in pixels.
+ * @param[out] height current height of the Window Sink in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT.
+ */
+DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height);
+
+/**
+ * @brief Sets the dimensionsfor the named Window Sink; 3D or EGL.
+ * @param[in] name name of the Window Sink to update.
+ * @param[in] width width to set the video recording in pixels.
+ * @param[in] height height to set the video in pixels.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
+    uint width, uint height);
 
 /**
  * @brief Gets the named Window Sinks's current XWindow handle. The handle will 
@@ -6491,34 +6882,15 @@ DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle);
 DslReturnType dsl_sink_window_handle_set(const wchar_t* name, uint64_t handle);
 
 /**
- * @brief clears the named Window Sinks's XWindow.
+ * @brief Clears the named Window Sinks's XWindow; 3D or EGL.
  * @param[in] name name of the Window Sink to update.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_clear(const wchar_t* name);
 
 /**
- * @brief Gets the current "force-aspect-ration" property setting for the 
- * named Window Sink.
- * @param[in] name unique name of the Window Sink to query.
- * @param[out] force true if the apect ratio is forced, false otherwise.
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
-    boolean* force);
-
-/**
- * @brief Sets the "force-aspect-ration" property for the named Window Sink
- * @param[in] name unique name of the Window Sink to update
- * @param[in] force set to true to force the apect ratio, false otherwise
- * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
- */
-DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
-    boolean force);
-
-/**
- * @brief Gets the current full-screen-enabled setting for the named Window Sink
- * @param[in] name name of the Window Sink to query
+ * @brief Gets the current full-screen-enabled setting for the named Window Sink.
+ * @param[in] name name of the Window Sink to query; 3D or EGL.
  * @param[out] enabled true if full-screen-mode is currently enabled, false otherwise 
   * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
 */
@@ -6527,7 +6899,7 @@ DslReturnType dsl_sink_window_fullscreen_enabled_get(const wchar_t* name,
 
 /**
  * @brief Sets the full-screen-enabled setting for the named Window Sink to use.
- * @param[in] name name of the Window Sink to update.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] enabled if true, sets the XWindow to full-screen on creation.
  * The service will fail if called after the XWindow has been created.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6536,9 +6908,9 @@ DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name,
     boolean enabled);
 
 /**
- * @brief adds a callback to a named Window Sink to be notified on Window 
+ * @brief Adds a callback to a named Window Sink to be notified on Window 
  * KeyRelease events.
- * @param[in] name name of the Window Sink to update
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to handle Window key events.
  * @param[in] client_data pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6549,7 +6921,7 @@ DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name,
 /**
  * @brief Removes a callback from a named Window Sink previously added with 
  * dsl_sink_window_key_event_handler_add.
- * @param[in] name name of the Window Sink to update.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
@@ -6559,7 +6931,7 @@ DslReturnType dsl_sink_window_key_event_handler_remove(const wchar_t* name,
 /**
  * @brief Adds a callback to a named Window Sink be notified on Window 
  * ButtonPress Event
- * @param[in] name name of the Window Sink to update
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to handle Window button events.
  * @param[in] client_data pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6569,9 +6941,9 @@ DslReturnType dsl_sink_window_button_event_handler_add(const wchar_t* name,
 
 /**
  * @brief Removes a callback from a named Window Sink previously added with 
- * dsl_sink_window_button_event_handler_add
- * @param[in] name name of the Window Sink to update
- * @param[in] handler pointer to the client's function to remove
+ * dsl_sink_window_button_event_handler_add.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
+ * @param[in] handler pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */ 
 DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name, 
@@ -6579,8 +6951,8 @@ DslReturnType dsl_sink_window_button_event_handler_remove(const wchar_t* name,
 
 /**
  * @brief Adds a callback to a named Window Sink to be notified on Window 
- * Delete message event
- * @param[in] name name of the Window Sink to update
+ * Delete message event.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
  * @param[in] handler pointer to the client's function to handle a Window Delete event.
  * @param[in] client_data pointer to client data passed back to the handler function.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
@@ -6590,63 +6962,32 @@ DslReturnType dsl_sink_window_delete_event_handler_add(const wchar_t* name,
 
 /**
  * @brief removes a callback from a named Window Sink previously added with 
- * dsl_sink_window_delete_event_handler_add
- * @param[in] name name of the Window Sink to update
- * @param[in] handler pointer to the client's function to remove
+ * dsl_sink_window_delete_event_handler_add.
+ * @param[in] name name of the Window Sink to update; 3D or EGL.
+ * @param[in] handler pointer to the client's function to remove.
  * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
 DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name, 
     dsl_sink_window_delete_event_handler_cb handler);
-
-/**
- * @brief returns the current X and Y offsets for the Render Sink
- * @param[in] name name of the Render Sink to query - of type Overlay or Window
- * @param[out] offset_x current offset in the X direction for the Render Sink in pixels
- * @param[out] offset_y current offset in the Y direction for the Render Sink in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
-    uint* offset_x, uint* offset_y);
-
-/**
- * @brief sets the X and Y offsets for the On-Screen-Display clock
- * @param[in] name name of the Render Sink to update - of type Overlay or Window
- * @param[in] offset_x new offset for the Render Sink in the X direction in pixels
- * @param[in] offset_y new offset for the Render Sink in the Y direction in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
-    uint offset_x, uint offset_y);
     
 /**
- * @brief Returns the dimensions, width and height, in use by the Render Sink
- * The Render Sink can be of type Window Sink or Overlay Sink
- * @param[in] name name of the Render Sink to query
- * @param[out] width current width of the video recording in pixels
- * @param[out] height current height of the video recording in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT
+ * @brief Gets the current "force-aspect-ratio" property setting for the 
+ * named EGL Window Sink.
+ * @param[in] name unique name of the EGL Window Sink to query.
+ * @param[out] force true if the apect ratio is forced, false otherwise.
+ * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SINK_RESULT otherwise.
  */
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height);
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_get(const wchar_t* name, 
+    boolean* force);
 
 /**
- * @brief Sets the dimensions, width and height, for the Render Sink
- * @param[in] name name of the Render Sink to update
- * @param[in] width width to set the video recording in pixels
- * @param[in] height height to set the video in pixels
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @brief Sets the "force-aspect-ratio" property for the named EGL Window Sink
+ * @param[in] name unique name of the EGL Window Sink to update
+ * @param[in] force set to true to force the apect ratio, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful update, DSL_RESULT_SINK_RESULT otherwise.
  */
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
-    uint width, uint height);
-
-/**
- * @brief Resets the Render Sink causing it to close it's Rendering surface.
- * The Sink can only be reset when in a state of NULL or READY. 
- * A new surface will be created on Pipeline play, Overlay or Window.
- * @param[in] name unique name of the Render Sink to reset
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
- */
-DslReturnType dsl_sink_render_reset(const wchar_t* name);
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name, 
+    boolean force);
 
 /**
  * @brief creates a new, uniquely named File Sink component
@@ -6882,8 +7223,38 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
     uint width, uint height);
 
 /**
- * @brief creates a new, uniquely named RTSP Sink component
- * @param[in] name unique coomponent name for the new RTSP Sink
+ * @brief creates a new, uniquely named RTMP Sink component. 
+ * IMPORT! Although derived from the Encode Sink, only the H264 codec 
+ * is supported.
+ * @param[in] name unique component name for the new RTMP Sink.
+ * @param[in] uri RTMP URI to stream to.
+ * @param[in] bitrate in bits per second. Set to 0 to use the Encoder default 
+ * bitrate (4Mbps).
+ * @param[in] interval frame interval to encode at.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+ DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
+    uint bitrate, uint interval);
+
+/**
+ * @brief Gets the current URI in use by the named RTMP Sink.
+ * @param[in] name name of the RTMP Sink to query.
+ * @param[out] uri URI in use by the RTMP Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtmp_uri_get(const wchar_t* name, const wchar_t** uri);
+
+/**
+ * @brief Sets the current URI for the named RTMP Sink to use.
+ * @param[in] name name of the RTMP Sink to update.
+ * @param[in] uri new URI for the RTMP Sink to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri);
+
+/**
+ * @brief creates a new, uniquely named RTSP Server Sink component
+ * @param[in] name unique component name for the new RTSP Server Sink
  * @param[in] host address for the RTSP Server
  * @param[in] port UDP port number for the RTSP Server
  * @param[in] port RTSP port number for the RTSP Server
@@ -6893,17 +7264,120 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtmpPort, uint codec, uint bitrate, uint interval);
 
 /**
- * @brief gets the current codec and video media container formats
+ * @brief gets the current codec and video media container formats for the
+ * named RTSP Server Sink.
  * @param[in] name unique name of the Sink to query
  * @param[out] port UDP Port number to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
     uint* udpPort, uint* rtspPort);
+
+/**
+ * @brief creates a new, uniquely named RTSP Client Sink component.
+ * @param[in] name unique component name for the new RTSP Client Sink.
+ * @param[in] uri RTSP uri to stream to.
+ * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265.
+ * @param[in] bitrate in bits per second - H264 and H265 only.
+ * Set to 0 to use the Encoder default bitrate (4Mbps).
+ * @param[in] interval frame interval to encode at.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+     uint codec, uint bitrate, uint interval);
+
+/**
+ * @brief Sets the user credentials for the named RTSP Client Sink to use.
+ * Note: there is no corresponding "Get" service for user credentials, 
+ * meaning, there is no way of reading the current credentials once set.
+ * @param[in] name name of the RTSP Client to update.
+ * @param[in] user_id URI user id for authentication.
+ * @param[in] user_pw URI user password for authentication.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
+    const wchar_t* user_id, const wchar_t* user_pw);
+
+/**
+ * @brief Gets the current latency setting for the named RTSP Client Sink.
+ * @param[in] name name of the RTSP Client Sink to query.
+ * @param[in] latency current latency setting = amount of data to buffer in ms.
+ * Default = 2000
+ * @return[in] DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, uint* latency);
+
+/**
+ * @brief Sets the latency setting for the named RTSP Client Sink to use.
+ * @param[in] name name of the RTSP Client to update.
+ * @param[in] latency new latency setting = amount of data to buffer in ms.
+ * @return[in] DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, uint latency);
+
+/**
+ * @brief Gets the current allowed RTSP profiles for the named RTSP Client Sink.
+ * @param[in] name name of the RTSP Client Sink object to query
+ * @param[out] profiles mask of DSL_RTSP_PROFILE constant values. 
+ * Default = DSL_RTSP_PROFILE_AVP.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles);
+
+/**
+ * @brief Sets the allowed RTSP profiles for the named RTSP Client Sink to use.
+ * @param[in] name name of the RTSP Client Sink object to update
+ * @param[in] profiles mask of DSL_RTSP_PROFILE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles);
+
+/**
+ * @brief Gets the current allowed RTSP lower-protocols for the named 
+ * RTSP Client Sink.
+ * @param[in] name name of the RTSP Client Sink object to query
+ * @param[out] protocols mask of DSL_RTSP_LOWER_TRANS constant values. 
+ * Default = DSL_RTSP_LOWER_TRANS_TCP + DSL_RTSP_LOWER_TRANS_UDP_MCAST +
+ * DSL_RTSP_LOWER_TRANS_UDP.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_protocols_get(const wchar_t* name,
+    uint* protocols);
+
+/**
+ * @brief Sets the allowed RTSP lower-protocols for the named RTSP Client
+ * Sink to use.
+ * @param[in] name name of the RTSP Client Sink object to update
+ * @param[in] protocols mask of DSL_RTSP_LOWER_TRANS constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols);
+
+/**
+ * @brief Gets the current connection validation flags for the named RTSP Client Sink.
+ * @param[in] name name of the RTSP Client Sink object to query
+ * @param[out] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_get(const wchar_t* name,
+    uint* flags);
+
+/**
+ * @brief Sets the connection validation flags for the named RTSP Client Sink to use.
+ * @param[in] name name of the RTSP Client Sink object to update
+ * @param[in] flags mask of DSL_TLS_CERTIFICATE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_set(const wchar_t* name,
+    uint flags);
 
 /**
  * @brief creates a new, uniquely named Interpipe Sink component.
@@ -7069,6 +7543,19 @@ DslReturnType dsl_sink_frame_capture_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
  */
 DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name);
+    
+/**
+ * @brief Schedules a Frame-Capture action for a specified frame-number to be
+ * processed by the named Frame-Capture Sink. This service is designed to be
+ * called by an upstream Custom Pad Probe Handler (PPH) which has access to the
+ * frame_number while processing frame and object metadata for each buffer.
+ * @param[in] name unique name of the Frame-Capture Sink to use.
+ * @param[in] frame_number unique frame-number of the frame to capture. This 
+ * service will fail if "frame_number < the Sink's current frame-number".
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
+ */
+DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
+    uint64_t frame_number);
     
 /**
  * @brief creates a new, uniquely named WebRTC Sink component
@@ -7279,6 +7766,117 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     const wchar_t* connection_string, const wchar_t* topic);
 
 /**
+ * @brief Creates a new, uniquely named V4L2 Sink that streams to a V4L2 compatable
+ * device or v4l2loopback
+ * @param[in] name unique component name for the new V4L2 Sink
+ * @param[in] device_location device-location setting for the V4L2 Sink
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_v4l2_new(const wchar_t* name, 
+    const wchar_t* device_location);
+
+/**
+ * @brief Gets the device location setting for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_location current device location setting.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+    
+/**
+ * @brief Sets the device location setting for the named V4L2 Sink. 
+ * @param[in] name unique name of the V4L2 Sink to update.
+ * @param[in] device_location new device location setting to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+    
+/**
+ * @brief Gets the device name setting for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+    
+/**
+ * @brief Gets the device file-descriptor setting for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_fd current device file-descriptor setting. 
+ * Default = -1. Updated after negotiation with the V4L2 Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd);
+
+/**
+ * @brief Gets the device flags setting for the named V4L2 Sink. 
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] device_flags device flags setting. One or more of the
+ * DSL_V4L2_DEVICE_TYPE flags. Default = DSL_V4L2_DEVICE_TYPE_NONE. The
+ * value is updated at runtime after negotiation with the V4L2 device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags);
+    
+/**
+ * @brief Gets the current buffer-in-format for the named V4L2 Sink. The
+ * buffer-in-format defines the format set on input to the v4l2sink plugin.
+ * @param name unique name of the V4L2 Sink Component to query.
+ * @param[out] format current buffer-in-format. One of the DSL_VIDEO_FORMAT
+ * constant string values. Default = DSL_VIDEO_FORMAT_YUY2.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_buffer_in_format_get(const wchar_t* name,
+    const wchar_t** format);
+
+/**
+ * @brief Sets the buffer-in-format for the named V4L2 Sink to use. The
+ * buffer-in-format defines the format set on input to the v4l2sink plugin.
+ * @param name unique name of the V4L2 Sink Component to query.
+ * @param[in] format new buffer-int-format to use. One of the DSL_VIDEO_FORMAT
+ * constant string values.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_v4l2_buffer_in_format_set(const wchar_t* name,
+    const wchar_t* format);
+
+/**
+ * @brief Gets the current picture brightness, contrast, and saturation settings
+ * for the named V4L2 Sink.
+ * @param[in] name unique name of the V4L2 Sink to query.
+ * @param[out] brightness current brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[out] contrast current picture color contrast setting or luma gain.
+ * Default = 0.
+ * @param[out] saturation current picture color saturation setting or chroma gain.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* saturation);
+
+/**
+ * @brief Gets the picture brightness, contrast, and saturation settings
+ * for the named V4L2 Sink to use.
+ * @param[in] name unique name of the V4L2 Sink to update.
+ * @param[in] brightness new brightness level, or more precisely, the 
+ * black level. Default = 0.
+ * @param[in] contrast new picture contrast setting or luma gain.
+ * Default = 0.
+ * @param[in] saturation new picture color saturation setting or chroma gain.
+ * Default = 0.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int saturation);
+
+/**
  * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
  * the Sink will synchronize on the clock.
  * @param[in] name unique name of the Sink to query
@@ -7357,8 +7955,8 @@ DslReturnType dsl_sink_qos_enabled_get(const wchar_t* name, boolean* enabled);
 DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
 
 /**
- * @brief Adds a pad-probe-handler to be called to process each frame buffer.
- * One or more Pad Probe Handlers can be added to the SINK PAD only (single stream).
+ * @brief Adds a pad-probe-handler to a named Sink.
+ * One or more Pad Probe Handlers can be added to the SINK PAD only.
  * @param[in] name unique name of the Sink to update
  * @param[in] handler unique name of the pad probe handler to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
@@ -7366,7 +7964,7 @@ DslReturnType dsl_sink_qos_enabled_set(const wchar_t* name, boolean enabled);
 DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Removes a pad probe handler callback function from a named Sink
+ * @brief Removes a pad-probe-handler from a named Sink.
  * @param[in] name unique name of the Sink to update
  * @param[in] handler unique name of the pad probe handler to remove
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
@@ -7603,26 +8201,63 @@ DslReturnType dsl_pipeline_component_remove(const wchar_t* name,
 DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name, 
     const wchar_t** components);
 
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
 /**
- * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
- * @param[in] name name of the pipeline to query.
- * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @brief Gets the current Config File in use by the named Pipeline's Streammuxer.
+ * @param[in] name unique name of Pipeline to query
+ * @param[out] config_file absolute or relative Config file currently in use. 
+ * Default = NULL. Streammuxer will use all default vaules.
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
-    uint* type);
+DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file);
 
 /**
- * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
- * @param[in] name name of the pipeline to update.
- * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @brief Sets the Config File to use by the named Pipeline's Streammuxer.
+ * @param[in] name unique name of Pipeline to update.
+ * @param[in] config_file absolute or relative pathspec to new Config file to use.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
-    uint type);
-    
+DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file);
+
+/**
+ * @brief Gets the current batch-size setting for the named Pipeline's Streammuxer.
+ * Note: the default batch_size, prior to running the Pipeline, is 0 unless
+ * explicity set. If not set, the batch-size will be set to the number of Sources
+ * when the Pipeline is called to play. 
+ * @param[in] name unique name of the Pipeline to query
+ * @param[out] batch_size the current batch size in use.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
+    uint* batch_size);
+
+/**
+ * @brief Updates the batch-size property for the named Pipeline's Streammuxer.
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[in] batch_size the new batch size to use. If set to 0, the batch-size 
+ * will be set to the number of Sources when the Pipeline is called to play.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
+    uint batch_size);
+
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - End
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+// OLD NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
 /**
  * @brief Queryies the named Pipeline's stream-muxer for its current batch properties
  * @param[in] name unique name of the Pipeline to query
@@ -7686,8 +8321,50 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name,
     boolean enabled);
 
 /**
- * @brief returns the current num-surfaces-per-frame stream-muxer setting 
- * for the named Pipeline.
+ * @brief Queries a Pipeline's stream-muxer for its current NVIDIA buffer memory type.
+ * @param[in] name name of the pipeline to query.
+ * @param[out] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type);
+
+/**
+ * @brief Updates a Pipeline's stream-muxer with a new NVIDIA memory type to use
+ * @param[in] name name of the pipeline to update.
+ * @param[in] type one of the DSL_NVBUF_MEM constant values.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type);
+    
+/**
+ * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] gpuid current GPU ID setting
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
+
+/**
+ * @brief Sets the current stream-muxer GPU ID for the named Pipeline.
+ * @param[in] name name of the Pipeline to update
+ * @param[in] gpuid new GPU ID value to use
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
+
+//------------------------------------------------------------------------------------
+// COMMON NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
+/**
+ * @brief returns the current num-surfaces-per-frame setting 
+ * for the named Pipeline's Streammuxer.
  * @param[in] name name of the Pipeline to query.
  * @param[out] num number of surfaces per frame [1..4].
  * @return DSL_RESULT_SUCCESS on successful query, one of 
@@ -7709,49 +8386,33 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
 
 /**
  * @brief Returns the current setting - enabled/disabled - for the Streammux
- * sync-inputs property for the named Pipeline.
+ * attach-sys-ts property for the named Pipeline.
  * @param[in] name name of the Pipeline to query
- * @param[out] enable true if the sync-inputs property is enabled, false if not.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ * @param[out] enable true if the attach-sys-ts property is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_get(const wchar_t* name, 
     boolean* enabled);
 
 /**
  * @brief Updates the current setting - enabled/disabled - for Streammux
- * sync-inputs property for the name Pipeline.
+ * attach-sys-ts property for the name Pipeline.
  * @param[in] name name of the Pipeline to update
- * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @param[in] enable set to true to enable the attach-sys-ts property, false to disable.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
-DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_set(const wchar_t* name, 
     boolean enabled);
-
-/**
- * @brief Gets the current stream-muxer GPU ID for the named Pipeline.
- * @param[in] name name of the Pipeline to query
- * @param[out] gpuid current GPU ID setting
- * @return DSL_RESULT_SUCCESS on successful query, one of 
- * DSL_RESULT_PIPELINE_RESULT on failure. 
- */
-DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid);
-
-/**
- * @brief Sets the current stream-muxer GPU ID for the named Pipeline.
- * @param[in] name name of the Pipeline to update
- * @param[in] gpuid new GPU ID value to use
- * @return DSL_RESULT_SUCCESS on successful update, one of 
- * DSL_RESULT_PIPELINE_RESULT on failure. 
- */
-DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
 
 /**
  * @brief Returns the current setting - enabled/disabled - for the Streammux
  * sync-inputs property for the named Pipeline.
  * @param[in] name name of the Pipeline to query
  * @param[out] enable true if the sync-inputs property is enabled, false if not.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
     boolean* enabled);
@@ -7760,12 +8421,36 @@ DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name
  * @brief Updates the current setting - enabled/disabled - for Streammux
  * sync-inputs property for the name Pipeline.
  * @param[in] name name of the Pipeline to update
- * @param[out] enable set to true to enable the sync-input property, false to disable.
+ * @param[in] enable set to true to enable the sync-input property, false to disable.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_PIPELINE_RESULT on failure. 
  */
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name, 
     boolean enabled);
+
+/**
+ * @brief Returns the current max-latency setting for the named Pipeline's 
+ * Streammuxer.
+ * @param[in] name name of the Pipeline to query.
+ * @param[out] max_latency the maximum upstream latency in nanoseconds. 
+ * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_max_latency_get(const wchar_t* name, 
+    uint* max_latency);
+
+/**
+ * @brief Updates the current max-latency setting for the named Pipeline's 
+ * Streammuxer.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] max_latency the maximum upstream latency in nanoseconds. 
+ * When sync-inputs=1, buffers coming in after max-latency shall be dropped.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_max_latency_set(const wchar_t* name, 
+    uint max_latency);
 
 /**
  * @brief adds a named Tiler to a named Pipeline's Stream-Muxer output.
@@ -7787,6 +8472,30 @@ DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name);
 
+/**
+ * @brief Adds a pad-probe-handler to a named Pipeline's Streammuxer.
+ * One or more Pad Probe Handlers can be added to the SOURCE PAD only.
+ * @param[in] name unique name of the Pipeline to update
+ * @param[in] handler unique name of the pad probe handler to add.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name, 
+    const wchar_t* handler);
+
+/**
+ * @brief Removes a pad-probe-handler from a named Pipeline's Streammuxer.
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[in] handler unique name of the pad probe handler to remove.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
+    const wchar_t* handler);
+
+//------------------------------------------------------------------------------------
+// COMMON NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param[in] name unique name of the Pipeline to pause.
@@ -7959,7 +8668,7 @@ DslReturnType dsl_player_new(const wchar_t* name,
  * @brief Creates a new, uniquely named Video Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the file to render
- * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
@@ -7973,7 +8682,7 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* f
  * @brief Creates a new, uniquely named Image Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the image to render
- * @param[in] render_type one of DSL_RENDER_TYPE_OVERLAY or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
@@ -8526,6 +9235,12 @@ void dsl_delete_all();
  * @return string representation of the current release
  */
 const wchar_t* dsl_info_version_get();
+
+/**
+ * @brief Used to determine if USE_NEW_NVSTREAMUX=yes at runtime.
+ * @return true if the env var is set to yes, false otherwise.
+ */
+boolean dsl_info_use_new_nvstreammux_get();
 
 /**
  * @brief Gets the GPU type for a specified GPU Id.

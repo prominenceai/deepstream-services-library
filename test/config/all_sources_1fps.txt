@@ -1,0 +1,4 @@
+[property]
+max-fps-control=0
+overall-min-fps-n=1
+overall-min-fps-d=1

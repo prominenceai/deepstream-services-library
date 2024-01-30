@@ -508,7 +508,7 @@ retval = dsl_osd_pph_remove('my-osd', 'my-pph-handler', `DSL_PAD_SINK`)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter](/docs/api-tee.md)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * **On-Screen Display**
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)

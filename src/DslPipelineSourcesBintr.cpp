@@ -34,12 +34,20 @@ namespace DSL
         uint uniquePipelineId)
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
-        , m_isPaddingEnabled(false)
         , m_areSourcesLive(false)
-        , m_streamMuxWidth(DSL_STREAMMUX_DEFAULT_WIDTH)
-        , m_streamMuxHeight(DSL_STREAMMUX_DEFAULT_HEIGHT)
+        , m_batchSizeSetByClient(false)
+        , m_frameDuration(-1)   // workaround for nvidia bug
+        , m_useNewStreammux(false)
     {
         LOG_FUNC();
+
+        const char* value = getenv("USE_NEW_NVSTREAMMUX");
+        if (value and std::string(value) == "yes")
+        {
+            LOG_WARN(
+                "USE_NEW_NVSTREAMMUX is set to yes - enabling new Streammux Services");
+            m_useNewStreammux = true;
+        }
 
         // Need to forward all children messages for this PipelineSourcesBintr,
         // which is the parent bin for the Pipeline's Streammux, so the Pipeline
@@ -49,44 +57,55 @@ namespace DSL
         // Single Stream Muxer element for all Sources 
         m_pStreammux = DSL_ELEMENT_NEW("nvstreammux", name);
         
-        // Must update the default dimensions of 0x0 or the Pipeline
-        // will fail to play;
-        SetStreammuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
-            DSL_STREAMMUX_DEFAULT_HEIGHT);
-
         // Get property defaults that aren't specifically set
-        m_pStreammux->GetAttribute("batched-push-timeout", &m_batchTimeout);
         m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        m_pStreammux->GetAttribute("enable-padding", &m_isPaddingEnabled);
-        m_pStreammux->GetAttribute("gpu-id", &m_gpuId);
-        m_pStreammux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
-        m_pStreammux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
         m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
-        m_pStreammux->GetAttribute("interpolation-method", &m_interpolationMethod);
         m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
-        
-        // DS 6.1 ??
-        // m_pStreammux->GetAttribute("frame-duration", &m_frameDuration);
+        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
+        m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
 
+        // IMPORTANT! NVIDIA bug - always returns 18446744073709.
+//        m_pStreammux->GetAttribute("frame-duration", &frameDuration);
+        m_frameDuration = GST_CLOCK_TIME_NONE;
+        
         LOG_INFO("");
         LOG_INFO("Initial property values for Streammux '" << name << "'");
-        LOG_INFO("  width                  : " << m_streamMuxWidth);
-        LOG_INFO("  height                 : " << m_streamMuxHeight);
-        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
-        LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
-        LOG_INFO("  gpu-id                 : " << m_gpuId);
-        LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
         LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
-        LOG_INFO("  buffer-pool-size       : " << m_bufferPoolSize);
         LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
-        LOG_INFO("  interpolation-method   : " << m_interpolationMethod);
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
-        // LOG_INFO("  frame-duration         : " << m_frameDuration);
+        LOG_INFO("  max-latency            : " << m_maxLatency);
+        LOG_INFO("  frame-duration         : " << m_frameDuration);
+        LOG_INFO("  drop-pipeline-eos      : " << m_dropPipelineEos);
+
+        if (!m_useNewStreammux)
+        {
+            // Must update the default dimensions of 0x0 or the Pipeline
+            // will fail to play;
+            SetStreammuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
+                DSL_STREAMMUX_DEFAULT_HEIGHT);
+                
+            m_pStreammux->GetAttribute("batched-push-timeout", &m_batchTimeout);
+            m_pStreammux->GetAttribute("enable-padding", &m_isPaddingEnabled);
+            m_pStreammux->GetAttribute("gpu-id", &m_gpuId);
+            m_pStreammux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+            m_pStreammux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
+            
+            LOG_INFO("  width                  : " << m_streamMuxWidth);
+            LOG_INFO("  height                 : " << m_streamMuxHeight);
+            LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
+            LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
+            LOG_INFO("  gpu-id                 : " << m_gpuId);
+            LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
+            LOG_INFO("  buffer-pool-size       : " << m_bufferPoolSize);
+        }
 
         AddChild(m_pStreammux);
 
         // Float the Streammux as a src Ghost Pad for this PipelineSourcesBintr
         m_pStreammux->AddGhostPadToParent("src");
+
+        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
+        AddSrcPadProbes(m_pStreammux);
         
         // If the unqiue pipeline-id is greater than 0, then we need to add the
         // SourceIdOffsetterPadProbeHandler to offset every source-id found in
@@ -95,11 +114,6 @@ namespace DSL
         {
             LOG_INFO("Adding source-id-offsetter to PipelineSourcesBintr '"
                 << GetName() << "' with unique Pipeline-id = " << m_uniquePipelineId);
-            // Create the buffer-pad-probe to probe all buffers flowing over the 
-            // streammuxer's source pad. 
-            std::string padBufferProbeName = GetName() + "-src-pad-buffer-probe";
-            m_pSrcPadBufferProbe = DSL_PAD_BUFFER_PROBE_NEW(
-                padBufferProbeName.c_str(), "src", m_pStreammux);
 
             // Create the specialized pad-probe-handler to offset all source-ids'
             std::string bufferHandlerName = GetName() + "-source-id-offsetter";
@@ -174,11 +188,7 @@ namespace DSL
 
                 std::string eventHandlerName = GetName() + "-eos-consumer";
                 m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
-
-                std::string padEventProbeName = GetName() + "-src-pad-event-probe";
-                m_pSrcPadProbe = DSL_PAD_EVENT_DOWNSTREAM_PROBE_NEW(
-                    padEventProbeName.c_str(), "src", m_pStreammux);
-                m_pSrcPadProbe->AddPadProbeHandler(m_pEosConsumer);
+                m_pSrcPadDsEventProbe->AddPadProbeHandler(m_pEosConsumer);
             }
         }
         
@@ -242,7 +252,11 @@ namespace DSL
                     << pChildSource->GetName() << "'");
                 return false;
             }
-            
+            if (!m_batchSizeSetByClient)
+            {
+                // Increment the current batch-size
+                m_batchSize++;
+            }            
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }
@@ -284,7 +298,7 @@ namespace DSL
                 
             // unlink the source from the Streammuxer
             if (!pChildSource->UnlinkFromSinkMuxer())
-            {   
+            {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" 
                     << pChildSource->GetName() << "'");
@@ -292,6 +306,12 @@ namespace DSL
             }
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
+
+            if (!m_batchSizeSetByClient)
+            {
+                // Decrement the current batch-size
+                m_batchSize--;
+            }
         }
         // Erase the Source the source from the name<->unique-id database.
         Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
@@ -336,7 +356,7 @@ namespace DSL
             }
         }
         // Set the Batch size to the nuber of sources owned if not already set
-        if (!m_batchSize)
+        if (!m_batchSizeSetByClient)
         {
             m_batchSize = m_pChildSources.size();
             m_pStreammux->SetAttribute("batch-size", m_batchSize);
@@ -370,6 +390,11 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             imap.second->UnlinkAll();
         }
+        // Set the Batch size to the nuber of sources owned if not already set
+        if (!m_batchSizeSetByClient)
+        {
+            m_batchSize = 0;
+        }
         m_isLinked = false;
     }
     
@@ -380,7 +405,7 @@ namespace DSL
         // Send EOS message to each source object.
         for (auto const& imap: m_pChildSources)
         {
-//            LOG_INFO("Send EOS message to Source "  << imap.second->GetName());
+            LOG_INFO("Sending EOS message to Source "  << imap.second->GetName());
             gst_element_send_event(imap.second->GetGstElement(), 
                 gst_event_new_eos());
         }
@@ -407,34 +432,177 @@ namespace DSL
 
         m_areSourcesLive = isLive;
         
-        LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
-            << "' for Streammuxer '" << GetName() << "'");
-        m_pStreammux->SetAttribute("live-source", m_areSourcesLive);
-        
+        if (!m_useNewStreammux)
+        {
+            LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
+                << "' for Streammuxer '" << GetName() << "'");
+            
+            m_pStreammux->SetAttribute("live-source", m_areSourcesLive);
+        }
         return true;
     }
 
-    uint PipelineSourcesBintr::GetStreammuxNvbufMemType()
+    const char* PipelineSourcesBintr::GetStreammuxConfigFile()
     {
-        LOG_FUNC();
-
-        return m_nvbufMemType;
+        return m_streammuxConfigFile.c_str();
     }
-
-    bool PipelineSourcesBintr::SetStreammuxNvbufMemType(uint type)
+    
+    bool PipelineSourcesBintr::SetStreammuxConfigFile(const char* configFile)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update nvbuf-memory-type for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update config-file for PipelineSourcesBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        m_nvbufMemType = type;
-        m_pStreammux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+
+        m_streammuxConfigFile = configFile;
+        m_pStreammux->SetAttribute("config-file-path", 
+            m_streammuxConfigFile.c_str());
         
         return true;
+    }
+    
+    uint PipelineSourcesBintr::GetStreammuxBatchSize()
+    {
+        LOG_FUNC();
+
+        return m_batchSize;
+    }
+
+    bool PipelineSourcesBintr::SetStreammuxBatchSize(uint batchSize)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update batch-size for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        // Important! once set, this flag cannot be unset.
+        m_batchSizeSetByClient = true;
+        m_batchSize = batchSize;
+        m_pStreammux->SetAttribute("batch-size", m_batchSize);
+        
+        return true;
+    }
+    
+    uint PipelineSourcesBintr::GetStreammuxNumSurfacesPerFrame()
+    {
+        LOG_FUNC();
+        
+        m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
+        return m_numSurfacesPerFrame;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxNumSurfacesPerFrame(uint num)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR(
+                "Can't update num-surfaces-per-frame for PipelineSourcesBintr '"
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_numSurfacesPerFrame = num;
+        m_pStreammux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
+        
+        return true;
+    }
+
+    boolean PipelineSourcesBintr::GetStreammuxSyncInputsEnabled()
+    {
+        LOG_FUNC();
+        
+        m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
+        return m_syncInputs;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update sync-input for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_syncInputs = enabled;
+        m_pStreammux->SetAttribute("sync-inputs", m_syncInputs);
+        
+        return true;
+    }
+
+    boolean PipelineSourcesBintr::GetStreammuxAttachSysTsEnabled()
+    {
+        LOG_FUNC();
+        
+        m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
+        return m_attachSysTs;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxAttachSysTsEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update sync-input for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_attachSysTs = enabled;
+        m_pStreammux->SetAttribute("attach-sys-ts", m_attachSysTs);
+        
+        return true;
+    }
+
+    boolean PipelineSourcesBintr::GetStreammuxMaxLatency()
+    {
+        LOG_FUNC();
+        
+        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
+        return m_maxLatency;
+    }
+    
+    bool PipelineSourcesBintr::SetStreammuxMaxLatency(uint maxLatency)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update max-latency property for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+
+        m_maxLatency = maxLatency;
+        m_pStreammux->SetAttribute("max-latency", m_maxLatency);
+        
+        return true;
+    }
+
+    void PipelineSourcesBintr::DisableEosConsumers()
+    {
+        for (auto const& imap: m_pChildSources)
+        {
+            imap.second->DisableEosConsumer();
+        }
+        // If at lease one RTSP Source was added and the EOS Consumer
+        // needs to be removed. 
+        if (m_pEosConsumer)
+        {
+            m_pSrcPadDsEventProbe->RemovePadProbeHandler(m_pEosConsumer);
+        }
     }
 
     void PipelineSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
@@ -458,6 +626,7 @@ namespace DSL
             return false;
         }
 
+        m_batchSizeSetByClient = true;
         m_batchSize = batchSize;
         m_batchTimeout = batchTimeout;
 
@@ -467,6 +636,48 @@ namespace DSL
         return true;
     }
     
+    uint PipelineSourcesBintr::GetStreammuxNvbufMemType()
+    {
+        LOG_FUNC();
+
+        return m_nvbufMemType;
+    }
+
+    bool PipelineSourcesBintr::SetStreammuxNvbufMemType(uint type)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't update nvbuf-memory-type for PipelineSourcesBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_nvbufMemType = type;
+        m_pStreammux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        
+        return true;
+    }
+
+    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_gpuId = gpuId;
+        m_pStreammux->SetAttribute("gpu-id", m_gpuId);
+        
+        LOG_INFO("PipelineSourcesBintr '" << GetName() 
+            << "' - new GPU ID = " << m_gpuId );
+            
+        return true;
+    }
+
     void PipelineSourcesBintr::GetStreammuxDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
@@ -519,84 +730,4 @@ namespace DSL
         return true;
     }
 
-    uint PipelineSourcesBintr::GetStreammuxNumSurfacesPerFrame()
-    {
-        LOG_FUNC();
-        
-        return m_numSurfacesPerFrame;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxNumSurfacesPerFrame(uint num)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update num-surfaces-per-frame property for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_numSurfacesPerFrame = num;
-        m_pStreammux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
-        
-        return true;
-    }
-
-    boolean PipelineSourcesBintr::GetStreammuxSyncInputsEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_syncInputs;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_syncInputs = enabled;
-        m_pStreammux->SetAttribute("enable-padding", m_syncInputs);
-        
-        return true;
-    }
-
-    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_gpuId = gpuId;
-        m_pStreammux->SetAttribute("gpu-id", m_gpuId);
-        
-        LOG_INFO("PipelineSourcesBintr '" << GetName() 
-            << "' - new GPU ID = " << m_gpuId );
-            
-        return true;
-    }
-    
-    void PipelineSourcesBintr::DisableEosConsumers()
-    {
-        for (auto const& imap: m_pChildSources)
-        {
-            imap.second->DisableEosConsumer();
-        }
-        // If at lease one RTSP Source was added and the EOS Consumer
-        // needs to be removed. 
-        if (m_pEosConsumer)
-        {
-            m_pSrcPadProbe->RemovePadProbeHandler(m_pEosConsumer);
-        }
-    }
 }

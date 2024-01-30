@@ -33,15 +33,15 @@ THE SOFTWARE.
 
 static const std::wstring primary_gie_name(L"primary-gie");
 static std::wstring primary_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 static const std::wstring secondary_gie_name(L"secondary-gie");
 static const std::wstring sgie_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
 static const std::wstring sgie_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
 
 
 static const std::wstring primary_tis_name(L"primary-tis");
@@ -82,22 +82,19 @@ static const boolean clock_enabled(false);
 static const boolean bbox_enabled(true);
 static const boolean mask_enabled(false);
         
-static const std::wstring sink_name(L"window-sink");
+static const std::wstring sink_name(L"egl-sink");
 static const uint offset_x(100);
 static const uint offset_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
 
-SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing \
-    and Past Frame Reporting enabled", "[tracker-play]" )
+SCENARIO( "A new Pipeline with a Primary GIE and DCF Tracker can play", "[tracker-play]" )
 {
-    GIVEN( "A Pipeline, File source, Primary GIE, DCF Tracker, OSD, and Overlay Sink" ) 
+    GIVEN( "A Pipeline, File source, Primary GIE, DCF Tracker, OSD, and EGL Sink" ) 
     {
         
         boolean inference_interval(4);
-        boolean batch_processing_enabled(true);
-        boolean past_frame_reporting_enabled(true);
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -118,79 +115,17 @@ SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Process
             dcf_perf_tracker_config_file.c_str(), tracker_width, tracker_height)
             == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_batch_processing_enabled_set(dcf_tracker_name.c_str(), 
-            batch_processing_enabled) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(dcf_tracker_name.c_str(), 
-            past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
-
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
             L"file-source-3", L"file-source-4", L"primary-gie", 
-            L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
-        
-        WHEN( "When the Pipeline is Assembled" ) 
-        {
-            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
-                components) == DSL_RESULT_SUCCESS );
-
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-                dsl_delete_all();
-                REQUIRE( dsl_pipeline_list_size() == 0 );
-                REQUIRE( dsl_component_list_size() == 0 );
-            }
-        }
-    }
-}
-
-SCENARIO( "A new Pipeline with a Primary GIE, DCF Tracker with its Batch Processing and \
-    Past Frame Reporting disabled", "[tracker-play]" )
-{
-    GIVEN( "A Pipeline, File source, Primary GIE, DCF Tracker, OSD, and Overlay Sink" ) 
-    {
-        boolean inference_interval(4);
-        boolean batch_processing_enabled(false);
-        boolean past_frame_reporting_enabled(false);
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_file_new(source_name1.c_str(), file_path.c_str(), 
-            false) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
-            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
-            0) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tracker_new(dcf_tracker_name.c_str(), 
-            dcf_perf_tracker_config_file.c_str(), tracker_width, tracker_height) 
-            == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tracker_batch_processing_enabled_set(dcf_tracker_name.c_str(), 
-            batch_processing_enabled) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tracker_past_frame_reporting_enabled_set(dcf_tracker_name.c_str(), 
-            past_frame_reporting_enabled) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
-            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
-            offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* components[] = {L"file-source-1", L"primary-gie", 
-            L"dcf-tracker", L"on-screen-display", L"window-sink", NULL};
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {
@@ -217,8 +152,6 @@ SCENARIO( "A new Pipeline with a Primary GIE, IOU Tracker and optional \
     GIVEN( "A Pipeline, File source, Primary GIE, IOU Tracker, OSD, and Overlay Sink" ) 
     {
         boolean inference_interval(4);
-        boolean batch_processing_enabled(true);
-        boolean past_frame_reporting_enabled(true);
         
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -244,12 +177,72 @@ SCENARIO( "A new Pipeline with a Primary GIE, IOU Tracker and optional \
         REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_new(sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
             offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
             L"file-source-3", L"file-source-4", L"primary-gie", 
-            L"dcf-tracker", L"tiler", L"on-screen-display", L"window-sink", NULL};
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"egl-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an IOU Tracker with its id-display disabled can play", 
+    "[tracker-play]" )
+{
+    GIVEN( "A Pipeline, File source, Primary GIE, IOU Tracker, OSD, and Overlay Sink" ) 
+    {
+        boolean inference_interval(4);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_file_new(source_name1.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name2.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name3.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(source_name4.c_str(), file_path.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 
+            0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_new(dcf_tracker_name.c_str(), 
+            iou_tracker_config_file.c_str(), tracker_width, tracker_height) 
+            == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_id_display_enabled_set(dcf_tracker_name.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_egl_new(sink_name.c_str(),
+            offset_x, offset_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"file-source-1", L"file-source-2", 
+            L"file-source-3", L"file-source-4", L"primary-gie", 
+            L"dcf-tracker", L"tiler", L"on-screen-display", L"egl-sink", NULL};
         
         WHEN( "When the Pipeline is Assembled" ) 
         {

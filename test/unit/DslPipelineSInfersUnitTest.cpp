@@ -34,37 +34,28 @@ static const std::string primaryGieName("primary-gie");
 static const std::string secondaryGieName("secondary-gie");
 
 
-static const std::string pgieInferConfigFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-static const std::string pgieModelEngineFileJetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
-
-static const std::string pgieInferConfigFileDgpu(
+static const std::string pgieInferConfigFile(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-static const std::string pgieModelEngineFileDgpu(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_int8.engine");
+static const std::string pgieModelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 static const std::string secondaryGieName1("secondary-gie-1");
 static const std::string secondaryGieName2("secondary-gie-2");
 static const std::string secondaryGieName3("secondary-gie-3");
 static const std::string sgieInferConfigFile1(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carcolor.txt");
-static const std::string sgieModelEngineFile1Jetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine");
-static const std::string sgieModelEngineFile1Dgpu(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_int8.engine");
-static const std::string sgieInferConfigFile2(
-    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt");
-static const std::string sgieModelEngineFile2Jetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine");
-static const std::string sgieModelEngineFile2Dgpu(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_int8.engine");
-static const std::string sgieInferConfigFile3(
     "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
-static const std::string sgieModelEngineFile3Jetson(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_fp16.engine");
-static const std::string sgieModelEngineFile3Dgpu(
-    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18.caffemodel_b8_gpu0_int8.engine");
+static const std::string sgieModelEngineFile1(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
+static const std::string sgieInferConfigFile2(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
+static const std::string sgieModelEngineFile2(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
+
+// There are only two secondary models as of 6.3 
+static const std::string sgieInferConfigFile3(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt");
+static const std::string sgieModelEngineFile3(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine");
 
 static const uint primaryUniqueId = std::hash<std::string>{}(primaryGieName.c_str());
 static const uint secondaryUniqueId = std::hash<std::string>{}(secondaryGieName.c_str());
@@ -98,19 +89,9 @@ SCENARIO( "A SecondaryInferBintr can be added to a PipelineSInfersBintr", "[Pipe
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
         
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-
+        pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -136,19 +117,9 @@ SCENARIO( "A SecondaryInferBintr can be removed from a PipelineSInfersBintr", "[
 
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
         
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-
+        pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -174,21 +145,10 @@ SCENARIO( "A SecondaryInferBintr can only be added to a PipelineSInfersBintr onc
 {
     GIVEN( "A new PipelineSInfersBintr with a child SecondearyGieBintr" ) 
     {
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -213,18 +173,9 @@ SCENARIO( "A PipelineSInfersBintr can not LinkAll without setting the PrimaryGie
     {
         DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
         
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
+        pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -249,27 +200,14 @@ SCENARIO( "A PipelineSInfersBintr can not LinkAll without setting the Batch Size
     {
         uint interval(1);
 
-        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileJetson.c_str(), pgieModelEngineFileJetson.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileDgpu.c_str(), pgieModelEngineFileDgpu.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
+        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
+            pgieInferConfigFile.c_str(), pgieModelEngineFile.c_str(), 
+            interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -294,28 +232,14 @@ SCENARIO( "A PipelineSInfersBintr with its PrimaryGieId and Batch Size set can L
     {
         uint interval(1);
 
-        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileJetson.c_str(), pgieModelEngineFileJetson.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileDgpu.c_str(), pgieModelEngineFileDgpu.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-
+        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
+            pgieInferConfigFile.c_str(), pgieModelEngineFile.c_str(), 
+            interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -341,27 +265,14 @@ SCENARIO( "A PipelineSInfersBintr Linked with a SecondaryInferBintr can UnlinkAl
     {
         uint interval(1);
 
-        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileJetson.c_str(), pgieModelEngineFileJetson.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileDgpu.c_str(), pgieModelEngineFileDgpu.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr = DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
+        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
+            pgieInferConfigFile.c_str(), pgieModelEngineFile.c_str(), 
+            interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -390,41 +301,23 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can LinkAll"
     {
         uint interval(0);
 
-        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr1;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr2;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr3;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileJetson.c_str(), pgieModelEngineFileJetson.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr1 = DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr2 = DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), 
-                sgieInferConfigFile2.c_str(), sgieModelEngineFile2Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr3 = DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), 
-                sgieInferConfigFile3.c_str(), sgieModelEngineFile3Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileDgpu.c_str(), pgieModelEngineFileDgpu.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr1 = DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr2 = DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), 
-                sgieInferConfigFile2.c_str(), sgieModelEngineFile2Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr3 = DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), 
-                sgieInferConfigFile3.c_str(), sgieModelEngineFile3Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
+        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
+            pgieInferConfigFile.c_str(), pgieModelEngineFile.c_str(), 
+            interval, DSL_INFER_TYPE_GIE);
+
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr1 = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr2 = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), 
+            sgieInferConfigFile2.c_str(), sgieModelEngineFile2.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr3 = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), 
+            sgieInferConfigFile3.c_str(), sgieModelEngineFile3.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());
@@ -456,41 +349,23 @@ SCENARIO( "A PipelineSInfersBintr with several SecondaryInferBintrs can UnlinkAl
     {
         uint interval(0);
 
-        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr1;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr2;
-        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr3;
-        
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileJetson.c_str(), pgieModelEngineFileJetson.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr1 = DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr2 = DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), 
-                sgieInferConfigFile2.c_str(), sgieModelEngineFile2Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr3 = DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), 
-                sgieInferConfigFile3.c_str(), sgieModelEngineFile3Jetson.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
-        else
-        {
-            pPrimaryGieBintr = DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
-                pgieInferConfigFileDgpu.c_str(), pgieModelEngineFileDgpu.c_str(), 
-                interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr1 = DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), 
-                sgieInferConfigFile1.c_str(), sgieModelEngineFile1Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr2 = DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), 
-                sgieInferConfigFile2.c_str(), sgieModelEngineFile2Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-            pSecondaryInferBintr3 = DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), 
-                sgieInferConfigFile3.c_str(), sgieModelEngineFile3Dgpu.c_str(), 
-                primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
-        }
+        DSL_PRIMARY_INFER_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_INFER_NEW(primaryGieName.c_str(), 
+            pgieInferConfigFile.c_str(), pgieModelEngineFile.c_str(), 
+            interval, DSL_INFER_TYPE_GIE);
+
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr1 = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName1.c_str(), 
+            sgieInferConfigFile1.c_str(), sgieModelEngineFile1.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr2 = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName2.c_str(), 
+            sgieInferConfigFile2.c_str(), sgieModelEngineFile2.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
+        DSL_SECONDARY_INFER_PTR pSecondaryInferBintr3 = 
+            DSL_SECONDARY_INFER_NEW(secondaryGieName3.c_str(), 
+            sgieInferConfigFile3.c_str(), sgieModelEngineFile3.c_str(), 
+            primaryGieName.c_str(), interval, DSL_INFER_TYPE_GIE);
 
         DSL_PIPELINE_SINFERS_PTR pPipelineSInfersBintr = 
             DSL_PIPELINE_SINFERS_NEW(pipelineSGiesName.c_str());

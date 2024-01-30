@@ -51,17 +51,17 @@ namespace DSL
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
 
-    #define DSL_RENDER_SINK_PTR std::shared_ptr<RenderSinkBintr>
-
-    #define DSL_OVERLAY_SINK_PTR std::shared_ptr<OverlaySinkBintr>
-    #define DSL_OVERLAY_SINK_NEW(name, displayId, depth, offsetX, offsetY, width, height) \
-        std::shared_ptr<OverlaySinkBintr>( \
-        new OverlaySinkBintr(name, displayId, depth, offsetX, offsetY, width, height))
-
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
-    #define DSL_WINDOW_SINK_NEW(name, offsetX, offsetY, width, height) \
-        std::shared_ptr<WindowSinkBintr>( \
-        new WindowSinkBintr(name, offsetX, offsetY, width, height))
+
+    #define DSL_3D_SINK_PTR std::shared_ptr<ThreeDSinkBintr>
+    #define DSL_3D_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<ThreeDSinkBintr>( \
+        new ThreeDSinkBintr(name, offsetX, offsetY, width, height))
+
+    #define DSL_EGL_SINK_PTR std::shared_ptr<EglSinkBintr>
+    #define DSL_EGL_SINK_NEW(name, offsetX, offsetY, width, height) \
+        std::shared_ptr<EglSinkBintr>( \
+        new EglSinkBintr(name, offsetX, offsetY, width, height))
 
     #define DSL_ENCODE_SINK_PTR std::shared_ptr<EncodeSinkBintr>
         
@@ -75,11 +75,21 @@ namespace DSL
         std::shared_ptr<RecordSinkBintr>( \
         new RecordSinkBintr(name, outdir, codec, container, bitrate, interval, clientListener))
         
-    #define DSL_RTSP_SINK_PTR std::shared_ptr<RtspSinkBintr>
-    #define DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
-        std::shared_ptr<RtspSinkBintr>( \
-        new RtspSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
-        
+    #define DSL_RTMP_SINK_PTR std::shared_ptr<RtmpSinkBintr>
+    #define DSL_RTMP_SINK_NEW(name, uri, bitrate, interval) \
+        std::shared_ptr<RtmpSinkBintr>( \
+        new RtmpSinkBintr(name, uri, bitrate, interval))
+
+    #define DSL_RTSP_SERVER_SINK_PTR std::shared_ptr<RtspServerSinkBintr>
+    #define DSL_RTSP_SERVER_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
+        std::shared_ptr<RtspServerSinkBintr>( \
+        new RtspServerSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
+
+    #define DSL_RTSP_CLIENT_SINK_PTR std::shared_ptr<RtspClientSinkBintr>
+    #define DSL_RTSP_CLIENT_SINK_NEW(name, uri, codec, bitrate, interval) \
+        std::shared_ptr<RtspClientSinkBintr>( \
+        new RtspClientSinkBintr(name, uri, codec, bitrate, interval))
+                
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
             converterConfigFile, payloadType, brokerConfigFile, \
@@ -97,6 +107,11 @@ namespace DSL
     #define DSL_MULTI_IMAGE_SINK_NEW(name, filepath, width, height, fps_n, fps_d) \
         std::shared_ptr<MultiImageSinkBintr>( \
         new MultiImageSinkBintr(name, filepath, width, height, fps_n, fps_d))
+
+    #define DSL_V4L2_SINK_PTR std::shared_ptr<V4l2SinkBintr>
+    #define DSL_V4L2_SINK_NEW(name, deviceLocation) \
+        std::shared_ptr<V4l2SinkBintr>( \
+        new V4l2SinkBintr(name, deviceLocation))
 
     //-------------------------------------------------------------------------
 
@@ -132,7 +147,7 @@ namespace DSL
          * @brief returns the current sync enabled property for the SinkBintr.
          * @return true if the sync property is enabled, false othewise.
          */
-        gboolean GetSyncEnabled();
+        virtual gboolean GetSyncEnabled();
         
         /**
          * @brief sets the sync enabled property for the SinkBintr.
@@ -144,7 +159,7 @@ namespace DSL
          * @brief returns the current async enabled property value for the SinkBintr.
          * @return true if the async property is enabled, false othewise.
          */
-        gboolean GetAsyncEnabled();
+        virtual gboolean GetAsyncEnabled();
         
         /**
          * @brief sets the async enabled property for the SinkBintr.
@@ -156,7 +171,7 @@ namespace DSL
          * @brief returns the current max-lateness property value for the SinkBintr.
          * @return current max-lateness (default = -1 unlimited).
          */
-        gint64 GetMaxLateness();
+        virtual gint64 GetMaxLateness();
         
         /**
          * @brief sets the max-lateness property for the SinkBintr.
@@ -168,7 +183,7 @@ namespace DSL
          * @brief returns the current qos enabled property value for the SinkBintr.
          * @return true if the qos property is enabled, false othewise.
          */
-        gboolean GetQosEnabled();
+        virtual gboolean GetQosEnabled();
         
         /**
          * @brief sets the qos enabled property for the SinkBintr.
@@ -351,6 +366,15 @@ namespace DSL
         bool Initiate();
 
         /**
+         * @brief Function to schedule a capture of a specific 
+         * frame-buffer to be provided by the base AppSinkBintr. 
+         * @param[in] frameNumber unique frame-number of the buffer to capture.
+         * @return false if the Sink is unlinked or the frameNumber is invalid,
+         * true otherwise.
+         */
+        bool Schedule(uint64_t frameNumber);
+
+        /**
          * @brief Function to handle each new buffer provided by the AppSinkBintr.
          * @param[in] buffer new buffer to capture if m_captureNextBuffer == true.
          * @return GST_FLOW_OK always.
@@ -364,11 +388,17 @@ namespace DSL
          * function to capture the next frame-buffer.
          */
         bool m_captureNextBuffer;
+        
+        /**
+         * @brief queue of scheduled frame-numbers to capture.
+         */
+        std::queue<uint64_t> m_captureFrameNumbers;
 
         /**
-         * @brief mutex to protect mutual access to m_captureNextBuffer flag.
+         * @brief mutex to protect mutual access to the Sink's capture control 
+         * variables.
          */
-        DslMutex m_captureNextMutex;
+        DslMutex m_captureMutex;
 
         /**
          * @brief Shared pointer to a Frame Capture Action.
@@ -415,165 +445,15 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class RenderSinkBintr : public SinkBintr
-    {
-    public: 
-    
-        RenderSinkBintr(const char* name, 
-            uint offsetX, uint offsetY, uint width, uint height);
-
-        ~RenderSinkBintr();
-        
-        /**
-         * @brief Gets the current X and Y offset settings for this RenderSinkBintr
-         * @param[out] offsetX the current offset in the X direction in pixels
-         * @param[out] offsetY the current offset in the Y direction in pixels
-         */ 
-        virtual void GetOffsets(uint* offsetX, uint* offsetY);
-
-        /**
-         * @brief Sets the current X and Y offset settings for this RednerSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direct to set in pixels
-         * @param[in] offsetY the offset in the Y direct to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        virtual bool SetOffsets(uint offsetX, uint offsetY) = 0;
-
-        /**
-         * @brief Gets the current width and height settings for this RenderSinkBintr
-         * @param[out] width the current width setting in pixels
-         * @param[out] height the current height setting in pixels
-         */ 
-        virtual void GetDimensions(uint* width, uint* height);
-        
-        /**
-         * @brief Sets the current width and height settings for this RenderSinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the sink is currently Linked. True otherwise
-         */ 
-        virtual bool SetDimensions(uint width, uint hieght) = 0;
-        
-        /**
-         * @brief Resets the Sink element for this RenderSinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        virtual bool Reset() = 0;
-
-    protected:
-
-        /**
-         * @brief offset from the left edge in uints of pixels
-         */
-        uint m_offsetX;
-
-        /**
-         * @brief offset from the top edge in uints of pixels
-         */
-        uint m_offsetY;
-
-        /**
-         * @brief Width property for the SinkBintr in uints of pixels
-         */
-        uint m_width;
-
-        /**
-         * @brief Height property for the SinkBintr in uints of pixels
-         */
-        uint m_height;
-    };
-    
-    //-------------------------------------------------------------------------
-
-    class OverlaySinkBintr : public RenderSinkBintr
-    {
-    public: 
-    
-        OverlaySinkBintr(const char* name, uint displayId, uint depth, 
-            uint offsetX, uint offsetY, uint width, uint height);
-
-        ~OverlaySinkBintr();
-
-        /**
-         * @brief Resets the Sink element for this OverlaySinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        bool Reset();
-  
-        /**
-         * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
-         * Calling UnlinkAll when in an unlinked state has no effect.
-         */
-        void UnlinkAll();
-
-        int GetDisplayId();
-
-        bool SetDisplayId(int id);
-
-        /**
-         * @brief Sets the current X and Y offset settings for this OverlaySinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direct to set in pixels
-         * @param[in] offsetY the offset in the Y direct to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetOffsets(uint offsetX, uint offsetY);
-        
-        /**
-         * @brief Sets the current width and height settings for this OverlaySinkBintr
-         * The caller is required to provide valid width and height values
-         * @param[in] width the width value to set in pixels
-         * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
-         */ 
-        bool SetDimensions(uint width, uint hieght);
-
-        static std::list<uint> s_uniqueIds;
-        
-    private:
-
-        uint m_displayId;
-        uint m_uniqueId;
-        uint m_depth;
-    };
-
-    //-------------------------------------------------------------------------
-
-    class WindowSinkBintr : public RenderSinkBintr
+    class WindowSinkBintr : public SinkBintr
     {
     public: 
     
         WindowSinkBintr(const char* name, 
-            guint offsetX, guint offsetY, guint width, guint height);
+            uint offsetX, uint offsetY, uint width, uint height);
 
         ~WindowSinkBintr();
-  
-        /**
-         * @brief Resets the Sink element for this WindowSinkBintr
-         * @return false if the sink is currently Linked. True otherwise
-         */
-        bool Reset();
         
-        /**
-         * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
-         */
-        bool LinkAll();
-        
-        /**
-         * @brief Unlinks all Child Elemntrs owned by this Bintr
-         * Calling UnlinkAll when in an unlinked state has no effect.
-         */
-        void UnlinkAll();
-
         /**
          * @brief Gets the current X and Y offset settings for this WindowSinkBintr
          * @param[out] offsetX the current offset in the X direction in pixels
@@ -582,42 +462,36 @@ namespace DSL
         void GetOffsets(uint* offsetX, uint* offsetY);
 
         /**
-         * @brief Sets the current X and Y offset settings for this WindowSinkBintr
+         * @brief Sets the current X and Y offset settings for this RednerSinkBintr
          * The caller is required to provide valid width and height values
-         * @param[in] offsetX the offset in the X direction to set in pixels
-         * @param[in] offsetY the offset in the Y direction to set in pixels
+         * @param[in] offsetX the offset in the X direct to set in pixels
+         * @param[in] offsetY the offset in the Y direct to set in pixels
          * @return false if the OverlaySink is currently in Use. True otherwise
          */ 
         bool SetOffsets(uint offsetX, uint offsetY);
-        
+
         /**
          * @brief Gets the current width and height settings for this WindowSinkBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
-
+        
         /**
          * @brief Sets the current width and height settings for this WindowSinkBintr
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
-         * @return false if the OverlaySink is currently in Use. True otherwise
+         * @return false if the sink is currently Linked. True otherwise
          */ 
         bool SetDimensions(uint width, uint hieght);
-
-        /**
-         * @brief Gets the current force-aspect-ratio setting for the WindowSinkBintr
-         * @return true if forced, false otherwise
-         */
-        bool GetForceAspectRatio();
         
         /**
-         * @brief Set the force-aspect-ration setting for the WindowSinkBinter
-         * @param[in] force set true to force-aspect-ration false otherwise
-         * @return 
+         * @brief Resets the Sink element for this WindowSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         * IMPORTANT! this is now only used by the EGL Window Sink. 
          */
-        bool SetForceAspectRatio(bool force);
+        virtual bool Reset(){return true;};
 
         /**
          * @brief Gets the current full-screen-enabled setting for the WindowSinkBintr
@@ -729,22 +603,29 @@ namespace DSL
          */
         bool Clear();
         
-        /**
-         * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetGpuId(uint gpuId);
+
+    protected:
 
         /**
-         * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
-         * @brief nvbufMemType new memory type to use, one of the 
-         * DSL_NVBUF_MEM_TYPE constant values.
-         * @return true if successfully set, false otherwise.
+         * @brief offset from the left edge in uints of pixels
          */
-        bool SetNvbufMemType(uint nvbufMemType);
+        uint m_offsetX;
 
-    private:
+        /**
+         * @brief offset from the top edge in uints of pixels
+         */
+        uint m_offsetY;
 
+        /**
+         * @brief Width property for the SinkBintr in uints of pixels
+         */
+        uint m_width;
+
+        /**
+         * @brief Height property for the SinkBintr in uints of pixels
+         */
+        uint m_height;
+        
         /**
          * @brief Creates a new XWindow for the current XDisplay
          * @param[in] 
@@ -754,8 +635,6 @@ namespace DSL
          */
         bool CreateXWindow();
         
-        bool m_forceAspectRatio;
-
         /**
          * @brief map of all currently registered XWindow-key-event-handlers
          * callback functions mapped with the user provided data
@@ -778,10 +657,19 @@ namespace DSL
             m_xWindowDeleteEventHandlers;
         
         /**
-         * @brief Pointer to the XDisplay once connected withe server.
+         * @brief Pointer to the XDisplay opened in CreateXWindow().
          */
         Display* m_pXDisplay;
         
+        /**
+         * @brief Width of the XDisplay's default screen.
+         */
+        uint m_XDisplayWidth;
+        
+        /**
+         * @brief Height of the XDisplay's default screen.
+         */
+        uint m_XDisplayHeight;
         
         /**
          * @brief Mutex to ensures mutual exclusion for the m_pXDisplay member
@@ -819,19 +707,109 @@ namespace DSL
          */
         bool m_xWindowfullScreenEnabled;
 
+    };
+
+    static gpointer XWindowEventThread(gpointer pWindowSink);
+    
+    //-------------------------------------------------------------------------
+
+    class ThreeDSinkBintr : public WindowSinkBintr
+    {
+    public: 
+    
+        ThreeDSinkBintr(const char* name, 
+            uint offsetX, uint offsetY, uint width, uint height);
+
+        ~ThreeDSinkBintr();
+
         /**
-         * @brief Caps Filter required for dGPU WindowSinkBintr
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+    };
+
+    //-------------------------------------------------------------------------
+
+    class EglSinkBintr : public WindowSinkBintr
+    {
+    public: 
+    
+        EglSinkBintr(const char* name, 
+            guint offsetX, guint offsetY, guint width, guint height);
+
+        ~EglSinkBintr();
+  
+        /**
+         * @brief Resets the Sink element for this EglSinkBintr
+         * @return false if the sink is currently Linked. True otherwise
+         */
+        bool Reset();
+        
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current force-aspect-ratio setting for the EglSinkBintr.
+         * @return true if forced, false otherwise.
+         */
+        bool GetForceAspectRatio();
+        
+        /**
+         * @brief Set the force-aspect-ration setting for the EglSinkBintr.
+         * @param[in] force set true to force-aspect-ration false otherwise
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetForceAspectRatio(bool force);
+
+        /**
+         * @brief Sets the GPU ID for all Elementrs - x86_64 builds only.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+        /**
+         * @brief Sets the NVIDIA buffer memory type - x86_64 builds only.
+         * @param[in] nvbufMemType new memory type to use, one of the 
+         * DSL_NVBUF_MEM_TYPE constant values.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetNvbufMemType(uint nvbufMemType);
+
+    private:
+
+        /**
+         * @brief true if force-aspect-ratio is set, false otherwise. 
+         */
+        bool m_forceAspectRatio;
+
+        /**
+         * @brief Caps Filter required for dGPU EglSinkBintr
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
 
         /**
-         * @brief Platform specific Transform element WindowSinkBintr
+         * @brief Platform specific Transform element EglSinkBintr
          */
         DSL_ELEMENT_PTR m_pTransform;
         
     };
-
-    static gpointer XWindowEventThread(gpointer pWindowSink);
 
     //-------------------------------------------------------------------------
 
@@ -1010,21 +988,76 @@ namespace DSL
 
     };
 
-
     //-------------------------------------------------------------------------
 
-    class RtspSinkBintr : public EncodeSinkBintr
+    class RtmpSinkBintr : public EncodeSinkBintr
     {
     public: 
     
-        RtspSinkBintr(const char* name, const char* host, uint udpPort, uint rtspPort,
-         uint codec, uint bitrate, uint interval);
+        RtmpSinkBintr(const char* name, 
+            const char* uri, uint bitrate, uint interval);
 
-        ~RtspSinkBintr();
+        ~RtmpSinkBintr();
   
         /**
          * @brief Links all Child Elementrs owned by this Bintr
-         * @return true if all links were succesful, false otherwise
+         * @return true if all links were succesful, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief returns the current URI (location) for this RtmpSinkBintr.
+         * @return const string for the current URI.
+         */
+        const char* GetUri();
+        
+        /**
+         * @brief Sets the URI (location)for this RtmpSinkBintr.
+         * @param uri new URI for the RtmpSinkBintr to use.
+         * @return true on successful update, false otherwise
+         */
+        bool SetUri(const char* uri);
+
+    private:
+
+        /**
+         * @brief RTMP URI to stream to.
+         */
+        std::string m_uri;
+
+        /**
+         * @brief flvmux to convert the stream from video/x-h264 to video/x-flv.
+         */
+        DSL_ELEMENT_PTR m_pFlvmux;
+        
+        /**
+         * @brief rtph264pay plugin for the RTMP SInk
+         */ 
+        DSL_ELEMENT_PTR m_pPayloader;
+        
+    };
+
+    //-------------------------------------------------------------------------
+
+    class RtspServerSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RtspServerSinkBintr(const char* name, 
+            const char* host, uint udpPort, uint rtspPort,
+            uint codec, uint bitrate, uint interval);
+
+        ~RtspServerSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise.
          */
         bool LinkAll();
         
@@ -1035,9 +1068,10 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the current codec and media container formats for RtspSinkBintr
-         * @param[out] port the current UDP port number for the RTSP Server
-         * @param[out] port the current RTSP port number for the RTSP Server
+         * @brief Gets the current codec and media container formats for the 
+         * RtspServerSinkBintr.
+         * @param[out] port the current UDP port number for the RTSP Server.
+         * @param[out] port the current RTSP port number for the RTSP Server.
          */ 
         void GetServerSettings(uint* udpPort, uint* rtspPort);
 
@@ -1063,6 +1097,123 @@ namespace DSL
  
         DSL_ELEMENT_PTR m_pPayloader;
     };
+
+    //-------------------------------------------------------------------------
+
+    class RtspClientSinkBintr : public EncodeSinkBintr
+    {
+    public: 
+    
+        RtspClientSinkBintr(const char* name, const char* uri, 
+            uint codec, uint bitrate, uint interval);
+
+        ~RtspClientSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+        
+        /**
+         * @brief Sets the client credentials for the RtspClientSinkBintr.
+         * @param[in] userId client user-id to use for credentials
+         * @param[in] userPw client user-password to use for credentials
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetCredentials(const char* userId, const char* userPw);
+        
+        /**
+         * @brief Gets the current latency setting for the RtspClientSinkBintr.
+         * @return latency in units of ms.
+         */
+        uint GetLatency();
+        
+        /**
+         * @brief Sets the latency setting for the RtspClientSinkBintr.
+         * @param latency new latency setting in units of ms.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetLatency(uint latency);
+        
+        /**
+         * @brief Gets the current RTSP Profiles for the RtspClientSinkBintr.
+         * @return mask of DSL_RTSP_PROFILE constants. 
+         * Default = DSL_RTSP_PROFILE_AVP.
+         */
+        uint GetProfiles();
+        
+        /**
+         * @brief Sets the RTSP Profiles for the RtspClientSinkBintr to use.
+         * @param[in] profiles mask of DSL_RTSP_PROFILE constants. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetProfiles(uint profiles);
+        
+        /**
+         * @brief Gets the current allowed RTSP lower-protocols for the 
+         * RtspClientSinkBintr.
+         * @return mask of DSL_RTSP_LOWER_TRANS constant values. 
+         * Default = DSL_RTSP_LOWER_TRANS_TCP + DSL_RTSP_LOWER_TRANS_UDP_MCAST +
+         * DSL_RTSP_LOWER_TRANS_UDP.
+         */
+        uint GetProtocols();
+        
+        /**
+         * @brief Sets the allowed RTSP lower-protocols for the RtspClientSinkBintr 
+         * to use.
+         * @param[in] protocols mask of DSL_RTSP_LOWER_TRANS constant values. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetProtocols(uint protocols);
+        
+        /**
+         * @brief Gets the current tls-validation-flags for the RtspClientSinkBintr.
+         * @return mask of DSL_TLS_CERTIFICATE constants. 
+         * Default = DSL_TLS_CERTIFICATE_VALIDATE_ALL.
+         */
+        uint GetTlsValidationFlags();
+        
+        /**
+         * @brief Sets the tls-validation-flags for the RtspClientSinkBintr to use.
+         * @param[in] flags mask of DSL_TLS_CERTIFICATE constants. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetTlsValidationFlags(uint flags);
+        
+    private:
+    
+        /**
+         * @brief Amount of data to buffer in ms for this RtspClientSinkBintr.
+         */
+        uint m_latency;
+        
+        /**
+         * @brief mask of currently allowed RTSP profiles for this 
+         * RtspClientSinkBintr.
+         */
+        uint m_profiles;
+        
+        /**
+         * @brief mask of currently allowed RTSP lower-protocols for this 
+         * RtspClientSinkBintr.
+         */
+        uint m_protocols;
+        
+        /**
+         * @brief mask of DSL_TLS_CERTIFICATE flags used to validate the
+         * RTSP server certificate.
+         */
+        uint m_tlsValidationFlags;
+
+    };
+
 
     //-------------------------------------------------------------------------
 
@@ -1444,6 +1595,156 @@ namespace DSL
          * @brief JPEG Encoder element for the MultiImageSinkBintr.
          */
         DSL_ELEMENT_PTR m_pJpegEnc;
+    };
+
+    //-------------------------------------------------------------------------
+
+    class V4l2SinkBintr : public SinkBintr
+    {
+    public: 
+    
+        V4l2SinkBintr(const char* name, const char* deviceLocation);
+
+        ~V4l2SinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current device-location setting for the V4l2SinkBintr
+         * @return current device location.
+         */
+        const char* GetDeviceLocation();
+        
+        /**
+         * @brief Sets the device-location setting for the V4l2SinkBintr.
+         * @param[in] new device location for the V4l2SinkBintr to use.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDeviceLocation(const char* deviceLocation);
+
+        /**
+         * @brief Gets the current device-name setting for the V4l2SinkBintr
+         * Default = "". Updated after negotiation with the V4L2 Device.
+         * @return current device location.
+         */
+        const char* GetDeviceName();
+        
+        /**
+         * @brief Gets the current device-fd (file-descriptor) setting for 
+         * the V4l2SinkBintr. Default = -1 (unset). Updated at runtime after
+         * negotiation with the V4l2 Device.
+         * @return current device location.
+         */
+        int GetDeviceFd();
+        
+        /**
+         * @brief Gets the current device-flags setting for the V4l2SinkBintr. 
+         * Default = 0 (none). Updated at runtime after negotiation with the 
+         * V4l2 Device.
+         * @return current device location.
+         */
+        uint GetDeviceFlags();
+        
+        /**
+         * @brief Gets the current buffer-in-format for this V4l2SinkBintr.
+         * @return Current buffer-in-format. string version of one of the 
+         * DSL_VIDEO_FORMAT constants.
+         */
+        const char* GetBufferInFormat();
+        
+        /**
+         * @brief Sets the buffer-in-format for the V4l2SinkBintr.
+         * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetBufferInFormat(const char* format);
+
+        /**
+         * @brief Gets the current picture settings for this V4l2SinkBintr.
+         * @param[out] brightness current brightness (actually darkness) level.
+         * @param[out] contrast current picture contrast or luna gain level.
+         * @param[out] saturation current color saturation or chroma gain level.
+         */
+        void GetPictureSettings(int* brightness, int* contrast, int* saturation);
+        
+        /**
+         * @brief Sets the picture settings for the V4l2SinkBintr to use.
+         * @param[in] brightness new brightness (actually darkness) level.
+         * @param[in] contrast new picture contrast or luna level.
+         * @param[in] saturation new color saturation or chroma level.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetPictureSettings(int brightness, int contrast, int saturation);
+
+    private:
+
+        /**
+         * @brief Device location string for this V4l2SinkBintr.
+         */
+        std::string m_deviceLocation;
+
+        /**
+         * @brief Device name string for this V4l2SinkBintr. Default size=0
+         */
+        std::string m_deviceName;
+        
+        /**
+         * @brief Device file-descriptor for this V4l2SinkBintr. Default = -1
+         */
+        int m_deviceFd;
+        
+        /**
+         * @brief Device type-flags for this V4l2SinkBintr. 
+         * Default = DSL_V4L2_DEVICE_TYPE_NONE
+         */
+        uint m_deviceFlags;
+
+        /**
+         * @brief Buffer format to input into the v4l2sink plugin.
+         */
+        std::string m_bufferInFormat;
+        
+        /**
+         * @brief Picture brightness level, or more accurately, darkness level. 
+         */
+        int m_brightness;
+        
+        /**
+         * @brief Picture contrast level, or luma. 
+         */
+        int m_contrast;
+        
+        /**
+         * @brief Picture color saturation level, or chroma. 
+         */
+        int m_saturation;
+        
+        /**
+         * @brief Identity module for the  V4l2SinkBintr required to workaround 
+         * a bug in the v4l2loopback.
+         */
+        DSL_ELEMENT_PTR m_pIdentity;
+
+        /**
+         * @brief Caps Filter required for for the V4l2SinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
+
+        /**
+         * @brief Video converter required for the V4l2SinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pTransform;
+
     };
 
 }

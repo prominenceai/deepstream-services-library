@@ -33,11 +33,11 @@ static const std::wstring file_path(L"/opt/nvidia/deepstream/deepstream/samples/
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-// Source file dimensions are 960 × 540 - use this to set the Streammux dimensions.
+// Source file dimensions are 960 × 540 
 int source_width = 960;
 int source_height = 540;
 
-// Window Sink dimensions same as Streammux dimensions - no scaling.
+// Window Sink dimensions same as Source dimensions - no scaling.
 int sink_width = source_width;
 int sink_height = source_height;
 
@@ -57,7 +57,7 @@ struct ClientData
     ClientData(uint id){
         pipeline = L"pipeline-" + std::to_wstring(id);
         source = L"source-" + std::to_wstring(id);    
-        window_sink = L"window-sink-" + std::to_wstring(id);    
+        window_sink = L"egl-sink-" + std::to_wstring(id);    
     }
 
     std::wstring pipeline;
@@ -147,7 +147,7 @@ DslReturnType create_pipeline(ClientData* client_data)
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // New Window Sink using the global dimensions
-    retval = dsl_sink_window_new(client_data->window_sink.c_str(),
+    retval = dsl_sink_window_egl_new(client_data->window_sink.c_str(),
         0, 0, sink_width, sink_height);
     if (retval != DSL_RESULT_SUCCESS) return retval;
     
@@ -170,11 +170,6 @@ DslReturnType create_pipeline(ClientData* client_data)
         component_names);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
-    // Update the Pipeline's Streammux dimensions to match the source dimensions.
-    retval = dsl_pipeline_streammux_dimensions_set(client_data->pipeline.c_str(),
-        source_width, source_height);
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-    
     // Add the listener callback functions defined above
     retval = dsl_pipeline_state_change_listener_add(client_data->pipeline.c_str(), 
         state_change_listener, (void*)client_data);

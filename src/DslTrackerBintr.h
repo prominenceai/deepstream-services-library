@@ -50,25 +50,13 @@ namespace DSL
         ~TrackerBintr();
 
         /**
-         * @brief gets the name of the Tracker Config File in use by this GieBintr
-         * @return fully qualified patspec used to create this Bintr
-         */
-        const char* GetLlConfigFile();
-        
-        /**
-         * @brief gets the name of the Tracker Lib File in use by this PrimaryGieBintr
-         * @return fully qualified patspec used to create this Bintr
-         */
-        const char* GetLlLibFile();
-
-        /**
-         * @brief Adds the TrackerBintr to a Parent Branch Bintr
+         * @brief Adds this TrackerBintr to a Parent BranchBintr
          * @param[in] pParentBintr Parent Pipeline to add this Bintr to
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
 
         /**
-         * @brief Removes this TrackerBintr from its Parent Branch Bintr
+         * @brief Removes this TrackerBintr from its Parent BranchBintr
          * @param[in] pParentBintr parent Pipeline to remove from
          * @return true on successful add, false otherwise
          */
@@ -113,14 +101,14 @@ namespace DSL
         bool SetConfigFile(const char* configFile);
         
         /**
-         * @brief Gets the current width and height settings for this Tracker
+         * @brief Gets the current width and height settings for this TrackerBintr.
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
         
         /**
-         * @brief Sets the current width and height settings for this Tracker
+         * @brief Sets the current width and height settings for this TrackerBintr.
          * The caller is required to provide valid width and height values
          * @param[in] width the width value to set in pixels
          * @param[in] height the height value to set in pixels
@@ -129,42 +117,34 @@ namespace DSL
         bool SetDimensions(uint width, uint hieght);
 
         /**
-         * @brief Gets the current batch-processing-enabled setting for this Tracker
-         * @return True if enabled, false otherwise
+         * @brief Gets the current tensor-meta-settings for this TrackerBintr.
+         * @param[out] inputEnabled true if input-tensor-meta is enabled, 
+         * false otherwise.
+         * @param[out] trackOnGie name of the PGIE to track on if inputEnabled=true.
          */
-        boolean GetBatchProcessingEnabled();
+        void GetTensorMetaSettings(boolean* inputEnabled, const char** trackOnGie);
         
         /**
-         * @brief Sets the enable-batch-processing setting for this Tracker
-         * @return Set to true to enable, false otherwise. 
-         * Note: This call is only effective if the low-level library supports 
-         * both batch and per-stream processing.
+         * @brief Sets the tensor-meta-settings for this TrackerBintr to use.
+         * @param[in] inputEnabled set to true to enabled input-tensor-meta, 
+         * false otherwise.
+         * @param[in] trackOnGie name of the PGIE to track on if inputEnabled=true. 
+         * @return True if successfully set, false otherwise.
          */
-        bool SetBatchProcessingEnabled(boolean enabled);
+        bool SetTensorMetaSettings(boolean inputEnabled, const char* trackOnGie);
         
         /**
-         * @brief Gets the enable-past-frame setting for this Tracker
-         * @return True if enabled, false otherwise
+         * @brief Gets the id-display-enabled setting for this TrackerBintr.
+         * @return True if enabled, false otherwise.
          */
-        boolean GetPastFrameReportingEnabled();
+        boolean GetIdDisplayEnabled();
 
         /**
-         * @brief Sets the enable-past-frame setting for this Tracker
-         * @return Set to true if enable, false otherwise
-         * Note: This call is only effective if the low-level library supports 
-         * past frame reporting.
+         * @brief Sets the id-display-enabled setting for this TrackerBintr.
+         * @return Set to true to enable, false otherwise.
          */
-        bool SetPastFrameReportingEnabled(boolean enabled);
+        bool SetIdDisplayEnabled(boolean enabled);
         
-        /**
-         * @brief This Bintr uses the common SetBatchSize bintr method to check
-         * if batch-processing is disabled and batchSize for the Pipeline > 1
-         * The function logs a WARN message if this case is found to be true.
-         * @param the pipeline batchSize to check
-         * @return true always.
-         */
-        bool SetBatchSize(uint batchSize);
-
         /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
@@ -192,6 +172,11 @@ namespace DSL
          * @brief max frame height of the input buffer in pixels
          */
         uint m_height;
+
+        /**
+         * @brief Queue Elementr as Sink for this SegVisualBintr
+         */
+        DSL_ELEMENT_PTR  m_pQueue;
         
         /**
          * @brief Tracker Elementr for this TrackerBintr
@@ -199,14 +184,27 @@ namespace DSL
         DSL_ELEMENT_PTR  m_pTracker;
 
         /**
-         * @brief true if the enable-batch-processing setting is set, false otherwise.
+         * @brief true if the input-tensor-meta setting is set, false otherwise.
          */
-        boolean m_batchProcessingEnabled;
+        boolean m_tensorInputEnabled;
         
         /**
-         * @brief true if the enable-past-frame setting is set, false otherwise.
+         * @brief Tensor Meta GIE name to be used, valid only if 
+         * m_tensorInputEnabled is TRUE.
          */
-        boolean m_pastFrameReporting;
+        std::string m_trackOnGieName;
+
+        /**
+         * @brief Tensor Meta GIE Id to be used, valid only if 
+         * m_tensorInputEnabled is TRUE. This value is retrieved on LinkAll 
+         * using m_trackOnGieName.
+         */
+        uint m_trackOnGieId;
+        
+        /**
+         * @brief true if the display-tracking-id setting is set, false otherwise.
+         */
+        boolean m_idDisplayEnabled;
         
 
     };

@@ -31,7 +31,7 @@ static std::wstring label_file1(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/labels.txt");
 
 static std::wstring label_file2(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/labels.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/labels.txt");
 
 SCENARIO( "A new Non Maximum Processor (NMP) Pad Probe Handler", "[pph-nmp-api]" )
 {

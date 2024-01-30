@@ -58,18 +58,14 @@ from dsl import *
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file_jetson = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Window Sink Dimensions
-sink_width = 1280
-sink_height = 720
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -118,12 +114,8 @@ def main(args):
             break
             
         # New Primary GIE using the filespecs above with interval = 0
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
-        else:
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -133,8 +125,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        # New Window Sink with 0 x/y offsets and dimensions
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 

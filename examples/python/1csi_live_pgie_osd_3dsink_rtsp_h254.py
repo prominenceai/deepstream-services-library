@@ -29,9 +29,12 @@
 #   - CSI Source
 #   - Primary GST Inference Engine (PGIE)
 #   - On-Screen Display
-#   - Overlay Sink
+#   - 3D Sink
 #   - RTSP Sink
 # ...and how to add them to a new Pipeline and play.
+#
+# IMPORTANT! this examples uses a CSI Camera Source and 3D Sink - Jetson only!
+#
 ################################################################################
 
 #!/usr/bin/env python
@@ -40,14 +43,17 @@ import sys
 import time
 from dsl import *
 
-# Host uri of 0.0.0.0 means "use any available network interface"
+#  RTSP Server Sink: host uri of 0.0.0.0 means "use any available network interface"
 host_uri = '0.0.0.0'
+
+SOURCE_WIDTH = 1920
+SOURCE_HEIGHT = 1080
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 def main(args):
 
@@ -72,11 +78,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_sink_overlay_new('overlay-sink', 0, 0, 100, 100, 1280, 720)
+        # New 3D Window Sink with 0 x/y offsets, and same dimensions as Camera Source
+        retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+            SOURCE_WIDTH, SOURCE_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retVal = dsl_sink_rtsp_new('rtsp-sink', 
+        retVal = dsl_sink_rtsp_server_new('rtsp-sink', 
             host_uri, 5400, 8554, DSL_CODEC_H264, 4000000,0)
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
@@ -84,7 +92,7 @@ def main(args):
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['csi-source', 'primary-gie', 'on-screen-display', 
-            'overlay-sink', 'rtsp-sink', None])
+            'window-sink', 'rtsp-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

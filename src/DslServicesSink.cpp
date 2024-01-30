@@ -155,48 +155,11 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkOverlayNew(const char* name, uint display_id,
-        uint depth, uint offsetX, uint offsetY, uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            // Get the Device properties
-            cudaDeviceProp deviceProp;
-            cudaGetDeviceProperties(&deviceProp, 0);
-            
-            if (!deviceProp.integrated)
-            {
-                LOG_ERROR("Overlay Sink is not supported on dGPU x86_64 builds");
-                return DSL_RESULT_SINK_OVERLAY_NOT_SUPPORTED;
-            }
-            
-            // ensure component name uniqueness 
-            if (m_components.find(name) != m_components.end())
-            {   
-                LOG_ERROR("Sink name '" << name << "' is not unique");
-                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
-            }
-            m_components[name] = DSL_OVERLAY_SINK_NEW(
-                name, display_id, depth, offsetX, offsetY, width, height);
-
-            LOG_INFO("New Overlay Sink '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New Sink '" << name << "' threw exception on create");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
     DslReturnType Services::_sinkWindowRegister(DSL_BASE_PTR sink, 
         GstObject* element)
     {
-        LOG_FUNC();
+        LOG_FUNC(); 
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_windowRegistryMutex);
         
         if (m_windowSinkElements.find(sink)
             != m_windowSinkElements.end())
@@ -206,7 +169,7 @@ namespace DSL
             return false;
         }
         LOG_INFO("Registering Window-Sink '"<< sink->GetName() 
-            << "' with GstObject* = " << std::hex << element);
+            << "' with GstObject* = " << int_to_hex(element));
             
         m_windowSinkElements[sink] = element;
 
@@ -216,6 +179,7 @@ namespace DSL
     DslReturnType Services::_sinkWindowUnregister(DSL_BASE_PTR sink)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_windowRegistryMutex);
 
         if (m_windowSinkElements.find(sink)
             == m_windowSinkElements.end())
@@ -233,6 +197,7 @@ namespace DSL
     DSL_BASE_PTR Services::_sinkWindowGet(GstObject* element)
     {
         LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_windowRegistryMutex);
 
         for (const auto& imap: m_windowSinkElements)
         {
@@ -247,7 +212,45 @@ namespace DSL
         return nullptr;
     }
     
-    DslReturnType Services::SinkWindowNew(const char* name, 
+    DslReturnType Services::SinkWindow3dNew(const char* name, 
+        uint offsetX, uint offsetY, uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);
+            
+            if (!deviceProp.integrated)
+            {
+                LOG_ERROR("3D Sink is not supported on dGPU x86_64 builds");
+                return DSL_RESULT_SINK_3D_NOT_SUPPORTED;
+            }
+            
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_3D_SINK_NEW(
+                name, offsetX, offsetY, width, height);
+
+            LOG_INFO("New 3D Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New 3D Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkWindowEglNew(const char* name, 
         uint offsetX, uint offsetY, uint width, uint height)
     {
         LOG_FUNC();
@@ -261,7 +264,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            m_components[name] = DSL_WINDOW_SINK_NEW(name, 
+            m_components[name] = DSL_EGL_SINK_NEW(name, 
                 offsetX, offsetY, width, height);
 
             LOG_INFO("New Window Sink '" << name << "' created successfully");
@@ -275,6 +278,126 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SinkWindowOffsetsGet(const char* name, 
+        uint* offsetX, uint* offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            pWindowSink->GetOffsets(offsetX, offsetY);
+            
+            LOG_INFO("Window Sink '" << name << "' returned Offset X = " 
+                << *offsetX << " and Offset Y = " << *offsetY << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name << "' threw an exception getting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowOffsetsSet(const char* name, 
+        uint offsetX, uint offsetY)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSink->SetOffsets(offsetX, offsetY))
+            {
+                LOG_ERROR("Window Sink '" << name << "' failed to set offsets");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name << "' set Offset X = " 
+                << offsetX << " and Offset Y = " << offsetY << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name << "' threw an exception setting offsets");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowDimensionsGet(const char* name, 
+        uint* width, uint* height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            pWindowSink->GetDimensions(width, height);
+
+            LOG_INFO("Window Sink '" << name << "' returned Width = " 
+                << *width << " and Height = " << *height << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception getting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWindowDimensionsSet(const char* name, 
+        uint width, uint height)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
+
+            DSL_WINDOW_SINK_PTR pWindowSink = 
+                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
+
+            if (!pWindowSink->SetDimensions(width, height))
+            {
+                LOG_ERROR("Window Sink '" << name << "' failed to set dimensions");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Window Sink '" << name << "' set Width = " 
+                << width << " and Height = " << height << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Window Sink '" << name 
+                << "' threw an exception setting dimensions");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkWindowHandleGet(const char* name, uint64_t* handle) 
     {
         LOG_FUNC();
@@ -283,8 +406,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -292,8 +414,8 @@ namespace DSL
             *handle = pWindowSinkBintr->GetHandle();
 
             LOG_INFO("Window Sink '" << name 
-                << "' returned handle = " << std::hex 
-                << *handle << " successfully");
+                << "' returned handle = " << int_to_hex(*handle) 
+                << " successfully");
                 
             return DSL_RESULT_SUCCESS;
         }
@@ -313,20 +435,19 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
             
             if (!pWindowSinkBintr->SetHandle(handle))
             {
-                LOG_ERROR("Failure setting handle = " << std::hex 
+                LOG_ERROR("Failure setting handle = " << int_to_hex(handle)
                     << " for Window Sink '" << name << "'");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
             LOG_INFO("Window Sink '" << name 
-                << "' set handle = " << std::hex << handle << " successfully");
+                << "' set handle = " << int_to_hex(handle) << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -346,8 +467,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -370,71 +490,6 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::SinkWindowForceAspectRatioGet(const char* name, 
-        boolean* force)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
-
-            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
-                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
-
-            *force = pWindowSinkBintr->GetForceAspectRatio();
-            
-            LOG_INFO("Window Sink '" << name 
-            << "' returned Force Aspect Ration = " 
-                << *force  << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception getting 'force-aspect-ratio'");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkWindowForceAspectRatioSet(const char* name, 
-        boolean force)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
-
-            DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
-                std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
-
-            if (!pWindowSinkBintr->SetForceAspectRatio(force))
-            {
-                LOG_ERROR("Window Sink '" << name 
-                    << "' failed to Set 'force-aspec-ratio' property");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Window Sink '" << name << "' set force-aspect-ration = " 
-                << force  << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Window Sink'" << name 
-                << "' threw an exception setting force-apect-ratio property");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-        
     DslReturnType Services::SinkWindowFullScreenEnabledGet(const char* name, 
         boolean* enabled)
     {
@@ -444,8 +499,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -474,8 +528,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -509,8 +562,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -543,8 +595,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -577,8 +628,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -611,8 +661,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -645,8 +694,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -679,8 +727,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, WindowSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_WINDOW_SINK(m_components, name);
 
             DSL_WINDOW_SINK_PTR pWindowSinkBintr = 
                 std::dynamic_pointer_cast<WindowSinkBintr>(m_components[name]);
@@ -704,8 +751,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SinkRenderOffsetsGet(const char* name, 
-        uint* offsetX, uint* offsetY)
+    DslReturnType Services::SinkWindowEglForceAspectRatioGet(const char* name, 
+        boolean* force)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -713,27 +760,30 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                EglSinkBintr);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_EGL_SINK_PTR pEglWindowSinkBintr = 
+                std::dynamic_pointer_cast<EglSinkBintr>(m_components[name]);
 
-            pRenderSink->GetOffsets(offsetX, offsetY);
+            *force = pEglWindowSinkBintr->GetForceAspectRatio();
             
-            LOG_INFO("Render Sink '" << name << "' returned Offset X = " 
-                << *offsetX << " and Offset Y = " << *offsetY << "' successfully");
-
+            LOG_INFO("EGL Window Sink '" << name 
+            << "' returned force-aspect-ratio = " 
+                << *force  << " successfully");
+            
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception getting offsets");
+            LOG_ERROR("EGL Window Sink'" << name 
+                << "' threw an exception getting 'force-aspect-ratio'");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::SinkRenderOffsetsSet(const char* name, 
-        uint offsetX, uint offsetY)
+    DslReturnType Services::SinkWindowEglForceAspectRatioSet(const char* name, 
+        boolean force)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -741,116 +791,31 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                EglSinkBintr);
 
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
+            DSL_EGL_SINK_PTR pEglWindowSinkBintr = 
+                std::dynamic_pointer_cast<EglSinkBintr>(m_components[name]);
 
-            if (!pRenderSink->SetOffsets(offsetX, offsetY))
+            if (!pEglWindowSinkBintr->SetForceAspectRatio(force))
             {
-                LOG_ERROR("Render Sink '" << name << "' failed to set offsets");
+                LOG_ERROR("EGL Window Sink '" << name 
+                    << "' failed to Set force-aspec-ratio property");
                 return DSL_RESULT_SINK_SET_FAILED;
             }
-            LOG_INFO("Render Sink '" << name << "' set Offset X = " 
-                << offsetX << " and Offset Y = " << offsetY << "' successfully");
-
+            LOG_INFO("EGL Window Sink '" << name << "' set force-aspect-ratio = " 
+                << force  << " successfully");
+            
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception setting offsets");
+            LOG_ERROR("EGL Window Sink'" << name 
+                << "' threw an exception setting force-apect-ratio property");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
-
-    DslReturnType Services::SinkRenderDimensionsGet(const char* name, 
-        uint* width, uint* height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
-
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
-
-            pRenderSink->GetDimensions(width, height);
-
-            LOG_INFO("Render Sink '" << name << "' returned Width = " 
-                << *width << " and Height = " << *height << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception getting dimensions");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkRenderDimensionsSet(const char* name, 
-        uint width, uint height)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
-
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
-
-            if (!pRenderSink->SetDimensions(width, height))
-            {
-                LOG_ERROR("Render Sink '" << name << "' failed to set dimensions");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Render Sink '" << name << "' set Width = " 
-                << width << " and Height = " << height << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception setting dimensions");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
-    DslReturnType Services::SinkRenderReset(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_RENDER_SINK(m_components, name);
-
-            DSL_RENDER_SINK_PTR pRenderSink = 
-                std::dynamic_pointer_cast<RenderSinkBintr>(m_components[name]);
-
-            if (!pRenderSink->Reset())
-            {
-                LOG_ERROR("Render Sink '" << name << "' failed to reset its render suface");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Render Sink '" << name << "' Reset successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Render Sink '" << name << "' threw an exception reseting its surface");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-    
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
             uint codec, uint container, uint bitrate, uint interval)
     {
@@ -1450,8 +1415,10 @@ namespace DSL
 
             encodeSinkBintr->GetEncoderSettings(codec, bitrate, interval);
             
-            LOG_INFO("Encode Sink '" << name << "' returned Bitrate = " 
-                << *bitrate << " and Interval = " << *interval << " successfully");
+            LOG_INFO("Encode Sink '" << name 
+                << "' returned codec = " << *codec 
+                << " bitrate = " << *bitrate 
+                << " and interval = " << *interval << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -1474,10 +1441,17 @@ namespace DSL
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
 
-
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
+            if (m_components[name]->IsType(typeid(RtmpSinkBintr)) and
+                codec == DSL_CODEC_H265)
+            {   
+                LOG_ERROR("Codec value = DSL_CODEC_H265 is invalid for RTMP Sink '"
+                    << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+                    
             if (codec > DSL_CODEC_H265)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
@@ -1565,9 +1539,99 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SinkRtmpNew(const char* name, const char* uri, 
+        uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
-    DslReturnType Services::SinkRtspNew(const char* name, const char* host, 
-            uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_RTMP_SINK_NEW(name, 
+                uri, bitrate, interval);
+
+            LOG_INFO("New RTMP Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTMP Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtmpUriGet(const char* name, const char** uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtmpSinkBintr);
+
+            DSL_RTMP_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtmpSinkBintr>(m_components[name]);
+
+            *uri = pSinkBintr->GetUri();
+
+            LOG_INFO("RTMP Sink '" << name << "' returned URI = '" 
+                << *uri << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTMP Sink '" << name << "' threw exception getting URI");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SinkRtmpUriSet(const char* name, const char* uri)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                RtmpSinkBintr);
+
+            DSL_RTMP_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtmpSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetUri(uri))
+            {
+                LOG_ERROR("Failed to Set URI '" << uri 
+                    << "' for RTMP Sink '" << name << "'");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("RTMP Sink '" << name << "' set URI = '" 
+                << uri << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTMP Sink '" << name << "' threw exception setting URI");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
+        uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1582,23 +1646,28 @@ namespace DSL
             }
             if (codec > DSL_CODEC_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec << " for File Sink '" << name << "'");
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for RTSP Server Sink '" << name << "'");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
-            m_components[name] = DSL_RTSP_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval);
+            m_components[name] = DSL_RTSP_SERVER_SINK_NEW(name, 
+                host, udpPort, rtspPort, codec, bitrate, interval);
 
-            LOG_INFO("New RTSP Sink '" << name << "' created successfully");
+            LOG_INFO("New RTSP Server Sink '" << name 
+                << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New RTSP Sink '" << name << "' threw exception on create");
+            LOG_ERROR("New RTSP Server Sink '" << name 
+                << "' threw exception on create");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
     
-    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, uint* udpPort, uint* rtspPort)
+    DslReturnType Services::SinkRtspServerSettingsGet(const char* name, 
+        uint* udpPort, uint* rtspPort)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1606,21 +1675,377 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RtspSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspServerSinkBintr);
             
-            DSL_RTSP_SINK_PTR rtspSinkBintr = 
-                std::dynamic_pointer_cast<RtspSinkBintr>(m_components[name]);
+            DSL_RTSP_SERVER_SINK_PTR rtspSinkBintr = 
+                std::dynamic_pointer_cast<RtspServerSinkBintr>(m_components[name]);
 
             rtspSinkBintr->GetServerSettings(udpPort, rtspPort);
 
-            LOG_INFO("RTSP Sink '" << name << "' returned UDP Port = " 
+            LOG_INFO("RTSP Server Sink '" << name << "' returned UDP Port = " 
                 << *udpPort << ", RTSP Port = " << *rtspPort << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("RTSP Sink '" << name << "' threw an exception getting Encoder settings");
+            LOG_ERROR("RTSP Server Sink '" << name 
+                << "' threw an exception getting Encoder settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientNew(const char* name, const char* uri, 
+            uint codec, uint bitrate, uint interval)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            if (codec > DSL_CODEC_H265)
+            {   
+                LOG_ERROR("Invalid Codec value = " << codec 
+                    << " for RTSP-CLient Sink '" << name << "'");
+                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+            }
+            m_components[name] = DSL_RTSP_CLIENT_SINK_NEW(name, 
+                uri, codec, bitrate, interval);
+            
+            LOG_INFO("New RTSP-Client Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New RTSP-CLient Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientCredentialsSet(const char* name, 
+        const char* userId, const char* userPw)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetCredentials(userId, userPw))
+            {
+                LOG_ERROR("RTSP Client '" << name 
+                    << "' failed to set credentials");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set credentials successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting credentials");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+            
+    DslReturnType Services::SinkRtspClientLatencyGet(const char* name, 
+        uint* latency)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *latency = pSinkBintr->GetLatency();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned latency = " << *latency 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting latency");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientLatencySet(const char* name, 
+        uint latency)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetLatency(latency))
+            {
+                LOG_ERROR("RTSP Client '" << name 
+                    << "' failed to set latency = " << latency);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set latency = " << latency 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting latency");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProfilesGet(const char* name, 
+        uint* profiles)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *profiles = pSinkBintr->GetProfiles();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned profiles = " << int_to_hex(*profiles)
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting profiles");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProfilesSet(const char* name, 
+        uint profiles)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (profiles > DSL_TLS_CERTIFICATE_VALIDATE_ALL)
+            {
+                LOG_ERROR("RTSP Client Sink '" << name 
+                    << "' failed to set profiles -- invalid profiles = "
+                    << int_to_hex(profiles));
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            if (!pSinkBintr->SetProfiles(profiles))
+            {
+                LOG_ERROR("RTSP Client Sink'" << name 
+                    << "' failed to set profiles = " << int_to_hex(profiles));
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set profiles = " << int_to_hex(profiles)
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting profiles");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProtocolsGet(const char* name, 
+        uint* protocols)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *protocols = pSinkBintr->GetProtocols();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned lower-protocols = " << int_to_hex(*protocols) 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting lower-protocols");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientProtocolsSet(const char* name, 
+        uint protocols)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetProtocols(protocols))
+            {
+                LOG_ERROR("RTSP Client Sink'" << name 
+                    << "' failed to set lower-protocols = " << int_to_hex(protocols));
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set lower-protocols = " << int_to_hex(protocols) 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting lower-protocols");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientTlsValidationFlagsGet(const char* name, 
+        uint* flags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            *flags = pSinkBintr->GetTlsValidationFlags();
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' returned tls-validation-flags = " 
+                << int_to_hex(*flags) << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception getting tls-validation-flags");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRtspClientTlsValidationFlagsSet(const char* name, 
+        uint flags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspClientSinkBintr);
+            
+            DSL_RTSP_CLIENT_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<RtspClientSinkBintr>(m_components[name]);
+
+            if (flags > DSL_TLS_CERTIFICATE_VALIDATE_ALL)
+            {
+                LOG_ERROR("RTSP Client Sink '" << name 
+                    << "' failed to set tls-validation-flags -- invalid flags = "
+                    << int_to_hex(flags));
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            if (!pSinkBintr->SetTlsValidationFlags(flags))
+            {
+                LOG_ERROR("RTSP Client Sink '" << name 
+                    << "' failed to set tls-validation-flags = " 
+                    << int_to_hex(flags));
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Client Sink '" << name 
+                << "' set tls-validation-flags = " 
+                << int_to_hex(flags) << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Client Sink '" << name 
+                << "' threw exception setting tls-validation-flags");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -2379,7 +2804,353 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Frame-Capture Sink '" << name 
-                << "' threw an exception initiating capture");
+                << "' threw an exception initiating a frame capture");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkFrameCaptureSchedule(const char* name,
+        uint64_t frameNumber)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, FrameCaptureSinkBintr);
+
+            DSL_FRAME_CAPTURE_SINK_PTR pFrameCaptureSink = 
+                std::dynamic_pointer_cast<FrameCaptureSinkBintr>(m_components[name]);
+
+            if (!pFrameCaptureSink->Schedule(frameNumber))
+            {
+                LOG_ERROR("Frame-Capture Sink '" << name 
+                    << "' failed to schedule a frame-capture for frame-number = "
+                    << frameNumber);
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Frame-Capture Sink '" << name 
+                << "' scheduled a frame-capture for frame-number = "
+                << frameNumber << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Frame-Capture Sink '" << name 
+                << "' threw an exception scheduling a frame-capture");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2New(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_V4L2_SINK_NEW(name, 
+                deviceLocation);
+            
+            LOG_INFO("New V4L2 Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceLocationGet(const char* name, 
+        const char** deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceLocation = pSinkBintr->GetDeviceLocation();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-location = '" 
+                << *deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-location");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceLocationSet(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetDeviceLocation(deviceLocation))
+            {
+                LOG_ERROR("Failed to set device-location '" 
+                    << deviceLocation << "' for V4L2 Sink '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Sink '" << name << "' set device-location = '" 
+                << deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception setting device-location");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceNameGet(const char* name, 
+        const char** deviceName)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceName = pSinkBintr->GetDeviceName();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-name = '" 
+                << *deviceName << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-name");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceFdGet(const char* name, 
+        int* deviceFd)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceFd = pSinkBintr->GetDeviceFd();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-fd = '" 
+                << *deviceFd << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-fd");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2DeviceFlagsGet(const char* name, 
+        uint* deviceFlags)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *deviceFlags = pSinkBintr->GetDeviceFlags();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned device-flags = '" 
+                << int_to_hex(*deviceFlags) << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting device-flags");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SinkV4l2BufferInFormatGet(const char* name, 
+        const char** format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            *format = pSinkBintr->GetBufferInFormat();
+
+            LOG_INFO("V4L2 Sink '" << name << "' returned buffer-in-format = '" 
+                << *format << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting buffer-in-format");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2BufferInFormatSet(const char* name, 
+        const char* format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetBufferInFormat(format))
+            {
+                LOG_ERROR("Failed to set buffer-in-format '" 
+                    << format << "' for V4L2 Sink '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Sink '" << name << "' set buffer-in-format = '" 
+                << format << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception setting buffer-in-format");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2PictureSettingsGet(const char* name, 
+        int* brightness, int* contrast, int* saturation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            pSinkBintr->GetPictureSettings(brightness, contrast, saturation);
+
+            LOG_INFO("V4L2 Sink '" << name 
+                << "' returned picture-settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception getting picture-settings");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkV4l2PictureSettingsSet(const char* name, 
+        int brightness, int contrast, int saturation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                V4l2SinkBintr);
+
+            DSL_V4L2_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<V4l2SinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetPictureSettings(brightness, contrast, saturation))
+            {
+                LOG_ERROR("Failed to set picture-settings for V4L2 Sink '" 
+                    << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("V4L2 Sink '" << name 
+                << "' set picture-settings successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("V4L2 Sink '" << name 
+                << "' threw exception setting picture-settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }

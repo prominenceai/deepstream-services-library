@@ -51,11 +51,8 @@ dwarper_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-dewarper-test/config_dewarper_perspective.txt'
 
 
-streammux_width = 3680
-streammux_height = 2428
-
-sink_width = DSL_STREAMMUX_DEFAULT_WIDTH
-sink_height = DSL_STREAMMUX_DEFAULT_HEIGHT
+sink_width = DSL_1K_HD_WIDTH
+sink_height = DSL_1K_HD_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -116,28 +113,28 @@ def main(args):
             break
             
         # New Window Sink, 0 x/y offsets and dimensions 
-        retval = dsl_sink_window_new('window-sink', 0, 0, sink_width, sink_height)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, sink_width, sink_height)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Enable fullscreen for a kiosk look and feel.
-        retval = dsl_sink_window_fullscreen_enabled_set('window-sink', True)
+        retval = dsl_sink_window_fullscreen_enabled_set('egl-sink', True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'window-sink', None])
+            ['file-source', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

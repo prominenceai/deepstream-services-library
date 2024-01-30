@@ -50,14 +50,10 @@ std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
@@ -69,8 +65,8 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-uint WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-uint WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+uint WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -134,18 +130,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(L"primary-gie", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // New IOU Tracker, setting operational width and height of input frame
@@ -158,15 +145,15 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
@@ -178,7 +165,7 @@ int main(int argc, char** argv)
     
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"file-source",  L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"window-sink", L"multi-image-sink", NULL};
+            L"iou-tracker", L"on-screen-display", L"egl-sink", L"multi-image-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

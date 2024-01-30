@@ -46,7 +46,7 @@ namespace DSL
         }
         
         /**
-         * @brief dtor for DslMutex class
+         * @brief dtor for DslCond class
          */
         ~DslCond()
         {
@@ -54,7 +54,7 @@ namespace DSL
         }
         
         /**
-         * @brief & operator for the DslMutex class
+         * @brief & operator for the DslCond class
          * @return returns the address of the wrapped mutex.
          */
         GCond* operator& ()

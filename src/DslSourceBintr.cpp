@@ -24,6 +24,7 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
+#include "DslCaps.h"
 #include "DslServices.h"
 #include "DslSourceBintr.h"
 #include "DslPipelineBintr.h"
@@ -177,9 +178,13 @@ namespace DSL
         m_pBufferOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
             name, "vidconv");
         
-        SetBufferOutFormat(m_bufferOutFormat.c_str());
+        // Update the caps with the media, format, and memory:NVMM feature
+        if (!SetBufferOutFormat(m_bufferOutFormat.c_str()))
+        {
+            throw;
+        }
 
-        // ---- SinkQueue as ghost pad to connect to Streammuxer
+        // ---- Queue as ghost pad to connect to Streammuxer
         
         m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
         
@@ -190,10 +195,9 @@ namespace DSL
 
         // Source (output) queue is "src" ghost-pad for all SourceBintrs
         m_pSourceQueue->AddGhostPadToParent("src");
-        
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pSourceQueue);
+
+        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
+        AddSrcPadProbes(m_pSourceQueue);
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -546,9 +550,7 @@ namespace DSL
 
         m_bufferOutFormat = format;
         
-        updateVidConvCaps();
-
-        return true;
+        return updateVidConvCaps();
     }
     
     void VideoSourceBintr::GetBufferOutDimensions(uint* width, uint* height)
@@ -572,9 +574,7 @@ namespace DSL
         m_bufferOutWidth = width;
         m_bufferOutHeight = height;
         
-        updateVidConvCaps();
-        
-        return true;
+        return updateVidConvCaps();
     }
     
     void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
@@ -615,9 +615,7 @@ namespace DSL
             m_pBufferOutVidRate = nullptr;
         }
         // Update the output-buffer's caps filter now
-        updateVidConvCaps();
-        
-        return true;
+        return updateVidConvCaps();
     }
     
     void tokenize(std::string const &str, const char delim,
@@ -763,55 +761,12 @@ namespace DSL
     {
         LOG_FUNC();
 
-        GstCaps* pCaps(NULL);
-        
-        if (m_bufferOutWidth and m_bufferOutHeight and 
-            m_bufferOutFpsN and m_bufferOutFpsD)
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                "width", G_TYPE_INT, m_bufferOutWidth, 
-                "height", G_TYPE_INT, m_bufferOutHeight,
-                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-                NULL);
-        }
-        else if (m_bufferOutWidth and m_bufferOutHeight)
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                "width", G_TYPE_INT, m_bufferOutWidth, 
-                "height", G_TYPE_INT, m_bufferOutHeight,
-                NULL);
-        }
-        else if (m_bufferOutFpsN and m_bufferOutFpsD)
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                "framerate", GST_TYPE_FRACTION, m_bufferOutFpsN, m_bufferOutFpsD, 
-                NULL);
-        }
-        else
-        {
-            pCaps = gst_caps_new_simple(m_mediaType.c_str(), 
-                "format", G_TYPE_STRING, m_bufferOutFormat.c_str(),
-                NULL);
-        }
-        if (!pCaps)
-        {
-            LOG_ERROR("Failed to create new Simple Capabilities for VideoSourceBintr '" 
-                << GetName() << "'");
-            return false;  
-        }
+        DslCaps Caps(m_mediaType.c_str(), m_bufferOutFormat.c_str(),
+            m_bufferOutWidth, m_bufferOutHeight, 
+            m_bufferOutFpsN, m_bufferOutFpsD, true);
 
-        // The Video converter is an NVIDIA plugin so we need to add the
-        // additional feature to enable buffer access via the NvBuffer API.
-        GstCapsFeatures *feature = NULL;
-        feature = gst_caps_features_new("memory:NVMM", NULL);
-        gst_caps_set_features(pCaps, 0, feature);
-
-        // Set the provided element's caps and unref caps structure.
-        m_pBufferOutCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps); 
+        // Set the Caps for the Buffer output
+        m_pBufferOutCapsFilter->SetAttribute("caps", &Caps);
         
         return true;
     }
@@ -1514,8 +1469,12 @@ namespace DSL
         m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
-        m_pSourceElement->SetAttribute("bufapi-version", TRUE);
-
+        
+        // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+        if (NVDS_VERSION_MINOR < 3)
+        {
+            m_pSourceElement->SetAttribute("bufapi-version", TRUE);
+        }
         // Set the full capabilities (format, dimensions, and framerate)
         // Note: nvarguscamerasrc supports NV12 and P010_10LE formats only.
         if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
@@ -1534,7 +1493,6 @@ namespace DSL
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  sensor-id         : " << m_sensorId);
-        LOG_INFO("  bufapi-version    : " << TRUE);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
@@ -1639,14 +1597,10 @@ namespace DSL
     }
 
     //*********************************************************************************
-    // Initilize the unique device id list for all UsbSourceBintrs 
-    std::list<uint> UsbSourceBintr::s_uniqueDeviceIds;
-    std::list<std::string> UsbSourceBintr::s_deviceLocations;
 
-    UsbSourceBintr::UsbSourceBintr(const char* name, 
-        guint width, guint height, guint fpsN, guint fpsD)
+    V4l2SourceBintr::V4l2SourceBintr(const char* name, const char* deviceLocation)
         : VideoSourceBintr(name)
-        , m_deviceId(0)
+        , m_deviceLocation(deviceLocation)
     {
         LOG_FUNC();
 
@@ -1659,41 +1613,27 @@ namespace DSL
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
             L_bufferOutFormat.end());
 
-        // Update the frame dimensions and framerate
-        m_width = width;
-        m_height = height;
-        m_fpsN = fpsN;
-        m_fpsD = fpsD;
-        
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
-        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
-        // Find the first available unique device-id
-        while(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
-            m_deviceId) != s_uniqueDeviceIds.end())
-        {
-            m_deviceId++;
-        }
-        s_uniqueDeviceIds.push_back(m_deviceId);
+        m_pSourceElement->GetAttribute("device-fd", &m_deviceFd);
+        m_pSourceElement->GetAttribute("flags", &m_deviceFlags);
+        m_pSourceElement->GetAttribute("brightness", &m_brightness);
+        m_pSourceElement->GetAttribute("contrast", &m_contrast);
+        m_pSourceElement->GetAttribute("hue", &m_hue);
         
-        // create the device-location by adding the device-id as suffex to /dev/video
-        m_deviceLocation = "/dev/video" + std::to_string(m_deviceId);
-        s_deviceLocations.push_back(m_deviceLocation);
-        
-        LOG_INFO("Setting device-location = '" << m_deviceLocation 
-            << "' for UsbSourceBintr '" << name << "'");
+        m_pSourceCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "1");
 
         m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
 
         // Get property defaults that aren't specifically set
         m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
         
-        // Set the full capabilities (format, dimensions, and framerate)
-        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
-            m_width, m_height, m_fpsN, m_fpsD, false))
-        {
-            throw;
-        }
+        // Set the capabilities - do not set the format. 
+        // Dimensions and framerate are set conditionally (non zero).
+        DslCaps Caps(m_mediaType.c_str(), NULL, 
+            m_width, m_height, m_fpsN, m_fpsD, false);
+
+        m_pSourceCapsFilter->SetAttribute("caps", &Caps);
 
         if (!m_cudaDeviceProp.integrated)
         {
@@ -1702,14 +1642,20 @@ namespace DSL
         }
         
         LOG_INFO("");
-        LOG_INFO("Initial property values for UsbSourceBintr '" << name << "'");
+        LOG_INFO("Initial property values for V4l2SourceBintr '" << name << "'");
         LOG_INFO("  is-live           : " << m_isLive);
-        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  device            : " << m_deviceLocation.c_str());
+        LOG_INFO("  device-name       : " << m_deviceName);
+        LOG_INFO("  device-fd         : " << m_deviceFd);
+        LOG_INFO("  flags             : " << int_to_hex(m_deviceFlags));
+        LOG_INFO("  brightness        : " << m_brightness);
+        LOG_INFO("  contrast          : " << m_contrast);
+        LOG_INFO("  hue               : " << m_hue);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
         LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
@@ -1725,23 +1671,18 @@ namespace DSL
         AddChild(m_pSourceCapsFilter);
     }
 
-    UsbSourceBintr::~UsbSourceBintr()
+    V4l2SourceBintr::~V4l2SourceBintr()
     {
         LOG_FUNC();
-        
-        // remove from lists so values can be reused by next
-        // new USB Source
-        s_uniqueDeviceIds.remove(m_deviceId);
-        s_deviceLocations.remove(m_deviceLocation);
     }
 
-    bool UsbSourceBintr::LinkAll()
+    bool V4l2SourceBintr::LinkAll()
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("UsbSourceBintr '" << GetName() << "' is already in a linked state");
+            LOG_ERROR("V4l2SourceBintr '" << GetName() << "' is already in a linked state");
             return false;
         }
         
@@ -1768,13 +1709,13 @@ namespace DSL
         return true;
     }
 
-    void UsbSourceBintr::UnlinkAll()
+    void V4l2SourceBintr::UnlinkAll()
     {
         LOG_FUNC();
 
         if (!m_isLinked)
         {
-            LOG_ERROR("UsbSourceBintr '" << GetName() << "' is not in a linked state");
+            LOG_ERROR("V4l2SourceBintr '" << GetName() << "' is not in a linked state");
             return;
         }
         
@@ -1790,68 +1731,154 @@ namespace DSL
         m_isLinked = false;
     }
 
-    const char* UsbSourceBintr::GetDeviceLocation()
+    const char* V4l2SourceBintr::GetDeviceLocation()
     {
         LOG_FUNC();
 
         return m_deviceLocation.c_str();
     }
     
-    bool UsbSourceBintr::SetDeviceLocation(const char* deviceLocation)
+    bool V4l2SourceBintr::SetDeviceLocation(const char* deviceLocation)
     {
         LOG_FUNC();
 
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set device-location for UsbSourceBintr '" << GetName() 
+            LOG_ERROR("Can't set device-location for V4l2SourceBintr '" << GetName() 
                 << "' as it is currently in a linked state");
             return false;
         }
         
-        // Ensure that the device-location is unique.
-        std::string newLocation(deviceLocation);
-        
-        if (newLocation.find("/dev/video") == std::string::npos)
-        {
-            LOG_ERROR("Can't set device-location = '" << deviceLocation 
-                << "' for UsbSourceBintr '" << GetName() 
-                << "'. The string is invalid");
-            return false;
-        }
-        uint newDeviceId(0);
-        try
-        {
-            newDeviceId = std::stoi(newLocation.substr(10, 
-                newLocation.size()-10));
-        }
-        catch(...)
-        {
-            LOG_ERROR("Can't set device-location = '" << deviceLocation 
-                << "' for UsbSourceBintr '" << GetName() 
-                << "'. The string is invalid");
-            return false;
-        }
-        
-        if(std::find(s_uniqueDeviceIds.begin(), s_uniqueDeviceIds.end(), 
-            newDeviceId) != s_uniqueDeviceIds.end())
-        {
-            LOG_ERROR("Can't set device-location = '" << deviceLocation 
-                << "' for UsbSourceBintr '" << GetName() 
-                << "'. The location string is not unqiue");
-            return false;
-        }
-        // remove the old device-id and location before updating
-        s_uniqueDeviceIds.remove(m_deviceId);
-        s_deviceLocations.remove(m_deviceLocation);
-
-        m_deviceId = newDeviceId;
         m_deviceLocation = deviceLocation;
-        s_uniqueDeviceIds.push_back(m_deviceId);
-        s_deviceLocations.push_back(m_deviceLocation);
         
-        m_pSourceElement->SetAttribute("device", deviceLocation);
+        m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
         return true;
     }
+
+    bool V4l2SourceBintr::SetDimensions(uint width, uint height)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set dimensions for V4l2SourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_width = width;
+        m_height = height;
+
+        // Set the capabilities - do not set the format. 
+        // Dimensions and framerate are set conditionally (non zero).
+        DslCaps Caps(m_mediaType.c_str(), NULL, 
+            m_width, m_height, m_fpsN, m_fpsD, false);
+
+        m_pSourceCapsFilter->SetAttribute("caps", &Caps);
+        
+        return true;
+    }
+    
+    bool V4l2SourceBintr::SetFrameRate(uint fpsN, uint fpsD)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set frame-rate for V4l2SourceBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        m_fpsN = fpsN;
+        m_fpsD = fpsD;
+        
+        // Set the capabilities - do not set the format. 
+        // Dimensions and framerate are set conditionally (non zero).
+        DslCaps Caps(m_mediaType.c_str(), NULL, 
+            m_width, m_height, m_fpsN, m_fpsD, false);
+
+        m_pSourceCapsFilter->SetAttribute("caps", &Caps);
+        
+        return true;
+    }
+    
+    const char* V4l2SourceBintr::GetDeviceName()
+    {
+        LOG_FUNC();
+        
+        // default to no device-name
+        m_deviceName = "";
+
+        const char* deviceName(NULL);
+        m_pSourceElement->GetAttribute("device-name", &deviceName);
+        
+        // Update if set
+        if (deviceName)
+        {
+            m_deviceName = deviceName;
+        }
+            
+        return m_deviceName.c_str();
+    }
+    
+    int V4l2SourceBintr::GetDeviceFd()
+    {
+        LOG_FUNC();
+
+        m_pSourceElement->GetAttribute("device-fd", &m_deviceFd);
+        return m_deviceFd;
+    }
+    
+    uint V4l2SourceBintr::GetDeviceFlags()
+    {
+        LOG_FUNC();
+
+        m_pSourceElement->GetAttribute("flags", &m_deviceFlags);
+        return m_deviceFlags;
+    }
+    
+    void V4l2SourceBintr::GetPictureSettings(int* brightness, 
+        int* contrast, int* hue)
+    {
+        LOG_FUNC();
+        
+        m_pSourceElement->GetAttribute("brightness", &m_brightness);
+        m_pSourceElement->GetAttribute("contrast", &m_contrast);
+        m_pSourceElement->GetAttribute("hue", &m_hue);
+
+        *brightness = m_brightness;
+        *contrast = m_contrast;
+        *hue = m_hue;
+    }
+
+    bool V4l2SourceBintr::SetPictureSettings(int brightness, 
+        int contrast, int hue)
+    {
+        LOG_FUNC();
+
+        if (m_brightness != brightness)
+        {
+            m_brightness = brightness;
+            m_pSourceElement->SetAttribute("brightness", m_brightness);
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set brightness level to " << m_brightness);
+        }
+        if (m_contrast != contrast)
+        {
+            m_contrast = contrast;
+            m_pSourceElement->SetAttribute("contrast", m_contrast);            
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set contrast level to " << m_contrast);
+        }
+        if (m_hue != hue)
+        {
+            m_hue = hue;
+            m_pSourceElement->SetAttribute("hue", m_hue);
+            LOG_INFO("V4l2SourceBintr '" << GetName() 
+                << "' set hue level to " << m_hue);
+        }
+        return true;
+    }
+
 
     //*********************************************************************************
 
@@ -2101,6 +2128,11 @@ namespace DSL
             // aarch64 only
             if (m_cudaDeviceProp.integrated)
             {
+                // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+                if (NVDS_VERSION_MINOR < 3)
+                {
+                    g_object_set(pObject, "bufapi-version", TRUE, NULL);
+                }
                 g_object_set(pObject, "enable-max-performance", TRUE, NULL);
             }
             g_object_set(pObject, "drop-frame-interval", m_dropFrameInterval, NULL);
@@ -3111,6 +3143,11 @@ namespace DSL
         // aarch64 (Jetson) only
         if (m_cudaDeviceProp.integrated)
         {
+            // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
+            if (NVDS_VERSION_MINOR < 3)
+            {
+                m_pDecoder->SetAttribute("bufapi-version", TRUE);
+            }
             m_pDecoder->SetAttribute("enable-max-performance", TRUE);
         }
         m_pDecoder->SetAttribute("drop-frame-interval", m_dropFrameInterval);
@@ -3152,10 +3189,7 @@ namespace DSL
         std::string handlerName = GetName() + "-timestamp-pph";
         m_TimestampPph = DSL_PPH_TIMESTAMP_NEW(handlerName.c_str());
         
-        std::string padProbeName = GetName() + "-src-pad-probe";
-        m_pSrcPadProbe = DSL_PAD_BUFFER_PROBE_NEW(padProbeName.c_str(), 
-            "src", m_pBufferOutVidConv);
-        m_pSrcPadProbe->AddPadProbeHandler(m_TimestampPph);
+        m_pSrcPadBufferProbe->AddPadProbeHandler(m_TimestampPph);
         
         // Set the default connection param values
         m_connectionData.sleep = DSL_RTSP_CONNECTION_SLEEP_S;
@@ -3174,7 +3208,7 @@ namespace DSL
 
         // Note: don't need t worry about stopping the one-shot m_listenerNotifierTimerId
         
-        m_pSrcPadProbe->RemovePadProbeHandler(m_TimestampPph);
+        m_pSrcPadBufferProbe->RemovePadProbeHandler(m_TimestampPph);
     }
     
     bool RtspSourceBintr::LinkAll()

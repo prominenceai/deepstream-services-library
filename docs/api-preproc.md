@@ -20,6 +20,9 @@ A similar set of Services are used when adding/removing a Preprocess to/from a b
 
 Once added to a Pipeline or Branch, a Preprocessor must be removed before it can be used with another.
 
+### Adding/Removing Pad-Probe-handlers
+Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Preprocessor by calling [`dsl_preproc_pph_add`](#dsl_preproc_pph_add) and removed with [`dsl_preproc_pph_remove`](#dsl_preproc_pph_remove).
+
 ---
 ## Preprocessor API
 **Constructors:**
@@ -31,6 +34,8 @@ Once added to a Pipeline or Branch, a Preprocessor must be removed before it can
 * [`dsl_preproc_enabled_get`](#dsl_preproc_enabled_get)
 * [`dsl_preproc_enabled_set`](#dsl_preproc_enabled_set)
 * [`dsl_preproc_unique_id_get`](#dsl_preproc_unique_id_get)
+* [`dsl_preproc_pph_add`](#dsl_preproc_pph_add)
+* [`dsl_preproc_pph_remove`](#dsl_preproc_pph_remove)
 
 ## Return Values
 The following return codes are used by the On-Screen Display API
@@ -43,6 +48,8 @@ The following return codes are used by the On-Screen Display API
 #define DSL_RESULT_PREPROC_IN_USE                                   0x00B00005
 #define DSL_RESULT_PREPROC_SET_FAILED                               0x00B00006
 #define DSL_RESULT_PREPROC_IS_NOT_PREPROC                           0x00B00007
+#define DSL_RESULT_PREPROC_HANDLER_ADD_FAILED                       0x00B00008
+#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B00009
 ```
 
 ## Constructors
@@ -175,6 +182,48 @@ retval, unique_id = dsl_preproc_unique_id_get('my-preprocessor')
 
 <br>
 
+### *dsl_preproc_pph_add*
+```C++
+DslReturnType dsl_preproc_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+```
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Preprocessor.
+
+**Parameters**
+* `name` - [in] unique name of the Preprocessor to update.
+* `handler` - [in] unique name of Pad Probe Handler to add
+* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_preproc_pph_add('my-preprocessor', 'my-pph-handler', `DSL_PAD_SINK`)
+```
+
+<br>
+
+### *dsl_preproc_pph_remove*
+```C++
+DslReturnType dsl_preproc_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+```
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named Preprocess. The service will fail if the named handler is not owned by the Preprocessor.
+
+**Parameters**
+* `name` - [in] unique name of the Preprocessor to update.
+* `handler` - [in] unique name of Pad Probe Handler to remove
+* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_preproc_pph_remove('my-preprocessor', 'my-pph-handler', `DSL_PAD_SINK`)
+```
+
+<br>
+
 ---
 
 ## API Reference
@@ -188,7 +237,7 @@ retval, unique_id = dsl_preproc_unique_id_get('my-preprocessor')
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer and Splitter](/docs/api-tee.md)
+* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)

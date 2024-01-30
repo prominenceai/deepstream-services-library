@@ -43,9 +43,9 @@ std::wstring uri_h265(
 
 // Filespecs for the Primary GIE
 std::wstring primary_infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -54,8 +54,8 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-uint WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-uint WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+uint WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 // output file path for the MOT Challenge File Action. 
 std::wstring file_path(L"./mot-challenge-data.txt");
@@ -173,21 +173,21 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source-1",  L"primary-gie", L"iou-tracker", 
-            L"on-screen-display", L"window-sink", NULL};
+            L"on-screen-display", L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

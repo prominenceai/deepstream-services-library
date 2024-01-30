@@ -51,9 +51,9 @@ static const std::wstring primary_gie_name1(L"primary-gie-1");
 static const std::wstring primary_gie_name2(L"primary-gie-2");
 
 static std::wstring infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
         
 static const std::wstring tracker_name1(L"iou-tracker-1");
 static const std::wstring tracker_name2(L"iou-tracker-2");
@@ -79,8 +79,8 @@ static const uint offest_y(140);
 static const uint sink_width(1280);
 static const uint sink_height(720);
 
-static const std::wstring window_sink_name1(L"window-sink-1");
-static const std::wstring window_sink_name2(L"window-sink-2");
+static const std::wstring window_sink_name1(L"egl-sink-1");
+static const std::wstring window_sink_name2(L"egl-sink-2");
 
 static const std::wstring inter_pipe_source_name1(L"inter-pipe-source-1");
 static const std::wstring inter_pipe_source_name2(L"inter-pipe-source-2");
@@ -123,7 +123,7 @@ SCENARIO( "Two Pipelines, one with Inter-Pipe Sink, the other with Inter-Pipe Sr
             inter_pipe_sink_name1.c_str(), false, accept_eos, accept_events) == 
             DSL_RESULT_SUCCESS );
             
-        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components2[] = {inter_pipe_source_name1.c_str(), 
@@ -191,7 +191,7 @@ SCENARIO( "A Pipeline with and Inter-Pipe Source can dynamically switch between 
             inter_pipe_sink_name1.c_str(), false, accept_eos, accept_events) == 
             DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components1[] = {inter_pipe_source_name1.c_str(), 
@@ -300,10 +300,10 @@ SCENARIO( "Two Pipelines, each with an Inter-Pipe Source can listen to a single 
         REQUIRE( dsl_osd_new(osd_name1.c_str(), text_enabled, clock_enabled,
             bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name1.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name2.c_str(), 
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name2.c_str(), 
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components1[] = {inter_pipe_source_name1.c_str(), 

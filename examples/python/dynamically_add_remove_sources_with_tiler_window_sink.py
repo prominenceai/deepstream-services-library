@@ -61,15 +61,13 @@ from dsl import *
 
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
+streammux_config_file = '../../test/config/all_sources_30fps.txt'
+
 # Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file_jetson = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -78,7 +76,7 @@ iou_tracker_config_file = \
 ##
 # Maximum number of sources that can be added to the Pipeline
 ##
-MAX_SOURCE_COUNT = 4
+MAX_SOURCE_COUNT = 8
 
 ##
 # Current number of sources added to the Pipeline
@@ -87,15 +85,18 @@ cur_source_count = 0
 
 ##
 # Number of rows and columns for the Multi-stream 2D Tiler
-TILER_COLS = 2
+TILER_COLS = 4
 TILER_ROWS = 2
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
@@ -134,8 +135,23 @@ def xwindow_key_event_handler(key_string, client_data):
             dsl_pipeline_component_remove('pipeline', source_name)
             dsl_component_delete(source_name)
             cur_source_count -= 1
+  
+##  
+#  Client handler for our Stream-Event Pad Probe Handler
+## 
+def stream_event_handler(stream_event, stream_id, client_data):
+    if stream_event == DSL_PPH_EVENT_STREAM_ADDED:
+        print('Stream Id =', stream_id, ' added to Pipeline')
+    elif stream_event == DSL_PPH_EVENT_STREAM_ENDED:
+        print('Stream Id =', stream_id, ' ended')
+    elif stream_event == DSL_PPH_EVENT_STREAM_DELETED:
+        print('Stream Id =', stream_id, ' deleted from Pipeline')
         
+    return DSL_PAD_PROBE_OK
 
+##  
+#  Application main.
+## 
 def main(args):
 
     global MAX_SOURCE_COUNT, cur_source_count
@@ -149,12 +165,8 @@ def main(args):
             break
 
         ## New Primary GIE using the filespecs above with interval = 0
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
-        else:
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -181,44 +193,64 @@ def main(args):
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_new('window-sink', 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
-        # be set to false to support dynamic Pipeline updates.ties.
-        retval = dsl_sink_sync_enabled_set('window-sink', False)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('window-sink', 
+        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline
+        # Add all the components to a new Pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['source-1' , 'primary-gie', 'iou-tracker', 'tiler', 
-            'on-screen-display', 'window-sink', None])
+            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         # Update the current source count
         cur_source_count = 1
 
-        ### IMPORTANT: we need to explicitely set the stream-muxer Batch properties, 
+        
+        # IMPORTANT: we need to explicitely set the stream-muxer Batch size,
         # otherwise the Pipeline will use the current number of Sources when set to 
         # Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
-            MAX_SOURCE_COUNT, 40000)
+        
+        # New Streammux uses config file with overall-min-fps
+        if dsl_info_use_new_nvstreammux_get():
+            retval = dsl_pipeline_streammux_config_file_set('pipeline',
+                streammux_config_file)
+            if retval != DSL_RETURN_SUCCESS:
+                break
+            retval = dsl_pipeline_streammux_batch_size_set('pipeline',
+                MAX_SOURCE_COUNT)
+
+        # Old Streammux we set the batch-timeout along with the batch-size
+        else:
+            retval = dsl_pipeline_streammux_batch_properties_set('pipeline', 
+                MAX_SOURCE_COUNT, 40000)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Create a Stream-Event Pad Probe Handler (PPH) to manage new Streammuxer 
+        # stream-events: stream-added, stream-ended, and stream-deleted.
+        retval = dsl_pph_stream_event_new('stream-event-pph',
+            stream_event_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # Add the PPH to the source (output) pad of the Pipeline's Streammuxer
+        retval = dsl_pipeline_streammux_pph_add('pipeline',
+            'stream-event-pph')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
         retval = dsl_pipeline_eos_listener_add('pipeline', 
             eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:

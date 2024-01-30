@@ -281,8 +281,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerBatchProcessingEnabledGet(const char* name, 
-        boolean* enabled)
+    DslReturnType Services::TrackerTensorMetaSettingsGet(const char* name, 
+        boolean* inputEnabled, const char** trackOnGie)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -296,10 +296,11 @@ namespace DSL
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            *enabled = trackerBintr->GetBatchProcessingEnabled();
+            trackerBintr->GetTensorMetaSettings(inputEnabled,
+                trackOnGie);
 
-            LOG_INFO("DCF Tracker '" << name << "' returned Batch Processing Enabed = " 
-                << *enabled  << " successfully");
+            LOG_INFO("Tracker '" << name << "' returned Batch Processing Enabed = " 
+                << *inputEnabled  << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -311,8 +312,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::TrackerBatchProcessingEnabledSet(const char* name, 
-        boolean enabled)
+    DslReturnType Services::TrackerTensorMetaSettingsSet(const char* name, 
+        boolean inputEnabled, const char* trackOnGie)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -326,26 +327,27 @@ namespace DSL
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            if (!trackerBintr->SetBatchProcessingEnabled(enabled))
+            if (!trackerBintr->SetTensorMetaSettings(inputEnabled, trackOnGie))
             {
                 LOG_ERROR("Tracker '" << name 
-                    << "' failed to set batch-processing enabled setting");
+                    << "' failed to set tensor-meta-settings");
                 return DSL_RESULT_TRACKER_SET_FAILED;
             }
-            LOG_INFO("Tracker '" << name << "' set Batch Processing Enabed = " 
-                << enabled  << " successfully");
+            LOG_INFO("Tracker '" << name << "' set tensor-input-enabled = " 
+                << inputEnabled  << " and track-on-gie = '" 
+                << trackOnGie << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tracker '" << name 
-                << "' threw an exception setting batch-processing enabled setting");
+                << "' threw an exception setting tensor-meta-settings");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::TrackerPastFrameReportingEnabledGet(const char* name, 
+    DslReturnType Services::TrackerIdDisplayEnabledGet(const char* name, 
         boolean* enabled)
     {
         LOG_FUNC();
@@ -360,9 +362,9 @@ namespace DSL
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            *enabled = trackerBintr->GetPastFrameReportingEnabled();
+            *enabled = trackerBintr->GetIdDisplayEnabled();
 
-            LOG_INFO("Tracker '" << name << "' returned Past Frame Reporting Enabed = " 
+            LOG_INFO("Tracker '" << name << "' returned id-display-enabled = " 
                 << *enabled  << " successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -370,12 +372,12 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("Tracker '" << name 
-                << "' threw an exception getting past-frame-reporting enabled setting");
+                << "' threw an exception getting id-display-enabled setting");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }
 
-    DslReturnType Services::TrackerPastFrameReportingEnabledSet(const char* name, 
+    DslReturnType Services::TrackerIdDisplayEnabledSet(const char* name, 
         boolean enabled)
     {
         LOG_FUNC();
@@ -390,20 +392,20 @@ namespace DSL
             DSL_TRACKER_PTR trackerBintr = 
                 std::dynamic_pointer_cast<TrackerBintr>(m_components[name]);
 
-            if (!trackerBintr->SetPastFrameReportingEnabled(enabled))
+            if (!trackerBintr->SetIdDisplayEnabled(enabled))
             {
                 LOG_ERROR("Tracker '" << name 
-                    << "' failed to set past-frame-reporting enabled setting");
+                    << "' failed to set id-display-enabled setting");
                 return DSL_RESULT_TRACKER_SET_FAILED;
             }
-            LOG_INFO("Tracker '" << name << "' set Past Frame Reporting Enabed = " 
+            LOG_INFO("Tracker '" << name << "' set id-display-enabled = " 
                 << enabled  << " successfully");
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
             LOG_ERROR("Tracker '" << name 
-                << "' threw an exception setting past-frame-reporting enabled setting");
+                << "' threw an exception setting id-display-enabled setting");
             return DSL_RESULT_TRACKER_THREW_EXCEPTION;
         }
     }

@@ -34,7 +34,7 @@ static const std::wstring uri(L"/opt/nvidia/deepstream/deepstream/samples/stream
 
 static const std::wstring pipeline_name(L"test-pipeline");
 
-static const std::wstring window_sink_name(L"window-sink");
+static const std::wstring window_sink_name(L"egl-sink");
 static const uint offsetX(0);
 static const uint offsetY(0);
 static const uint sinkW(1280);
@@ -54,14 +54,14 @@ Play and Stop correctly", "[ImageSinkBehavior]" )
         REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
             true) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_image_multi_new(image_sink_name.c_str(),
             output_file.c_str(), 0, 0, 1, 1) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source", 
-            L"multi-image-sink", L"window-sink", NULL};
+            L"multi-image-sink", L"egl-sink", NULL};
 
         WHEN( "The new Pipeline is asembled" )
         {
@@ -87,14 +87,14 @@ SCENARIO( "A Multi-Object Sink can scale the frame capture correctly", "[ImageSi
         REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
             true) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_image_multi_new(image_sink_name.c_str(),
             output_file.c_str(), 640, 360, 1, 1) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source", 
-            L"multi-image-sink", L"window-sink", NULL};
+            L"multi-image-sink", L"egl-sink", NULL};
 
         WHEN( "The new Pipeline is asembled" )
         {
@@ -120,7 +120,7 @@ SCENARIO( "A Multi-Object Sink can limit its file count correctly", "[ImageSinkB
         REQUIRE( dsl_source_file_new(source_name.c_str(), uri.c_str(),
             true) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_new(window_sink_name.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
             offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_image_multi_new(image_sink_name.c_str(),
@@ -130,7 +130,7 @@ SCENARIO( "A Multi-Object Sink can limit its file count correctly", "[ImageSinkB
             1) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {L"file-source", 
-            L"multi-image-sink", L"window-sink", NULL};
+            L"multi-image-sink", L"egl-sink", NULL};
 
         WHEN( "The new Pipeline is asembled" )
         {

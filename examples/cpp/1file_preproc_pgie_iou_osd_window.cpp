@@ -22,6 +22,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/*################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source
+#   - Preprocessor
+#   - Primary GIE
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+#
+# Specific services must be called for the PGIE to be able to receive tensor-meta
+# buffers from the Preprocessor component.
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+##############################################################################*/
+
 #include <iostream>
 #include <glib.h>
 #include <gst/gst.h>
@@ -41,7 +64,7 @@ std::wstring preproc_config(
 std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt");
 std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
@@ -53,8 +76,8 @@ uint PGIE_CLASS_ID_BICYCLE = 1;
 uint PGIE_CLASS_ID_PERSON = 2;
 uint PGIE_CLASS_ID_ROADSIGN = 3;
 
-uint WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH;
-uint WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT;
+uint WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -64,6 +87,7 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     std::wstring wkey(in_key); 
     std::string key(wkey.begin(), wkey.end());
     std::cout << "key released = " << key << std::endl;
+    
     key = std::toupper(key[0]);
     if(key == "P"){
         dsl_pipeline_pause(L"pipeline");
@@ -123,7 +147,7 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs defined above, with interval and Id
         retval = dsl_infer_gie_primary_new(L"primary-gie", 
-            primary_infer_config_file.c_str(), NULL, 0);
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
@@ -147,21 +171,21 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_new(L"window-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source-1",  L"preprocessor", L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"window-sink", NULL};
+            L"iou-tracker", L"on-screen-display", L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

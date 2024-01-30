@@ -34,6 +34,23 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define RETURN_IF_NEW_NVSTREAMMUX_ENABLED() do \
+{ \
+    if (DSL::Services::GetServices()->UseNewStreammuxGet()) \
+    { \
+        LOG_ERROR("USE_NEW_NVSTREAMMUX must NOT be set to 'yes' to enabled service"); \
+        return DSL_RESULT_API_NOT_ENABLED; \
+    } \
+}while(0); 
+
+#define RETURN_IF_NEW_NVSTREAMMUX_DISABLED() do \
+{ \
+    if (!DSL::Services::GetServices()->UseNewStreammuxGet()) \
+    { \
+        LOG_ERROR("USE_NEW_NVSTREAMMUX must be set to 'yes' to enabled service"); \
+        return DSL_RESULT_API_NOT_ENABLED; \
+    } \
+}while(0); 
 
 DslReturnType dsl_display_type_rgba_color_custom_new(const wchar_t* name, 
     double red, double green, double blue, double alpha)
@@ -564,6 +581,42 @@ DslReturnType dsl_ode_action_bbox_scale_new(const wchar_t* name, uint scale)
         scale);
 }
 
+DslReturnType dsl_ode_action_bbox_style_corners_new(const wchar_t* name, 
+    const wchar_t* color, uint length, uint max_length,
+    dsl_threshold_value* thickness_values, uint num_values)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+    
+    return DSL::Services::GetServices()->OdeActionBBoxStyleCornersNew(
+        cstrName.c_str(), cstrColor.c_str(), length, max_length,
+        thickness_values, num_values);
+}
+    
+DslReturnType dsl_ode_action_bbox_style_crosshair_new(const wchar_t* name, 
+    const wchar_t* color, uint radius, uint max_radius, uint inner_radius,
+    dsl_threshold_value* thickness_values, uint num_values)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::wstring wstrColor(color);
+    std::string cstrColor(wstrColor.begin(), wstrColor.end());
+    
+    return DSL::Services::GetServices()->OdeActionBBoxStyleCrosshairNew(
+        cstrName.c_str(), cstrColor.c_str(), radius, max_radius, inner_radius,
+        thickness_values, num_values);
+}
+    
 DslReturnType dsl_ode_action_label_format_new(const wchar_t* name, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)
 {
@@ -3240,7 +3293,8 @@ DslReturnType dsl_pph_custom_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PphCustomNew(cstrName.c_str(), client_handler, client_data);
+    return DSL::Services::GetServices()->PphCustomNew(cstrName.c_str(), 
+        client_handler, client_data);
 }
 
 DslReturnType dsl_pph_meter_new(const wchar_t* name, uint interval,
@@ -3580,6 +3634,19 @@ DslReturnType dsl_pph_eos_new(const wchar_t* name,
     return DSL::Services::GetServices()->PphEosNew(cstrName.c_str(), 
         handler, client_data);
 }
+
+DslReturnType dsl_pph_stream_event_new(const wchar_t* name,
+    dsl_pph_stream_event_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphStreamEventNew(cstrName.c_str(), 
+        handler, client_data);
+}
      
 DslReturnType dsl_pph_enabled_get(const wchar_t* name, boolean* enabled)
 {
@@ -3864,19 +3931,24 @@ DslReturnType dsl_source_csi_sensor_id_set(const wchar_t* name,
         sensor_id);
 }
     
-DslReturnType dsl_source_usb_new(const wchar_t* name, 
-    uint width, uint height, uint fps_n, uint fps_d)
+DslReturnType dsl_source_v4l2_new(const wchar_t* name,
+    const wchar_t* device_location)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDeviceLocation(device_location);
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
 
-    return DSL::Services::GetServices()->SourceUsbNew(cstrName.c_str(), 
-        width, height, fps_n, fps_d);
+    return DSL::Services::GetServices()->SourceV4l2New(cstrName.c_str(), 
+        cstrDeviceLocation.c_str());
 }
 
-DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_get(const wchar_t* name,
     const wchar_t** device_location)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3889,19 +3961,21 @@ DslReturnType dsl_source_usb_device_location_get(const wchar_t* name,
     static std::string cstrDeviceLocation;
     static std::wstring wcstrDeviceLocation;
     
-    uint retval = DSL::Services::GetServices()->SourceUsbDeviceLocationGet(cstrName.c_str(), 
+    uint retval = DSL::Services::GetServices()->
+        SourceV4l2DeviceLocationGet(cstrName.c_str(), 
         &cDeviceLocation);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
         cstrDeviceLocation.assign(cDeviceLocation);
-        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), cstrDeviceLocation.end());
+        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), 
+            cstrDeviceLocation.end());
         *device_location = wcstrDeviceLocation.c_str();
     }
     return retval;
 }
     
 
-DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
+DslReturnType dsl_source_v4l2_device_location_set(const wchar_t* name,
     const wchar_t* device_location)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -3910,10 +3984,112 @@ DslReturnType dsl_source_usb_device_location_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     std::wstring wstrDeviceLocation(device_location);
-    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), wstrDeviceLocation.end());
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
     
-    return DSL::Services::GetServices()->SourceUsbDeviceLocationSet(
+    return DSL::Services::GetServices()->SourceV4l2DeviceLocationSet(
         cstrName.c_str(), cstrDeviceLocation.c_str());
+}
+
+DslReturnType dsl_source_v4l2_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceV4l2DimensionsSet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_source_v4l2_frame_rate_set(const wchar_t* name, 
+    uint fps_n, uint fps_d)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceV4l2FrameRateSet(
+        cstrName.c_str(), fps_n, fps_d);
+}
+    
+DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cDeviceName;
+    static std::string cstrDeviceName;
+    static std::wstring wcstrDeviceName;
+    
+    uint retval = DSL::Services::GetServices()->SourceV4l2DeviceNameGet(
+        cstrName.c_str(), &cDeviceName);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceName.assign(cDeviceName);
+        wcstrDeviceName.assign(cstrDeviceName.begin(), cstrDeviceName.end());
+        *device_name = wcstrDeviceName.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_fd);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2DeviceFdGet(
+        cstrName.c_str(), device_fd);
+}
+
+DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2DeviceFlagsGet(
+        cstrName.c_str(), device_flags);
+}
+
+DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* hue)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(brightness);
+    RETURN_IF_PARAM_IS_NULL(contrast);
+    RETURN_IF_PARAM_IS_NULL(hue);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2PictureSettingsGet(
+        cstrName.c_str(), brightness, contrast, hue);
+}
+
+DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int hue)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SourceV4l2PictureSettingsSet(
+        cstrName.c_str(), brightness, contrast, hue);
 }
 
 DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
@@ -5406,6 +5582,36 @@ DslReturnType dsl_preproc_unique_id_get(const wchar_t* name,
         id);
 }
 
+DslReturnType dsl_preproc_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PreprocPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
+}
+
+DslReturnType dsl_preproc_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PreprocPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
+}
+
 DslReturnType dsl_segvisual_new(const wchar_t* name, 
     uint width, uint height)
 {
@@ -5853,6 +6059,8 @@ DslReturnType dsl_tracker_dimensions_get(const wchar_t* name,
     uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5873,19 +6081,64 @@ DslReturnType dsl_tracker_dimensions_set(const wchar_t* name,
         width, height);
 }
 
-DslReturnType dsl_tracker_batch_processing_enabled_get(const wchar_t* name, 
-    boolean* enabled)
+DslReturnType dsl_tracker_tensor_meta_settings_get(const wchar_t* name, 
+    boolean* input_enabled, const wchar_t** track_on_gie)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(input_enabled);
+    RETURN_IF_PARAM_IS_NULL(track_on_gie);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cTrackOnGie;
+    static std::string cstrTrackOnGie;
+    static std::wstring wcstrTrackOnGie;
+    
+    uint retval = DSL::Services::GetServices()->TrackerTensorMetaSettingsGet(
+        cstrName.c_str(), input_enabled, &cTrackOnGie);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrTrackOnGie.assign(cTrackOnGie);
+        wcstrTrackOnGie.assign(cstrTrackOnGie.begin(), cstrTrackOnGie.end());
+        *track_on_gie = wcstrTrackOnGie.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_tracker_tensor_meta_settings_set(const wchar_t* name, 
+    boolean input_enabled, const wchar_t* track_on_gie)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    std::string cstrTrackOnGie;
+    if (track_on_gie)
+    {
+        std::wstring wstrTrackOnGie(track_on_gie);
+        cstrTrackOnGie.assign(wstrTrackOnGie.begin(), wstrTrackOnGie.end());
+    }
 
-    return DSL::Services::GetServices()->TrackerBatchProcessingEnabledGet(
+    return DSL::Services::GetServices()->TrackerTensorMetaSettingsSet(
+        cstrName.c_str(), input_enabled, cstrTrackOnGie.c_str());
+}
+    
+DslReturnType dsl_tracker_id_display_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TrackerIdDisplayEnabledGet(
         cstrName.c_str(), enabled);
 }
     
-DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name, 
+DslReturnType dsl_tracker_id_display_enabled_set(const wchar_t* name, 
     boolean enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -5893,35 +6146,10 @@ DslReturnType dsl_tracker_batch_processing_enabled_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TrackerBatchProcessingEnabledSet(
+    return DSL::Services::GetServices()->TrackerIdDisplayEnabledSet(
         cstrName.c_str(), enabled);
 }
     
-DslReturnType dsl_tracker_past_frame_reporting_enabled_get(const wchar_t* name, 
-    boolean* enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->TrackerPastFrameReportingEnabledGet(
-        cstrName.c_str(), 
-        enabled);
-}
-    
-DslReturnType dsl_tracker_past_frame_reporting_enabled_set(const wchar_t* name, 
-    boolean enabled)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->TrackerPastFrameReportingEnabledSet(
-        cstrName.c_str(), enabled);
-}
-
 DslReturnType dsl_tracker_pph_add(const wchar_t* name,
     const wchar_t* handler, uint pad)
 {
@@ -6337,7 +6565,8 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name,
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+            cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6345,6 +6574,197 @@ DslReturnType dsl_tee_splitter_new_branch_add_many(const wchar_t* name,
     }
     return DSL_RESULT_SUCCESS;
 }
+
+DslReturnType dsl_tee_remuxer_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerNew(cstrName.c_str());
+}
+
+DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branches);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->TeeRemuxerNew(
+        cstrName.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+
+    for (const wchar_t** branch = branches; *branch; branch++)
+    {
+        std::wstring wstrBranch(*branch);
+        std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+            cstrBranch.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_tee_remuxer_branch_add_to(const wchar_t* name, 
+    const wchar_t* branch, uint* stream_ids, uint num_stream_ids)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+    RETURN_IF_PARAM_IS_NULL(stream_ids);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBranchAddTo(cstrName.c_str(), 
+        cstrBranch.c_str(), stream_ids, num_stream_ids);
+}
+
+DslReturnType dsl_tee_remuxer_batch_size_get(const wchar_t* name, 
+    uint* batch_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchSizeGet(
+        cstrName.c_str(), batch_size);
+}
+
+DslReturnType dsl_tee_remuxer_batch_size_set(const wchar_t* name, 
+    uint batch_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchSizeSet(
+        cstrName.c_str(), batch_size);
+}
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+
+DslReturnType dsl_tee_remuxer_branch_config_file_get(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t** config_file)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+    
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->TeeRemuxerBranchConfigFileGet(
+        cstrName.c_str(), cstrBranch.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_tee_remuxer_branch_config_file_set(const wchar_t* name, 
+    const wchar_t* branch, const wchar_t* config_file)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(branch);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrBranch(branch);
+    std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
+        std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBranchConfigFileSet(
+        cstrName.c_str(), cstrBranch.c_str(), cstrConfig.c_str());
+}
+
+// -----------------------------------------------------------------------------------
+// NEW STREAMMUX SERVICES - End
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - Start
+
+DslReturnType dsl_tee_remuxer_batch_properties_get(const wchar_t* name, 
+    uint* batch_size, int* batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+    RETURN_IF_PARAM_IS_NULL(batch_timeout);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesGet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_batch_properties_set(const wchar_t* name, 
+    uint batch_size, int batch_timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerBatchPropertiesSet(
+        cstrName.c_str(), batch_size, batch_timeout);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_tee_remuxer_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TeeRemuxerDimensionsSet(
+        cstrName.c_str(), width, height);
+}
+    
+// -----------------------------------------------------------------------------------
+// OLD STREAMMUX SERVICES - End
 
 DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
 {
@@ -6356,10 +6776,12 @@ DslReturnType dsl_tee_branch_add(const wchar_t* name, const wchar_t* branch)
     std::wstring wstrBranch(branch);
     std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
 
-    return DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+    return DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), 
+        cstrBranch.c_str());
 }
 
-DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_branch_add_many(const wchar_t* name, 
+    const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -6371,7 +6793,8 @@ DslReturnType dsl_tee_branch_add_many(const wchar_t* name, const wchar_t** branc
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        DslReturnType retval = DSL::Services::GetServices()->TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->
+            TeeBranchAdd(cstrName.c_str(), cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6390,10 +6813,12 @@ DslReturnType dsl_tee_branch_remove(const wchar_t* name, const wchar_t* branch)
     std::wstring wstrBranch(branch);
     std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
 
-    return DSL::Services::GetServices()->TeeBranchRemove(cstrName.c_str(), cstrBranch.c_str());
+    return DSL::Services::GetServices()->TeeBranchRemove(cstrName.c_str(), 
+        cstrBranch.c_str());
 }
 
-DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** branches)
+DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, 
+    const wchar_t** branches)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(branches);
@@ -6405,7 +6830,8 @@ DslReturnType dsl_tee_branch_remove_many(const wchar_t* name, const wchar_t** br
     {
         std::wstring wstrBranch(*branch);
         std::string cstrBranch(wstrBranch.begin(), wstrBranch.end());
-        DslReturnType retval = DSL::Services::GetServices()->TeeBranchRemove(cstrName.c_str(), cstrBranch.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->
+            TeeBranchRemove(cstrName.c_str(), cstrBranch.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -6469,7 +6895,8 @@ DslReturnType dsl_tee_pph_add(const wchar_t* name, const wchar_t* handler)
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TeePphAdd(cstrName.c_str(), cstrHandler.c_str());
+    return DSL::Services::GetServices()->TeePphAdd(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler)
@@ -6482,7 +6909,8 @@ DslReturnType dsl_tee_pph_remove(const wchar_t* name, const wchar_t* handler)
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->TeePphRemove(cstrName.c_str(), cstrHandler.c_str());
+    return DSL::Services::GetServices()->TeePphRemove(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
 
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)
@@ -6711,19 +7139,7 @@ DslReturnType dsl_sink_fake_new(const wchar_t* name)
     return DSL::Services::GetServices()->SinkFakeNew(cstrName.c_str());
 }
 
-DslReturnType dsl_sink_overlay_new(const wchar_t* name, uint display_id,
-    uint depth, uint offset_x, uint offset_y, uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkOverlayNew(cstrName.c_str(), 
-        display_id, depth, offset_x, offset_y, width, height);
-}
-
-DslReturnType dsl_sink_window_new(const wchar_t* name,
+DslReturnType dsl_sink_window_3d_new(const wchar_t* name, 
     uint offset_x, uint offset_y, uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6731,8 +7147,72 @@ DslReturnType dsl_sink_window_new(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkWindow3dNew(cstrName.c_str(), 
         offset_x, offset_y, width, height);
+}
+
+DslReturnType dsl_sink_window_egl_new(const wchar_t* name,
+    uint offset_x, uint offset_y, uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowEglNew(cstrName.c_str(), 
+        offset_x, offset_y, width, height);
+}
+
+DslReturnType dsl_sink_window_offsets_get(const wchar_t* name, 
+    uint* offset_x, uint* offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(offset_x);
+    RETURN_IF_PARAM_IS_NULL(offset_y);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowOffsetsGet(
+        cstrName.c_str(), offset_x, offset_y);
+}
+
+DslReturnType dsl_sink_window_offsets_set(const wchar_t* name, 
+    uint offset_x, uint offset_y)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowOffsetsSet(
+        cstrName.c_str(), offset_x, offset_y);
+}
+
+DslReturnType dsl_sink_window_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(height);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowDimensionsGet(
+        cstrName.c_str(), width, height);
+}
+
+DslReturnType dsl_sink_window_dimensions_set(const wchar_t* name, 
+    uint width, uint height)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkWindowDimensionsSet(
+        cstrName.c_str(), width, height);
 }
 
 DslReturnType dsl_sink_window_handle_get(const wchar_t* name, uint64_t* handle)
@@ -6768,7 +7248,7 @@ DslReturnType dsl_sink_window_clear(const wchar_t* name)
     return DSL::Services::GetServices()->SinkWindowClear(cstrName.c_str());
 }
  
-DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name, 
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_get(const wchar_t* name, 
     boolean* force)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6777,11 +7257,11 @@ DslReturnType dsl_sink_window_force_aspect_ratio_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRatioGet(
+    return DSL::Services::GetServices()->SinkWindowEglForceAspectRatioGet(
         cstrName.c_str(), force);
 }
     
-DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name, 
+DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name, 
     boolean force)    
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -6789,7 +7269,7 @@ DslReturnType dsl_sink_window_force_aspect_ratio_set(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkWindowForceAspectRatioSet(
+    return DSL::Services::GetServices()->SinkWindowEglForceAspectRatioSet(
         cstrName.c_str(), force);
 }
 
@@ -6821,6 +7301,7 @@ DslReturnType dsl_sink_window_fullscreen_enabled_set(const wchar_t* name,
 DslReturnType dsl_sink_window_key_event_handler_add(const wchar_t* name, 
     dsl_sink_window_key_event_handler_cb handler, void* client_data)
 {
+    std::cout << "handler = " << handler << std::endl;
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
 
@@ -6896,64 +7377,6 @@ DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name,
         SinkWindowDeleteEventHandlerRemove(cstrName.c_str(), handler);
 }
 
-DslReturnType dsl_sink_render_offsets_get(const wchar_t* name, 
-    uint* offset_x, uint* offset_y)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderOffsetsGet(
-        cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_sink_render_offsets_set(const wchar_t* name, 
-    uint offset_x, uint offset_y)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderOffsetsSet(
-        cstrName.c_str(), offset_x, offset_y);
-}
-
-DslReturnType dsl_sink_render_dimensions_get(const wchar_t* name, 
-    uint* width, uint* height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderDimensionsGet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_sink_render_dimensions_set(const wchar_t* name, 
-    uint width, uint height)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderDimensionsSet(
-        cstrName.c_str(), width, height);
-}
-
-DslReturnType dsl_sink_render_reset(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->SinkRenderReset(cstrName.c_str());
-}
-
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
      uint codec, uint container, uint bitrate, uint interval)
 {
@@ -6973,6 +7396,9 @@ DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     uint* codec, uint* bitrate, uint* interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(codec);
+    RETURN_IF_PARAM_IS_NULL(bitrate);
+    RETURN_IF_PARAM_IS_NULL(interval);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -7236,8 +7662,60 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
     return DSL::Services::GetServices()->SinkRecordMailerRemove(
         cstrName.c_str(), cstrMailer.c_str());
 }
-   
-DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host, 
+
+DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
+    uint bitrate, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtmpNew(cstrName.c_str(), 
+        cstrUri.c_str(), bitrate, interval);
+}     
+
+DslReturnType dsl_sink_rtmp_uri_get(const wchar_t* name, const wchar_t** uri)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cUri;
+    static std::string cstrUri;
+    static std::wstring wcstrUri;
+    
+    uint retval = DSL::Services::GetServices()->SinkRtmpUriGet(cstrName.c_str(), 
+        &cUri);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrUri.assign(cUri);
+        wcstrUri.assign(cstrUri.begin(), cstrUri.end());
+        *uri = wcstrUri.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtmpUriSet(cstrName.c_str(), 
+        cstrUri.c_str());
+}
+
+DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
      uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7248,7 +7726,7 @@ DslReturnType dsl_sink_rtsp_new(const wchar_t* name, const wchar_t* host,
     std::wstring wstrHost(host);
     std::string cstrHost(wstrHost.begin(), wstrHost.end());
 
-    return DSL::Services::GetServices()->SinkRtspNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->SinkRtspServerNew(cstrName.c_str(), 
         cstrHost.c_str(), udpPort, rtspPort, codec, bitrate, interval);
 }     
 
@@ -7264,6 +7742,139 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
         udpPort, rtspPort);
 }    
 
+DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
+    uint codec, uint bitrate, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(uri);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUri(uri);
+    std::string cstrUri(wstrUri.begin(), wstrUri.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientNew(cstrName.c_str(), 
+        cstrUri.c_str(), codec, bitrate, interval);
+}     
+
+DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
+    const wchar_t* user_id, const wchar_t* user_pw)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(user_id);
+    RETURN_IF_PARAM_IS_NULL(user_pw);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrId(user_id);
+    std::string cstrId(wstrId.begin(), wstrId.end());
+    std::wstring wstrPassword(user_pw);
+    std::string cstrPassword(wstrPassword.begin(), wstrPassword.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientCredentialsSet(
+        cstrName.c_str(), cstrId.c_str(), cstrPassword.c_str());
+}
+    
+DslReturnType dsl_sink_rtsp_client_latency_get(const wchar_t* name, 
+    uint* latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(latency);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientLatencyGet(
+        cstrName.c_str(), latency);
+}
+
+DslReturnType dsl_sink_rtsp_client_latency_set(const wchar_t* name, 
+    uint latency)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientLatencySet(
+        cstrName.c_str(), latency);
+}
+     
+DslReturnType dsl_sink_rtsp_client_profiles_get(const wchar_t* name,
+    uint* profiles)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(profiles);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProfilesGet(
+        cstrName.c_str(), profiles);
+}
+
+DslReturnType dsl_sink_rtsp_client_profiles_set(const wchar_t* name,
+    uint profiles)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProfilesSet(
+        cstrName.c_str(), profiles);
+}
+     
+DslReturnType dsl_sink_rtsp_client_protocols_get(const wchar_t* name,
+    uint* protocols)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(protocols);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProtocolsGet(
+        cstrName.c_str(), protocols);
+}
+
+DslReturnType dsl_sink_rtsp_client_protocols_set(const wchar_t* name,
+    uint protocols)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientProtocolsSet(
+        cstrName.c_str(), protocols);
+}
+     
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_get(const wchar_t* name,
+    uint* flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientTlsValidationFlagsGet(
+        cstrName.c_str(), flags);
+}
+
+DslReturnType dsl_sink_rtsp_client_tls_validation_flags_set(const wchar_t* name,
+    uint flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRtspClientTlsValidationFlagsSet(
+        cstrName.c_str(), flags);
+}
+     
 DslReturnType dsl_sink_interpipe_new(const wchar_t* name,
     boolean forward_eos, boolean forward_events)
 {    
@@ -7517,6 +8128,26 @@ DslReturnType dsl_sink_frame_capture_initiate(const wchar_t* name)
 #endif        
 }
     
+DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
+    uint64_t frame_number)
+{
+#if !defined(BUILD_WITH_FFMPEG) || !defined(BUILD_WITH_OPENCV)
+    #error "BUILD_WITH_FFMPEG and BUILD_WITH_OPENCV must be defined"
+#elif (BUILD_WITH_FFMPEG != true) && (BUILD_WITH_OPENCV != true)
+    LOG_ERROR("dsl_sink_frame_capture_new requires one of BUILD_WITH_FFMPEG \
+       or BUILD_WITH_OPENCV to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkFrameCaptureSchedule(
+        cstrName.c_str(), frame_number);
+#endif        
+}
+ 
     
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
@@ -7524,8 +8155,8 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7555,8 +8186,8 @@ DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name)
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     std::wstring wstrName(name);
@@ -7571,8 +8202,8 @@ DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name,
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     std::wstring wstrName(name);
@@ -7606,8 +8237,8 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7638,8 +8269,8 @@ DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7658,8 +8289,8 @@ DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -7677,8 +8308,8 @@ DslReturnType dsl_websocket_server_path_add(const wchar_t* path)
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(path);
@@ -7695,8 +8326,8 @@ DslReturnType dsl_websocket_server_listening_start(uint port_number)
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
@@ -7708,8 +8339,8 @@ DslReturnType dsl_websocket_server_listening_stop()
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
@@ -7722,8 +8353,8 @@ DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
@@ -7736,8 +8367,8 @@ DslReturnType dsl_websocket_server_client_listener_add(
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -7752,8 +8383,8 @@ DslReturnType dsl_websocket_server_client_listener_remove(
 {
 #if !defined(GSTREAMER_SUB_VERSION)
     #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 18
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.18 or later");
+#elif GSTREAMER_SUB_VERSION < 20
+    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -7943,6 +8574,181 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     return DSL::Services::GetServices()->SinkMessageBrokerSettingsSet(cstrName.c_str(), 
         cstrBrokerConfig.c_str(), cstrProtocolLib.c_str(), 
         cstrConn.c_str(), cstrTopic.c_str());
+}
+
+DslReturnType dsl_sink_v4l2_new(const wchar_t* name, 
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDevice(device_location);
+    std::string cstrDevice(wstrDevice.begin(), wstrDevice.end());
+
+    return DSL::Services::GetServices()->SinkV4l2New(cstrName.c_str(), 
+        cstrDevice.c_str());
+}     
+
+DslReturnType dsl_sink_v4l2_device_location_get(const wchar_t* name,
+    const wchar_t** device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cDeviceLocation;
+    static std::string cstrDeviceLocation;
+    static std::wstring wcstrDeviceLocation;
+    
+    uint retval = DSL::Services::GetServices()->SinkV4l2DeviceLocationGet(
+        cstrName.c_str(), &cDeviceLocation);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceLocation.assign(cDeviceLocation);
+        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), 
+            cstrDeviceLocation.end());
+        *device_location = wcstrDeviceLocation.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_v4l2_device_location_set(const wchar_t* name,
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDeviceLocation(device_location);
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
+    
+    return DSL::Services::GetServices()->SinkV4l2DeviceLocationSet(
+        cstrName.c_str(), cstrDeviceLocation.c_str());
+}
+   
+DslReturnType dsl_sink_v4l2_device_name_get(const wchar_t* name,
+    const wchar_t** device_name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cDeviceName;
+    static std::string cstrDeviceName;
+    static std::wstring wcstrDeviceName;
+    
+    uint retval = DSL::Services::GetServices()->SinkV4l2DeviceNameGet(
+        cstrName.c_str(), &cDeviceName);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceName.assign(cDeviceName);
+        wcstrDeviceName.assign(cstrDeviceName.begin(), cstrDeviceName.end());
+        *device_name = wcstrDeviceName.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_sink_v4l2_device_fd_get(const wchar_t* name,
+    int* device_fd)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_fd);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkV4l2DeviceFdGet(
+        cstrName.c_str(), device_fd);
+}
+
+DslReturnType dsl_sink_v4l2_device_flags_get(const wchar_t* name,
+    uint* device_flags)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_flags);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkV4l2DeviceFlagsGet(
+        cstrName.c_str(), device_flags);
+}
+    
+DslReturnType dsl_sink_v4l2_buffer_in_format_get(const wchar_t* name,
+    const wchar_t** format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cFormat;
+    static std::string cstrFormat;
+    static std::wstring wcstrFormat;
+    
+    uint retval = DSL::Services::GetServices()->SinkV4l2BufferInFormatGet(
+        cstrName.c_str(), &cFormat);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFormat.assign(cFormat);
+        wcstrFormat.assign(cstrFormat.begin(), 
+            cstrFormat.end());
+        *format = wcstrFormat.c_str();
+    }
+    return retval;
+}
+
+
+DslReturnType dsl_sink_v4l2_buffer_in_format_set(const wchar_t* name,
+    const wchar_t* format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFormat(format);
+    std::string cstrFormat(wstrFormat.begin(), 
+        wstrFormat.end());
+    
+    return DSL::Services::GetServices()->SinkV4l2BufferInFormatSet(
+        cstrName.c_str(), cstrFormat.c_str());
+}
+
+DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
+    int* brightness, int* contrast, int* saturation)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(brightness);
+    RETURN_IF_PARAM_IS_NULL(contrast);
+    RETURN_IF_PARAM_IS_NULL(saturation);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkV4l2PictureSettingsGet(
+        cstrName.c_str(), brightness, contrast, saturation);
+}
+
+DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
+    int brightness, int contrast, int saturation)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SinkV4l2PictureSettingsSet(
+        cstrName.c_str(), brightness, contrast, saturation);
 }
     
 DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
@@ -8461,7 +9267,9 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     {
         std::wstring wstrComponent(*component);
         std::string cstrComponent(wstrComponent.begin(), wstrComponent.end());
-        DslReturnType retval = DSL::Services::GetServices()->PipelineComponentRemove(cstrName.c_str(), cstrComponent.c_str());
+        DslReturnType retval = 
+            DSL::Services::GetServices()->PipelineComponentRemove(cstrName.c_str(), 
+                cstrComponent.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
@@ -8470,34 +9278,88 @@ DslReturnType dsl_pipeline_component_remove_many(const wchar_t* name,
     return DSL_RESULT_SUCCESS;
 }
 
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
-    uint* type)
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
+
+DslReturnType dsl_pipeline_streammux_config_file_get(const wchar_t* name, 
+    const wchar_t** config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(type);
+    RETURN_IF_PARAM_IS_NULL(config_file);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeGet(cstrName.c_str(),
-        type);
+    const char* cConfig;
+    static std::string cstrConfig;
+    static std::wstring wcstrConfig;
+    
+    uint retval = DSL::Services::GetServices()->PipelineStreammuxConfigFileGet(
+        cstrName.c_str(), &cConfig);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrConfig.assign(cConfig);
+        wcstrConfig.assign(cstrConfig.begin(), cstrConfig.end());
+        *config_file = wcstrConfig.c_str();
+    }
+    return retval;
 }
 
-DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
-    uint type)
+DslReturnType dsl_pipeline_streammux_config_file_set(const wchar_t* name, 
+    const wchar_t* config_file)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(config_file);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxConfigFileSet(
+        cstrName.c_str(), cstrConfig.c_str());
+}
+
+DslReturnType dsl_pipeline_streammux_batch_size_get(const wchar_t* name, 
+    uint* batch_size)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(batch_size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxBatchSizeGet(
+        cstrName.c_str(), batch_size);
+}
+
+DslReturnType dsl_pipeline_streammux_batch_size_set(const wchar_t* name, 
+    uint batch_size)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_DISABLED();
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeSet(cstrName.c_str(),
-        type);
+    return DSL::Services::GetServices()->PipelineStreammuxBatchSizeSet(
+        cstrName.c_str(), batch_size);
 }
 
+//------------------------------------------------------------------------------------
+// NEW NVSTREAMMUX SERVICES - End
+//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------
+// OLD NVSTREAMMUX SERVICES - Start
+//------------------------------------------------------------------------------------
 DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name, 
     uint* batch_size, int* batch_timeout)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(batch_size);
     RETURN_IF_PARAM_IS_NULL(batch_timeout);
@@ -8512,6 +9374,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_get(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name, 
     uint batch_size, int batch_timeout)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -8524,6 +9387,7 @@ DslReturnType dsl_pipeline_streammux_batch_properties_set(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(width);
     RETURN_IF_PARAM_IS_NULL(height);
@@ -8538,6 +9402,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_get(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name, 
     uint width, uint height)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -8550,6 +9415,7 @@ DslReturnType dsl_pipeline_streammux_dimensions_set(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name, 
     boolean* enabled)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(enabled);
 
@@ -8563,6 +9429,7 @@ DslReturnType dsl_pipeline_streammux_padding_get(const wchar_t* name,
 DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name, 
     boolean enabled)
 {
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
@@ -8571,6 +9438,64 @@ DslReturnType dsl_pipeline_streammux_padding_set(const wchar_t* name,
     return DSL::Services::GetServices()->PipelineStreammuxPaddingSet(
         cstrName.c_str(), enabled);
 }
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_get(const wchar_t* name, 
+    uint* type)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeGet(cstrName.c_str(),
+        type);
+}
+
+DslReturnType dsl_pipeline_streammux_nvbuf_mem_type_set(const wchar_t* name, 
+    uint type)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxNvbufMemTypeSet(cstrName.c_str(),
+        type);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(gpuid);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdGet(
+        cstrName.c_str(), gpuid);
+}
+
+DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
+{
+    RETURN_IF_NEW_NVSTREAMMUX_ENABLED();
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxGpuIdSet(
+        cstrName.c_str(), gpuid);
+}
+
+
+//------------------------------------------------------------------------------------
+// OLD NVSTREAMMUX SERVICES - End
+//------------------------------------------------------------------------------------
 
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
     const wchar_t* name, uint* num)
@@ -8595,6 +9520,31 @@ DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_set(
 
     return DSL::Services::GetServices()->PipelineStreammuxNumSurfacesPerFrameSet(
         cstrName.c_str(), num);
+}
+
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxAttachSysTsEnabledGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_streammux_attach_sys_ts_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxAttachSysTsEnabledSet(
+        cstrName.c_str(), enabled);
 }
 
 DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_get(const wchar_t* name, 
@@ -8622,27 +9572,29 @@ DslReturnType dsl_pipeline_streammux_sync_inputs_enabled_set(const wchar_t* name
         cstrName.c_str(), enabled);
 }
 
-DslReturnType dsl_pipeline_streammux_gpuid_get(const wchar_t* name, uint* gpuid)
+DslReturnType dsl_pipeline_streammux_max_latency_get(const wchar_t* name, 
+    uint* max_latency)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(gpuid);
+    RETURN_IF_PARAM_IS_NULL(max_latency);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxGpuIdGet(
-        cstrName.c_str(), gpuid);
+    return DSL::Services::GetServices()->PipelineStreammuxMaxLatencyGet(
+        cstrName.c_str(), max_latency);
 }
 
-DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
+DslReturnType dsl_pipeline_streammux_max_latency_set(const wchar_t* name, 
+    uint max_latency)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->PipelineStreammuxGpuIdSet(
-        cstrName.c_str(), gpuid);
+    return DSL::Services::GetServices()->PipelineStreammuxMaxLatencySet(
+        cstrName.c_str(), max_latency);
 }
 
 DslReturnType dsl_pipeline_streammux_tiler_add(const wchar_t* name, 
@@ -8669,6 +9621,36 @@ DslReturnType dsl_pipeline_streammux_tiler_remove(const wchar_t* name)
 
     return DSL::Services::GetServices()->PipelineStreammuxTilerRemove(
         cstrName.c_str());
+}
+
+DslReturnType dsl_pipeline_streammux_pph_add(const wchar_t* name, 
+    const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PipelineStreammuxPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str());
+}
+
+DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name, 
+    const wchar_t* handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->PipelineStreammuxPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str());
 }
  
 DslReturnType dsl_pipeline_pause(const wchar_t* name)
@@ -9715,6 +10697,11 @@ void dsl_delete_all()
 const wchar_t* dsl_info_version_get()
 {
     return DSL_VERSION;
+}
+
+boolean dsl_info_use_new_nvstreammux_get()
+{
+    return DSL::Services::GetServices()->UseNewStreammuxGet();
 }
 
 uint dsl_info_gpu_type_get(uint gpu_id)

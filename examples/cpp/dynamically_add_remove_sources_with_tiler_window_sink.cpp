@@ -62,15 +62,13 @@ THE SOFTWARE.
 
 std::wstring uri_h265(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
+std::wstring streammux_config_file = L"../../test/config/all_sources_30fps.txt";
+
 // Config and model-engine files - Jetson and dGPU
-std::wstring primary_infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary_nano.txt");
-std::wstring primary_model_engine_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_fp16.engine");
-std::wstring primary_infer_config_file_dgpu(
+std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-std::wstring primary_model_engine_file_dgpu(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine");
+std::wstring primary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
@@ -79,7 +77,7 @@ std::wstring iou_tracker_config_file(
 //
 // Maximum number of sources that can be added to the Pipeline
 //
-uint MAX_SOURCE_COUNT = 4;
+uint MAX_SOURCE_COUNT = 8;
 
 //
 // Current number of sources added to the Pipeline
@@ -89,7 +87,7 @@ uint cur_source_count = 0;
 //
 // Number of rows and columns for the Multi-stream 2D Tiler
 //
-uint TILER_COLS = 2;
+uint TILER_COLS = 4;
 uint TILER_ROWS = 2;
 
 // 
@@ -150,6 +148,27 @@ void eos_event_listener(void* client_data)
     dsl_main_loop_quit();
 }    
 
+//  
+//  Client handler for our Stream-Event Pad Probe Handler
+// 
+uint stream_event_handler(uint stream_event, 
+    uint stream_id, void* client_data)
+{
+    if (stream_event == DSL_PPH_EVENT_STREAM_ADDED) {
+        std::wcout << L"Stream Id = " << stream_id 
+            << L" added to Pipeline" << std::endl;
+    }
+    else if (stream_event == DSL_PPH_EVENT_STREAM_ENDED) {
+        std::wcout << L"Stream Id = " << stream_id 
+            << L" ended" << std::endl;
+    }
+    else if (stream_event == DSL_PPH_EVENT_STREAM_DELETED) {
+        std::wcout << L"Stream Id = " << stream_id 
+            << L" deleted from Pipeline" << std::endl;
+    }
+        
+    return DSL_PAD_PROBE_OK;
+}
 
 int main(int argc, char** argv)
 {
@@ -164,18 +183,9 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_jetson.c_str(), 
-                primary_model_engine_file_jetson.c_str(), 4);
-        }
-        else
-        {
-            retval = dsl_infer_gie_primary_new(L"primary-gie", 
-                primary_infer_config_file_dgpu.c_str(), 
-                primary_model_engine_file_dgpu.c_str(), 4);
-        }
+        retval = dsl_infer_gie_primary_new(L"primary-gie", 
+            primary_infer_config_file.c_str(), 
+            primary_model_engine_file.c_str(), 4);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New IOU Tracker, setting operational width and height of input frame
@@ -196,42 +206,69 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_new(L"window-sink", 
+        retval = dsl_sink_window_egl_new(L"egl-sink", 
             300, 300, 1280, 720);
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // IMPORTANT! the default Window-Sink (and Overlay-Sink) "sync" settings must
         // be set to false to support dynamic Pipeline updates.ties.
-        retval = dsl_sink_sync_enabled_set(L"window-sink", FALSE);
+        retval = dsl_sink_sync_enabled_set(L"egl-sink", FALSE);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
             xwindow_key_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_sink_window_delete_event_handler_add(L"window-sink", 
+        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* pipeline_components[] = {
             L"source-1", L"primary-gie", L"iou-tracker", L"tiler", 
-            L"on-screen-display", L"window-sink", NULL};
+            L"on-screen-display", L"egl-sink", NULL};
+
+        // Update the current source count
+        cur_source_count = 1;
 
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline",
             pipeline_components);
         if (retval != DSL_RESULT_SUCCESS) break;
-            
-        // Update the current source count
-        cur_source_count = 1;
 
-        // IMPORTANT: we need to explicitely set the stream-muxer Batch properties,
+        // IMPORTANT: we need to explicitely set the Streammuxer batch-size,
         // otherwise the Pipeline will use the current number of Sources when set to 
         // Playing, which would be 1 and too small
-        retval = dsl_pipeline_streammux_batch_properties_set(L"pipeline",
-            MAX_SOURCE_COUNT, 40000);
+
+        // New Streammux uses config file with overall-min-fps
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            retval = dsl_pipeline_streammux_config_file_set(L"pipeline",
+                streammux_config_file.c_str());
+            if (retval != DSL_RESULT_SUCCESS) break;
+                
+            retval = dsl_pipeline_streammux_batch_size_set(L"pipeline",
+                MAX_SOURCE_COUNT);
+        }
+        // Old Streammux we set the batch-timeout along with the batch-size
+        else
+        {
+            retval = dsl_pipeline_streammux_batch_properties_set(L"pipeline", 
+                MAX_SOURCE_COUNT, 40000);
+        }
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
+        // Create a Stream-Event Pad Probe Handler (PPH) to manage new Streammuxer 
+        // stream-events: stream-added, stream-ended, and stream-deleted.
+        retval = dsl_pph_stream_event_new(L"stream-event-pph",
+            stream_event_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+            
+        // Add the PPH to the source (output) pad of the Pipeline's Streammuxer
+        retval = dsl_pipeline_streammux_pph_add(L"pipeline",
+            L"stream-event-pph");
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         retval = dsl_pipeline_eos_listener_add(L"pipeline", 
             eos_event_listener, NULL);

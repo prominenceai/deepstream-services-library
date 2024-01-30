@@ -52,12 +52,14 @@ namespace DSL
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" << name << "'");
+            LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" 
+                << name << "'");
             throw;
         }
         m_pWebRtcCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "payloader");
         
-        GstCaps* pCaps = gst_caps_from_string("application/x-rtp,media=video,encoding-name=H264,payload=96");
+        GstCaps* pCaps = gst_caps_from_string(
+            "application/x-rtp,media=video,encoding-name=H264,payload=96");
         m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
@@ -285,22 +287,6 @@ namespace DSL
         }
         m_clientListeners.erase(listener);
         
-        return true;
-    }
-
-    bool WebRtcSinkBintr::SetSyncEnabled(bool enabled)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set Sync enabled setting for WebRtcSinkBintr '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_sync = sync;
-
-        // Nothing to set for webrtcbin??
         return true;
     }
 
