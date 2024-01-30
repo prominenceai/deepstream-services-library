@@ -22,6 +22,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/*################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source
+#   - Preprocessor
+#   - Primary GIE
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+#
+# Specific services must be called for the PGIE to be able to receive tensor-meta
+# buffers from the Preprocessor component.
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+##############################################################################*/
+
 #include <iostream>
 #include <glib.h>
 #include <gst/gst.h>
@@ -41,7 +64,7 @@ std::wstring preproc_config(
 std::wstring primary_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_infer.txt");
 std::wstring primary_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b4_gpu0_fp16.engine");
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
@@ -124,7 +147,7 @@ int main(int argc, char** argv)
 
         // New Primary GIE using the filespecs defined above, with interval and Id
         retval = dsl_infer_gie_primary_new(L"primary-gie", 
-            primary_infer_config_file.c_str(), NULL, 0);
+            primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
