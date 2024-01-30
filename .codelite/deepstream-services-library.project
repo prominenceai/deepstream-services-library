@@ -275,7 +275,7 @@
       <File Name="../examples/cpp/player_play_all_mp4_files_found.cpp.hold"/>
       <File Name="../examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp"/>
       <File Name="../examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp"/>
-      <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp"/>
+      <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp" ExcludeProjConfig="Debug;"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
       <File Name="../examples/python/1v4l2_pgie_iou_tracker_osd_window.py"/>
