@@ -4,7 +4,7 @@
 [![Ask Me Anything!](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/prominenceai/deepstream-services-library/issues/new/choose)
 [![Discord](https://img.shields.io/discord/750454524849684540)](https://discord.gg/MJvY9jjpAK)
 
-![](/Images/under-construction.png)
+![DeepStream Services Library](/Images/dsl-github-banner.png)
 
 ## Intelligent Audio and Video Analytics (IAVA)
 A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
@@ -16,8 +16,8 @@ A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `
 ```C++
 #include <DslApi.h>
 
-// New USB Camera Source
-uint retval = dsl_source_usb_new("my-usb-source", 1280, 720, 30, 1);
+// New V4L2 Source
+uint retval = dsl_source_v4l2_new(L"my-web-cam-1", L"/dev/video0");
 ```
 
 ### Python3
@@ -25,23 +25,31 @@ uint retval = dsl_source_usb_new("my-usb-source", 1280, 720, 30, 1);
 ```Python
 from dsl import *
 
-# New USB Camera Source
-retval = dsl_source_usb_new('my-usb-source', 1280, 720, 30, 1)
+# New V4L2 Source
+retval = dsl_source_v4l2_new('my-web-cam-1', '/dev/video0')
 ```
 
 DSL is built on the NVIDIA® [DeepStream SDK](https://developer.nvidia.com/deepstream-sdk), _"A complete streaming analytics toolkit for AI-based video and image understanding, as well as multi-sensor processing."_,
 
 The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.freedesktop.org/),  _"An extremely powerful and versatile framework for creating streaming media applications"_.
 
+---
+
+## Important Bulletins
+The latest `v0.28.alpha` release was developed to support DeepSteam 6.3 and 6.4. However, there are several critical NVIDIA bugs that affect DSL's behavior. We are currently waiting on an ETA for a new DeepStream release (hopefully for NVIDIA GTC 2024 | March 18–21). Issues include:
+1. [Pipelines with new `nvstreammux` and `nvstreamdemux` fail to play correctly in DS 6.3](https://forums.developer.nvidia.com/t/pipelines-with-new-nvstreammux-and-nvstreamdemux-fail-to-play-correctly-in-ds-6-3/278396/5)
+2. [Unable to record with deepstream-testsr example on Jetson Orin Nano with DeepStream 6.4](https://forums.developer.nvidia.com/t/unable-to-record-with-deepstream-testsr-example-on-jetson-orin-nano-with-deepstream-6-4/279778)
+3. [Pipelines with jpegenc and multifilesink produce invalid jpeg files in DS 6.4](https://forums.developer.nvidia.com/t/pipelines-with-jpegenc-and-multifilesink-produce-invalid-jpeg-files-in-ds-6-4/280216)
+4. [DeepStream can’t decode certain H265 streams properly](https://forums.developer.nvidia.com/t/deepstream-cant-decode-certain-h265-streams-properly/276027)
+5. There are other New nvstreammux issues that still need to be reported.
+
+### _IMPORANT! There are breaking changes in the most recent release. Please read the [Release Notes](/Release%20Notes/v0.28.alpha.md) carefully._
+
 ## Contributing
 
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
 
 ***Please report issues!***
-
----
-
-### _IMPORANT! There are breaking changes in the most recent release. Please read the [Release Notes](/Release%20Notes/v0.27.alpha.md) carefully._
 
 ## DSL Branching Workflow
 
@@ -52,9 +60,6 @@ DSL is released under the [MIT License](LICENSE). Contributions are welcome and 
 3. `Feature` all work is done on feature branches, named for the feature under development. 
 
 All pull requests should be made against the current `Develop` branch.
-
-## Docker
-The [deepstream-services-library-docker](https://github.com/prominenceai/deepstream-services-library-docker) repo contain a `Dockerfile`, utility scripts, and instructions to create and run a DSL-DeepStream container.
 
 ## Discord
 Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to chat, ask questions, discuss ideas, etc.
