@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021, Prominence AI, Inc.
+Copyright (c) 2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -282,7 +282,6 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(DemuxerBintr)) and  \
-        !components[name]->IsType(typeid(RemuxerBintr)) and  \
         !components[name]->IsType(typeid(SplitterBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Tee"); \
@@ -319,6 +318,18 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(SplitterBintr)) and \
+        !components[name]->IsType(typeid(BranchBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Branch type"); \
+        return DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH; \
+    } \
+}while(0); 
+
+// All Bintr's that can be added as a "branch" to a "Remuxer"
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_REMUXER_BRANCH(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Branch type"); \

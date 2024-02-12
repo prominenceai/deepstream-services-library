@@ -3,6 +3,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="../src/DslServicesRemuxer.cpp"/>
     <VirtualDirectory Name="opencv">
       <File Name="../src/opencv/DslAvFile.h"/>
       <File Name="../src/opencv/DslAvFile.cpp"/>

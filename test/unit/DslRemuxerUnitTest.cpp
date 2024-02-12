@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,9 +37,17 @@ static const std::string remuxerBranchBintrName2("remuxer-branch2");
 static const std::string branchBintrName0("branch0");
 static const std::string branchBintrName1("branch1");
 static const std::string branchBintrName2("branch2");
-static const std::string sinkName0("fake-sink0");
-static const std::string sinkName1("fake-sink1");
-static const std::string sinkName2("fake-sink2");
+
+static std::string primaryGieName0("primary-gie-0");
+static std::string primaryGieName1("primary-gie-1");
+static std::string primaryGieName2("primary-gie-2");
+
+static std::string inferConfigFile(
+    "/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
+static std::string modelEngineFile(
+    "/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
+
+static uint interval(1);
 
 static const std::string configFile1("./test/config/all_sources_30fps.txt");
 
@@ -147,11 +155,14 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids can LinkAll",
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
-        DSL_FAKE_SINK_PTR pFakeSink = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
             DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pFakeSink, 
+                pRemuxerBintr->GetGstObject(), pPrimaryGieBintr, 
                 &streamIds[0], streamIds.size());
 
         WHEN( "The RemuxerBranchBintr is linked" )
@@ -177,11 +188,14 @@ SCENARIO( "A RemuxerBranchBintr with specific stream-ids can UnlinkAll",
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
-        DSL_FAKE_SINK_PTR pFakeSink = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
             DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pFakeSink, 
+                pRemuxerBintr->GetGstObject(), pPrimaryGieBintr, 
                 &streamIds[0], streamIds.size());
 
         pRemuxerBranchBintr->SetBatchSize(4);
@@ -211,11 +225,14 @@ SCENARIO( "A RemuxerBranchBintr with no specific stream-ids can LinkAll",
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
-        DSL_FAKE_SINK_PTR pFakeSink = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
             DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pFakeSink, NULL, 0);
+                pRemuxerBintr->GetGstObject(), pPrimaryGieBintr, NULL, 0);
 
         WHEN( "The RemuxerBranchBintr is linked" )
         {
@@ -238,11 +255,14 @@ SCENARIO( "A RemuxerBranchBintr with no specific stream-ids can UnlinkAll",
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
-        DSL_FAKE_SINK_PTR pFakeSink = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
             DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pFakeSink, NULL, 0);
+                pRemuxerBintr->GetGstObject(), pPrimaryGieBintr, NULL, 0);
 
         pRemuxerBranchBintr->SetBatchSize(4);
         REQUIRE( pRemuxerBranchBintr->LinkAll() == true );
@@ -486,9 +506,13 @@ SCENARIO( "Linking a BranchBintr with select stream-ids to a RemuxerBintr is man
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
 
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        REQUIRE( pPrimaryGieBintr->AddToParent(pBranchBintr0) == true );
 
         REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
@@ -526,7 +550,7 @@ SCENARIO( "Linking a BranchBintr with select stream-ids to a RemuxerBintr is man
                 REQUIRE( pRemuxerBintr->IsLinked() == false );
             }
         }
-}
+    }
 }
 SCENARIO( "A RemuxerBranchBintr with invalid stream-ids will fail to LinkAll", 
     "[RemuxerBintr]" )
@@ -538,11 +562,14 @@ SCENARIO( "A RemuxerBranchBintr with invalid stream-ids will fail to LinkAll",
         DSL_REMUXER_PTR pRemuxerBintr = 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
-        DSL_FAKE_SINK_PTR pFakeSink = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
         DSL_REMUXER_BRANCH_PTR pRemuxerBranchBintr = 
             DSL_REMUXER_BRANCH_NEW(remuxerBranchBintrName0.c_str(), 
-                pRemuxerBintr->GetGstObject(), pFakeSink, 
+                pRemuxerBintr->GetGstObject(), pPrimaryGieBintr, 
                 &streamIds[0], streamIds.size());
     }
 }
@@ -559,9 +586,12 @@ SCENARIO( "Linking a BranchBintr with no select stream-ids to a RemuxerBintr is 
             DSL_REMUXER_NEW(remuxerBintrName.c_str());
 
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
+        REQUIRE( pPrimaryGieBintr->AddToParent(pBranchBintr0) == true );
 
         REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
@@ -597,13 +627,23 @@ SCENARIO( "Linking multiple BranchBintrs with select stream-ids to a RemuxerBint
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
         DSL_BRANCH_PTR pBranchBintr2 = DSL_BRANCH_NEW(branchBintrName2.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr1 = DSL_FAKE_SINK_NEW(sinkName1.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr2 = DSL_FAKE_SINK_NEW(sinkName2.c_str());
+        
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr0 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
 
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
-        REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
-        REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
+        REQUIRE( pPrimaryGieBintr0->AddToParent(pBranchBintr0) == true );
+        REQUIRE( pPrimaryGieBintr1->AddToParent(pBranchBintr1) == true );
+        REQUIRE( pPrimaryGieBintr2->AddToParent(pBranchBintr2) == true );
 
         REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
@@ -651,13 +691,23 @@ SCENARIO( "BranchBintrs with select stream-ids can be linked to a RemuxerBintr m
         DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
         DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
         DSL_BRANCH_PTR pBranchBintr2 = DSL_BRANCH_NEW(branchBintrName2.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr1 = DSL_FAKE_SINK_NEW(sinkName1.c_str());
-        DSL_FAKE_SINK_PTR pSinkBintr2 = DSL_FAKE_SINK_NEW(sinkName2.c_str());
 
-        REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
-        REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
-        REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr0 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        REQUIRE( pPrimaryGieBintr0->AddToParent(pBranchBintr0) == true );
+        REQUIRE( pPrimaryGieBintr1->AddToParent(pBranchBintr1) == true );
+        REQUIRE( pPrimaryGieBintr2->AddToParent(pBranchBintr2) == true );
 
         REQUIRE( pRemuxerBintr->AddChildTo(
             std::dynamic_pointer_cast<Bintr>(pBranchBintr0),
@@ -712,13 +762,23 @@ SCENARIO( "A RemuxerBintr can update each BranchBintr's config-file correctly",
             DSL_BRANCH_PTR pBranchBintr0 = DSL_BRANCH_NEW(branchBintrName0.c_str());
             DSL_BRANCH_PTR pBranchBintr1 = DSL_BRANCH_NEW(branchBintrName1.c_str());
             DSL_BRANCH_PTR pBranchBintr2 = DSL_BRANCH_NEW(branchBintrName2.c_str());
-            DSL_FAKE_SINK_PTR pSinkBintr0 = DSL_FAKE_SINK_NEW(sinkName0.c_str());
-            DSL_FAKE_SINK_PTR pSinkBintr1 = DSL_FAKE_SINK_NEW(sinkName1.c_str());
-            DSL_FAKE_SINK_PTR pSinkBintr2 = DSL_FAKE_SINK_NEW(sinkName2.c_str());
 
-            REQUIRE( pSinkBintr0->AddToParent(pBranchBintr0) == true );
-            REQUIRE( pSinkBintr1->AddToParent(pBranchBintr1) == true );
-            REQUIRE( pSinkBintr2->AddToParent(pBranchBintr2) == true );
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr0 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName0.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr1 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName1.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+        DSL_PRIMARY_GIE_PTR pPrimaryGieBintr2 = 
+            DSL_PRIMARY_GIE_NEW(primaryGieName2.c_str(), 
+            inferConfigFile.c_str(), 
+            modelEngineFile.c_str(), interval);
+
+        REQUIRE( pPrimaryGieBintr0->AddToParent(pBranchBintr0) == true );
+        REQUIRE( pPrimaryGieBintr1->AddToParent(pBranchBintr1) == true );
+        REQUIRE( pPrimaryGieBintr2->AddToParent(pBranchBintr2) == true );
 
             REQUIRE( pRemuxerBintr->AddChildTo(
                 std::dynamic_pointer_cast<Bintr>(pBranchBintr0),

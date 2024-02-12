@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -254,12 +254,6 @@ namespace DSL
                 << "' already has a Demuxer");
             return false;
         }
-        if (m_pRemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Remuxer - can't add Demuxer");
-            return false;
-        }
         if (m_pSplitterBintr)
         {
             LOG_ERROR("Branch '" << GetName() 
@@ -291,30 +285,6 @@ namespace DSL
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Remuxer");
-            return false;
-        }
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Demuxer - can't add Remuxer");
-            return false;
-        }
-        if (m_pSplitterBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Splitter - can't add Remuxer");
-            return false;
-        }
-        if (m_pTilerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Tiler - can't add Remuxer");
-            return false;
-        }
-        if (m_pMultiSinksBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Sink - can't add Remuxer");
             return false;
         }
         m_pRemuxerBintr = std::dynamic_pointer_cast<RemuxerBintr>(pRemuxerBintr);
@@ -358,12 +328,6 @@ namespace DSL
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Demuxer- can't add Splitter");
-            return false;
-        }
-        if (m_pRemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Remuxer- can't add Splitter");
             return false;
         }
         if (m_pMultiSinksBintr)
@@ -413,12 +377,6 @@ namespace DSL
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Demuxer - can't add Tiler");
-            return false;
-        }
-        if (m_pRemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Remuxer- can't add Tiler");
             return false;
         }
         m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
@@ -500,11 +458,6 @@ namespace DSL
                 << "' already has a Demuxer - can't add Sink after a Demuxer");
             return false;
         }
-        if (m_pRemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add Sink after a Demuxer");
-            return false;
-        }
         if (m_pSplitterBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Tee - can't add Sink after a Tee");
@@ -554,14 +507,23 @@ namespace DSL
             LOG_INFO("Components for Branch '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pDemuxerBintr and !m_pRemuxerBintr and 
-            !m_pSplitterBintr and !m_pMultiSinksBintr)
-        {
-            LOG_ERROR("Pipline '" << GetName() 
-                << "' has no Demuxer, Remuxer, Splitter, or Sink - and is unable to link");
-            return false;
-        }
         
+        if (m_pRemuxerBintr)
+        {
+            // Link All Remuxer Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
+            m_pRemuxerBintr->SetBatchSize(m_batchSize);
+            if (!m_pRemuxerBintr->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(m_pRemuxerBintr)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pRemuxerBintr);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Remuxer '" << 
+                m_pRemuxerBintr->GetName() << "' successfully");
+        }
+
         if (m_pPreprocBintr)
         {
             // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
@@ -713,22 +675,6 @@ namespace DSL
                 m_pDemuxerBintr->GetName() << "' successfully");
         }
 
-        if (m_pRemuxerBintr)
-        {
-            // Link All Remuxer Elementrs and add as the next ** AND LAST ** 
-            // component in the Pipeline
-            m_pRemuxerBintr->SetBatchSize(m_batchSize);
-            if (!m_pRemuxerBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pRemuxerBintr)))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pRemuxerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Remuxer '" << 
-                m_pRemuxerBintr->GetName() << "' successfully");
-        }
-
         if (m_pSplitterBintr)
         {
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
@@ -767,6 +713,15 @@ namespace DSL
         {
             // Link the input-queue (ghost-pad) to the first component
             m_pBranchQueue->LinkToSink(m_linkedComponents.front());
+            
+            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+            {
+                LOG_INFO("Adding ghost-pad to BranchBintr '" <<
+                    GetName() << "' for last ChildBintr '" << 
+                    m_linkedComponents.back()->GetName() << "'");
+                m_linkedComponents.back()->AddGhostPadToParent("src");
+            }
+            
         }
         
         m_isLinked = true;
@@ -787,6 +742,14 @@ namespace DSL
         {
             // Unlink the first component from the input queue (ghost-pad)
             m_pBranchQueue->UnlinkFromSink();
+            
+            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+            {
+                LOG_INFO("Removing ghost-pad from BranchBintr '" <<
+                    GetName() << "' for last ChildBintr '" << 
+                    m_linkedComponents.back()->GetName() << "'");
+                m_linkedComponents.back()->RemoveGhostPadFromParent("src");
+            }
         }
         
         // iterate through the list of Linked Components, unlinking each

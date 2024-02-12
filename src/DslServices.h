@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1143,36 +1143,7 @@ namespace DSL {
             const char* branch, uint stream_id);
             
         DslReturnType TeeSplitterNew(const char* name);
-            
-        DslReturnType TeeRemuxerNew(const char* name);
-
-        DslReturnType TeeRemuxerBranchAddTo(const char* name, const char* branch,
-            uint* streamIds, uint numStreamIds);
-
-        DslReturnType TeeRemuxerBatchSizeGet(const char* name,
-            uint* batchSize);
-
-        DslReturnType TeeRemuxerBatchSizeSet(const char* name,
-            uint batchSize);
-
-        DslReturnType TeeRemuxerBranchConfigFileGet(const char* name,
-            const char* branch, const char** configFile);
-
-        DslReturnType TeeRemuxerBranchConfigFileSet(const char* name,
-            const char* branch, const char* configFile);
-
-       DslReturnType TeeRemuxerBatchPropertiesGet(const char* name,
-            uint* batchSize, int* batchTimeout);
-
-        DslReturnType TeeRemuxerBatchPropertiesSet(const char* name,
-            uint batchSize, int batchTimeout);
-
-        DslReturnType TeeRemuxerDimensionsGet(const char* name,
-            uint* width, uint* height);
-
-        DslReturnType TeeRemuxerDimensionsSet(const char* name,
-            uint width, uint height);
-            
+           
         DslReturnType TeeBranchAdd(const char* name, const char* branch);
         
         DslReturnType TeeBranchRemove(const char* name, const char* branch);
@@ -1188,7 +1159,48 @@ namespace DSL {
         DslReturnType TeePphAdd(const char* name, const char* handler);
 
         DslReturnType TeePphRemove(const char* name, const char* handler);
+
+        DslReturnType RemuxerNew(const char* name);
+
+        DslReturnType RemuxerBranchAddTo(const char* name, const char* branch,
+            uint* streamIds, uint numStreamIds);
+
+        DslReturnType RemuxerBranchAdd(const char* name, const char* branch);
         
+        DslReturnType RemuxerBranchRemove(const char* name, const char* branch);
+        
+        DslReturnType RemuxerBranchRemoveAll(const char* name);
+
+        DslReturnType RemuxerBranchCountGet(const char* name, uint* count);
+        
+        DslReturnType RemuxerBatchSizeGet(const char* name,
+            uint* batchSize);
+
+        DslReturnType RemuxerBatchSizeSet(const char* name,
+            uint batchSize);
+
+        DslReturnType RemuxerBranchConfigFileGet(const char* name,
+            const char* branch, const char** configFile);
+
+        DslReturnType RemuxerBranchConfigFileSet(const char* name,
+            const char* branch, const char* configFile);
+
+       DslReturnType RemuxerBatchPropertiesGet(const char* name,
+            uint* batchSize, int* batchTimeout);
+
+        DslReturnType RemuxerBatchPropertiesSet(const char* name,
+            uint batchSize, int batchTimeout);
+
+        DslReturnType RemuxerDimensionsGet(const char* name,
+            uint* width, uint* height);
+
+        DslReturnType RemuxerDimensionsSet(const char* name,
+            uint width, uint height);
+        
+        DslReturnType RemuxerPphAdd(const char* name, const char* handler);
+
+        DslReturnType RemuxerPphRemove(const char* name, const char* handler);
+
         DslReturnType TilerNew(const char* name, uint width, uint height);
         
         DslReturnType TilerDimensionsGet(const char* name, uint* width, uint* height);

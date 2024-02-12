@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2023, Prominence AI, Inc.
+Copyright (c) 2023-2-24, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslMultiBranchesBintr.h"
 #include "DslBintr.h"
 
 namespace DSL
@@ -97,6 +96,20 @@ namespace DSL
          */
         void UnlinkFromSourceTees();
 
+        /**
+         * @brief links this Noder to the Sink Pad of Muxer
+         * @param[in] pMuxer nodetr to link to
+         * @param[in] padName name to give the requested Sink Pad
+         * @return true if able to successfully link with Muxer Sink Pad
+         */
+        bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName);
+
+        /**
+         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @return true if able to successfully unlink from Muxer Sink Pad
+         */
+        bool UnlinkFromSinkMuxer();
+        
         /**
          * @brief Gets the current batch settings for the RemuxerBranchBintr's 
          * Streammuxer.
@@ -278,9 +291,9 @@ namespace DSL
 
     /**
      * @class RemuxerBintr
-     * @brief Implements a Remuxer (demuxer-streammuxer) bin container
+     * @brief Implements a Remuxer (demuxer-streammuxers-metamuxer) bin container
      */
-    class RemuxerBintr : public TeeBintr
+    class RemuxerBintr : public Bintr
     {
     public: 
     
@@ -504,6 +517,31 @@ namespace DSL
          * @brief Batched frame output height in pixels for all branches.
          */
         uint m_height;
+        
+        /**
+         * @brief Active sink pad which buffer will transfer to src pad
+         */
+        uint m_activePad;
+        
+        /**
+         * @brief Input Tee for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pInputTee;
+        
+        /**
+         * @brief Metamuxer input queue for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pMetamuxerQueue;
+        
+        /**
+         * @brief Metamuxer for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pMetamuxer;
+        
+        /**
+         * @brief Streamdemuxer input queue for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pDemuxerQueue;
         
         /**
          * @brief Streamdemuxer for the RemuxerBintr.

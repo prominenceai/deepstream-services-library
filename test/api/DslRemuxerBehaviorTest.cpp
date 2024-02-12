@@ -94,8 +94,8 @@ static const uint sink_height(360);
 
 // -----------------------------------------------------------------------------------
 
-SCENARIO( "Two File Sources, Remuxer, and two branches with Tilers and Window Sinks can play", 
-    "[remuxer-behavior]")
+SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Window Sink can play", 
+    "[bing]")
 {
     GIVEN( "A Pipeline, two File sources, Dewarper, two Tilers and two Window-Sinks" ) 
     {
@@ -110,10 +110,15 @@ SCENARIO( "Two File Sources, Remuxer, and two branches with Tilers and Window Si
         REQUIRE( dsl_source_file_new(source_name2.c_str(), uri.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
-            width, height) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name1.c_str(), 
+            infer_config_file.c_str(), 
+            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tiler_new(tiler_name2.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name2.c_str(), 
+            infer_config_file.c_str(), 
+            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
@@ -121,45 +126,18 @@ SCENARIO( "Two File Sources, Remuxer, and two branches with Tilers and Window Si
 
         REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), 
             false) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
-            offest_x+300, offest_y+300, width, height) 
-            == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_sync_enabled_set(sink_name2.c_str(), 
-            false) == DSL_RESULT_SUCCESS );
-
-        const wchar_t* branch1_components[] = {
-            tiler_name1.c_str(), sink_name1.c_str(), NULL};
-
-        const wchar_t* branch2_components[] = {
-            tiler_name2.c_str(), sink_name2.c_str(), NULL};
-
-        REQUIRE( dsl_branch_new_component_add_many(branch_name1.c_str(), 
-            branch1_components) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_branch_new_component_add_many(branch_name2.c_str(), 
-            branch2_components) == DSL_RESULT_SUCCESS );
-        
         const wchar_t* remuxer_branches[] = {
-            branch_name1.c_str(), branch_name2.c_str(), NULL};
+            primary_gie_name1.c_str(), primary_gie_name2.c_str(), NULL};
 
-        REQUIRE( dsl_tee_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
-        
-        REQUIRE( dsl_tee_branch_add(remuxer_name.c_str(), 
-            branch_name1.c_str()) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tee_branch_add(remuxer_name.c_str(), 
-            branch_name2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_remuxer_new_branch_add_many(remuxer_name.c_str(),
+            remuxer_branches) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the Pipeline is assembled" ) 
         {
             const wchar_t* components[] = {
                 source_name1.c_str(), source_name2.c_str(), 
                 remuxer_name.c_str(), NULL};
-//            const wchar_t* components[] = {
-//                source_name1.c_str(), 
-//                remuxer_name.c_str(), NULL};
             
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
@@ -169,7 +147,7 @@ SCENARIO( "Two File Sources, Remuxer, and two branches with Tilers and Window Si
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
 
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
@@ -212,15 +190,15 @@ each added to a single stream can play",
         REQUIRE( dsl_sink_sync_enabled_set(sink_name2.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tee_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
         
         uint streamIds1[] = {0};
         uint streamIds2[] = {1};
         
-        REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+        REQUIRE( dsl_remuxer_branch_add_to(remuxer_name.c_str(), 
             sink_name1.c_str(), streamIds1, 1) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+        REQUIRE( dsl_remuxer_branch_add_to(remuxer_name.c_str(), 
             sink_name2.c_str(), streamIds2, 1) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the Pipeline is assembled" ) 
@@ -343,15 +321,15 @@ each added to a single stream can play",
         const wchar_t* remuxer_branches[] = {
             branch_name1.c_str(), branch_name2.c_str(), NULL};
 
-        REQUIRE( dsl_tee_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
         
         uint streamIds1[] = {0};
         uint streamIds2[] = {1};
         
-        REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+        REQUIRE( dsl_remuxer_branch_add_to(remuxer_name.c_str(), 
             branch_name1.c_str(), streamIds1, 1) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tee_remuxer_branch_add_to(remuxer_name.c_str(), 
+        REQUIRE( dsl_remuxer_branch_add_to(remuxer_name.c_str(), 
             branch_name2.c_str(), streamIds2, 1) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the Pipeline is assembled" ) 

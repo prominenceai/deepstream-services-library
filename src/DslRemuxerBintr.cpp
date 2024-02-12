@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2023-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -120,7 +120,6 @@ namespace DSL
         // so that we can link them together => streammuxer->branch.
         AddChild(m_pChildBranch);
         AddChild(m_pStreammux);
-
     }
     
     RemuxerBranchBintr::~RemuxerBranchBintr()
@@ -196,6 +195,7 @@ namespace DSL
         {
             return false;
         }
+        
         m_isLinked = true;
         return true;
     }
@@ -286,6 +286,21 @@ namespace DSL
         }
     }
 
+    bool RemuxerBranchBintr::LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, 
+        const char* padName)
+    {
+        LOG_FUNC();
+
+        return m_pChildBranch->LinkToSinkMuxer(pMuxer, padName);
+    }
+
+    bool RemuxerBranchBintr::UnlinkFromSinkMuxer()
+    {
+        LOG_FUNC();
+        
+        return m_pChildBranch->UnlinkFromSinkMuxer();
+    }
+    
     uint RemuxerBranchBintr::GetBatchSize()
     {
         LOG_FUNC();
@@ -503,7 +518,7 @@ namespace DSL
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
-        : TeeBintr(name)
+        : Bintr(name)
         , m_batchSizeSetByClient(false)
         , m_useNewStreammux(false)
         , m_batchTimeout(-1)
@@ -526,10 +541,18 @@ namespace DSL
         // can be notified of individual source EOS events. 
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
         
+        m_pInputTee = DSL_ELEMENT_EXT_NEW("tee", name, "input");
+        m_pMetamuxerQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsmetamux");
+        m_pMetamuxer = DSL_ELEMENT_NEW("nvdsmetamux", name);
+        m_pDemuxerQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvstreamdemux");
         m_pDemuxer = DSL_ELEMENT_NEW("nvstreamdemux", name);
+        
+        m_pMetamuxer->GetAttribute("active-pad", &m_activePad);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
+        LOG_INFO("  active-pad             : " << m_activePad);
+        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);            
         
         if (m_useNewStreammux)
         {
@@ -546,9 +569,18 @@ namespace DSL
         }
         
         // Add the demuxer as child and elevate as sink ghost pad
+        Bintr::AddChild(m_pInputTee);
+        Bintr::AddChild(m_pMetamuxerQueue);
+        Bintr::AddChild(m_pMetamuxer);
+        Bintr::AddChild(m_pDemuxerQueue);
         Bintr::AddChild(m_pDemuxer);
 
-        m_pDemuxer->AddGhostPadToParent("sink");
+        m_pInputTee->AddGhostPadToParent("sink");
+        m_pMetamuxer->AddGhostPadToParent("src");
+
+        // Add the Buffer and DS Event probes to the input Tee and Metamuxer.
+        AddSinkPadProbes(m_pInputTee);
+        AddSrcPadProbes(m_pMetamuxer);
     }    
     
     RemuxerBintr::~RemuxerBintr()
@@ -667,6 +699,14 @@ namespace DSL
                 << "' as batch-size is not set");
             return false;
         }
+        
+        if (!m_pMetamuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
+            !m_pMetamuxerQueue->LinkToSinkMuxer(m_pMetamuxer, "sink_0") or
+            !m_pDemuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
+            !m_pDemuxerQueue->LinkToSink(m_pDemuxer))
+        {
+            return false;
+        }
 
         // We need to request all the needed source pads while the 
         // nvstreamdemux plugin is in a NULL state. This is a workaround
@@ -710,13 +750,15 @@ namespace DSL
         // For each Branch, we set the Streammuxers properties based on version
         // Then, call on the Branch to link-all of its children and to link back
         // to the Demuxer source Tees according to their select stream-ids.
+        
+        // Pad index to link the child branch to the Metamuxer
+        uint i(1);
         for (auto const& imap: m_childBranches)
         {
+            
             if (UseNewStreammux())
             {
-                if (!imap.second->SetBatchSize(m_batchSize) or
-                    !imap.second->LinkAll() or
-                    !imap.second->LinkToSourceTees(m_tees))
+                if (!imap.second->SetBatchSize(m_batchSize))
                 {
                     return false;
                 }
@@ -726,13 +768,21 @@ namespace DSL
                 if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
                     !imap.second->SetNvbufMemType(m_nvbufMemType) or
                     !imap.second->SetGpuId(m_gpuId) or
-                    !imap.second->SetDimensions(m_width, m_height) or
-                    !imap.second->LinkAll() or
-                    !imap.second->LinkToSourceTees(m_tees))
+                    !imap.second->SetDimensions(m_width, m_height))
                 {
                     return false;
                 }                
             }
+
+            std::string sinkPadName = "sink_" + std::to_string(i++);
+            
+            if (!imap.second->LinkAll() or
+                !imap.second->LinkToSourceTees(m_tees) or
+                !imap.second->LinkToSinkMuxer(m_pMetamuxer, sinkPadName.c_str()))
+            {
+                return false;
+            }                
+            
         }
 
         m_isLinked = true;
@@ -749,11 +799,17 @@ namespace DSL
             return;
         }
 
+        m_pMetamuxerQueue->UnlinkFromSourceTee();
+        m_pMetamuxerQueue->UnlinkFromSinkMuxer();
+        m_pDemuxerQueue->UnlinkFromSourceTee();
+        m_pDemuxerQueue->UnlinkFromSink();
+
         for (auto const& imap: m_childBranches)
         {
             // Important to unlink from source Tees first, UnlinkAll will 
             // delete all queues.
             imap.second->UnlinkFromSourceTees();
+            imap.second->UnlinkFromSinkMuxer();
             imap.second->UnlinkAll();
         }
 
