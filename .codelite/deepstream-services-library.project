@@ -252,6 +252,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
+      <File Name="../examples/cpp/4file_custom_pph_using_opencv.cpp"/>
       <File Name="../examples/cpp/1v4l2_pgie_iou_tracker_osd_window.cpp"/>
       <File Name="../examples/cpp/multiple_pipelines.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>

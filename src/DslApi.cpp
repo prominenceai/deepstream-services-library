@@ -10827,14 +10827,14 @@ boolean dsl_info_use_new_nvstreammux_get()
 
 uint dsl_info_gpu_type_get(uint gpu_id)
 {
-        // Get the Device properties
-        cudaDeviceProp deviceProp;
-        cudaGetDeviceProperties(&deviceProp, gpu_id);
+    // Get the Device properties
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, gpu_id);
 
-        // if aarch64 build, set memorytype to default
-        return (deviceProp.integrated) 
-            ? DSL_GPU_TYPE_INTEGRATED
-            : DSL_GPU_TYPE_DISCRETE;
+    // if aarch64 build, set memorytype to default
+    return (deviceProp.integrated) 
+        ? DSL_GPU_TYPE_INTEGRATED
+        : DSL_GPU_TYPE_DISCRETE;
 }
 
 DslReturnType dsl_info_stdout_get(const wchar_t** file_path)
