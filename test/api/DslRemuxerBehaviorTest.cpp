@@ -95,7 +95,7 @@ static const uint sink_height(360);
 // -----------------------------------------------------------------------------------
 
 SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Window Sink can play", 
-    "[bing]")
+    "[remuxer-behavior]")
 {
     GIVEN( "A Pipeline, two File sources, Dewarper, two Tilers and two Window-Sinks" ) 
     {
@@ -121,11 +121,11 @@ SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Win
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
+        REQUIRE( dsl_osd_new(osd_name1.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+
         REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, width, height) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_sync_enabled_set(sink_name1.c_str(), 
-            false) == DSL_RESULT_SUCCESS );
 
         const wchar_t* remuxer_branches[] = {
             primary_gie_name1.c_str(), primary_gie_name2.c_str(), NULL};
@@ -137,7 +137,8 @@ SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Win
         {
             const wchar_t* components[] = {
                 source_name1.c_str(), source_name2.c_str(), 
-                remuxer_name.c_str(), NULL};
+                remuxer_name.c_str(), tiler_name1.c_str(), osd_name1.c_str(),
+                sink_name1.c_str(), NULL};
             
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );

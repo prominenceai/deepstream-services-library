@@ -523,7 +523,8 @@ namespace DSL
         }
     }
     
-    DslReturnType Services::RemuxerPphAdd(const char* name, const char* handler)
+    DslReturnType Services::RemuxerPphAdd(const char* name, 
+        const char* handler, uint pad)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -537,7 +538,7 @@ namespace DSL
 
             // call on the Handler to add itself to the Remuxer as a PadProbeHandler
             if (!m_padProbeHandlers[handler]->AddToParent(m_components[name], 
-                DSL_PAD_SINK))
+                pad))
             {
                 LOG_ERROR("Remuxer '" << name << "' failed to add Pad Probe Handler");
                 return DSL_RESULT_REMUXER_HANDLER_ADD_FAILED;
@@ -555,7 +556,8 @@ namespace DSL
         }
     }
    
-    DslReturnType Services::RemuxerPphRemove(const char* name, const char* handler) 
+    DslReturnType Services::RemuxerPphRemove(const char* name, 
+        const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -569,7 +571,7 @@ namespace DSL
 
             // call on the Handler to remove itself from the Remuxer
             if (!m_padProbeHandlers[handler]->RemoveFromParent(m_components[name], 
-                DSL_PAD_SINK))
+                pad))
             {
                 LOG_ERROR("Pad Probe Handler '" << handler 
                     << "' is not a child of Remuxer '" << name << "'");

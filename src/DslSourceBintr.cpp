@@ -81,7 +81,6 @@ namespace DSL
     
     SourceBintr::SourceBintr(const char* name)
         : Bintr(name)
-        , m_uniqueId(-1)  // unassigned until added to a Pipeline
         , m_cudaDeviceProp{0}
         , m_isLive(true)
         , m_fpsN(0)

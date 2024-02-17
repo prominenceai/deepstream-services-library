@@ -7006,7 +7006,8 @@ DslReturnType dsl_remuxer_dimensions_set(const wchar_t* name,
 // -----------------------------------------------------------------------------------
 // OLD STREAMMUX SERVICES - End
 
-DslReturnType dsl_remuxer_pph_add(const wchar_t* name, const wchar_t* handler)
+DslReturnType dsl_remuxer_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -7017,10 +7018,11 @@ DslReturnType dsl_remuxer_pph_add(const wchar_t* name, const wchar_t* handler)
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
     return DSL::Services::GetServices()->RemuxerPphAdd(cstrName.c_str(), 
-        cstrHandler.c_str());
+        cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_remuxer_pph_remove(const wchar_t* name, const wchar_t* handler)
+DslReturnType dsl_remuxer_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(handler);
@@ -7031,7 +7033,7 @@ DslReturnType dsl_remuxer_pph_remove(const wchar_t* name, const wchar_t* handler
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
     return DSL::Services::GetServices()->RemuxerPphRemove(cstrName.c_str(), 
-        cstrHandler.c_str());
+        cstrHandler.c_str(), pad);
 }
 
 DslReturnType dsl_tiler_new(const wchar_t* name, uint width, uint height)

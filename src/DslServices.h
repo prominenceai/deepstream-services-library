@@ -1197,9 +1197,11 @@ namespace DSL {
         DslReturnType RemuxerDimensionsSet(const char* name,
             uint width, uint height);
         
-        DslReturnType RemuxerPphAdd(const char* name, const char* handler);
+        DslReturnType RemuxerPphAdd(const char* name, 
+            const char* handler, uint pad);
 
-        DslReturnType RemuxerPphRemove(const char* name, const char* handler);
+        DslReturnType RemuxerPphRemove(const char* name, 
+            const char* handler, uint pad);
 
         DslReturnType TilerNew(const char* name, uint width, uint height);
         

@@ -111,6 +111,13 @@ namespace DSL
         bool UnlinkFromSinkMuxer();
         
         /**
+         * @brief Gets the Metamuxer branch config-string with Infer Id and
+         * semicolon delimited list of Stream-Ids if specified.
+         * @return Branch config-string if select streams, empty string otherwise.
+         */
+        std::string GetBranchConfigString(){return m_branchConfigString;};
+        
+        /**
          * @brief Gets the current batch settings for the RemuxerBranchBintr's 
          * Streammuxer.
          * @return current batch-size, default == the number of source.
@@ -232,6 +239,11 @@ namespace DSL
         std::vector<uint> m_streamIds;
         
         /**
+         * @brief String stream of comma delimeted stream-ids
+         */
+        std::string m_branchConfigString;
+        
+        /**
          * @brief True if connecting to select stream-ids, false otherwise.
          */    
         bool m_linkSelectiveStreams;
@@ -288,6 +300,56 @@ namespace DSL
         std::map<uint, DSL_ELEMENT_PTR> m_queues;
         
     };
+
+    // -------------------------------------------------------------------------------
+
+    /**
+     * @class RemuxerConfigFile
+     * @brief Utility class to create a Metamuxer Config file. 
+     */
+    class RemuxerConfigFile
+    {
+    public:
+       
+        /**
+         * @brief ctor for the RemuxerConfigFile
+         * @param[in] filePath - absolute or relative path to use for file createion.
+         */
+        RemuxerConfigFile(std::string filePath)
+        {
+            LOG_FUNC();
+            
+            m_ostream.open(filePath.c_str(), std::fstream::out | std::fstream::trunc);
+            m_ostream << "[property]" << std::endl;
+            m_ostream << "[group-0]" << std::endl;
+        }
+        
+        /**
+         * @brief Adds a Branch config-string to [group-0]
+         * @param[in] configString Branch config-string to add to the config file
+         */
+        void AddBranchConfigString(const std::string& configString)
+        {
+            m_ostream << configString.c_str() << std::endl;            
+        }
+        
+        /**
+         * @brief Closes the file
+         */
+        void Close()
+        {
+            m_ostream.close();
+        }
+
+    private:
+
+        /**
+         * @brief File stream used to create the config file. 
+         */
+        std::fstream m_ostream;
+    };
+    
+    // -------------------------------------------------------------------------------
 
     /**
      * @class RemuxerBintr
@@ -480,6 +542,11 @@ namespace DSL
         bool UseNewStreammux(){return m_useNewStreammux;};
         
     private:
+    
+        /**
+         * @brief path to create and load the Metamuxer config file.
+         */
+        std::string m_configFilePath;
 
         /**
          * @brief boolean flag to indicate if USE_NEW_NVSTREAMMUX=yes

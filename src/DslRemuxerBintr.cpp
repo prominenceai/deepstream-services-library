@@ -56,14 +56,21 @@ namespace DSL
         // Need to forward all children messages for this RemuxerBranchBintr,
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
 
-        std::stringstream ssStreamIds;
         // If linking to specific streams ids - not all.
         if (streamIds and numStreamIds)
         {
+            // Setup the branches' vector of seclect stream-id
             m_streamIds.assign(streamIds, streamIds+numStreamIds);
-            
-            std::copy(m_streamIds.begin(), m_streamIds.end(), 
-                std::ostream_iterator<uint>(ssStreamIds, " "));
+
+            // Build the config string for this RemuxerBranch Bintr using
+            // format = <prefix>-<model unique ID>=<source ids>.
+            std::stringstream ssStreamIds;
+            ssStreamIds << DSL_REMUXER_BRANCH_CONFIG_STRING_PREFIX 
+                << std::to_string(pChildBranch->GetUniqueId()) << "=";
+            std::copy(m_streamIds.begin(), m_streamIds.end()-1,
+                std::ostream_iterator<uint>(ssStreamIds, ";"));
+            ssStreamIds << m_streamIds.back();
+            m_branchConfigString = ssStreamIds.str();
         }
 
         // Create a new Streammuxer for this child branch with a unique name
@@ -89,7 +96,7 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
         LOG_INFO("  child-branch           : " << m_pChildBranch->GetName());
-        LOG_INFO("  stream-ids             : " << ssStreamIds.str());
+        LOG_INFO("  config-string          : " << m_branchConfigString);
         LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
         LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
@@ -536,6 +543,9 @@ namespace DSL
             m_useNewStreammux = true;
         }
 
+        // Config file used to define the stream selection for each branch.
+        m_configFilePath = "./__" + GetName() + "_config.txt";
+
         // Need to forward all children messages for this RemuxerBintr,
         // which is the parent bin for the Streammuxer allocated, so the Pipeline
         // can be notified of individual source EOS events. 
@@ -552,7 +562,6 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
         LOG_INFO("  active-pad             : " << m_activePad);
-        LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);            
         
         if (m_useNewStreammux)
         {
@@ -700,6 +709,9 @@ namespace DSL
             return false;
         }
         
+        // Create the Metamuxer config-file utility.
+        RemuxerConfigFile configFile(m_configFilePath);
+        
         if (!m_pMetamuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
             !m_pMetamuxerQueue->LinkToSinkMuxer(m_pMetamuxer, "sink_0") or
             !m_pDemuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
@@ -751,6 +763,7 @@ namespace DSL
         // Then, call on the Branch to link-all of its children and to link back
         // to the Demuxer source Tees according to their select stream-ids.
         
+        
         // Pad index to link the child branch to the Metamuxer
         uint i(1);
         for (auto const& imap: m_childBranches)
@@ -783,7 +796,15 @@ namespace DSL
                 return false;
             }                
             
+            if (imap.second->GetBranchConfigString().size())
+            {
+                configFile.AddBranchConfigString(
+                    imap.second->GetBranchConfigString());
+            }
         }
+        configFile.Close();
+        
+        m_pMetamuxer->SetAttribute("config-file", m_configFilePath.c_str());
 
         m_isLinked = true;
         return true;

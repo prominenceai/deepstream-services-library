@@ -36,7 +36,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // if instantiated as a ture branch to be linked to a Demuxer or
+        // if instantiated as a true branch to be linked to a Demuxer or
         // Splitter Tee - add the input queue and float as Branch sink pad.
         if (!m_isPipeline)
         {
@@ -121,6 +121,13 @@ namespace DSL
         m_pPrimaryInferBintrs[pChildBintr->GetName()] = pChildBintr;
         m_pPrimaryInferBintrsIndexed[m_nextPrimaryInferBintrIndex] = pChildBintr;
         
+        // If this is the first Pirmary Inference Bintr
+        if (m_pPrimaryInferBintrs.size() == 1)
+        {
+            // Set the Branch's unique-id to the same.
+            SetUniqueId(pChildBintr->GetUniqueId());
+        }
+        
         return AddChild(pChildBintr);
     }
 
@@ -152,6 +159,13 @@ namespace DSL
         // Erase the child from both maps
         m_pPrimaryInferBintrs.erase(pChildBintr->GetName());
         m_pPrimaryInferBintrsIndexed.erase(pChildBintr->GetIndex());
+
+        // If removing the last Pirmary Inference Bintr
+        if (!m_pPrimaryInferBintrs.size())
+        {
+            // Reset the Branch's unique-id.
+            SetUniqueId(-1);
+        }
 
         // Clear the parent relationship and index
         pChildBintr->SetIndex(0);
