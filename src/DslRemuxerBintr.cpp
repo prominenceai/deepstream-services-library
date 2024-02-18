@@ -185,7 +185,7 @@ namespace DSL
             m_queues[m_streamIds[i]] = pQueue;
 
             std::string sinkPadName = 
-                "sink_" + std::to_string(i);
+                "sink_" + std::to_string(m_streamIds[i]);
             
             if (!pQueue->LinkToSinkMuxer(m_pStreammux,
                     sinkPadName.c_str()))

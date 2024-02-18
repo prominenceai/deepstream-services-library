@@ -5253,6 +5253,7 @@ def dsl_remuxer_branch_remove_many(name, branches):
     arr[:] = branches
     result =_dsl.dsl_remuxer_branch_remove_many(name, arr)
     return int(result)
+    
 ##
 ## dsl_remuxer_batch_size_get()
 ##

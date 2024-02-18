@@ -321,6 +321,110 @@ SCENARIO( "A Remuxer can set a Branch config-file correctly", "[remuxer-api]" )
     }
 }
 
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
+{
+    return true;
+}
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
+{
+    return true;
+}    
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Remuxer", 
+    "[remuxer-api]" )
+{
+    GIVEN( "A new Remuxer and Custom PPH" ) 
+    {
+        std::wstring remuxer_name(L"remuxer");
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the Remuxer" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Tiler" ) 
+        {
+            REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SINK) == DSL_RESULT_REMUXER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a Remuxer", 
+    "[remuxer-api]" )
+{
+    GIVEN( "A new Remuxer and Custom PPH" ) 
+    {
+        std::wstring remuxer_name(L"remuxer");
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_remuxer_new(remuxer_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, 
+            NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Probe Handler is added to the Remuxer" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Source Pad Probe Handler is added to the Remuxer" ) 
+        {
+            REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SRC) == DSL_RESULT_REMUXER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Remuxer API checks for NULL input parameters", "[remuxer-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -394,6 +498,15 @@ SCENARIO( "The Remuxer API checks for NULL input parameters", "[remuxer-api]" )
                     REQUIRE( dsl_remuxer_dimensions_set(NULL, 
                         1, 1) == DSL_RESULT_INVALID_INPUT_PARAM );                    
                 }
+                REQUIRE( dsl_remuxer_pph_add(NULL, 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_remuxer_pph_remove(NULL, 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_remuxer_pph_remove(remuxer_name.c_str(), 
+                    NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
+
             }
         }
     }
