@@ -119,46 +119,6 @@ retval = dsl_tee_demuxer_new_branch_add_many('my-demuxer', 2,
 
 <br>
 
-### *dsl_tee_remuxer_new*
-```C++
-DslReturnType dsl_tee_remuxer_new(const wchar_t* name);
-```
-The constructor creates a uniquely named Remuxer Tee. Construction will fail if the name is currently in use. 
-
-**Parameters**
-* `name` - [in] unique name for the Remuxer to create.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_tee_remuxer_new('my-remuxer')
-```
-
-<br>
-
-### *dsl_tee_remuxer_new_branch_add_many*
-```C++
-DslReturnType dsl_tee_remuxer_new_branch_add_many(const wchar_t* name, const wchar_t** branches)
-```
-The constructor creates a uniquely named Remuxer Tee and adds a list of Branches to it. Construction will fail if the name is currently in use. 
-
-**Parameters**
-* `name` - [in] unique name for the Splitter to create.
-* `branches` [in] Null terminated list of unique branch names to add.
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
-
-**Python Example**
-```Python
-retval = dsl_tee_remuxer_new_branch_add_many('my-remuxer', 
-   ['my-branch-1', 'my-branch-2', None])
-```
-
-<br>
-
 ### *dsl_tee_splitter_new*
 ```C++
 DslReturnType dsl_tee_splitter_new(const wchar_t* name);
