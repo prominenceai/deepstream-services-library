@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ import time
 
 from dsl import *
 
-file_path1 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+file_path1 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mp4"
 file_path2 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4"
 file_path3 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov"
 file_path4 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov"
