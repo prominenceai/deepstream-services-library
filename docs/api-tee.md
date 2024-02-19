@@ -1,19 +1,8 @@
-# Demuxer, Remuxer, and Splitter - Tee API
-There are currently three types of Tees -- Demuxer, Remuxer, and Splitter -- each with a very specific use and purpose. All connect to downstream [Branches](/docs/api-branch.md). 
+# Demuxer and Splitter - Tee API
+There are currently two types of Tees -- Demuxer and Splitter -- each with a very specific use and purpose. All connect to downstream [Branches](/docs/api-branch.md). 
 
 ### Demuxer Tee
 The Demuxer Tee is built-on NVIDIA's [Gst-nvstreamdemux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreamdemux.html#gst-nvstreamdemux) which, from the documentation, _"demuxes batched frames into individual buffers. It creates a separate Gst Buffer for each frame in the batch. It does not copy the video frames. Each Gst Buffer contains a pointer to the corresponding frame in the batch. The plugin pushes the unbatched Gst Buffer objects downstream on the pad corresponding to each frame’s source."_
-
-### Remuxer Tee
-Built with a Demuxer and multiple Streammuxers, The Remuxer Tee splits the batched input stream into downstream branches, each with their own unique batched metatdata for parallel inference.  
-
-Remuxing a batched stream is performed as follows:
-1. The Demuxer plugin is used to demux the incoming batched stream into individual streams/source-pads.
-2. GStreamer tee plugins are connected to the source-pads splitting each single stream into multiple single streams, as required for each downstream Branch.
-3. Each added Branch is connected upstream to an NVIDIA [Gst-nvstreammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) 
-4. Each Streammuxer is then connected upstream to some or all of the single stream Tees, as specified by the client.
-
-DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html) 
 
 ### Splitter Tee
 The Splitter Tee splits the stream -- batched or single frame -- to multiple source-pads, each connected to a unique Branch. The Tee does not copy the Gst Buffer, it simply pushes a pointer to the same buffer to each downstream Branch. 
@@ -40,8 +29,6 @@ Branches are added to a Tee by calling [`dsl_tee_branch_add`](api-branch.md#dsl_
 **Constructors**
 * [`dsl_tee_demuxer_new`](#dsl_tee_demuxer_new)
 * [`dsl_tee_demuxer_new_branch_add_many`](#dsl_tee_demuxer_new_branch_add_many)
-* [`dsl_tee_remuxer_new`](#dsl_tee_remuxer_new)
-* [`dsl_tee_remuxer_new_branch_add_many`](#dsl_tee_remuxer_new_branch_add_many)
 * [`dsl_tee_splitter_new`](#dsl_tee_splitter_new) 
 * [`dsl_tee_splitter_new_branch_add_many`](#dsl_tee_demuxer_new_branch_add_many)
 
@@ -55,27 +42,12 @@ Branches are added to a Tee by calling [`dsl_tee_branch_add`](api-branch.md#dsl_
 * [`dsl_tee_blocking_timeout_set`](#dsl_tee_blocking_timeout_set)
 * [`dsl_tee_pph_add`](#dsl_tee_pph_add)
 * [`dsl_tee_pph_remove`](#dsl_tee_pph_remove)
-
+    
 **Demuxer Tee Methods**
 * [`dsl_tee_demuxer_branch_add_to`](#dsl_tee_demuxer_branch_add_to)
 * [`dsl_tee_demuxer_branch_move_to`](#dsl_tee_demuxer_branch_move_to)
 * [`dsl_tee_demuxer_max_branches_get`](#dsl_tee_demuxer_max_branches_get)
 * [`dsl_tee_demuxer_max_branches_set`](#dsl_tee_demuxer_max_branches_set)
-
-**Remuxer Tee Methods (new Streammuxer)**
-* [`dsl_tee_remuxer_branch_config_file_get`](#dsl_tee_remuxer_branch_config_file_get)
-* [`dsl_tee_remuxer_branch_config_file_set`](#dsl_tee_remuxer_branch_config_file_set)
-* [`dsl_tee_remuxer_batch_size_get`](#dsl_tee_remuxer_batch_size_get)
-* [`dsl_tee_remuxer_batch_size_set`](#dsl_tee_remuxer_batch_size_set)
-
-**Remuxer Tee Methods (old Streammuxer)**
-* [`dsl_tee_remuxer_batch_properties_get`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_get)
-* [`dsl_tee_remuxer_batch_properties_set`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_set)
-* [`dsl_tee_remuxer_dimensions_get`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_get)
-* [`dsl_tee_remuxer_dimensions_set`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_set)
-
-**Remuxer Tee Methods (common)**
-* [`dsl_tee_remuxer_branch_add_to`](#dsl_tee_remuxer_branch_add_to)
 
 ## Return Values
 The following return codes are used by the Tee API
