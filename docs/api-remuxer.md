@@ -1,12 +1,9 @@
 # Remuxer API
+The Remuxer is an aggragate component linking a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer to implement _**Parallel Inference**_.
 
-Built with a Demuxer, multiple Streammuxers, and a Metamux The Remuxer Tee splits the batched input stream into downstream branches, each with their own unique batched metatdata for parallel inference.  
+The following image illustrates a use case with four (4) Source components, producing streams 0-3, and three (3) parallel inference branches. 
+![DSL Remuxer Component](/Images/remuxer.png)
 
-Remuxing a batched stream is performed as follows:
-1. The Demuxer plugin is used to demux the incoming batched stream into individual streams/source-pads.
-2. GStreamer tee plugins are connected to the source-pads splitting each single stream into multiple single streams, as required for each downstream Branch.
-3. Each added Branch is connected upstream to an NVIDIA [Gst-nvstreammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) 
-4. Each Streammuxer is then connected upstream to some or all of the single stream Tees, as specified by the client.
 
 DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html) 
 
