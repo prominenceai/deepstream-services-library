@@ -1,11 +1,27 @@
 # Remuxer API
 The Remuxer is an aggragate component linking a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer to implement _**Parallel Inference**_.
 
-The following image illustrates a use case with four (4) Source components, producing streams 0-3, and three (3) parallel inference branches. 
+The following image illustrates a use case with four Source components, producing streams 0-3, and three parallel inference branches. 
 ![DSL Remuxer Component](/Images/remuxer.png)
 
+1. The batched stream, on input to the Remuxer, is split using a Tee plugin with one stream connecting directly to the active-sink-pad of the Metamuxer plugin. The active-pad indicates which stream is transferred to the Metamuxer src-pad (output). The metamuxer src-pad is set as a [ghost pad](https://gstreamer.freedesktop.org/documentation/gstreamer/gstghostpad.html?gi-language=c) to act as a proxy src-pad for the Remuxer component.
+2. The second batched stream from the input Tee is then connected to a Demuxer to demux the batched-stream back to the original 4 streams.
+3. The four unbatched streams are then connected to addition Tee plugins to split the streams for parallel inference - one Tee per stream.
+4. The client creates and adds Inference branches, depending on the use-case, with the above showing three.
+   i. Primary Triton Inference Server (PTIS) only.
+   ii. Primary Triton Inference Server and IOU Tracker.
+   iii. Primary Triton Inference Server, NvDCF Tracker, and Secondary Triton Inference Server.
+5. A new Streammuxer plugin, one per inference branch, is then selectively linked to some or all of the Tee's. The output of
+6. The output of each Inference branch is then linked to the input of the Metamuxer which aggregates the metadata from each and adds it to the corresponding frame of the original batched stream (see first bullet).
 
-DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html) 
+DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html). 
+
+## Inference Brances
+An Inference branch can be a single Primary Inference Component, which can be added to the Remuxer directly, or multiple components in which case an actual Branch Component must be used. The Inference Components are added to the Branch and then the Branch is added to the Remuxer. 
+
+### Adding and Removing
+
+## Pad Probe Handlers.
 
 ## Remuxer API
 **Constructors**
@@ -13,8 +29,8 @@ DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com
 * [`dsl_remuxer_new_branch_add_many`](#dsl_remuxer_new_branch_add_many)
 
 **Remuxer Methods (common)**
-* [`dsl_remuxer_branch_add_to`](#dsl_remuxer_branch_add_to)
 * [`dsl_remuxer_branch_add`](#dsl_remuxer_branch_add)
+* [`dsl_remuxer_branch_add_to`](#dsl_remuxer_branch_add_to)
 * [`dsl_remuxer_branch_add_many`](#dsl_remuxer_branch_add_many)
 * [`dsl_remuxer_branch_remove`](#dsl_remuxer_branch_remove)
 * [`dsl_remuxer_branch_remove_many`](#dsl_remuxer_branch_remove_many)
