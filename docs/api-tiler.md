@@ -1,17 +1,17 @@
 # Multi-Stream Tiler API
 Tiler components perform frame-rendering from multiple-sources into a 2D grid array with one tile per source.  As with all components, Tilers must be uniquely named from all other components created. Tiler components have dimensions, `width` and `height`, and a number-of-tiles expressed in `rows` and `cols`. A Tiler's dimension must be set on creation, whereas `rows` and `cols` default to 0 indicating best-fit based on the number of sources. Both dimensions and tiles can be updated after Tiler creation, even when the Tiler is currently `in-use` by a Pipeline. A Tiler can be called on to show a single source for an extendable time and return to show all sources on timeout.
 
-#### Tiler Construction and Destruction
+## Tiler Construction and Destruction
 Tilers are constructed by calling the constructor [`dsl_tiler_new`](#dsl_tiler_new). Tilers are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
 
-#### Adding and Removing
+## Adding and Removing
 The relationship between Pipelines/Branches and Tilers is one-to-one. Once added to a Pipeline or Branch, a Tiler must be removed before it can used with another. 
 
 Multi-Stream Tilers are added to a Pipeline by calling[`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
 A similar set of Services are used when adding/removing a to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
-#### Adding/Removing Pad-Probe-handlers
+## Adding/Removing Pad-Probe-handlers
 Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Tiler by calling [`dsl_tiler_pph_add`](#dsl_tiler_pph_add) and removed with [`dsl_tiler_pph_remove`](#dsl_tiler_pph_remove).
 
 ## Relevant Examples
@@ -377,6 +377,7 @@ retval = dsl_tiler_pph_remove('my-tiler', 'my-pph-handler', `DSL_PAD_SINK`)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * **Tiler**
 * [Demuxer and Splitter](/docs/api-tee.md)
+* [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
