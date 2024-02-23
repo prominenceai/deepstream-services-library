@@ -1,27 +1,48 @@
 # Remuxer API
-The Remuxer is an aggragate component linking a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer to implement _**Parallel Inference**_.
+The Remuxer is an aggregate component linking a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer, all to implement _**Selective Parallel Inference**_. Parallel Inference defines a method of processing batched input streams using different inference models and object trackers by splitting the streams into parallel inference branches. 
 
-The following image illustrates a use case with four Source components, producing streams 0-3, and three parallel inference branches. 
+The following image illustrates a use case with four Source components, producing streams 0-3, and three parallel inference branches, each processing a select set of streams. 
 ![DSL Remuxer Component](/Images/remuxer.png)
 
+It is important to note that [GStreamer Tee plugins](https://gstreamer.freedesktop.org/documentation/coreelements/tee.html?gi-language=c) do not copy buffers, they simply push a pointer to the same buffer onto multiple src-pads (output) while incrementing the reference count for each. This means that all parallel branches are processing the same shared buffers with each branch producing its own inference metadata. The numbered bullets below correspond to the numbers in the image above. 
 1. The batched stream, on input to the Remuxer, is split using a Tee plugin with one stream connecting directly to the active-sink-pad of the Metamuxer plugin. The active-pad indicates which stream is transferred to the Metamuxer src-pad (output). The metamuxer src-pad is set as a [ghost pad](https://gstreamer.freedesktop.org/documentation/gstreamer/gstghostpad.html?gi-language=c) to act as a proxy src-pad for the Remuxer component.
-2. The second batched stream from the input Tee is then connected to a Demuxer to demux the batched-stream back to the original 4 streams.
-3. The four unbatched streams are then connected to addition Tee plugins to split the streams for parallel inference - one Tee per stream.
+2. The second batched stream from the input Tee is then connected to a Demuxer to demux the batched stream back to the original 4 streams.
+3. The four unbatched streams are then connected to additional Tee plugins to split the streams for parallel inference - one Tee per stream.
 4. The client creates and adds Inference branches, depending on the use-case, with the above showing three.
-   i. Primary Triton Inference Server (PTIS) only.
-   ii. Primary Triton Inference Server and IOU Tracker.
-   iii. Primary Triton Inference Server, NvDCF Tracker, and Secondary Triton Inference Server.
-5. A new Streammuxer plugin, one per inference branch, is then selectively linked to some or all of the Tee's. The output of
+   1. Branch-1 - Primary Triton Inference Server (PTIS).
+   2. Branch-2 - Primary Triton Inference Server and IOU Tracker.
+   3. Branch-3 - Primary Triton Inference Server, NvDCF Tracker, and Secondary Triton Inference Server.
+5. A Streammuxer plugin, one per inference branch, is then selectively linked to some or all of the Tee's. The output of each Streammuxer is then linked to its corresponding Inference Branch. Each Streammuxer creates the base batch metadata for its specific branch. 
+   1. Branch-1 - linked to process stream 0 only.
+   2. Branch-2 - linked to process streams 0,1,2.
+   3. Branch-3 - linked to process all streams (0-3).
 6. The output of each Inference branch is then linked to the input of the Metamuxer which aggregates the metadata from each and adds it to the corresponding frame of the original batched stream (see first bullet).
 
-DSL supports both the [**OLD** NVIDIA Streammux pluging](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html). 
+## Construction and Deletion
+The DSL Remuxer Component is created by calling one of the following constructors:
+* [`dsl_remuxer_new`](#dsl_remuxer_new) - creates a new Remuxer ready to add Inference Branches. 
+* [`dsl_remuxer_new_branch_add_many`](#dsl_remuxer_new_branch_add_many) - creates a new Remuxer and adds a list of Inference Branches to be linked to all streams. See [`dsl_remuxer_branch_add_to`](#dsl_remuxer_branch_add_to) for adding a branch to be linked to a specific set of streams.
 
-## Inference Brances
-An Inference branch can be a single Primary Inference Component, which can be added to the Remuxer directly, or multiple components in which case an actual Branch Component must be used. The Inference Components are added to the Branch and then the Branch is added to the Remuxer. 
+As with all Pipeline Components, Remuxers are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all).
 
-### Adding and Removing
+## Inference Branches
+An Inference branch can be defined as a single [Primary Inference Component](/docs/api-infer.md) which can be added to the Remuxer directly, or multiple Inference Components in which case an actual [Branch Component](/docs/api-branch.md) must be used. The Inference Components are added to the Branch and the Branch is added to the Remuxer. 
 
-## Pad Probe Handlers.
+### Adding and Removing Inference Branches
+Inference Branches can be added to a Remuxer to process all available streams by calling [`dsl_remuxer_branch_add`](#dsl_remuxer_branch_add) or [`dsl_remuxer_branch_add_many`](#dsl_remuxer_branch_add_many)... or to process a select set of streams by calling [`dsl_remuxer_branch_add_to`](#dsl_remuxer_branch_add_to)
+
+Branches are removed from the Remuxer by calling [`dsl_remuxer_branch_remove`](#dsl_remuxer_branch_remove), [`dsl_remuxer_branch_remove_many`](#dsl_remuxer_branch_remove_many), or [`dsl_remuxer_branch_remove_all`](#dsl_remuxer_branch_remove_all)
+
+### Branch Streammuxers
+**IMPORTANT!** Although the DSL Remuxer supports both the [**OLD** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html), there is a critical NVIDIA bug in DS 6.3/6.4 that prevents use of the New Streammuxer. See [Pipelines with new nvstreammux and nvstreamdemux fail to play correctly in DS 6.3](https://forums.developer.nvidia.com/t/pipelines-with-new-nvstreammux-and-nvstreamdemux-fail-to-play-correctly-in-ds-6-3/278396/5)
+
+## Adding and Removing a Remuxer
+The relationship between Pipelines and Remuxers is one-to-one. Once added to a Pipeline, a Remuxer must be removed before it can used with another. 
+
+Remuxer components are added to a Pipeline by calling[`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
+
+## Adding/Removing Pad-Probe-handlers
+Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.md) can be added to a Remuxer by calling [`dsl_remuxer_pph_add`](#dsl_remuxer_pph_add) and removed with [`dsl_remuxer_pph_remove`](#dsl_remuxer_pph_remove).
 
 ## Remuxer API
 **Constructors**
@@ -189,7 +210,7 @@ DslReturnType dsl_remuxer_branch_remove(const wchar_t* name, const wchar_t* bran
 This service removes a single named Branch from a Remuxer. The remove service will fail if the Branch is not currently `in-use` by the Remuxer. The branch's `in-use` state will be set to `false` on successful removal. 
 
 **Parameters**
-* `name` - [in] unique name for the Demuxer or Splitter remuxer to update.
+* `name` - [in] unique name for the Remuxer to update.
 * `branch` - [in] unique name of the Branch to remove.
 
 **Returns**
@@ -297,7 +318,7 @@ DslReturnType dsl_remuxer_batch_size_get(const wchar_t* name,
 This service returns the current `batch_size` setting for the named Remuxer. The `batch_size` is used by each internal Streammux plugin for each added Branch that connects to all streams. 
 Branches that connect to a select set of stream-ids will set their `batch-size` to the number of streams selected.  To use this service, export USE_NEW_NVSTREAMMUX=yes.
 
-**Note:** Unless explicity set with a call to [dsl_tee_remuxer_batch_size_set](#dsl_tee_remuxer_batch_size_set), the Remuxer will use the upstream batch-size when the Pipeline is linked and played. 
+**Note:** Unless explicitly set with a call to [dsl_tee_remuxer_batch_size_set](#dsl_tee_remuxer_batch_size_set), the Remuxer will use the upstream batch-size when the Pipeline is linked and played. 
 
 **IMPORTANT!** If adding/removing Sources dynamically at runtime, you must set the batch-size to the maximum number of upstream Sources that can be added.
 
@@ -323,7 +344,7 @@ DslReturnType dsl_remuxer_batch_size_set(const wchar_t* name,
 This service sets the `batch_size` for the named Remxuer to use.  The `batch_size` is used by each internal Streammux plugin for each added Branch that connects to all streams. 
 Branches that connect to a select set of stream-ids will set their `batch-size` to the number of streams selected. To use this service, export USE_NEW_NVSTREAMMUX=yes.
 
-**Note:** Unless explicity set with this service, the Remuxer will use the upstream batch-size when the Pipeline is linked and played. 
+**Note:** Unless explicitly set with this service, the Remuxer will use the upstream batch-size when the Pipeline is linked and played. 
 
 **IMPORTANT!** If adding/removing Sources dynamically at runtime, you must set the batch-size to the maximum number of upstream Sources that can be added.
 
@@ -349,12 +370,15 @@ DslReturnType dsl_remuxer_batch_properties_get(const wchar_t* name,
 ```
 This service returns the current `batch_size` and `batch_timeout` for the named Remuxer. The `batch_size` is used by all internal Streammux plugins connecting to Branches that are to connect to all streams. The `batch_timeout` is used by all internal Streammux plugins allocated. 
 **Note:** the Remuxer's parent Pipeline or Branch will set the `batch_size` to current number of upstream added Sources at runtime, and the `batch_timeout` to -1 (disabled), if not explicitly set. A Branch connecting to a specific set of stream-ids will set the `batch-size` to the number of streams to connect to.
+
 **Parameters**
 * `name` - [in] unique name for the Remuxer to query.
 * `batch_size` - [out] the current batch size set for the Remuxer. Default = 0 until runtime or unless explicitly set.
 * `batch_timeout` - [out] timeout in milliseconds before a batch meta push is forced. Set to -1 by default.
+
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
 **Python Example**
 ```Python
 retval, batch_size, batch_timeout = dsl_remuxer_batch_properties_get('my-remuxer')
@@ -369,12 +393,15 @@ DslReturnType dsl_remuxer_batch_properties_set(const wchar_t* name,
 ```
 This service sets the `batch_size` and `batch_timeout` for the named Remxuer to use.  The `batch_size` is used by all internal Streammux plugins when connecting to Branches that are to connect to all streams. The `batch_timeout` is used by all internal Streammux plugins. 
 **Note:** the Remuxer's parent Pipeline or Branch will set the `batch_size` to current number of upstream added Sources at runtime, and the `batch_timeout` to -1 (disabled), if not explicitly set. A Branch connecting to a specific set of stream-ids will set the `batch-size` to the number of streams to connect to.
+
 **Parameters**
 * `name` - [in] unique name for the Remuxer to update.
 * `batch_size` - [in] the new batch size to use.
 * `batch_timeout` - [in] the new timeout in milliseconds before a batch meta push is forced.
+
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
 **Python Example**
 ```Python
 retval = dsl_remuxer_batch_properties_set('my-remuxer',
@@ -388,17 +415,21 @@ retval = dsl_remuxer_batch_properties_set('my-remuxer',
 DslReturnType dsl_remuxer_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
-This service returns the current output dimensions for all internal Steammuxer plugins for the uniquely named Remuxer. The [default dimensions](remuxer-internal-streammuxer-constant-values)  are assigned during Remuxer creation. 
+This service returns the current output dimensions for all internal Streammuxer plugins for the uniquely named Remuxer. The [default dimensions](remuxer-internal-streammuxer-constant-values)  are assigned during Remuxer creation. 
+
 **Parameters**
 * `name` - [in] unique name of the Remuxer to query.
 * `width` - [out] width of all internal Streammuxer's output in pixels.
 * `height` - [out] height of all internal Streammuxer's output in pixels.
+
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
 **Python Example**
 ```Python
 retval, width, height = dsl_remuxer_dimensions_get('my-remuxer')
 ```
+
 <br>
 
 ### *dsl_remuxer_dimensions_set*
@@ -407,15 +438,60 @@ DslReturnType dsl_remuxer_dimensions_set(const wchar_t* name,
     uint width, uint height);
 ```
 This service sets the output dimensions for all internal Streammux plugins for the uniquely named Remuxer. The dimensions cannot be updated while the Pipeline is in a state of `PAUSED` or `PLAYING`.
+
 **Parameters**
 * `name` - [in] unique name of the Remuxer to update.
 * `width` - [in] new width for all internal Streammuxer's output in pixels.
 * `height` - [in] new height for all internal Streammuxer's output in pixels.
+
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
 **Python Example**
 ```Python
 retval = dsl_remuxer_dimensions_set('my-remuxer', 1280, 720)
+```
+
+<br>
+
+### *dsl_remuxer_pph_add*
+```C++
+DslReturnType dsl_remuxer_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+```
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Remuxer.
+
+**Parameters**
+* `name` - [in] unique name of the Remuxer to update.
+* `handler` - [in] unique name of Pad Probe Handler to add
+* `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_remuxer_pph_add('my-remuxer', 'my-pph-handler', `DSL_PAD_SINK`)
+```
+
+<br>
+
+### *dsl_remuxer_pph_remove*
+```C++
+DslReturnType dsl_remuxer_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+```
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named Remuxer. The service will fail if the named handler is not owned by the Remuxer
+
+**Parameters**
+* `name` - [in] unique name of the Remuxer to update.
+* `handler` - [in] unique name of Pad Probe Handler to remove
+* `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_remuxer_pph_remove('my-tiler', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
