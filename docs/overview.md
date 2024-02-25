@@ -10,6 +10,7 @@
   * [On-Screen Display](#on-screen-display)
   * [Sinks](#sinks)
   * [Tees and Branches](#tees-and-branches)
+  * [Remuxer](#remuxer)
   * [Pad Probe Handlers](#pad-probe-handlers)
 * [Display Types](#display-types)
 * [Object Detection Event (ODE) Services](#object-detection-event-ode-services)
@@ -18,6 +19,7 @@
   * [ODE Areas](#ode-areas)
   * [ODE Line Crossing Analytics](#ode-line-crossing-analytics)
   * [ODE Heat Mapping](#ode-heat-mapping)
+* [Selective Parallel Inference](#selective-parallel-inference)
 * [Dynamic Pipelines](#dynamic-pipelines)
 * [Interpipe Services](#interpipe-services)
 * [Smart Recording](#smart-recording)
@@ -249,6 +251,11 @@ Important Notes:
 * Tees are ***not*** required when adding multiple Sinks to a Pipeline or Branch. Multi-sink management is handled by the Pipeline/Branch directly. 
 
 See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for more information. 
+
+---
+## Remuxer 
+
+[Selective Parallel Inference](#selective-parallel-inference)
 
 ---
 
@@ -587,6 +594,8 @@ retval = dsl_ode_trigger_accumulator_add('person-crossing-line',
 ```
 See the [complete example](/examples/python/ode_line_cross_object_capture_overlay_image.py) and refer to the [ODE Trigger API Reference](/docs/api-ode-trigger.md), [ODE Action API Reference](/docs/api-ode-action.md), [ODE Area API Reference](/docs/api-ode-area.md), and [ODE Accumulator API Reference](/docs/api-ode-accumulator.md) sections for more information.
 
+<br>
+
 ---
 
 ### ODE Heat Mapping
@@ -599,6 +608,100 @@ The below image was created with the [ode_occurrence_trigger_with_heat_mapper.py
 See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more information.
 
 ![](/Images/spectral-person-heat-map.png)
+
+<br>
+
+---
+>
+
+## Selective Parallel Inference
+
+![Parallel Inference Pipeline](/Images/parallel-inference-pipeline.png)
+
+**Inference Branch 1.**
+
+Consiting of a single _Primary Triton Inference Server (PTIS)_ . Single Component Branches can be added to the Remuxer directly.
+```python
+# Create the first PTIS using the first model with an interval of 0
+retval = dsl_infer_tis_primary_new('my-primary-tis-1', primary_tis_config_file_1, 0)
+```
+
+**Inference Branch 2.**
+
+Branch 2 consists of two Components, a _PTIS_ and an _IOU Tracker_. Branches with mutlple Components require an actual [Branch Component](/docs/api-branch.md) to contain them.
+```python
+# Create the second PTIS using the second model with an interval of 4
+retval = dsl_infer_tis_primary_new('my-primary-tis-2', primary_tis_config_file_2, 4)
+
+# New IOU Tracker, setting operational width and height.
+retval = dsl_tracker_new('my-iou-tracker', iou_tracker_config_file, 480, 272)
+
+# Create a new Branch Component and add the PTIS and Tracker to it.
+retval = dsl_branch_new_component_add_many('my-branch-2', 
+    ['my-primary-tis-2', 'my-iou-tracker', None])
+```
+
+**Inference Branch 3.**
+
+Branch 3 consists of three Components, a _PTIS_, _NvDCF Tracker_, and Secondary _Triton Infernece Server_.
+```python
+# Create the third PTIS using the third model with an interval of 4
+retval = dsl_infer_tis_primary_new('my-primary-tis-3', primary_tis_config_file_3, 4)
+
+# New NvDCF Tracker, setting operational width and height
+# NOTE: width and height paramaters must be multiples of 32 for dcf
+retval = dsl_tracker_new('my-dcf-tracker', dcf_tracker_config_file, 640, 384)
+
+# Create the STIS , with interval = 0
+retval = dsl_infer_tis_secondary_new('my-secondary-tis', 
+    secondary_infer_config_file, 'my-primary-tis-3', 0)
+
+# Create a new Branch Component and add the PTIS, Tracker, and STIS to it.
+retval = dsl_branch_new_component_add_many('my-branch-3', 
+    ['my-primary-tis-3', 'my-dcf-tracker', 'my-secondary-tis', None])
+
+```
+
+**Create a Remuxer and add the Branches to it**
+
+With the Inference Branches setup, we can now create the Remuxer Component and the Branches to be connected to specific streams.
+```python
+# New Remuxer component to implement the selective parallel inference
+retval = dsl_remuxer_new('remuxer')
+
+# Branch 1 will be connected to stream 0 only.
+stream_ids_b1 = [0]
+
+# Add the first PTIS directly to the Remuxer.
+# Use the "add_to" service to connect to specific streams
+retval = dsl_remuxer_branch_add_to('my-remuxer', 'my-primary-tis-1', 
+    stream_ids_b1, len(stream_ids_b1))
+
+# Branch 2 will be connected to streams 0, 1, and 2.
+stream_ids_b2 = [0,1,2]
+
+# Add the second branch to the Remuxer.
+# Use the "add_to" service to connect to specific streams
+retval = dsl_remuxer_branch_add_to('my-remuxer', 'my-branch-2', 
+    stream_ids_b2, len(stream_ids_b2))
+
+# Branch 3 will be connected to all streams - so use the "add" service.
+retval = dsl_remuxer_branch_add('my-remuxer', 'my-branch-3') 
+```
+
+**Build the Parallel Inference Pipeline**
+
+After creating the 2D Tiler, On Screen Display, Window Sink, Message Sink, and adding them to a new Splitter Tee (not shown), we can complete the creation and assembly of the Pipeline.
+
+```Python
+retval = dsl_pipeline_new_component_add_many('my-pipeline', 
+    ['my-source-1', 'my-source-2', 'my-source-3', 'my-source-4',
+    'my-remuxer', 'my-splitter-tee', None])
+```
+
+Complete examples can be found at the links below (TODO).
+
+See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.  
 
 ---
 
