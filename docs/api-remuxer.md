@@ -1,22 +1,8 @@
 # Remuxer API
-The Remuxer is an aggregate component linking a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer, all to implement _**Selective Parallel Inference**_. Parallel Inference defines a method of processing batched input streams using different inference models and object trackers by splitting the streams into parallel inference branches. 
+The Remuxer is an aggregate component linking a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer, all to implement [Selective Parallel Inference](/docs/overview.md#selective-parallel-inference). Click the link for a complete overview. 
 
-The following image illustrates a use case with four Source components, producing streams 0-3, and three parallel inference branches, each processing a select set of streams. 
+The following image shows the internal linking of the remuxer for a use case with four Source components, producing streams 0-3, and three parallel inference branches.. 
 ![DSL Remuxer Component](/Images/remuxer.png)
-
-It is important to note that [GStreamer Tee plugins](https://gstreamer.freedesktop.org/documentation/coreelements/tee.html?gi-language=c) do not copy buffers, they simply push a pointer to the same buffer onto multiple src-pads (output) while incrementing the reference count for each. This means that all parallel branches are processing the same shared buffers with each branch producing its own inference metadata. The numbered bullets below correspond to the numbers in the image above. 
-1. The batched stream, on input to the Remuxer, is split using a Tee plugin with one stream connecting directly to the active-sink-pad of the Metamuxer plugin. The active-pad indicates which stream is transferred to the Metamuxer src-pad (output). The metamuxer src-pad is set as a [ghost pad](https://gstreamer.freedesktop.org/documentation/gstreamer/gstghostpad.html?gi-language=c) to act as a proxy src-pad for the Remuxer component.
-2. The second batched stream from the input Tee is then connected to a Demuxer to demux the batched stream back to the original 4 streams.
-3. The four unbatched streams are then connected to additional Tee plugins to split the streams for parallel inference - one Tee per stream.
-4. The client creates and adds Inference branches, depending on the use-case, with the above showing three.
-   1. Branch-1 - Primary Triton Inference Server (PTIS).
-   2. Branch-2 - Primary Triton Inference Server and IOU Tracker.
-   3. Branch-3 - Primary Triton Inference Server, NvDCF Tracker, and Secondary Triton Inference Server.
-5. A Streammuxer plugin, one per inference branch, is then selectively linked to some or all of the Tee's. The output of each Streammuxer is then linked to its corresponding Inference Branch. Each Streammuxer creates the base batch metadata for its specific branch. 
-   1. Branch-1 - linked to process stream 0 only.
-   2. Branch-2 - linked to process streams 0,1,2.
-   3. Branch-3 - linked to process all streams (0-3).
-6. The output of each Inference branch is then linked to the input of the Metamuxer which aggregates the metadata from each and adds it to the corresponding frame of the original batched stream (see first bullet).
 
 ## Construction and Deletion
 The DSL Remuxer Component is created by calling one of the following constructors:
@@ -35,6 +21,17 @@ Branches are removed from the Remuxer by calling [`dsl_remuxer_branch_remove`](#
 
 ### Branch Streammuxers
 **IMPORTANT!** Although the DSL Remuxer supports both the [**OLD** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux.html) and the [**NEW** NVIDIA Streammux plugin](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvstreammux2.html), there is a critical NVIDIA bug in DS 6.3/6.4 that prevents use of the New Streammuxer. See [Pipelines with new nvstreammux and nvstreamdemux fail to play correctly in DS 6.3](https://forums.developer.nvidia.com/t/pipelines-with-new-nvstreammux-and-nvstreamdemux-fail-to-play-correctly-in-ds-6-3/278396/5)
+
+## Metamuxer Configuration
+The NVIDIA Metamuxer plugin requires a configuration file with an entry for each Inference branch that connects to a select set of streams. The Remuxer, given this information by the client, creates the config file under the `/tmp/` folder and provides it to the Metamuxer.  The example in the image above produces the following config file contents. 
+
+```
+[property]
+[group-0]
+src-ids-model-1=0
+src-ids-model-2=0,1,2
+```
+Note that the `src-ids` for `model-3` are not listed since the third Inference Branch connects to all streams. 
 
 ## Adding and Removing a Remuxer
 The relationship between Pipelines and Remuxers is one-to-one. Once added to a Pipeline, a Remuxer must be removed before it can used with another. 
