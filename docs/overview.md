@@ -31,7 +31,6 @@
 * [DSL Delete All](#dsl-delete-all)
 * [Main Loop Context](#main-loop-context)
 * [Service Return Codes](#service-return-codes)
-* [Docker Support](#docker-support)
 * [API Reference](#api-reference)
 
 ## Introduction
@@ -255,7 +254,9 @@ See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for m
 ---
 ## Remuxer 
 
-[Selective Parallel Inference](#selective-parallel-inference)
+The Remuxer is an aggregate component linking together a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer, all to implement [Selective Parallel Inference](#selective-parallel-inference). Click the link for a complete overview.
+
+See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.
 
 ---
 
@@ -612,21 +613,45 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 <br>
 
 ---
->
 
 ## Selective Parallel Inference
+_Selective parallel inference_ defines a process of splitting a batched stream into parallel batched streams called branches so that each may be processed with different inference components using different model engine files. Each parallel stream can be batched with a select set or all of the original batched streams. The metadata from each inference branch is aggregated using a Metamuxer plugin and added to a branch of the original batched streams. 
+
+The [Remuxer Component](/docs/api-remuxer.md) was developed to encapsulate the complexity of the selective linking, branching, and aggregation as shown in the diagram below. The client application creates the specific _Inference Branches_ and adds them to the Remuxer while specifying which streams to connect to.
 
 ![Parallel Inference Pipeline](/Images/parallel-inference-pipeline.png)
 
-**Inference Branch 1.**
+The example above illustrates an arbitrary use case with four _Source Components_ and three _Inference Branches_. After the Remuxer, the Pipeline splits the batched stream and combined metadata with 
+- one branch connecting to a 2D Tiler, On Screen Display, and Window Sink for viewing, and
+- the other branch connecting to a Message Sink to send the combined metadata to a Server on the cloud.
 
-Consiting of a single _Primary Triton Inference Server (PTIS)_ . Single Component Branches can be added to the Remuxer directly.
+It is important to note that [GStreamer Tee plugins](https://gstreamer.freedesktop.org/documentation/coreelements/tee.html?gi-language=c) do not copy buffers, they simply push a pointer to the same buffer onto multiple source (output) pads while incrementing the reference count for each. This means that all parallel branches are processing the same shared buffers with each branch producing its own inference metadata. 
+
+The complete "remuxing" process is outlined below with the numbered bullets corresponding to the numbers in the image above. 
+1. The batched stream, on input to the Remuxer, is split using a Tee plugin with one stream connecting directly to the active sink (input) pad of the Metamuxer plugin. The active-sink-pad indicates which stream is transferred to the Metamuxer source (output) pad. The source-pad is set as a [ghost pad](https://gstreamer.freedesktop.org/documentation/gstreamer/gstghostpad.html?gi-language=c) to act as a proxy source-pad for the Remuxer component.
+2. The second batched stream from the input Tee is then connected to a Demuxer to demux the batched stream back to the original 4 streams.
+3. The four unbatched streams are then connected to additional Tee plugins to split the streams for parallel inference - one Tee per stream.
+4. The client creates and adds Inference branches, depending on the use-case, with the above showing three.
+   1. Branch-1 - Primary Triton Inference Server (PTIS).
+   2. Branch-2 - Primary Triton Inference Server and IOU Tracker.
+   3. Branch-3 - Primary Triton Inference Server, NvDCF Tracker, and Secondary Triton Inference Server.
+5. A Streammuxer plugin, one per inference branch, is then selectively linked to some or all of the Tee's. The output of each Streammuxer is then linked to its corresponding Inference Branch. Each Streammuxer creates the base batch metadata for its specific branch. 
+   1. Branch-1 - linked to process stream 0 only.
+   2. Branch-2 - linked to process streams 0,1,2.
+   3. Branch-3 - linked to process all streams (0-3).
+6. The output of each Inference branch is then linked to the input of the Metamuxer which aggregates the metadata and adds it to the corresponding frame of the original batched stream (see first bullet).
+
+The following python code examples show how to create the above Inference Branches and add them to a new Remuxer Component. 
+
+**Create Inference Branch 1.**
+
+Branch 1 consists of a single _Primary Triton Inference Server (PTIS)_ .Single Component Branches can be added to the Remuxer directly. 
 ```python
 # Create the first PTIS using the first model with an interval of 0
 retval = dsl_infer_tis_primary_new('my-primary-tis-1', primary_tis_config_file_1, 0)
 ```
 
-**Inference Branch 2.**
+**Create Inference Branch 2.**
 
 Branch 2 consists of two Components, a _PTIS_ and an _IOU Tracker_. Branches with mutlple Components require an actual [Branch Component](/docs/api-branch.md) to contain them.
 ```python
@@ -641,7 +666,7 @@ retval = dsl_branch_new_component_add_many('my-branch-2',
     ['my-primary-tis-2', 'my-iou-tracker', None])
 ```
 
-**Inference Branch 3.**
+**Create Inference Branch 3.**
 
 Branch 3 consists of three Components, a _PTIS_, _NvDCF Tracker_, and Secondary _Triton Infernece Server_.
 ```python
@@ -662,9 +687,9 @@ retval = dsl_branch_new_component_add_many('my-branch-3',
 
 ```
 
-**Create a Remuxer and add the Branches to it**
+**Create a Remuxer and add the Branches**
 
-With the Inference Branches setup, we can now create the Remuxer Component and the Branches to be connected to specific streams.
+We can now create the Remuxer Component and the Branches to be connected to specific streams.
 ```python
 # New Remuxer component to implement the selective parallel inference
 retval = dsl_remuxer_new('remuxer')
@@ -691,7 +716,7 @@ retval = dsl_remuxer_branch_add('my-remuxer', 'my-branch-3')
 
 **Build the Parallel Inference Pipeline**
 
-After creating the 2D Tiler, On Screen Display, Window Sink, Message Sink, and adding them to a new Splitter Tee (not shown), we can complete the creation and assembly of the Pipeline.
+After creating the 2D Tiler, On Screen Display, Window Sink, Message Sink, and adding them to a new Splitter Tee (not shown), we can create and build the Pipeline.
 
 ```Python
 retval = dsl_pipeline_new_component_add_many('my-pipeline', 
@@ -1485,7 +1510,8 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer, Remuxer, and Splitter Tees](/docs/api-tee)
+* [Demuxer and Splitter Tees](/docs/api-tee.md)
+* [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
