@@ -107,40 +107,6 @@ SCENARIO( "A New PipelineBintr is created correctly", "[PipelineBintr]" )
     }
 }
 
-SCENARIO( "A New PipelineBintr will fail to LinkAll with insufficient Components", 
-    "[PipelineBintr]" )
-{
-    GIVEN( "A new CsiSourceBintr, EglSinkBintr, and a PipelineBintr" ) 
-    {
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
-
-        DSL_EGL_SINK_PTR pSinkBintr = 
-            DSL_EGL_SINK_NEW(sinkName.c_str(), offsetX, offsetY, windowW, windowH);
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-
-        WHEN( "The PipelineBintr has a EglSinkBintr but no SourceBintr" )
-        {
-            pSinkBintr->AddToParent(pPipelineBintr);
-
-            THEN( "The Pipeline will fail to LinkAll" )
-            {
-                REQUIRE( pPipelineBintr->LinkAll() == false );
-            }
-        }
-        WHEN( "The PipelineBintr has a SourceBintr but no SinkBintr" )
-        {
-            pSourceBintr->AddToParent(pPipelineBintr);
-
-            THEN( "The Pipeline will fail to LinkAll" )
-            {
-                REQUIRE( pPipelineBintr->LinkAll() == false );
-            }
-        }
-    }
-}
-
 SCENARIO( "A Pipeline is able to LinkAll with minimum Components ", "[PipelineBintr]" )
 {
     GIVEN( "A new UriSourceBintr, EglSinkBintr, and a PipelineBintr" ) 

@@ -69,10 +69,23 @@ file_path2 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike
 file_path3 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov"
 file_path4 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mp4"
 
+# All branches are currently using the same config and model engine files
+# which is pointless... The example will be updated to use multiple
+
 # Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file = \
+primary_infer_config_file_1 = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file = \
+primary_model_engine_file_1 = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
+
+primary_infer_config_file_2 = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_2 = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
+
+primary_infer_config_file_3 = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file_3 = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
@@ -80,10 +93,6 @@ iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
 # Filespecs for the Secondary GIE
-sgie1_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt'
-sgie1_model_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine'
 
 sgie2_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
@@ -151,15 +160,15 @@ def main(args):
         
         ## New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('pgie-b1', 
-            primary_infer_config_file, primary_model_engine_file, 4)
+            primary_infer_config_file_1, primary_model_engine_file_1, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # ----------------------------------------------------------------------------
-        # Inference Branch #2 (b2) - Primary GIE, Tracker, and Secondary GIE.
+        # Inference Branch #2 (b2) - Primary GIE and IOU Tracker.
         
         retval = dsl_infer_gie_primary_new('pgie-b2', 
-            primary_infer_config_file, primary_model_engine_file, 4)
+            primary_infer_config_file_2, primary_model_engine_file_2, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -168,13 +177,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_infer_gie_secondary_new('vehiclemake-sgie-b2', 
-            sgie1_config_file, sgie1_model_file, 'pgie-b2', 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         retval = dsl_branch_new_component_add_many('branch-b2', 
-            ['pgie-b2', 'tracker-b2', 'vehiclemake-sgie-b2', None])
+            ['pgie-b2', 'tracker-b2', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -182,7 +186,7 @@ def main(args):
         # Inference Branch #3 (b3) - Primary GIE, Tracker, and Secondary GIE.
 
         retval = dsl_infer_gie_primary_new('pgie-b3', 
-            primary_infer_config_file, primary_model_engine_file, 4)
+            primary_infer_config_file_3, primary_model_engine_file_3, 4)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -544,7 +544,7 @@ namespace DSL
         }
 
         // Config file used to define the stream selection for each branch.
-        m_configFilePath = "./__" + GetName() + "_config.txt";
+        m_configFilePath = "/tmp/" + GetName() + "_config.txt";
 
         // Need to forward all children messages for this RemuxerBintr,
         // which is the parent bin for the Streammuxer allocated, so the Pipeline

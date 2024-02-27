@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(3000)
 
 // ---------------------------------------------------------------------------
 // Shared Test Inputs 
@@ -139,7 +139,7 @@ SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Win
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
@@ -153,7 +153,7 @@ SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Win
 // -----------------------------------------------------------------------------------
 
 SCENARIO( "Two File Sources, Remuxer with and two PGIE branches each added to a single \
-stream, Tiler, and Window Sink can play", "[bing]")
+stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
 {
     GIVEN( "A Pipeline, two File sources, Remuxer, two PGIEs, Tiler, and Window-Sink" ) 
     {
@@ -235,7 +235,7 @@ stream, Tiler, and Window Sink can play", "[bing]")
 
                 dsl_pipeline_dump_to_dot(pipeline_name.c_str(), L"state-playing");
                 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
@@ -249,7 +249,7 @@ stream, Tiler, and Window Sink can play", "[bing]")
 // -----------------------------------------------------------------------------------
 
 SCENARIO( "Four File Sources, Remuxer with and two PGIE branches each added to a single \
-stream, Tiler, and Window Sink can play", "[bing2]")
+stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
 {
     GIVEN( "A Pipeline, two File sources, Remuxer, two PGIEs, Tiler, and Window-Sink" ) 
     {
@@ -311,7 +311,6 @@ stream, Tiler, and Window Sink can play", "[bing2]")
             source_name2.c_str(), class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_limit_frame_set(ode_trigger_name.c_str(), 
             2) == DSL_RESULT_SUCCESS );
-
             
         REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
             false) == DSL_RESULT_SUCCESS );
@@ -362,7 +361,7 @@ stream, Tiler, and Window Sink can play", "[bing2]")
 
                 dsl_pipeline_dump_to_dot(pipeline_name.c_str(), L"state-playing");
                 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
