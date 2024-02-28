@@ -5049,146 +5049,6 @@ def dsl_tee_demuxer_max_branches_set(name, max_branches):
     return int(result)
 
 ##
-## dsl_tee_remuxer_new()
-##
-_dsl.dsl_tee_remuxer_new.argtypes = [c_wchar_p]
-_dsl.dsl_tee_remuxer_new.restype = c_uint
-def dsl_tee_remuxer_new(name):
-    global _dsl
-    result =_dsl.dsl_tee_remuxer_new(name)
-    return int(result)
-
-##
-## dsl_tee_remuxer_new_branch_add_many()
-##
-#_dsl.dsl_tee_remuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_tee_remuxer_new_branch_add_many.restype = c_uint
-def dsl_tee_remuxer_new_branch_add_many(name, branches):
-    global _dsl
-    arr = (c_wchar_p * len(branches))()
-    arr[:] = branches
-    result =_dsl.dsl_tee_remuxer_new_branch_add_many(name, arr)
-    return int(result)
-
-##
-## dsl_tee_remuxer_branch_add_to()
-##
-# ??? _dsl.dsl_tee_remuxer_branch_add_to.argtypes = [c_wchar_p, c_wchar_p, 
-#    c_uint]
-_dsl.dsl_tee_remuxer_branch_add_to.restype = c_uint
-def dsl_tee_remuxer_branch_add_to(name, branch, stream_ids, num_stream_ids):
-    global _dsl
-    arr = (c_uint * num_stream_ids)()
-    arr[:] = stream_ids
-    result =_dsl.dsl_tee_remuxer_branch_add_to(name, branch, arr, num_stream_ids)
-    return int(result)
-
-##
-## dsl_tee_remuxer_batch_size_get()
-##
-_dsl.dsl_tee_remuxer_batch_size_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint)]
-_dsl.dsl_tee_remuxer_batch_size_get.restype = c_uint
-def dsl_tee_remuxer_batch_size_get(name):
-    global _dsl
-    batch_size = c_uint(0)
-    result = _dsl.dsl_tee_remuxer_batch_size_get(name, DSL_UINT_P(batch_size))
-    return int(result), batch_size.value
-
-##
-## dsl_tee_remuxer_batch_size_set()
-##
-_dsl.dsl_tee_remuxer_batch_size_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_tee_remuxer_batch_size_set.restype = c_uint
-def dsl_tee_remuxer_batch_size_set(name, batch_size):
-    global _dsl
-    result = _dsl.dsl_tee_remuxer_batch_size_set(name, batch_size)
-    return int(result)
-
-## -----------------------------------------------------------------------------------
-## NEW STREAMMUX SERVICES - Start
-
-##
-## dsl_tee_remuxer_branch_config_file_get()
-##
-_dsl.dsl_tee_remuxer_branch_config_file_get.argtypes = [c_wchar_p, 
-    c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_tee_remuxer_branch_config_file_get.restype = c_uint
-def dsl_tee_remuxer_branch_config_file_get(name, branch):
-    global _dsl
-    config_file = c_wchar_p(0)
-    result = _dsl.dsl_tee_remuxer_branch_config_file_get(name, 
-        branch, DSL_WCHAR_PP(config_file))
-    return int(result), config_file.value 
-
-##
-## dsl_tee_remuxer_branch_config_file_set()
-##
-_dsl.dsl_tee_remuxer_branch_config_file_set.argtypes = [c_wchar_p, 
-    c_wchar_p, c_wchar_p]
-_dsl.dsl_tee_remuxer_branch_config_file_set.restype = c_uint
-def dsl_tee_remuxer_branch_config_file_set(name, config_file, branch):
-    global _dsl
-    result = _dsl.dsl_tee_remuxer_branch_config_file_set(name, 
-        config_file, branch)
-    return int(result)
-
-## -----------------------------------------------------------------------------------
-## NEW STREAMMUX SERVICES - End
-## -----------------------------------------------------------------------------------
-## OLD STREAMMUX SERVICES - Start
-
-##
-## dsl_tee_remuxer_batch_properties_get()
-##
-_dsl.dsl_tee_remuxer_batch_properties_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_tee_remuxer_batch_properties_get.restype = c_uint
-def dsl_tee_remuxer_batch_properties_get(name):
-    global _dsl
-    batch_size = c_uint(0)
-    batch_timeout = c_uint(0)
-    result = _dsl.dsl_tee_remuxer_batch_properties_get(name, DSL_UINT_P(batch_size), 
-        DSL_UINT_P(batch_timeout))
-    return int(result), batch_size.value, batch_timeout.value 
-
-##
-## dsl_tee_remuxer_batch_properties_set()
-##
-_dsl.dsl_tee_remuxer_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tee_remuxer_batch_properties_set.restype = c_uint
-def dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout):
-    global _dsl
-    result = _dsl.dsl_tee_remuxer_batch_properties_set(name, batch_size, batch_timeout)
-    return int(result)
-    
-## dsl_tee_remuxer_dimensions_get()
-##
-_dsl.dsl_tee_remuxer_dimensions_get.argtypes = [c_wchar_p, 
-    POINTER(c_uint), POINTER(c_uint)]
-_dsl.dsl_tee_remuxer_dimensions_get.restype = c_uint
-def dsl_tee_remuxer_dimensions_get(name):
-    global _dsl
-    width = c_uint(0)
-    height = c_uint(0)
-    result = _dsl.dsl_tee_remuxer_dimensions_get(name, 
-        DSL_UINT_P(width), DSL_UINT_P(height))
-    return int(result), width.value, height.value 
-
-##
-## dsl_tee_remuxer_dimensions_set()
-##
-_dsl.dsl_tee_remuxer_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
-_dsl.dsl_tee_remuxer_dimensions_set.restype = c_uint
-def dsl_tee_remuxer_dimensions_set(name, width, height):
-    global _dsl
-    result = _dsl.dsl_tee_remuxer_dimensions_set(name, width, height)
-    return int(result)
-
-## -----------------------------------------------------------------------------------
-## OLD STREAMMUX SERVICES - End
-
-##
 ## dsl_tee_splitter_new()
 ##
 _dsl.dsl_tee_splitter_new.argtypes = [c_wchar_p]
@@ -5313,6 +5173,210 @@ _dsl.dsl_tee_pph_remove.restype = c_uint
 def dsl_tee_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_tee_pph_remove(name, handler)
+    return int(result)
+
+##
+## dsl_remuxer_new()
+##
+_dsl.dsl_remuxer_new.argtypes = [c_wchar_p]
+_dsl.dsl_remuxer_new.restype = c_uint
+def dsl_remuxer_new(name):
+    global _dsl
+    result =_dsl.dsl_remuxer_new(name)
+    return int(result)
+
+##
+## dsl_remuxer_new_branch_add_many()
+##
+#_dsl.dsl_remuxer_new_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_remuxer_new_branch_add_many.restype = c_uint
+def dsl_remuxer_new_branch_add_many(name, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_remuxer_new_branch_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_remuxer_branch_add_to()
+##
+# ??? _dsl.dsl_remuxer_branch_add_to.argtypes = [c_wchar_p, c_wchar_p, 
+#    c_uint]
+_dsl.dsl_remuxer_branch_add_to.restype = c_uint
+def dsl_remuxer_branch_add_to(name, branch, stream_ids, num_stream_ids):
+    global _dsl
+    arr = (c_uint * num_stream_ids)()
+    arr[:] = stream_ids
+    result =_dsl.dsl_remuxer_branch_add_to(name, branch, arr, num_stream_ids)
+    return int(result)
+
+##
+## dsl_remuxer_branch_add()
+##
+_dsl.dsl_remuxer_branch_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_remuxer_branch_add.restype = c_uint
+def dsl_remuxer_branch_add(name, branch):
+    global _dsl
+    result =_dsl.dsl_remuxer_branch_add(name, branch)
+    return int(result)
+
+##
+## dsl_remuxer_branch_add_many()
+##
+#_dsl.dsl_remuxer_branch_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_remuxer_branch_add_many.restype = c_uint
+def dsl_remuxer_branch_add_many(name, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_remuxer_branch_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_remuxer_branch_remove()
+##
+_dsl.dsl_remuxer_branch_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_remuxer_branch_remove.restype = c_uint
+def dsl_remuxer_branch_remove(name, branch):
+    global _dsl
+    result =_dsl.dsl_remuxer_branch_remove(name, branch)
+    return int(result)
+
+##
+## dsl_remuxer_branch_remove_many()
+##
+#_dsl.dsl_remuxer_branch_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_remuxer_branch_remove_many.restype = c_uint
+def dsl_remuxer_branch_remove_many(name, branches):
+    global _dsl
+    arr = (c_wchar_p * len(branches))()
+    arr[:] = branches
+    result =_dsl.dsl_remuxer_branch_remove_many(name, arr)
+    return int(result)
+    
+##
+## dsl_remuxer_batch_size_get()
+##
+_dsl.dsl_remuxer_batch_size_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_remuxer_batch_size_get.restype = c_uint
+def dsl_remuxer_batch_size_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    result = _dsl.dsl_remuxer_batch_size_get(name, DSL_UINT_P(batch_size))
+    return int(result), batch_size.value
+
+##
+## dsl_remuxer_batch_size_set()
+##
+_dsl.dsl_remuxer_batch_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_remuxer_batch_size_set.restype = c_uint
+def dsl_remuxer_batch_size_set(name, batch_size):
+    global _dsl
+    result = _dsl.dsl_remuxer_batch_size_set(name, batch_size)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## NEW STREAMMUX SERVICES - Start
+
+##
+## dsl_remuxer_branch_config_file_get()
+##
+_dsl.dsl_remuxer_branch_config_file_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_remuxer_branch_config_file_get.restype = c_uint
+def dsl_remuxer_branch_config_file_get(name, branch):
+    global _dsl
+    config_file = c_wchar_p(0)
+    result = _dsl.dsl_remuxer_branch_config_file_get(name, 
+        branch, DSL_WCHAR_PP(config_file))
+    return int(result), config_file.value 
+
+##
+## dsl_remuxer_branch_config_file_set()
+##
+_dsl.dsl_remuxer_branch_config_file_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_remuxer_branch_config_file_set.restype = c_uint
+def dsl_remuxer_branch_config_file_set(name, config_file, branch):
+    global _dsl
+    result = _dsl.dsl_remuxer_branch_config_file_set(name, 
+        config_file, branch)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## NEW STREAMMUX SERVICES - End
+## -----------------------------------------------------------------------------------
+## OLD STREAMMUX SERVICES - Start
+
+##
+## dsl_remuxer_batch_properties_get()
+##
+_dsl.dsl_remuxer_batch_properties_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_remuxer_batch_properties_get.restype = c_uint
+def dsl_remuxer_batch_properties_get(name):
+    global _dsl
+    batch_size = c_uint(0)
+    batch_timeout = c_uint(0)
+    result = _dsl.dsl_remuxer_batch_properties_get(name, DSL_UINT_P(batch_size), 
+        DSL_UINT_P(batch_timeout))
+    return int(result), batch_size.value, batch_timeout.value 
+
+##
+## dsl_remuxer_batch_properties_set()
+##
+_dsl.dsl_remuxer_batch_properties_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_remuxer_batch_properties_set.restype = c_uint
+def dsl_remuxer_batch_properties_set(name, batch_size, batch_timeout):
+    global _dsl
+    result = _dsl.dsl_remuxer_batch_properties_set(name, batch_size, batch_timeout)
+    return int(result)
+    
+## dsl_remuxer_dimensions_get()
+##
+_dsl.dsl_remuxer_dimensions_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_remuxer_dimensions_get.restype = c_uint
+def dsl_remuxer_dimensions_get(name):
+    global _dsl
+    width = c_uint(0)
+    height = c_uint(0)
+    result = _dsl.dsl_remuxer_dimensions_get(name, 
+        DSL_UINT_P(width), DSL_UINT_P(height))
+    return int(result), width.value, height.value 
+
+##
+## dsl_remuxer_dimensions_set()
+##
+_dsl.dsl_remuxer_dimensions_set.argtypes = [c_wchar_p, c_uint, c_uint]
+_dsl.dsl_remuxer_dimensions_set.restype = c_uint
+def dsl_remuxer_dimensions_set(name, width, height):
+    global _dsl
+    result = _dsl.dsl_remuxer_dimensions_set(name, width, height)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## OLD STREAMMUX SERVICES - End
+
+##
+## dsl_remuxer_pph_add()
+##
+_dsl.dsl_remuxer_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_remuxer_pph_add.restype = c_uint
+def dsl_remuxer_pph_add(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_remuxer_pph_add(name, handler, pad)
+    return int(result)
+
+##
+## dsl_remuxer_pph_remove()
+##
+_dsl.dsl_remuxer_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_remuxer_pph_remove.restype = c_uint
+def dsl_remuxer_pph_remove(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_remuxer_pph_remove(name, handler, pad)
     return int(result)
 
 ##

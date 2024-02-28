@@ -36,7 +36,6 @@ namespace DSL
         const char* inferConfigFile, const char* modelEngineFile, 
         uint interval, uint inferType)
         : Bintr(name)
-        , m_uniqueId(1) // must start at 1 not 0
         , m_inferType(inferType)
         , m_processMode(processMode)
         , m_interval(interval)
@@ -51,6 +50,7 @@ namespace DSL
         LOG_FUNC();
 
         // Find the first available unique Id
+        m_uniqueId = 1; // must start at 1 not 0
         while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
         {
             m_uniqueId++;

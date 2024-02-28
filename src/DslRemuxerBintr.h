@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2023, Prominence AI, Inc.
+Copyright (c) 2023-2-24, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslMultiBranchesBintr.h"
 #include "DslBintr.h"
 
 namespace DSL
@@ -97,6 +96,27 @@ namespace DSL
          */
         void UnlinkFromSourceTees();
 
+        /**
+         * @brief links this Noder to the Sink Pad of Muxer
+         * @param[in] pMuxer nodetr to link to
+         * @param[in] padName name to give the requested Sink Pad
+         * @return true if able to successfully link with Muxer Sink Pad
+         */
+        bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName);
+
+        /**
+         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @return true if able to successfully unlink from Muxer Sink Pad
+         */
+        bool UnlinkFromSinkMuxer();
+        
+        /**
+         * @brief Gets the Metamuxer branch config-string with Infer Id and
+         * semicolon delimited list of Stream-Ids if specified.
+         * @return Branch config-string if select streams, empty string otherwise.
+         */
+        std::string GetBranchConfigString(){return m_branchConfigString;};
+        
         /**
          * @brief Gets the current batch settings for the RemuxerBranchBintr's 
          * Streammuxer.
@@ -219,6 +239,11 @@ namespace DSL
         std::vector<uint> m_streamIds;
         
         /**
+         * @brief String stream of comma delimeted stream-ids
+         */
+        std::string m_branchConfigString;
+        
+        /**
          * @brief True if connecting to select stream-ids, false otherwise.
          */    
         bool m_linkSelectiveStreams;
@@ -276,11 +301,61 @@ namespace DSL
         
     };
 
+    // -------------------------------------------------------------------------------
+
+    /**
+     * @class RemuxerConfigFile
+     * @brief Utility class to create a Metamuxer Config file. 
+     */
+    class RemuxerConfigFile
+    {
+    public:
+       
+        /**
+         * @brief ctor for the RemuxerConfigFile
+         * @param[in] filePath - absolute or relative path to use for file createion.
+         */
+        RemuxerConfigFile(std::string filePath)
+        {
+            LOG_FUNC();
+            
+            m_ostream.open(filePath.c_str(), std::fstream::out | std::fstream::trunc);
+            m_ostream << "[property]" << std::endl;
+            m_ostream << "[group-0]" << std::endl;
+        }
+        
+        /**
+         * @brief Adds a Branch config-string to [group-0]
+         * @param[in] configString Branch config-string to add to the config file
+         */
+        void AddBranchConfigString(const std::string& configString)
+        {
+            m_ostream << configString.c_str() << std::endl;            
+        }
+        
+        /**
+         * @brief Closes the file
+         */
+        void Close()
+        {
+            m_ostream.close();
+        }
+
+    private:
+
+        /**
+         * @brief File stream used to create the config file. 
+         */
+        std::fstream m_ostream;
+    };
+    
+    // -------------------------------------------------------------------------------
+
     /**
      * @class RemuxerBintr
-     * @brief Implements a Remuxer (demuxer-streammuxer) bin container
+     * @brief Implements a Remuxer (demuxer-streammuxers-metamuxer) bin container
      */
-    class RemuxerBintr : public TeeBintr
+    class RemuxerBintr : public Bintr
     {
     public: 
     
@@ -467,6 +542,11 @@ namespace DSL
         bool UseNewStreammux(){return m_useNewStreammux;};
         
     private:
+    
+        /**
+         * @brief path to create and load the Metamuxer config file.
+         */
+        std::string m_configFilePath;
 
         /**
          * @brief boolean flag to indicate if USE_NEW_NVSTREAMMUX=yes
@@ -504,6 +584,31 @@ namespace DSL
          * @brief Batched frame output height in pixels for all branches.
          */
         uint m_height;
+        
+        /**
+         * @brief Active sink pad which buffer will transfer to src pad
+         */
+        uint m_activePad;
+        
+        /**
+         * @brief Input Tee for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pInputTee;
+        
+        /**
+         * @brief Metamuxer input queue for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pMetamuxerQueue;
+        
+        /**
+         * @brief Metamuxer for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pMetamuxer;
+        
+        /**
+         * @brief Streamdemuxer input queue for the RemuxerBintr.
+         */
+        DSL_ELEMENT_PTR m_pDemuxerQueue;
         
         /**
          * @brief Streamdemuxer for the RemuxerBintr.

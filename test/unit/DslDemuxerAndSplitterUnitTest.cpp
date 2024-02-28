@@ -31,7 +31,7 @@ using namespace DSL;
 // Note: other than the constructor, Demuxers and Tees are of the
 // same MultiComponentsBintr and share the same methods. 
 
-SCENARIO( "A DemuxerBintr is created correctly", "[DemuxerBintr]" )
+SCENARIO( "A DemuxerBintr is created correctly", "[Tee]" )
 {
     GIVEN( "A name for a DemuxerBintr" ) 
     {
@@ -54,7 +54,7 @@ SCENARIO( "A DemuxerBintr is created correctly", "[DemuxerBintr]" )
     }
 }
 
-SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[DemuxerBintr]" )
+SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[Tee]" )
 {
     GIVEN( "A new DemuxerBintr and new BranchBintr in memory" ) 
     {
@@ -84,7 +84,7 @@ SCENARIO( "Adding a single Branch to a DemuxerBintr is managed correctly", "[Dem
     }
 }
 
-SCENARIO( "Removing a single BranchBintr from a DemuxerBintr is managed correctly", "[DemuxerBintr]" )
+SCENARIO( "Removing a single BranchBintr from a DemuxerBintr is managed correctly", "[Tee]" )
 {
     GIVEN( "A new DemuxerBintr with a new Sink Bintr" ) 
     {
@@ -110,7 +110,7 @@ SCENARIO( "Removing a single BranchBintr from a DemuxerBintr is managed correctl
     }
 }
 
-SCENARIO( "Linking multiple BranchBintrs to a DemuxerBintr is managed correctly", "[DemuxerBintr]" )
+SCENARIO( "Linking multiple BranchBintrs to a DemuxerBintr is managed correctly", "[Tee]" )
 {
     GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {
@@ -163,7 +163,7 @@ SCENARIO( "Linking multiple BranchBintrs to a DemuxerBintr is managed correctly"
     }
 }
 
-SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[DemuxerBintr]" )
+SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[Tee]" )
 {
     GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {
@@ -231,7 +231,7 @@ SCENARIO( "Multiple Branches linked to a Demuxer can be unlinked correctly", "[D
 }
 
 SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is managed correctly", 
-    "[DemuxerBintr]" )
+    "[Tee]" )
 {
     GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {
@@ -331,7 +331,7 @@ SCENARIO( "Adding a BranchBintr to a DemuxerBintr at a specified stream_id is ma
 }
 
 
-SCENARIO( "Multiple Branches linked to a Splitter component can be unlinked correctly", "[SplitterBintr]" )
+SCENARIO( "Multiple Branches linked to a Splitter component can be unlinked correctly", "[Tee]" )
 {
     GIVEN( "A new DemuxerBintr with several new BranchBintrs" ) 
     {

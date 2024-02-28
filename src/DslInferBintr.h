@@ -241,11 +241,6 @@ namespace DSL
          * @brief current infer interval for the InferBintr
          */
         uint m_interval;
-        
-        /**
-         * @brief Unique ID derived from unique name
-         */
-        int m_uniqueId;
 
         /**
          @brief Current process mode in use by the Primary
