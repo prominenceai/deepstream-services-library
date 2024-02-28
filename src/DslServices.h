@@ -1062,13 +1062,17 @@ namespace DSL {
 
         DslReturnType InferUniqueIdGet(const char* name, uint* id);
 
-        DslReturnType InferPrimaryPphAdd(const char* name, const char* handler, uint pad);
+        DslReturnType InferPphAdd(const char* name, 
+            const char* handler, uint pad);
 
-        DslReturnType InferPrimaryPphRemove(const char* name, const char* handler, uint pad);
+        DslReturnType InferPphRemove(const char* name, 
+            const char* handler, uint pad);
 
-        DslReturnType InferGieModelEngineFileGet(const char* name, const char** modelEngineFile);
+        DslReturnType InferGieModelEngineFileGet(const char* name, 
+            const char** modelEngineFile);
 
-        DslReturnType InferGieModelEngineFileSet(const char* name, const char* modelEngineFile);
+        DslReturnType InferGieModelEngineFileSet(const char* name, 
+            const char* modelEngineFile);
 
         DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
 

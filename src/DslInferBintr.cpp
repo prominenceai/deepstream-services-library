@@ -112,6 +112,10 @@ namespace DSL
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
 //            "raw-output-generated-userdata", this,
 //            NULL);
+
+        // Add the Buffer and DS Event probes to the infer-engine element.
+        AddSinkPadProbes(m_pInferEngine);
+        AddSrcPadProbes(m_pInferEngine);
     }    
     
     InferBintr::~InferBintr()
@@ -280,14 +284,14 @@ namespace DSL
     
         if (m_inferType != DSL_INFER_TYPE_GIE)
         {
-            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_inputTensorMetaEnabled = inputEnabled;
@@ -405,10 +409,6 @@ namespace DSL
 
         // Float the infer-engine as a src-ghost-pad for this Bintr.
         m_pInferEngine->AddGhostPadToParent("src");
-        
-        // Add the Buffer and DS Event probes to the infer-engine element.
-        AddSinkPadProbes(m_pInferEngine);
-        AddSrcPadProbes(m_pInferEngine);
     }    
     
     PrimaryInferBintr::~PrimaryInferBintr()
