@@ -202,8 +202,6 @@ stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
         
         REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_infer_primary_pph_add(primary_gie_name1.c_str(), 
-//            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             source_name2.c_str(), class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
@@ -304,8 +302,6 @@ stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
         
         REQUIRE( dsl_remuxer_pph_add(remuxer_name.c_str(), 
             ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
-//        REQUIRE( dsl_infer_primary_pph_add(primary_gie_name1.c_str(), 
-//            ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             source_name2.c_str(), class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );

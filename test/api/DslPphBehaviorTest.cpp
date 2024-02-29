@@ -128,11 +128,11 @@ SCENARIO( "Multiple Custom PPHs are called in the correct add order", "[pph-beha
         REQUIRE( dsl_pph_custom_new(custom_ppm_name3.c_str(), 
             pad_probe_handler_cb3, NULL) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+        REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
             custom_ppm_name3.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+        REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
             custom_ppm_name1.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+        REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
             custom_ppm_name2.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is Assembled" ) 
@@ -177,7 +177,7 @@ SCENARIO( "A Custom PPH can remove be removed on return", "[pph-behavior]" )
         REQUIRE( dsl_pph_custom_new(custom_ppm_name4.c_str(), 
             pad_probe_handler_cb4, NULL) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+        REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
             custom_ppm_name4.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
         
         WHEN( "When the Pipeline is Assembled" ) 

@@ -4,7 +4,7 @@ The DeepStream Services Library (DSL) provides services for Nvidia's two Inferen
 Pipelines can have multiple Primary GIE or TIS -- linked in succession to operate on the full frame -- with any number of corresponding Secondary GIEs or TISs (only limited by hardware). Pipelines cannot be created with a mix of GIEs and TISs. Pipelines that have secondary GIEs/TISs but no Primary GIE/TIS will fail to Link and Play. Secondary GIEs/TISs can `infer-on` both Primary and Secondary GIEs/TISs creating multiple levels of inference. **IMPORTANT**: the current release supports up to two levels of secondary inference.
 
 ### Construction and Destruction
-Primary GIEs and TISs are constructed by calling [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new) and [`dsl_infer_tis_primary_new`](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [`dsl_infer_gie_secondary_new`](#dsl_gie_secondary_new) and [`dsl_infer_tis_secondary_new`](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created. All GIEs and TIEs are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all).
+Primary GIEs and TISs are constructed by calling [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new) and [`dsl_infer_tis_primary_new`](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [`dsl_infer_gie_secondary_new`](#dsl_infer_gie_secondary_new) and [`dsl_infer_tis_secondary_new`](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created. All GIEs and TIEs are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all).
 
 ### Inference Configuration
 Both GIEs and TIEs require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [`dsl_infer_config_file_get`](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [`dsl_infer_config_file_set`](#dsl_infer_config_file_set).
@@ -28,6 +28,11 @@ A similar set of Services are used when adding/removing a GIE/TIS to/from a bran
 
 Primary and Secondary GIEs/TISs are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_delete_all`](/docs/overview.md#dsl_delete_all).
 
+## Adding/Removing Pad-Probe-handlers
+Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.md) can be added to any Primary or Secondary GIE or TIS by calling [`dsl_infer_pph_add`](#dsl_infer_pph_add) and removed with [`dsl_infer_pph_remove`](#dsl_infer_pph_remove).
+
+---
+
 ## Primary and Secondary Inference API
 **Constructors**
 * [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new)
@@ -47,8 +52,8 @@ Primary and Secondary GIEs/TISs are deleted by calling [`dsl_component_delete`](
 * [`dsl_infer_config_file_set`](#dsl_infer_config_file_set)
 * [`dsl_infer_interval_get`](#dsl_infer_interval_get)
 * [`dsl_infer_interval_set`](#dsl_infer_interval_set)
-* [`dsl_infer_primary_pph_add`](#dsl_infer_primary_pph_add)
-* [`dsl_infer_primary_pph_remove`](#dsl_infer_primary_pph_remove)
+* [`dsl_infer_pph_add`](#dsl_infer_pph_add)
+* [`dsl_infer_pph_remove`](#dsl_infer_pph_remove)
 
 ---
 ## Return Values
@@ -435,37 +440,35 @@ retval = dsl_gie_interval_set('my-pgie', 2)
 
 <br>
 
-### *dsl_infer_primary_pph_add*
+### *dsl_infer_pph_add*
 ```C++
-DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_infer_pph_add(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Primary GIE or TIS.
+This service adds a [Pad Probe Handler](/docs/api-pph.md) to either the Sink or Source pad of the named Primary or Secondary GIE or TIS.
 
 **Parameters**
-* `name` - [in] unique name of the Primary GIE or TIS to update.
-* `handler` - [in] unique name of Pad Probe Handler to add
+* `name` - [in] unique name of the Inference Component to update.
+* `handler` - [in] unique name of Pad Probe Handler to add.
 * `pad` - [in] to which of the two pads to add the handler: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
 
 **Python Example**
-* Example using Nvidia's pyds lib to handle batch-meta data
-
 ```Python
-retval = dsl_infer_primary_pph_add('my-primary-gie', 'my-pph-handler', `DSL_PAD_SINK`)
+retval = dsl_infer_pph_add('my-primary-gie', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>
 
-### *dsl_infer_primary_pph_remove*
+### *dsl_infer_pph_remove*
 ```C++
-DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
+DslReturnType dsl_infer_pph_remove(const wchar_t* name, const wchar_t* handler, uint pad);
 ```
-This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named Primary GIE or TIS. The service will fail if the named handler is not owned by the Primary GIE
+This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sink or Source pad of the named Primary or Secondary GIE or TIS. The service will fail if the named handler is not owned by the Inference Component
 
 **Parameters**
-* `name` - [in] unique name of the Primary GIE to TIS to update.
+* `name` - [in] unique name of the Inference Component to update.
 * `handler` - [in] unique name of Pad Probe Handler to remove
 * `pad` - [in] to which of the two pads to remove the handler from: `DSL_PAD_SIK` or `DSL_PAD SRC`
 
@@ -474,7 +477,7 @@ This service removes a [Pad Probe Handler](/docs/api-pph.md) from either the Sin
 
 **Python Example**
 ```Python
-retval = dsl_infer_primary_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_PAD_SINK`)
+retval = dsl_infer_pph_remove('my-primary-gie', 'my-pph-handler', `DSL_PAD_SINK`)
 ```
 
 <br>

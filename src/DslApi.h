@@ -5910,24 +5910,24 @@ DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size);
 DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
 
 /**
- * @brief Adds a pad-probe-handler to a named Primary Inference Component.
- * A Primary GIE can have multiple Sink and Source pad-probe-handlers
- * @param[in] name unique name of the Primary GIE to update
+ * @brief Adds a pad-probe-handler to a named Inference Component.
+ * A Inference Component can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the Inference Component to update
  * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, 
+DslReturnType dsl_infer_pph_add(const wchar_t* name, 
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Removes a pad-probe-handler from a named Primary Inference Component.
- * @param[in] name unique name of the Primary GIE to update
+ * @brief Removes a pad-probe-handler from a named Inference Component.
+ * @param[in] name unique name of the Inference Component to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise
  */
-DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name, 
+DslReturnType dsl_infer_pph_remove(const wchar_t* name, 
     const wchar_t* handler, uint pad);
 
 /**

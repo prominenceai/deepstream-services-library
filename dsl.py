@@ -4531,23 +4531,23 @@ def dsl_infer_unique_id_get(name):
     return int(result), id.value 
 
 ##
-## dsl_infer_primary_pph_add()
+## dsl_infer_pph_add()
 ##
-_dsl.dsl_infer_primary_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_infer_primary_pph_add.restype = c_uint
-def dsl_infer_primary_pph_add(name, handler, pad):
+_dsl.dsl_infer_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_infer_pph_add.restype = c_uint
+def dsl_infer_pph_add(name, handler, pad):
     global _dsl
-    result = _dsl.dsl_infer_primary_pph_add(name, handler, pad)
+    result = _dsl.dsl_infer_pph_add(name, handler, pad)
     return int(result)
 
 ##
-## dsl_infer_primary_pph_remove()
+## dsl_infer_pph_remove()
 ##
-_dsl.dsl_infer_primary_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
-_dsl.dsl_infer_primary_pph_remove.restype = c_uint
-def dsl_infer_primary_pph_remove(name, handler, pad):
+_dsl.dsl_infer_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_infer_pph_remove.restype = c_uint
+def dsl_infer_pph_remove(name, handler, pad):
     global _dsl
-    result = _dsl.dsl_infer_primary_pph_remove(name, handler, pad)
+    result = _dsl.dsl_infer_pph_remove(name, handler, pad)
     return int(result)
 
 ##

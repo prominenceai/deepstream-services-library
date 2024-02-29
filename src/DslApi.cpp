@@ -5787,7 +5787,7 @@ DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id)
     return DSL::Services::GetServices()->InferUniqueIdGet(cstrName.c_str(), id);
 }
 
-DslReturnType dsl_infer_primary_pph_add(const wchar_t* name, 
+DslReturnType dsl_infer_pph_add(const wchar_t* name, 
     const wchar_t* handler, uint pad)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -5798,11 +5798,11 @@ DslReturnType dsl_infer_primary_pph_add(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->InferPrimaryPphAdd(cstrName.c_str(), 
+    return DSL::Services::GetServices()->InferPphAdd(cstrName.c_str(), 
         cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name,
+DslReturnType dsl_infer_pph_remove(const wchar_t* name,
     const wchar_t* handler, uint pad)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -5813,7 +5813,7 @@ DslReturnType dsl_infer_primary_pph_remove(const wchar_t* name,
     std::wstring wstrHandler(handler);
     std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
     
-    return DSL::Services::GetServices()->InferPrimaryPphRemove(cstrName.c_str(), 
+    return DSL::Services::GetServices()->InferPphRemove(cstrName.c_str(), 
         cstrHandler.c_str(), pad);
 }
 
