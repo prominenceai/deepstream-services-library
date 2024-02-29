@@ -301,8 +301,8 @@
 * [`dsl_infer_config_file_set`](/docs/api-infer.md#dsl_infer_config_file_set)
 * [`dsl_infer_interval_get`](/docs/api-infer.md#dsl_infer_interval_get)
 * [`dsl_infer_interval_set`](/docs/api-infer.md#dsl_infer_interval_set)
-* [`dsl_infer_primary_pph_add`](/docs/api-infer.md#dsl_infer_primary_pph_add)
-* [`dsl_infer_primary_pph_remove`](/docs/api-infer.md#dsl_infer_primary_pph_remove)
+* [`dsl_infer_pph_add`](/docs/api-infer.md#dsl_infer_pph_add)
+* [`dsl_infer_pph_remove`](/docs/api-infer.md#dsl_infer_pph_remove)
 
 ## Tracker:
 * [Overview](/docs/api-tracker.md)
