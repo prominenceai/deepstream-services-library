@@ -506,7 +506,7 @@ THE SOFTWARE.
 
 /**
  * NVIDIA Buffer Memory Types
- * Jetson 0 & 4 only, dGPU 0 through 3 only
+ * Jetson 0 & 4 default=0, dGPU 1 through 3=default 2
  */
 #define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
 #define DSL_NVBUF_MEM_TYPE_CUDA_PINNED                              1

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 using namespace DSL; 
 
-SCENARIO( "A new Nodetr is created correctly", "[Nodetr]" )
+SCENARIO( "A new Nodetr is created correctly", "[NodetrNodetr]" )
 {
     GIVEN( "A name for a new Nodetr" ) 
     {

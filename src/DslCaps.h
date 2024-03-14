@@ -45,32 +45,36 @@ namespace DSL
         {
             LOG_FUNC();
             
+            std::stringstream ssCaps;
+            
             // All caps strings start with media
-            m_ssCaps << media;
+            ssCaps << media;
             
             // Optionally add the Nvidia memory feature
             if (addMemFeature)
             {
-                m_ssCaps << "(memory:NVMM)";
+                ssCaps << "(memory:NVMM)";
             }
             
             // Optionally add the format dimensions and frame-rate
             if (format)
             {
-                m_ssCaps << "," << "format=(string)" << format;
+                ssCaps << "," << "format=(string)" << format;
             }
             if (width and height)
             {
-                m_ssCaps << "," << "width=(int)" << width 
+                ssCaps << "," << "width=(int)" << width 
                     << "," << "height=(int)" << height;
             }
             if (fpsN and fpsD)
             {
-                m_ssCaps << "," << "framerate=(fraction)" << fpsN << "/" << fpsD;
+                ssCaps << "," << "framerate=(fraction)" << fpsN << "/" << fpsD;
             }
+            m_capsString = ssCaps.str();
+            
             LOG_INFO("Creating new cap from string = ' " 
-                << m_ssCaps.str().c_str() << "'");
-            m_pGstCaps = gst_caps_from_string(m_ssCaps.str().c_str());
+                << m_capsString << "'");
+            m_pGstCaps = gst_caps_from_string(m_capsString.c_str());
         }
         
         /**
@@ -87,7 +91,7 @@ namespace DSL
          */
         const char* c_str()
         {
-            return m_ssCaps.str().c_str();
+            return m_capsString.c_str();
         }
 
         /**
@@ -104,7 +108,7 @@ namespace DSL
         /**
          * @brief Stringstream to build up the caps string from ctor input params. 
          */
-        std::stringstream m_ssCaps;
+        std::string m_capsString;
         
         /**
          * @brief Pointer to GST Caps created from the Stringstream m_ssCaps. 

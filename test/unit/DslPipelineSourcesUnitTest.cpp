@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -73,8 +73,13 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
                     pPipelineSourcesBintr->GetStreammuxDimensions(&retWidth, &retHeight);
                     REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
                     REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
+                    
+                    uint expectedType = (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
+                        ? DSL_NVBUF_MEM_TYPE_DEFAULT
+                        : DSL_NVBUF_MEM_TYPE_CUDA_DEVICE;
+                    
                     REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == 
-                        DSL_NVBUF_MEM_TYPE_DEFAULT);
+                        expectedType);
                     REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
                     REQUIRE( pPipelineSourcesBintr->GetStreammuxPaddingEnabled() == 
                         FALSE );

@@ -50,13 +50,12 @@ namespace DSL
         m_pTiler->SetAttribute("width", m_width);
         m_pTiler->SetAttribute("height", m_height);
         
-        m_pTiler->SetAttribute("gpu-id", m_gpuId);
-        m_pTiler->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
         // Get property defaults that aren't specifically set
         m_pTiler->GetAttribute("show-source", &m_showSourceId);
         m_pTiler->GetAttribute("gpu-id", &m_gpuId);
         m_pTiler->GetAttribute("compute-hw", &m_computeHw);
+        m_pTiler->GetAttribute("gpu-id", &m_gpuId);
+        m_pTiler->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for TilerBintr '" << name << "'");
