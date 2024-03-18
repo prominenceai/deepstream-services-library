@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -158,7 +158,7 @@ SCENARIO( "A Source in use can't be deleted",
 SCENARIO( "A Source, once removed from a Pipeline, can be deleted",
     "[source-api]" )
 {
-    GIVEN( "A new Pipeline with a Child CSI Source" ) 
+    GIVEN( "A new Pipeline with a Child V4L2 Source" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -200,10 +200,10 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
         REQUIRE( dsl_source_v4l2_new(source_name0.c_str(), 
             def_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
-           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
         REQUIRE( dsl_source_stream_id_get(source_name0.c_str(), 
-           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        &ret_stream_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_stream_id == -1);
 
         ret_unique_id = 99;
@@ -211,10 +211,10 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
         REQUIRE( dsl_source_v4l2_new(source_name1.c_str(), 
             video1_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
-           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
         REQUIRE( dsl_source_stream_id_get(source_name1.c_str(), 
-           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        &ret_stream_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_stream_id == -1);
 
         ret_unique_id = 99;
@@ -222,10 +222,10 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
         REQUIRE( dsl_source_v4l2_new(source_name2.c_str(), 
             video2_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
-           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
         REQUIRE( dsl_source_stream_id_get(source_name2.c_str(), 
-           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        &ret_stream_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_stream_id == -1);
 
         ret_unique_id = 99;
@@ -233,10 +233,10 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
         REQUIRE( dsl_source_v4l2_new(source_name3.c_str(), 
             video3_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
-           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
         REQUIRE( dsl_source_stream_id_get(source_name3.c_str(), 
-           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        &ret_stream_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_stream_id == -1);
 
         ret_unique_id = 99;
@@ -244,10 +244,10 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
         REQUIRE( dsl_source_v4l2_new(source_name4.c_str(), 
             video4_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
-           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
         REQUIRE( dsl_source_stream_id_get(source_name4.c_str(), 
-           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        &ret_stream_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_stream_id == -1);
 
         ret_unique_id = 99;
@@ -255,10 +255,10 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
         REQUIRE( dsl_source_v4l2_new(source_name5.c_str(), 
             video5_device_location.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
-           &ret_unique_id) == DSL_RESULT_SUCCESS );
+        &ret_unique_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_unique_id == -1);
         REQUIRE( dsl_source_stream_id_get(source_name5.c_str(), 
-           &ret_stream_id) == DSL_RESULT_SUCCESS );
+        &ret_stream_id) == DSL_RESULT_SUCCESS );
         REQUIRE( ret_stream_id == -1);
 
         REQUIRE( dsl_pipeline_new(pipeline_name0.c_str()) 
@@ -290,55 +290,55 @@ SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources 
                 ret_unique_id = 99;
                 ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name0.c_str(), 
-                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                &ret_unique_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_unique_id == 0x00000000 );
                 REQUIRE( dsl_source_stream_id_get(source_name0.c_str(), 
-                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                &ret_stream_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_stream_id == 0 );
                 
                 ret_unique_id = 99;
                 ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name1.c_str(), 
-                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                &ret_unique_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_unique_id == 0x00000001 );
                 REQUIRE( dsl_source_stream_id_get(source_name1.c_str(), 
-                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                &ret_stream_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_stream_id == 1 );
                 
                 ret_unique_id = 99;
                 ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name2.c_str(), 
-                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                &ret_unique_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_unique_id == 0x00010000 );
                 REQUIRE( dsl_source_stream_id_get(source_name2.c_str(), 
-                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                &ret_stream_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_stream_id == 0 );
                 
                 ret_unique_id = 99;
                 ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name3.c_str(), 
-                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                &ret_unique_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_unique_id == 0x00010001 );
                 REQUIRE( dsl_source_stream_id_get(source_name3.c_str(), 
-                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                &ret_stream_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_stream_id == 1 );
                 
                 ret_unique_id = 99;
                 ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name4.c_str(), 
-                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                &ret_unique_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_unique_id == 0x00020000 );
                 REQUIRE( dsl_source_stream_id_get(source_name4.c_str(), 
-                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                &ret_stream_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_stream_id == 0 );
                 
                 ret_unique_id = 99;
                 ret_stream_id = 99;
                 REQUIRE( dsl_source_unique_id_get(source_name5.c_str(), 
-                   &ret_unique_id) == DSL_RESULT_SUCCESS );
+                &ret_unique_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_unique_id == 0x00020001 );
                 REQUIRE( dsl_source_stream_id_get(source_name5.c_str(), 
-                   &ret_stream_id) == DSL_RESULT_SUCCESS );
+                &ret_stream_id) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_stream_id == 1 );
                 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
@@ -727,29 +727,36 @@ SCENARIO( "A new App Source fails to push-buffer and EOS when in a unlinked stat
 SCENARIO( "A new CSI Camera Source returns the correct attribute values", 
     "[source-api]" )
 {
-    GIVEN( "An empty list of Components" ) 
+    // Get the Device properties
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    
+    if (deviceProp.integrated)
     {
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        WHEN( "A new Source is created" ) 
+        GIVEN( "An empty list of Components" ) 
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), 
-                width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_list_size() == 0 );
 
-            THEN( "The list size and contents are updated correctly" ) 
+            WHEN( "A new Source is created" ) 
             {
-                uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
-                REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
-                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
-                REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
-                    &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_width == width );
-                REQUIRE( ret_height == height );
-                REQUIRE( ret_fps_n == fps_n );
-                REQUIRE( ret_fps_d == fps_d );
-                REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
+                REQUIRE( dsl_source_csi_new(source_name.c_str(), 
+                    width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
 
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                THEN( "The list size and contents are updated correctly" ) 
+                {
+                    uint ret_width(0), ret_height(0), ret_fps_n(0), ret_fps_d(0);
+                    REQUIRE( dsl_source_video_dimensions_get(source_name.c_str(), 
+                        &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                    REQUIRE( dsl_source_frame_rate_get(source_name.c_str(), 
+                        &ret_fps_n, &ret_fps_d) == DSL_RESULT_SUCCESS );
+                    REQUIRE( ret_width == width );
+                    REQUIRE( ret_height == height );
+                    REQUIRE( ret_fps_n == fps_n );
+                    REQUIRE( ret_fps_d == fps_d );
+                    REQUIRE( dsl_source_is_live(source_name.c_str()) == TRUE );
+
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                }
             }
         }
     }
@@ -757,35 +764,41 @@ SCENARIO( "A new CSI Camera Source returns the correct attribute values",
 
 SCENARIO( "A new CIS Camera Source set/get its sensor-id correctly", "[source-api]" )
 {
-    GIVEN( "An empty list of Components" ) 
+    // Get the Device properties
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    
+    if (deviceProp.integrated)
     {
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
-
-        WHEN( "The USB Source's device-location is set" ) 
+        GIVEN( "An empty list of Components" ) 
         {
-            // Check default first
-            uint sensor_id;
-            REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), 
-                &sensor_id) == DSL_RESULT_SUCCESS );
-            REQUIRE( sensor_id == 0 );
-            
-            uint new_sensor_id(5);
-            REQUIRE( dsl_source_csi_sensor_id_set(source_name.c_str(), 
-                new_sensor_id) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_list_size() == 0 );
 
-            THEN( "The correct updated value is returned on get" ) 
+            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+
+            WHEN( "The USB Source's device-location is set" ) 
             {
+                // Check default first
+                uint sensor_id;
                 REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), 
                     &sensor_id) == DSL_RESULT_SUCCESS );
-                REQUIRE( sensor_id == new_sensor_id );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( sensor_id == 0 );
+                
+                uint new_sensor_id(5);
+                REQUIRE( dsl_source_csi_sensor_id_set(source_name.c_str(), 
+                    new_sensor_id) == DSL_RESULT_SUCCESS );
+
+                THEN( "The correct updated value is returned on get" ) 
+                {
+                    REQUIRE( dsl_source_csi_sensor_id_get(source_name.c_str(), 
+                        &sensor_id) == DSL_RESULT_SUCCESS );
+                    REQUIRE( sensor_id == new_sensor_id );
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                }
             }
         }
-    }
-}    
-
+    }    
+}
 SCENARIO( "A new V4L2 Source returns the correct attribute values", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -896,7 +909,7 @@ SCENARIO( "A new URI Source returns the correct attribute values", "[source-api]
                 
                 // Note URI Source convers URI to real path which has DeepStream 
                 // version number - don't compare as it makes the test case version
-                // version specific.
+                // version spec
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
@@ -911,7 +924,8 @@ SCENARIO( "A Source not-in-use can not be Paused or Resumed", "[source-api]" )
 
         WHEN( "A new Source is not in use by a Pipeline" )
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_v4l2_new(source_name.c_str(),
+                L"/dev/video0/") == DSL_RESULT_SUCCESS );
 
             THEN( "The Source can not be Paused as it's not in use" ) 
             {
@@ -922,7 +936,8 @@ SCENARIO( "A Source not-in-use can not be Paused or Resumed", "[source-api]" )
         }
         WHEN( "A new Source is not in use by a Pipeline" )
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_v4l2_new(source_name.c_str(),
+                L"/dev/video0/") == DSL_RESULT_SUCCESS );
     
             THEN( "The Source can not be Resumed as it's not in use" ) 
             {
@@ -943,7 +958,8 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
 
         WHEN( "A new Source is in-use by a new Pipeline in a null-state" )
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_v4l2_new(source_name.c_str(),
+                L"/dev/video0/") == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -959,7 +975,8 @@ SCENARIO( "A Source in-use but in a null-state can not be Paused or Resumed", "[
         }
         WHEN( "A new Source is in-use by a new Pipeline in a null-state" )
         {
-            REQUIRE( dsl_source_csi_new(source_name.c_str(), width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_source_v4l2_new(source_name.c_str(),
+                L"/dev/video0/") == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_pipeline_component_add(pipeline_name.c_str(), 
                 source_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1519,14 +1536,13 @@ SCENARIO( "A Image Stream Source Component can Set/Get its Display Timeout setti
 SCENARIO( "A new Duplicate Source returns the correct attribute values", 
     "[source-api]" )
 {
-    GIVEN( "A new CSI Source as Original Source" ) 
+    GIVEN( "A new V4L2 Source as Original Source" ) 
     {
         std::wstring original_source_name(L"original-source");
         REQUIRE( dsl_component_list_size() == 0 );
 
-        //
-        REQUIRE( dsl_source_csi_new(original_source_name.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(original_source_name.c_str(), 
+            L"/dev/video0") == DSL_RESULT_SUCCESS );
 
         WHEN( "A new Duplicate Source is created" ) 
         {
@@ -1559,11 +1575,11 @@ SCENARIO( "A new Duplicate Source can update it Origian Source correctly",
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(original_source_name1.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(original_source_name1.c_str(), 
+            L"/dev/video0") == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_source_csi_new(original_source_name2.c_str(), 
-            width, height, fps_n, fps_d) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(original_source_name2.c_str(), 
+            L"/dev/video1") == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(source_name.c_str(), 
             original_source_name1.c_str()) == DSL_RESULT_SUCCESS );

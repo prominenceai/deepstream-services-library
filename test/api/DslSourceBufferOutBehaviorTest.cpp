@@ -314,7 +314,6 @@ SCENARIO( "A URI File Source with three Duplicate Sources can play",
         REQUIRE( dsl_component_list_size() == 0 );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-        
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_1.c_str(),
@@ -362,7 +361,7 @@ SCENARIO( "A URI File Source with three Duplicate Sources can play",
     }
 }
 
-SCENARIO( "A CSI Camera Source with three Duplicate Sources can play",
+SCENARIO( "A V4L2 Camera Source with three Duplicate Sources can play",
     "[buffer-out-behavior]")
 {
     GIVEN( "A Pipeline, URI source, 3 Duplicate Sources, Tiler, and Window Sink" ) 
@@ -373,8 +372,8 @@ SCENARIO( "A CSI Camera Source with three Duplicate Sources can play",
         
         REQUIRE( dsl_component_list_size() == 0 );
 
-        REQUIRE( dsl_source_csi_new(source_name1.c_str(), 
-            1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_1.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
