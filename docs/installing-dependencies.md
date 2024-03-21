@@ -46,14 +46,12 @@ DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https:/
 * [Frame Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new)
 
 ### Using FFmpeg
-Building with FFmpeg requies the following development libraries, intalled by default with DeepStream 6.4, Ubuntu 22.04.
-- avformat
-- avcodec
-- avutil
-- swscale
-- z
-- pthread
-- swresample
+Building with FFmpeg on Ubuntu 22.04 requies the following development libraries to be intalled (assuming FFmpeg is alread installed by default).
+```bash
+sudo apt-get install \
+    libavformat-dev \
+    libswscale-dev  
+```
 
 ### Using OpenCV
 If using OpenCV, it is recommended to use the NVIDIA SDK Manager to install OpenCV, or an NVIDIA DeepStream Docker container with OpenCV pre-installed.
