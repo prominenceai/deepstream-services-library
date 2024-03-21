@@ -615,13 +615,13 @@ See the [ODE Heat-Mapper API Reference](/docs/api-ode-heat-mapper.md) for more i
 ---
 
 ## Selective Parallel Inference
-_Selective parallel inference_ defines a process of splitting a batched stream into parallel batched streams called branches so that each may be processed with different inference components using different model engine files. Each parallel stream can be batched with a select set or all of the original batched streams. The metadata from each inference branch is aggregated using a Metamuxer plugin and added to a branch of the original batched streams. 
+_Selective parallel inference_ defines a process of splitting a batched stream into parallel batched streams called branches so that each may be processed with different inference components using different model engine files. Each parallel stream can be batched with a select set or all of the original batched streams. 
 
 The [Remuxer Component](/docs/api-remuxer.md) was developed to encapsulate the complexity of the selective linking, branching, and aggregation as shown in the diagram below. The client application creates the specific _Inference Branches_ and adds them to the Remuxer while specifying which streams to connect to.
 
 ![Parallel Inference Pipeline](/Images/parallel-inference-pipeline.png)
 
-The example above illustrates an arbitrary use case with four _Source Components_ and three _Inference Branches_. After the Remuxer, the Pipeline splits the batched stream and combined metadata with 
+The example above illustrates an arbitrary use case with four _Source Components_ and three _Inference Branches_. The metadata from each inference branch is aggregated using a Metamuxer plugin and added to a branch of the original batched streams. Import The Pipeline above splits the batched stream and combined metadata after the Remuxer with 
 - one branch connecting to a 2D Tiler, On Screen Display, and Window Sink for viewing, and
 - the other branch connecting to a Message Sink to send the combined metadata to a Server on the cloud.
 
@@ -641,7 +641,9 @@ The complete "remuxing" process is outlined below with the numbered bullets corr
    3. Branch-3 - linked to process all streams (0-3).
 6. The output of each Inference branch is then linked to the input of the Metamuxer which aggregates the metadata and adds it to the corresponding frame of the original batched stream (see first bullet).
 
-The following python code examples show how to create the above Inference Branches and add them to a new Remuxer Component. 
+Inference Branches may consist of a single Primary Inference Engine or Server, or multiple components as show in the diagram below.
+![Inference Branch Components](/Images/inference-branch-components.png)
+The following python code examples show how to create the Inference Branches -- shown in the Parallel Inference Pipeline diagram above -- and add them to a new Remuxer Component. 
 
 **Create Inference Branch 1.**
 
@@ -724,7 +726,9 @@ retval = dsl_pipeline_new_component_add_many('my-pipeline',
     'my-remuxer', 'my-splitter-tee', None])
 ```
 
-Complete examples can be found at the links below (TODO).
+For a more complete example, see:
+* [parallel_inference_on_selective_streams.py](/examples/python/parallel_inference_on_selective_streams.py)
+* [parallel_inference_on_selective_streams.cpp](/examples/cpp/parallel_inference_on_selective_streams.cpp)
 
 See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.  
 
