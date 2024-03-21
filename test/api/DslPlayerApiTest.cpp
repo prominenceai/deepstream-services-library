@@ -119,7 +119,7 @@ SCENARIO( "A File Render Player can Play, Pause, and Stop", "[player-api]" )
         WHEN( "A new Player is created" ) 
         {
             REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
-                DSL_RENDER_TYPE_WINDOW, 10, 10, 75, false) == DSL_RESULT_SUCCESS );
+                DSL_RENDER_TYPE_EGL, 10, 10, 75, false) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -147,7 +147,7 @@ SCENARIO( "An Image Render Player can Play, Pause, and Stop", "[player-api]" )
         WHEN( "A new Player is created" ) 
         {
             REQUIRE( dsl_player_render_image_new(player_name.c_str(),image_path1.c_str(), 
-                DSL_RENDER_TYPE_WINDOW, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+                DSL_RENDER_TYPE_EGL, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
             {
@@ -180,7 +180,7 @@ SCENARIO( "An Image Render Player's Attributes are updated correctly'", "[player
         
         REQUIRE( dsl_player_list_size() == 0 );
         REQUIRE( dsl_player_render_image_new(player_name.c_str(), image_path1.c_str(), 
-            DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout) == DSL_RESULT_SUCCESS );
+            DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_render_offsets_get(player_name.c_str(), 
             &retOffsetX, &retOffsetY) == DSL_RESULT_SUCCESS );
@@ -245,7 +245,7 @@ SCENARIO( "An Video Render Player's Attributes are updated correctly'", "[mmm]" 
         
         REQUIRE( dsl_player_list_size() == 0 );
         REQUIRE( dsl_player_render_video_new(player_name.c_str(), file_path.c_str(), 
-            DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeatEnabled) == DSL_RESULT_SUCCESS );
+            DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, repeatEnabled) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_player_render_offsets_get(player_name.c_str(), 
             &retOffsetX, &retOffsetY) == DSL_RESULT_SUCCESS );
@@ -328,10 +328,10 @@ SCENARIO( "The Player API checks for NULL input parameters", "[player-api]" )
                 REQUIRE( dsl_player_render_reset(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_render_video_new(NULL, NULL, 
-                    DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, repeat_enabled) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_render_image_new(NULL, NULL, 
-                    DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_player_play(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_player_pause(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

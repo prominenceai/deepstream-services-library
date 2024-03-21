@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2023, Prominence AI, Inc.
+# Copyright (c) 2023-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -54,14 +54,10 @@ host_uri = '0.0.0.0'
 file_path = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file_jetson = \
+primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_jetson = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine'
-primary_infer_config_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file_dgpu = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -115,12 +111,8 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above with interval = 0
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_jetson, primary_model_engine_file_jetson, 0)
-        else:
-            retval = dsl_infer_gie_primary_new('primary-gie', 
-                primary_infer_config_file_dgpu, primary_model_engine_file_dgpu, 0)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -136,8 +128,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink with offests and dimensions
-        retval = dsl_sink_window_new('window-sink', 100, 100, 1280, 720)
+        # New EGL Window Sink with offests and dimensions
+        retval = dsl_sink_window_egl_new('window-sink', 100, 100, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
         # Add the XWindow event handler functions defined above
@@ -150,8 +142,8 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New RTSP Sink 
-        retVal = dsl_sink_rtsp_new('rtsp-sink', 
+        # New RTSP Server Sink 
+        retVal = dsl_sink_rtsp_server_new('rtsp-sink', 
             host = "0.0.0.0",       # 0.0.0.0 = "this host, this network."
             udp_port = 5400,        # UDP port 5400 uses the Datagram Protocol.             
             rtsp_port = 8554,       # 

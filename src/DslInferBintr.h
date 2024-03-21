@@ -3,7 +3,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -340,21 +340,8 @@ namespace DSL
          */
         void UnlinkAll();
 
-        /**
-         * @brief Sets the NVIDIA buffer memory type.
-         * @brief nvbufMemType new memory type to use, on of the 
-         * DSL_NVBUF_MEM_TYPE constant values.
-         * @return true if successfully set, false otherwise.
-         */
-        bool SetNvbufMemType(uint nvbufMemType);
-
     protected:
 
-        /**
-         * @brief Video Converter Elementr for this PrimaryInferBintr
-         */
-        DSL_ELEMENT_PTR  m_pVidConv;
-    
         /**
          * @brief Tee Elementr for this PrimaryInferBintr
          */

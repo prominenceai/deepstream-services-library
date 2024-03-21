@@ -1744,7 +1744,7 @@ namespace DSL
          * @brief Video converter required for the V4l2SinkBintr.
          */
         DSL_ELEMENT_PTR m_pTransform;
-
+  
     };
 
 }

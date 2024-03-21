@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -395,13 +395,8 @@ namespace DSL
         LOG_FUNC();
         
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
+        
         AddChild(m_pQueue);
-        AddChild(m_pVidConv);
         AddChild(m_pInferEngine);
 
         // Float the queue element as a sink-ghost-pad for this Bintr.
@@ -437,7 +432,7 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pVidConv) or !m_pVidConv->LinkToSink(m_pInferEngine))
+        if (!m_pQueue->LinkToSink(m_pInferEngine))
         {
             return false;
         }
@@ -457,7 +452,6 @@ namespace DSL
             return;
         }
         m_pQueue->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
 
         m_isLinked = false;
     }
@@ -478,22 +472,6 @@ namespace DSL
         // remove 'this' PrimaryInfrBintr from the Parent Branch
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             RemovePrimaryInferBintr(shared_from_this());
-    }
-
-    bool PrimaryInferBintr::SetNvbufMemType(uint nvbufMemType)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for PrimaryInferBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        m_nvbufMemType = nvbufMemType;
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
-        return true;
     }
 
     // ***********************************************************************
@@ -525,7 +503,6 @@ namespace DSL
         m_gpuId = gpuId;
 
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
 
         LOG_INFO("PrimaryGieBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );

@@ -307,7 +307,7 @@ SCENARIO( "A New ImageRenderPlayerBintr with EglSinkBintr can Play and Stop corr
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                jpgFilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                jpgFilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
 
         WHEN( "The new PlayerBintr is set to a state of PLAYING" )
         {
@@ -370,7 +370,7 @@ SCENARIO( "A New VideoRenderPlayerBintr with EglSinkBintr can Play and Stop corr
 
         DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                mp4FilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                mp4FilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
 
         WHEN( "The new PlayerBintr is set to a state of PLAYING" )
         {
@@ -402,7 +402,7 @@ SCENARIO( "A VideoRenderPlayerBintr can Set/Get its File Path correctly", "[Play
 
         DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                mp4FilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeatEnabled);
+                mp4FilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, repeatEnabled);
                 
         std::string returnedFilePath1 = pPlayerBintr->GetFilePath();
         REQUIRE( returnedFilePath1 == fullFilePath1 );
@@ -442,7 +442,7 @@ SCENARIO( "A ImageRenderPlayerBintr can Set/Get its File Path correctly", "[Play
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                jpgFilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                jpgFilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
                 
         std::string returnedFilePath1 = pPlayerBintr->GetFilePath();
         REQUIRE( returnedFilePath1 == fullFilePath1 );
@@ -478,7 +478,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a EglSinkBintr can Set/Get its Zoom", "
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                jpgFilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                jpgFilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
 
         REQUIRE( pPlayerBintr->Play() == true);
         std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -541,7 +541,7 @@ SCENARIO( "A VideoRenderPlayerBintr with a EglSinkBintr can Set/Get its Zoom", "
 
         DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                mp4FilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, repeatEnabled);
+                mp4FilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, repeatEnabled);
 
         REQUIRE( pPlayerBintr->Play() == true);
         std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -604,7 +604,7 @@ SCENARIO( "A ImageRenderPlayerBintr with a EglSinkBintr can Set/Get its Offsets"
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                jpgFilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                jpgFilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
 
         REQUIRE( pPlayerBintr->Play() == true);
         std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -673,7 +673,7 @@ SCENARIO( "A ImageRenderPlayerBintr can play Queued files", "[PlayerBintr]" )
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                jpgFilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                jpgFilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
 
         REQUIRE( pPlayerBintr->QueueFilePath(jpgFilePath2.c_str()) == true);
 
@@ -710,7 +710,7 @@ SCENARIO( "A New VideoRenderPlayerBintr cannot Play without a File Path", "[Play
         {
             DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                    filePath.c_str(), DSL_RENDER_TYPE_WINDOW, 
+                    filePath.c_str(), DSL_RENDER_TYPE_EGL, 
                     offsetX, offsetY, zoom, repeatEnabled);
             
             THEN( "The PlayerBintr is unable to Play" )
@@ -735,7 +735,7 @@ SCENARIO( "A New ImageRenderPlayerBintr cannot Play without a File Path", "[Play
         {
             DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
                 DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                    filePath.c_str(), DSL_RENDER_TYPE_WINDOW, 
+                    filePath.c_str(), DSL_RENDER_TYPE_EGL, 
                     offsetX, offsetY, zoom, timeout);
             
             THEN( "The PlayerBintr is unable to Play" )
@@ -758,7 +758,7 @@ SCENARIO( "A New VideoRenderPlayerBintr can Play with an updated File Path", "[P
 
         DSL_PLAYER_RENDER_VIDEO_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_VIDEO_BINTR_NEW(playerName.c_str(),
-                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, 
+                filePath.c_str(), DSL_RENDER_TYPE_EGL, 
                 offsetX, offsetY, zoom, repeatEnabled);
 
         REQUIRE( pPlayerBintr->Play() == false );
@@ -789,7 +789,7 @@ SCENARIO( "A New ImageRenderPlayerBintr can Play with an updated File Path", "[P
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                filePath.c_str(), DSL_RENDER_TYPE_WINDOW, 
+                filePath.c_str(), DSL_RENDER_TYPE_EGL, 
                 offsetX, offsetY, zoom, timeout);
 
         REQUIRE( pPlayerBintr->Play() == false );
@@ -854,7 +854,7 @@ SCENARIO( "A New ImageRenderPlayerBintr - Window Type - can Play after Reset", "
 
         DSL_PLAYER_RENDER_IMAGE_BINTR_PTR pPlayerBintr = 
             DSL_PLAYER_RENDER_IMAGE_BINTR_NEW(playerName.c_str(),
-                jpgFilePath1.c_str(), DSL_RENDER_TYPE_WINDOW, offsetX, offsetY, zoom, timeout);
+                jpgFilePath1.c_str(), DSL_RENDER_TYPE_EGL, offsetX, offsetY, zoom, timeout);
 
         REQUIRE( pPlayerBintr->Play() == true );
         std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);

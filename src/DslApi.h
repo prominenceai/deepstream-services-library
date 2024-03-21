@@ -506,7 +506,7 @@ THE SOFTWARE.
 
 /**
  * NVIDIA Buffer Memory Types
- * Jetson 0 & 4 only, dGPU 0 through 3 only
+ * Jetson 0 & 4 default=0, dGPU 1 through 3=default 2
  */
 #define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
 #define DSL_NVBUF_MEM_TYPE_CUDA_PINNED                              1
@@ -942,7 +942,7 @@ THE SOFTWARE.
  * @brief Sink Types for Render Players
  */
 #define DSL_RENDER_TYPE_3D                                          0
-#define DSL_RENDER_TYPE_WINDOW                                      1
+#define DSL_RENDER_TYPE_EGL                                         1
 
 /**
  * @brief Smart Recording Events - to identify which event
@@ -8765,7 +8765,7 @@ DslReturnType dsl_player_new(const wchar_t* name,
  * @brief Creates a new, uniquely named Video Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the file to render
- * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_EGL
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %
@@ -8779,7 +8779,7 @@ DslReturnType dsl_player_render_video_new(const wchar_t* name,  const wchar_t* f
  * @brief Creates a new, uniquely named Image Render Player
  * @param[in] name unique name for the new Player
  * @param[in] file_path absolute or relative path to the image to render
- * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
+ * @param[in] render_type one of DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_EGL
  * @param[in] offset_x offset in the X direction for the Render Sink in units of pixels
  * @param[in] offset_y offset in the Y direction for the Render Sink in units of pixels
  * @param[in] zoom digital zoom factor in units of %

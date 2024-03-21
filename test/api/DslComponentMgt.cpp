@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -220,29 +220,17 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), 
             false, 0, 0) == DSL_RESULT_SUCCESS );
 
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), 
-                infer_config_file_jetson.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
-        }
-        else
-        {
-            REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), 
-                infer_config_file_dgpu.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
-        }
         REQUIRE( dsl_osd_new(osdName.c_str(), 
             true, true, true, false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
-            0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_tiler_new(tilerName.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
         
+        REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), 
+              &retNvbufMem) == DSL_RESULT_SUCCESS );
+        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
         retNvbufMem = 99;
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( dsl_component_nvbuf_mem_type_get(pgieName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-            REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
-            retNvbufMem = 99;
             REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
             retNvbufMem = 99;
@@ -251,19 +239,13 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         }
         else
         {
-            REQUIRE( dsl_component_nvbuf_mem_type_get(pgieName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-            REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE);
-            retNvbufMem = 99;
             REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-            REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE);
+            REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
             retNvbufMem = 99;
             REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-            REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE);
+            REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
         }
 
-//        // Note:  WindowSink mem type supported on x86_64 Only
-//        REQUIRE( dsl_component_nvbuf_mem_type_get(windowSinkName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
-//        REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
 
         WHEN( "Several new components are called to Set their NVIDIA mem type" ) 
         {
@@ -276,19 +258,13 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
                 newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
             }
 
-//            const wchar_t* components[] = {L"test-source", L"pgie", L"tiler", L"osd", L"egl-sink", NULL};
-//            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
-            const wchar_t* components[] = {L"test-source", L"pgie", L"tiler", L"osd", NULL};
+            const wchar_t* components[] = {L"test-source", L"tiler", L"osd", NULL};
             REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
 
             THEN( "All components return the correct NVIDIA mem type on get" ) 
             {
                 retNvbufMem = 99;
                 REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), 
-                    &retNvbufMem) == DSL_RESULT_SUCCESS );
-                REQUIRE( retNvbufMem == newNvbufMemType );
-                retNvbufMem = 99;
-                REQUIRE( dsl_component_nvbuf_mem_type_get(pgieName.c_str(), 
                     &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
                 retNvbufMem = 99;

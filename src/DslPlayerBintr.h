@@ -312,7 +312,7 @@ namespace DSL
         bool SetDimensions();
 
         /**
-         * @brief Sink Type, either DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_WINDOW
+         * @brief Sink Type, either DSL_RENDER_TYPE_3D or DSL_RENDER_TYPE_EGL
          */
         uint m_renderType;
         

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ from dsl import *
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0_int8.engine'
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -92,30 +92,30 @@ def main(args):
             break
 
         # New Primary GIE using the filespecs above, with infer interval
-#        retval = dsl_infer_gie_primary_new('primary-gie', 
-#            primary_infer_config_file, primary_model_engine_file, 5)
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 5)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New IOU Tracker, setting operational width and hieght
-#        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New OSD with text, clock and bbox display all enabled. 
-#        retval = dsl_osd_new('on-screen-display-1', 
-#            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display-1', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New OSD with text, clock and bbox display all enabled. 
-#        retval = dsl_osd_new('on-screen-display-2', 
-#            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display-2', 
+            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Window Sink, with matching dimensions as the Tiler
-        retval = dsl_sink_window_3d_new('egl-sink-1', 0, 0, 640, 360)
+        retval = dsl_sink_window_egl_new('egl-sink-1', 0, 0, 640, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -130,7 +130,7 @@ def main(args):
             break
 
         # New Window Sink, with matching dimensions as the Tiler
-        retval = dsl_sink_window_3d_new('egl-sink-2', 300, 300, 640, 360)
+        retval = dsl_sink_window_egl_new('egl-sink-2', 300, 300, 640, 360)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -145,37 +145,26 @@ def main(args):
             break
 
         # New Branch for the OSD 1 and Window Sink 1
-#        retval = dsl_branch_new_component_add_many('branch-1', [
-#           'on-screen-display-1', 'egl-sink-1', None])
+        retval = dsl_branch_new_component_add_many('branch-1', [
+          'on-screen-display-1', 'egl-sink-1', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Branch for the OSD 2 and Window Sink 2
-#        retval = dsl_branch_new_component_add_many('branch-2', [ 
-#           'on-screen-display-2', 'egl-sink-2', None])
+        retval = dsl_branch_new_component_add_many('branch-2', [ 
+          'on-screen-display-2', 'egl-sink-2', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Demuxer Tee- 
-        retval = dsl_tee_demuxer_new_branch_add_many('demuxer', [
-           'egl-sink-1', 'egl-sink-2', None])
-#           'branch-1', 'branch-2', None])
-#        retval = dsl_tiler_new('tiler', 1280, 360)
+        retval = dsl_tee_demuxer_new_branch_add_many('demuxer', 2, [
+           'branch-1', 'branch-2', None])
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Add the sources the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['source-1', 'source-2', 'demuxer', None])
-#            ['source-1', 'source-2', 'primary-gie', 'iou-tracker', 'demuxer', None])
-#            ['source-1', 'source-2', 'primary-gie', 'iou-tracker', 'tiler', 
-#            'on-screen-display-1', 'egl-sink-1',None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Set the Pipeline's config-file
-#        retval = dsl_pipeline_streammux_config_file_set('pipeline',
-#            streammux_config_file)
+            ['source-1', 'source-2', 'primary-gie', 'iou-tracker', 'demuxer', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
