@@ -39,8 +39,6 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_semantic.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Segmentation/semantic/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 # Segmentation Visualizer output dimensions should (typically) match the
 # inference dimensions defined in segvisual_config_semantic.txt (512x512)
 width = 512

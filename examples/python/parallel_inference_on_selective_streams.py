@@ -25,9 +25,11 @@
 ################################################################################
 #
 # This example shows how to use a Remuxer Component to create parallel branches,
-# each with their own Primary Inference Engine (PGIE) and Multi-Object Tracker. 
-# Both branches are (currently) using the same model engine and config files.
-# A real-world example would use different models.
+# each with their own Inference Components (Preprocessors, Inference Engines, 
+# Trackers, for example). 
+# IMPORTANT! All branches are (currently) using the same model engine and config.
+# files, which is not a valid use case. The actual inference components and 
+# models to use for any specific use cases is beyond the scope of this example. 
 #
 # Each Branch added to the Remuxer can specify which streams to process or
 # to process all. Use the Remuxer "branch-add-to" service to add to specific streams.
@@ -131,7 +133,7 @@ def xwindow_key_event_handler(key_string, client_data):
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
+    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
 

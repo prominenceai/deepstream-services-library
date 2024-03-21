@@ -35,8 +35,6 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_industrial
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Segmentation/industrial/unet_output_graph.uff_b1_gpu0_fp32.engine'
     
 # Segmentation Visualizer output dimensions should (typically) match the
 # inference dimensions defined in segvisual_config_industrial.txt (512x512)

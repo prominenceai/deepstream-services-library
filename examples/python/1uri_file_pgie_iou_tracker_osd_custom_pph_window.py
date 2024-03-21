@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -145,7 +145,7 @@ def main(args):
             break
         
         # New Window Sink, 0 x/y offsets and dimensions defined above.
-        retval = dsl_sink_window_3d_new('egl-sink', 0, 0, 
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
             WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
