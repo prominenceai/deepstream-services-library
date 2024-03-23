@@ -35,12 +35,12 @@
 # to process all. Use the Remuxer "branch-add-to" service to add to specific streams.
 #
 #    stream_ids = [0,1]
-#    dsl_tee_remuxer_branch_add_to('my-remuxer', 'my-branch-0', 
+#    dsl_remuxer_branch_add_to('my-remuxer', 'my-branch-0', 
 #        stream_ids, len[stream_ids])
 #
-# You can use the base Tee "branch-add" service if adding to all streams
+# You can use the "branch-add" service if adding to all streams
 #
-#    dsl_tee_branch_add('my-remuxer', 'my-branch-0')
+#    dsl_remuxer_branch_add('my-remuxer', 'my-branch-0')
 # 
 # In this example, 4 sources are added to the Pipeline:
 #   - branch-1 will process streams [0,1]
@@ -51,7 +51,8 @@
 # events (i.e. new tracker ids). Each is filtering on a unique class-i
 # (vehicle, person, and bicycle). 
 #
-# The first two ODE Triggers are added to 'ode-pph-1', the third to 'ode-pph-2'.
+# The ODE Triggers are added to an ODE Handler which is added to the src-pad
+# (output) of the Remuxer.
 #
 # A single ODE Print Action is created and added to each Trigger (shared action).
 # Using multiple Print Actions running in parallel -- each writing to the same 
@@ -142,7 +143,7 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # 34new File Sources to produce streams 0 through 3
+        # 4new File Sources to produce streams 0 through 3
         retval = dsl_source_file_new('source-1', file_path1, True)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -234,8 +235,8 @@ def main(args):
 
         # Add branch-1 to the Remuxer to connect to specific streams - stream_ids_b1
         retval = dsl_remuxer_branch_add_to('remuxer', 'branch-b2', 
-            stream_ids = stream_ids_b1, 
-            num_stream_ids = len(stream_ids_b1))
+            stream_ids = stream_ids_b2, 
+            num_stream_ids = len(stream_ids_b2))
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -321,8 +322,6 @@ def main(args):
         # ----------------------------------------------------------------------------
         # Next, create the On-Screen-Displays (OSD) with text, clock and bboxes.
         # enabled. 
-
-        # New OSD 
         retval = dsl_osd_new('osd', 
             text_enabled=True, clock_enabled=True, 
             bbox_enabled=True, mask_enabled=False)

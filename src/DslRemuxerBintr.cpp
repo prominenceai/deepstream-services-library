@@ -187,8 +187,7 @@ namespace DSL
             std::string sinkPadName = 
                 "sink_" + std::to_string(m_streamIds[i]);
             
-            if (!pQueue->LinkToSinkMuxer(m_pStreammux,
-                    sinkPadName.c_str()))
+            if (!pQueue->LinkToSinkMuxer(m_pStreammux, sinkPadName.c_str()))
             {
                 return false;
             }
@@ -219,9 +218,6 @@ namespace DSL
         }
         for (auto i=0; i<m_streamIds.size(); i++)
         {
-            // Create the unique name for the queue based on stream-id
-            std::string queueNameExt = "-" + std::to_string(m_streamIds[i]);
-
             // Unlink the Queue for the Streammuxer and remove as Child
             // of the Proxy - Bintr for the RemuxerBintr
             m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer();
@@ -249,7 +245,7 @@ namespace DSL
         LOG_FUNC();
     
         // We loop through the stream-ids vector to link each Queue with
-        // with the correct Remuxer Tee.
+        // the correct Remuxer Tee.
         for (auto i=0; i<m_streamIds.size(); i++)
         {
             if (!m_queues[m_streamIds[i]]->LinkToSourceTee(
@@ -679,7 +675,6 @@ namespace DSL
         }
 
         // Remove the BranchBintr from the Remuxers collection of children branches.
-        // This will destroy
         m_childBranches.erase(pChildComponent->GetName());
         
         return true;
@@ -789,6 +784,7 @@ namespace DSL
 
             std::string sinkPadName = "sink_" + std::to_string(i++);
             
+            // Linkup all child branches
             if (!imap.second->LinkAll() or
                 !imap.second->LinkToSourceTees(m_tees) or
                 !imap.second->LinkToSinkMuxer(m_pMetamuxer, sinkPadName.c_str()))
@@ -796,6 +792,7 @@ namespace DSL
                 return false;
             }                
             
+            // Get the config string from the child and add it to the config file
             if (imap.second->GetBranchConfigString().size())
             {
                 configFile.AddBranchConfigString(
@@ -804,6 +801,7 @@ namespace DSL
         }
         configFile.Close();
         
+        // Pass the complete config file to the Metamuxer
         m_pMetamuxer->SetAttribute("config-file", m_configFilePath.c_str());
 
         m_isLinked = true;
