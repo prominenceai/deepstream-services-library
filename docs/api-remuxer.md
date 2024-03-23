@@ -87,6 +87,12 @@ The following return codes are used by the Tee API
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 ```
 
+## Remuxer Internal Streammuxer Constant Values
+```C
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
+```
+
 ## Constructors
 
 ### *dsl_remuxer_new*
