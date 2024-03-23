@@ -59,16 +59,16 @@ std::wstring tracker_config_file(
 // File name for .dot file output
 static const std::wstring dot_file = L"state-playing";
 
-int TILER_WIDTH = DSL_1K_HD_WIDTH;
-int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
+uint TILER_WIDTH = DSL_1K_HD_WIDTH;
+uint TILER_HEIGHT = DSL_1K_HD_HEIGHT;
 
 
 // Window Sink Dimensions - used to create the sink, however, in this
 // example the Pipeline XWindow service is called to enabled full-sreen
-int WINDOW_WIDTH = 1280;
-int WINDOW_HEIGHT = 720;
+uint WINDOW_WIDTH = 1280;
+uint WINDOW_HEIGHT = 720;
 
-int SHOW_SOURCE_TIMEOUT = 3;
+uint SHOW_SOURCE_TIMEOUT = 3;
 
 //
 // Function to be called on XWindow KeyRelease event
@@ -123,9 +123,9 @@ void xwindow_button_event_handler(uint button,
     }
 }
  
-// ## 
-// # Function to be called on XWindow Delete event
-// ##
+//  
+// Function to be called on XWindow Delete event
+// 
 void xwindow_delete_event_handler(void* client_data)
 {
     std::cout<<"delete window event"<<std::endl;
@@ -135,7 +135,7 @@ void xwindow_delete_event_handler(void* client_data)
 }
     
 
-// # Function to be called on End-of-Stream (EOS) event
+// Function to be called on End-of-Stream (EOS) event
 void eos_event_listener(void* client_data)
 {
     std::cout<<"Pipeline EOS event"<<std::endl;

@@ -55,6 +55,7 @@ CXXFLAGS+= -I$(DS_INC_INSTALL_DIR) \
 	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION)/glib \
+	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
 	-I/usr/local/cuda/targets/$(TARGET_DEVICE)-linux/include \
 
 ifeq ($(BUILD_WITH_OPENCV),true)
@@ -73,7 +74,7 @@ LIBS+= -L$(DS_LIB_INSTALL_DIR) \
 	-L/usr/local/cuda/lib64/ -lcudart
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
-	glib-$(GLIB_VERSION)
+	glib-$(GLIB_VERSION) \	
 
 CXXFLAGS+= `pkg-config --cflags $(PKGS)`
 
