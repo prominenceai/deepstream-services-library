@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -236,7 +236,6 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Disp
 {
     GIVEN( "A new Tiled Display and Custom PPH" ) 
     {
-        std::wstring pipelineName(L"test-pipeline");
         std::wstring tilerName(L"tiler");
         uint width(1280);
         uint height(720);
@@ -249,7 +248,7 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Disp
         REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, 
             NULL) == DSL_RESULT_SUCCESS );
 
-        WHEN( "A Source Pad Probe Handler is added to the Tracker" ) 
+        WHEN( "A Source Pad Probe Handler is added to the Tiler" ) 
         {
             // Test the remove failure case first, prior to adding the handler
             REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), customPpmName.c_str(), 
@@ -266,7 +265,7 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed from a Tiled Disp
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
             }
         }
-        WHEN( "A Source Pad Probe Handler is added to the Tracker" ) 
+        WHEN( "A Source Pad Probe Handler is added to the Tiler" ) 
         {
             REQUIRE( dsl_tiler_pph_add(tilerName.c_str(), customPpmName.c_str(), 
                 DSL_PAD_SRC) == DSL_RESULT_SUCCESS );

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -202,7 +202,7 @@ SCENARIO( "A Player can be added to and removed from a Record Tap", "[tap-api]" 
         std::wstring player_name(L"player");
         
         REQUIRE( dsl_player_render_video_new(player_name.c_str(),file_path.c_str(), 
-            DSL_RENDER_TYPE_3D, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
+            DSL_RENDER_TYPE_EGL, 10, 10, 75, 0) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Image Player is added" )
         {

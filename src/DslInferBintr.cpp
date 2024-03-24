@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,6 @@ namespace DSL
         const char* inferConfigFile, const char* modelEngineFile, 
         uint interval, uint inferType)
         : Bintr(name)
-        , m_uniqueId(1) // must start at 1 not 0
         , m_inferType(inferType)
         , m_processMode(processMode)
         , m_interval(interval)
@@ -51,6 +50,7 @@ namespace DSL
         LOG_FUNC();
 
         // Find the first available unique Id
+        m_uniqueId = 1; // must start at 1 not 0
         while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
         {
             m_uniqueId++;
@@ -112,6 +112,10 @@ namespace DSL
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
 //            "raw-output-generated-userdata", this,
 //            NULL);
+
+        // Add the Buffer and DS Event probes to the infer-engine element.
+        AddSinkPadProbes(m_pInferEngine);
+        AddSrcPadProbes(m_pInferEngine);
     }    
     
     InferBintr::~InferBintr()
@@ -280,14 +284,14 @@ namespace DSL
     
         if (m_inferType != DSL_INFER_TYPE_GIE)
         {
-            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" << GetName() 
-                << "' as it's currently linked");
+            LOG_ERROR("Unable to set tensor-meta settings for InferBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_inputTensorMetaEnabled = inputEnabled;
@@ -391,13 +395,8 @@ namespace DSL
         LOG_FUNC();
         
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
+        
         AddChild(m_pQueue);
-        AddChild(m_pVidConv);
         AddChild(m_pInferEngine);
 
         // Float the queue element as a sink-ghost-pad for this Bintr.
@@ -405,10 +404,6 @@ namespace DSL
 
         // Float the infer-engine as a src-ghost-pad for this Bintr.
         m_pInferEngine->AddGhostPadToParent("src");
-        
-        // Add the Buffer and DS Event probes to the infer-engine element.
-        AddSinkPadProbes(m_pInferEngine);
-        AddSrcPadProbes(m_pInferEngine);
     }    
     
     PrimaryInferBintr::~PrimaryInferBintr()
@@ -437,7 +432,7 @@ namespace DSL
                 << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pVidConv) or !m_pVidConv->LinkToSink(m_pInferEngine))
+        if (!m_pQueue->LinkToSink(m_pInferEngine))
         {
             return false;
         }
@@ -457,7 +452,6 @@ namespace DSL
             return;
         }
         m_pQueue->UnlinkFromSink();
-        m_pVidConv->UnlinkFromSink();
 
         m_isLinked = false;
     }
@@ -478,22 +472,6 @@ namespace DSL
         // remove 'this' PrimaryInfrBintr from the Parent Branch
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             RemovePrimaryInferBintr(shared_from_this());
-    }
-
-    bool PrimaryInferBintr::SetNvbufMemType(uint nvbufMemType)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Unable to set NVIDIA buffer memory type for PrimaryInferBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        m_nvbufMemType = nvbufMemType;
-        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-
-        return true;
     }
 
     // ***********************************************************************
@@ -525,7 +503,6 @@ namespace DSL
         m_gpuId = gpuId;
 
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
-        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
 
         LOG_INFO("PrimaryGieBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );

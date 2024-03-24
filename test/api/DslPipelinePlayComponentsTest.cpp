@@ -56,8 +56,8 @@ static std::wstring model_engine_file(
 static const std::wstring sem_seg_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_semantic.txt");
 static const std::wstring sem_seg_model_engine_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/trtis_model_repo/Segmentation_Semantic/1/unetres18_v4_pruned0.65_800_data.uff_b1_gpu0_fp32.engine");
-
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Segmentation/industrial/unet_output_graph.uff_b1_gpu0_fp32.engine");
+    
 static const std::wstring image_path2(L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_industrial.jpg");
 static const std::wstring ind_seg_infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt");
@@ -336,7 +336,6 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
             infer_config_file.c_str(), model_engine_file.c_str(), 
             0) == DSL_RESULT_SUCCESS );

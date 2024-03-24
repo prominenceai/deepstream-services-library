@@ -3138,17 +3138,19 @@ namespace DSL
             LOG_ERROR("V4l2SinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        
+
         if (!m_pQueue->LinkToSink(m_pTransform) or
             !m_pTransform->LinkToSink(m_pCapsFilter) or    
-            !m_pCapsFilter->LinkToSink(m_pIdentity) or
-            !m_pIdentity->LinkToSink(m_pSink))
+            !m_pCapsFilter->LinkToSink(m_pSink))
+            // !m_pCapsFilter->LinkToSink(m_pIdentity) or
+            // !m_pIdentity->LinkToSink(m_pSink))
         {
             return false;
         }
-        m_isLinked = true;
-        return true;
-    }
+
+    m_isLinked = true;
+    return true;
+}
     
     void V4l2SinkBintr::UnlinkAll()
     {

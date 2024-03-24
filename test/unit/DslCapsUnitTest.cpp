@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ SCENARIO( "A DslCaps helper is constructed correctly", "[Caps]" )
             
             THEN( "Its member variables are initialized correctly" )
             {
-                std::string expected("video/x-raw(memory:NVMM),format=I420");
+                std::string expected("video/x-raw(memory:NVMM),format=(string)I420");
                 std::string actual(Caps.c_str());
                 REQUIRE( expected == actual );
             }

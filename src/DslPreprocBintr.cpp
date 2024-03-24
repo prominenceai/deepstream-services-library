@@ -34,13 +34,13 @@ namespace DSL
 
     PreprocBintr::PreprocBintr(const char* name, const char* configFile)
         : Bintr(name)
-        , m_uniqueId(0)
         , m_configFile(configFile)
         , m_enabled(true) // enabled by default.
     {
         LOG_FUNC();
 
         // Find the first available unique Id
+        m_uniqueId = 1; // must start at 1 not 0
         while(std::find(s_uniqueIds.begin(), s_uniqueIds.end(), m_uniqueId) != s_uniqueIds.end())
         {
             m_uniqueId++;

@@ -34,7 +34,7 @@ SCENARIO( "A Pipeline's graph can be dumped to .dot with and without timestamp",
     GIVEN( "A Pipeline in memory with at least one component" ) 
     {
         REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_csi_new(sourceName.c_str(), 1280, 720, 30, 1) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_v4l2_new(sourceName.c_str(), L"/dev/video0") == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pipeline_component_add(pipelineName.c_str(), 
             sourceName.c_str()) == DSL_RESULT_SUCCESS );
             

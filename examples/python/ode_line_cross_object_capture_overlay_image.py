@@ -321,12 +321,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            render_type = DSL_RENDER_TYPE_3D
+        else:
+            render_type = DSL_RENDER_TYPE_WINDOW
+        
         # Create the Image Render Player with a NULL file_path to by updated by 
         # the Capture Action
         dsl_player_render_image_new(
             name = 'image-player',
             file_path = None,
-            render_type = DSL_RENDER_TYPE_3D,
+            render_type = render_type,
             offset_x = 700,
             offset_y = 300,
             zoom = 200,
@@ -535,30 +540,36 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        # New Window Sink with x/y offsets and dimensions.
+        # EGL Sink runs on both platforms. 3D Sink is Jetson only.
+        if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED):
+            retval = dsl_sink_window_3d_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
+        else:
+            retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+                WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
+        # Add the XWindow event handler functions defined above
+        retval = dsl_sink_window_key_event_handler_add("window-sink", 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_delete_event_handler_add("window-sink", 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # Set the XWindow into full-screen mode for a kiosk look
-        retval = dsl_sink_window_fullscreen_enabled_set('egl-sink', True)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        # retval = dsl_sink_window_fullscreen_enabled_set('egl-sink', True)
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline',
             ['file-source', 'primary-gie', 'iou-tracker', 
-            'on-screen-display', 'egl-sink', None])
+            'on-screen-display', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
            

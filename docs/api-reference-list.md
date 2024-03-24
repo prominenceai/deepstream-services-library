@@ -301,8 +301,8 @@
 * [`dsl_infer_config_file_set`](/docs/api-infer.md#dsl_infer_config_file_set)
 * [`dsl_infer_interval_get`](/docs/api-infer.md#dsl_infer_interval_get)
 * [`dsl_infer_interval_set`](/docs/api-infer.md#dsl_infer_interval_set)
-* [`dsl_infer_primary_pph_add`](/docs/api-infer.md#dsl_infer_primary_pph_add)
-* [`dsl_infer_primary_pph_remove`](/docs/api-infer.md#dsl_infer_primary_pph_remove)
+* [`dsl_infer_pph_add`](/docs/api-infer.md#dsl_infer_pph_add)
+* [`dsl_infer_pph_remove`](/docs/api-infer.md#dsl_infer_pph_remove)
 
 ## Tracker:
 * [Overview](/docs/api-tracker.md)
@@ -367,12 +367,10 @@
 * [`dsl_osd_pph_add`](/docs/api-osd.md##dsl_osd_pph_add)
 * [`dsl_osd_pph_remove`](/docs/api-osd.md##dsl_osd_pph_remove)
 
-## Demuxer, Remuxer, and Splitter - Tee:
+## Demuxer and Splitter - Tee:
 * [Overview](/docs/api-tee.md)
 * [`dsl_tee_demuxer_new`](/docs/api-tee.md#dsl_tee_demuxer_new)
 * [`dsl_tee_demuxer_new_branch_add_many`](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
-* [`dsl_tee_remuxer_new`](/docs/api-tee.md#dsl_tee_remuxer_new)
-* [`dsl_tee_remuxer_new_branch_add_many`](/docs/api-tee.md#dsl_tee_remuxer_new_branch_add_many)
 * [`dsl_tee_splitter_new`](/docs/api-tee.md#dsl_tee_splitter_new) 
 * [`dsl_tee_splitter_new_branch_add_many`](/docs/api-tee.md#dsl_tee_demuxer_new_branch_add_many)
 * [`dsl_tee_branch_add`](/docs/api-tee.md#dsl_tee_branch_add)
@@ -389,15 +387,27 @@
 * [`dsl_tee_demuxer_branch_move_to`](/docs/api-tee.md#dsl_tee_demuxer_branch_move_to)
 * [`dsl_tee_demuxer_max_branches_get`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_get)
 * [`dsl_tee_demuxer_max_branches_set`](/docs/api-tee.md#dsl_tee_demuxer_max_branches_set)
-* [`dsl_tee_remuxer_branch_add_to`](/docs/api-tee.md#dsl_tee_remuxer_branch_add_to)
-* [`dsl_tee_remuxer_branch_config_file_get`](/docs/api-tee.md#dsl_tee_remuxer_branch_config_file_get)
-* [`dsl_tee_remuxer_branch_config_file_set`](/docs/api-tee.md#dsl_tee_remuxer_branch_config_file_set)
-* [`dsl_tee_remuxer_batch_size_get`](/docs/api-tee.md#dsl_tee_remuxer_batch_size_get)
-* [`dsl_tee_remuxer_batch_size_set`](/docs/api-tee.md#dsl_tee_remuxer_batch_size_set)
-* [`dsl_tee_remuxer_batch_properties_get`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_get)
-* [`dsl_tee_remuxer_batch_properties_set`](/docs/api-tee.md#dsl_tee_remuxer_batch_properties_set)
-* [`dsl_tee_remuxer_dimensions_get`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_get)
-* [`dsl_tee_remuxer_dimensions_set`](/docs/api-tee.md#dsl_tee_remuxer_dimensions_set)
+
+## Remuxer:
+* [Overview](/docs/api-remuxer.md)
+* [`dsl_remuxer_new`](/docs/api-remuxer.md#dsl_remuxer_new)
+* [`dsl_remuxer_new_branch_add_many`](/docs/api-remuxer.md#dsl_remuxer_new_branch_add_many)
+* [`dsl_remuxer_branch_add`](/docs/api-remuxer.md#dsl_remuxer_branch_add)
+* [`dsl_remuxer_branch_add_to`](/docs/api-remuxer.md#dsl_remuxer_branch_add_to)
+* [`dsl_remuxer_branch_add_many`](/docs/api-remuxer.md#dsl_remuxer_branch_add_many)
+* [`dsl_remuxer_branch_remove`](/docs/api-remuxer.md#dsl_remuxer_branch_remove)
+* [`dsl_remuxer_branch_remove_many`](/docs/api-remuxer.md#dsl_remuxer_branch_remove_many)
+* [`dsl_remuxer_branch_remove_all`](/docs/api-remuxer.md#dsl_remuxer_branch_remove_all)
+* [`dsl_remuxer_pph_add`](/docs/api-remuxer.md#dsl_remuxer_pph_add)
+* [`dsl_remuxer_pph_remove`](/docs/api-remuxer.md#dsl_remuxer_pph_remove)
+* [`dsl_remuxer_batch_properties_get`](/docs/api-remuxer.md#dsl_remuxer_batch_properties_get)
+* [`dsl_remuxer_batch_properties_set`](/docs/api-remuxer.md#dsl_remuxer_batch_properties_set)
+* [`dsl_remuxer_dimensions_get`](/docs/api-remuxer.md#dsl_remuxer_dimensions_get)
+* [`dsl_remuxer_dimensions_set`](/docs/api-remuxer.md#dsl_remuxer_dimensions_set)
+* [`dsl_remuxer_branch_config_file_get`](/docs/api-remuxer.md#dsl_remuxer_branch_config_file_get)
+* [`dsl_remuxer_branch_config_file_set`](/docs/api-remuxer.md#dsl_remuxer_branch_config_file_set)
+* [`dsl_remuxer_batch_size_get`](/docs/api-remuxer.md#dsl_remuxer_batch_size_get)
+* [`dsl_remuxer_batch_size_set`](/docs/api-remuxer.md#dsl_remuxer_batch_size_set)
 
 ## Sink:
 * [Overview](/docs/api-sink.md)

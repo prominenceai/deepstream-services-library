@@ -359,7 +359,18 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
             
             REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
                 &nvbuf_mem_type)  == DSL_RESULT_SUCCESS );
-            REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
+
+            // Get the Device properties
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);                
+            if (deviceProp.integrated)
+            {
+                REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
+            } 
+            else 
+            {
+                REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE );
+            }
             
             WHEN( "The Pipeline's Streammuxer's NVIDIA buffer memory type is updated" ) 
             {
@@ -389,7 +400,14 @@ SCENARIO( "The NVIDIA buffer memory type for a Pipeline's Streammuxer can be rea
                 {
                     REQUIRE( dsl_pipeline_streammux_nvbuf_mem_type_get(pipelineName.c_str(), 
                         &nvbuf_mem_type) == DSL_RESULT_SUCCESS );
-                    REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
+                    if (deviceProp.integrated)
+                    {
+                        REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_DEFAULT );
+                    } 
+                    else 
+                    {
+                        REQUIRE( nvbuf_mem_type == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE );
+                    }
                     
                     REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                     REQUIRE( dsl_pipeline_list_size() == 0 );

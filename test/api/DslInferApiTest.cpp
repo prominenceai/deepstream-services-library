@@ -33,6 +33,11 @@ static std::wstring infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
+
+static std::wstring secondary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
+static std::wstring secondary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
         
 static uint interval(1);
 
@@ -174,12 +179,14 @@ static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
     return DSL_PAD_PROBE_OK;
 }
     
-SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE", "[infer-api]" )
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE", 
+    "[infer-api]" )
 {
     GIVEN( "A new Primary GIE and Custom PPH" ) 
     {
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_pph_custom_new(custom_ppm_name.c_str(), 
             pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
@@ -187,15 +194,16 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE"
         WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), 
-                custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_INFER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SINK) == 
+                DSL_RESULT_INFER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+            REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
                 custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), 
                     custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
@@ -203,14 +211,14 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE"
         }
         WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
         {
-            REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+            REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
                 custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
             
             THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
                     custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_INFER_HANDLER_ADD_FAILED );
-                REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), 
                     custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
@@ -219,27 +227,31 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Primary GIE"
     }
 }
 
-SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Primary GIE", "[infer-api]" )
+SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Primary GIE", 
+    "[infer-api]" )
 {
     GIVEN( "A new Primary GIE and Custom PPH" ) 
     {
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_pph_custom_new(custom_ppm_name.c_str(), pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_custom_new(custom_ppm_name.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
 
         WHEN( "A Source Pad Probe Handler is added to the Primary GIE" ) 
         {
             // Test the remove failure case first, prior to adding the handler
-            REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), 
-                custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_INFER_HANDLER_REMOVE_FAILED );
+            REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SRC) == 
+                DSL_RESULT_INFER_HANDLER_REMOVE_FAILED );
 
-            REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+            REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
                 custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "The Meta Batch Handler can then be removed" ) 
             {
-                REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), 
                     custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
@@ -247,14 +259,15 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Primary G
         }
         WHEN( "A Source Pad Probe Handler is added to the Primary GIE" ) 
         {
-            REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
+            REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
                 custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
             
             THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
             {
-                REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), 
-                    custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_INFER_HANDLER_ADD_FAILED );
-                REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SRC) == 
+                    DSL_RESULT_INFER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), 
                     custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
@@ -263,13 +276,112 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Primary G
     }
 }
 
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a Secondary GIE", 
+    "[infer-api]" )
+{
+    GIVEN( "A new Primary GIE and Custom PPH" ) 
+    {
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            primary_gie_name.c_str(), interval) == DSL_RESULT_SUCCESS );
 
-SCENARIO( "A Primary GIE can Enable and Disable raw layer info output",  "[infer-api]" )
+        REQUIRE( dsl_pph_custom_new(custom_ppm_name.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_infer_pph_remove(secondary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SINK) == 
+                DSL_RESULT_INFER_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_infer_pph_add(secondary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Meta Batch Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_infer_pph_remove(secondary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the Primary GIE" ) 
+        {
+            REQUIRE( dsl_infer_pph_add(secondary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_infer_pph_add(secondary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SINK) == 
+                    DSL_RESULT_INFER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_infer_pph_remove(secondary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed froma a Secondary GIE", 
+    "[infer-api]" )
+{
+    GIVEN( "A new Secondary GIE and Custom PPH" ) 
+    {
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            primary_gie_name.c_str(), interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pph_custom_new(custom_ppm_name.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Probe Handler is added to the Secondary GIE" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_infer_pph_remove(secondary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SRC) == 
+                DSL_RESULT_INFER_HANDLER_REMOVE_FAILED );
+
+            REQUIRE( dsl_infer_pph_add(secondary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Meta Batch Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_infer_pph_remove(secondary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Source Pad Probe Handler is added to the Secondary GIE" ) 
+        {
+            REQUIRE( dsl_infer_pph_add(secondary_gie_name.c_str(), 
+                custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE( dsl_infer_pph_add(secondary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SRC) == 
+                    DSL_RESULT_INFER_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_infer_pph_remove(secondary_gie_name.c_str(), 
+                    custom_ppm_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Primary GIE can Enable and Disable raw layer info output",
+    "[infer-api]" )
 {
     GIVEN( "A new Primary GIE in memory" ) 
     {
-        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            interval) == DSL_RESULT_SUCCESS );
         
         WHEN( "The Primary GIE's raw output is enabled" )
         {
@@ -313,30 +425,31 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
 {
     GIVEN( "A new Secondary GIE in memory" ) 
     {
-        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name.c_str(), infer_config_file.c_str(), 
-            model_engine_file.c_str(), primary_gie_name.c_str(), interval) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name.c_str(), 
+            secondary_infer_config_file.c_str(), secondary_model_engine_file.c_str(), 
+            primary_gie_name.c_str(), interval) == DSL_RESULT_SUCCESS );
 
         const wchar_t* pRetInferConfigFile;
         REQUIRE( dsl_infer_config_file_get(secondary_gie_name.c_str(), 
             &pRetInferConfigFile) == DSL_RESULT_SUCCESS );
         std::wstring retInferConfigFile(pRetInferConfigFile);
-        REQUIRE( retInferConfigFile == infer_config_file );
+        REQUIRE( retInferConfigFile == secondary_infer_config_file );
         
         const wchar_t* pRetModelEngineFile;
         REQUIRE( dsl_infer_gie_model_engine_file_get(secondary_gie_name.c_str(), 
             &pRetModelEngineFile) == DSL_RESULT_SUCCESS );
         std::wstring retModelEngineFile(pRetModelEngineFile);
-        REQUIRE( retModelEngineFile == model_engine_file );
+        REQUIRE( retModelEngineFile == secondary_model_engine_file );
         
         WHEN( "The SecondaryGieBintr's Infer Config File and Model Engine are set" )
         {
             std::wstring newInferConfigFile = 
-                L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_carmake.txt";
+                L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt";
             REQUIRE( dsl_infer_config_file_set(secondary_gie_name.c_str(), 
                 newInferConfigFile.c_str()) == DSL_RESULT_SUCCESS );
 
             std::wstring newModelEngineFile = 
-                L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel";
+                L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine";
             REQUIRE( dsl_infer_gie_model_engine_file_set(secondary_gie_name.c_str(), 
                 newModelEngineFile.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -472,13 +585,13 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
                     infer_config_file.c_str(), 
                     model_engine_file.c_str(), NULL, 1) == 
                         DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_primary_pph_add(NULL, NULL, 
+                REQUIRE( dsl_infer_pph_add(NULL, NULL, 
                     DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_primary_pph_add(primary_gie_name.c_str(), NULL, 
+                REQUIRE( dsl_infer_pph_add(primary_gie_name.c_str(), NULL, 
                     DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_primary_pph_remove(NULL, NULL, 
+                REQUIRE( dsl_infer_pph_remove(NULL, NULL, 
                     DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_infer_primary_pph_remove(primary_gie_name.c_str(), NULL, 
+                REQUIRE( dsl_infer_pph_remove(primary_gie_name.c_str(), NULL, 
                     DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_infer_config_file_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                

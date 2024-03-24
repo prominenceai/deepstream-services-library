@@ -135,11 +135,6 @@ namespace DSL
         static std::list<uint> s_uniqueIds;
 
     private:
-    
-        /**
-         * @brief assigned unique id for the PreprocBintr
-         */
-        uint m_uniqueId;
         
         /**
          * @brief specifies whether the Pre-Process plugin is enabled

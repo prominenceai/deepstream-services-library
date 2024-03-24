@@ -57,7 +57,8 @@ hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channe
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet10.caffemodel_b8_gpu0DSL_1K_HD_
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
+    
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
@@ -245,14 +246,6 @@ def main(args):
         # IMPORTANT: Best to set the default cache-size to the maximum value we 
         # intend to use (see the xwindow_key_event_handler callback above). 
         retval = dsl_sink_record_cache_size_set('record-sink', 25)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
-        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
-        # at the input to the encoder. Note: the dimensions can also be controlled
-        # after the video encoder by calling dsl_sink_record_dimensions_set
-        retval = dsl_sink_encode_dimensions_set('record-sink', width=640, height=360)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2023-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -56,14 +56,21 @@ namespace DSL
         // Need to forward all children messages for this RemuxerBranchBintr,
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
 
-        std::stringstream ssStreamIds;
         // If linking to specific streams ids - not all.
         if (streamIds and numStreamIds)
         {
+            // Setup the branches' vector of seclect stream-id
             m_streamIds.assign(streamIds, streamIds+numStreamIds);
-            
-            std::copy(m_streamIds.begin(), m_streamIds.end(), 
-                std::ostream_iterator<uint>(ssStreamIds, " "));
+
+            // Build the config string for this RemuxerBranch Bintr using
+            // format = <prefix>-<model unique ID>=<source ids>.
+            std::stringstream ssStreamIds;
+            ssStreamIds << DSL_REMUXER_BRANCH_CONFIG_STRING_PREFIX 
+                << std::to_string(pChildBranch->GetUniqueId()) << "=";
+            std::copy(m_streamIds.begin(), m_streamIds.end()-1,
+                std::ostream_iterator<uint>(ssStreamIds, ";"));
+            ssStreamIds << m_streamIds.back();
+            m_branchConfigString = ssStreamIds.str();
         }
 
         // Create a new Streammuxer for this child branch with a unique name
@@ -89,7 +96,7 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBranchBintr '" << name << "'");
         LOG_INFO("  child-branch           : " << m_pChildBranch->GetName());
-        LOG_INFO("  stream-ids             : " << ssStreamIds.str());
+        LOG_INFO("  config-string          : " << m_branchConfigString);
         LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
         LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
         LOG_INFO("  sync-inputs            : " << m_syncInputs);
@@ -120,7 +127,6 @@ namespace DSL
         // so that we can link them together => streammuxer->branch.
         AddChild(m_pChildBranch);
         AddChild(m_pStreammux);
-
     }
     
     RemuxerBranchBintr::~RemuxerBranchBintr()
@@ -179,10 +185,9 @@ namespace DSL
             m_queues[m_streamIds[i]] = pQueue;
 
             std::string sinkPadName = 
-                "sink_" + std::to_string(i);
+                "sink_" + std::to_string(m_streamIds[i]);
             
-            if (!pQueue->LinkToSinkMuxer(m_pStreammux,
-                    sinkPadName.c_str()))
+            if (!pQueue->LinkToSinkMuxer(m_pStreammux, sinkPadName.c_str()))
             {
                 return false;
             }
@@ -196,6 +201,7 @@ namespace DSL
         {
             return false;
         }
+        
         m_isLinked = true;
         return true;
     }
@@ -212,9 +218,6 @@ namespace DSL
         }
         for (auto i=0; i<m_streamIds.size(); i++)
         {
-            // Create the unique name for the queue based on stream-id
-            std::string queueNameExt = "-" + std::to_string(m_streamIds[i]);
-
             // Unlink the Queue for the Streammuxer and remove as Child
             // of the Proxy - Bintr for the RemuxerBintr
             m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer();
@@ -242,7 +245,7 @@ namespace DSL
         LOG_FUNC();
     
         // We loop through the stream-ids vector to link each Queue with
-        // with the correct Remuxer Tee.
+        // the correct Remuxer Tee.
         for (auto i=0; i<m_streamIds.size(); i++)
         {
             if (!m_queues[m_streamIds[i]]->LinkToSourceTee(
@@ -286,6 +289,21 @@ namespace DSL
         }
     }
 
+    bool RemuxerBranchBintr::LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, 
+        const char* padName)
+    {
+        LOG_FUNC();
+
+        return m_pChildBranch->LinkToSinkMuxer(pMuxer, padName);
+    }
+
+    bool RemuxerBranchBintr::UnlinkFromSinkMuxer()
+    {
+        LOG_FUNC();
+        
+        return m_pChildBranch->UnlinkFromSinkMuxer();
+    }
+    
     uint RemuxerBranchBintr::GetBatchSize()
     {
         LOG_FUNC();
@@ -503,7 +521,7 @@ namespace DSL
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
-        : TeeBintr(name)
+        : Bintr(name)
         , m_batchSizeSetByClient(false)
         , m_useNewStreammux(false)
         , m_batchTimeout(-1)
@@ -521,15 +539,25 @@ namespace DSL
             m_useNewStreammux = true;
         }
 
+        // Config file used to define the stream selection for each branch.
+        m_configFilePath = "/tmp/" + GetName() + "_config.txt";
+
         // Need to forward all children messages for this RemuxerBintr,
         // which is the parent bin for the Streammuxer allocated, so the Pipeline
         // can be notified of individual source EOS events. 
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
         
+        m_pInputTee = DSL_ELEMENT_EXT_NEW("tee", name, "input");
+        m_pMetamuxerQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsmetamux");
+        m_pMetamuxer = DSL_ELEMENT_NEW("nvdsmetamux", name);
+        m_pDemuxerQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvstreamdemux");
         m_pDemuxer = DSL_ELEMENT_NEW("nvstreamdemux", name);
+        
+        m_pMetamuxer->GetAttribute("active-pad", &m_activePad);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for RemuxerBintr '" << name << "'");
+        LOG_INFO("  active-pad             : " << m_activePad);
         
         if (m_useNewStreammux)
         {
@@ -546,9 +574,18 @@ namespace DSL
         }
         
         // Add the demuxer as child and elevate as sink ghost pad
+        Bintr::AddChild(m_pInputTee);
+        Bintr::AddChild(m_pMetamuxerQueue);
+        Bintr::AddChild(m_pMetamuxer);
+        Bintr::AddChild(m_pDemuxerQueue);
         Bintr::AddChild(m_pDemuxer);
 
-        m_pDemuxer->AddGhostPadToParent("sink");
+        m_pInputTee->AddGhostPadToParent("sink");
+        m_pMetamuxer->AddGhostPadToParent("src");
+
+        // Add the Buffer and DS Event probes to the input Tee and Metamuxer.
+        AddSinkPadProbes(m_pInputTee);
+        AddSrcPadProbes(m_pMetamuxer);
     }    
     
     RemuxerBintr::~RemuxerBintr()
@@ -638,7 +675,6 @@ namespace DSL
         }
 
         // Remove the BranchBintr from the Remuxers collection of children branches.
-        // This will destroy
         m_childBranches.erase(pChildComponent->GetName());
         
         return true;
@@ -665,6 +701,17 @@ namespace DSL
         {
             LOG_ERROR("Can't link RemuxerBintr '" << m_name 
                 << "' as batch-size is not set");
+            return false;
+        }
+        
+        // Create the Metamuxer config-file utility.
+        RemuxerConfigFile configFile(m_configFilePath);
+        
+        if (!m_pMetamuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
+            !m_pMetamuxerQueue->LinkToSinkMuxer(m_pMetamuxer, "sink_0") or
+            !m_pDemuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
+            !m_pDemuxerQueue->LinkToSink(m_pDemuxer))
+        {
             return false;
         }
 
@@ -710,13 +757,16 @@ namespace DSL
         // For each Branch, we set the Streammuxers properties based on version
         // Then, call on the Branch to link-all of its children and to link back
         // to the Demuxer source Tees according to their select stream-ids.
+        
+        
+        // Pad index to link the child branch to the Metamuxer
+        uint i(1);
         for (auto const& imap: m_childBranches)
         {
+            
             if (UseNewStreammux())
             {
-                if (!imap.second->SetBatchSize(m_batchSize) or
-                    !imap.second->LinkAll() or
-                    !imap.second->LinkToSourceTees(m_tees))
+                if (!imap.second->SetBatchSize(m_batchSize))
                 {
                     return false;
                 }
@@ -726,14 +776,33 @@ namespace DSL
                 if (!imap.second->SetBatchProperties(m_batchSize, m_batchTimeout) or
                     !imap.second->SetNvbufMemType(m_nvbufMemType) or
                     !imap.second->SetGpuId(m_gpuId) or
-                    !imap.second->SetDimensions(m_width, m_height) or
-                    !imap.second->LinkAll() or
-                    !imap.second->LinkToSourceTees(m_tees))
+                    !imap.second->SetDimensions(m_width, m_height))
                 {
                     return false;
                 }                
             }
+
+            std::string sinkPadName = "sink_" + std::to_string(i++);
+            
+            // Linkup all child branches
+            if (!imap.second->LinkAll() or
+                !imap.second->LinkToSourceTees(m_tees) or
+                !imap.second->LinkToSinkMuxer(m_pMetamuxer, sinkPadName.c_str()))
+            {
+                return false;
+            }                
+            
+            // Get the config string from the child and add it to the config file
+            if (imap.second->GetBranchConfigString().size())
+            {
+                configFile.AddBranchConfigString(
+                    imap.second->GetBranchConfigString());
+            }
         }
+        configFile.Close();
+        
+        // Pass the complete config file to the Metamuxer
+        m_pMetamuxer->SetAttribute("config-file", m_configFilePath.c_str());
 
         m_isLinked = true;
         return true;
@@ -749,11 +818,17 @@ namespace DSL
             return;
         }
 
+        m_pMetamuxerQueue->UnlinkFromSourceTee();
+        m_pMetamuxerQueue->UnlinkFromSinkMuxer();
+        m_pDemuxerQueue->UnlinkFromSourceTee();
+        m_pDemuxerQueue->UnlinkFromSink();
+
         for (auto const& imap: m_childBranches)
         {
             // Important to unlink from source Tees first, UnlinkAll will 
             // delete all queues.
             imap.second->UnlinkFromSourceTees();
+            imap.second->UnlinkFromSinkMuxer();
             imap.second->UnlinkAll();
         }
 

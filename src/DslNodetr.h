@@ -476,6 +476,29 @@ namespace DSL
                     gst_element_get_static_pad(GetGstElement(), padname))))
             {
                 LOG_ERROR("Failed to add Pad '" << padname 
+                    << "' to parent of element'" << GetName() << "'");
+                throw;
+            }
+        }
+
+        void RemoveGhostPadFromParent(const char* padname)
+        {
+            LOG_FUNC();
+
+            GstPad* pStaticPad = gst_element_get_static_pad(
+                GST_ELEMENT(GetParentGstObject()), padname);       
+
+            if (!pStaticPad)
+            {
+                LOG_ERROR("Failed to get Static Pad '" << padname 
+                    << "' for parent of element'" << GetName() << "'");
+                throw;
+            }
+                
+            if (!gst_element_remove_pad(GST_ELEMENT(GetParentGstObject()), 
+                pStaticPad))
+            {
+                LOG_ERROR("Failed to remove Pad '" << padname 
                     << "' for element'" << GetName() << "'");
                 throw;
             }
@@ -589,7 +612,7 @@ namespace DSL
          * @param[in] padName name to give the requested Sink Pad
          * @return true if able to successfully link with Muxer Sink Pad
          */
-        bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName)
+        virtual bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName)
         {
             LOG_FUNC();
             
@@ -637,7 +660,7 @@ namespace DSL
          * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
          * @return true if able to successfully unlink from Muxer Sink Pad
          */
-        bool UnlinkFromSinkMuxer()
+        virtual bool UnlinkFromSinkMuxer()
         {
             LOG_FUNC();
             

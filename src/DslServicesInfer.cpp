@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -294,7 +294,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferPrimaryPphAdd(const char* name, 
+    DslReturnType Services::InferPphAdd(const char* name, 
         const char* handler, uint pad)
     {
         LOG_FUNC();
@@ -303,7 +303,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name)
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
@@ -333,7 +333,8 @@ namespace DSL
         }
     }
    
-    DslReturnType Services::InferPrimaryPphRemove(const char* name, const char* handler, uint pad) 
+    DslReturnType Services::InferPphRemove(const char* name, 
+        const char* handler, uint pad) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -342,12 +343,13 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             if (pad > DSL_PAD_SRC)
             {
-                LOG_ERROR("Invalid Pad type = " << pad << " for Primary InferBintr '" << name << "'");
+                LOG_ERROR("Invalid Pad type = " << pad 
+                    << " for Primary InferBintr '" << name << "'");
                 return DSL_RESULT_PPH_PAD_TYPE_INVALID;
             }
 

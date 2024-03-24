@@ -1,5 +1,5 @@
 # Branch API Reference
-Branch components are similar to Pipelines in the way they're used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Unlike Pipelines, Branches can not contain Source components, and must be added to a [Demuxer or Splitter Tee](/docs/api-tee.md). 
+Branch components are similar to Pipelines in the way they're used to manage and link Child components when transitioning to states of `ready`, `paused`, and `playing`. Unlike Pipelines, Branches can not contain Source components, and must be added to a [Demuxer or Splitter Tee](/docs/api-tee.md) or [Remuxer](/docs/api-remuxer.md). 
 
 #### Branch Construction and Destruction
 Branches are constructed by calling [`dsl_branch_new`](#dsl_branch_new),[`dsl_branch_new_many`](#dsl_branch_new_many),  [`dsl_branch_new_component_add_many`](#dsl_branch_new_component_add_many), and destructed by calling `[dsl_branch_delete`](#dsl_branch_delete), `[dsl_branch_delete_many`](#dsl_branch_delete_many), or [`dsl_branch_delete_all`](#dsl_branch_delete_all). Deleting a Branch will not delete its child components but will unlink then and return to a state of `not-in-use`. The client application is responsible for deleting all child components by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all), or [`dsl_delete_all`](/docs/overview.md#dsl-delete-all).
@@ -227,7 +227,8 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* [Demuxer, Remxer, and Splitter Tees](/docs/api-tee.md)
+* [Demuxer and Splitter Tees](/docs/api-tee.md)
+* [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)

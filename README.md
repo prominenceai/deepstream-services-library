@@ -82,6 +82,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Segmentation Visualizer](/docs/api-segvisual.md)
   * [Tiler](/docs/api-tiler.md)
   * [Demuxer and Splitter](/docs/api-tee.md)
+  * [Remuxer](/docs/api-remuxer.md)
   * [On-Screen Display](/docs/api-osd.md)
   * [Sink](/docs/api-sink.md)
   * [Pad Probe Handler](/docs/api-pph.md)

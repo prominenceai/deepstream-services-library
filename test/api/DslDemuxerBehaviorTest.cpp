@@ -103,7 +103,7 @@ SCENARIO( "Two File Sources, Demuxer, and two Fake-Sinks can play",
     }
 }
 
-SCENARIO( "Two File Sources, Demuxer, and two 3D-Sinks can play", 
+SCENARIO( "Two File Sources, Demuxer, and two EGL-Sinks can play", 
     "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, two File sources, Demuxer, and two Overlay-Sinks" ) 
@@ -117,10 +117,10 @@ SCENARIO( "Two File Sources, Demuxer, and two 3D-Sinks can play",
         REQUIRE( dsl_source_file_new(source_name2.c_str(), uri.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_3d_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_3d_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         
         const wchar_t* demuxer_branches[] = {
@@ -168,10 +168,10 @@ SCENARIO( "A Pipeline can add a Source and Overlay-Sink dynamically",
         REQUIRE( dsl_source_file_new(source_name2.c_str(), uri.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_3d_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_3d_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, sink_width, sink_height) == DSL_RESULT_SUCCESS );
             
         REQUIRE( dsl_sink_sync_enabled_set(sink_name2.c_str(), false) == DSL_RESULT_SUCCESS );
@@ -237,10 +237,10 @@ SCENARIO( "A Pipeline can remove a Source and Overlay-Sink dynamically",
         REQUIRE( dsl_source_file_new(source_name2.c_str(), uri.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_3d_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_3d_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, sink_width, sink_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* demuxer_branches[] = {
@@ -296,11 +296,11 @@ SCENARIO( "A Pipeline can add and remove Sources and Overlay-Sinks dynamically m
         REQUIRE( dsl_source_file_new(source_name2.c_str(), uri.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_sink_window_3d_new(sink_name1.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name1.c_str(),
             offest_x, offest_y, sink_width, sink_height) == 
                 DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_sink_window_3d_new(sink_name2.c_str(),
+        REQUIRE( dsl_sink_window_egl_new(sink_name2.c_str(),
             offest_x+300, offest_y+300, sink_width, sink_height) == 
                 DSL_RESULT_SUCCESS );
             
@@ -540,7 +540,7 @@ SCENARIO( "A Pipeline can add and remove three multiple Sources and Window-Sinks
 }
 
 SCENARIO( "A Pipeline can have multiple Sources with a Demuxer and single dynamic Branch", 
-    "[temp]")
+    "[demuxer-behavior]")
 {
     GIVEN( "A Pipeline, with a File Source, Demuxer, and Overlay-Sinks" ) 
     {

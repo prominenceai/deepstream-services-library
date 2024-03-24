@@ -197,6 +197,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        retval = dsl_sink_sync_enabled_set('egl-sink', True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # Add the XWindow event handler functions defined above to the Window Sink
         retval = dsl_sink_window_key_event_handler_add('egl-sink', 
             xwindow_key_event_handler, None)

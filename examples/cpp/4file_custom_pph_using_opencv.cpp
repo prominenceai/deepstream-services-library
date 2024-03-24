@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2023-2024, Prominence AI, Inc.
+Copyright (c) 2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,16 @@ THE SOFTWARE.
 #include <gst/gst.h>
 #include <gstnvdsmeta.h>
 
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
 #include "DslApi.h"
+
+// Use the DSL Surface Transform utility class
+#include "DslSurfaceTransform.h"
+
+uint device_type;
+uint unique_id=0;
 
 std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
@@ -75,11 +84,9 @@ std::wstring primary_model_engine_file(
 std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
-// Valid Object Class Ids
-uint PGIE_CLASS_ID_VEHICLE = 0;
-uint PGIE_CLASS_ID_BICYCLE = 1;
-uint PGIE_CLASS_ID_PERSON = 2;
-uint PGIE_CLASS_ID_ROADSIGN = 3;
+// Same dimensions as Pipeline Streammuxer 
+int TILER_WIDTH = DSL_1K_HD_WIDTH;
+int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
 
 uint WINDOW_WIDTH = 1280;
 uint WINDOW_HEIGHT = 720;
@@ -134,21 +141,6 @@ void state_change_listener(uint old_state, uint new_state, void* client_data)
 }
 
 // 
-// Function to be called on Object Capture (and file-save) complete
-// 
-void capture_complete_listener(dsl_capture_info* info_ptr, 
-    void* client_data)
-{
-    std::cout << "***  Object Capture Complete  ***" << std::endl;
-    
-    std::wcout << L"capture_id: " << info_ptr->capture_id << std::endl;
-    std::wcout << L"filename:   " << info_ptr->filename << std::endl;
-    std::wcout << L"dirpath:    " << info_ptr->dirpath << std::endl;
-    std::wcout << L"width:      " << info_ptr->width << std::endl;
-    std::wcout << L"height:     " << info_ptr->height << std::endl;
-}    
-
-// 
 // Custom Pad Probe Handler function called with every buffer
 // 
 uint custom_pad_probe_handler(void* buffer, void* user_data)
@@ -164,37 +156,99 @@ uint custom_pad_probe_handler(void* buffer, void* user_data)
         NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*)(pFrameMetaList->data);
         if (pFrameMeta != NULL)
         {
-            // Iterate through the list of object metadata for this frame looking
-            // for the first occurrence of a bicycle - our trigger to schedule
-            // frame-capture with our downstream Frame-Capture Sink. 
-            NvDsMetaList* pNextMeta = pFrameMeta->obj_meta_list;
             
-            // For each detected object in the frame.
-            while (pNextMeta != NULL)
-            {
-                NvDsObjectMeta* pObjectMeta = (NvDsObjectMeta*) (pNextMeta->data);
-            
-                // Check the class-id to see if it's the object type we're looking for
-                if (pObjectMeta->class_id == PGIE_CLASS_ID_BICYCLE)
-                {
-                    // IMPORTANT! This example is using a single Source and single
-                    // Frame-Capture Sink.  If using multiple sources with a Demuxer 
-                    // and multiple Frame-Capture Sinks you will need to check the 
-                    // 'pFrameMeta->source_id' to call on the correct Sink. 
-                    
-                    // Schedule the current frame to be captured by the Sink 
-                    if (dsl_sink_frame_capture_schedule(L"frame-capture-sink", 
-                       pFrameMeta->frame_num) != DSL_RESULT_SUCCESS)
-                    {
-                        std::cout << "Custom PPH failed to schedule frame-capture!";
-                    }
-                    // Once the frame has been scheduled for capture, there is no
-                    // need to keep processing so return now.
-                    return DSL_PAD_PROBE_OK;
+            // Map the current buffer
+            std::unique_ptr<DSL::DslMappedBuffer> pMappedBuffer = 
+                std::unique_ptr<DSL::DslMappedBuffer>(new DSL::DslMappedBuffer(
+                    (GstBuffer*)buffer));
                 
-                }
-                pNextMeta = pNextMeta->next;
+            NvBufSurfaceMemType transformMemType = (
+                device_type == DSL_GPU_TYPE_INTEGRATED)
+                ? NVBUF_MEM_DEFAULT
+                : NVBUF_MEM_CUDA_PINNED;
+        
+            // Transforming only one frame in the batch, so create a copy of the single 
+            // surface ... becoming our new source surface. This creates a new mono 
+            // (non-batched) surface copied from the "batched frames" using the batch id 
+            // as the index
+            DSL::DslMonoSurface monoSurface(pMappedBuffer->pSurface, 
+                pFrameMeta->batch_id);
+
+            // Coordinates and dimensions for our destination surface.
+            int left(0), top(0);
+
+            // capturing full frame
+            int width = pMappedBuffer->GetWidth(pFrameMeta->batch_id);
+            int height = pMappedBuffer->GetHeight(pFrameMeta->batch_id);
+            
+            // New "create params" for our destination surface. we only need one 
+            // surface so set memory allocation (for the array of surfaces) size to 0
+            DSL::DslSurfaceCreateParams surfaceCreateParams(monoSurface.gpuId, 
+                width, height, 0, NVBUF_COLOR_FORMAT_RGBA, transformMemType);
+            
+            // New Destination surface with a batch size of 1 for transforming 
+            // the single surface. Use batch-id as unique id. 
+            std::unique_ptr<DSL::DslBufferSurface> pBufferSurface = 
+                std::unique_ptr<DSL::DslBufferSurface>(new DSL::DslBufferSurface(1, 
+                surfaceCreateParams, pFrameMeta->batch_id));
+
+            // New "transform params" for the surface transform, croping
+            DSL::DslTransformParams transformParams(left, top, width, height);
+            
+            // New "Cuda stream" for the surface transform
+            DSL::DslCudaStream dslCudaStream(monoSurface.gpuId);
+            
+            // New "Transform Session" config params using the new Cuda stream
+            DSL::DslSurfaceTransformSessionParams dslTransformSessionParams(
+                monoSurface.gpuId, dslCudaStream);
+            
+            // Set the "Transform Params" for the current tranform session
+            if (!dslTransformSessionParams.Set())
+            {
+                std::cout << "failed to set Transform Params" << std::endl;
+                return DSL_PAD_PROBE_REMOVE;
             }
+            
+            // We can now transform our Mono Source surface to the first (and only) 
+            // surface in the batched buffer.
+            if (!pBufferSurface->TransformMonoSurface(monoSurface, 0, transformParams))
+            {
+                std::cout << "failed to transform Mono Surface" << std::endl;
+                return DSL_PAD_PROBE_REMOVE;
+            }
+
+            // Map the tranformed surface for read
+            if (!pBufferSurface->Map())
+            {
+                std::cout << "failed to map the transformed buffer" << std::endl;
+                return DSL_PAD_PROBE_REMOVE;
+            }
+
+            std::cout << "New Buffer Surface mapped succesfully" << std::endl;
+
+            // New background Mat for our image
+            cv::Mat bgrFrame = cv::Mat(cv::Size(width, height), CV_8UC3);
+
+            // Use openCV to remove padding
+            cv::Mat inMat = cv::Mat(height, width, CV_8UC4, 
+                (&(*pBufferSurface))->surfaceList[0].mappedAddr.addr[0],
+                (&(*pBufferSurface))->surfaceList[0].pitch);
+
+            cv::cvtColor (inMat, bgrFrame, cv::COLOR_RGBA2BGR);
+            
+            // Do something with the cv::mat - the below saves the mat to jpeg file
+
+            // Generate the image file name from the date-time string
+            std::ostringstream fileNameStream;
+            fileNameStream << "batch_" 
+                << std::setw(2) << std::setfill('0') << pBufferSurface->GetUniqueId()
+                << "_" << pBufferSurface->GetDateTimeStr() << ".jpeg";
+                
+            // Generate the filespec from the output dir and file name
+            std::string filespec = "./" + 
+                fileNameStream.str();
+            cv::imwrite(filespec.c_str(), bgrFrame);
+            
         }
     }
     return DSL_PAD_PROBE_OK;
@@ -207,9 +261,27 @@ int main(int argc, char** argv)
     // Since we're not using args, we can Let DSL initialize GST on first call    
     while(true) 
     {    
+        // Get the Device type - DSL_GPU_TYPE_INTEGRATED | DSL_GPU_TYPE_DISCRETE
+        device_type = dsl_info_gpu_type_get(0);
 
-        // New File Source
-        retval = dsl_source_file_new(L"file-source", uri_h265.c_str(), true);
+        // 4 New File Sources
+        retval = dsl_source_file_new(L"file-source-0", uri_h265.c_str(), true);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_source_file_new(L"file-source-1", uri_h265.c_str(), true);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_source_file_new(L"file-source-2", uri_h265.c_str(), true);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_source_file_new(L"file-source-3", uri_h265.c_str(), true);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // lower the frame-rates - this trivial example saves every frame to jpeg.
+        retval = dsl_source_video_buffer_out_frame_rate_set(L"file-source-0", 1, 1);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_source_video_buffer_out_frame_rate_set(L"file-source-1", 1, 1);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_source_video_buffer_out_frame_rate_set(L"file-source-2", 1, 1);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        retval = dsl_source_video_buffer_out_frame_rate_set(L"file-source-3", 1, 1);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval = 4
@@ -223,16 +295,20 @@ int main(int argc, char** argv)
             iou_tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
+        // New Tiler, setting width and height
+        retval = dsl_tiler_new(L"tiler", TILER_WIDTH, TILER_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Custom Pad Probe Handler (PPH) to call our handler function above
         retval = dsl_pph_custom_new(L"custom-pph", custom_pad_probe_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Add the Custom PPH to the sink (input) pad of the OSD component.
-        retval = dsl_osd_pph_add(L"on-screen-display", L"custom-pph", DSL_PAD_SINK);
+        // Add the Custom PPH to the sink (input) pad of the Tiler component.
+        retval = dsl_tiler_pph_add(L"tiler", L"custom-pph", DSL_PAD_SINK);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
@@ -248,27 +324,12 @@ int main(int argc, char** argv)
         retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
-    
-        // Create a new Capture Action to capture and encode frame to jpeg image, 
-        // and save to file. Encoding and saving is done in the g-idle-thread.
-        // Saving to current directory. File names will be generated as
-        //    <action-name>_<unique_capture_id>_<%Y%m%d-%H%M%S>.jpeg
-        retval = dsl_ode_action_capture_frame_new(L"frame-capture-action", L"./");
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the capture complete listener function to the action
-        retval = dsl_ode_action_capture_complete_listener_add(L"frame-capture-action",
-            capture_complete_listener, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // New Frame-Capture Sink created with the new Capture Action.
-        retval = dsl_sink_frame_capture_new(L"frame-capture-sink", 
-            L"frame-capture-action");
-        if (retval != DSL_RESULT_SUCCESS) break;
 
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"file-source",  L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"egl-sink", L"frame-capture-sink", NULL};
+        const wchar_t* components[] = {
+            L"file-source-0", L"file-source-1", L"file-source-2", L"file-source-3",
+            L"primary-gie", L"iou-tracker", L"tiler", L"on-screen-display", 
+            L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);
@@ -285,11 +346,10 @@ int main(int argc, char** argv)
         // Start and join the main-loop
         dsl_main_loop_run();
         break;
-
     }
     
     // Print out the final result
-    std::cout << dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << dsl_return_value_to_string(retval) << std::endl;
 
     dsl_delete_all();
 

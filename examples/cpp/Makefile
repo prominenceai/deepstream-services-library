@@ -34,6 +34,8 @@ CXX_VERSION:=c++17
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
 
+BUILD_WITH_OPENCV:=true
+
 DS_SRC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources
 DS_INC_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/sources/includes
 DS_LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib
@@ -52,22 +54,35 @@ CXXFLAGS+= -I$(DS_INC_INSTALL_DIR) \
 	-I$(DS_SRC_INSTALL_DIR)/gst-plugins/gst-nvdspreprocess/include \
 	-I/usr/include/gstreamer-$(GSTREAMER_VERSION) \
 	-I/usr/include/glib-$(GLIB_VERSION) \
-	-I/usr/include/glib-$(GLIB_VERSION)/glib
-	
+	-I/usr/include/glib-$(GLIB_VERSION)/glib \
+	-I/usr/lib/$(TARGET_DEVICE)-linux-gnu/glib-$(GLIB_VERSION)/include \
+	-I/usr/local/cuda/targets/$(TARGET_DEVICE)-linux/include \
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+CXXFLAGS+= -I /usr/include/opencv4
+endif
+
 LIBS+= -L$(DS_LIB_INSTALL_DIR) \
 	-ldsl \
+	-lcuda \
+	-lnvbufsurface \
+	-lnvbufsurftransform \
 	-lnvdsgst_meta \
 	-lnvds_meta \
 	-lglib-$(GLIB_VERSION) \
-	-lgstreamer-$(GSTREAMER_VERSION)
-
+	-lgstreamer-$(GSTREAMER_VERSION) \
+	-L/usr/local/cuda/lib64/ -lcudart
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
-	glib-$(GLIB_VERSION)
+	glib-$(GLIB_VERSION) \	
 
 CXXFLAGS+= `pkg-config --cflags $(PKGS)`
 
 LIBS+= `pkg-config --libs $(PKGS)`
+
+ifeq ($(BUILD_WITH_OPENCV),true)
+PKGS+= opencv4
+endif
 
 all: $(APP)
 	

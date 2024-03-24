@@ -49,6 +49,7 @@ namespace DSL
          */
         Base(const char* name)
             : m_name(name)
+            , m_uniqueId(-1)
             , m_index(0)
         {
             LOG_FUNC();
@@ -95,6 +96,37 @@ namespace DSL
             m_name += suffix;
         }
         
+        /**
+         * @brief returns the currently assigned unique-id if used.
+         * @return current unique-id , default = -1, updated with SetUniqueId()
+         */
+        int GetUniqueId()
+        {
+            LOG_FUNC();
+            
+            return m_uniqueId;
+        }
+        
+        /**
+         * @brief sets the unique-id if and when used.
+         */
+        void SetUniqueId(int uniqueId)
+        {
+            LOG_FUNC();
+            
+            m_uniqueId = uniqueId;
+        }
+
+        /**
+         * @brief Clears the unique-id by setting it to unused=-1.
+         */
+        void ClearUniqueId()
+        {
+            LOG_FUNC();
+            
+            m_uniqueId = -1;
+        }
+
         /**
          * @brief returns the currently assigned Index used for mapping order
          * @return current index value, default = 0, updated with SetIndex()
@@ -268,6 +300,11 @@ namespace DSL
          */
         std::string m_name;
         
+        /**
+         * @brief optional Unique ID within the derived class, -1 if unused.
+         */
+        int m_uniqueId;
+
         /**
          * @brief Index used when sorting derived objects of DslBase
          */

@@ -3,6 +3,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="../src/DslServicesRemuxer.cpp"/>
     <VirtualDirectory Name="opencv">
       <File Name="../src/opencv/DslAvFile.h"/>
       <File Name="../src/opencv/DslAvFile.cpp"/>
@@ -251,6 +252,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="examples">
     <VirtualDirectory Name="cpp">
+      <File Name="../examples/cpp/4file_custom_pph_using_opencv.cpp"/>
       <File Name="../examples/cpp/1v4l2_pgie_iou_tracker_osd_window.cpp"/>
       <File Name="../examples/cpp/multiple_pipelines.cpp"/>
       <File Name="../examples/cpp/rtsp_player_to_test_connections.cpp"/>
@@ -278,6 +280,7 @@
       <File Name="../examples/cpp/encode_and_save_frame_to_jpeg_from_custom_pph.cpp" ExcludeProjConfig="Debug;"/>
     </VirtualDirectory>
     <VirtualDirectory Name="python">
+      <File Name="../examples/python/parallel_inference_on_selective_streams.py"/>
       <File Name="../examples/python/1v4l2_pgie_iou_tracker_osd_window.py"/>
       <File Name="../examples/python/2uri_file_pgie_iou_tracker_2sgie_tiler_osd_custom_pph_window.py"/>
       <File Name="../examples/python/4K_input_source_slicing_with_non_maximum_merge.py.hld"/>
