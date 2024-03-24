@@ -87,6 +87,12 @@ The following return codes are used by the Tee API
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 ```
 
+## Remuxer Internal Streammuxer Constant Values
+```C
+#define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
+#define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
+```
+
 ## Constructors
 
 ### *dsl_remuxer_new*
@@ -412,7 +418,7 @@ retval = dsl_remuxer_batch_properties_set('my-remuxer',
 DslReturnType dsl_remuxer_dimensions_get(const wchar_t* name, 
     uint* width, uint* height);
 ```
-This service returns the current output dimensions for all internal Streammuxer plugins for the uniquely named Remuxer. The [default dimensions](remuxer-internal-streammuxer-constant-values)  are assigned during Remuxer creation. 
+This service returns the current output dimensions for all internal Streammuxer plugins for the uniquely named Remuxer. The [default dimensions](#remuxer-internal-streammuxer-constant-values)  are assigned during Remuxer creation. 
 
 **Parameters**
 * `name` - [in] unique name of the Remuxer to query.

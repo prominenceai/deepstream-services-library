@@ -449,7 +449,8 @@ retval = dsl_tee_demuxer_max_branches_set('my-demuxer', 10)
 * [Tracker](/docs/api-tracker.md)
 * [Segmentation Visualizer](/docs/api-segvisual.md)
 * [Tiler](/docs/api-tiler.md)
-* **Demuxer, Remuxer, and Splitter**
+* **Demuxer and Splitter**
+* [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
 * [Pad Probe Handler](/docs/api-pph.md)
