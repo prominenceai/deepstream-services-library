@@ -43,7 +43,7 @@ The latest releases (`v0.28.alpha` and `v0.29.alpha`) were developed to support 
 4. [DeepStream can’t decode certain H265 streams properly](https://forums.developer.nvidia.com/t/deepstream-cant-decode-certain-h265-streams-properly/276027)
 5. There are other New nvstreammux issues that still need to be reported.
 
-### _IMPORANT! There are breaking changes in the most recent release. Please read the [Release Notes](/Release%20Notes/v0.28.alpha.md) carefully._
+### _IMPORANT! There are breaking changes in the most recent release. Please read the [Release Notes](/Release%20Notes/v0.29.alpha.md) carefully._
 
 ## Contributing
 
