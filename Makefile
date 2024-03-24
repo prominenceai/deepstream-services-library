@@ -39,7 +39,7 @@ else
 endif
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.29.alpha.dev"'
+DSL_VERSION:='L"v0.29.alpha"'
 GLIB_VERSION:=2.0
 
 # Update GStreamer sub-version to 20 to enabled the WebRtcSink
