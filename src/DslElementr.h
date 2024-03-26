@@ -105,6 +105,23 @@ namespace DSL
             LOG_FUNC();
         };
 
+
+        /**
+         * @brief Gets a GST Element's attribute of type float, 
+         *  owned by this Elementr
+         * @param[in] name name of the attribute to get
+         * @param[out] value float value to get the attribute
+         */
+        void GetAttribute(const char* name, float* value)
+        {
+            LOG_FUNC();
+            
+            g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute '" << name 
+                << "' returned float '" << *value << "'");
+        }
+
         /**
          * @brief Gets a GST Element's attribute of type int, 
          *  owned by this Elementr
@@ -120,7 +137,7 @@ namespace DSL
             LOG_DEBUG("Attribute '" << name 
                 << "' returned int '" << *value << "'");
         }
-
+        
         /**
          * @brief Gets a GST Element's attribute of type int, 
          * owned by this Elementr
@@ -167,14 +184,14 @@ namespace DSL
          * @param[in] name name of the attribute to get
          * @param[out] value uint64_t value to get the attribute
          */
-        void GetAttribute(const char* name, gint64* value)
+        void GetAttribute(const char* name, int64_t* value)
         {
             LOG_FUNC();
             
             g_object_get(GetGObject(), name, value, NULL);
 
             LOG_DEBUG("Attribute '" << name 
-                << "' returned string '" << *value << "'");
+                << "' returned int64_t '" << *value << "'");
         }
 
         /**
@@ -209,6 +226,22 @@ namespace DSL
             g_object_set(GetGObject(), name, value, NULL);
         }
 
+        /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of float
+         * @param[in] name name of the attribute to set
+         * @param[in] value unsigned integer value to set the attribute
+         */
+        void SetAttribute(const char* name, float value)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to float value '" << value << "'");
+            
+            g_object_set(GetGObject(), name, value, NULL);
+        }
+        
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * value of uint
@@ -247,7 +280,7 @@ namespace DSL
          * @param[in] name name of the attribute to set
          * @param[in] value unsigned integer value to set the attribute
          */
-        void SetAttribute(const char* name, gint64 value)
+        void SetAttribute(const char* name, int64_t value)
         {
             LOG_FUNC();
             

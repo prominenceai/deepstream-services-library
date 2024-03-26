@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c)  2019 - 2022, Prominence AI, Inc.
+# Copyright (c)  2019 - 2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -400,6 +400,7 @@ class dsl_ode_occurrence_info(Structure):
 ##
 ## Pointer Typedefs
 ##
+DSL_VOID_PP = POINTER(c_void_p)
 DSL_INT_P = POINTER(c_int)
 DSL_INT64_P = POINTER(c_int64)
 DSL_UINT_P = POINTER(c_uint)
@@ -3123,10 +3124,32 @@ def dsl_pph_list_size():
     return int(result)
 
 ##
+## dsl_gst_element_new()
+##
+_dsl.dsl_gst_element_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_element_new.restype = c_uint
+def dsl_gst_element_new(name, factory_name):
+    global _dsl
+    result =_dsl.dsl_gst_element_new(name, factory_name)
+    return int(result)
+
+##
+## dsl_gst_element_get()
+##
+_dsl.dsl_gst_element_get.argtypes = [c_wchar_p, POINTER(c_void_p)]
+_dsl.dsl_gst_element_get.restype = c_uint
+def dsl_gst_element_get(name):
+    global _dsl
+    element = c_void_p(0)
+    result = _dsl.dsl_gst_element_get(name, 
+        DSL_VOID_PP(element))
+    return int(result), element.value 
+    
+##
 ## dsl_source_app_new()
 ##
 _dsl.dsl_source_app_new.argtypes = [c_wchar_p, 
-    c_bool, c_uint, c_uint, c_uint, c_uint, c_uint]
+    c_bool, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_app_new.restype = c_uint
 def dsl_source_app_new(name, is_live, buffer_in_format, width, height, fps_n, fps_d):
     global _dsl

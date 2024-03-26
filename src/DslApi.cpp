@@ -3705,6 +3705,265 @@ uint dsl_pph_list_size()
     return DSL::Services::GetServices()->PphListSize();
 }
 
+DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(factory_name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrFactoryName(factory_name);
+    std::string cstrFactoryName(wstrFactoryName.begin(), 
+        wstrFactoryName.end());
+
+    return DSL::Services::GetServices()->GstElementNew(cstrName.c_str(), 
+        cstrFactoryName.c_str());
+}
+
+DslReturnType dsl_gst_element_get(const wchar_t* name, void** element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->GstElementGet(cstrName.c_str(), 
+        element);
+}
+
+    DslReturnType dsl_gst_element_property_boolean_get(const wchar_t* name, 
+    const wchar_t* property, boolean* value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyBooleanGet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_boolean_set(const wchar_t* name, 
+    const wchar_t* property, boolean value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyBooleanSet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_float_get(const wchar_t* name, 
+    const wchar_t* property, float* value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyFloatGet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_float_set(const wchar_t* name, 
+    const wchar_t* property, float value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyFloatSet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+
+DslReturnType dsl_gst_element_property_uint_get(const wchar_t* name, 
+    const wchar_t* property, uint* value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyUintGet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_uint_set(const wchar_t* name, 
+    const wchar_t* property, uint value)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyUintSet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_int_get(const wchar_t* name, 
+    const wchar_t* property, int* value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyIntGet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_int_set(const wchar_t* name, 
+    const wchar_t* property, int value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyIntSet(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+
+DslReturnType dsl_gst_element_property_uint64_get(const wchar_t* name, 
+    const wchar_t* property, uint64_t* value)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyUint64Get(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_uint64_set(const wchar_t* name, 
+    const wchar_t* property, uint64_t value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyUint64Set(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_int64_get(const wchar_t* name, 
+    const wchar_t* property, int64_t* value)    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyInt64Get(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+    
+DslReturnType dsl_gst_element_property_int64_set(const wchar_t* name, 
+    const wchar_t* property, int64_t value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyInt64Set(
+        cstrName.c_str(), cstrProperty.c_str(), value);
+}
+
+DslReturnType dsl_gst_element_property_string_get(const wchar_t* name, 
+    const wchar_t* property, const wchar_t** value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+
+    const char* cValue;
+    static std::string cstrValue;
+    static std::wstring wcstrValue;
+    
+    uint retval = DSL::Services::GetServices()->GstElementPropertyStringGet(
+        cstrName.c_str(), cstrProperty.c_str(), &cValue);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrValue.assign(cValue);
+        wcstrValue.assign(cstrValue.begin(), cstrValue.end());
+        *value = wcstrValue.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* value)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(value);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+    std::wstring wstrValue(value);
+    std::string cstrValue(wstrValue.begin(), wstrValue.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyStringSet(
+        cstrName.c_str(), cstrProperty.c_str(), cstrValue.c_str());
+}
+    
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
     const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d)
 {

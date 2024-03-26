@@ -499,6 +499,16 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 
 /**
+ * SMTP Mailer API Return Values
+ */
+#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00D00001
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00D00002
+#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
+#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
+#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
+
+/**
  * GPU Types
  */
 #define DSL_GPU_TYPE_INTEGRATED                                     0
@@ -4420,6 +4430,162 @@ DslReturnType dsl_pph_delete_all();
  */
 uint dsl_pph_list_size();
 
+/** 
+ * @brief Creates a uniquely name GST Element from a GST plugin factory name.
+ * @param[in] name unique name for the Element to create
+ * @param[in] factory_name factory (plugin) name for the Element to create
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
+
+/** 
+ * @brief Gets the GST_OBJECT pointer to the named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[out] element GST_OBJECT point the the name Element. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_get(const wchar_t* name, void** element);
+
+
+/** 
+ * @brief Gets a named boolean property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_boolean_get(const wchar_t* name, 
+    const wchar_t* property, boolean* value);
+
+/** 
+ * @brief Sets a named boolean property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_boolean_set(const wchar_t* name, 
+    const wchar_t* property, boolean value);
+    
+/** 
+ * @brief Gets a named float property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_float_get(const wchar_t* name, 
+    const wchar_t* property, float* value);
+
+/** 
+ * @brief Sets a named float property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_float_set(const wchar_t* name, 
+    const wchar_t* property, float value);
+   
+/** 
+ * @brief Gets a named unsigned int property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint_get(const wchar_t* name, 
+    const wchar_t* property, uint* value);
+
+/** 
+ * @brief Sets a named unsigned int property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint_set(const wchar_t* name, 
+    const wchar_t* property, uint value);
+    
+/** 
+ * @brief Gets a named signed int property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int_get(const wchar_t* name, 
+    const wchar_t* property, int* value);
+
+/** 
+ * @brief Sets a named signed int property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int_set(const wchar_t* name, 
+    const wchar_t* property, int value);
+    
+/** 
+ * @brief Gets a named uint64_t property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint64_get(const wchar_t* name, 
+    const wchar_t* property, uint64_t* value);
+
+/** 
+ * @brief Sets a named uint64_t property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint64_set(const wchar_t* name, 
+    const wchar_t* property, uint64_t value);
+    /** 
+ * @brief Gets a named signed int64_t property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int64_get(const wchar_t* name, 
+    const wchar_t* property, int64_t* value);
+
+/** 
+ * @brief Sets a named signed int64_t property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int64_set(const wchar_t* name, 
+    const wchar_t* property, uint64_t value);
+    
+/** 
+ * @brief Gets a named string property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_string_get(const wchar_t* name, 
+    const wchar_t* property, const wchar_t** value);
+    
+/** 
+ * @brief Sets a named string property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* value);
+    
 /**
  * @brief Creates a new, uniquely named App Source component to insert data 
  * into a DSL pipeline.
@@ -4435,7 +4601,7 @@ uint dsl_pph_list_size();
  */
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
     const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d);
-    
+
 /**
  * @brief Adds data-handler callback functions to a named App Source component.
  * @param[in] name unique name of the App Source to update
