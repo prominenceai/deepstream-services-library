@@ -270,6 +270,17 @@ namespace DSL
             m_pGstObj = pGstObj;
         }
 
+        /**
+         * @brief called to determine if a Bintr is currently in use - has a Parent
+         * @return true if the Bintr has a Parent, false otherwise
+         */
+        bool IsInUse()
+        {
+            LOG_FUNC();
+            
+            return (bool)GetParentGstElement();
+        }
+        
     public:
     
         /**
@@ -369,7 +380,7 @@ namespace DSL
             {
                 LOG_ERROR("Failed to set GstObj as proxy for GstNodetr '"
                     << GetName() << "' as it's currently set");
-                throw;
+                throw std::exception();
             }
             // Set the bin object pointer and isProxy flag (don't unref on delete).
             m_pGstObj = pGstObj;
@@ -392,7 +403,7 @@ namespace DSL
             {
                 LOG_ERROR("Failed to add " << pChildNodetr->GetName() 
                     << " to " << GetName() <<"'");
-                throw;
+                throw std::exception();
             }
             pChildNodetr->m_pParentGstObj = m_pGstObj;
             return Nodetr::AddChild(pChild);
@@ -477,7 +488,7 @@ namespace DSL
             {
                 LOG_ERROR("Failed to add Pad '" << padname 
                     << "' to parent of element'" << GetName() << "'");
-                throw;
+                throw std::exception();
             }
         }
 
@@ -492,7 +503,7 @@ namespace DSL
             {
                 LOG_ERROR("Failed to get Static Pad '" << padname 
                     << "' for parent of element'" << GetName() << "'");
-                throw;
+                throw std::exception();
             }
                 
             if (!gst_element_remove_pad(GST_ELEMENT(GetParentGstObject()), 
@@ -500,7 +511,7 @@ namespace DSL
             {
                 LOG_ERROR("Failed to remove Pad '" << padname 
                     << "' for element'" << GetName() << "'");
-                throw;
+                throw std::exception();
             }
         }
 

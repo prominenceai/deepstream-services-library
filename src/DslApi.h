@@ -277,8 +277,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
 #define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
 #define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
-#define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x0004000A
-#define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x0004000B
+#define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x000D000A
+#define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x000D000B
 
 /**
  * ODE Trigger API Return Values
@@ -499,7 +499,7 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 
 /**
- * SMTP Mailer API Return Values
+ * GStreamer Element API Return Values
  */
 #define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
 #define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00D00001
@@ -507,6 +507,21 @@ THE SOFTWARE.
 #define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
 #define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
 #define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
+
+/**
+ * GStreamer Bin API Return Values
+ */
+#define DSL_RESULT_GST_BIN_RESULT                                   0x00E00000
+#define DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE                          0x00E00001
+#define DSL_RESULT_GST_BIN_NAME_NOT_FOUND                           0x00E00002
+#define DSL_RESULT_GST_BIN_NAME_BAD_FORMAT                          0x00E00003
+#define DSL_RESULT_GST_BIN_THREW_EXCEPTION                          0x00E00004
+#define DSL_RESULT_GST_BIN_IS_IN_USE                                0x00E00005
+#define DSL_RESULT_GST_BIN_SET_FAILED                               0x00E00006
+#define DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED                       0x00E00007
+#define DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED                    0x00E00008
+#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E00009
+#define DSL_RESULT_GST_BIN_PAD_TYPE_INVALID                         0x00E0000A
 
 /**
  * GPU Types
@@ -4431,12 +4446,39 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /** 
- * @brief Creates a uniquely name GST Element from a GST plugin factory name.
+ * @brief Creates a uniquely name GStreamer Element from a plugin factory name.
  * @param[in] name unique name for the Element to create
  * @param[in] factory_name factory (plugin) name for the Element to create
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */ 
 DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
+
+/**
+ * @brief deletes a GStreamer Element by name.
+ * @param[in] name unique name of the Element to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of GStreamer Elements
+ * @param[in] names NULL terminated list of names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_gst_element_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all GStreamer Elements in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+
+ */
+DslReturnType dsl_gst_element_delete_all();
+
+/**
+ * @brief returns the current number of GStreamer Elements
+ * @return size of the list of GStreamer Bins
+ */
+uint dsl_gst_element_list_size();
 
 /** 
  * @brief Gets the GST_OBJECT pointer to the named Element.
@@ -4445,7 +4487,6 @@ DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_na
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_get(const wchar_t* name, void** element);
-
 
 /** 
  * @brief Gets a named boolean property from a named Element.
@@ -4585,6 +4626,112 @@ DslReturnType dsl_gst_element_property_string_get(const wchar_t* name,
  */
 DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
     const wchar_t* property, const wchar_t* value);
+    
+
+/**
+ * @brief creates a new, uniquely named GStreamer Bin
+ * @param[in] name unique name for the new GStreamer Bin
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_new(const wchar_t* name);
+
+/**
+ * @brief creates a new GStreamer Bin and adds a list of Elements
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] elements NULL terminated array of Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_new_element_add_many(const wchar_t* name, 
+    const wchar_t** components);
+
+/**
+ * @brief deletes a GStreamer Bin by name.
+ * @param[in] name unique name of the GStreamer Bin to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * Any/all Elements owned by the GStreamer Bin move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_gst_bin_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of GStreamer Bins
+ * @param[in] names NULL terminated list of names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * Any/all elements owned by the pipelines move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_gst_bin_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all GStreamer Bins in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * Any/all elements owned by the GStreamer Bins move
+ * to a state of not-in-use.
+ */
+DslReturnType dsl_gst_bin_delete_all();
+
+/**
+ * @brief returns the current number of GStreamer Bins
+ * @return size of the list of GStreamer Bins
+ */
+uint dsl_gst_bin_list_size();
+
+/**
+ * @brief adds a single Element to a GStreamer Bin 
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] element Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_add(const wchar_t* name, 
+    const wchar_t* component);
+
+/**
+ * @brief adds a list of Elements to a GStreamer Bin 
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] components NULL terminated array of element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_add_many(const wchar_t* name, 
+    const wchar_t** components);
+
+/**
+ * @brief removes an Element from a GStreamer Bin
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] element name of the Element to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_remove(const wchar_t* name, 
+    const wchar_t* component);
+
+/**
+ * @brief removes a list of Elements from a GStreamer Bin
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] components NULL terminated array of Element names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_remove_many(const wchar_t* name, 
+    const wchar_t** components);
+    
+/**
+ * @brief Adds a pad-probe-handler to a named GStreamer Bin.
+ * A GStreamer Bin can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the GStreamer Bin to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from a named GStreamer Bin.
+ * @param[in] name unique name of the GStreamer Bin to update
+ * @param[in] handler pad-probe-handler to remove
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
     
 /**
  * @brief Creates a new, uniquely named App Source component to insert data 

@@ -50,11 +50,81 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New GST Element '" << name << "' threw exception on create");
+            m_gstElements.erase(name);
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
         LOG_INFO("New GST Element '" << name << "' created successfully");
 
         return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::GstElementDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            
+            if (m_gstElements[name]->IsInUse())
+            {
+                LOG_INFO("GST Element'" << name << "' is in use");
+                return DSL_RESULT_GST_ELEMENT_IN_USE;
+            }
+            m_gstElements.erase(name);
+
+            LOG_INFO("GST Element '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name << "' threw exception on deletion");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::GstElementDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (m_gstElements.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
+            for (auto const& imap: m_gstElements)
+            {
+                // In the case of Delete all
+                if (imap.second->IsInUse())
+                {
+                    LOG_ERROR("GST Element '" << imap.second->GetName() 
+                        << "' is currently in use");
+                    return DSL_RESULT_GST_ELEMENT_IN_USE;
+                }
+            }
+            m_gstElements.clear();
+
+            LOG_INFO("All GST Elements deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element threw exception on delete all");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::GstElementListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_gstElements.size();
     }
     
     DslReturnType Services::GstElementGet(const char* name, void** element)
@@ -67,14 +137,14 @@ namespace DSL
 
             *element = m_gstElements[name]->GetGstElement();
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned element pointer = '" << *element << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting element pointer");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -91,7 +161,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned boolean value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -99,7 +169,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting boolean property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -116,7 +186,7 @@ namespace DSL
 
             m_gstElements[name]->SetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' set boolean value = '" << value << "' for property '"
                 << property << "' successfully");
 
@@ -124,7 +194,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting boolean property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -141,7 +211,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned float value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -149,7 +219,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting float property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -166,7 +236,7 @@ namespace DSL
 
             m_gstElements[name]->SetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' set float value = '" << value << "' for property '"
                 << property << "' successfully");
 
@@ -174,7 +244,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting float property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -191,7 +261,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned uint value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -199,7 +269,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting uint property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -224,7 +294,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting uint property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -241,7 +311,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned int value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -249,7 +319,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting int property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -266,7 +336,7 @@ namespace DSL
 
             m_gstElements[name]->SetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' set int value = '" << value << "' for property '"
                 << property << "' successfully");
 
@@ -274,7 +344,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting int property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -291,7 +361,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned uint64 value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -299,7 +369,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting uint64 property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -316,7 +386,7 @@ namespace DSL
 
             m_gstElements[name]->SetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' set uint64 value = '" << value << "' for property '"
                 << property << "' successfully");
 
@@ -324,7 +394,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting uint64 property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -341,7 +411,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned int64 value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -349,7 +419,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting int64 property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -366,7 +436,7 @@ namespace DSL
 
             m_gstElements[name]->SetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' set int64 value = '" << value << "' for property '"
                 << property << "' successfully");
 
@@ -374,7 +444,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting int64 property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -391,7 +461,7 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' returned string value = '" << *value << "' for property '"
                 << property << "' successfully");
 
@@ -399,7 +469,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception getting string property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
@@ -416,7 +486,7 @@ namespace DSL
 
             m_gstElements[name]->SetAttribute(property, value);
 
-            LOG_INFO("Element '" << name 
+            LOG_INFO("GST Element '" << name 
                 << "' set string value = '" << value << "' for property '"
                 << property << "' successfully");
 
@@ -424,7 +494,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Element '" << name 
+            LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting string property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }

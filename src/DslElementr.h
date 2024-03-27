@@ -69,7 +69,7 @@ namespace DSL
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create new Element '" << name << "'");
-                throw;  
+                throw std::exception();  
             }
         };
         
@@ -93,7 +93,7 @@ namespace DSL
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create new Element '" << name << "'");
-                throw;  
+                throw std::exception();  
             }
         };
         

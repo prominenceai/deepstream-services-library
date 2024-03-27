@@ -73,7 +73,7 @@ namespace DSL
             if (!m_pGstObj)
             {
                 LOG_ERROR("Failed to create a new GST bin for Bintr '" << name << "'");
-                throw;  
+                throw std::exception();  
             }
         }
         
@@ -182,17 +182,6 @@ namespace DSL
             return m_isLinked;
         }
 
-        /**
-         * @brief called to determine if a Bintr is currently in use - has a Parent
-         * @return true if the Bintr has a Parent, false otherwise
-         */
-        bool IsInUse()
-        {
-            LOG_FUNC();
-            
-            return (bool)GetParentGstElement();
-        }
-        
         /**
          * @brief gets the current batchSize in use by this Bintr
          * @return the current batchSize

@@ -689,6 +689,12 @@ namespace DSL {
         
         DslReturnType GstElementNew(const char* name, const char* factoryName);
         
+        DslReturnType GstElementDelete(const char* name);
+        
+        DslReturnType GstElementDeleteAll();
+        
+        uint GstElementListSize();
+        
         DslReturnType GstElementGet(const char* name, void** element);
 
         DslReturnType GstElementPropertyBooleanGet(const char* name, 
