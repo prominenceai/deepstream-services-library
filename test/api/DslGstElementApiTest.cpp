@@ -138,3 +138,273 @@ SCENARIO( "The GST Elements container is updated correctly on Delete GST Element
         }
     }
 }
+
+SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-element-api]" )
+{
+    GIVEN( "An empty list of Events" ) 
+    {
+        std::wstring element_name1(L"element-1");
+        std::wstring element_name2(L"element-2");
+        std::wstring element_name3(L"element-3");
+        
+        std::wstring factory_name1(L"queue");
+        std::wstring factory_name2(L"identity");
+        std::wstring factory_name3(L"v4l2sink");
+        
+        std::wstring property_boolean(L"flush-on-eos");
+        std::wstring property_float(L"drop-probability");
+        std::wstring property_int(L"datarate");
+        std::wstring property_uint(L"max-size-buffers");
+        std::wstring property_int64(L"ts-offset");
+        std::wstring property_uint64(L"max-size-time");
+        std::wstring property_string(L"device");
+        
+        REQUIRE( dsl_gst_element_new(element_name1.c_str(),
+            factory_name1.c_str()) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_gst_element_new(element_name2.c_str(),
+            factory_name2.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gst_element_new(element_name3.c_str(),
+            factory_name3.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A boolean value is updated" ) 
+        {
+            // Test default value first
+            boolean defValue(false), curValue(true), newValue(true);
+            REQUIRE( dsl_gst_element_property_boolean_get(element_name1.c_str(),
+                property_boolean.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_boolean_set(element_name1.c_str(),
+                property_boolean.c_str(), newValue) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_boolean_get(element_name1.c_str(),
+                    property_boolean.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "A float value is updated" ) 
+        {
+            // Test default value first
+            float defValue(0), curValue(99), newValue(0.23);
+            REQUIRE( dsl_gst_element_property_float_get(element_name2.c_str(),
+                property_float.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_float_set(element_name2.c_str(),
+                property_float.c_str(), newValue) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_float_get(element_name2.c_str(),
+                    property_float.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "An int value is updated" ) 
+        {
+            // Test default value first
+            int defValue(0), curValue(99), newValue(123);
+            REQUIRE( dsl_gst_element_property_int_get(element_name2.c_str(),
+                property_int.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_int_set(element_name2.c_str(),
+                property_int.c_str(), newValue) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_int_get(element_name2.c_str(),
+                    property_int.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "An uint value is updated" ) 
+        {
+            // Test default value first
+            uint defValue(200), curValue(99), newValue(123);
+            REQUIRE( dsl_gst_element_property_uint_get(element_name1.c_str(),
+                property_uint.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_uint_set(element_name1.c_str(),
+                property_uint.c_str(), newValue) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_uint_get(element_name1.c_str(),
+                    property_uint.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "An int64 value is updated" ) 
+        {
+            // Test default value first
+            int64_t defValue(0), curValue(99), newValue(123);
+            REQUIRE( dsl_gst_element_property_int64_get(element_name2.c_str(),
+                property_int64.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_int64_set(element_name2.c_str(),
+                property_int64.c_str(), newValue) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_int64_get(element_name2.c_str(),
+                    property_int64.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "An uint64 value is updated" ) 
+        {
+            // Test default value first
+            uint64_t defValue(1000000000), curValue(99), newValue(123);
+            REQUIRE( dsl_gst_element_property_uint64_get(element_name1.c_str(),
+                property_uint64.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_uint64_set(element_name1.c_str(),
+                property_uint64.c_str(), newValue) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_uint64_get(element_name1.c_str(),
+                    property_uint64.c_str(), &curValue) == DSL_RESULT_SUCCESS );
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "A string value is updated" ) 
+        {
+            // Test default value first
+            const wchar_t* curCValue;
+            std::wstring defValue(L"/dev/video1");
+            std::wstring newValue(L"/dev/video2");
+            REQUIRE( dsl_gst_element_property_string_get(element_name3.c_str(),
+                property_string.c_str(), &curCValue) == DSL_RESULT_SUCCESS );
+            std::wstring curValue(curCValue);
+            REQUIRE( curValue == defValue );
+            REQUIRE( dsl_gst_element_property_string_set(element_name3.c_str(),
+                property_string.c_str(), newValue.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_string_get(element_name3.c_str(),
+                    property_string.c_str(), &curCValue) == DSL_RESULT_SUCCESS );
+                std::wstring curValue = curCValue;
+                REQUIRE( curValue == newValue );
+            
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Element API checks for NULL input parameters", "[gst-element-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring element_name(L"element");
+        std::wstring property(L"property");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_gst_element_new(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_new(element_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_boolean_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_boolean_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_boolean_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_boolean_set(NULL,
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_boolean_set(element_name.c_str(),
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_float_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_float_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_float_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_float_set(NULL,
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_float_set(element_name.c_str(),
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_int_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int_set(NULL,
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int_set(element_name.c_str(),
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_uint_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint_set(NULL,
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint_set(element_name.c_str(),
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_int64_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int64_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int64_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int64_set(NULL,
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_int64_set(element_name.c_str(),
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_uint64_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint64_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint64_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint64_set(NULL,
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_uint64_set(element_name.c_str(),
+                    NULL, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_element_property_string_get(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_string_get(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_string_get(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_string_set(NULL,
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_string_set(element_name.c_str(),
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_property_string_set(element_name.c_str(),
+                    property.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+            }
+        }
+    }
+}

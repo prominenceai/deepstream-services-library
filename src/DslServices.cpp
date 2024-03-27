@@ -232,6 +232,7 @@ namespace DSL
         PipelineDeleteAll();
         PlayerDeleteAll(false);
         ComponentDeleteAll();
+        GstElementDeleteAll();
         PphDeleteAll();
         OdeTriggerDeleteAll();
         OdeAccumulatorDeleteAll();

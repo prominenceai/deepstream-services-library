@@ -4605,7 +4605,7 @@ DslReturnType dsl_gst_element_property_int64_get(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_property_int64_set(const wchar_t* name, 
-    const wchar_t* property, uint64_t value);
+    const wchar_t* property, int64_t value);
     
 /** 
  * @brief Gets a named string property from a named Element.
