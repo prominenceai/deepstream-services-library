@@ -56,8 +56,9 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' GstBintr to the Parent Pipeline 
-        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddGstBintr(shared_from_this());
+        // return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+        //     AddGstBintr(shared_from_this());
+        return true;
     }
     
     bool GstBintr::AddChild(DSL_ELEMENT_PTR pChild)
@@ -78,10 +79,10 @@ namespace DSL
         }
  
         // increment next index, assign to the Element.
-        pChildBintr->SetIndex(++m_nextElementIndex);
+        pChild->SetIndex(++m_nextElementIndex);
 
         // Add the shared pointer to the GstBintr to the indexed map and as a child.
-        m_pElementrsIndexed[m_nextElementIndex] = pChildBintr;
+        m_elementrsIndexed[m_nextElementIndex] = pChild;
         return GstNodetr::AddChild(pChild);
     }
     
@@ -104,7 +105,7 @@ namespace DSL
         
         // Remove the shared pointer to the GstBintr from the indexed map and 
         // as a child.
-        m_pElementrsIndexed.erase(pChild->GetIndex());
+        m_elementrsIndexed.erase(pChild->GetIndex());
         return GstNodetr::RemoveChild(pChild);
     }
     
@@ -117,9 +118,28 @@ namespace DSL
             LOG_ERROR("GstBintr '" << m_name << "' is already linked");
             return false;
         }
-        
-        // m_pGst->AddGhostPadToParent("sink");
-        // m_pGst->AddGhostPadToParent("src");
+        if (!m_elementrsIndexed.size()) 
+        {
+            LOG_ERROR("GstBintr '" << m_name << "' has no Elements to link");
+            return false;
+        }
+        for (auto const &imap: m_elementrsIndexed)
+        {
+            // LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+            if (m_elementrsLinked.size() and 
+                !m_elementrsLinked.back()->LinkToSink(imap.second))
+            {
+                return false;
+            }
+            m_elementrsLinked.push_back(imap.second);
+
+            LOG_INFO("GstBintr '" << GetName() << "' Linked up child Elementrs as '" << 
+                imap.second->GetName() << "' successfully");                    
+        }
+        // Setup the ghost pads for the first and last element, which would
+        // be the same in the case of one element.
+        m_elementrsLinked.front()->AddGhostPadToParent("sink");
+        m_elementrsLinked.back()->AddGhostPadToParent("src");
  
         m_isLinked = true;
         
@@ -135,6 +155,26 @@ namespace DSL
             LOG_ERROR("GstBintr '" << m_name << "' is not linked");
             return;
         }
+        if (!m_elementrsLinked.size()) 
+        {
+            LOG_ERROR("GstBintr '" << m_name << "' has no Elements to unlink");
+            return;
+        }
+        // Remove the ghost pads for the first and last element, which would
+        // be the same in the case of one element.
+        m_elementrsLinked.front()->RemoveGhostPadFromParent("sink");
+        m_elementrsLinked.back()->RemoveGhostPadFromParent("src");
+        
+        // iterate through the list of Linked Components, unlinking each
+        for (auto const& ivector: m_elementrsLinked)
+        {
+            // all but the tail element will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
+        }
+        m_elementrsLinked.clear();
 
         m_isLinked = false;
     }

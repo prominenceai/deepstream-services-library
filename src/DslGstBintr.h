@@ -70,7 +70,7 @@ namespace DSL
          * @brief Removes a Child Element from this Bintr.
          * @param pChild Child Element to add this Bintr to.
         */
-        bool AddChild(DSL_ELEMENT_PTR pChild);
+        bool RemoveChild(DSL_ELEMENT_PTR pChild);
  
         /**
          * @brief Links all Child Elementrs owned by this Bintr.
@@ -95,13 +95,13 @@ namespace DSL
          * @brief Map of child Elementrs for this GstBintr.
          * indexed by thier add-order for execution.
          */
-        std::map <uint, DSL_ELEMENT_PTR> m_pElementrsIndexed;
+        std::map <uint, DSL_ELEMENT_PTR> m_elementrsIndexed;
         
         /**
          * @brief Map of child Elementrs for this GstBintr.
          * indexed by thier add-order, added when linked.
          */
-        std::map <uint, DSL_ELEMENT_PTR> m_pElementrsLinked;
+        std::vector <DSL_ELEMENT_PTR> m_elementrsLinked;
     };
  
 } 
