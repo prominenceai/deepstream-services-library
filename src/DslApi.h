@@ -4645,38 +4645,6 @@ DslReturnType dsl_gst_bin_new_element_add_many(const wchar_t* name,
     const wchar_t** components);
 
 /**
- * @brief deletes a GStreamer Bin by name.
- * @param[in] name unique name of the GStreamer Bin to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- * Any/all Elements owned by the GStreamer Bin move
- * to a state of not-in-use.
- */
-DslReturnType dsl_gst_bin_delete(const wchar_t* name);
-
-/**
- * @brief deletes a NULL terminated list of GStreamer Bins
- * @param[in] names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- * Any/all elements owned by the pipelines move
- * to a state of not-in-use.
- */
-DslReturnType dsl_gst_bin_delete_many(const wchar_t** names);
-
-/**
- * @brief deletes all GStreamer Bins in memory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- * Any/all elements owned by the GStreamer Bins move
- * to a state of not-in-use.
- */
-DslReturnType dsl_gst_bin_delete_all();
-
-/**
- * @brief returns the current number of GStreamer Bins
- * @return size of the list of GStreamer Bins
- */
-uint dsl_gst_bin_list_size();
-
-/**
  * @brief adds a single Element to a GStreamer Bin 
  * @param[in] name name of the GStreamer Bin to update
  * @param[in] element Element names to add

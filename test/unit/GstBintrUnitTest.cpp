@@ -96,7 +96,7 @@ SCENARIO( "A GstBintr can can link and unlink with a single child element",  "[G
 SCENARIO( "A GstBintr can can link and unlink with a multiple child elements",  
     "[GstBintr]" )
 {
-    GIVEN( "A new GstBintr with an Elementr" ) 
+    GIVEN( "A new GstBintr with three Elementrs" ) 
     {
         static const std::string elementName1("element-1");
         static const std::string elementName2("element-2");

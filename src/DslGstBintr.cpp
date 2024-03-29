@@ -56,8 +56,8 @@ namespace DSL
         LOG_FUNC();
         
         // add 'this' GstBintr to the Parent Pipeline 
-        // return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-        //     AddGstBintr(shared_from_this());
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            AddGstBintr(shared_from_this());
         return true;
     }
     
@@ -125,18 +125,20 @@ namespace DSL
         }
         for (auto const &imap: m_elementrsIndexed)
         {
-            // LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+            // Link the Elementr to the last/previous Elementr in the vector 
+            // of linked Elementrs 
             if (m_elementrsLinked.size() and 
                 !m_elementrsLinked.back()->LinkToSink(imap.second))
             {
                 return false;
             }
+            // Add Elementr to the end of the linked Elementrs vector.
             m_elementrsLinked.push_back(imap.second);
 
             LOG_INFO("GstBintr '" << GetName() << "' Linked up child Elementrs as '" << 
                 imap.second->GetName() << "' successfully");                    
         }
-        // Setup the ghost pads for the first and last element, which would
+        // Setup the ghost pads for the first and last Elementrs, which would
         // be the same in the case of one element.
         m_elementrsLinked.front()->AddGhostPadToParent("sink");
         m_elementrsLinked.back()->AddGhostPadToParent("src");

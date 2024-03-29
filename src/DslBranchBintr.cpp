@@ -33,6 +33,7 @@ namespace DSL
     BranchBintr::BranchBintr(const char* name, bool isPipeline)
         : Bintr(name, isPipeline)
         , m_nextPrimaryInferBintrIndex(0)
+        , m_nextGstBintrIndex(0)
     {
         LOG_FUNC();
 
@@ -418,6 +419,76 @@ namespace DSL
         LOG_INFO("Removing Tiler '"<< pTilerBintr->GetName() 
             << "' from Branch '" << GetName() << "'");
         return RemoveChild(pTilerBintr);
+    }
+
+    bool BranchBintr::AddGstBintr(DSL_BASE_PTR pGstBintr)
+    {
+        LOG_FUNC();
+        
+        // Need to cast to GstBintr from Base class
+        DSL_GST_BINTR_PTR pChildBintr = 
+            std::dynamic_pointer_cast<GstBintr>(pGstBintr);
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add GstBintr '" 
+                << pChildBintr->GetName() << "' as it is currently linked");
+            return false;
+        }
+        if (m_gstBintrs.find(pChildBintr->GetName()) 
+            != m_gstBintrs.end())
+        {
+            LOG_ERROR("GstBintr '" << pGstBintr->GetName() 
+                << "' is already a child of Pipeline/Branch '" << GetName() << "'");
+            return false;
+        }
+        LOG_INFO("Adding Gst Bintr '"<< pChildBintr->GetName() 
+            << "' to Pipeline/Branch '" << GetName() << "'");
+        
+        // increment next index, assign to the Action, and update parent releationship.
+        pChildBintr->SetIndex(++m_nextGstBintrIndex);
+
+        // Add the shared pointer to GstBintr to both Maps, by name and index
+        m_gstBintrs[pChildBintr->GetName()] = pChildBintr;
+        m_gstBintrsIndexed[m_nextGstBintrIndex] = pChildBintr;
+        
+        return AddChild(pChildBintr);
+    }
+
+    bool BranchBintr::RemoveGstBintr(DSL_BASE_PTR pGstBintr)
+    {
+        LOG_FUNC();
+        
+
+        // Need to cast to GstBintr from Base class
+        DSL_GST_BINTR_PTR pChildBintr = 
+            std::dynamic_pointer_cast<GstBintr>(pGstBintr);
+            
+        if (m_gstBintrs.find(pChildBintr->GetName()) 
+            == m_gstBintrs.end())
+        {
+            LOG_ERROR("GstBintr '" << pChildBintr->GetName() 
+                << "' is not a child of Pipeline/Branch '" << GetName() << "'");
+            return false;
+        }
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot remove GstBintr '" 
+                << pChildBintr->GetName() << "' as it is currently linked");
+            return false;
+        }
+        LOG_INFO("Removing GstBintr '"<< pChildBintr->GetName() 
+            << "' from Pipeline/Branch '" << GetName() << "'");
+            
+        // Erase the child from both maps
+        m_gstBintrs.erase(pChildBintr->GetName());
+        m_gstBintrsIndexed.erase(pChildBintr->GetIndex());
+
+        // Clear the parent relationship and index
+        pChildBintr->SetIndex(0);
+            
+        return RemoveChild(pChildBintr);
     }
 
     bool BranchBintr::AddOsdBintr(DSL_BASE_PTR pOsdBintr)
