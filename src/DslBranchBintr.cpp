@@ -497,13 +497,14 @@ namespace DSL
         
         if (m_pOsdBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' has an exisiting OSD '" 
-                << m_pOsdBintr->GetName());
+            LOG_ERROR("Branch '" << GetName() 
+                << "' has an exisiting OSD '" << m_pOsdBintr->GetName());
             return false;
         }
         if (m_pDemuxerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Demuxer - can't add OSD");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Demuxer - can't add OSD");
             return false;
         }
         m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
@@ -545,7 +546,8 @@ namespace DSL
         }
         if (m_pSplitterBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has a Tee - can't add Sink after a Tee");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has a Tee - can't add Sink after a Tee");
             return false;
         }
         // Create the shared Sinks bintr if it doesn't exist
@@ -554,7 +556,8 @@ namespace DSL
             m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
             AddChild(m_pMultiSinksBintr);
         }
-        return m_pMultiSinksBintr->AddChild(std::dynamic_pointer_cast<Bintr>(pSinkBintr));
+        return m_pMultiSinksBintr->AddChild(
+            std::dynamic_pointer_cast<Bintr>(pSinkBintr));
     }
 
     bool BranchBintr::IsSinkBintrChild(DSL_BASE_PTR pSinkBintr)
@@ -566,7 +569,8 @@ namespace DSL
             LOG_INFO("Branch '" << GetName() << "' has no Sinks");
             return false;
         }
-        return (m_pMultiSinksBintr->IsChild(std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
+        return (m_pMultiSinksBintr->IsChild(
+            std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
     }
 
     bool BranchBintr::RemoveSinkBintr(DSL_BASE_PTR pSinkBintr)
@@ -579,8 +583,10 @@ namespace DSL
             return false;
         }
 
-        // Must cast to SourceBintr first so that correct Instance of RemoveChild is called
-        return m_pMultiSinksBintr->RemoveChild(std::dynamic_pointer_cast<Bintr>(pSinkBintr));
+        // Must cast to SourceBintr first so that correct Instance of 
+        // RemoveChild is called
+        return m_pMultiSinksBintr->RemoveChild(
+            std::dynamic_pointer_cast<Bintr>(pSinkBintr));
     }
     
     bool BranchBintr::LinkAll()
@@ -589,7 +595,8 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_INFO("Components for Branch '" << GetName() << "' are already assembled");
+            LOG_INFO("Components for Branch '" << GetName() 
+                << "' are already assembled");
             return false;
         }
         
@@ -605,14 +612,15 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pRemuxerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Remuxer '" << 
-                m_pRemuxerBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Remuxer '" 
+                << m_pRemuxerBintr->GetName() << "' successfully");
         }
 
         if (m_pPreprocBintr)
         {
-            // Set the SecondarInferBintrs batch size to the current stream muxer batch size, 
-            // then LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+            // Set the SecondarInferBintrs batch size to the current stream muxer 
+            // batch size, then LinkAll PrimaryInfer Elementrs and add as the next 
+            // component in the Branch.
             m_pPreprocBintr->SetBatchSize(m_batchSize);
             if (!m_pPreprocBintr->LinkAll() or
                 (m_linkedComponents.size() and 
@@ -621,8 +629,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pPreprocBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up PreprocBintr '" << 
-                m_pPreprocBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up PreprocBintr '" 
+                << m_pPreprocBintr->GetName() << "' successfully");
         }
         
         if (m_pPrimaryInferBintrs.size())
@@ -634,11 +642,12 @@ namespace DSL
                 // then this call will NOP. 
                 imap.second->SetBatchSize(m_batchSize);
                 
-                // We then update the branch batch-size to whatever the Primary's value 
+                // We then update the branch batch-size to whatever the Primary's 
                 // is for all downstream components. 
                 m_batchSize = imap.second->GetBatchSize();
 
-                // LinkAll PrimaryInfer Elementrs and add as the next component in the Branch
+                // LinkAll PrimaryInfer Elementrs and add as the next component in the 
+                // Branch.
                 if (!imap.second->LinkAll() or
                     (m_linkedComponents.size() and 
                     !m_linkedComponents.back()->LinkToSink(imap.second)))
@@ -647,8 +656,8 @@ namespace DSL
                 }
                 m_linkedComponents.push_back(imap.second);
  
-                LOG_INFO("Branch '" << GetName() << "' Linked up PrimaryInferBintr '" << 
-                    imap.second->GetName() << "' successfully");                    
+                LOG_INFO("Branch '" << GetName() << "' Linked up Primary Infer Bin '" 
+                    << imap.second->GetName() << "' successfully");                    
             }
         }
         
@@ -663,15 +672,16 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pTrackerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Tracker '" << 
-                m_pTrackerBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up Tracker '" 
+                << m_pTrackerBintr->GetName() << "' successfully");
         }
         
         if (m_pSecondaryInfersBintr)
         {
             m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
             
-            // LinkAll SecondaryGie Elementrs and add the Bintr as next component in the Branch
+            // LinkAll SecondaryGie Elementrs and add the Bintr as next component 
+            // in the Branch
             if (!m_pSecondaryInfersBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pSecondaryInfersBintr)))
@@ -679,13 +689,15 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pSecondaryInfersBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up all Secondary GIEs '" << 
-                m_pSecondaryInfersBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() 
+                << "' Linked up all Secondary Inference Bins '" 
+                << m_pSecondaryInfersBintr->GetName() << "' successfully");
         }
 
         if (m_pSegVisualBintr)
         {
-            // LinkAll Segmentation Visualizer Elementrs and add as the next component in the Branch
+            // LinkAll Segmentation Visualizer Elementrs and add as the next 
+            // component in the Branch
             m_pSegVisualBintr->SetBatchSize(m_batchSize);
             if (!m_pSegVisualBintr->LinkAll() or
                 (m_linkedComponents.size() and 
@@ -694,13 +706,15 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pSegVisualBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Segmentation Visualizer '" << 
-                m_pSegVisualBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() 
+                << "' Linked up Segmentation Visualizer '" 
+                << m_pSegVisualBintr->GetName() << "' successfully");
         }
 
         if (m_pOfvBintr)
         {
-            // LinkAll Optical Flow Elementrs and add as the next component in the Branch
+            // LinkAll Optical Flow Elementrs and add as the next component 
+            // in the Branch
             m_pOfvBintr->SetBatchSize(m_batchSize);
             if (!m_pOfvBintr->LinkAll() or
                 (m_linkedComponents.size() and 
@@ -709,8 +723,9 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pOfvBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Optical Flow Detector '" << 
-                m_pOfvBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() 
+                << "' Linked up Optical Flow Detector '" 
+                << m_pOfvBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
@@ -725,10 +740,29 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pTilerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Tiler '" << 
-                m_pTilerBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up Tiler '" 
+                << m_pTilerBintr->GetName() << "' successfully");
         }
 
+        if (m_gstBintrs.size())
+        {
+            for (auto const &imap: m_gstBintrsIndexed)
+            {
+                // LinkAll GST Bin Elementrs and add as the next component in 
+                // the Branch.
+                if (!imap.second->LinkAll() or
+                    (m_linkedComponents.size() and 
+                    !m_linkedComponents.back()->LinkToSink(imap.second)))
+                {
+                    return false;
+                }
+                m_linkedComponents.push_back(imap.second);
+ 
+                LOG_INFO("Branch '" << GetName() << "' Linked up GST Bin '" 
+                    << imap.second->GetName() << "' successfully");                    
+            }
+        }
+        
         if (m_pOsdBintr)
         {
             // LinkAll Osd Elementrs and add as next component in the Branch
@@ -740,8 +774,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pOsdBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up OSD '" << 
-                m_pOsdBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up OSD '" 
+                << m_pOsdBintr->GetName() << "' successfully");
         }
 
         if (m_pDemuxerBintr)
@@ -756,8 +790,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pDemuxerBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Demuxer '" << 
-                m_pDemuxerBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Demuxer '" 
+                << m_pDemuxerBintr->GetName() << "' successfully");
         }
 
         if (m_pSplitterBintr)
@@ -772,8 +806,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pSplitterBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Splitter'" << 
-                m_pSplitterBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up Stream Splitter'" 
+                << m_pSplitterBintr->GetName() << "' successfully");
         }
 
         // mutually exclusive with Demuxer
@@ -789,8 +823,8 @@ namespace DSL
                 return false;
             }
             m_linkedComponents.push_back(m_pMultiSinksBintr);
-            LOG_INFO("Branch '" << GetName() << "' Linked up all Sinks '" << 
-                m_pMultiSinksBintr->GetName() << "' successfully");
+            LOG_INFO("Branch '" << GetName() << "' Linked up all Sinks '" 
+                << m_pMultiSinksBintr->GetName() << "' successfully");
         }
         
         // If instantiated as a true branch to be linked to a Demuxer/Remuxer/Splitter

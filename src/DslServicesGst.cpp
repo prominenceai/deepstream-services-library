@@ -542,7 +542,7 @@ namespace DSL
             {
                 LOG_ERROR("Unable to add element '" << element 
                     << "' as it's currently in use");
-                return DSL_RESULT_COMPONENT_IN_USE;
+                return DSL_RESULT_GST_ELEMENT_IN_USE;
             }
 
             // Cast the Bin Component to a GST Bintr to call the correct AddChild method.
@@ -553,7 +553,7 @@ namespace DSL
             {
                 LOG_ERROR("GST Bin '" << name
                     << "' failed to add element '" << element << "'");
-                return DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED;
+                return DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED;
             }
             LOG_INFO("Element '" << element 
                 << "' was added to GST Bin '" << name << "' successfully");
@@ -581,7 +581,7 @@ namespace DSL
             {
                 LOG_ERROR("Element '" << element << 
                     "' is not in use by GST Bin '" << name << "'");
-                return DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE;
+                return DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE;
             }
             // Cast the Bin Component to a GST Bintr to call the correct AddChild method.
             DSL_GST_BINTR_PTR pBranchBintr = 
