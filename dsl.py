@@ -3134,16 +3134,245 @@ def dsl_gst_element_new(name, factory_name):
     return int(result)
 
 ##
-## dsl_gst_element_get()
+## dsl_gst_element_property_boolean_get()
 ##
-_dsl.dsl_gst_element_get.argtypes = [c_wchar_p, POINTER(c_void_p)]
-_dsl.dsl_gst_element_get.restype = c_uint
-def dsl_gst_element_get(name):
+_dsl.dsl_gst_element_property_boolean_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_gst_element_property_boolean_get.restype = c_uint
+def dsl_gst_element_property_boolean_get(name, property):
     global _dsl
-    element = c_void_p(0)
-    result = _dsl.dsl_gst_element_get(name, 
-        DSL_VOID_PP(element))
-    return int(result), element.value 
+    value = c_bool(0)
+    result = _dsl.dsl_gst_element_property_boolean_get(name, 
+        property, DSL_BOOL_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_boolean_set()
+##
+_dsl.dsl_gst_element_property_boolean_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool]
+_dsl.dsl_gst_element_property_boolean_set.restype = c_uint
+def dsl_gst_element_property_boolean_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_boolean_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_float_get()
+##
+_dsl.dsl_gst_element_property_float_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_float)]
+_dsl.dsl_gst_element_property_float_get.restype = c_uint
+def dsl_gst_element_property_float_get(name, property):
+    global _dsl
+    value = c_float(0)
+    result = _dsl.dsl_gst_element_property_float_get(name, 
+        property, DSL_FLOAT_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_float_set()
+##
+_dsl.dsl_gst_element_property_float_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_float]
+_dsl.dsl_gst_element_property_float_set.restype = c_uint
+def dsl_gst_element_property_float_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_float_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_int_get()
+##
+_dsl.dsl_gst_element_property_int_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_int)]
+_dsl.dsl_gst_element_property_int_get.restype = c_uint
+def dsl_gst_element_property_int_get(name, property):
+    global _dsl
+    value = c_int(0)
+    result = _dsl.dsl_gst_element_property_int_get(name, 
+        property, DSL_INT_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_int_set()
+##
+_dsl.dsl_gst_element_property_int_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_int]
+_dsl.dsl_gst_element_property_int_set.restype = c_uint
+def dsl_gst_element_property_int_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_int_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_uint_get()
+##
+_dsl.dsl_gst_element_property_uint_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_gst_element_property_uint_get.restype = c_uint
+def dsl_gst_element_property_uint_get(name, property):
+    global _dsl
+    value = c_uint(0)
+    result = _dsl.dsl_gst_element_property_uint_get(name, 
+        property, DSL_UINT_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_uint_set()
+##
+_dsl.dsl_gst_element_property_uint_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint]
+_dsl.dsl_gst_element_property_uint_set.restype = c_uint
+def dsl_gst_element_property_uint_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_int_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_int64_get()
+##
+_dsl.dsl_gst_element_property_int64_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_int64)]
+_dsl.dsl_gst_element_property_int64_get.restype = c_uint
+def dsl_gst_element_property_int64_get(name, property):
+    global _dsl
+    value = c_int64(0)
+    result = _dsl.dsl_gst_element_property_int64_get(name, 
+        property, DSL_INT64_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_int64_set()
+##
+_dsl.dsl_gst_element_property_int64_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_int64]
+_dsl.dsl_gst_element_property_int64_set.restype = c_uint
+def dsl_gst_element_property_int64_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_int_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_uint64_get()
+##
+_dsl.dsl_gst_element_property_uint64_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_gst_element_property_uint64_get.restype = c_uint
+def dsl_gst_element_property_uint64_get(name, property):
+    global _dsl
+    value = c_uint64(0)
+    result = _dsl.dsl_gst_element_property_uint64_get(name, 
+        property, DSL_UINT64_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_uint64_set()
+##
+_dsl.dsl_gst_element_property_uint64_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint64]
+_dsl.dsl_gst_element_property_uint64_set.restype = c_uint
+def dsl_gst_element_property_uint64_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_uint64_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_string_get()
+##
+_dsl.dsl_gst_element_property_string_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_gst_element_property_string_get.restype = c_uint
+def dsl_gst_element_property_string_get(name, property):
+    global _dsl
+    value = c_wchar_p(0)
+    result = _dsl.dsl_gst_element_property_string_get(name, 
+        property, DSL_WCHAR_PP(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_string_set()
+##
+_dsl.dsl_gst_element_property_string_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_element_property_string_set.restype = c_uint
+def dsl_gst_element_property_string_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_string_set(name, 
+        property, value)
+    return int(result)
+
+##
+## dsl_gst_bin_new()
+##
+_dsl.dsl_gst_bin_new.argtypes = [c_wchar_p]
+_dsl.dsl_gst_bin_new.restype = c_uint
+def dsl_gst_bin_new(name):
+    global _dsl
+    result =_dsl.dsl_gst_bin_new(name)
+    return int(result)
+
+##
+## dsl_gst_bin_new_element_add_many()
+##
+#_dsl.dsl_gst_bin_new_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_new_element_add_many.restype = c_uint
+def dsl_gst_bin_new_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_bin_new_element_add_many(name, arr)
+    return int(result)
+    
+##
+## dsl_gst_bin_element_add()
+##
+_dsl.dsl_gst_bin_element_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_add.restype = c_uint
+def dsl_gst_bin_element_add(name, element):
+    global _dsl
+    result =_dsl.dsl_gst_bin_element_add(name, element)
+    return int(result)
+
+##
+## dsl_gst_bin_element_add_many()
+##
+#_dsl.dsl_gst_bin_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_add_many.restype = c_uint
+def dsl_gst_bin_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_bin_element_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_gst_bin_element_remove()
+##
+_dsl.dsl_gst_bin_element_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_remove.restype = c_uint
+def dsl_gst_bin_element_remove(name, element):
+    global _dsl
+    result =_dsl.dsl_gst_bin_element_remove(name, element)
+    return int(result)
+
+##
+## dsl_gst_bin_element_remove_many()
+##
+#_dsl.dsl_gst_bin_element_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_remove_many.restype = c_uint
+def dsl_gst_bin_element_remove_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_bin_element_remove_many(name, arr)
+    return int(result)
     
 ##
 ## dsl_source_app_new()

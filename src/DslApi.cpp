@@ -3977,9 +3977,16 @@ DslReturnType dsl_gst_element_property_string_get(const wchar_t* name,
         cstrName.c_str(), cstrProperty.c_str(), &cValue);
     if (retval ==  DSL_RESULT_SUCCESS)
     {
-        cstrValue.assign(cValue);
-        wcstrValue.assign(cstrValue.begin(), cstrValue.end());
-        *value = wcstrValue.c_str();
+        if(*cValue)
+        { 
+            cstrValue.assign(cValue);
+            wcstrValue.assign(cstrValue.begin(), cstrValue.end());
+            *value = wcstrValue.c_str();
+        }
+        else
+        {
+            *value = NULL;
+        }
     }
     return retval;
 }

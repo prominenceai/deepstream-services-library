@@ -461,10 +461,18 @@ namespace DSL
 
             m_gstElements[name]->GetAttribute(property, value);
 
-            LOG_INFO("GST Element '" << name 
-                << "' returned string value = '" << *value << "' for property '"
-                << property << "' successfully");
-
+            if(*value)
+            {
+                LOG_INFO("GST Element '" << name 
+                    << "' returned string value = '" << *value << "' for property '"
+                    << property << "' successfully");
+            }
+            else
+            {
+                LOG_INFO("GST Element '" << name 
+                    << "' returned string value = 'NULL' for property '"
+                    << property << "' successfully");
+            }
             return DSL_RESULT_SUCCESS;
         }
         catch(...)

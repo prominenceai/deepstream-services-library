@@ -54,6 +54,20 @@ static const std::wstring factory_name2(L"identity");
 
 static const std::wstring pipeline_graph_name(L"gst-bin-behavior");
 
+GThread* main_loop_thread(NULL);
+// ---------------------------------------------------------------------------
+//
+// Thread function to start and wait on the main-loop
+//
+void dsl_error_message_handler(const wchar_t* source, 
+    const wchar_t* message, void* client_data)
+{
+
+    dsl_pipeline_stop(pipeline_name.c_str());
+    dsl_main_loop_quit();
+}
+
+
 SCENARIO( "A Pipeline with a Custom Component can play]", "[gst-bin-behavior]")
 {
     GIVEN( "A Pipeline, URI source, GST Bin, and Window Sink" ) 
@@ -87,18 +101,25 @@ SCENARIO( "A Pipeline with a Custom Component can play]", "[gst-bin-behavior]")
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
 
+            REQUIRE( dsl_pipeline_error_message_handler_add(pipeline_name.c_str(), 
+                dsl_error_message_handler, NULL) == DSL_RESULT_SUCCESS );
+
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
-                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
-                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_property_uint_set(gst_element_name2.c_str(),
+                    L"error-after", 50) == DSL_RESULT_SUCCESS );
 
+                dsl_pipeline_play(pipeline_name.c_str());              
+                
                 dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
                     const_cast<wchar_t*>(pipeline_graph_name.c_str()));
 
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*2);
+                uint curValue(99);
+                REQUIRE( dsl_gst_element_property_uint_get(gst_element_name1.c_str(),
+                    L"current-level-buffers", &curValue) == DSL_RESULT_SUCCESS );
+                std::cout << "current-level-buffers = " << curValue << std::endl;
 
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str())
-                    == DSL_RESULT_SUCCESS );
+                dsl_main_loop_run();
 
                 dsl_delete_all();
             }
