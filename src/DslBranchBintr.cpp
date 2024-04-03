@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    static std::string BRANCH_COMPONENTS_KEY("branch-components");
+
     BranchBintr::BranchBintr(const char* name, bool isPipeline)
         : Bintr(name, isPipeline)
         , m_nextPrimaryInferBintrIndex(0)
@@ -43,7 +45,7 @@ namespace DSL
         {
             m_pBranchQueue  = DSL_ELEMENT_NEW("queue", name);
             
-            AddChild(m_pBranchQueue);
+            GstNodetr::AddChild(m_pBranchQueue);
             m_pBranchQueue->AddGhostPadToParent("sink");
         }
     }
@@ -56,6 +58,13 @@ namespace DSL
         {
             LOG_ERROR("Branch '" << GetName() << "' has an exisiting PreprocBintr '" 
                 << m_pPreprocBintr->GetName());
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add PreprocBintr '" 
+                << m_pPreprocBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
             return false;
         }
         m_pPreprocBintr = std::dynamic_pointer_cast<PreprocBintr>(pPreprocBintr);
@@ -101,8 +110,9 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Cannot remove PrimaryInferBintr '" 
-                << pChildBintr->GetName() << "' as it is currently linked");
+            LOG_ERROR("Cannot add PrimaryInferBintr '" 
+                << pChildBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
             return false;
         }
         if (m_pPrimaryInferBintrs.find(pChildBintr->GetName()) 
@@ -160,17 +170,14 @@ namespace DSL
         // Erase the child from both maps
         m_pPrimaryInferBintrs.erase(pChildBintr->GetName());
         m_pPrimaryInferBintrsIndexed.erase(pChildBintr->GetIndex());
-
+        pChildBintr->SetIndex(0);
+ 
         // If removing the last Pirmary Inference Bintr
         if (!m_pPrimaryInferBintrs.size())
         {
             // Reset the Branch's unique-id.
             SetUniqueId(-1);
         }
-
-        // Clear the parent relationship and index
-        pChildBintr->SetIndex(0);
-            
         return RemoveChild(pChildBintr);
     }
 
@@ -184,9 +191,47 @@ namespace DSL
                 << "' already has a Segmentation Visualizer");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Segmentation Visualizer '" 
+                << m_pSegVisualBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         m_pSegVisualBintr = std::dynamic_pointer_cast<SegVisualBintr>(pSegVisualBintr);
         
         return AddChild(pSegVisualBintr);
+    }
+
+    bool BranchBintr::RemoveSegVisualBintr(DSL_BASE_PTR pSegVisualBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pSegVisualBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' has no Segmentation Visualizer to remove'");
+            return false;
+        }
+        if (m_pSegVisualBintr != pSegVisualBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' does not own a Segmentation Visualizer' " 
+                << m_pSegVisualBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Segmentation Visualizer cannot be removed from Branch '" 
+                << GetName() << "' as it is currently linked'");
+            return false;
+        }
+        m_pSegVisualBintr = nullptr;
+        
+        LOG_INFO("Removing SegVisual '"<< pSegVisualBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+       
+        return RemoveChild(pSegVisualBintr);
     }
 
     bool BranchBintr::AddTrackerBintr(DSL_BASE_PTR pTrackerBintr)
@@ -196,6 +241,13 @@ namespace DSL
         if (m_pTrackerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' already has a Tracker");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Tracker '" 
+                << pTrackerBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
             return false;
         }
         m_pTrackerBintr = std::dynamic_pointer_cast<TrackerBintr>(pTrackerBintr);
@@ -228,6 +280,7 @@ namespace DSL
         
         LOG_INFO("Removing Tracker '"<< pTrackerBintr->GetName() 
             << "' from Branch '" << GetName() << "'");
+            
         return RemoveChild(pTrackerBintr);
     }
 
@@ -235,6 +288,13 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Secondary Inference Component '" 
+                << pSecondaryInferBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         // Create the optional Secondary GIEs bintr 
         if (!m_pSecondaryInfersBintr)
         {
@@ -242,7 +302,8 @@ namespace DSL
             AddChild(m_pSecondaryInfersBintr);
         }
         return m_pSecondaryInfersBintr->
-            AddChild(std::dynamic_pointer_cast<SecondaryInferBintr>(pSecondaryInferBintr));
+            AddChild(std::dynamic_pointer_cast<SecondaryInferBintr>(
+                pSecondaryInferBintr));
     }
 
     bool BranchBintr::AddOfvBintr(DSL_BASE_PTR pOfvBintr)
@@ -251,7 +312,15 @@ namespace DSL
 
         if (m_pOfvBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' already has an Optical Flow Visualizer ");
+            LOG_ERROR("Branch '" << GetName() 
+                << "' already has an Optical Flow Visualizer ");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Optical Flow Visualizer  '" 
+                << pOfvBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
             return false;
         }
         m_pOfvBintr = std::dynamic_pointer_cast<OfvBintr>(pOfvBintr);
@@ -259,6 +328,37 @@ namespace DSL
         return AddChild(m_pOfvBintr);
     }
 
+    bool BranchBintr::RemoveOfvBintr(DSL_BASE_PTR pOfvBintr)
+    {
+        LOG_FUNC();
+        
+        if (!m_pOfvBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' has no Optical Flow Visualizer to remove'");
+            return false;
+        }
+        if (m_pOfvBintr != pOfvBintr)
+        {
+            LOG_ERROR("Branch '" << GetName() 
+                << "' does not own Optical Flow Visualizer' " 
+                << m_pOfvBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Optical Flow Visualizer cannot be removed from Branch '" 
+                << GetName() << "' as it is currently linked'");
+            return false;
+        }
+        m_pOfvBintr = nullptr;
+        
+        LOG_INFO("Removing Optical Flow Visualizer '"<< pOfvBintr->GetName() 
+            << "' from Branch '" << GetName() << "'");
+            
+        return RemoveChild(pOfvBintr);
+    }
+  
     bool BranchBintr::AddDemuxerBintr(DSL_BASE_PTR pDemuxerBintr)
     {
         LOG_FUNC();
@@ -287,6 +387,13 @@ namespace DSL
                 << "' already has a Sink - can't add Demuxer");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Demuxer '" 
+                << pDemuxerBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
         
         return AddChild(pDemuxerBintr);
@@ -302,6 +409,13 @@ namespace DSL
                 << "' already has a Remuxer");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Remuxer '" 
+                << pRemuxerBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         m_pRemuxerBintr = std::dynamic_pointer_cast<RemuxerBintr>(pRemuxerBintr);
         
         return AddChild(pRemuxerBintr);
@@ -313,13 +427,19 @@ namespace DSL
         
         if (!m_pRemuxerBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' has no OSD to remove'");
+            LOG_ERROR("Branch '" << GetName() << "' has no Remuxer to remove'");
             return false;
         }
         if (m_pRemuxerBintr != pRemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' does not own Remuxer' " 
                 << pRemuxerBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot remove Remuxer '" 
+                << pRemuxerBintr->GetName() << "' as it is currently linked");
             return false;
         }
         m_pRemuxerBintr = nullptr;
@@ -351,6 +471,13 @@ namespace DSL
                 << "' already has a Sink - can't add Splitter");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Splitter '" 
+                << pSplitterBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         m_pSplitterBintr = std::dynamic_pointer_cast<SplitterBintr>(pSplitterBintr);
         
         return AddChild(pSplitterBintr);
@@ -362,13 +489,19 @@ namespace DSL
         
         if (!m_pSplitterBintr)
         {
-            LOG_ERROR("Branch '" << GetName() << "' has no OSD to remove");
+            LOG_ERROR("Branch '" << GetName() << "' has no Splitter to remove");
             return false;
         }
         if (m_pSplitterBintr != pSplitterBintr)
         {
             LOG_ERROR("Branch '" << GetName() << "' does not own Splitter '" 
                 << m_pOsdBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot remove Splitter '" 
+                << pSplitterBintr->GetName() << "' as it is currently linked");
             return false;
         }
         m_pSplitterBintr = nullptr;
@@ -394,6 +527,13 @@ namespace DSL
                 << "' already has a Demuxer - can't add Tiler");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add Tiler '" 
+                << pTilerBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         m_pTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
         
         return AddChild(pTilerBintr);
@@ -414,6 +554,12 @@ namespace DSL
                 << m_pTilerBintr->GetName() << "'");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot remove GstBintr '" 
+                << pTilerBintr->GetName() << "' as it is currently linked");
+            return false;
+        }
         m_pTilerBintr = nullptr;
         
         LOG_INFO("Removing Tiler '"<< pTilerBintr->GetName() 
@@ -431,18 +577,19 @@ namespace DSL
         
         if (IsLinked())
         {
-            LOG_ERROR("Cannot add GstBintr '" 
-                << pChildBintr->GetName() << "' as it is currently linked");
+            LOG_ERROR("Cannot add GST Bin '" 
+                << pChildBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
             return false;
         }
         if (m_gstBintrs.find(pChildBintr->GetName()) 
             != m_gstBintrs.end())
         {
-            LOG_ERROR("GstBintr '" << pGstBintr->GetName() 
+            LOG_ERROR("GST Bin '" << pGstBintr->GetName() 
                 << "' is already a child of Pipeline/Branch '" << GetName() << "'");
             return false;
         }
-        LOG_INFO("Adding Gst Bintr '"<< pChildBintr->GetName() 
+        LOG_INFO("Adding GST Bin '"<< pChildBintr->GetName() 
             << "' to Pipeline/Branch '" << GetName() << "'");
         
         // increment next index, assign to the Action, and update parent releationship.
@@ -467,18 +614,17 @@ namespace DSL
         if (m_gstBintrs.find(pChildBintr->GetName()) 
             == m_gstBintrs.end())
         {
-            LOG_ERROR("GstBintr '" << pChildBintr->GetName() 
+            LOG_ERROR("GST Bin '" << pChildBintr->GetName() 
                 << "' is not a child of Pipeline/Branch '" << GetName() << "'");
             return false;
         }
-        
         if (IsLinked())
         {
-            LOG_ERROR("Cannot remove GstBintr '" 
+            LOG_ERROR("Cannot remove GST Bin '" 
                 << pChildBintr->GetName() << "' as it is currently linked");
             return false;
         }
-        LOG_INFO("Removing GstBintr '"<< pChildBintr->GetName() 
+        LOG_INFO("Removing GST Bin '"<< pChildBintr->GetName() 
             << "' from Pipeline/Branch '" << GetName() << "'");
             
         // Erase the child from both maps
@@ -507,6 +653,13 @@ namespace DSL
                 << "' already has a Demuxer - can't add OSD");
             return false;
         }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add OSD '" 
+                << pOsdBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
+            return false;
+        }
         m_pOsdBintr = std::dynamic_pointer_cast<OsdBintr>(pOsdBintr);
         
         return AddChild(pOsdBintr);
@@ -525,6 +678,13 @@ namespace DSL
         {
             LOG_ERROR("Branch '" << GetName() << "' does not own OSD' " 
                 << m_pOsdBintr->GetName() << "'");
+            return false;
+        }
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot add OSD '" 
+                << pOsdBintr->GetName() << "to branch '" << GetName()
+                <<"' as it is currently linked");
             return false;
         }
         m_pOsdBintr = nullptr;
@@ -599,12 +759,42 @@ namespace DSL
                 << "' are already assembled");
             return false;
         }
+        if (!((m_linkMethod == DSL_PIPELINE_LINK_METHOD_BY_POSITION)
+            ? LinkAllPositional()
+            : LinkAllOrdered()))
+        {
+            return false;
+        }
+        // If instantiated as a true branch to be linked to a Demuxer/Remuxer/Splitter
+        if (!m_isPipeline)
+        {
+            // Link the input-queue (ghost-pad) to the first component
+            m_pBranchQueue->LinkToSink(m_linkedComponents.front());
+            
+            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+            {
+                LOG_INFO("Adding ghost-pad to BranchBintr '" <<
+                    GetName() << "' for last ChildBintr '" << 
+                    m_linkedComponents.back()->GetName() << "'");
+                m_linkedComponents.back()->AddGhostPadToParent("src");
+            }
+        }
+        return true;
+    }
+        
+    bool BranchBintr::LinkAllPositional()
+    {
+        LOG_FUNC();
         
         if (m_pRemuxerBintr)
         {
-            // Link All Remuxer Elementrs and add as the next ** AND LAST ** 
-            // component in the Pipeline
+            // propagate the link method an batch size to all child branches 
+            // of the Remuxer
+            m_pRemuxerBintr->SetLinkMethod(m_linkMethod);
             m_pRemuxerBintr->SetBatchSize(m_batchSize);
+            
+            // Link All Remuxer Elementrs and add as the next
+            // component in the Pipeline
             if (!m_pRemuxerBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pRemuxerBintr)))
@@ -618,9 +808,8 @@ namespace DSL
 
         if (m_pPreprocBintr)
         {
-            // Set the SecondarInferBintrs batch size to the current stream muxer 
-            // batch size, then LinkAll PrimaryInfer Elementrs and add as the next 
-            // component in the Branch.
+            // propagate the link method an batch size to the  Child Bintr
+            m_pPreprocBintr->SetLinkMethod(m_linkMethod);
             m_pPreprocBintr->SetBatchSize(m_batchSize);
             if (!m_pPreprocBintr->LinkAll() or
                 (m_linkedComponents.size() and 
@@ -637,6 +826,9 @@ namespace DSL
         {
             for (auto const &imap: m_pPrimaryInferBintrsIndexed)
             {
+                // propagate the link method an batch size to the  Child Bintr
+                imap.second->SetLinkMethod(m_linkMethod);
+                
                 // Set the m_PrimaryInferBintrs batch size to the current stream muxer
                 // batch size. IMPORTANT if client has explicitely set the batch-size, 
                 // then this call will NOP. 
@@ -663,8 +855,11 @@ namespace DSL
         
         if (m_pTrackerBintr)
         {
-            // LinkAll Tracker Elementrs and add as the next component in the Branch
+            // propagate the link method an batch size to the  Child Bintr
+            m_pTrackerBintr->SetLinkMethod(m_linkMethod);
             m_pTrackerBintr->SetBatchSize(m_batchSize);
+            
+            // LinkAll Tracker Elementrs and add as the next component in the Branch
             if (!m_pTrackerBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
@@ -678,6 +873,8 @@ namespace DSL
         
         if (m_pSecondaryInfersBintr)
         {
+            // propagate the link method an batch size to the Child Bintr
+            m_pSecondaryInfersBintr->SetLinkMethod(m_linkMethod);
             m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component 
@@ -696,6 +893,9 @@ namespace DSL
 
         if (m_pSegVisualBintr)
         {
+            // propagate the link method an batch size to the Child Bintr
+            m_pSegVisualBintr->SetLinkMethod(m_linkMethod);
+            
             // LinkAll Segmentation Visualizer Elementrs and add as the next 
             // component in the Branch
             m_pSegVisualBintr->SetBatchSize(m_batchSize);
@@ -713,9 +913,12 @@ namespace DSL
 
         if (m_pOfvBintr)
         {
+            // propagate the link method an batch size to the Child Bintr
+            m_pOfvBintr->SetLinkMethod(m_linkMethod);
+            m_pOfvBintr->SetBatchSize(m_batchSize);
+            
             // LinkAll Optical Flow Elementrs and add as the next component 
             // in the Branch
-            m_pOfvBintr->SetBatchSize(m_batchSize);
             if (!m_pOfvBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
@@ -731,8 +934,11 @@ namespace DSL
         // mutually exclusive with Demuxer
         if (m_pTilerBintr)
         {
-            // Link All Tiler Elementrs and add as the next component in the Branch
+            // propagate the link method an batch size to the Child Bintr
+            m_pTilerBintr->SetLinkMethod(m_linkMethod);
             m_pTilerBintr->SetBatchSize(m_batchSize);
+            
+            // Link All Tiler Elementrs and add as the next component in the Branch
             if (!m_pTilerBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
@@ -748,6 +954,8 @@ namespace DSL
         {
             for (auto const &imap: m_gstBintrsIndexed)
             {
+                // We don't set link-method or batch-size for custom components
+
                 // LinkAll GST Bin Elementrs and add as the next component in 
                 // the Branch.
                 if (!imap.second->LinkAll() or
@@ -765,8 +973,11 @@ namespace DSL
         
         if (m_pOsdBintr)
         {
-            // LinkAll Osd Elementrs and add as next component in the Branch
+            // propagate the link method and batch size to the Child Bintr
+            m_pOsdBintr->SetLinkMethod(m_linkMethod);
             m_pOsdBintr->SetBatchSize(m_batchSize);
+            
+            // LinkAll Osd Elementrs and add as next component in the Branch
             if (!m_pOsdBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
@@ -780,9 +991,12 @@ namespace DSL
 
         if (m_pDemuxerBintr)
         {
+            // propagate the link method and batch size to the Child Bintr
+            m_pDemuxerBintr->SetLinkMethod(m_linkMethod);
+            m_pDemuxerBintr->SetBatchSize(m_batchSize);
+            
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
             // component in the Pipeline
-            m_pDemuxerBintr->SetBatchSize(m_batchSize);
             if (!m_pDemuxerBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
@@ -796,9 +1010,12 @@ namespace DSL
 
         if (m_pSplitterBintr)
         {
-            // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
-            // component in the Pipeline
+            // propagate the link method and batch size to the Child Bintr
+            m_pSplitterBintr->SetLinkMethod(m_linkMethod);
             m_pSplitterBintr->SetBatchSize(m_batchSize);
+            
+            // Link All Splitter Elementrs and add as the next ** AND LAST ** 
+            // component in the Pipeline
             if (!m_pSplitterBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
@@ -813,9 +1030,12 @@ namespace DSL
         // mutually exclusive with Demuxer
         if (m_pMultiSinksBintr)
         {
-            // Link all Sinks and their elementrs and add as finale (tail) 
-            //components in the Branch
+            // propagate the link method and batch size to the Child Bintr
+            m_pMultiSinksBintr->SetLinkMethod(m_linkMethod);
             m_pMultiSinksBintr->SetBatchSize(m_batchSize);
+            
+            // Link all Sinks and their elementrs and add as finale (tail) 
+            // component in the Branch
             if (!m_pMultiSinksBintr->LinkAll() or
                 (m_linkedComponents.size() and 
                 !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
@@ -827,22 +1047,32 @@ namespace DSL
                 << m_pMultiSinksBintr->GetName() << "' successfully");
         }
         
-        // If instantiated as a true branch to be linked to a Demuxer/Remuxer/Splitter
-        if (!m_isPipeline)
-        {
-            // Link the input-queue (ghost-pad) to the first component
-            m_pBranchQueue->LinkToSink(m_linkedComponents.front());
-            
-            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
-            {
-                LOG_INFO("Adding ghost-pad to BranchBintr '" <<
-                    GetName() << "' for last ChildBintr '" << 
-                    m_linkedComponents.back()->GetName() << "'");
-                m_linkedComponents.back()->AddGhostPadToParent("src");
-            }
-            
-        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    bool BranchBintr::LinkAllOrdered()
+    {
+        LOG_FUNC();
         
+        for (auto const &imap: m_componentsIndexed)
+        {
+            // propagate the link method and batch size to the Child Bintr
+            imap.second->SetLinkMethod(m_linkMethod);
+            imap.second->SetBatchSize(m_batchSize);
+            
+            // LinkAll Elementrs and add as next component in the Branch
+            if (!imap.second->LinkAll() or
+                (m_linkedComponents.size() and 
+                !m_linkedComponents.back()->LinkToSink(imap.second)))
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(imap.second);
+            LOG_INFO("Branch '" << GetName() << "' Linked up Component '" 
+                << imap.second->GetName() << "' successfully");
+        }
+
         m_isLinked = true;
         return true;
     }
@@ -886,5 +1116,40 @@ namespace DSL
         m_isLinked = false;
     }
     
+    bool BranchBintr::AddChild(DSL_BASE_PTR pChild)
+    {
+        LOG_FUNC();
+
+        // Cast child to Bintr 
+        DSL_BINTR_PTR pChildBintr = std::dynamic_pointer_cast<Bintr>(pChild);
+
+        // increment next component index, and assign to the component
+        pChildBintr->SetIndex(BRANCH_COMPONENTS_KEY, ++m_nextComponentIndex);
+
+        // Add the shared pointer to the Indexed Components map and as a child  
+        m_componentsIndexed[m_nextComponentIndex] = pChildBintr; 
+        
+        // Call the base class to complete the add process
+        return GstNodetr::AddChild(pChildBintr);
+    }
+
+
+    bool BranchBintr::RemoveChild(DSL_BASE_PTR pChild)
+    {
+        LOG_FUNC();
+
+        // Cast child to Bintr 
+        DSL_BINTR_PTR pChildBintr = std::dynamic_pointer_cast<Bintr>(pChild);
+
+        // Erase the Child component from this Branch's indexed
+        // map of all components.
+        m_componentsIndexed.erase(pChildBintr->GetIndex(GetName()));
+
+        // Erase the Child's index
+        pChildBintr->EraseIndex(BRANCH_COMPONENTS_KEY);
+        
+        // Call the base class to complete the remove process
+        return GstNodetr::RemoveChild(pChildBintr);
+    }
 
 } // DSL

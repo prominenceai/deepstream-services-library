@@ -55,6 +55,7 @@ namespace DSL
             : GstNodetr(name)
             , m_isPipeline(isPipeline)
             , m_requestPadId(-1)
+            , m_linkMethod(DSL_PIPELINE_LINK_METHOD_DEFAULT)
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
@@ -81,6 +82,7 @@ namespace DSL
             : GstNodetr(name)
             , m_isPipeline(false)
             , m_requestPadId(-1)
+            , m_linkMethod(DSL_PIPELINE_LINK_METHOD_DEFAULT)
             , m_isLinked(false)
             , m_batchSize(0)
             , m_gpuId(0)
@@ -170,6 +172,30 @@ namespace DSL
          * a bintr type specific function to unlink all child elements.
          */
         virtual void UnlinkAll() = 0;
+        
+        /**
+         * @brief Returns the current link method for this bintr
+         * @return one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
+         * DSL_PIPELINE_LINK_COMPONENTS_BY_ORDER
+         */
+        uint GetLinkMethod()
+        {
+            LOG_FUNC();
+            
+            return m_linkMethod;
+        }
+        
+        /**
+         * @brief Sets the link method for this bintr to use
+         * @return one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
+         * DSL_PIPELINE_LINK_COMPONENTS_BY_ORDER
+         */
+        void SetLinkMethod(uint linkMethod)
+        {
+            LOG_FUNC();
+            
+            m_linkMethod = linkMethod;
+        }
         
         /**
          * @brief called to determine if a Bintr's Child Elementrs are Linked
@@ -469,6 +495,12 @@ namespace DSL
          */
         int m_requestPadId;
     
+        /**
+         * @brief one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
+         * DSL_PIPELINE_LINK_COMPONENTS_BY_ORDER
+         */
+        bool m_linkMethod;
+        
         /**
          * @brief current is-linked state for this Bintr
          */

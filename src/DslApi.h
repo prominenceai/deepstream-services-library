@@ -903,6 +903,10 @@ THE SOFTWARE.
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
 
+#define DSL_PIPELINE_LINK_METHOD_BY_POSITION                        0
+#define DSL_PIPELINE_LINK_METHOD_BY_ORDER                           1
+#define DSL_PIPELINE_LINK_METHOD_DEFAULT                            DSL_PIPELINE_LINK_METHOD_BY_POSITION
+
 #define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 

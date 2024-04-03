@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2021-2023, Prominence AI, Inc.
+Copyright (c) 2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -114,6 +114,15 @@ namespace DSL
         // add 'this' SegVisualBintr to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddSegVisualBintr(shared_from_this());
+    }
+
+    bool SegVisualBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' SegVisualBintr from the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            RemoveSegVisualBintr(shared_from_this());
     }
 
     void SegVisualBintr::GetDimensions(uint* width, uint* height)

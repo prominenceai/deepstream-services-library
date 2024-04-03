@@ -2,7 +2,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +65,12 @@ namespace DSL
          * @param[in] pParentBintr
          */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
+        
+        /**
+         * @brief Removes this OfvBintr from a Parent Pipline Bintr
+         * @param[in] pParentBintr
+         */
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
         /**
          * @brief Links all child elements of this OfvBintr

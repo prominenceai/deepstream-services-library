@@ -821,13 +821,26 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
             
         REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
 
         REQUIRE( pPipelineBintr->IsLinked() == false );
 
         WHEN( "The Pipeline is Linked with the Demuxer and Primary GIE" )
         {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_POSITION);
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+
+            THEN( "The Pipeline can be unlinked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+        WHEN( "The Pipeline is Linked with the Demuxer and Primary GIE" )
+        {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_ORDER);
             REQUIRE( pPipelineBintr->LinkAll() == true );
             REQUIRE( pPipelineBintr->IsLinked() == true );
 
