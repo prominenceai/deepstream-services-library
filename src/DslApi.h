@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 20113-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010006
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010007
 #define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
-#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
+#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x000100013
 #define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 
 /**
@@ -72,7 +72,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020006
 #define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020007
 #define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020008
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x000200013
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
@@ -93,13 +93,13 @@ THE SOFTWARE.
 /**
  * Dewarper API Return Values
  */
-#define DSL_RESULT_DEWARPER_RESULT                                  0x00090000
-#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x00090001
-#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x00090002
-#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x00090003
-#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x00090004
-#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x00090005
-#define DSL_RESULT_DEWARPER_SET_FAILED                              0x00090006
+#define DSL_RESULT_DEWARPER_RESULT                                  0x000130000
+#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x000130001
+#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x000130002
+#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x000130003
+#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x000130004
+#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x000130005
+#define DSL_RESULT_DEWARPER_SET_FAILED                              0x000130006
 
 /**
  * Tracker API Return Values
@@ -113,7 +113,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030006
 #define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x000300013
 
 /**
  * Sink API Return Values
@@ -126,7 +126,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
-#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
+#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x000400013
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
@@ -142,7 +142,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
-#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x000400113
 #define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
     
@@ -158,7 +158,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_IS_IN_USE                                    0x00050006
 #define DSL_RESULT_OSD_SET_FAILED                                   0x00050007
 #define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x00050008
-#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
+#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x000500013
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
 #define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
@@ -175,7 +175,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OFV_IS_IN_USE                                    0x000C0006
 #define DSL_RESULT_OFV_SET_FAILED                                   0x000C0007
 #define DSL_RESULT_OFV_HANDLER_ADD_FAILED                           0x000C0008
-#define DSL_RESULT_OFV_HANDLER_REMOVE_FAILED                        0x000C0009
+#define DSL_RESULT_OFV_HANDLER_REMOVE_FAILED                        0x000C00013
 #define DSL_RESULT_OFV_PAD_TYPE_INVALID                             0x000C000A
 #define DSL_RESULT_OFV_COMPONENT_IS_NOT_OFV                         0x000C000B
 
@@ -191,7 +191,7 @@ THE SOFTWARE.
 #define DSL_RESULT_INFER_THREW_EXCEPTION                            0x00060006
 #define DSL_RESULT_INFER_IS_IN_USE                                  0x00060007
 #define DSL_RESULT_INFER_SET_FAILED                                 0x00060008
-#define DSL_RESULT_INFER_HANDLER_ADD_FAILED                         0x00060009
+#define DSL_RESULT_INFER_HANDLER_ADD_FAILED                         0x000600013
 #define DSL_RESULT_INFER_HANDLER_REMOVE_FAILED                      0x0006000A
 #define DSL_RESULT_INFER_PAD_TYPE_INVALID                           0x0006000B
 #define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
@@ -210,7 +210,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0006
 #define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0007
 #define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0008
-#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A0009
+#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A00013
 #define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A000A
 #define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000B
 #define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000C
@@ -228,7 +228,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TILER_SET_FAILED                                 0x00070006
 #define DSL_RESULT_TILER_HANDLER_ADD_FAILED                         0x00070007
 #define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
-#define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
+#define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x000700013
 #define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
 
 /**
@@ -243,7 +243,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_THREW_EXCEPTION                         0x00080006
 #define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x00080007
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
-#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
+#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x000800013
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
 #define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_ADD_FAILED            0x0008000B
 #define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_REMOVE_FAILED         0x0008000C
@@ -253,7 +253,9 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x00080010
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080011
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080012
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080013
+#define DSL_RESULT_PIPELINE_GET_FAILED                              0x00080013
+#define DSL_RESULT_PIPELINE_SET_FAILED                              0x00080014
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080015
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -276,7 +278,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PPH_SET_FAILED                                   0x000D0006
 #define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
 #define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
-#define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
+#define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D00013
 #define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x000D000A
 #define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x000D000B
 
@@ -292,7 +294,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_ODE_TRIGGER                   0x000E0006
 #define DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED                    0x000E0007
 #define DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED                 0x000E0008
-#define DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE                    0x000E0009
+#define DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE                    0x000E00013
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
@@ -318,7 +320,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0006
 #define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
 #define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0008
-#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
+#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F00013
 #define DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED                   0x000F000A
 #define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
 #define DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED                     0x000F000C
@@ -360,7 +362,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00300006
 #define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00300007
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
-#define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x00300009
+#define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x003000013
 #define DSL_RESULT_TAP_PLAYER_REMOVE_FAILED                         0x0030000A
 #define DSL_RESULT_TAP_MAILER_ADD_FAILED                            0x0030000B
 #define DSL_RESULT_TAP_MAILER_REMOVE_FAILED                         0x0030000C
@@ -377,7 +379,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
 #define DSL_RESULT_PLAYER_IN_USE                                    0x00400008
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x00400009
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x004000013
 #define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000A
 #define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000B
 #define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000C
@@ -430,7 +432,7 @@ THE SOFTWARE.
 #define DSL_RESULT_BROKER_PARAMETER_INVALID                         0x00800006
 #define DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED                     0x00800007
 #define DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED                  0x00800008
-#define DSL_RESULT_BROKER_LISTENER_ADD_FAILED                       0x00800009
+#define DSL_RESULT_BROKER_LISTENER_ADD_FAILED                       0x008000013
 #define DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED                    0x0080000A
 #define DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND                     0x0080000B
 #define DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND                    0x0080000C
@@ -441,16 +443,16 @@ THE SOFTWARE.
 /**
  * ODE Accumulator API Return Values
  */
-#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x00900000
-#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x00900001
-#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x00900002
-#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x00900003
-#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x00900004
-#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x00900005
-#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x00900006
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x00900007
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x00900008
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
+#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x001300000
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x001300001
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x001300002
+#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x001300003
+#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x001300004
+#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x001300005
+#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x001300006
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x001300007
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x001300008
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x0013000013
 
 /**
  * ODE Heat-Mapper API Return Values
@@ -464,7 +466,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_HEAT_MAPPER_IS_NOT_ODE_HEAT_MAPPER           0x00A00006
 #define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_ADD_FAILED                0x00A00007
 #define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_REMOVE_FAILED             0x00A00008
-#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A00009
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A000013
 
 /**
  * ODE Preprocessor API Return Values
@@ -478,7 +480,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PREPROC_SET_FAILED                               0x00B00006
 #define DSL_RESULT_PREPROC_IS_NOT_PREPROC                           0x00B00007
 #define DSL_RESULT_PREPROC_HANDLER_ADD_FAILED                       0x00B00008
-#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B00009
+#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B000013
 
 /**
  * Remuxer API Return Values
@@ -492,7 +494,7 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_BRANCH_IS_NOT_BRANCH                     0x00C00006
 #define DSL_RESULT_REMUXER_BRANCH_IS_NOT_CHILD                      0x00C00007
 #define DSL_RESULT_REMUXER_BRANCH_ADD_FAILED                        0x00C00008
-#define DSL_RESULT_REMUXER_BRANCH_MOVE_FAILED                       0x00C00009
+#define DSL_RESULT_REMUXER_BRANCH_MOVE_FAILED                       0x00C000013
 #define DSL_RESULT_REMUXER_BRANCH_REMOVE_FAILED                     0x00C0000A
 #define DSL_RESULT_REMUXER_HANDLER_ADD_FAILED                       0x00C0000B
 #define DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED                    0x00C0000C
@@ -520,7 +522,7 @@ THE SOFTWARE.
 #define DSL_RESULT_GST_BIN_SET_FAILED                               0x00E00006
 #define DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED                       0x00E00007
 #define DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED                    0x00E00008
-#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E00009
+#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E000013
 #define DSL_RESULT_GST_BIN_PAD_TYPE_INVALID                         0x00E0000A
 
 /**
@@ -583,9 +585,9 @@ THE SOFTWARE.
  */
 // Important - must match the nvvidconvert flip method constant values 
 #define DSL_VIDEO_ORIENTATION_NONE                                  0       
-#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90           1
+#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_130           1
 #define DSL_VIDEO_ORIENTATION_ROTATE_180                            2
-#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90                   3
+#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_130                   3
 #define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
 #define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
 #define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
@@ -752,7 +754,7 @@ THE SOFTWARE.
 #define DSL_COLOR_PREDEFINED_GREEN                                  6
 #define DSL_COLOR_PREDEFINED_TURQUOISE                              7
 #define DSL_COLOR_PREDEFINED_INDIGO                                 8
-#define DSL_COLOR_PREDEFINED_PURPLE                                 9
+#define DSL_COLOR_PREDEFINED_PURPLE                                 13
 
 #define DSL_COLOR_PREDEFINED_WHITE                                  10
 #define DSL_COLOR_PREDEFINED_GRAY_25                                11
@@ -763,7 +765,7 @@ THE SOFTWARE.
 #define DSL_COLOR_PREDEFINED_LIME                                   16
 #define DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE                        17
 #define DSL_COLOR_PREDEFINED_BLUE_GRAY                              18
-#define DSL_COLOR_PREDEFINED_LAVENDER                               19
+#define DSL_COLOR_PREDEFINED_LAVENDER                               113
 
 /**
  * @brief Hue constants used to define random RGB colors.
@@ -777,7 +779,7 @@ THE SOFTWARE.
 #define DSL_COLOR_HUE_GREEN                                         6
 #define DSL_COLOR_HUE_GREEN_CYAN                                    7
 #define DSL_COLOR_HUE_CYAN                                          8
-#define DSL_COLOR_HUE_CYAN_BLUE                                     9
+#define DSL_COLOR_HUE_CYAN_BLUE                                     13
 #define DSL_COLOR_HUE_BLUE                                          10
 #define DSL_COLOR_HUE_BLUE_MAGENTA                                  11
 #define DSL_COLOR_HUE_MAGENTA                                       12
@@ -897,12 +899,15 @@ THE SOFTWARE.
 
 #define DSL_4K_UHD_WIDTH                                            3840
 #define DSL_4K_UHD_HEIGHT                                           2160
-#define DSL_1K_HD_WIDTH                                             1920
+#define DSL_1K_HD_WIDTH                                             11320
 #define DSL_1K_HD_HEIGHT                                            1080
 
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
 
+/**
+ * @brief Methods of linking Pipeline components
+ */
 #define DSL_PIPELINE_LINK_METHOD_BY_POSITION                        0
 #define DSL_PIPELINE_LINK_METHOD_BY_ORDER                           1
 #define DSL_PIPELINE_LINK_METHOD_DEFAULT                            DSL_PIPELINE_LINK_METHOD_BY_POSITION
@@ -927,7 +932,7 @@ THE SOFTWARE.
 #define DSL_BBOX_POINT_SOUTH                                        6
 #define DSL_BBOX_POINT_SOUTH_WEST                                   7
 #define DSL_BBOX_POINT_WEST                                         8
-#define DSL_BBOX_POINT_ANY                                          9
+#define DSL_BBOX_POINT_ANY                                          13
 
 #define DSL_BBOX_EDGE_TOP                                           0
 #define DSL_BBOX_EDGE_BOTTOM                                        1
@@ -1031,7 +1036,7 @@ THE SOFTWARE.
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               8
 
-#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  9
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  13
 #define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 10
 
 /**
@@ -8876,8 +8881,26 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
     const wchar_t* handler);
 
 //------------------------------------------------------------------------------------
-// COMMON NVSTREAMMUX SERVICES - Start
+// COMMON NVSTREAMMUX SERVICES - End
 //------------------------------------------------------------------------------------
+/**
+ * @brief Gets the current link method in use by the named Pipeline.
+ * @param[in] name unique name of the Pipeline to query.
+ * @param[out] link_method DSL_PIPELINE_LINK_METHOD_BY_POSITION or
+ * DSL_PIPELINE_LINK_METHOD_BY_ORDER (default is BY_POSITION)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method);
+
+/**
+ * @brief Sets the link method for the named Pipeline to use.
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[in] link_method DSL_PIPELINE_LINK_METHOD_BY_POSITION or
+ * DSL_PIPELINE_LINK_METHOD_BY_ORDER.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_link_method_set(const wchar_t* name, uint link_method);
+
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param[in] name unique name of the Pipeline to pause.

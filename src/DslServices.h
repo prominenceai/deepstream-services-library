@@ -1799,6 +1799,10 @@ namespace DSL {
         DslReturnType PipelineStreammuxPphRemove(const char* name, 
             const char* handler);
         
+        DslReturnType PipelineLinkMethodGet(const char* name, uint* linkMethod);
+        
+        DslReturnType PipelineLinkMethodSet(const char* name, uint linkMethod);
+        
         DslReturnType PipelinePause(const char* name);
         
         DslReturnType PipelinePlay(const char* name);
@@ -2151,7 +2155,7 @@ namespace DSL {
         /**
          * @brief map of all pipelines creaated by the client, key=name
          */
-        std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
+        std::map <std::string, DSL_PIPELINE_PTR> m_pipelines;
         
         /**
          * @brief map of all players creaated by the client, key=name

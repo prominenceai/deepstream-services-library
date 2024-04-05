@@ -496,8 +496,8 @@ namespace DSL
         int m_requestPadId;
     
         /**
-         * @brief one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
-         * DSL_PIPELINE_LINK_COMPONENTS_BY_ORDER
+         * @brief one of DSL_PIPELINE_LINK_METHOD_BY_POSITION or
+         * DSL_PIPELINE_LINK_METHOD_BY_ORDER
          */
         bool m_linkMethod;
         

@@ -10196,6 +10196,29 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
         cstrHandler.c_str());
 }
  
+DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(link_method);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineLinkMethodGet(cstrName.c_str(),
+        link_method);
+}
+
+DslReturnType dsl_pipeline_link_method_set(const wchar_t* name, uint link_method)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineLinkMethodSet(cstrName.c_str(),
+        link_method);
+}
+
 DslReturnType dsl_pipeline_pause(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);

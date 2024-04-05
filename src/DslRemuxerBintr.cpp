@@ -765,7 +765,6 @@ namespace DSL
         uint i(1);
         for (auto const& imap: m_childBranches)
         {
-            
             if (UseNewStreammux())
             {
                 if (!imap.second->SetBatchSize(m_batchSize))
@@ -783,10 +782,12 @@ namespace DSL
                     return false;
                 }                
             }
-
+            // Propagate the current link-method to each child branch
+            imap.second->SetLinkMethod(m_linkMethod);
+                
             std::string sinkPadName = "sink_" + std::to_string(i++);
             
-            // Linkup all child branches
+            // Linkup each child branch
             if (!imap.second->LinkAll() or
                 !imap.second->LinkToSourceTees(m_tees) or
                 !imap.second->LinkToSinkMuxer(m_pMetamuxer, sinkPadName.c_str()))

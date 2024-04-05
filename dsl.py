@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c)  2019 - 2024, Prominence AI, Inc.
+# Copyright (c)  2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,9 @@ DSL_4K_UHD_WIDTH  = 3840
 DSL_4K_UHD_HEIGHT = 2160
 DSL_1K_HD_WIDTH   = 1920
 DSL_1K_HD_HEIGHT  = 1080
+
+DSL_PIPELINE_LINK_METHOD_BY_POSITION = 0
+DSL_PIPELINE_LINK_METHOD_BY_ORDER = 1
 
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
@@ -7626,6 +7629,27 @@ _dsl.dsl_pipeline_streammux_pph_remove.restype = c_uint
 def dsl_pipeline_streammux_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_pph_remove(name, handler)
+    return int(result)
+
+##
+## dsl_pipeline_link_method_get()
+##
+_dsl.dsl_pipeline_link_method_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pipeline_link_method_get.restype = c_uint
+def dsl_pipeline_link_method_get(name):
+    global _dsl
+    link_method = c_uint(0)
+    result =_dsl.dsl_pipeline_link_method_get(name, DSL_UINT_P(link_method))
+    return int(result), link_method.value
+
+##
+## dsl_pipeline_link_method_set()
+##
+_dsl.dsl_pipeline_link_method_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_link_method_set.restype = c_uint
+def dsl_pipeline_link_method_set(name, link_method):
+    global _dsl
+    result =_dsl.dsl_pipeline_link_method_set(name, link_method)
     return int(result)
 
 ##

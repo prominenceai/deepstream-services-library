@@ -136,6 +136,35 @@ SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Win
 
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_POSITION) == DSL_RESULT_SUCCESS );
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+        WHEN( "When the Pipeline is assembled" ) 
+        {
+            const wchar_t* components[] = {
+                source_name1.c_str(), source_name2.c_str(), 
+                remuxer_name.c_str(), tiler_name1.c_str(), osd_name1.c_str(),
+                sink_name1.c_str(), NULL};
+            
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 
@@ -228,6 +257,37 @@ stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
 
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_POSITION) == DSL_RESULT_SUCCESS );
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), L"state-playing");
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+        WHEN( "When the Pipeline is assembled" ) 
+        {
+            const wchar_t* components[] = {
+                source_name1.c_str(), source_name2.c_str(), 
+                remuxer_name.c_str(), tiler_name1.c_str(), osd_name1.c_str(),
+                sink_name1.c_str(), NULL};
+            
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 
@@ -352,6 +412,38 @@ stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
 
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_POSITION) == DSL_RESULT_SUCCESS );
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_pipeline_dump_to_dot(pipeline_name.c_str(), L"state-playing");
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+            }
+        }
+        WHEN( "When the Pipeline is assembled" ) 
+        {
+            const wchar_t* components[] = {
+                source_name1.c_str(), source_name2.c_str(), 
+                source_name3.c_str(), source_name4.c_str(), 
+                remuxer_name.c_str(), tiler_name1.c_str(), osd_name1.c_str(),
+                sink_name1.c_str(), NULL};
+            
+            REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "The Pipeline is able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_POSITION) == DSL_RESULT_SUCCESS );
+                
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
 

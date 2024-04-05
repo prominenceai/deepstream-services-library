@@ -786,6 +786,8 @@ namespace DSL
     {
         LOG_FUNC();
         
+        LOG_INFO("Linking '" << GetName() << "' by position");
+            
         if (m_pRemuxerBintr)
         {
             // propagate the link method an batch size to all child branches 
@@ -1054,6 +1056,8 @@ namespace DSL
     bool BranchBintr::LinkAllOrdered()
     {
         LOG_FUNC();
+        
+        LOG_INFO("Linking '" << GetName() << "' by order");
         
         for (auto const &imap: m_componentsIndexed)
         {
