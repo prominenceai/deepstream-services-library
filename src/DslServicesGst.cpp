@@ -46,6 +46,7 @@ namespace DSL
         try
         {
             m_gstElements[name] = DSL_ELEMENT_NEW(factoryName, name);
+            m_gstElements[name]->AddPadProbes();
         }
         catch(...)
         {
@@ -507,6 +508,85 @@ namespace DSL
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
     }
+    
+    DslReturnType Services::GstElementPphAdd(const char* name, 
+        const char* handler, uint pad)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for GST Element '" 
+                    << name << "'");
+                return DSL_RESULT_PPH_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to add itself to the GST Element as 
+            // a PadProbeHandler
+            if (!m_padProbeHandlers[handler]->AddToParent(m_gstElements[name], pad))
+            {
+                LOG_ERROR("GST Element '" << name 
+                    << "' failed to add Pad Probe Handler");
+                return DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler 
+                << "' added to GST Element '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name 
+                << "' threw an exception adding Pad Probe Handler");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+   
+    DslReturnType Services::GstElementPphRemove(const char* name, 
+        const char* handler, uint pad) 
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
+
+            if (pad > DSL_PAD_SRC)
+            {
+                LOG_ERROR("Invalid Pad type = " << pad << " for GST Element '" 
+                    << name << "'");
+                return DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID;
+            }
+
+            // call on the Handler to remove itself from the GST Element
+            if (!m_padProbeHandlers[handler]->RemoveFromParent(m_gstElements[name], 
+                pad))
+            {
+                LOG_ERROR("Pad Probe Handler '" << handler 
+                    << "' is not a child of GST Element '" << name << "'");
+                return DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED;
+            }
+            LOG_INFO("Pad Probe Handler '" << handler 
+                << "' removed from GST Element '" << name << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name 
+                << "' threw an exception removing ODE Handle");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::GstBinNew(const char* name)
     {
         LOG_FUNC();

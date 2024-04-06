@@ -739,6 +739,12 @@ namespace DSL {
         DslReturnType GstElementPropertyStringSet(const char* name, 
             const char* property, const char* value);
    
+        DslReturnType GstElementPphAdd(const char* name, 
+            const char* handler, uint pad);
+
+        DslReturnType GstElementPphRemove(const char* name, 
+            const char* handler, uint pad);
+            
         DslReturnType GstBinNew(const char* name);
         
         DslReturnType GstBinElementAdd(const char* name, const char* element);

@@ -308,6 +308,116 @@ SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-elemen
     }
 }
 
+static boolean pad_probe_handler_cb1(void* buffer, void* user_data)
+{
+    return true;
+}
+static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
+{
+    return true;
+}    
+SCENARIO( "A Sink Pad Probe Handler can be added and removed from a GST Element", 
+    "[gst-element-api]" )
+{
+    GIVEN( "A new GST Element and Custom PPH" ) 
+    {
+        std::wstring element_name(L"element");
+        std::wstring factory_name(L"queue");
+
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_gst_element_new(element_name.c_str(),
+            factory_name.c_str()) == DSL_RESULT_SUCCESS );
+ 
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), 
+            pad_probe_handler_cb1, NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Sink Pad Probe Handler is added to the GST Element" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_gst_element_pph_remove(element_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED );
+
+            REQUIRE(  dsl_gst_element_pph_add(element_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_gst_element_pph_remove(element_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Sink Pad Probe Handler is added to the GST Element" ) 
+        {
+            REQUIRE(  dsl_gst_element_pph_add(element_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Sink Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE(  dsl_gst_element_pph_add(element_name.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SINK) == DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_gst_element_pph_remove(element_name.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SINK) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Source Pad Probe Handler can be added and removed from a GST Element", 
+    "[gst-element-api]" )
+{
+    GIVEN( "A new GST Element and Custom PPH" ) 
+    {
+        std::wstring element_name(L"element");
+        std::wstring factory_name(L"queue");
+
+        std::wstring customPpmName(L"custom-ppm");
+
+        REQUIRE( dsl_gst_element_new(element_name.c_str(),
+            factory_name.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pph_custom_new(customPpmName.c_str(), pad_probe_handler_cb1, 
+            NULL) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A Source Pad Probe Handler is added to the GST Element" ) 
+        {
+            // Test the remove failure case first, prior to adding the handler
+            REQUIRE( dsl_gst_element_pph_remove(element_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED );
+
+            REQUIRE(  dsl_gst_element_pph_add(element_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Padd Probe Handler can then be removed" ) 
+            {
+                REQUIRE( dsl_gst_element_pph_remove(element_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+        WHEN( "A Source Pad Probe Handler is added to the GST Element" ) 
+        {
+            REQUIRE(  dsl_gst_element_pph_add(element_name.c_str(), customPpmName.c_str(), 
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+            
+            THEN( "Attempting to add the same Source Pad Probe Handler twice failes" ) 
+            {
+                REQUIRE(  dsl_gst_element_pph_add(element_name.c_str(), customPpmName.c_str(), 
+                    DSL_PAD_SRC) == DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED );
+                REQUIRE( dsl_gst_element_pph_remove(element_name.c_str(), 
+                    customPpmName.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Element API checks for NULL input parameters", "[gst-element-api]" )
 {
     GIVEN( "An empty list of Components" ) 

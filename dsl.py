@@ -3312,6 +3312,26 @@ def dsl_gst_element_property_string_set(name, property, value):
     return int(result)
 
 ##
+## dsl_gst_element_pph_add()
+##
+_dsl.dsl_gst_element_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_gst_element_pph_add.restype = c_uint
+def dsl_gst_element_pph_add(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_gst_element_pph_add(name, handler, pad)
+    return int(result)
+
+##
+## dsl_gst_element_pph_remove()
+##
+_dsl.dsl_gst_element_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_gst_element_pph_remove.restype = c_uint
+def dsl_gst_element_pph_remove(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_gst_element_pph_remove(name, handler, pad)
+    return int(result)
+
+##
 ## dsl_gst_bin_new()
 ##
 _dsl.dsl_gst_bin_new.argtypes = [c_wchar_p]

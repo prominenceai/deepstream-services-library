@@ -105,6 +105,14 @@ namespace DSL
             LOG_FUNC();
         };
 
+        /**
+         * @brief Adds the Sink and Src Pad Probes to this GST Element
+         */
+        void AddPadProbes()
+        {
+            AddSinkPadProbes(GetGstElement());
+            AddSrcPadProbes(GetGstElement());
+        }
 
         /**
          * @brief Gets a GST Element's attribute of type float, 

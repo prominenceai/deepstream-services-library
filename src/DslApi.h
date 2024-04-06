@@ -57,7 +57,7 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_PIPELINE                   0x00010006
 #define DSL_RESULT_COMPONENT_NOT_USED_BY_BRANCH                     0x00010007
 #define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
-#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x000100013
+#define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
 #define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 
 /**
@@ -72,7 +72,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_FILE_NOT_FOUND                            0x00020006
 #define DSL_RESULT_SOURCE_NOT_IN_USE                                0x00020007
 #define DSL_RESULT_SOURCE_NOT_IN_PLAY                               0x00020008
-#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x000200013
+#define DSL_RESULT_SOURCE_NOT_IN_PAUSE                              0x00020009
 #define DSL_RESULT_SOURCE_FAILED_TO_CHANGE_STATE                    0x0002000A
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
 #define DSL_RESULT_SOURCE_CODEC_PARSER_INVALID                      0x0002000B
@@ -113,7 +113,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TRACKER_IS_IN_USE                                0x00030006
 #define DSL_RESULT_TRACKER_SET_FAILED                               0x00030007
 #define DSL_RESULT_TRACKER_HANDLER_ADD_FAILED                       0x00030008
-#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x000300013
+#define DSL_RESULT_TRACKER_HANDLER_REMOVE_FAILED                    0x00030009
 
 /**
  * Sink API Return Values
@@ -126,7 +126,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
-#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x000400013
+#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
@@ -142,7 +142,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
 #define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
-#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x000400113
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
 #define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
     
@@ -158,7 +158,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OSD_IS_IN_USE                                    0x00050006
 #define DSL_RESULT_OSD_SET_FAILED                                   0x00050007
 #define DSL_RESULT_OSD_HANDLER_ADD_FAILED                           0x00050008
-#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x000500013
+#define DSL_RESULT_OSD_HANDLER_REMOVE_FAILED                        0x00050009
 #define DSL_RESULT_OSD_PAD_TYPE_INVALID                             0x0005000A
 #define DSL_RESULT_OSD_COMPONENT_IS_NOT_OSD                         0x0005000B
 #define DSL_RESULT_OSD_COLOR_PARAM_INVALID                          0x0005000C
@@ -175,7 +175,7 @@ THE SOFTWARE.
 #define DSL_RESULT_OFV_IS_IN_USE                                    0x000C0006
 #define DSL_RESULT_OFV_SET_FAILED                                   0x000C0007
 #define DSL_RESULT_OFV_HANDLER_ADD_FAILED                           0x000C0008
-#define DSL_RESULT_OFV_HANDLER_REMOVE_FAILED                        0x000C00013
+#define DSL_RESULT_OFV_HANDLER_REMOVE_FAILED                        0x000C0009
 #define DSL_RESULT_OFV_PAD_TYPE_INVALID                             0x000C000A
 #define DSL_RESULT_OFV_COMPONENT_IS_NOT_OFV                         0x000C000B
 
@@ -191,7 +191,7 @@ THE SOFTWARE.
 #define DSL_RESULT_INFER_THREW_EXCEPTION                            0x00060006
 #define DSL_RESULT_INFER_IS_IN_USE                                  0x00060007
 #define DSL_RESULT_INFER_SET_FAILED                                 0x00060008
-#define DSL_RESULT_INFER_HANDLER_ADD_FAILED                         0x000600013
+#define DSL_RESULT_INFER_HANDLER_ADD_FAILED                         0x00060009
 #define DSL_RESULT_INFER_HANDLER_REMOVE_FAILED                      0x0006000A
 #define DSL_RESULT_INFER_PAD_TYPE_INVALID                           0x0006000B
 #define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
@@ -210,7 +210,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TEE_BRANCH_IS_NOT_BRANCH                         0x000A0006
 #define DSL_RESULT_TEE_BRANCH_IS_NOT_CHILD                          0x000A0007
 #define DSL_RESULT_TEE_BRANCH_ADD_FAILED                            0x000A0008
-#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A00013
+#define DSL_RESULT_TEE_BRANCH_MOVE_FAILED                           0x000A0009
 #define DSL_RESULT_TEE_BRANCH_REMOVE_FAILED                         0x000A000A
 #define DSL_RESULT_TEE_HANDLER_ADD_FAILED                           0x000A000B
 #define DSL_RESULT_TEE_HANDLER_REMOVE_FAILED                        0x000A000C
@@ -228,7 +228,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TILER_SET_FAILED                                 0x00070006
 #define DSL_RESULT_TILER_HANDLER_ADD_FAILED                         0x00070007
 #define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
-#define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x000700013
+#define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
 #define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
 
 /**
@@ -243,7 +243,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_THREW_EXCEPTION                         0x00080006
 #define DSL_RESULT_PIPELINE_COMPONENT_ADD_FAILED                    0x00080007
 #define DSL_RESULT_PIPELINE_COMPONENT_REMOVE_FAILED                 0x00080008
-#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x000800013
+#define DSL_RESULT_PIPELINE_STREAMMUX_GET_FAILED                    0x00080009
 #define DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED                    0x0008000A
 #define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_ADD_FAILED            0x0008000B
 #define DSL_RESULT_PIPELINE_STREAMMUX_HANDLER_REMOVE_FAILED         0x0008000C
@@ -278,7 +278,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PPH_SET_FAILED                                   0x000D0006
 #define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
 #define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
-#define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D00013
+#define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
 #define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x000D000A
 #define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x000D000B
 
@@ -294,7 +294,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_ODE_TRIGGER                   0x000E0006
 #define DSL_RESULT_ODE_TRIGGER_ACTION_ADD_FAILED                    0x000E0007
 #define DSL_RESULT_ODE_TRIGGER_ACTION_REMOVE_FAILED                 0x000E0008
-#define DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE                    0x000E00013
+#define DSL_RESULT_ODE_TRIGGER_ACTION_NOT_IN_USE                    0x000E0009
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
@@ -320,7 +320,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACTION_SET_FAILED                            0x000F0006
 #define DSL_RESULT_ODE_ACTION_IS_NOT_ACTION                         0x000F0007
 #define DSL_RESULT_ODE_ACTION_FILE_PATH_NOT_FOUND                   0x000F0008
-#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F00013
+#define DSL_RESULT_ODE_ACTION_NOT_THE_CORRECT_TYPE                  0x000F0009
 #define DSL_RESULT_ODE_ACTION_CALLBACK_ADD_FAILED                   0x000F000A
 #define DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED                0x000F000B
 #define DSL_RESULT_ODE_ACTION_PLAYER_ADD_FAILED                     0x000F000C
@@ -362,7 +362,7 @@ THE SOFTWARE.
 #define DSL_RESULT_TAP_COMPONENT_IS_NOT_TAP                         0x00300006
 #define DSL_RESULT_TAP_FILE_PATH_NOT_FOUND                          0x00300007
 #define DSL_RESULT_TAP_CONTAINER_VALUE_INVALID                      0x00300008
-#define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x003000013
+#define DSL_RESULT_TAP_PLAYER_ADD_FAILED                            0x00300009
 #define DSL_RESULT_TAP_PLAYER_REMOVE_FAILED                         0x0030000A
 #define DSL_RESULT_TAP_MAILER_ADD_FAILED                            0x0030000B
 #define DSL_RESULT_TAP_MAILER_REMOVE_FAILED                         0x0030000C
@@ -379,7 +379,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PLAYER_IS_NOT_VIDEO_PLAYER                       0x00400006
 #define DSL_RESULT_PLAYER_THREW_EXCEPTION                           0x00400007
 #define DSL_RESULT_PLAYER_IN_USE                                    0x00400008
-#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x004000013
+#define DSL_RESULT_PLAYER_CALLBACK_ADD_FAILED                       0x00400009
 #define DSL_RESULT_PLAYER_CALLBACK_REMOVE_FAILED                    0x0040000A
 #define DSL_RESULT_PLAYER_FAILED_TO_PLAY                            0x0040000B
 #define DSL_RESULT_PLAYER_FAILED_TO_PAUSE                           0x0040000C
@@ -432,7 +432,7 @@ THE SOFTWARE.
 #define DSL_RESULT_BROKER_PARAMETER_INVALID                         0x00800006
 #define DSL_RESULT_BROKER_SUBSCRIBER_ADD_FAILED                     0x00800007
 #define DSL_RESULT_BROKER_SUBSCRIBER_REMOVE_FAILED                  0x00800008
-#define DSL_RESULT_BROKER_LISTENER_ADD_FAILED                       0x008000013
+#define DSL_RESULT_BROKER_LISTENER_ADD_FAILED                       0x00800009
 #define DSL_RESULT_BROKER_LISTENER_REMOVE_FAILED                    0x0080000A
 #define DSL_RESULT_BROKER_CONFIG_FILE_NOT_FOUND                     0x0080000B
 #define DSL_RESULT_BROKER_PROTOCOL_LIB_NOT_FOUND                    0x0080000C
@@ -452,7 +452,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x001300006
 #define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x001300007
 #define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x001300008
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x0013000013
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x001300009
 
 /**
  * ODE Heat-Mapper API Return Values
@@ -466,7 +466,7 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_HEAT_MAPPER_IS_NOT_ODE_HEAT_MAPPER           0x00A00006
 #define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_ADD_FAILED                0x00A00007
 #define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_REMOVE_FAILED             0x00A00008
-#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A000013
+#define DSL_RESULT_ODE_HEAT_MAPPER_ACTION_NOT_IN_USE                0x00A00009
 
 /**
  * ODE Preprocessor API Return Values
@@ -480,7 +480,7 @@ THE SOFTWARE.
 #define DSL_RESULT_PREPROC_SET_FAILED                               0x00B00006
 #define DSL_RESULT_PREPROC_IS_NOT_PREPROC                           0x00B00007
 #define DSL_RESULT_PREPROC_HANDLER_ADD_FAILED                       0x00B00008
-#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B000013
+#define DSL_RESULT_PREPROC_HANDLER_REMOVE_FAILED                    0x00B00009
 
 /**
  * Remuxer API Return Values
@@ -494,7 +494,7 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_BRANCH_IS_NOT_BRANCH                     0x00C00006
 #define DSL_RESULT_REMUXER_BRANCH_IS_NOT_CHILD                      0x00C00007
 #define DSL_RESULT_REMUXER_BRANCH_ADD_FAILED                        0x00C00008
-#define DSL_RESULT_REMUXER_BRANCH_MOVE_FAILED                       0x00C000013
+#define DSL_RESULT_REMUXER_BRANCH_MOVE_FAILED                       0x00C00009
 #define DSL_RESULT_REMUXER_BRANCH_REMOVE_FAILED                     0x00C0000A
 #define DSL_RESULT_REMUXER_HANDLER_ADD_FAILED                       0x00C0000B
 #define DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED                    0x00C0000C
@@ -509,6 +509,9 @@ THE SOFTWARE.
 #define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
 #define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
 #define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
+#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00D00006
+#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00D00007
+#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00D00008
 
 /**
  * GStreamer Bin API Return Values
@@ -522,8 +525,7 @@ THE SOFTWARE.
 #define DSL_RESULT_GST_BIN_SET_FAILED                               0x00E00006
 #define DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED                       0x00E00007
 #define DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED                    0x00E00008
-#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E000013
-#define DSL_RESULT_GST_BIN_PAD_TYPE_INVALID                         0x00E0000A
+#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E00009
 
 /**
  * GPU Types
@@ -4636,6 +4638,27 @@ DslReturnType dsl_gst_element_property_string_get(const wchar_t* name,
 DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
     const wchar_t* property, const wchar_t* value);
     
+/**
+ * @brief Adds a pad-probe-handler to a named GStreamer Element.
+ * A GStreamer Element can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the GStreamer Element to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from a named GStreamer Element.
+ * @param[in] name unique name of the GStreamer Element to update
+ * @param[in] handler pad-probe-handler to remove
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+    
 
 /**
  * @brief creates a new, uniquely named GStreamer Bin
@@ -4688,27 +4711,6 @@ DslReturnType dsl_gst_bin_element_remove(const wchar_t* name,
  */
 DslReturnType dsl_gst_bin_element_remove_many(const wchar_t* name, 
     const wchar_t** components);
-    
-/**
- * @brief Adds a pad-probe-handler to a named GStreamer Bin.
- * A GStreamer Bin can have multiple Sink and Source pad-probe-handlers
- * @param[in] name unique name of the GStreamer Bin to update
- * @param[in] handler callback function to process pad probe data
- * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_pph_add(const wchar_t* name, 
-    const wchar_t* handler, uint pad);
-
-/**
- * @brief Removes a pad-probe-handler from a named GStreamer Bin.
- * @param[in] name unique name of the GStreamer Bin to update
- * @param[in] handler pad-probe-handler to remove
- * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_pph_remove(const wchar_t* name, 
-    const wchar_t* handler, uint pad);
     
 /**
  * @brief Creates a new, uniquely named App Source component to insert data 

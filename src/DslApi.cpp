@@ -4009,6 +4009,36 @@ DslReturnType dsl_gst_element_property_string_set(const wchar_t* name,
         cstrName.c_str(), cstrProperty.c_str(), cstrValue.c_str());
 }
     
+DslReturnType dsl_gst_element_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->GstElementPphAdd(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
+}
+
+DslReturnType dsl_gst_element_pph_remove(const wchar_t* name,
+    const wchar_t* handler, uint pad)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrHandler(handler);
+    std::string cstrHandler(wstrHandler.begin(), wstrHandler.end());
+    
+    return DSL::Services::GetServices()->GstElementPphRemove(cstrName.c_str(), 
+        cstrHandler.c_str(), pad);
+}
+
 DslReturnType dsl_gst_bin_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
