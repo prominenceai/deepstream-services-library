@@ -72,8 +72,8 @@ namespace DSL
         m_pPreproc->AddGhostPadToParent("src");
         
         // Add the Buffer and DS Event probes to the preprocessor element.
-        AddSinkPadProbes(m_pPreproc);
-        AddSrcPadProbes(m_pPreproc);
+        AddSinkPadProbes(m_pPreproc->GetGstElement());
+        AddSrcPadProbes(m_pPreproc->GetGstElement());
     }    
     
     PreprocBintr::~PreprocBintr()

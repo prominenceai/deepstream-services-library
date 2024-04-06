@@ -196,7 +196,7 @@ namespace DSL
         m_pSourceQueue->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
-        AddSrcPadProbes(m_pSourceQueue);
+        AddSrcPadProbes(m_pSourceQueue->GetGstElement());
     }
     
     VideoSourceBintr::~VideoSourceBintr()

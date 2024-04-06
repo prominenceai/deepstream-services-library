@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslPadProbeHandler.h"
-#include "DslBase.h"
+#include "DslOdeTrigger.h"
 #include "DslBintr.h"
 #include <gst-nvevent.h>
 
@@ -1034,11 +1034,11 @@ for Buffer Timer PPH '" << GetName() << "'");
     //--------------------------------------------------------------------------------
 
     PadProbetr::PadProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement, 
+        const char* factoryName, GstElement* parentElement, 
         GstPadProbeType padProbeType)
         : Base(name)
         , m_factoryName(factoryName)
-        , m_pParentGstElement(parentElement->GetGstElement())
+        , m_pParentGstElement(parentElement)
         , m_padProbeId(0)
         , m_padProbeType(padProbeType)
         , m_pStaticPad(NULL)
@@ -1131,7 +1131,7 @@ for Buffer Timer PPH '" << GetName() << "'");
     //--------------------------------------------------------------------------------
 
     PadBufferProbetr::PadBufferProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement)
+        const char* factoryName, GstElement* parentElement)
         : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_BUFFER)
     {
         LOG_FUNC();
@@ -1206,7 +1206,7 @@ for Buffer Timer PPH '" << GetName() << "'");
     //--------------------------------------------------------------------------------
 
     PadEventDownStreamProbetr::PadEventDownStreamProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement)
+        const char* factoryName, GstElement* parentElement)
         : PadProbetr(name, factoryName, parentElement, 
             GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
     {

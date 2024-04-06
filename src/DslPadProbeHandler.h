@@ -27,8 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslElementr.h"
-#include "DslOdeTrigger.h"
+#include "DslBase.h"
 #include "DslSourceMeter.h"
 
 
@@ -812,9 +811,11 @@ namespace DSL
          * @brief ctor for the PadProbetr class
          * @param[in] name name for the new PadProbetr
          * @param[in] factoryNme "sink" or "src" Pad Probe type
+         * @param[in] parentElement GST Element to add the Probe to
+         * @param[in] padProbeType type of Pad Probe to add, Event or Buffer
          */
         PadProbetr(const char* name, const char* factoryName, 
-            DSL_ELEMENT_PTR parentElement, GstPadProbeType padProbeType);
+            GstElement* parentElement, GstPadProbeType padProbeType);
         
         /**
          * @brief dtor for the PadProbetr base class
@@ -909,10 +910,11 @@ namespace DSL
          * @brief ctor for the PadBufferProbetr class
          * @param[in] name name for the new PadBufferProbetr
          * @param[in] factoryNme "sink" or "src" Pad Probe type
-         * @param[in] parentElement parent bin for pad creation.
+         * @param[in] parentElement GST Element to add the Probe to
+         * @param[in] padProbeType type of Pad Probe to add, Event or Buffer
          */
         PadBufferProbetr(const char* name, 
-            const char* factoryName, DSL_ELEMENT_PTR parentElement);
+            const char* factoryName, GstElement* parentElement);
         
         /**
          * @brief dtor for the PadBufferProbetr base class
@@ -944,10 +946,11 @@ namespace DSL
          * @brief ctor for the PadEventDownStreamProbetr class
          * @param[in] name name for the new PadEventDownStreamProbetr
          * @param[in] factoryName "sink" or "src" Pad Probe type
-         * @param[in] parentElement parent bin for pad creation.
+         * @param[in] parentElement GST Element to add the Probe to
+         * @param[in] padProbeType type of Pad Probe to add, Event or Buffer
          */
         PadEventDownStreamProbetr(const char* name, 
-            const char* factoryName, DSL_ELEMENT_PTR parentElement);
+            const char* factoryName, GstElement* parentElement);
         
         /**
          * @brief dtor for the PadBufferProbetr base class

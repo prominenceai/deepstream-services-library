@@ -46,7 +46,7 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         
         // Add the Buffer and DS Event probes to the sink-pad of the tee element.
-        AddSinkPadProbes(m_pTee);
+        AddSinkPadProbes(m_pTee->GetGstElement());
     }
     
     MultiBranchesBintr::~MultiBranchesBintr()

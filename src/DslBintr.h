@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslNodetr.h"
 #include "DslElementr.h"
-#include "DslPadProbeHandler.h"
 
 namespace DSL
 {
@@ -244,7 +243,7 @@ namespace DSL
          * of a given Element.
          * @param the Parent Element to add the Probes to.
          */
-        void AddSinkPadProbes(DSL_ELEMENT_PTR parentElement)
+        void AddSinkPadProbes(GstElement* parentElement)
         {
             LOG_FUNC();
             
@@ -263,7 +262,7 @@ namespace DSL
          * of a given Element.
          * @param the Parent Element to add the Probes to.
          */
-        void AddSrcPadProbes(DSL_ELEMENT_PTR parentElement)
+        void AddSrcPadProbes(GstElement* parentElement)
         {
             LOG_FUNC();
             

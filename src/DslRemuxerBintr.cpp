@@ -586,8 +586,8 @@ namespace DSL
         m_pMetamuxer->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event probes to the input Tee and Metamuxer.
-        AddSinkPadProbes(m_pInputTee);
-        AddSrcPadProbes(m_pMetamuxer);
+        AddSinkPadProbes(m_pInputTee->GetGstElement());
+        AddSrcPadProbes(m_pMetamuxer->GetGstElement());
     }    
     
     RemuxerBintr::~RemuxerBintr()

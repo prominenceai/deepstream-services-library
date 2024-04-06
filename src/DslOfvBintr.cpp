@@ -52,10 +52,10 @@ namespace DSL
         m_pOptFlowVisual->AddGhostPadToParent("src");
 
         // Add the sink-pad Buffer and DS Event probes to the nvof element.
-        AddSinkPadProbes(m_pOptFlow);
+        AddSinkPadProbes(m_pOptFlow->GetGstElement());
 
         // Add the src-pad Buffer and DS Event probes to the nvofvisual element.
-        AddSrcPadProbes(m_pOptFlowVisual);
+        AddSrcPadProbes(m_pOptFlowVisual->GetGstElement());
     }    
     
     OfvBintr::~OfvBintr()

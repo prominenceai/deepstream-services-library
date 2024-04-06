@@ -105,8 +105,8 @@ namespace DSL
         m_pOsd->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event probes to the osd element.
-        AddSinkPadProbes(m_pOsd);
-        AddSrcPadProbes(m_pOsd);
+        AddSinkPadProbes(m_pOsd->GetGstElement());
+        AddSrcPadProbes(m_pOsd->GetGstElement());
     }    
     
     OsdBintr::~OsdBintr()

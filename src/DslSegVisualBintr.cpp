@@ -59,8 +59,8 @@ namespace DSL
         m_pSegVisual->AddGhostPadToParent("src");
         
         // Add the Buffer and DS Event probes to the segvisual element.
-        AddSinkPadProbes(m_pSegVisual);
-        AddSrcPadProbes(m_pSegVisual);
+        AddSinkPadProbes(m_pSegVisual->GetGstElement());
+        AddSrcPadProbes(m_pSegVisual->GetGstElement());
     }
 
     SegVisualBintr::~SegVisualBintr()
