@@ -89,8 +89,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
             
         if (!pParentBintr->AddPadProbeBufferHandler(shared_from_this(), pad))
         {
@@ -107,8 +107,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
         
         if (!pParentBintr->RemovePadProbeBufferHandler(shared_from_this(), pad))
         {
@@ -138,8 +138,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
             
         if (!pParentBintr->AddPadProbeEventHandler(shared_from_this(), pad))
         {
@@ -156,8 +156,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
         
         if (!pParentBintr->RemovePadProbeEventHandler(shared_from_this(), pad))
         {
