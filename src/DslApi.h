@@ -4465,7 +4465,7 @@ uint dsl_pph_list_size();
 DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
 
 /**
- * @brief deletes a GStreamer Element by name.
+ * @brief Deletes a GStreamer Element by name.
  * @param[in] name unique name of the Element to delete.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
  */
@@ -4668,7 +4668,7 @@ DslReturnType dsl_gst_element_pph_remove(const wchar_t* name,
 DslReturnType dsl_gst_bin_new(const wchar_t* name);
 
 /**
- * @brief creates a new GStreamer Bin and adds a list of Elements
+ * @brief creates a new GStreamer Bin and adds a list of Elements to it.
  * @param[in] name name of the GStreamer Bin to update
  * @param[in] elements NULL terminated array of Element names to add
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
