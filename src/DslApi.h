@@ -901,7 +901,7 @@ THE SOFTWARE.
 
 #define DSL_4K_UHD_WIDTH                                            3840
 #define DSL_4K_UHD_HEIGHT                                           2160
-#define DSL_1K_HD_WIDTH                                             11320
+#define DSL_1K_HD_WIDTH                                             1920
 #define DSL_1K_HD_HEIGHT                                            1080
 
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
