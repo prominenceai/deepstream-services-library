@@ -51,6 +51,7 @@
 #   dsl_pipeline_link_method_set('pipeline', DSL_PIPELINE_LINK_METHOD_BY_ORDER)
 #
 # otherwise, all components will be linked in a fixed position (default).
+# See the GST API Reference section at
 #
 # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
 #
@@ -65,9 +66,7 @@ from dsl import *
 # Import NVIDIA's pyds Pad Probe Handler example
 from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
-# uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4"
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.h264"
-
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -178,7 +177,7 @@ def main(args):
         # Create the remaining pipeline components
 
         # New URI File Source using the filespec defined above
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        retval = dsl_source_file_new('uri-source', uri_file, False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
