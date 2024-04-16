@@ -1,35 +1,28 @@
 # GStreamer (GST) Element and Bin API Reference
 The GST API is used to create Custom DSL Pipeline Components. All DSL Pipeline Components are derived from the [GST Bin](https://gstreamer.freedesktop.org/documentation/application-development/basics/bins.html?gi-language=c) container class. Bins are used to  contain [GST Elements](https://gstreamer.freedesktop.org/documentation/application-development/basics/bins.html?gi-language=c) Bins allow you to combine a group of linked Elements into one logical Element.
 
-
 There are restrictions imposed on the type of Elements that can be created
 * Single input pad and output pad only.
 * Therefore, no tees, muxers, aggregators, or demuxers (this list may not be complete).
 
-
 The first Element in each Bin is typically a [queue](https://gstreamer.freedesktop.org/documentation/coreelements/queue.html?gi-language=c#properties) Element. Adding a queue creates a new thread on the Element's source pad (output) to decouple the processing between input and output creating a new thread for the Custom Component.
-
 
 ## Construction and Destruction
 GST Elements are created by calling [`dsl_gst_element_new`](#dsl_gst_element_new) and deleted by calling [`dsl_gst_element_delete`](#dsl_gst_element_delete), [`dsl_gst_element_delete_many`](#dsl_gst_element_delete_many), or [`dsl_gst_element_delete_all`](#dsl_gst_element_delete_all).
 
-
 GST Bins are created by calling [`dsl_gst_bin_new`](#dsl_gst_bin_new) or [`dsl_gst_bin_new_element_add_many`](#dsl_gst_bin_new_element_add_many). As with all Pipeline Components, GST Bins are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all).
-
 
 ## Component Linking
 **IMPORTANT!** When using Custom Components, it's important to set the Pipeline's link-method to `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER`. See [Linking Components](/docs/overview.md#linking-components) for an overview and [`dsl_pipeline_link_method_set`](/docs/api-pipeline.md#dsl_pipeline_link_method_set) for more information.
 
-
 ## Adding and Removing
 The relationship between GST Bins and GST Elements is one to many. Once added to a Bin, an Element must be removed before it can be used with another. Elements are added to bins by calling [`dsl_gst_bin_new_element_add_many`](#dsl_gst_bin_new_element_add_many), [`dsl_gst_bin_element_add`](#dsl_gst_bin_element_add), and [`dsl_gst_bin_element_add_many`](#dsl_gst_bin_element_add_many). GST Elements can be removed from a GST Bin by calling [`dsl_gst_bin_element_remove`](#dsl_gst_bin_element_remove) or [`dsl_gst_bin_element_remove_many`](#dsl_gst_bin_element_remove_many).
 
-
 The relationship between Pipelines/Branches  and GST Bins is one to many. Once added to a Pipeline or Branch, a Bin must be removed before it can be used with another. GST Bins are added to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
-
 
 A similar set of Services are used when adding/removing a to/from a branch: [`dsl_branch_component_add`](api-branch.md#dsl_branch_component_add), [`dsl_branch_component_add_many`](/docs/api-branch.md#dsl_branch_component_add_many), [`dsl_branch_component_remove`](/docs/api-branch.md#dsl_branch_component_remove), [`dsl_branch_component_remove_many`](/docs/api-branch.md#dsl_branch_component_remove_many), and [`dsl_branch_component_remove_all`](/docs/api-branch.md#dsl_branch_component_remove_all).
 
+Below is a simple example that creats two GST Elements and adds the to a new GST Bin.
 
 ```Python
 # IMPORTANT! We create a queue element to be our first element of our bin.
@@ -60,16 +53,13 @@ retval = dsl_pipeline_link_method_set('pipeline',
    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER)
 ```
 
-
 ## Adding/Removing Pad-Probe-handlers
-Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.md) can be added to any Primary or Secondary GIE or TIS by calling [`dsl_infer_pph_add`](#dsl_infer_pph_add) and removed with [`dsl_infer_pph_remove`](#dsl_infer_pph_remove).
-
+Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.md) can be added to any Primary or Secondary GIE or TIS by calling [`dsl_gst_element_pph_add`](#dsl_gst_element_pph_add) and removed with [`dsl_gst_element_pph_remove`](#dsl_gst_element_pph_remove).
 
 ## Relevant Examples
 For relevant examples see:
 * [pipeline_with_custom_gst_bin_and_elements.py](/examples/python/pipeline_with_custom_gst_bin_and_elements.py)
 * [pipeline_with_custom_gst_bin_and_elements.cpp](/examples/python/pipeline_with_custom_gst_bin_and_elements.cpp)
-
 
 ---
 
@@ -102,7 +92,6 @@ For relevant examples see:
 * [`dsl_gst_element_property_int64_set`](#dsl_gst_element_property_int64_set)
 * [`dsl_gst_element_property_string_get`](#dsl_gst_element_property_string_get)
 * [`dsl_gst_element_property_string_set`](#dsl_gst_element_property_string_set)
-* [`dsl_gst_element_list_size`](#dsl_gst_element_list_size)
 * [`dsl_gst_element_pph_add`](#dsl_gst_element_pph_add)
 * [`dsl_gst_element_pph_remove`](#dsl_gst_element_pph_remove)
 * [`dsl_gst_bin_element_add`](#dsl_gst_bin_element_add)
