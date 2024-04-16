@@ -85,6 +85,9 @@ Child components -- Sources, Inference Engines, Trackers, Tiled-Displays, On Scr
 
 Child components can be removed from their Parent Pipeline by calling [`dsl_pipeline_component_remove`](#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](#dsl_pipeline_component_remove_many), and [`dsl_pipeline_component_remove_all`](#dsl_pipeline_component_remove_all)
 
+## Methods Of Component Linking
+Components added to a Pipeline can be linked using one of [two methods](/docs/overview.md#linking-components). Click the link for an overview. The method of linking can be queried by calling [`dsl_pipeline_link_method_get`](#dsl_pipeline_link_method_get) and set anytime by calling [`dsl_pipeline_link_method_set`](#dsl_pipeline_link_method_set) as long as the Pipeline is not linked and playing.
+
 ## Playing, Pausing and Stopping a Pipeline
 
 Pipelines - with a minimum required set of components - can be **played** by calling [`dsl_pipeline_play`](#dsl_pipeline_play), **paused** by calling [`dsl_pipeline_pause`](#dsl_pipeline_pause) and **stopped** by calling [`dsl_pipeline_stop`](#dsl_pipeline_stop).
@@ -159,6 +162,8 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_error_message_handler_add`](#dsl_pipeline_error_message_handler_add)
 * [`dsl_pipeline_error_message_handler_remove`](#dsl_pipeline_error_message_handler_remove)
 * [`dsl_pipeline_error_message_last_get`](#dsl_pipeline_error_message_last_get)
+* [`dsl_pipeline_link_method_get`](#dsl_pipeline_link_method_get)
+* [`dsl_pipeline_link_method_set`](#dsl_pipeline_link_method_set)
 * [`dsl_pipeline_play`](#dsl_pipeline_play)
 * [`dsl_pipeline_pause`](#dsl_pipeline_pause)
 * [`dsl_pipeline_stop`](#dsl_pipeline_stop)
@@ -207,6 +212,13 @@ Jetson 0 & 4 only, dGPU 0 through 3 only
 #define DSL_NVBUF_MEM_TYPE_CUDA_DEVICE                              2
 #define DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED                             3
 #define DSL_NVBUF_MEM_TYPE_SURFACE_ARRAY                            4
+```
+
+## Pipeline Link Methods
+```C
+#define DSL_PIPELINE_LINK_METHOD_BY_POSITION                        0
+#define DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER                       1
+#define DSL_PIPELINE_LINK_METHOD_DEFAULT                            DSL_PIPELINE_LINK_METHOD_BY_POSITION
 ```
 
 ## Pipeline States
@@ -1218,6 +1230,44 @@ retval, source, message = dsl_pipeline_error_message_last_get('my-pipeline')
 
 <br>
 
+### *dsl_pipeline_link_method_get*
+```C++
+DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method);
+```
+This service gets the current link method in use by the named Pipeline.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to query.
+* `link_method` - [out] One of the [Pipeline Link Methods](#pipeline-link-methods) defined above. Default = `DSL_PIPELINE_LINK_METHOD_BY_POSITION`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, link_method = dsl_pipeline_link_method_get('my-pipeline')
+```
+<br>
+
+### *dsl_pipeline_link_method_set*
+```C++
+DslReturnType dsl_pipeline_link_method_set(const wchar_t* name, uint link_method);
+```
+This service sets the link method for the named Pipeline to use.
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `link_method` - [in] One of the [Pipeline Link Methods](#pipeline-link-methods) defined above. Default = `DSL_PIPELINE_LINK_METHOD_BY_POSITION`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_link_method_set('my-pipeline', DSL_PIPELINE_LINK_METHOD_BY_ORDER)
+```
+<br>
+
 ### *dsl_pipeline_play*
 ```C++
 DslReturnType dsl_pipeline_play(wchar_t* pipeline);
@@ -1410,7 +1460,7 @@ GStreamer will add the `.dot` suffix and write the file to the directory specifi
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_play('my-pipeline`)
+retval = dsl_pipeline_play('my-pipeline')
 if retval != DSL_RESULT_SUCCESS:
     # handle error
    
@@ -1452,6 +1502,9 @@ Except for the prefix, this method performs the identical service as
 * [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
+* [Component](/docs/api-component.md)
+* [Custom Component](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pad-probe-handler.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
@@ -1459,8 +1512,6 @@ Except for the prefix, this method performs the identical service as
 * [ODE Area](/docs/api-ode-area.md)
 * [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
-* [Branch](/docs/api-branch.md)
-* [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)

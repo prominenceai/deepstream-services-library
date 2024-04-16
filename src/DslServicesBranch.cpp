@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,11 +60,12 @@ namespace DSL
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
-        DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
 
         try
         {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, branch);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, component);
+        
             // Can't add components if "is-in-use" by another Pipeline
             if (m_components[component]->IsInUse())
             {

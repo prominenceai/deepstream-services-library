@@ -166,6 +166,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(elements, name) do \
+{ \
+    if (elements.find(name) == elements.end()) \
+    { \
+        LOG_ERROR("Element name '" << name << "' was not found"); \
+        return DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(components, name, bintr) do \
 { \
     if (!components[name]->IsType(typeid(bintr)))\

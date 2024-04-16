@@ -687,6 +687,70 @@ namespace DSL {
         
         uint PphListSize();
         
+        DslReturnType GstElementNew(const char* name, const char* factoryName);
+        
+        DslReturnType GstElementDelete(const char* name);
+        
+        DslReturnType GstElementDeleteAll();
+        
+        uint GstElementListSize();
+        
+        DslReturnType GstElementGet(const char* name, void** element);
+
+        DslReturnType GstElementPropertyBooleanGet(const char* name, 
+            const char* property, boolean* value);
+        
+        DslReturnType GstElementPropertyBooleanSet(const char* name, 
+            const char* property, boolean value);
+        
+        DslReturnType GstElementPropertyFloatGet(const char* name, 
+            const char* property, float* value);
+        
+        DslReturnType GstElementPropertyFloatSet(const char* name, 
+            const char* property, float value);
+        
+        DslReturnType GstElementPropertyUintGet(const char* name, 
+            const char* property, uint* value);
+        
+        DslReturnType GstElementPropertyUintSet(const char* name, 
+            const char* property, uint value);
+        
+        DslReturnType GstElementPropertyIntGet(const char* name, 
+            const char* property, int* value);
+        
+        DslReturnType GstElementPropertyIntSet(const char* name, 
+            const char* property, int value);
+        
+        DslReturnType GstElementPropertyUint64Get(const char* name, 
+            const char* property, uint64_t* value);
+        
+        DslReturnType GstElementPropertyUint64Set(const char* name, 
+            const char* property, uint64_t value);
+        
+        DslReturnType GstElementPropertyInt64Get(const char* name, 
+            const char* property, int64_t* value);
+        
+        DslReturnType GstElementPropertyInt64Set(const char* name, 
+            const char* property, int64_t value);
+        
+        DslReturnType GstElementPropertyStringGet(const char* name, 
+            const char* property, const char** value);
+        
+        DslReturnType GstElementPropertyStringSet(const char* name, 
+            const char* property, const char* value);
+   
+        DslReturnType GstElementPphAdd(const char* name, 
+            const char* handler, uint pad);
+
+        DslReturnType GstElementPphRemove(const char* name, 
+            const char* handler, uint pad);
+            
+        DslReturnType GstBinNew(const char* name);
+        
+        DslReturnType GstBinElementAdd(const char* name, const char* element);
+
+        DslReturnType GstBinElementRemove(const char* name, const char* element);
+        
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
             const char* bufferInFormat, uint width, uint height, 
             uint fpsN, uint fpsD);
@@ -1741,6 +1805,10 @@ namespace DSL {
         DslReturnType PipelineStreammuxPphRemove(const char* name, 
             const char* handler);
         
+        DslReturnType PipelineLinkMethodGet(const char* name, uint* linkMethod);
+        
+        DslReturnType PipelineLinkMethodSet(const char* name, uint linkMethod);
+        
         DslReturnType PipelinePause(const char* name);
         
         DslReturnType PipelinePlay(const char* name);
@@ -2084,11 +2152,16 @@ namespace DSL {
          * @brief map of all ODE Handlers created by the client, key=name
          */
         std::map <std::string, DSL_PPH_PTR> m_padProbeHandlers;
+        
+        /**
+         * @brief map of all GST Elements created by the client, key=name
+         */
+        std::map <std::string, DSL_ELEMENT_PTR> m_gstElements;
 
         /**
          * @brief map of all pipelines creaated by the client, key=name
          */
-        std::map <std::string, std::shared_ptr<PipelineBintr>> m_pipelines;
+        std::map <std::string, DSL_PIPELINE_PTR> m_pipelines;
         
         /**
          * @brief map of all players creaated by the client, key=name

@@ -114,8 +114,8 @@ namespace DSL
 //            NULL);
 
         // Add the Buffer and DS Event probes to the infer-engine element.
-        AddSinkPadProbes(m_pInferEngine);
-        AddSrcPadProbes(m_pInferEngine);
+        AddSinkPadProbes(m_pInferEngine->GetGstElement());
+        AddSrcPadProbes(m_pInferEngine->GetGstElement());
     }    
     
     InferBintr::~InferBintr()

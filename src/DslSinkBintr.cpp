@@ -59,7 +59,7 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         
         // Add the Buffer and DS Event probes to the sink-pad of the queue element.
-        AddSinkPadProbes(m_pQueue);
+        AddSinkPadProbes(m_pQueue->GetGstElement());
     }
 
     SinkBintr::~SinkBintr()

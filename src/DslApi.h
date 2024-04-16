@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 20113-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -93,13 +93,13 @@ THE SOFTWARE.
 /**
  * Dewarper API Return Values
  */
-#define DSL_RESULT_DEWARPER_RESULT                                  0x00090000
-#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x00090001
-#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x00090002
-#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x00090003
-#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x00090004
-#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x00090005
-#define DSL_RESULT_DEWARPER_SET_FAILED                              0x00090006
+#define DSL_RESULT_DEWARPER_RESULT                                  0x000130000
+#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x000130001
+#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x000130002
+#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x000130003
+#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x000130004
+#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x000130005
+#define DSL_RESULT_DEWARPER_SET_FAILED                              0x000130006
 
 /**
  * Tracker API Return Values
@@ -253,7 +253,9 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_FAILED_TO_PLAY                          0x00080010
 #define DSL_RESULT_PIPELINE_FAILED_TO_PAUSE                         0x00080011
 #define DSL_RESULT_PIPELINE_FAILED_TO_STOP                          0x00080012
-#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080013
+#define DSL_RESULT_PIPELINE_GET_FAILED                              0x00080013
+#define DSL_RESULT_PIPELINE_SET_FAILED                              0x00080014
+#define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080015
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -277,8 +279,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
 #define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
 #define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
-#define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x0004000A
-#define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x0004000B
+#define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x000D000A
+#define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x000D000B
 
 /**
  * ODE Trigger API Return Values
@@ -441,16 +443,16 @@ THE SOFTWARE.
 /**
  * ODE Accumulator API Return Values
  */
-#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x00900000
-#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x00900001
-#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x00900002
-#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x00900003
-#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x00900004
-#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x00900005
-#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x00900006
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x00900007
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x00900008
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
+#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x001300000
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x001300001
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x001300002
+#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x001300003
+#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x001300004
+#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x001300005
+#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x001300006
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x001300007
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x001300008
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x001300009
 
 /**
  * ODE Heat-Mapper API Return Values
@@ -497,6 +499,33 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_HANDLER_ADD_FAILED                       0x00C0000B
 #define DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED                    0x00C0000C
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
+
+/**
+ * GStreamer Element API Return Values
+ */
+#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00D00001
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00D00002
+#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
+#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
+#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
+#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00D00006
+#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00D00007
+#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00D00008
+
+/**
+ * GStreamer Bin API Return Values
+ */
+#define DSL_RESULT_GST_BIN_RESULT                                   0x00E00000
+#define DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE                          0x00E00001
+#define DSL_RESULT_GST_BIN_NAME_NOT_FOUND                           0x00E00002
+#define DSL_RESULT_GST_BIN_NAME_BAD_FORMAT                          0x00E00003
+#define DSL_RESULT_GST_BIN_THREW_EXCEPTION                          0x00E00004
+#define DSL_RESULT_GST_BIN_IS_IN_USE                                0x00E00005
+#define DSL_RESULT_GST_BIN_SET_FAILED                               0x00E00006
+#define DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED                       0x00E00007
+#define DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED                    0x00E00008
+#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E00009
 
 /**
  * GPU Types
@@ -558,9 +587,9 @@ THE SOFTWARE.
  */
 // Important - must match the nvvidconvert flip method constant values 
 #define DSL_VIDEO_ORIENTATION_NONE                                  0       
-#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90           1
+#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_130           1
 #define DSL_VIDEO_ORIENTATION_ROTATE_180                            2
-#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90                   3
+#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_130                   3
 #define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
 #define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
 #define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
@@ -727,7 +756,7 @@ THE SOFTWARE.
 #define DSL_COLOR_PREDEFINED_GREEN                                  6
 #define DSL_COLOR_PREDEFINED_TURQUOISE                              7
 #define DSL_COLOR_PREDEFINED_INDIGO                                 8
-#define DSL_COLOR_PREDEFINED_PURPLE                                 9
+#define DSL_COLOR_PREDEFINED_PURPLE                                 13
 
 #define DSL_COLOR_PREDEFINED_WHITE                                  10
 #define DSL_COLOR_PREDEFINED_GRAY_25                                11
@@ -738,7 +767,7 @@ THE SOFTWARE.
 #define DSL_COLOR_PREDEFINED_LIME                                   16
 #define DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE                        17
 #define DSL_COLOR_PREDEFINED_BLUE_GRAY                              18
-#define DSL_COLOR_PREDEFINED_LAVENDER                               19
+#define DSL_COLOR_PREDEFINED_LAVENDER                               113
 
 /**
  * @brief Hue constants used to define random RGB colors.
@@ -752,7 +781,7 @@ THE SOFTWARE.
 #define DSL_COLOR_HUE_GREEN                                         6
 #define DSL_COLOR_HUE_GREEN_CYAN                                    7
 #define DSL_COLOR_HUE_CYAN                                          8
-#define DSL_COLOR_HUE_CYAN_BLUE                                     9
+#define DSL_COLOR_HUE_CYAN_BLUE                                     13
 #define DSL_COLOR_HUE_BLUE                                          10
 #define DSL_COLOR_HUE_BLUE_MAGENTA                                  11
 #define DSL_COLOR_HUE_MAGENTA                                       12
@@ -878,6 +907,13 @@ THE SOFTWARE.
 #define DSL_STREAMMUX_DEFAULT_WIDTH                                 DSL_1K_HD_WIDTH
 #define DSL_STREAMMUX_DEFAULT_HEIGHT                                DSL_1K_HD_HEIGHT
 
+/**
+ * @brief Methods of linking Pipeline components
+ */
+#define DSL_PIPELINE_LINK_METHOD_BY_POSITION                        0
+#define DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER                       1
+#define DSL_PIPELINE_LINK_METHOD_DEFAULT                            DSL_PIPELINE_LINK_METHOD_BY_POSITION
+
 #define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
 #define DSL_PIPELINE_SOURCE_STREAM_ID_MASK                          0x0000FFFF
 
@@ -898,7 +934,7 @@ THE SOFTWARE.
 #define DSL_BBOX_POINT_SOUTH                                        6
 #define DSL_BBOX_POINT_SOUTH_WEST                                   7
 #define DSL_BBOX_POINT_WEST                                         8
-#define DSL_BBOX_POINT_ANY                                          9
+#define DSL_BBOX_POINT_ANY                                          13
 
 #define DSL_BBOX_EDGE_TOP                                           0
 #define DSL_BBOX_EDGE_BOTTOM                                        1
@@ -1002,7 +1038,7 @@ THE SOFTWARE.
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               8
 
-#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  9
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  13
 #define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 10
 
 /**
@@ -4420,6 +4456,262 @@ DslReturnType dsl_pph_delete_all();
  */
 uint dsl_pph_list_size();
 
+/** 
+ * @brief Creates a uniquely named GStreamer Element from a plugin factory name.
+ * @param[in] name unique name for the Element to create
+ * @param[in] factory_name factory (plugin) name for the Element to create
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
+
+/**
+ * @brief Deletes a GStreamer Element by name.
+ * @param[in] name unique name of the Element to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of GStreamer Elements
+ * @param[in] names NULL terminated list of names to delete
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ */
+DslReturnType dsl_gst_element_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all GStreamer Elements in memory
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+
+ */
+DslReturnType dsl_gst_element_delete_all();
+
+/**
+ * @brief returns the current number of GStreamer Elements
+ * @return size of the list of GStreamer Bins
+ */
+uint dsl_gst_element_list_size();
+
+/** 
+ * @brief Gets the GST_OBJECT pointer to the named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[out] element GST_OBJECT point the the name Element. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_get(const wchar_t* name, void** element);
+
+/** 
+ * @brief Gets a named boolean property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_boolean_get(const wchar_t* name, 
+    const wchar_t* property, boolean* value);
+
+/** 
+ * @brief Sets a named boolean property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_boolean_set(const wchar_t* name, 
+    const wchar_t* property, boolean value);
+    
+/** 
+ * @brief Gets a named float property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_float_get(const wchar_t* name, 
+    const wchar_t* property, float* value);
+
+/** 
+ * @brief Sets a named float property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_float_set(const wchar_t* name, 
+    const wchar_t* property, float value);
+   
+/** 
+ * @brief Gets a named unsigned int property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint_get(const wchar_t* name, 
+    const wchar_t* property, uint* value);
+
+/** 
+ * @brief Sets a named unsigned int property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint_set(const wchar_t* name, 
+    const wchar_t* property, uint value);
+    
+/** 
+ * @brief Gets a named signed int property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int_get(const wchar_t* name, 
+    const wchar_t* property, int* value);
+
+/** 
+ * @brief Sets a named signed int property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int_set(const wchar_t* name, 
+    const wchar_t* property, int value);
+    
+/** 
+ * @brief Gets a named uint64_t property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint64_get(const wchar_t* name, 
+    const wchar_t* property, uint64_t* value);
+
+/** 
+ * @brief Sets a named uint64_t property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_uint64_set(const wchar_t* name, 
+    const wchar_t* property, uint64_t value);
+    /** 
+ * @brief Gets a named signed int64_t property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int64_get(const wchar_t* name, 
+    const wchar_t* property, int64_t* value);
+
+/** 
+ * @brief Sets a named signed int64_t property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_int64_set(const wchar_t* name, 
+    const wchar_t* property, int64_t value);
+    
+/** 
+ * @brief Gets a named string property from a named Element.
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query. 
+ * @param[out] value current value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_string_get(const wchar_t* name, 
+    const wchar_t* property, const wchar_t** value);
+    
+/** 
+ * @brief Sets a named string property for a named Element.
+ * @param[in] name unique name for the Element to update.
+ * @param[in] property unique name of the property to update. 
+ * @param[in] value new value for the named property. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* value);
+    
+/**
+ * @brief Adds a pad-probe-handler to a named GStreamer Element.
+ * A GStreamer Element can have multiple Sink and Source pad-probe-handlers
+ * @param[in] name unique name of the GStreamer Element to update
+ * @param[in] handler callback function to process pad probe data
+ * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_pph_add(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+
+/**
+ * @brief Removes a pad-probe-handler from a named GStreamer Element.
+ * @param[in] name unique name of the GStreamer Element to update
+ * @param[in] handler pad-probe-handler to remove
+ * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_pph_remove(const wchar_t* name, 
+    const wchar_t* handler, uint pad);
+    
+
+/**
+ * @brief creates a new, uniquely named GStreamer Bin
+ * @param[in] name unique name for the new GStreamer Bin
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_new(const wchar_t* name);
+
+/**
+ * @brief creates a new GStreamer Bin and adds a list of Elements to it.
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] elements NULL terminated array of Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_new_element_add_many(const wchar_t* name, 
+    const wchar_t** components);
+
+/**
+ * @brief adds a single Element to a GStreamer Bin 
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] element Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_add(const wchar_t* name, 
+    const wchar_t* component);
+
+/**
+ * @brief adds a list of Elements to a GStreamer Bin 
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] components NULL terminated array of element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_add_many(const wchar_t* name, 
+    const wchar_t** components);
+
+/**
+ * @brief removes an Element from a GStreamer Bin
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] element name of the Element to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_remove(const wchar_t* name, 
+    const wchar_t* component);
+
+/**
+ * @brief removes a list of Elements from a GStreamer Bin
+ * @param[in] name name of the GStreamer Bin to update
+ * @param[in] components NULL terminated array of Element names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ */
+DslReturnType dsl_gst_bin_element_remove_many(const wchar_t* name, 
+    const wchar_t** components);
+    
 /**
  * @brief Creates a new, uniquely named App Source component to insert data 
  * into a DSL pipeline.
@@ -4435,7 +4727,7 @@ uint dsl_pph_list_size();
  */
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
     const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d);
-    
+
 /**
  * @brief Adds data-handler callback functions to a named App Source component.
  * @param[in] name unique name of the App Source to update
@@ -8591,8 +8883,26 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
     const wchar_t* handler);
 
 //------------------------------------------------------------------------------------
-// COMMON NVSTREAMMUX SERVICES - Start
+// COMMON NVSTREAMMUX SERVICES - End
 //------------------------------------------------------------------------------------
+/**
+ * @brief Gets the current link method in use by the named Pipeline.
+ * @param[in] name unique name of the Pipeline to query.
+ * @param[out] link_method DSL_PIPELINE_LINK_METHOD_BY_POSITION or
+ * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER (default is BY_POSITION)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method);
+
+/**
+ * @brief Sets the link method for the named Pipeline to use.
+ * @param[in] name unique name of the Pipeline to update.
+ * @param[in] link_method DSL_PIPELINE_LINK_METHOD_BY_POSITION or
+ * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_link_method_set(const wchar_t* name, uint link_method);
+
 /**
  * @brief pauses a Pipeline if in a state of playing
  * @param[in] name unique name of the Pipeline to pause.

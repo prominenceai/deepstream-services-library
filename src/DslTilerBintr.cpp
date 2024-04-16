@@ -78,8 +78,8 @@ namespace DSL
         m_pTiler->AddGhostPadToParent("src");
     
         // Add the Buffer and DS Event probes to the tiler element.
-        AddSinkPadProbes(m_pTiler);
-        AddSrcPadProbes(m_pTiler);
+        AddSinkPadProbes(m_pTiler->GetGstElement());
+        AddSrcPadProbes(m_pTiler->GetGstElement());
         
         // Create the specialized PPH which will be (optionally) used to
         // add a frame-number to each unbatched output buffer crossing the

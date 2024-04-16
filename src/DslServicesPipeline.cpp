@@ -952,6 +952,56 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::PipelineLinkMethodGet(const char* name, uint* linkMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *linkMethod = m_pipelines[name]->GetLinkMethod();
+
+            LOG_INFO("Pipeline '" << name 
+                << "' returned link method = " << *linkMethod << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception getting link method");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineLinkMethodSet(const char* name, uint linkMethod)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (linkMethod > DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER)
+            {
+                LOG_ERROR("Invalid link method = " << linkMethod 
+                    << " for Pipeline '" << name << "'");
+                return DSL_RESULT_PIPELINE_SET_FAILED;
+            }
+            m_pipelines[name]->SetLinkMethod(linkMethod);
+
+            LOG_INFO("Pipeline '" << name 
+                << "' set link method = " << linkMethod << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting link method");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PipelinePause(const char* name)
     {
         LOG_FUNC();
