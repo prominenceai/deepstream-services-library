@@ -259,7 +259,7 @@ int main(int argc, char** argv)
         // IMPORTANT! set the link method for the Pipeline to link by 
         // add order (and not by fixed position - default)
         retval = dsl_pipeline_link_method_set(L"pipeline",
-            DSL_PIPELINE_LINK_METHOD_BY_ORDER);
+            DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER);
             
         // Add the EOS listener function defined above
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);

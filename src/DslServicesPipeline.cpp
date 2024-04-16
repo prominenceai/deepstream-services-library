@@ -982,7 +982,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (linkMethod > DSL_PIPELINE_LINK_METHOD_BY_ORDER)
+            if (linkMethod > DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER)
             {
                 LOG_ERROR("Invalid link method = " << linkMethod 
                     << " for Pipeline '" << name << "'");

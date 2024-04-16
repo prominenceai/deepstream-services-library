@@ -911,7 +911,7 @@ THE SOFTWARE.
  * @brief Methods of linking Pipeline components
  */
 #define DSL_PIPELINE_LINK_METHOD_BY_POSITION                        0
-#define DSL_PIPELINE_LINK_METHOD_BY_ORDER                           1
+#define DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER                       1
 #define DSL_PIPELINE_LINK_METHOD_DEFAULT                            DSL_PIPELINE_LINK_METHOD_BY_POSITION
 
 #define DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS                16
@@ -4457,7 +4457,7 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /** 
- * @brief Creates a uniquely name GStreamer Element from a plugin factory name.
+ * @brief Creates a uniquely named GStreamer Element from a plugin factory name.
  * @param[in] name unique name for the Element to create
  * @param[in] factory_name factory (plugin) name for the Element to create
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -8889,7 +8889,7 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
  * @brief Gets the current link method in use by the named Pipeline.
  * @param[in] name unique name of the Pipeline to query.
  * @param[out] link_method DSL_PIPELINE_LINK_METHOD_BY_POSITION or
- * DSL_PIPELINE_LINK_METHOD_BY_ORDER (default is BY_POSITION)
+ * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER (default is BY_POSITION)
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method);
@@ -8898,7 +8898,7 @@ DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_metho
  * @brief Sets the link method for the named Pipeline to use.
  * @param[in] name unique name of the Pipeline to update.
  * @param[in] link_method DSL_PIPELINE_LINK_METHOD_BY_POSITION or
- * DSL_PIPELINE_LINK_METHOD_BY_ORDER.
+ * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
  */
 DslReturnType dsl_pipeline_link_method_set(const wchar_t* name, uint link_method);

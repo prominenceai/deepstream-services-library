@@ -175,7 +175,7 @@ namespace DSL
         /**
          * @brief Returns the current link method for this bintr
          * @return one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
-         * DSL_PIPELINE_LINK_COMPONENTS_BY_ORDER
+         * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER
          */
         uint GetLinkMethod()
         {
@@ -187,7 +187,7 @@ namespace DSL
         /**
          * @brief Sets the link method for this bintr to use
          * @return one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
-         * DSL_PIPELINE_LINK_COMPONENTS_BY_ORDER
+         * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER
          */
         void SetLinkMethod(uint linkMethod)
         {
@@ -309,7 +309,7 @@ namespace DSL
     
         /**
          * @brief one of DSL_PIPELINE_LINK_METHOD_BY_POSITION or
-         * DSL_PIPELINE_LINK_METHOD_BY_ORDER
+         * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER
          */
         bool m_linkMethod;
         

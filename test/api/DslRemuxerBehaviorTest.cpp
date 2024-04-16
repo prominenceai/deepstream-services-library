@@ -163,7 +163,7 @@ SCENARIO( "Two File Sources, Remuxer with and two PGIE branches, a Tiler and Win
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );
@@ -286,7 +286,7 @@ stream, Tiler, and Window Sink can play", "[remuxer-behavior]")
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
                     == DSL_RESULT_SUCCESS );

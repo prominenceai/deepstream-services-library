@@ -234,7 +234,7 @@ def main(args):
         # IMPORTANT! set the link method for the Pipeline to link by 
         # add order (and not by fixed position - default)
         retval = dsl_pipeline_link_method_set('pipeline',
-            DSL_PIPELINE_LINK_METHOD_BY_ORDER)
+            DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER)
         if retval != DSL_RETURN_SUCCESS:
             break
             

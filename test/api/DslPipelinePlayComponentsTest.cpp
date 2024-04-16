@@ -167,7 +167,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink", "[pipeline-play]" )
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -241,7 +241,7 @@ SCENARIO( "A new Pipeline with a URI File Source, GIE, FakeSink, and Tiled Displ
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -313,7 +313,7 @@ SCENARIO( "A new Pipeline with a URI File Source, 3D Sink, and Tiled Display can
                 THEN( "Pipeline is Able to LinkAll and Play" )
                 {
                     REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                        DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                        DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                     REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                     std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -413,7 +413,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and Tiled Display
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
             REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -478,7 +478,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Window Sink, and Tiled
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -553,7 +553,7 @@ and Tiled Display can play", "[pipeline-play]" )
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -626,7 +626,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -841,7 +841,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 
@@ -976,7 +976,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Secondary GIE, \
                 bool currIsClockEnabled(false);
                 
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1057,7 +1057,7 @@ Window Sink, and Tiled Display can play", "[pipeline-play]" )
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1122,7 +1122,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, and Demuxer can play
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1193,7 +1193,7 @@ SCENARIO( "A new Pipeline with a URI File Source, FakeSink, WindowSink and Demux
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1287,7 +1287,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, two 3D Sinks and Demuxer ca
                 THEN( "Pipeline is Able to LinkAll and Play" )
                 {
                     REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                        DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                        DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                     REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                     std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1386,7 +1386,7 @@ SCENARIO( "A new Pipeline with two URI File Sources, PGIE, Demuxer two 3D Sinks,
                 THEN( "Pipeline is Able to LinkAll and Play" )
                 {
                     REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                        DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                        DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                     REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                     std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1491,7 +1491,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
                 THEN( "Pipeline is Able to LinkAll and Play" )
                 {
                     REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                        DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                        DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                     REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                     std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1695,7 +1695,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and Meter PPH c
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1763,7 +1763,7 @@ SCENARIO( "A new Pipeline with a Image Source, Window Sink, and Tiled Display ca
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1828,7 +1828,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
@@ -1964,7 +1964,7 @@ SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Wi
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
-                    DSL_PIPELINE_LINK_METHOD_BY_ORDER) == DSL_RESULT_SUCCESS );
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
                 
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
