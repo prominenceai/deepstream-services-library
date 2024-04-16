@@ -263,9 +263,9 @@ See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.
 ---
 
 ## Custom Components
-Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the DSL GST API. Once created, they can be added to a Pipeline along with other DSL Components.  
+Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the [DSL GST API](/docs/api-gst.md). Once created, they can be added to a Pipeline along with other DSL Components. 
 
-**IMPORTANT!** Make sure to set the Pipelines link method to by add-order. See [Linking Components](#linking-components). 
+**IMPORTANT!** Make sure to set the Pipelines link method to by add-order. See [Linking Components](#linking-components).
 
 See the [GST API Reference](/docs/api-gst.md) for more information.
 
@@ -346,16 +346,6 @@ For use cases that require Components to be linked in a different order, or when
 * Demuxers, Tees, and Sinks must always be added last. 
 * Sources and Sinks can be added/removed at runtime.
 * Demuxer and Tee Branches can be added at runtime.  Remuxer Branches cannot.
-
-## Custom Components
-Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the [DSL GST API](/docs/api-gst.md). Once created, they can be added to a Pipeline along with other DSL Components. 
-
-
-**IMPORTANT!** Make sure to set the Pipelines link method to by add-order. See [Linking Components](#linking-components).
-
-
-See the [GST API Reference](/docs/api-gst.md) for more information.
-
 
 ---
 
