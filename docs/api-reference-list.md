@@ -94,6 +94,8 @@
 * [`dsl_pipeline_error_message_handler_add`](/docs/api-pipeline.md#dsl_pipeline_error_message_handler_add)
 * [`dsl_pipeline_error_message_handler_remove`](/docs/api-pipeline.md#dsl_pipeline_error_message_handler_remove)
 * [`dsl_pipeline_error_message_last_get`](/docs/api-pipeline.md#dsl_pipeline_error_message_last_get)
+* [`dsl_pipeline_link_method_get`](/docs/api-pipeline.md#dsl_pipeline_link_method_get)
+* [`dsl_pipeline_link_method_set`](/docs/api-pipeline.md#dsl_pipeline_link_method_set)
 * [`dsl_pipeline_play`](/docs/api-pipeline.md#dsl_pipeline_play)
 * [`dsl_pipeline_pause`](/docs/api-pipeline.md#dsl_pipeline_pause)
 * [`dsl_pipeline_stop`](/docs/api-pipeline.md#dsl_pipeline_stop)

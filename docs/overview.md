@@ -11,6 +11,8 @@
   * [Sinks](#sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Remuxer](#remuxer)
+  * [Custom Components](#custom-components)
+  * [Linking Components](#linking-components)
   * [Pad Probe Handlers](#pad-probe-handlers)
 * [Display Types](#display-types)
 * [Object Detection Event (ODE) Services](#object-detection-event-ode-services)
@@ -257,6 +259,198 @@ See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for m
 The Remuxer is an aggregate component linking together a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer, all to implement [Selective Parallel Inference](#selective-parallel-inference). Click the link for a complete overview.
 
 See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.
+
+---
+
+## Custom Components
+Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the DSL GST API. Once created, they can be added to a Pipeline along with other DSL Components.  
+
+**IMPORTANT!** Make sure to set the Pipelines link method to by add-order. See [Linking Components](#linking-components). 
+
+See the [GST API Reference](/docs/api-gst.md) for more information.
+
+---
+
+## Linking Components
+All Components added to the Pipeline are linked together during the call to [`dsl_pipeline_play`](/docs/api-pipeline.md#dsl_pipeline_play), and are unlinked during the call to [`dsl_pipeline_stop`](/docs/api-pipeline.md#dsl_pipeline_stop). 
+
+**!IMPORTANT** There are two methods of linking the components together, as defined in `DslApi.h`.
+1. `DSL_PIPELINE_LINK_METHOD_BY_POSITION` - all components are linked in a specific position based on type.
+2. `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER` - all components are linked in the order they are added to the Pipeline (except Sources which are always linked to the Pipeline's built-in Streammuxer).
+
+The default link method is `DSL_PIPELINE_LINK_METHOD_BY_POSITION`. This allow Pipelines to be constructed or updated over subsequent calls, meaning, all components are not required to be added at the same time. Using Pyton for example.
+
+```python
+# create the initial Pipeline
+retval = dsl_pipeline_new_component_add_many('pipeline', 
+    ['rtsp-source', 'primary-gie', 'egl-sink', None])
+
+# at some point later it is determined that additional components should be
+# added, perhaps after the Pipeline has been played 
+retval = dsl_pipeline_component_add_many('pipeline',
+    ['iou-tracker', 'on-screen-display', None])
+
+# The Pipeline will link correctly if linking by position, 
+# The Pipeline would fail to link if linked by add-order.
+retval = dsl_pipeline_play('pipeline')    
+```
+
+### Linking by Position
+When linking by position (default), Pipeline components are linked in the order shown in the diagram below.
+
+![pipeline-linked-by-position-with-tiler-and-sinks](/Images/pipeline-linked-by-position-with-tiler-and-sinks.png)
+
+| # |  Component        | Count |    Notes                                                                                   |
+|---|-------------------|-------|--------------------------------------------------------------------------------------------|
+| 1 | Source            | 1..n  | One Source is required to play the Pipeline. Sources are always linked to the Streammuxer. |
+| 2 | Streammuxer       | 1     | Required and built into every DSL Pipeline.                                                |
+| 3 | Remuxer           | 0..1  | Optional, and if added, inference components are added to the Remuxer branches.            |
+| 4 | Preprocessor      | 0..1  | Optional, one at most. Always added before the Primary Inference Component(s).             |
+| 5 | Primary Infer     | 0..n  | Optional, one or more Primary Inference Components linked by add order.                    |
+| 6 | Tracker           | 0..1  | Optional, one at most, always linked after the Primary Inference Component(s).             |
+| 7 | Secondary Infer   | 0..n  | Optional, one or more Secondary Inference Components linked as a graph.                    |
+| 8 | 2D Tiler          | 0..1  | Optional, one at most. Tiler or Demuxer typically required if using multiple Sources.      | 
+| 9 | On Screen Display | 0..1  | Optional, one at most. Always downstream of Tiler or in Demuxer branch.                    | 
+| 10| Sinks             | 1..n  | One Sink is required to play the Pipeline. Sinks are always linked last                    | 
+
+When using a Demuxer or Splitter Tee -- both mutually exlusive with the Tiler -- they are linked as the last element in the Pipeline as shown below. Branches are then created and added to src-pads (output) of the Demuxer or Splitter Tee. 
+
+![pipeline-linked-by-position-with-demuxer-or-tee](/Images/pipeline-linked-by-position-with-demuxer-or-tee.png)
+
+| #     |  Component        | Count |    Notes                                                                                   |
+|-------|-------------------|-------|-----------------------------------------------------------|
+| 1...9 | Same as above     | n     | -- components 1..9 - same notes as in the table above --  |
+| 10    | Demuxer or Tee    | 0..1  | Optional, but always the last component linked if added.  |
+
+<br>
+
+Components, when added to a Branch, are linked in the order as shown in the diagram below.
+
+![pipeline-linked-by-position-with-tiler-and-sinks](/Images/branch-linked-by-position-with-tiler-and-sinks.png)
+
+| # |  Component        | Count |    Notes                                                                                   |
+|---|-------------------|-------|--------------------------------------------------------------------------------------------|
+| 1 | Remuxer           | 0..1  | Optional, typically added to a Pipeline with Inference branches added to the Remuxer.      |
+| 2 | Preprocessor      | 0..1  | Optional, one at most. Always added before the Primary Inference Component(s).             |
+| 3 | Primary Infer     | 0..n  | Optional, one or more Primary Inference Components linked by add order.                    |
+| 4 | Tracker           | 0..1  | Optional, one at most, always linked after the Primary Inference Component(s).             |
+| 5 | Secondary Infer   | 0..n  | Optional, one or more Secondary Inference Components linked as a graph.                    |
+| 6 | 2D Tiler          | 0..1  | Optional, one at most. Tiler or Demuxer typically required if using multiple Sources.      | 
+| 7 | On Screen Display | 0..1  | Optional, one at most. Always downstream of Tiler or in Demuxer branch.                    | 
+| 8 | Sinks             | 1..n  | One Sink is required to play the Pipeline. Sinks are always linked last.                   | 
+
+### Linking by Add-Order
+For use cases that require Components to be linked in a different order, or when using [Custom Components](#custom-components), the link-method can be changed to by add-order. See [`dsl_pipeline_link_method_set`](/docs/api-pipeline.md#dsl_pipeline_link_method_set) for more details. When linking by add order:
+* All Components must be added to the Pipeline at the same time in the order they are to be linked.
+* Sources are still always linked to the Streammuxer first, regardless their order added.
+* Demuxers, Tees, and Sinks must always be added last. 
+* Sources and Sinks can be added/removed at runtime.
+* Demuxer and Tee Branches can be added at runtime.  Remuxer Branches cannot.
+
+## Custom Components
+Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the [DSL GST API](/docs/api-gst.md). Once created, they can be added to a Pipeline along with other DSL Components. 
+
+
+**IMPORTANT!** Make sure to set the Pipelines link method to by add-order. See [Linking Components](#linking-components).
+
+
+See the [GST API Reference](/docs/api-gst.md) for more information.
+
+
+---
+
+
+## Linking Components
+All Components added to the Pipeline are linked together during the call to [`dsl_pipeline_play`](/docs/api-pipeline.md#dsl_pipeline_play), and are unlinked during the call to [`dsl_pipeline_stop`](/docs/api-pipeline.md#dsl_pipeline_stop).
+
+
+**!IMPORTANT** There are two methods of linking the components together, as defined in `DslApi.h`.
+1. `DSL_PIPELINE_LINK_METHOD_BY_POSITION` - all components are linked in a specific position based on type.
+2. `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER` - all components are linked in the order they are added to the Pipeline (except Sources which are always linked to the Pipeline's built-in Streammuxer).
+
+
+The default link method is `DSL_PIPELINE_LINK_METHOD_BY_POSITION`. This allows Pipelines to be constructed or updated over subsequent calls, meaning, all components are not required to be added at the same time. Using Python for example.
+
+
+```python
+# create the initial Pipeline
+retval = dsl_pipeline_new_component_add_many('pipeline',
+   ['rtsp-source', 'primary-gie', 'egl-sink', None])
+
+
+# at some point later it is determined that additional components should be
+# added, perhaps after the Pipeline has been played
+retval = dsl_pipeline_component_add_many('pipeline',
+   ['iou-tracker', 'on-screen-display', None])
+
+
+# The Pipeline will link correctly if linking by position,
+# The Pipeline would fail to link if linked by add-order.
+retval = dsl_pipeline_play('pipeline')   
+```
+
+
+### Linking by Position
+When linking by position (default), Pipeline components are linked in the order shown in the diagram below.
+
+
+![pipeline-linked-by-position-with-tiler-and-sinks](/Images/pipeline-linked-by-position-with-tiler-and-sinks.png)
+
+
+| # |  Component        | Count |    Notes                                                                                   |
+|---|-------------------|-------|--------------------------------------------------------------------------------------------|
+| 1 | Source            | 1..n  | One Source is required to play the Pipeline. Sources are always linked to the Streammuxer. |
+| 2 | Streammuxer       | 1     | Required and built into every DSL Pipeline.                                                |
+| 3 | Remuxer           | 0..1  | Optional, and if added, inference components are added to the Remuxer branches.            |
+| 4 | Preprocessor      | 0..1  | Optional, one at most. Always added before the Primary Inference Component(s).             |
+| 5 | Primary Infer     | 0..n  | Optional, one or more Primary Inference Components linked by add order.                    |
+| 6 | Tracker           | 0..1  | Optional, one at most, always linked after the Primary Inference Component(s).             |
+| 7 | Secondary Infer   | 0..n  | Optional, one or more Secondary Inference Components linked as a graph.                    |
+| 8 | 2D Tiler          | 0..1  | Optional, one at most. Tiler or Demuxer typically required if using multiple Sources.      |
+| 9 | On Screen Display | 0..1  | Optional, one at most. Always downstream of Tiler or in the Demuxer branch.                    |
+| 10| Sinks             | 1..n  | One Sink is required to play the Pipeline. Sinks are always linked last                    |
+
+
+When using a Demuxer or Splitter Tee -- both mutually exclusive with the Tiler -- they are linked as the last element in the Pipeline as shown below. Branches are then created and added to src-pads (output) of the Demuxer or Splitter Tee.
+
+
+![pipeline-linked-by-position-with-demuxer-or-tee](/Images/pipeline-linked-by-position-with-demuxer-or-tee.png)
+
+
+| #     |  Component        | Count |    Notes                                                                                   |
+|-------|-------------------|-------|-----------------------------------------------------------|
+| 1...9 | Same as above     | n     | -- components 1..9 - same notes as in the table above --  |
+| 10    | Demuxer or Tee    | 0..1  | Optional, but always the last component linked if added.  |
+
+
+<br>
+
+
+Components, when added to a Branch, are linked in the order as shown in the diagram below.
+
+
+![pipeline-linked-by-position-with-tiler-and-sinks](/Images/branch-linked-by-position-with-tiler-and-sinks.png)
+
+
+| # |  Component        | Count |    Notes                                                                                   |
+|---|-------------------|-------|--------------------------------------------------------------------------------------------|
+| 1 | Remuxer           | 0..1  | Optional, typically added to a Pipeline with Inference branches added to the Remuxer.      |
+| 2 | Preprocessor      | 0..1  | Optional, one at most. Always added before the Primary Inference Component(s).             |
+| 3 | Primary Infer     | 0..n  | Optional, one or more Primary Inference Components linked by add order.                    |
+| 4 | Tracker           | 0..1  | Optional, one at most, always linked after the Primary Inference Component(s).             |
+| 5 | Secondary Infer   | 0..n  | Optional, one or more Secondary Inference Components linked as a graph.                    |
+| 6 | 2D Tiler          | 0..1  | Optional, one at most. Tiler or Demuxer typically required if using multiple Sources.      |
+| 7 | On Screen Display | 0..1  | Optional, one at most. Always downstream of Tiler or in Demuxer branch.                    |
+| 8 | Sinks             | 1..n  | One Sink is required to play the Pipeline. Sinks are always linked last.                   |
+
+
+### Linking by Add-Order
+For use cases that require Components to be linked in a different order, or when using [Custom Components](#custom-components), the link-method can be changed to by add-order. See [`dsl_pipeline_link_method_set`](/docs/api-pipeline.md#dsl_pipeline_link_method_set) for more details. When linking by add order:
+* All Components must be added to the Pipeline at the same time in the order they are to be linked.
+* Sources are still always linked to the Streammuxer first, regardless of their order added.
+* Demuxers, Tees, and Sinks must always be added last.
+* Sources and Sinks can be added/removed at runtime.
+* Demuxer and Tee Branches can be added at runtime.  Remuxer Branches cannot.
 
 ---
 
