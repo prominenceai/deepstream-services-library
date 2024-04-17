@@ -593,6 +593,7 @@ THE SOFTWARE.
 #define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
 #define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
 #define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
+#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT        7
 
 /**
  * @brief Additional number of surfaces in addition to min decode 
