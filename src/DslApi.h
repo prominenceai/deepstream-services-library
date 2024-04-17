@@ -93,13 +93,13 @@ THE SOFTWARE.
 /**
  * Dewarper API Return Values
  */
-#define DSL_RESULT_DEWARPER_RESULT                                  0x000130000
-#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x000130001
-#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x000130002
-#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x000130003
-#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x000130004
-#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x000130005
-#define DSL_RESULT_DEWARPER_SET_FAILED                              0x000130006
+#define DSL_RESULT_DEWARPER_RESULT                                  0x00090000
+#define DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE                         0x00090001
+#define DSL_RESULT_DEWARPER_NAME_NOT_FOUND                          0x00090002
+#define DSL_RESULT_DEWARPER_NAME_BAD_FORMAT                         0x00090003
+#define DSL_RESULT_DEWARPER_THREW_EXCEPTION                         0x00090004
+#define DSL_RESULT_DEWARPER_CONFIG_FILE_NOT_FOUND                   0x00090005
+#define DSL_RESULT_DEWARPER_SET_FAILED                              0x00090006
 
 /**
  * Tracker API Return Values
@@ -443,16 +443,16 @@ THE SOFTWARE.
 /**
  * ODE Accumulator API Return Values
  */
-#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x001300000
-#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x001300001
-#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x001300002
-#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x001300003
-#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x001300004
-#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x001300005
-#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x001300006
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x001300007
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x001300008
-#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x001300009
+#define DSL_RESULT_ODE_ACCUMULATOR_RESULT                           0x00900000
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_UNIQUE                  0x00900001
+#define DSL_RESULT_ODE_ACCUMULATOR_NAME_NOT_FOUND                   0x00900002
+#define DSL_RESULT_ODE_ACCUMULATOR_THREW_EXCEPTION                  0x00900003
+#define DSL_RESULT_ODE_ACCUMULATOR_IN_USE                           0x00900004
+#define DSL_RESULT_ODE_ACCUMULATOR_SET_FAILED                       0x00900005
+#define DSL_RESULT_ODE_ACCUMULATOR_IS_NOT_ODE_ACCUMULATOR           0x00900006
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_ADD_FAILED                0x00900007
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_REMOVE_FAILED             0x00900008
+#define DSL_RESULT_ODE_ACCUMULATOR_ACTION_NOT_IN_USE                0x00900009
 
 /**
  * ODE Heat-Mapper API Return Values
@@ -587,13 +587,12 @@ THE SOFTWARE.
  */
 // Important - must match the nvvidconvert flip method constant values 
 #define DSL_VIDEO_ORIENTATION_NONE                                  0       
-#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_130           1
+#define DSL_VIDEO_ORIENTATION_ROTATE_COUNTER_CLOCKWISE_90           1
 #define DSL_VIDEO_ORIENTATION_ROTATE_180                            2
-#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_130                   3
+#define DSL_VIDEO_ORIENTATION_ROTATE_CLOCKWISE_90                   3
 #define DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY                     4
 #define DSL_VIDEO_ORIENTATION_FLIP_UPPER_RIGHT_TO_LOWER_LEFT        5
 #define DSL_VIDEO_ORIENTATION_FLIP_VERTICALLY                       6
-#define DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT        7
 
 /**
  * @brief Additional number of surfaces in addition to min decode 
@@ -756,7 +755,7 @@ THE SOFTWARE.
 #define DSL_COLOR_PREDEFINED_GREEN                                  6
 #define DSL_COLOR_PREDEFINED_TURQUOISE                              7
 #define DSL_COLOR_PREDEFINED_INDIGO                                 8
-#define DSL_COLOR_PREDEFINED_PURPLE                                 13
+#define DSL_COLOR_PREDEFINED_PURPLE                                 9
 
 #define DSL_COLOR_PREDEFINED_WHITE                                  10
 #define DSL_COLOR_PREDEFINED_GRAY_25                                11
@@ -767,7 +766,7 @@ THE SOFTWARE.
 #define DSL_COLOR_PREDEFINED_LIME                                   16
 #define DSL_COLOR_PREDEFINED_LIGHT_TURQUOISE                        17
 #define DSL_COLOR_PREDEFINED_BLUE_GRAY                              18
-#define DSL_COLOR_PREDEFINED_LAVENDER                               113
+#define DSL_COLOR_PREDEFINED_LAVENDER                               19
 
 /**
  * @brief Hue constants used to define random RGB colors.
@@ -781,7 +780,7 @@ THE SOFTWARE.
 #define DSL_COLOR_HUE_GREEN                                         6
 #define DSL_COLOR_HUE_GREEN_CYAN                                    7
 #define DSL_COLOR_HUE_CYAN                                          8
-#define DSL_COLOR_HUE_CYAN_BLUE                                     13
+#define DSL_COLOR_HUE_CYAN_BLUE                                     9
 #define DSL_COLOR_HUE_BLUE                                          10
 #define DSL_COLOR_HUE_BLUE_MAGENTA                                  11
 #define DSL_COLOR_HUE_MAGENTA                                       12
@@ -934,7 +933,7 @@ THE SOFTWARE.
 #define DSL_BBOX_POINT_SOUTH                                        6
 #define DSL_BBOX_POINT_SOUTH_WEST                                   7
 #define DSL_BBOX_POINT_WEST                                         8
-#define DSL_BBOX_POINT_ANY                                          13
+#define DSL_BBOX_POINT_ANY                                          9
 
 #define DSL_BBOX_EDGE_TOP                                           0
 #define DSL_BBOX_EDGE_BOTTOM                                        1
@@ -1038,7 +1037,7 @@ THE SOFTWARE.
  */
 #define DSL_METRIC_OBJECT_OCCURRENCES                               8
 
-#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  13
+#define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_IN                  9
 #define DSL_METRIC_OBJECT_OCCURRENCES_DIRECTION_OUT                 10
 
 /**
