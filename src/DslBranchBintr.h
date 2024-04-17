@@ -273,12 +273,6 @@ namespace DSL
     protected:
     
         /**
-         * @brief Created and added as first componet if instantiated as a
-         * Branch t linked to Demuxer or Splitter Tees. 
-         */
-        DSL_ELEMENT_PTR  m_pBranchQueue;
-        
-        /**
          * @brief Index variable to incremment/assign on component add.
          * For components other than Sinks
          */

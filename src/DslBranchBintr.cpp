@@ -39,15 +39,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // if instantiated as a true branch to be linked to a Demuxer or
-        // Splitter Tee - add the input queue and float as Branch sink pad.
-        if (!m_isPipeline)
-        {
-            m_pBranchQueue  = DSL_ELEMENT_NEW("queue", name);
-            
-            GstNodetr::AddChild(m_pBranchQueue);
-            m_pBranchQueue->AddGhostPadToParent("sink");
-        }
     }
 
     bool BranchBintr::AddPreprocBintr(DSL_BASE_PTR pPreprocBintr)
@@ -768,14 +759,19 @@ namespace DSL
         // If instantiated as a true branch to be linked to a Demuxer/Remuxer/Splitter
         if (!m_isPipeline)
         {
-            // Link the input-queue (ghost-pad) to the first component
-            m_pBranchQueue->LinkToSink(m_linkedComponents.front());
+            // Elevate the first component's sink-pad as sink-ghost-pad for branch
+            LOG_INFO("Adding sink-ghost-pad to BranchBintr '" <<
+                GetName() << "' for first ChildBintr '" << 
+                m_linkedComponents.front()->GetName() << "'");
+            m_linkedComponents.front()->AddGhostPadToParent("sink");
             
             if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
             {
-                LOG_INFO("Adding ghost-pad to BranchBintr '" <<
+                LOG_INFO("Adding sink-ghost-pad to BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
                     m_linkedComponents.back()->GetName() << "'");
+
+                // Elevate the last component's src-pad as src-ghost-pad for branch
                 m_linkedComponents.back()->AddGhostPadToParent("src");
             }
         }
@@ -1093,14 +1089,18 @@ namespace DSL
         // If instantiated as a true branch and therefore linked to a Demuxer/Splitter
         if (!m_isPipeline)
         {
-            // Unlink the first component from the input queue (ghost-pad)
-            m_pBranchQueue->UnlinkFromSink();
+            LOG_INFO("Removing sink-ghost-pad from BranchBintr '" <<
+                GetName() << "' for first ChildBintr '" << 
+                m_linkedComponents.front()->GetName() << "'");
+                
+            m_linkedComponents.front()->RemoveGhostPadFromParent("sink");
             
             if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
             {
-                LOG_INFO("Removing ghost-pad from BranchBintr '" <<
+                LOG_INFO("Removing src-ghost-pad from BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
                     m_linkedComponents.back()->GetName() << "'");
+
                 m_linkedComponents.back()->RemoveGhostPadFromParent("src");
             }
         }
