@@ -400,6 +400,11 @@ class dsl_ode_occurrence_info(Structure):
         ('accumulative_info', dsl_ode_occurrence_accumulative_info),
         ('criteria_info', dsl_ode_occurrence_criteria_info)]
 
+class dsl_threshold_value(Structure):
+    _fields_ = [
+        ('threshold', c_uint),
+        ('value', c_uint)]
+
 ##
 ## Pointer Typedefs
 ##
@@ -887,6 +892,21 @@ _dsl.dsl_ode_action_bbox_scale_new.restype = c_uint
 def dsl_ode_action_bbox_scale_new(name, scale):
     global _dsl
     result =_dsl.dsl_ode_action_bbox_scale_new(name, scale)
+    return int(result)
+
+##
+## dsl_ode_action_bbox_style_corners_new()
+##
+#_dsl.dsl_ode_action_bbox_style_corners_new.argtypes = [c_wchar_p, 
+#    c_wchar_p, c_uint, c_uint, ??, c_uint]
+_dsl.dsl_ode_action_bbox_style_corners_new.restype = c_uint
+def dsl_ode_action_bbox_style_corners_new(name,
+    color, length, max_length, thickness_values, num_values):
+    global _dsl
+    arr = (dsl_threshold_value * num_values)()
+    arr[:] = thickness_values
+    result =_dsl.dsl_ode_action_bbox_style_corners_new(name, 
+    color, length, max_length, arr, num_values)
     return int(result)
 
 ##
