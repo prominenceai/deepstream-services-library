@@ -28,7 +28,7 @@
 # specifically:
 #   - File Source
 #   - Primary Triton Inference Server (PTIS)
-#   - 3 Secondary Triton Inference Servers(STIS)
+#   - 2 Secondary Triton Inference Servers(STIS)
 #   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
@@ -60,12 +60,10 @@ primary_infer_config_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-# Filespecs for the Three Secondary Triton Inference Servers (STIS)
+# Filespecs for the Two Secondary Triton Inference Servers (STIS)
 secondary_infer_config_file1 = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carcolor.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_vehiclemake.txt'
 secondary_infer_config_file2 = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_carmake.txt'
-secondary_infer_config_file3 = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_secondary_plan_engine_vehicletypes.txt'
 
 # Source file dimensions are 960 × 540
@@ -73,8 +71,8 @@ SOURCE_WIDTH = 960
 SOURCE_HEIGHT = 540
 
 # Window Sink dimensions same as Source dimensions - no scaling.
-SINK_WIDTH = SOURCE_WIDTH
-SINK_HEIGHT = SOURCE_HEIGHT
+WINDOW_WIDTH = SOURCE_WIDTH
+WINDOW_HEIGHT = SOURCE_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -126,17 +124,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Three New Secondary TISs using the filespec specified above, with interval = 0
+        # Two New Secondary TISs using the filespec specified above, with interval = 0
         retval = dsl_infer_tis_secondary_new('secondary-tis-1', 
             secondary_infer_config_file1, 'primary-tis', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_infer_tis_secondary_new('secondary-tis-2', 
             secondary_infer_config_file2, 'primary-tis', 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_infer_tis_secondary_new('secondary-tis-3', 
-            secondary_infer_config_file3, 'primary-tis', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -175,7 +169,7 @@ def main(args):
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['file-source', 'primary-tis', 'iou-tracker', 'secondary-tis-1', 
-            'secondary-tis-2', 'secondary-tis-3', 'on-screen-display', 
+            'secondary-tis-2', 'on-screen-display', 
             'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
