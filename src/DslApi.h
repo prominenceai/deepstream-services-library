@@ -848,6 +848,12 @@ THE SOFTWARE.
 #define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                          4
 
 /**
+ * @brief The maximum number of consecutive frames a tracked object
+ * can go undetected before it is purged and no longer tracked. 
+*/
+#define DSL_ODE_TRACKED_OBJECT_MISSING_FROM_FRAME_MAX               100
+
+/**
  * @brief Unique class relational identifiers for Class A/B testing
  */
 #define DSL_CLASS_A                                                 0
