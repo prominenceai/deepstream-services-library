@@ -158,7 +158,7 @@ SCENARIO( "A TrackedObjects Container is created correctly", "[TrackedObject]" )
         {
             std::shared_ptr<TrackedObjects>pTrackedObjectsPerSource = 
                 std::shared_ptr<TrackedObjects>(new TrackedObjects(
-                    maxTracePoints));
+                    maxTracePoints, 0));
         
             THEN( "All attributes are setup correctly" )
             {
@@ -196,7 +196,7 @@ SCENARIO( "A TrackedObjects Container adds a Tracked Object correctly", "[Tracke
 
         std::shared_ptr<TrackedObjects>pTrackedObjectsPerSource = 
             std::shared_ptr<TrackedObjects>(new TrackedObjects(
-                maxTracePoints));
+                maxTracePoints, 0));
 
         WHEN( "An Object is added to be container" )
         {
@@ -223,7 +223,7 @@ SCENARIO( "A TrackedObjects Container adds a Tracked Object correctly", "[Tracke
     }
 }
 
-SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly", "[TrackedObject]" )
+SCENARIO( "A TrackedObjects Container manages multiple Tracked Objects correctly", "[TrackedObject]" )
 {
     GIVEN( "A new TrackedObjects container" ) 
     {
@@ -245,7 +245,7 @@ SCENARIO( "A TrackedObjects Container manages multiple Tracked Object correctly"
 
         std::shared_ptr<TrackedObjects>pTrackedObjectsPerSource = 
             std::shared_ptr<TrackedObjects>(new TrackedObjects(
-                maxTracePoints));
+                maxTracePoints, 0));
 
         WHEN( "Several Objects are added to be container" )
         {

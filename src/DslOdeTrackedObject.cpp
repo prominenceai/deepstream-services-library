@@ -268,8 +268,9 @@ namespace DSL
     
     //********************************************************************************
     
-    TrackedObjects::TrackedObjects(uint maxHistory)
+    TrackedObjects::TrackedObjects(uint maxHistory, uint maxMissingFromFrame)
         : m_maxHistory(maxHistory)
+        , m_maxMissingFromFrame(maxMissingFromFrame)
     {
         LOG_FUNC();
     }
@@ -423,14 +424,19 @@ namespace DSL
             auto trackedObject = pTrackedObjects->cbegin();
             while (trackedObject != pTrackedObjects->cend())
             {
-                if (trackedObject->second->frameNumber != currentFrameNumber)
+                if (currentFrameNumber > (trackedObject->second->frameNumber) + 
+                    m_maxMissingFromFrame)
                 {
-                    LOG_DEBUG("Purging tracked object with id = " 
-                        << trackedObject->first << " for source = " 
-                        << trackedObjects.first);
-                        
-                    // use the return value to update the iterator, as erase invalidates it
-                    trackedObject = pTrackedObjects->erase(trackedObject);
+                    {
+                        LOG_DEBUG("Purging tracked object with id = " 
+                            << trackedObject->first << " for source = " 
+                            << trackedObjects.first);
+                        LOG_DEBUG("frame delta = " << currentFrameNumber - 
+                            trackedObject->second->frameNumber);
+                            
+                        // use the return value to update the iterator, as erase invalidates it
+                        trackedObject = pTrackedObjects->erase(trackedObject);
+                    }
                 }
                 else {
                     trackedObject++;
@@ -466,6 +472,8 @@ namespace DSL
     {
         LOG_FUNC();
         
+        m_maxHistory = maxHistory;
+
         for (const auto &trackedObjects: m_trackedObjectsPerSource)
         {
             std::shared_ptr<TrackedObjectsT> pTrackedObjects = 
@@ -478,4 +486,10 @@ namespace DSL
         }
     }
     
+    void TrackedObjects::SetMaxMissingFromFrame(uint maxMissingFromFrame)
+    {
+        LOG_FUNC();
+        
+        m_maxMissingFromFrame = maxMissingFromFrame;
+    }
 }    

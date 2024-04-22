@@ -158,7 +158,7 @@ namespace DSL
          * @brief number of tracked events
          */
         uint onEventFrameCount;
-    
+
     private:
 
         /**
@@ -181,7 +181,7 @@ namespace DSL
          * @brief maximum number of bbox coordinates to maintain/trace.
          */
         uint m_maxHistory;
-        
+
         /**
          * @brief a max sized queue of Rectangle Params.
          */
@@ -212,8 +212,10 @@ namespace DSL
         /**
          * @brief Ctor TrackedObjects class
          * @param[in] maxHistory maximum number of bbox coordinates to track
+         * @param[in] maxMissingFromFrame The maximum number of consecutive frames a tracked object
+         * can go undetected before it is purged and no longer tracked. 
          */
-        TrackedObjects(uint maxHistory);
+        TrackedObjects(uint maxHistory, uint maxMissingFromFrame);
         
         /**
          * @brief determines if an object is currently tracked for a given source.
@@ -284,12 +286,25 @@ namespace DSL
          */
         void SetMaxHistory(uint maxHistory);
         
+        /**
+         * @brief Sets the maximum number of consecutive frames a tracked object
+         * can go undetected before it is purged and no longer tracked. 
+         * @param maxMissingFromFrame new max history setting.
+         */
+        void SetMaxMissingFromFrame(uint maxMissingFromFrame);
+        
     private:
     
         /**
          * @brief maximum number of bbox coordinates to maintain/trace
          */
         uint m_maxHistory;
+        
+        /**
+         * @brief The maximum number of consecutive frames a tracked object
+         * can go undetected before it is purged and no longer tracked. 
+        */
+        uint m_maxMissingFromFrame;
         
         /**
          * @brief map of tracked objects - Key = unique Tracking Id

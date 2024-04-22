@@ -2000,7 +2000,8 @@ namespace DSL
         LOG_FUNC();
         
         m_pTrackedObjectsPerSource = std::shared_ptr<TrackedObjects>(
-            new TrackedObjects(maxTracePoints));
+            new TrackedObjects(maxTracePoints, 
+                DSL_ODE_TRACKED_OBJECT_MISSING_FROM_FRAME_MAX));
     }
 
     TrackingOdeTrigger::~TrackingOdeTrigger()
