@@ -1132,6 +1132,18 @@ def dsl_ode_action_label_format_new(name,
     return int(result)
 
 ##
+## dsl_ode_action_label_offset_new()
+##
+_dsl.dsl_ode_action_label_offset_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_ode_action_label_offset_new.restype = c_uint
+def dsl_ode_action_label_offset_new(name, offset_x, offset_y):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_offset_new(name, 
+        offset_x, offset_y)
+    return int(result)
+
+##
 ## dsl_ode_action_handler_disable_new()
 ##
 _dsl.dsl_ode_action_handler_disable_new.argtypes = [c_wchar_p, c_wchar_p]
