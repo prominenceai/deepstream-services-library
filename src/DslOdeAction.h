@@ -144,6 +144,11 @@ namespace DSL
         std::shared_ptr<OffsetLabelOdeAction>(new OffsetLabelOdeAction(name, \
             offsetX, offsetY))
 
+    #define DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR std::shared_ptr<SnapLabelToGridOdeAction>
+    #define DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(name, cols, rows) \
+        std::shared_ptr<SnapLabelToGridOdeAction>(new SnapLabelToGridOdeAction(name, \
+            cols, rows))
+
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
@@ -1529,6 +1534,57 @@ namespace DSL
          * bounding box corner.
          */
         int m_offsetY;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class SnapLabelToGridOdeAction
+     * @brief Snap Object Label to Grid ODE Action class
+     */
+    class SnapLabelToGridOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Snap Label to Grid ODE Action class
+         * @param[in] name unique name for the ODE Action.
+         * @param[in] cols Number of cols in the 2D grid.
+         * @param[in] rows Number of rows in the 2D grid.
+         */
+        SnapLabelToGridOdeAction(const char* name,
+            int cols, int rows);
+        
+        /**
+         * @brief dtor for the ODE Format Label Action class
+         */
+        ~SnapLabelToGridOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by snapping each object label to a 
+         * measured 2D grid.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Number of cols in the 2D grid.
+         */
+        int m_cols;
+
+        /**
+         * @brief Number of rows in the 2D grid.
+         */
+        int m_rows;
 
     };
     

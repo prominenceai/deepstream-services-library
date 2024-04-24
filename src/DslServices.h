@@ -213,6 +213,9 @@ namespace DSL {
         DslReturnType OdeActionLabelOffsetNew(const char* name, 
             int offset_x, int offset_y);
         
+        DslReturnType OdeActionLabelSnapToGridNew(const char* name, 
+            int cols, int rows);
+        
         DslReturnType OdeActionLabelFormatNew(const char* name,
             const char* font, boolean hasBgColor, const char* bgColor);
         

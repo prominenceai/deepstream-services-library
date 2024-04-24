@@ -633,8 +633,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::OdeActionLabelOffsetNew(const char* name, 
-        int offsetX, int offsetY)
+DslReturnType Services::OdeActionLabelOffsetNew(const char* name, 
+    int offsetX, int offsetY)
 {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -659,6 +659,38 @@ namespace DSL
         catch(...)
         {
             LOG_ERROR("New ODE Offset Label Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        
+    }
+    
+DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name, 
+    int cols, int rows)
+{
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            m_odeActions[name] = DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(name,
+                cols, rows);
+
+            LOG_INFO("New ODE Snap To Grid Label Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Snap To Grid Label Action '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }

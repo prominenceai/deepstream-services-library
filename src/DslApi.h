@@ -2509,9 +2509,9 @@ DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,
     const uint* content_types, uint size);
 
 /**
- * @brief Creates a uniquely named "Customize Object Label" ODE Action that offsets 
+ * @brief Creates a uniquely named "Offset Object Label" ODE Action that offsets 
  * an Object's label from the default location. 
- * @param[in] name unique name for the "Customize Object Label ODE Action. 
+ * @param[in] name unique name for the "Offset Object Label ODE Action. 
  * @param[in] offset_x horizontal offset from the default top left bounding box corner. 
  * Use a negative value to move left, positive to move right  in units of pixels.
  * @param[in] offset_y vertical offset from the default top left bounding box corner. 
@@ -2520,6 +2520,17 @@ DslReturnType dsl_ode_action_label_customize_set(const wchar_t* name,
  */
 DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,  
     int offset_x, int offset_y);
+    
+/**
+ * @brief Creates a uniquely named "Snap Object Label to Grid " ODE Action that moves 
+ * the object label to the closes location on a 2D grid measured over the frame. 
+ * @param[in] name unique name for the "Snap Object Label to Grid ODE Action. 
+ * @param[in] cols number of cols for the 2D grid.
+ * @param[in] rows number of rows for the 2D grid. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
+    int cols, int rows);
     
 /**
  * @brief Creates a uniquely named Log ODE Action

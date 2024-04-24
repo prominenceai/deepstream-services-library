@@ -891,6 +891,19 @@ DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,
         cstrName.c_str(), offset_x, offset_y);
 }    
     
+DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
+    int cols, int rows)
+    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionLabelSnapToGridNew(
+        cstrName.c_str(), cols, rows);
+}    
+
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
     const wchar_t* format_string, uint offset_x, uint offset_y, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)

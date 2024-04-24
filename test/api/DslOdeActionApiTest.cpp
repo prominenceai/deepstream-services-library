@@ -715,6 +715,36 @@ SCENARIO( "A new Offset Label ODE Action can be created and deleted", "[ode-acti
     }
 }
 
+SCENARIO( "A new Snap Label to Grid ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Snap Label to Grid ODE Action" ) 
+    {
+        std::wstring action_name(L"snap-label-action");
+        uint cols(DSL_1K_HD_WIDTH/10), rows(DSL_1K_HD_HEIGHT/10);
+
+        WHEN( "A new Offset Label is created" ) 
+        {
+            REQUIRE( dsl_ode_action_label_snap_to_grid_new(action_name.c_str(),
+                cols, rows) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_label_snap_to_grid_new(action_name.c_str(),
+                cols, rows) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Offset Label can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+            }
+        }
+    }
+}
+
 SCENARIO( "Parameters for a new Customize Label ODE Action are checked on construction", "[ode-action-api]" )
 {
     GIVEN( "Attributes for a new Customize Label ODE Action" ) 

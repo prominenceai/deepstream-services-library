@@ -966,6 +966,100 @@ SCENARIO( "A OffsetLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
     }
 }
 
+SCENARIO( "A new SnapLabelToGridOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new SnapLabelToGridOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        uint cols(128), rows(72);
+
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR pAction = 
+                DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(
+                    actionName.c_str(), cols, rows);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A SnapLabelToGridOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new SnapLabelToGridOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        std::string actionName("ode-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 20;
+        objectMeta.rect_params.top = 20;
+        objectMeta.rect_params.width = 36;
+        objectMeta.rect_params.height = 55;
+        
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+        frameMeta.pipeline_width = DSL_1K_HD_WIDTH;
+        frameMeta.pipeline_height = DSL_1K_HD_HEIGHT;
+
+        uint cols(192), rows(108);
+
+        DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR pAction = 
+            DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(
+                actionName.c_str(), cols, rows);
+
+        WHEN( "The offsets are less than half the grid size" )
+        {
+
+            objectMeta.text_params.x_offset = 4;
+            objectMeta.text_params.y_offset = 4;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(0), exp_y_offset(0);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+        WHEN( "offsets are defined negative and out-of-frame" )
+        {
+            objectMeta.text_params.x_offset = 6;
+            objectMeta.text_params.y_offset = 6;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(10), exp_y_offset(10);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+    }
+}
+
 SCENARIO( "A new EmailOdeAction is created correctly", "[OdeAction]" )
 {
     GIVEN( "Attributes for a new EmailOdeAction" ) 

@@ -1144,6 +1144,18 @@ def dsl_ode_action_label_offset_new(name, offset_x, offset_y):
     return int(result)
 
 ##
+## dsl_ode_action_label_snap_to_grid_new()
+##
+_dsl.dsl_ode_action_label_snap_to_grid_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_ode_action_label_snap_to_grid_new.restype = c_uint
+def dsl_ode_action_label_snap_to_grid_new(name, cols, rows):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_snap_to_grid_new(name, 
+        cols, rows)
+    return int(result)
+
+##
 ## dsl_ode_action_handler_disable_new()
 ##
 _dsl.dsl_ode_action_handler_disable_new.argtypes = [c_wchar_p, c_wchar_p]

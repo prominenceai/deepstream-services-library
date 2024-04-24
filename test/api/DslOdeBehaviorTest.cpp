@@ -2665,3 +2665,72 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
     }
 }
 
+
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Snap Label ODE Action can play",
+    "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Snap Label ODE Action" ) 
+    {
+        uint cols(DSL_1K_HD_WIDTH/40), rows(DSL_1K_HD_HEIGHT/40);
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), 
+            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), ode_pph_name.c_str(), 
+            DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
+            NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_label_snap_to_grid_new(ode_action_name.c_str(), 
+            cols, rows) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
+            ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {
+            L"uri-source-1", L"primary-gie", L"iou-tracker", L"osd", L"egl-sink-1", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
