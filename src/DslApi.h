@@ -2537,7 +2537,7 @@ DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,
  * connects the object label (x,y offset) with a line to a defined corrner of
  * the Object's bbox. This Action should be used with the "Offset Label" Action.
  * @param[in] name unique name for the "Snap Object Label to Grid ODE Action. 
- * @param[in] line_color name of the RGBA color to use space for the connecting line
+ * @param[in] line_color name of the RGBA color to use for the connecting line.
  * @param[in] line_width width value for the connecting line.
  * @param[in] bbox_point one of the DSL_BBOX_POINT symbolic constants.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
