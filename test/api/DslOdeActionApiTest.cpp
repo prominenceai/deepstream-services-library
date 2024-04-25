@@ -722,7 +722,7 @@ SCENARIO( "A new Snap Label to Grid ODE Action can be created and deleted", "[od
         std::wstring action_name(L"snap-label-action");
         uint cols(DSL_1K_HD_WIDTH/10), rows(DSL_1K_HD_HEIGHT/10);
 
-        WHEN( "A new Offset Label is created" ) 
+        WHEN( "A new Snap Label is created" ) 
         {
             REQUIRE( dsl_ode_action_label_snap_to_grid_new(action_name.c_str(),
                 cols, rows) == DSL_RESULT_SUCCESS );
@@ -731,7 +731,41 @@ SCENARIO( "A new Snap Label to Grid ODE Action can be created and deleted", "[od
             REQUIRE( dsl_ode_action_label_snap_to_grid_new(action_name.c_str(),
                 cols, rows) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
-            THEN( "The Offset Label can be deleted" ) 
+            THEN( "The Snap Label can be deleted" ) 
+            {
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+
+                // second attempt must fail
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) == 
+                    DSL_RESULT_ODE_ACTION_NAME_NOT_FOUND );
+                
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Connect Label to BBox ODE Action can be created and deleted", "[ode-action-api]" )
+{
+    GIVEN( "Attributes for a new Connect Label to BBox ODE Action" ) 
+    {
+        std::wstring action_name(L"connect-label-action");
+        std::wstring line_color_name(L"line-color");
+
+        WHEN( "A new Connect Label is created" ) 
+        {
+            REQUIRE( dsl_display_type_rgba_color_custom_new(line_color_name.c_str(), 
+                0.800, 0.800, 0.800, 0.800) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_ode_action_label_connect_to_bbox_new(action_name.c_str(), 
+                line_color_name.c_str(), 3, DSL_BBOX_POINT_CENTER) == DSL_RESULT_SUCCESS );
+
+            // second attempt must fail
+            REQUIRE( dsl_ode_action_label_connect_to_bbox_new(action_name.c_str(), 
+                line_color_name.c_str(), 3, DSL_BBOX_POINT_CENTER) == 
+                DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+            
+            THEN( "The Connect Label can be deleted" ) 
             {
                 REQUIRE( dsl_ode_action_delete(action_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_ode_action_list_size() == 0 );

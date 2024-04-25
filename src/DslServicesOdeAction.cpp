@@ -666,7 +666,7 @@ DslReturnType Services::OdeActionLabelOffsetNew(const char* name,
     }
     
 DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name, 
-    int cols, int rows)
+    uint cols, uint rows)
 {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -683,14 +683,59 @@ DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name,
             m_odeActions[name] = DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(name,
                 cols, rows);
 
-            LOG_INFO("New ODE Snap To Grid Label Action '" << name 
+            LOG_INFO("New ODE Snap Label To Grid Action '" << name 
                 << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("New ODE Snap To Grid Label Action '" << name 
+            LOG_ERROR("New ODE Snap Label To Grid Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
+        }
+        
+    }
+    
+DslReturnType Services::OdeActionLabelConnectToBBoxNew(const char* name, 
+    const char* lineColor, uint lineWidth, uint bboxPoint)
+{
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_odeActions.find(name) != m_odeActions.end())
+            {   
+                LOG_ERROR("ODE Action name '" << name << "' is not unique");
+                return DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE;
+            }
+            
+            DSL_RETURN_IF_DISPLAY_TYPE_NAME_NOT_FOUND(m_displayTypes, lineColor);
+            DSL_RETURN_IF_DISPLAY_TYPE_IS_NOT_CORRECT_TYPE(
+                m_displayTypes, lineColor, RgbaColor);
+
+            if (bboxPoint >= DSL_BBOX_POINT_ANY)
+            {
+                LOG_ERROR("Invalid DSL_BBOX_POINT value = " << bboxPoint 
+                    << " for ODE Connect Label to BBox Action '" << name << "'");
+            }
+                
+            DSL_RGBA_COLOR_PTR pLineColor = std::dynamic_pointer_cast<RgbaColor>(
+                m_displayTypes[lineColor]);
+                    
+            m_odeActions[name] = DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_NEW(name,
+                pLineColor, lineWidth, bboxPoint);
+
+            LOG_INFO("New ODE Connect Label to BBox Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ODE Connect Label to BBox Action '" << name 
                 << "' threw exception on create");
             return DSL_RESULT_ODE_ACTION_THREW_EXCEPTION;
         }

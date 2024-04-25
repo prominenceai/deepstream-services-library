@@ -127,7 +127,7 @@ SCENARIO( "A new FormatBBoxOdeAction is created correctly", "[OdeAction]" )
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
         DSL_RGBA_COLOR_PTR pBorderColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
             red, green, blue, alpha);
-        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(bgColorName.c_str(), 
             red, green, blue, alpha);
 
         WHEN( "A new FormatBBoxOdeAction is created" )
@@ -1055,6 +1055,33 @@ SCENARIO( "A SnapLabelToGridOdeAction handles an ODE Occurence correctly", "[Ode
                     
                 REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
                 REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new ConnectLabelToBBoxOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new ConnectLabelToBBoxOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string lineColorName("line-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pLineColor = DSL_RGBA_COLOR_NEW(lineColorName.c_str(), 
+            red, green, blue, alpha);
+        uint lineWidth(2);
+        uint bboxPoint(DSL_BBOX_POINT_NORTH_WEST);
+
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_PTR pAction = 
+                DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_NEW(actionName.c_str(), 
+                    pLineColor, lineWidth, bboxPoint);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
             }
         }
     }

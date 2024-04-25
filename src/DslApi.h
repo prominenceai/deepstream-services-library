@@ -2530,7 +2530,20 @@ DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
-    int cols, int rows);
+    uint cols, uint rows);
+    
+/**
+ * @brief Creates a uniquely named "Connect Object Label to BBox" ODE Action that
+ * connects the object label (x,y offset) with a line to a defined corrner of
+ * the Object's bbox. This Action should be used with the "Offset Label" Action.
+ * @param[in] name unique name for the "Snap Object Label to Grid ODE Action. 
+ * @param[in] line_color name of the RGBA color to use space for the connecting line
+ * @param[in] line_width width value for the connecting line.
+ * @param[in] bbox_point one of the DSL_BBOX_POINT symbolic constants.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_ode_action_label_connect_to_bbox_new(const wchar_t* name,  
+    const wchar_t* line_color, uint line_width, uint bbox_point);
     
 /**
  * @brief Creates a uniquely named Log ODE Action

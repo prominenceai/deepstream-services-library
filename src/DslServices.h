@@ -214,7 +214,10 @@ namespace DSL {
             int offset_x, int offset_y);
         
         DslReturnType OdeActionLabelSnapToGridNew(const char* name, 
-            int cols, int rows);
+            uint cols, uint rows);
+        
+        DslReturnType OdeActionLabelConnectToBBoxNew(const char* name, 
+            const char* lineColor, uint lineWidth, uint bboxPoint);
         
         DslReturnType OdeActionLabelFormatNew(const char* name,
             const char* font, boolean hasBgColor, const char* bgColor);

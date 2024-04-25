@@ -1156,6 +1156,19 @@ def dsl_ode_action_label_snap_to_grid_new(name, cols, rows):
     return int(result)
 
 ##
+## dsl_ode_action_label_connect_to_bbox_new()
+##
+_dsl.dsl_ode_action_label_connect_to_bbox_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_action_label_connect_to_bbox_new.restype = c_uint
+def dsl_ode_action_label_connect_to_bbox_new(name, 
+    line_color, line_width, bbox_point):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_connect_to_bbox_new(name, 
+        line_color, line_width, bbox_point)
+    return int(result)
+
+##
 ## dsl_ode_action_handler_disable_new()
 ##
 _dsl.dsl_ode_action_handler_disable_new.argtypes = [c_wchar_p, c_wchar_p]
