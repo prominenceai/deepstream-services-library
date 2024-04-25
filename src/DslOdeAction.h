@@ -1555,11 +1555,11 @@ namespace DSL
         /**
          * @brief ctor for the Snap Label to Grid ODE Action class
          * @param[in] name unique name for the ODE Action.
-         * @param[in] cols Number of cols in the 2D grid.
-         * @param[in] rows Number of rows in the 2D grid.
+         * @param[in] moduleWidth width of each module (square) in the grid.
+         * @param[in] moduleHeight height of each module (sqaure) in the grid.
          */
         SnapLabelToGridOdeAction(const char* name,
-            uint cols, uint rows);
+            uint moduleWidth, uint moduleHeight);
         
         /**
          * @brief dtor for the ODE Format Label Action class
@@ -1582,14 +1582,14 @@ namespace DSL
     private:
     
         /**
-         * @brief Number of cols in the 2D grid.
+         * @brief Width of each module in the grid.
          */
-        uint m_cols;
+        uint m_moduleWidth;
 
         /**
-         * @brief Number of rows in the 2D grid.
+         * @brief Height of each module in the grid.
          */
-        uint m_rows;
+        uint m_moduleHeight;
 
     };
     

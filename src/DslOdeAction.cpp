@@ -2331,10 +2331,10 @@ namespace DSL
     // ********************************************************************
 
     SnapLabelToGridOdeAction::SnapLabelToGridOdeAction(const char* name,
-        uint cols, uint rows)
+        uint moduleWidth, uint moduleHeight)
         : OdeAction(name)
-        , m_cols(cols)
-        , m_rows(rows)
+        , m_moduleWidth(moduleWidth)
+        , m_moduleHeight(moduleHeight)
     {
         LOG_FUNC();
     }
@@ -2352,21 +2352,13 @@ namespace DSL
 
         if (m_enabled and pObjectMeta)
         {   
-            uint colWidth(pFrameMeta->pipeline_width / m_cols); 
-            uint rowHeight(pFrameMeta->pipeline_height / m_rows);
-
-            if (!colWidth or !rowHeight)
-            {
-                LOG_ERROR("invalid rows and/or cols provided. row-height = " 
-                    << rowHeight << ", col-width = " << colWidth);
-                    return;
-            }
-            
             pObjectMeta->text_params.x_offset = 
-                ((pObjectMeta->text_params.x_offset + colWidth/2) / colWidth) * colWidth;
+                ((pObjectMeta->text_params.x_offset + m_moduleWidth/2)
+                    / m_moduleWidth) * m_moduleWidth;
             
             pObjectMeta->text_params.y_offset = 
-                ((pObjectMeta->text_params.y_offset + rowHeight/2) / rowHeight) * rowHeight;
+                ((pObjectMeta->text_params.y_offset + m_moduleHeight/2)
+                    / m_moduleHeight) * m_moduleHeight;
         }
     }
 
@@ -2454,15 +2446,20 @@ namespace DSL
 
             DSL_RGBA_LINE_PTR pConnectingLine1;
             DSL_RGBA_LINE_PTR pConnectingLine2;          
-            int xDelta(pObjectMeta->text_params.x_offset-x);
-            int yDelta(pObjectMeta->text_params.y_offset-y);
-            if (abs(xDelta) > abs(yDelta))
+            int xDelta(pObjectMeta->text_params.x_offset - x);
+            int yDelta(pObjectMeta->text_params.y_offset - y);
+            int xAbsDelta(abs(xDelta));
+            int yAbsDelta(abs(yDelta));
+            int xDeltaSign = (xDelta < 0) ? -1 : 1;
+            int yDeltaSign = (yDelta < 0) ? -1 : 1;
+
+            if (xAbsDelta > yAbsDelta)
             {
                 pConnectingLine1 = DSL_RGBA_LINE_NEW("",  
-                    x, y, x+yDelta, y+yDelta, 
+                    x, y, x+yAbsDelta*xDeltaSign, y+yAbsDelta*yDeltaSign, 
                     m_lineWidth, m_pLineColor);
                 pConnectingLine2 = DSL_RGBA_LINE_NEW("",  
-                    x+yDelta, y+yDelta, 
+                    x+yAbsDelta*xDeltaSign, y+yAbsDelta*yDeltaSign, 
                     pObjectMeta->text_params.x_offset, 
                     pObjectMeta->text_params.y_offset, 
                     m_lineWidth, m_pLineColor);
@@ -2470,10 +2467,10 @@ namespace DSL
             else
             {
                 pConnectingLine1 = DSL_RGBA_LINE_NEW("",  
-                    x, y, x+xDelta, y+xDelta, 
+                    x, y, x+xAbsDelta*xDeltaSign, y+xAbsDelta*yDeltaSign, 
                     m_lineWidth, m_pLineColor);
                 pConnectingLine2 = DSL_RGBA_LINE_NEW("",  
-                    x+xDelta, y+xDelta, 
+                    x+xAbsDelta*xDeltaSign, y+xAbsDelta*yDeltaSign, 
                     pObjectMeta->text_params.x_offset, 
                     pObjectMeta->text_params.y_offset, 
                     m_lineWidth, m_pLineColor);
