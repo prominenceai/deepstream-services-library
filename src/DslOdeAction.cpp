@@ -2330,6 +2330,163 @@ namespace DSL
 
     // ********************************************************************
 
+    SnapLabelToGridOdeAction::SnapLabelToGridOdeAction(const char* name,
+        uint cols, uint rows)
+        : OdeAction(name)
+        , m_cols(cols)
+        , m_rows(rows)
+    {
+        LOG_FUNC();
+    }
+
+    SnapLabelToGridOdeAction::~SnapLabelToGridOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void SnapLabelToGridOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            uint colWidth(pFrameMeta->pipeline_width / m_cols); 
+            uint rowHeight(pFrameMeta->pipeline_height / m_rows);
+
+            if (!colWidth or !rowHeight)
+            {
+                LOG_ERROR("invalid rows and/or cols provided. row-height = " 
+                    << rowHeight << ", col-width = " << colWidth);
+                    return;
+            }
+            
+            pObjectMeta->text_params.x_offset = 
+                ((pObjectMeta->text_params.x_offset + colWidth/2) / colWidth) * colWidth;
+            
+            pObjectMeta->text_params.y_offset = 
+                ((pObjectMeta->text_params.y_offset + rowHeight/2) / rowHeight) * rowHeight;
+        }
+    }
+
+    // ********************************************************************
+
+    ConnectLabelToBBoxOdeAction::ConnectLabelToBBoxOdeAction(const char* name,
+        DSL_RGBA_COLOR_PTR pLineColor, uint lineWidth, uint bboxPoint)
+        : OdeAction(name)
+        , m_pLineColor(pLineColor)
+        , m_lineWidth(lineWidth)
+        , m_bboxPoint(bboxPoint)
+    {
+        LOG_FUNC();
+    }
+
+    ConnectLabelToBBoxOdeAction::~ConnectLabelToBBoxOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void ConnectLabelToBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            uint x(0), y(0);
+            switch (m_bboxPoint)
+            {
+            case DSL_BBOX_POINT_CENTER :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width/2);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_NORTH_WEST :
+                x = round(pObjectMeta->rect_params.left);
+                y = round(pObjectMeta->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width/2);
+                y = round(pObjectMeta->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH_EAST :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width);
+                y = round(pObjectMeta->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_EAST :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_SOUTH_EAST :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width/2);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH_WEST :
+                x = round(pObjectMeta->rect_params.left);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_WEST :
+                x = round(pObjectMeta->rect_params.left);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height/2);
+                break;
+            default:
+                LOG_ERROR("Invalid DSL_BBOX_POINT = '" << m_bboxPoint 
+                    << "' for Action '" << GetName() << "'");
+                throw std::exception();
+            }
+
+            DSL_RGBA_LINE_PTR pConnectingLine1;
+            DSL_RGBA_LINE_PTR pConnectingLine2;          
+            int xDelta(pObjectMeta->text_params.x_offset-x);
+            int yDelta(pObjectMeta->text_params.y_offset-y);
+            if (abs(xDelta) > abs(yDelta))
+            {
+                pConnectingLine1 = DSL_RGBA_LINE_NEW("",  
+                    x, y, x+yDelta, y+yDelta, 
+                    m_lineWidth, m_pLineColor);
+                pConnectingLine2 = DSL_RGBA_LINE_NEW("",  
+                    x+yDelta, y+yDelta, 
+                    pObjectMeta->text_params.x_offset, 
+                    pObjectMeta->text_params.y_offset, 
+                    m_lineWidth, m_pLineColor);
+            } 
+            else
+            {
+                pConnectingLine1 = DSL_RGBA_LINE_NEW("",  
+                    x, y, x+xDelta, y+xDelta, 
+                    m_lineWidth, m_pLineColor);
+                pConnectingLine2 = DSL_RGBA_LINE_NEW("",  
+                    x+xDelta, y+xDelta, 
+                    pObjectMeta->text_params.x_offset, 
+                    pObjectMeta->text_params.y_offset, 
+                    m_lineWidth, m_pLineColor);
+            }
+
+            pConnectingLine1->AddMeta(displayMetaData, pFrameMeta);
+            pConnectingLine2->AddMeta(displayMetaData, pFrameMeta);
+        }
+    }
+
+
+    // ********************************************************************
+
     AddDisplayMetaOdeAction::AddDisplayMetaOdeAction(const char* name, 
         DSL_DISPLAY_TYPE_PTR pDisplayType)
         : OdeAction(name)

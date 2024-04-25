@@ -891,6 +891,34 @@ DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,
         cstrName.c_str(), offset_x, offset_y);
 }    
     
+DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
+    uint cols, uint rows)
+    
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->OdeActionLabelSnapToGridNew(
+        cstrName.c_str(), cols, rows);
+}    
+
+DslReturnType dsl_ode_action_label_connect_to_bbox_new(const wchar_t* name,  
+    const wchar_t* line_color, uint line_width, uint bbox_point)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(line_color);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrLineColor(line_color);
+    std::string cstrLineColor(wstrLineColor.begin(), wstrLineColor.end());
+
+    return DSL::Services::GetServices()->OdeActionLabelConnectToBBoxNew(
+        cstrName.c_str(), cstrLineColor.c_str(), line_width, bbox_point);
+}      
+
 DslReturnType dsl_ode_action_display_new(const wchar_t* name, 
     const wchar_t* format_string, uint offset_x, uint offset_y, 
     const wchar_t* font, boolean has_bg_color, const wchar_t* bg_color)

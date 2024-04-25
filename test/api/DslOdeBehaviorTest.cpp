@@ -77,7 +77,9 @@ static const std::wstring ode_trigger_name(L"occurrence");
 static const uint class_id(0);
 static const uint limit_10(10);
 
-static const std::wstring ode_action_name(L"print");
+static const std::wstring ode_action_name_0(L"action-0");
+static const std::wstring ode_action_name_1(L"action-1");
+static const std::wstring ode_action_name_2(L"action-2");
 
 static const std::wstring color_palette_name(L"spectral-color-palette");
 static const std::wstring ode_heat_mapper_name(L"ode-heat-mapper");
@@ -207,8 +209,8 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Print
         REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), NULL, class_id, limit_10) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_print_new(ode_action_name_0.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(),
@@ -1278,7 +1280,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Format BBox ODE Action" ) 
     {
-        std::wstring ode_action_name(L"format-bbox-action");
+        std::wstring ode_action_name_0(L"format-bbox-action");
         uint border_width(8);
 
         std::wstring border_color_name(L"my-border-color");
@@ -1308,11 +1310,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_bbox_format_new(ode_action_name.c_str(), border_width, 
+        REQUIRE( dsl_ode_action_bbox_format_new(ode_action_name_0.c_str(), border_width, 
             border_color_name.c_str(), has_bg_color, 
             bg_color_name.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1357,7 +1359,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Format Label Action" ) 
     {
-        std::wstring ode_action_name(L"format-label-action");
+        std::wstring ode_action_name_0(L"format-label-action");
 
         std::wstring font_name(L"font-name");
         std::wstring font(L"arial");
@@ -1380,7 +1382,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_display_type_rgba_font_new(font_name.c_str(), 
             font.c_str(), size, font_color_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_label_format_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_label_format_new(ode_action_name_0.c_str(),  
             font_name.c_str(), has_bg_color, font_bg_color_name.c_str()) 
                 == DSL_RESULT_SUCCESS );
         
@@ -1401,7 +1403,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Forma
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1447,14 +1449,14 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Costomize Label Action" ) 
     {
-        std::wstring ode_action_name(L"customize-label-action");
+        std::wstring ode_action_name_0(L"customize-label-action");
         uint label_types[] = {DSL_METRIC_OBJECT_LOCATION,
             DSL_METRIC_OBJECT_DIMENSIONS, DSL_METRIC_OBJECT_CONFIDENCE_INFERENCE,
             DSL_METRIC_OBJECT_PERSISTENCE};
 
         uint size(4);
 
-        REQUIRE( dsl_ode_action_label_customize_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_label_customize_new(ode_action_name_0.c_str(),  
             label_types, size) 
                 == DSL_RESULT_SUCCESS );
         
@@ -1475,7 +1477,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Custo
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1521,11 +1523,11 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Offset Label Action" ) 
     {
-        std::wstring ode_action_name(L"offset-label-action");
+        std::wstring ode_action_name_0(L"offset-label-action");
 
         int offset_x(0), offset_y(20);
 
-        REQUIRE( dsl_ode_action_label_offset_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_label_offset_new(ode_action_name_0.c_str(),  
             offset_x, offset_y) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -1545,7 +1547,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Offse
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1591,9 +1593,9 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Scale Action" ) 
     {
-        std::wstring ode_action_name(L"offset-label-action");
+        std::wstring ode_action_name_0(L"offset-label-action");
 
-        REQUIRE( dsl_ode_action_bbox_scale_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_bbox_scale_new(ode_action_name_0.c_str(),  
             120) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -1610,7 +1612,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Scale
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -1715,11 +1717,11 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Line Area can p
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
             area_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+        REQUIRE( dsl_ode_action_print_new(ode_action_name_0.c_str(), 
             false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
             person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1828,11 +1830,11 @@ SCENARIO( "A new Pipeline with an Cross ODE Trigger using an ODE Multi-Line Area
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
             area_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+        REQUIRE( dsl_ode_action_print_new(ode_action_name_0.c_str(), 
             false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
             person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -1944,11 +1946,11 @@ SCENARIO( "A new Pipeline with a Cross ODE Trigger using an ODE Polygon Area can
         REQUIRE( dsl_ode_trigger_area_add(person_cross_name.c_str(), 
             area_name.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+        REQUIRE( dsl_ode_action_print_new(ode_action_name_0.c_str(), 
             false) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_ode_trigger_action_add(person_cross_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(),
             person_cross_name.c_str()) == DSL_RESULT_SUCCESS );
@@ -2018,10 +2020,10 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Print ODE
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, person_class_id, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), 
+        REQUIRE( dsl_ode_action_print_new(ode_action_name_0.c_str(), 
             false) == DSL_RESULT_SUCCESS );
 //        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-//            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+//            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_display_type_rgba_color_palette_predefined_new(
             color_palette_name.c_str(), DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL, 
@@ -2099,8 +2101,8 @@ SCENARIO( "A Tiler can add the frame number to the framemeta correctly", "[ode-b
         REQUIRE( dsl_tiler_pph_add(tiler_name.c_str(), ode_pph_name.c_str(), DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), NULL, class_id, limit_10) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_action_print_new(ode_action_name.c_str(), false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_print_new(ode_action_name_0.c_str(), false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(),
@@ -2148,13 +2150,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add S
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Add Sink Action" ) 
     {
-        std::wstring ode_action_name(L"add-sink-action");
+        std::wstring ode_action_name_0(L"add-sink-action");
 
        // Window Sink to add
         REQUIRE( dsl_sink_window_egl_new(window_sink_name2.c_str(),
             offsetX+50, offsetY+50, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_sink_add_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_sink_add_new(ode_action_name_0.c_str(),  
             pipeline_name.c_str(), window_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -2174,7 +2176,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add S
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -2228,13 +2230,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Remove Sink Action" ) 
     {
-        std::wstring ode_action_name(L"add-sink-action");
+        std::wstring ode_action_name_0(L"add-sink-action");
 
         // Window Sink to remove
         REQUIRE( dsl_sink_window_egl_new(window_sink_name2.c_str(),
             offsetX+50, offsetY+50, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_sink_remove_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_sink_remove_new(ode_action_name_0.c_str(),  
             pipeline_name.c_str(), window_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -2254,7 +2256,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -2309,13 +2311,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add S
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Add Source Action" ) 
     {
-        std::wstring ode_action_name(L"add-source-action");
+        std::wstring ode_action_name_0(L"add-source-action");
 
         // Source to add
         REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_source_add_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_source_add_new(ode_action_name_0.c_str(),  
             pipeline_name.c_str(), source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -2338,7 +2340,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add S
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -2395,13 +2397,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Remove Source Action" ) 
     {
-        std::wstring ode_action_name(L"remove-source-action");
+        std::wstring ode_action_name_0(L"remove-source-action");
 
         // Source to remove
         REQUIRE( dsl_source_uri_new(source_name2.c_str(), uri.c_str(), 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_source_remove_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_source_remove_new(ode_action_name_0.c_str(),  
             pipeline_name.c_str(), source_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -2424,7 +2426,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -2481,13 +2483,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add B
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Add Branch Action" ) 
     {
-        std::wstring ode_action_name(L"add-branch-action");
+        std::wstring ode_action_name_0(L"add-branch-action");
 
        // Window Sink to add as a Branch
         REQUIRE( dsl_sink_window_egl_new(window_sink_name2.c_str(),
             offsetX+50, offsetY+50, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_branch_add_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_branch_add_new(ode_action_name_0.c_str(),  
             demuxer_name.c_str(), window_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -2512,7 +2514,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Add B
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -2574,13 +2576,13 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
 {
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Remove Branch Action" ) 
     {
-        std::wstring ode_action_name(L"remove-branch-action");
+        std::wstring ode_action_name_0(L"remove-branch-action");
 
        // Window Sink to remove as Branch
         REQUIRE( dsl_sink_window_egl_new(window_sink_name2.c_str(),
             offsetX+50, offsetY+50, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_ode_action_branch_remove_new(ode_action_name.c_str(),  
+        REQUIRE( dsl_ode_action_branch_remove_new(ode_action_name_0.c_str(),  
             demuxer_name.c_str(), window_sink_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
@@ -2605,7 +2607,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
         REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
             NULL, 1, DSL_ODE_TRIGGER_LIMIT_ONE) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
-            ode_action_name.c_str()) == DSL_RESULT_SUCCESS );
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
             ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -2665,3 +2667,85 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Remov
     }
 }
 
+
+SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Snap Label ODE Action can play",
+    "[new]" )
+{
+    GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Snap Label ODE Action" ) 
+    {
+        int offset_x(30), offset_y(-50);
+        uint cols(DSL_1K_HD_WIDTH/30), rows(DSL_1K_HD_HEIGHT/30);
+        std::wstring line_color_name(L"line-color");
+        
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), 
+            model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(),
+            tracker_width, tracker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_pph_ode_new(ode_pph_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_tracker_pph_add(tracker_name.c_str(), ode_pph_name.c_str(), 
+            DSL_PAD_SRC) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_display_type_rgba_color_custom_new(line_color_name.c_str(), 
+            0.800, 0.800, 0.800, 0.800) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_ode_trigger_occurrence_new(ode_trigger_name.c_str(), 
+            NULL, DSL_ODE_ANY_CLASS, DSL_ODE_TRIGGER_LIMIT_NONE) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_label_offset_new(ode_action_name_0.c_str(), 
+            offset_x, offset_y) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_label_snap_to_grid_new(ode_action_name_1.c_str(), 
+            cols, rows) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_action_label_connect_to_bbox_new(ode_action_name_2.c_str(), 
+            line_color_name.c_str(), 3, DSL_BBOX_POINT_CENTER) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_action_name_0.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_action_name_1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
+            ode_action_name_2.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_pph_ode_trigger_add(ode_pph_name.c_str(), 
+            ode_trigger_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name1.c_str(),
+            offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {
+            L"uri-source-1", L"primary-gie", L"iou-tracker", L"osd", L"egl-sink-1", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*10);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+                REQUIRE( dsl_pph_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pph_list_size() == 0 );
+                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_trigger_list_size() == 0 );
+                REQUIRE( dsl_ode_action_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_list_size() == 0 );
+            }
+        }
+    }
+}
