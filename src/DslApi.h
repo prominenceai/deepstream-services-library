@@ -2525,12 +2525,12 @@ DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,
  * @brief Creates a uniquely named "Snap Object Label to Grid " ODE Action that moves 
  * the object label to the closes location on a 2D grid measured over the frame. 
  * @param[in] name unique name for the "Snap Object Label to Grid ODE Action. 
- * @param[in] cols number of cols for the 2D grid.
- * @param[in] rows number of rows for the 2D grid. 
+ * @param[in] module_width width of each module (square) in the grid in pixels.
+ * @param[in] module_height height of each module (square) in the grid in pixels. 
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
-    uint cols, uint rows);
+    uint module_width, uint module_height);
     
 /**
  * @brief Creates a uniquely named "Connect Object Label to BBox" ODE Action that

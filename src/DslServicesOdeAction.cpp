@@ -633,9 +633,9 @@ namespace DSL
         }
     }
 
-DslReturnType Services::OdeActionLabelOffsetNew(const char* name, 
-    int offsetX, int offsetY)
-{
+    DslReturnType Services::OdeActionLabelOffsetNew(const char* name, 
+        int offsetX, int offsetY)
+    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
@@ -665,9 +665,9 @@ DslReturnType Services::OdeActionLabelOffsetNew(const char* name,
         
     }
     
-DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name, 
-    uint cols, uint rows)
-{
+    DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name, 
+        uint moduleWidth, uint moduleHeight)
+    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
@@ -681,10 +681,11 @@ DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name,
             }
             
             m_odeActions[name] = DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(name,
-                cols, rows);
+                moduleWidth, moduleHeight);
 
             LOG_INFO("New ODE Snap Label To Grid Action '" << name 
-                << "' created successfully");
+                << "' created with module-width = " << moduleWidth
+                << " and module-height = " << moduleHeight << "successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -697,9 +698,9 @@ DslReturnType Services::OdeActionLabelSnapToGridNew(const char* name,
         
     }
     
-DslReturnType Services::OdeActionLabelConnectToBBoxNew(const char* name, 
-    const char* lineColor, uint lineWidth, uint bboxPoint)
-{
+    DslReturnType Services::OdeActionLabelConnectToBBoxNew(const char* name, 
+        const char* lineColor, uint lineWidth, uint bboxPoint)
+    {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 

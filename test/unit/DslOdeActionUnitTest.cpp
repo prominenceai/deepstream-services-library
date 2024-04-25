@@ -971,13 +971,13 @@ SCENARIO( "A new SnapLabelToGridOdeAction is created correctly", "[OdeAction]" )
     GIVEN( "Attributes for a new SnapLabelToGridOdeAction" ) 
     {
         std::string actionName("ode-action");
-        uint cols(128), rows(72);
+        uint moduleWidth(10), moduleHeight(10);
 
         WHEN( "A new OdeAction is created with an array of content types" )
         {
             DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR pAction = 
                 DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(
-                    actionName.c_str(), cols, rows);
+                    actionName.c_str(), moduleWidth, moduleHeight);
 
             THEN( "The Action's members are setup and returned correctly" )
             {
@@ -997,6 +997,7 @@ SCENARIO( "A SnapLabelToGridOdeAction handles an ODE Occurence correctly", "[Ode
         uint classId(1);
         uint limit(1);
         
+        uint moduleWidth(10), moduleHeight(10);
         std::string actionName("ode-action");
 
         DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
@@ -1018,11 +1019,9 @@ SCENARIO( "A SnapLabelToGridOdeAction handles an ODE Occurence correctly", "[Ode
         frameMeta.pipeline_width = DSL_1K_HD_WIDTH;
         frameMeta.pipeline_height = DSL_1K_HD_HEIGHT;
 
-        uint cols(192), rows(108);
-
         DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR pAction = 
             DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(
-                actionName.c_str(), cols, rows);
+                actionName.c_str(), moduleWidth, moduleHeight);
 
         WHEN( "The offsets are less than half the grid size" )
         {

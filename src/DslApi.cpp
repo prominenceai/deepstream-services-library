@@ -892,7 +892,7 @@ DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,
 }    
     
 DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
-    uint cols, uint rows)
+    uint module_width, uint module_height)
     
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -901,7 +901,7 @@ DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->OdeActionLabelSnapToGridNew(
-        cstrName.c_str(), cols, rows);
+        cstrName.c_str(), module_width, module_height);
 }    
 
 DslReturnType dsl_ode_action_label_connect_to_bbox_new(const wchar_t* name,  

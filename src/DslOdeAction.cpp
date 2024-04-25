@@ -2331,10 +2331,10 @@ namespace DSL
     // ********************************************************************
 
     SnapLabelToGridOdeAction::SnapLabelToGridOdeAction(const char* name,
-        uint cols, uint rows)
+        uint moduleWidth, uint moduleHeight)
         : OdeAction(name)
-        , m_cols(cols)
-        , m_rows(rows)
+        , m_moduleWidth(moduleWidth)
+        , m_moduleHeight(moduleHeight)
     {
         LOG_FUNC();
     }
@@ -2352,21 +2352,13 @@ namespace DSL
 
         if (m_enabled and pObjectMeta)
         {   
-            uint colWidth(pFrameMeta->pipeline_width / m_cols); 
-            uint rowHeight(pFrameMeta->pipeline_height / m_rows);
-
-            if (!colWidth or !rowHeight)
-            {
-                LOG_ERROR("invalid rows and/or cols provided. row-height = " 
-                    << rowHeight << ", col-width = " << colWidth);
-                    return;
-            }
-            
             pObjectMeta->text_params.x_offset = 
-                ((pObjectMeta->text_params.x_offset + colWidth/2) / colWidth) * colWidth;
+                ((pObjectMeta->text_params.x_offset + m_moduleWidth/2)
+                    / m_moduleWidth) * m_moduleWidth;
             
             pObjectMeta->text_params.y_offset = 
-                ((pObjectMeta->text_params.y_offset + rowHeight/2) / rowHeight) * rowHeight;
+                ((pObjectMeta->text_params.y_offset + m_moduleHeight/2)
+                    / m_moduleHeight) * m_moduleHeight;
         }
     }
 

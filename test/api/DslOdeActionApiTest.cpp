@@ -720,16 +720,16 @@ SCENARIO( "A new Snap Label to Grid ODE Action can be created and deleted", "[od
     GIVEN( "Attributes for a new Snap Label to Grid ODE Action" ) 
     {
         std::wstring action_name(L"snap-label-action");
-        uint cols(DSL_1K_HD_WIDTH/10), rows(DSL_1K_HD_HEIGHT/10);
+        uint moduleWidth(10), moduleHeight(10);
 
         WHEN( "A new Snap Label is created" ) 
         {
             REQUIRE( dsl_ode_action_label_snap_to_grid_new(action_name.c_str(),
-                cols, rows) == DSL_RESULT_SUCCESS );
+                moduleWidth, moduleHeight) == DSL_RESULT_SUCCESS );
 
             // second attempt must fail
             REQUIRE( dsl_ode_action_label_snap_to_grid_new(action_name.c_str(),
-                cols, rows) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
+                moduleWidth, moduleHeight) == DSL_RESULT_ODE_ACTION_NAME_NOT_UNIQUE );
             
             THEN( "The Snap Label can be deleted" ) 
             {

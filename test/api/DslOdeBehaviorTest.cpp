@@ -2674,7 +2674,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Snap 
     GIVEN( "A Pipeline, ODE Handler, Occurrence ODE Trigger, and Snap Label ODE Action" ) 
     {
         int offset_x(30), offset_y(-50);
-        uint cols(DSL_1K_HD_WIDTH/30), rows(DSL_1K_HD_HEIGHT/30);
+        uint moduleWidth(20), moduleHeight(20);
         std::wstring line_color_name(L"line-color");
         
         REQUIRE( dsl_component_list_size() == 0 );
@@ -2705,7 +2705,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, and Snap 
         REQUIRE( dsl_ode_action_label_offset_new(ode_action_name_0.c_str(), 
             offset_x, offset_y) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_label_snap_to_grid_new(ode_action_name_1.c_str(), 
-            cols, rows) == DSL_RESULT_SUCCESS );
+            moduleWidth, moduleHeight) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_action_label_connect_to_bbox_new(ode_action_name_2.c_str(), 
             line_color_name.c_str(), 3, DSL_BBOX_POINT_CENTER) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_ode_trigger_action_add(ode_trigger_name.c_str(), 
