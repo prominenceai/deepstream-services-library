@@ -361,6 +361,7 @@ class dsl_ode_occurrence_object_info(Structure):
         ('inference_component_id', c_uint),
         ('tracking_id', c_uint),
         ('label', c_wchar_p),
+        ('classifierLabels', c_wchar_p),
         ('persistence', c_uint),
         ('direction', c_uint),
         ('inference_confidence', c_float),

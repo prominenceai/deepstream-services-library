@@ -50,6 +50,17 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+# Filespecs for the Secondary GIE
+sgie1_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt'
+sgie1_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine'
+
+sgie2_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
+sgie2_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine'
+    
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
@@ -123,6 +134,7 @@ def ode_occurrence_monitor(info_ptr, client_data):
         print('    Infer Comp Id   :', info.object_info.inference_component_id)
         print('    Tracking Id     :', info.object_info.tracking_id)
         print('    Label           :', info.object_info.label)
+        print('    Classifiers     :', info.object_info.classifierLabels)
         print('    Persistence     :', info.object_info.persistence)
         print('    Direction       :', info.object_info.direction)
         print('    Infer Conf      :', info.object_info.inference_confidence)
@@ -194,7 +206,7 @@ def main(args):
         # New Occurrence Trigger, filtering on PERSON class_id,
         retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
             source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON,
+            class_id = PGIE_CLASS_ID_VEHICLE,
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -263,6 +275,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New Secondary GIEs using the filespecs above with interval = 0
+        retval = dsl_infer_gie_secondary_new('vehiclemake-sgie', 
+            sgie1_config_file, sgie1_model_file, 'primary-gie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
+            sgie2_config_file, sgie2_model_file, 'primary-gie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, 
@@ -293,7 +315,8 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 
+            ['uri-source', 'primary-gie', 'iou-tracker',
+            'vehiclemake-sgie', 'vehicletype-sgie',
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
