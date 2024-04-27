@@ -1337,6 +1337,11 @@ typedef struct _dsl_ode_occurrence_object_info
     const wchar_t* label;
     
     /**
+     * @brief labels from all classifiers concatenated with space seperator
+     */
+    const wchar_t* classiferLabels;
+
+    /**
      * @brief current "time in frame" if tracked - Persistence and Cross Triggers
      */
     uint persistence;
