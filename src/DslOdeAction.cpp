@@ -2321,8 +2321,9 @@ namespace DSL
                             }
                         }
                     }
-                    wstrClassifierLabels.assign(labelStream.str().begin(), 
-                        labelStream.str().end());
+                    std::string classifierlabels(labelStream.str());
+                    wstrClassifierLabels.assign(classifierlabels.begin(), 
+                        classifierlabels.end());
                     info.object_info.classiferLabels = wstrClassifierLabels.c_str();
                 }
             }
