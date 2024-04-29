@@ -294,9 +294,6 @@ DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT = 60001
 DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
 DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
 
-DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
-DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
-
 DSL_STATUS_BROKER_OK            = 0
 DSL_STATUS_BROKER_ERROR         = 1
 DSL_STATUS_BROKER_RECONNECTING  = 2
@@ -6761,6 +6758,27 @@ def dsl_sink_message_new(name, converter_config_file, payload_type,
         broker_config_file, protocol_lib, connection_string, topic)
     return int(result)
 
+## dsl_sink_message_payload_debug_dir_get()
+##
+_dsl.dsl_sink_message_payload_debug_dir_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_sink_message_payload_debug_dir_get.restype = c_uint
+def dsl_sink_message_payload_debug_dir_get(name):
+    global _dsl
+    debug_dir = c_wchar_p(0)
+    result = _dsl.dsl_sink_message_payload_debug_dir_get(name, 
+        DSL_WCHAR_PP(debug_dir))
+    return int(result), debug_dir.value 
+
+##
+## dsl_sink_message_payload_debug_dir_set()
+##
+_dsl.dsl_sink_message_payload_debug_dir_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_message_payload_debug_dir_set.restype = c_uint
+def dsl_sink_message_payload_debug_dir_set(name, debug_dir):
+    global _dsl
+    result = _dsl.dsl_sink_message_payload_debug_dir_set(name, debug_dir)
+    return int(result)
 ##
 ## dsl_sink_interpipe_new()
 ##

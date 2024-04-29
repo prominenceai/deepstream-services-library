@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1306,11 +1306,24 @@ namespace DSL
         bool SetBrokerSettings(const char* brokerConfigFile, const char* protocolLib, 
             const char* connectionString, const char* topic);
 
+        /**
+         * @brief Gets the current payload-debug-directory.
+         * @return current payload-debug-directory. Null if unset.
+         */
+        const char* GetDebugDir();
+        
+        /**
+         * @brief Sets the current payload-debug-directory.
+         * @param[in] debugDir new payload-debug-directory to use.
+         * @return true if successful, false otherwise.
+         */
+        bool SetDebugDir(const char* debugDir);
+
     private:
 
         /**
          * @brief defines the base_meta.meta_type id filter to use for
-         * all message meta to convert and send. Default = NVDS_EVENT_MSG_META.
+         * all message meta to convert and s IN. Default = NVDS_EVENT_MSG_META.
          * Custom values must be greater than NVDS_START_USER_META
          * Both constants are defined in nvdsmeta.h 
          */
@@ -1345,6 +1358,11 @@ namespace DSL
          * @brief (optional) message topic name.
          */
         std::string m_topic;
+    
+        /**
+         * @brief Directory to dump payload-debug-files into.
+         */
+        std::string m_debugDir;
     
         /**
          * @brief Tee element for this MessageSinkBintr 
