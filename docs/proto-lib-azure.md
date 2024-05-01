@@ -25,19 +25,8 @@ The protocol adapter libraries are used by the DSL [Message Sink](/docs/api-sink
 
 # Common Setup for both Protocol Adapters
 ## Install Additional device dependencies
-#### For an x86 computer running Ubuntu:
 ```
-sudo apt-get install -y libcurl3 libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 ibffi-dev
-```
-#### For Jetson:
-```
-sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev libffi6 libffi-dev
-```
-
-Ensure that all `python` dependencies have been installed and that you are using the latest version of `pip`
-```bash
-sudo apt-get install -y python3-pip python-pip python3-setuptools
-sudo pip3 install --upgrade pip
+sudo apt-get install -y libcurl4-openssl-dev libssl-dev uuid-dev libglib2.0 libglib2.0-dev
 ```
 
 ## Setup an Azure IoT Hub Instance

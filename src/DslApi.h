@@ -123,7 +123,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x00040002
 #define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x00040003
 #define DSL_RESULT_SINK_THREW_EXCEPTION                             0x00040004
-#define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
+#define DSL_RESULT_SINK_PATH_NOT_FOUND                              0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
 #define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
@@ -8143,6 +8143,7 @@ DslReturnType dsl_sink_message_new(const wchar_t* name,
 
 /**
  * @brief Gets the current message converter settings for the named Message Sink.
+ * @param name unique name of the Message Sink to update.
  * @param[out] converter_config_file absolute file-path to the current
  * message converter config file in use.
  * @param[out] payload_type current payload type, one of the DSL_MSG_PAYLOAD constants.
@@ -8153,6 +8154,7 @@ DslReturnType dsl_sink_message_converter_settings_get(const wchar_t* name,
     
 /**
  * @brief Sets the current message converter settings for the named Message Sink.
+ * @param name unique name of the Message Sink to update.
  * @param[in] converter_config_file absolute or relate file-path to a new
  * message converter config file to use.
  * @param[in] payload_type new payload type to use, one of the DSL_MSG_PAYLOAD constants.
@@ -8163,6 +8165,7 @@ DslReturnType dsl_sink_message_converter_settings_set(const wchar_t* name,
 
 /**
  * @brief Gets the current message broker settings for the named Message Sink.
+ * @param name unique name of the Message Sink to update.
  * @param[out] broker_config_file absolute file-path to the current message
  * broker config file in use.
  * @param[out] protocol_lib absolute file-path to the current protocol adapter
@@ -8177,6 +8180,7 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
 
 /**
  * @brief Sets the message broker settings for the named Message Sink.
+ * @param name unique name of the Message Sink to update.
  * @param[in] broker_config_file absolute or relative file-path to 
  * a new message broker config file to use.
  * @param[out] protocol_lib absolute file-path to a new protocol adapter
@@ -8188,6 +8192,25 @@ DslReturnType dsl_sink_message_broker_settings_get(const wchar_t* name,
 DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name, 
     const wchar_t* broker_config_file, const wchar_t* protocol_lib,
     const wchar_t* connection_string, const wchar_t* topic);
+
+/**
+ * @brief Enables payload dumping/debugging for the named Message Sink .
+ * @param name unique name of the Message Sink to update.
+ * @param[out] debug_dir absolute or relative path to the directory to
+ * to dump payload data. 
+ */
+ DslReturnType dsl_sink_message_payload_debug_dir_get(const wchar_t* name, 
+    const wchar_t** debug_dir);
+
+/**
+ * @brief Get the current payload dumping/debugging directory for the named 
+ * Message Sink. Null string indicates that payload dumping is disabled. 
+ * @param name unique name of the Message Sink to update.
+ * @param[in] debug_dir absolute or relative path to the directory to
+ * to dump payload data. 
+ */
+ DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name, 
+    const wchar_t* debug_dir);
 
 /**
  * @brief Creates a new, uniquely named V4L2 Sink that streams to a V4L2 compatable

@@ -1682,11 +1682,11 @@ namespace DSL {
             const char* brokerConfigFile, const char* protocolLib,
             const char* connectionString, const char* topic);
         
-        uint SinkNumInUseGet();
-        
-        uint SinkNumInUseMaxGet();
-        
-        boolean SinkNumInUseMaxSet(uint max);
+        DslReturnType GetSinkMessagePayloadDebugDirGet(const char* name, 
+            const char** debugDir);
+
+        DslReturnType GetSinkMessagePayloadDebugDirSet(const char* name, 
+            const char* debugDir);
 
         // TODO        
         // boolean ComponentIsInUse(const char* name);

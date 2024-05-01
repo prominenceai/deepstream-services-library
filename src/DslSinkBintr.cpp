@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2520,11 +2520,12 @@ namespace DSL
         }
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("Initial property values for MessageSinkBintr '" << name << "'");
         LOG_INFO("  converter-config   : " << m_converterConfigFile);
         LOG_INFO("  payload-type       : " << m_payloadType);
         LOG_INFO("  broker-config      : " << m_brokerConfigFile);
         LOG_INFO("  proto-lib          : " << m_protocolLib);
+        LOG_INFO("  debug-dir          : " << m_debugDir);
         LOG_INFO("  sync               : " << m_sync);
         LOG_INFO("  async              : " << m_async);
         LOG_INFO("  max-lateness       : " << m_maxLateness);
@@ -2674,6 +2675,29 @@ namespace DSL
         m_pSink->SetAttribute("topic", m_topic.c_str());
         return true;
     }
+
+    const char*  MessageSinkBintr::GetDebugDir()
+    {
+        LOG_FUNC();
+        
+        return m_debugDir.c_str();
+    }
+
+    bool MessageSinkBintr::SetDebugDir(const char* debugDir)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set debug-payload-dir for MessageSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_debugDir = debugDir;
+        m_pMsgConverter->SetAttribute("debug-payload-dir", debugDir);
+        
+        return true;
+    }   
 
     //-------------------------------------------------------------------------
 

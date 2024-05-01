@@ -9177,6 +9177,45 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
         cstrConn.c_str(), cstrTopic.c_str());
 }
 
+DslReturnType dsl_sink_message_payload_debug_dir_get(const wchar_t* name, 
+    const wchar_t** debug_dir)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(debug_dir);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cDebugDir;
+    static std::string cstrDebugDir;
+    static std::wstring wcstrDebugDir;
+    
+    uint retval = DSL::Services::GetServices()->GetSinkMessagePayloadDebugDirGet(
+        cstrName.c_str(), &cDebugDir);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDebugDir.assign(cDebugDir);
+        wcstrDebugDir.assign(cstrDebugDir.begin(), cstrDebugDir.end());
+        *debug_dir = wcstrDebugDir.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name, 
+    const wchar_t* debug_dir)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(debug_dir);
+    
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDebugDir(debug_dir);
+    std::string cstrDebugDir(wstrDebugDir.begin(), wstrDebugDir.end());
+
+    return DSL::Services::GetServices()->GetSinkMessagePayloadDebugDirSet(
+        cstrName.c_str(), cstrDebugDir.c_str());
+}
+    
 DslReturnType dsl_sink_v4l2_new(const wchar_t* name, 
     const wchar_t* device_location)
 {
