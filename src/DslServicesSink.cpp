@@ -2200,11 +2200,15 @@ namespace DSL
 
             LOG_INFO("Message Converter config file: " << converterConfigFile);
 
-            std::ifstream configFile(converterConfigFile);
-            if (!configFile.good())
+            std::string testConfig(converterConfigFile);
+            if (testConfig.size())
             {
-                LOG_ERROR("Message Converter config file not found");
-                return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+                std::ifstream configFile(converterConfigFile);
+                if (!configFile.good())
+                {
+                    LOG_ERROR("Message Converter config file not found");
+                    return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+                }
             }
             std::string testPath(brokerConfigFile);
             if (testPath.size())

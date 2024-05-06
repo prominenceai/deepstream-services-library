@@ -2471,7 +2471,6 @@ namespace DSL
         const char* connectionString, const char* topic)
         : SinkBintr(name) // used for fake sink only
         , m_metaType(NVDS_EVENT_MSG_META)
-        , m_converterConfigFile(converterConfigFile)
         , m_payloadType(payloadType)
         , m_brokerConfigFile(brokerConfigFile)
         , m_connectionString(connectionString)
@@ -2504,7 +2503,11 @@ namespace DSL
         m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
         
         //m_pMsgConverter->SetAttribute("comp-id", m_metaType);
-        m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
+        if (converterConfigFile)
+        {
+            m_converterConfigFile = converterConfigFile;
+            m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
+        }
         m_pMsgConverter->SetAttribute("payload-type", m_payloadType);
 
         m_pSink->SetAttribute("proto-lib", m_protocolLib.c_str());
