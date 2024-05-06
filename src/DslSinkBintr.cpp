@@ -2479,8 +2479,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pTee = DSL_ELEMENT_NEW("tee", name);
-        m_pMsgConverterQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvmsgconv");
         m_pMsgConverter = DSL_ELEMENT_NEW("nvmsgconv", name);
         
         // Message broker is primary sink component.
@@ -2498,9 +2496,6 @@ namespace DSL
 
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
-        
-        m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
-        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
         
         //m_pMsgConverter->SetAttribute("comp-id", m_metaType);
         if (converterConfigFile)
@@ -2535,12 +2530,8 @@ namespace DSL
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
-        AddChild(m_pTee);
-        AddChild(m_pMsgConverterQueue);
         AddChild(m_pMsgConverter);
         AddChild(m_pSink);
-        AddChild(m_pFakeSinkQueue);
-        AddChild(m_pFakeSink);
     }
 
     MessageSinkBintr::~MessageSinkBintr()
@@ -2562,12 +2553,8 @@ namespace DSL
             LOG_ERROR("MessageSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pTee) or
-            !m_pMsgConverterQueue->LinkToSourceTee(m_pTee, "src_%u") or
-            !m_pMsgConverterQueue->LinkToSink(m_pMsgConverter) or
-            !m_pMsgConverter->LinkToSink(m_pSink) or
-            !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
-            !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
+        if (!m_pQueue->LinkToSink(m_pMsgConverter) or
+            !m_pMsgConverter->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -2584,12 +2571,8 @@ namespace DSL
             LOG_ERROR("MessageSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pFakeSinkQueue->UnlinkFromSink();
-        m_pFakeSinkQueue->UnlinkFromSourceTee();
-        m_pMsgConverter->UnlinkFromSink();
-        m_pMsgConverterQueue->UnlinkFromSink();
-        m_pMsgConverterQueue->UnlinkFromSourceTee();
         m_pQueue->UnlinkFromSink();
+        m_pMsgConverter->UnlinkFromSink();
         m_isLinked = false;
     }
     
