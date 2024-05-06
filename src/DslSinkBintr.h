@@ -1365,29 +1365,9 @@ namespace DSL
         std::string m_debugDir;
     
         /**
-         * @brief Tee element for this MessageSinkBintr 
-         */
-        DSL_ELEMENT_PTR m_pTee;
-
-        /**
-         * @brief Tee Src Queue for the message-converter element for this MessageSinkBintr 
-         */
-        DSL_ELEMENT_PTR m_pMsgConverterQueue;
-        
-        /**
          * @brief NVIDIA message-converter element for this MessageSinkBintr 
          */
         DSL_ELEMENT_PTR m_pMsgConverter;
-
-        /**
-         * @brief Tee Src Queue for the Fake Sink element for this MessageSinkBintr 
-         */
-        DSL_ELEMENT_PTR m_pFakeSinkQueue;
-
-        /**
-         * @brief Fake Sink element for the MessageSinkBintr.
-         */
-        DSL_ELEMENT_PTR m_pFakeSink;
 
     };
 

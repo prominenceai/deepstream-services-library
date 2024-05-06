@@ -9001,14 +9001,18 @@ DslReturnType dsl_sink_message_new(const wchar_t* name,
     const wchar_t* connection_string, const wchar_t* topic)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(converter_config_file);
     RETURN_IF_PARAM_IS_NULL(broker_config_file);
     RETURN_IF_PARAM_IS_NULL(protocol_lib);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrConvConfig(converter_config_file);
-    std::string cstrConvConfig(wstrConvConfig.begin(), wstrConvConfig.end());
+
+    std::string cstrConvConfig;
+    if (converter_config_file)
+    {
+        std::wstring wstrConvConfig(converter_config_file);
+        cstrConvConfig.assign(wstrConvConfig.begin(), wstrConvConfig.end());
+    }
     std::wstring wstrBrokerConfig(broker_config_file);
     std::string cstrBrokerConfig(wstrBrokerConfig.begin(), wstrBrokerConfig.end());
     std::wstring wstrProtocolLib(protocol_lib);

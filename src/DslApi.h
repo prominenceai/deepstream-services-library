@@ -1052,7 +1052,7 @@ THE SOFTWARE.
  */
 #define DSL_MSG_PAYLOAD_DEEPSTREAM                                  0
 #define DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL                          1
-#define DSL_MSG_PAYLOAD_CUSTOM                                      257
+#define DSL_MSG_PAYLOAD_CUSTOM                                      0x101
 
 /**
  * @brief Message Broker Status/Result codes
