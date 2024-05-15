@@ -2469,7 +2469,7 @@ namespace DSL
     MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
         uint payloadType, const char* brokerConfigFile, const char* protocolLib, 
         const char* connectionString, const char* topic)
-        : SinkBintr(name) // used for fake sink only
+        : SinkBintr(name)
         , m_metaType(NVDS_EVENT_MSG_META)
         , m_payloadType(payloadType)
         , m_brokerConfigFile(brokerConfigFile)
@@ -2685,6 +2685,95 @@ namespace DSL
         return true;
     }   
 
+    // -------------------------------------------------------------------------------
+    
+    LiveKitWebRtcSinkBintr::LiveKitWebRtcSinkBintr(const char* name, const char* url, 
+        const char* apiKey, const char* secretKey, const char* room, 
+        const char* identity, const char* participant)
+        : SinkBintr(name) 
+        , m_url(url)
+        , m_apiKey(apiKey)
+        , m_secretKey(secretKey)
+        , m_room(room)
+    {
+        LOG_FUNC();
+        
+        m_pSink = DSL_ELEMENT_NEW("livekitwebrtcsink", name);
+
+        m_pSink->SetAttribute("signaller::ws-url", url);
+        m_pSink->SetAttribute("signaller::api-key", apiKey);
+        m_pSink->SetAttribute("signaller::secret-key", secretKey);
+        m_pSink->SetAttribute("signaller::room", room);
+        
+        if (identity)
+        {
+            m_identity = identity;
+            m_pSink->SetAttribute("signaller::identity", identity);
+        }    
+        if (participant)
+        {
+            m_participant = participant;
+            m_pSink->SetAttribute("signaller::participant", participant);
+        }    
+
+        // set the only common property.
+        m_pSink->SetAttribute("async-handling", m_async);
+
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for LiveKitWebRtcSinkBintr '" << name << "'");
+        LOG_INFO("  signaller -------- : ");
+        LOG_INFO("    ws-url           : " << m_url);
+        LOG_INFO("    api-key          : " << std::string(m_apiKey.size(), '*')); 
+        LOG_INFO("    secret-key       : " << std::string(m_secretKey.size(), '*'));
+        LOG_INFO("    room             : " << m_room);
+        LOG_INFO("    identity         : " << m_identity);
+        LOG_INFO("    participant      : " << m_participant);
+        LOG_INFO("  async              : " << m_async);
+        
+        AddChild(m_pSink);
+    }
+
+    LiveKitWebRtcSinkBintr::~LiveKitWebRtcSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool LiveKitWebRtcSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("LiveKitWebRtcSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void LiveKitWebRtcSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("LiveKitWebRtcSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
     //-------------------------------------------------------------------------
 
     InterpipeSinkBintr::InterpipeSinkBintr(const char* name,

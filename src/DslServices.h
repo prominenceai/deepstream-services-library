@@ -1688,6 +1688,10 @@ namespace DSL {
         DslReturnType GetSinkMessagePayloadDebugDirSet(const char* name, 
             const char* debugDir);
 
+        DslReturnType SinkWebRtcLiveKitNew(const char* name, 
+            const char* url, const char*  apiKey, const char* secretKey, 
+            const char* room, const char* identity, const char* participant);
+            
         // TODO        
         // boolean ComponentIsInUse(const char* name);
         

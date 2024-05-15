@@ -97,7 +97,13 @@ namespace DSL
         std::shared_ptr<MessageSinkBintr>(new MessageSinkBintr(name, \
             converterConfigFile, payloadType, brokerConfigFile, \
             protocolLib, connectionString, topic))
-        
+
+    #define DSL_LIVEKIT_WEBRTC_SINK_PTR std::shared_ptr<LiveKitWebRtcSinkBintr>
+    #define DSL_LIVEKIT_WEBRTC_SINK_NEW(name, \
+            url, apiKey, secretKey, room, identity, participant) \
+        std::shared_ptr<LiveKitWebRtcSinkBintr>(new LiveKitWebRtcSinkBintr(name, \
+            url, apiKey, secretKey, room, identity, participant))
+
     #define DSL_INTERPIPE_SINK_PTR std::shared_ptr<InterpipeSinkBintr>
     #define DSL_INTERPIPE_SINK_NEW(name, forwardEos, forwardEvents) \
         std::shared_ptr<InterpipeSinkBintr>( \
@@ -1368,6 +1374,79 @@ namespace DSL
          * @brief NVIDIA message-converter element for this MessageSinkBintr 
          */
         DSL_ELEMENT_PTR m_pMsgConverter;
+
+    };
+
+    //-------------------------------------------------------------------------
+
+    /**
+     * @class LiveKitWebRtcSinkBintr 
+     * @brief Implements a Live Kit WebRTC Sink Bin Container Class (Bintr)
+     */
+    class LiveKitWebRtcSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the LiveKitWebRtcSinkBintr class
+         */
+        LiveKitWebRtcSinkBintr(const char* name, const char* url, 
+        const char* apiKey, const char* secretKey, const char* room, 
+        const char* identity, const char* participant);
+
+        /**
+         * @brief Dtor for the LiveKitWebRtcSinkBintr class
+         */
+        ~LiveKitWebRtcSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this LiveKitWebRtcSinkBintr
+         * @return true if all links were successful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this LiveKitWebRtcSinkBintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+    private:
+
+        /**
+         * @brief LiveKit URL to publish the stream to.
+         */
+        std::string m_url;
+        
+        /**
+         * @brief LiveKit API Key required to connect.
+         */
+        std::string  m_apiKey; 
+        
+        /**
+         * @brief LiveKit Secret Key required to connect.
+         */
+        std::string m_secretKey; 
+        
+        /**
+         * @brief connection string used as end-point for communication with server.
+         */
+        std::string m_room;
+        
+        /**
+         * @brief Absolute pathname to the library that contains the protocol adapter.
+         */
+        std::string m_identity; 
+        
+        /**
+         * @brief (optional) message topic name.
+         */
+        std::string m_participant;
+    
+        /**
+         * @brief LiveKit WebRTC plugin for LiveKitWebRtcSinkBintr 
+         */
+        DSL_ELEMENT_PTR m_pSink;
 
     };
 

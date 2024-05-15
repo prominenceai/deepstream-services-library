@@ -8213,6 +8213,22 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     const wchar_t* debug_dir);
 
 /**
+ * @brief Creates a new, uniquely named LiveKit WebRTC Sink.The Sink uses
+ * the LiveKit Signaller to connect with the LiveKit Server.
+ * @param[in] name unique component name for the new LiveKit WebRTC Sink.
+ * @param[in] url LiveKit URL to publish the stream to.
+ * @param[in] api_key LiveKit API Key required to connect.
+ * @param[in] secret_key LiveKit Secret Key required to connect.
+ * @param[in] room name of the LiveKit room to connect to.
+ * @param[in] identity (optional) identity to use.
+ * @param[in] participant (optional) participant name to use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ */
+DslReturnType dsl_sink_webrtc_livekit_new(const wchar_t* name, 
+    const wchar_t* url, const wchar_t* api_key, const wchar_t* secret_key, 
+    const wchar_t* room, const wchar_t* identity, const wchar_t* participant);
+    
+/**
  * @brief Creates a new, uniquely named V4L2 Sink that streams to a V4L2 compatable
  * device or v4l2loopback
  * @param[in] name unique component name for the new V4L2 Sink
