@@ -4835,7 +4835,7 @@ DslReturnType dsl_source_image_file_path_get(const wchar_t* name,
     
 }
 
-DslReturnType dsl_source_Image_file_path_set(const wchar_t* name, 
+DslReturnType dsl_source_image_file_path_set(const wchar_t* name, 
     const wchar_t* file_path)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -9218,6 +9218,55 @@ DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->GetSinkMessagePayloadDebugDirSet(
         cstrName.c_str(), cstrDebugDir.c_str());
+}
+    
+DslReturnType dsl_sink_webrtc_livekit_new(const wchar_t* name, 
+    const wchar_t* url, const wchar_t* api_key, const wchar_t* secret_key, 
+    const wchar_t* room, const wchar_t* identity, const wchar_t* participant)
+{
+#if !defined(BUILD_LIVEKIT_WEBRTC)
+    #error "BUILD_LIVEKIT_WEBRTC must be defined"
+#elif (BUILD_LIVEKIT_WEBRTC != true)
+    LOG_ERROR("dsl_sink_webrtc_livekit_new requires BUILD_LIVEKIT_WEBRTC \
+       to be set true in the Makefile");
+    return DSL_RESULT_API_NOT_SUPPORTED;
+#else    
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(url);
+    RETURN_IF_PARAM_IS_NULL(api_key);
+    RETURN_IF_PARAM_IS_NULL(secret_key);
+    RETURN_IF_PARAM_IS_NULL(room);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrUrl(url);
+    std::string cstrUrl(wstrUrl.begin(), wstrUrl.end());
+    std::wstring wstrApiKey(api_key);
+    std::string cstrApiKey(wstrApiKey.begin(), wstrApiKey.end());
+    std::wstring wstrSecretKey(secret_key);
+    std::string cstrSecretKey(wstrSecretKey.begin(), wstrSecretKey.end());
+    std::wstring wstrRoom(room);
+    std::string cstrRoom(wstrRoom.begin(), wstrRoom.end());
+    
+
+    std::string cstrIdentity;
+    if (identity != NULL)
+    {
+        std::wstring wstrIdentity(identity);
+        cstrIdentity.assign(wstrIdentity.begin(), wstrIdentity.end());
+    }
+    
+    std::string cstrParticipant;
+    if (participant != NULL)
+    {
+        std::wstring wstrParticipant(participant);
+        cstrParticipant.assign(wstrParticipant.begin(), wstrParticipant.end());
+    }
+
+    return DSL::Services::GetServices()->SinkWebRtcLiveKitNew(cstrName.c_str(), 
+        cstrUrl.c_str(), cstrApiKey.c_str(), cstrSecretKey.c_str(),
+        cstrRoom.c_str(), cstrIdentity.c_str(), cstrParticipant.c_str());
+#endif        
 }
     
 DslReturnType dsl_sink_v4l2_new(const wchar_t* name, 
