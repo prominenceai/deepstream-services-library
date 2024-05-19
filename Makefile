@@ -62,7 +62,7 @@ BUILD_INTER_PIPE:=false
 
 # To enable the LiveKit WebRTC Sink component (requires GSTREAMER_SUB_VERSION > 22)
 # - set BUILD_LIVEKIT_WEBRTC:=true
-BUILD_LIVEKIT_WEBRTC:=true
+BUILD_LIVEKIT_WEBRTC:=false
 
 # To enable the Non Maximum Processor (NMP) Pad Probe Handler (PPH)
 # - set BUILD_NMP_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
@@ -94,6 +94,10 @@ endif
 
 ifeq ($(BUILD_INTER_PIPE),true)
 SRCS+= $(wildcard ./test/interpipe/*.cpp)
+endif
+
+ifeq ($(BUILD_LIVEKIT_WEBRTC),true)
+SRCS+= $(wildcard ./test/livekitwebrtc/*.cpp)
 endif
 
 ifeq ($(BUILD_NMP_PPH),true)
@@ -171,6 +175,10 @@ ifeq ($(BUILD_WITH_OPENCV),true)
 CFLAGS+= -I /usr/include/opencv4 \
 	-I./src/opencv/ \
 	-I./test/avfile
+endif	
+
+ifeq ($(BUILD_LIVEKIT_WEBRTC),true)
+CFLAGS+= -I./test/livekitwebrtc
 endif	
 
 ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
