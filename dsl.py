@@ -6747,6 +6747,19 @@ def dsl_sink_webrtc_client_listener_remove(name, client_listener):
     return int(result)
 
 ##
+## dsl_sink_webrtc_livekit_new()
+##
+_dsl.dsl_sink_webrtc_livekit_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p,
+    c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_webrtc_livekit_new.restype = c_uint
+def dsl_sink_webrtc_livekit_new(name, url, api_key, secret_key, 
+    room, identity, participant):
+    global _dsl
+    result =_dsl.dsl_sink_webrtc_livekit_new(name, url, api_key, secret_key, 
+    room, identity, participant)
+    return int(result)
+
+##
 ## dsl_sink_message_new()
 ##
 _dsl.dsl_sink_message_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p, 
