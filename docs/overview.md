@@ -24,6 +24,7 @@
 * [Selective Parallel Inference](#selective-parallel-inference)
 * [Dynamic Pipelines](#dynamic-pipelines)
 * [Interpipe Services](#interpipe-services)
+* [Working with Buffer-Surfaces and OpenCV](#working-with-buffer-surfaces-and-opencv)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
@@ -1100,6 +1101,48 @@ Multiple Pipelines, each with their own Interpipe Source, can listen to the same
 ![interpipe multiple listeners](/Images/interpipe-multiple-listeners.png)
 
 --- 
+
+## Working with Buffer-Surfaces and OpenCV
+
+### Using NVIDIA's pyds and python
+When using python and a [Custom Pad Probe Handler](/docs/api-pph), NVIDIA's python bindings provides a function ([pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface)) to get a frame-buffer-surface from a batched buffer in NumPy format.  
+
+From the link above, *"This function returns the frame in NumPy format. Only RGBA format is supported. For x86_64, only CUDA unified memory is supported. For Jetson, the buffer is mapped to CPU memory."*
+
+To meet the above requirements:
+
+1. Use the [dsl_source_video_buffer_out_format_set](/docs/api-source.md#dsl_source_video_buffer_out_format_set) service to set the buffer out format to RGBA for each source. 
+
+```python
+# IMPORTANT! We must set the buffer format to RGBA for each source.        
+retval = dsl_source_video_buffer_out_format_set('my-source-0', 
+    DSL_VIDEO_FORMAT_RGBA)
+
+```
+
+2. (dGPU Only) Depending on which NVIDIA Streammux plugin is used, to set the buffer memory type use [dsl_component_nvbuf_mem_type_set_many](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many) or [dsl_pipeline_streammux_nvbuf_mem_type_set](/docs/api-pipeline.md#dsl_pipeline_streammux_nvbuf_mem_type_set) as shown below.
+```python
+# If using the new Streammux, then change the memory type of each source
+if dsl_info_use_new_nvstreammux_get():
+    retval = dsl_component_nvbuf_mem_type_set_many(
+        ['my-source-0', 'my-source-1', 'my-source-2', 'my-source-3'],
+        DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED)
+                
+# if using the old Streammux we set the memtype of the Streammux itself.    
+else:
+    retval = dsl_pipeline_streammux_nvbuf_mem_type_set('pipeline',
+        DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED)
+
+```
+
+See the complete example [4file_custom_pph_using_opencv.py](/examples/python/4file_custom_pph_using_opencv.py)
+
+### Using "DslSurfaceTransform.h and C/C++
+DSL Provides a set of utility classes (used internally) to simplyfy the process of creating a frame-buffer-surface from a batched buffer that can be processed using OpenCV. The utility classes and OpenCV are used inside a [Custom Pad Probe Handler](/docs/api-pph) --
+
+See the example [4file_custom_pph_using_opencv.cpp](/examples/cpp/4file_custom_pph_using_opencv.cpp) for complete details.
+
+---
 
 ## Smart Recording
 As mentioned above, there are two components that provide cached-video recording:
