@@ -25,7 +25,9 @@ THE SOFTWARE.
 /*
 ################################################################################
 #
-# This simple example demonstrates how to use OpenCV with NVIDIA's pyds.
+# This simple example demonstrates how to use OpenCV with the DSL Surface 
+# Transform utility classes in /src/"DslSurfaceTransform.h"
+#
 # The Pipeline used in this example is built with :
 #   - 4 URI Sources
 #   - Primary GST Inference Engine (PGIE)
@@ -38,6 +40,7 @@ THE SOFTWARE.
 # to process the frame meta-data for each buffer received. The handler
 # demonstrates how to 
 #   - create an RGBA buffer-surface from a single frame in a batched buffer
+#     using the utility classes in /src/"DslSurfaceTransform.h"
 #   - convert the buffer serface to a jpeg image using OpenCV.
 #     
 # IMPORTANT! All captured images are save to the IMAGE_OUTDIR = "./";
@@ -61,7 +64,7 @@ THE SOFTWARE.
 
 #include "DslApi.h"
 
-// Use the DSL Surface Transform utility class
+// Use the DSL Surface Transform utility classes
 #include "DslSurfaceTransform.h"
 
 uint device_type;

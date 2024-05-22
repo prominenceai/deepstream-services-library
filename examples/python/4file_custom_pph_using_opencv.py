@@ -24,14 +24,14 @@
 
 ################################################################################
 #
-# The simple example demonstrates how to create a set of Pipeline components, 
-# specifically:
-#   - URI Source
+# This simple example demonstrates how to use OpenCV with NVIDIA's pyds.
+# The Pipeline used in this example is built with :
+#   - 4 URI Sources
 #   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
+#   - Tiler
 #   - On-Screen Display (OSD)
 #   - Window Sink
-# ...and how to add them to a new Pipeline and play
 # 
 # A Custom Pad-Probe-Handler is added to the Sink-Pad of the Tiler
 # to process the frame meta-data for each buffer received. The handler
