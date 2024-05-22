@@ -71,7 +71,8 @@ LIBS+= -L$(DS_LIB_INSTALL_DIR) \
 	-lnvds_meta \
 	-lglib-$(GLIB_VERSION) \
 	-lgstreamer-$(GSTREAMER_VERSION) \
-	-L/usr/local/cuda/lib64/ -lcudart
+	-L/usr/local/cuda/lib64/ -lcudart \
+	-Wl,-rpath,$(DS_LIB_INSTALL_DIR)
 
 PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	glib-$(GLIB_VERSION) \	

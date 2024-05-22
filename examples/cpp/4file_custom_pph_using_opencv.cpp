@@ -23,36 +23,32 @@ THE SOFTWARE.
 */
 
 /*
+################################################################################
 #
-# This example demonstrates the use of a Frame-Capture Sink to encode and
-# save video frames to JPEG files on client/viewer demand.
-#
-# An ODE Frame-Capture Action is provided to The Frame-Capture Sink on creation.
-# A client "capture_complete_listener" is added to the the Action to be notified
-# when each new file is saved (the ODE Action performs the actual frame-capture).
-#
-# Child Players (to play the captured image) and Mailers (to mail the image) can
-# be added to the ODE Frame-Capture action as well (not shown).
-#
-# A Custom Pad Probe Handler (PPH) is added to the sink-pad of the OSD component
-# to process every buffer flowing over the pad by:
-#    - Retrieving the batch-metadata and its list of frame metadata structures
-#      (only one frame per batched-buffer with 1 Source)
-#    - Retrieving the list of object metadata structures from the frame metadata.
-#    - Iterating through the list of objects looking for the first occurrence of
-#      a bicycle. 
-#    - If detected, the current frame-number is schedule to be captured by the
-#      Frame-Capture Sink using its Frame-Capture Action.
-#
-#          dsl_sink_frame_capture_schedule('frame-capture-sink', 
-#                   frame_meta.frame_num)
-#
-# Note: The Custom PPH will schedule every frame with a bicycle to be captured!
-#
-# IMPORT All captured frames are copied and buffered in the Sink's processing
-# thread. The encoding and saving of each buffered frame is done in the 
-# g-idle-thread, therefore, the capture-complete notification is asynchronous.
-#
+# This simple example demonstrates how to use OpenCV with NVIDIA's pyds.
+# The Pipeline used in this example is built with :
+#   - 4 URI Sources
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - Tiler
+#   - On-Screen Display (OSD)
+#   - Window Sink
+# 
+# A Custom Pad-Probe-Handler is added to the Sink-Pad (input) of the Tiler
+# to process the frame meta-data for each buffer received. The handler
+# demonstrates how to 
+#   - create an RGBA buffer-surface from a single frame in a batched buffer
+#   - convert the buffer serface to a jpeg image using OpenCV.
+#     
+# IMPORTANT! All captured images are save to the IMAGE_OUTDIR = "./";
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+################################################################################
 */
 
 #include <iostream>
@@ -90,6 +86,9 @@ int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
 
 uint WINDOW_WIDTH = 1280;
 uint WINDOW_HEIGHT = 720;
+
+// Directory to save the jpg frame images to
+std::string IMAGE_OUTDIR = "./";
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -245,7 +244,7 @@ uint custom_pad_probe_handler(void* buffer, void* user_data)
                 << "_" << pBufferSurface->GetDateTimeStr() << ".jpeg";
                 
             // Generate the filespec from the output dir and file name
-            std::string filespec = "./" + 
+            std::string filespec = IMAGE_OUTDIR + 
                 fileNameStream.str();
             cv::imwrite(filespec.c_str(), bgrFrame);
             
