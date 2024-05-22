@@ -1105,7 +1105,7 @@ Multiple Pipelines, each with their own Interpipe Source, can listen to the same
 ## Working with Buffer-Surfaces and OpenCV
 
 ### Using NVIDIA's pyds and python
-When using python and a [Custom Pad Probe Handler](/docs/api-pph), NVIDIA's python bindings provides a function ([pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface)) to get a frame-buffer-surface from a batched buffer in NumPy format.  
+NVIDIA's python bindings provides a function ([pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface)) to get a frame-buffer-surface from a batched buffer in NumPy format.  
 
 From the link above, *"This function returns the frame in NumPy format. Only RGBA format is supported. For x86_64, only CUDA unified memory is supported. For Jetson, the buffer is mapped to CPU memory."*
 
