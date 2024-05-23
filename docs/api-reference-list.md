@@ -506,6 +506,8 @@
 * [`dsl_sink_message_converter_settings_set`](/docs/api-sink.md#dsl_sink_message_converter_settings_set)
 * [`dsl_sink_message_broker_settings_get`](/docs/api-sink.md#dsl_sink_message_broker_settings_get)
 * [`dsl_sink_message_broker_settings_set`](/docs/api-sink.md#dsl_sink_message_broker_settings_set)
+* [`dsl_sink_message_payload_debug_dir_get`](/docs/api-sink.md#dsl_sink_message_payload_debug_dir_get)
+* [`dsl_sink_message_payload_debug_dir_set`](/docs/api-sink.md#dsl_sink_message_payload_debug_dir_set)
 * [`dsl_sink_interpipe_forward_settings_get`](/docs/api-sink.md#dsl_sink_interpipe_forward_settings_get)
 * [`dsl_sink_interpipe_forward_settings_set`](/docs/api-sink.md#dsl_sink_interpipe_forward_settings_set)
 * [`dsl_sink_interpipe_num_listeners_get`](/docs/api-sink.md#dsl_sink_interpipe_num_listeners_get)
