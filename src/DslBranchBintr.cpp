@@ -36,6 +36,7 @@ namespace DSL
         : Bintr(name, isPipeline)
         , m_nextPrimaryInferBintrIndex(0)
         , m_nextGstBintrIndex(0)
+        , m_nextComponentIndex(0)
     {
         LOG_FUNC();
 
