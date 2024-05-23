@@ -211,6 +211,8 @@ As a general rule
 * [`dsl_sink_message_converter_settings_set`](#dsl_sink_message_converter_settings_set)
 * [`dsl_sink_message_broker_settings_get`](#dsl_sink_message_broker_settings_get)
 * [`dsl_sink_message_broker_settings_set`](#dsl_sink_message_broker_settings_set)
+* [`dsl_sink_message_payload_debug_dir_get`](#dsl_sink_message_payload_debug_dir_get)
+* [`dsl_sink_message_payload_debug_dir_set`](#dsl_sink_message_payload_debug_dir_set)
 
 **Interpipe Sink Methods**
 * [`dsl_sink_interpipe_forward_settings_get`](#dsl_sink_interpipe_forward_settings_get)
@@ -2743,6 +2745,48 @@ This service sets the Message Broker settings to be used by the named Message Si
 ```Python
 retval = dsl_sink_message_broker_settings_get('my-message-sink',
     broker_config_file, protocol_lib, connection_string, new_topic)
+```
+
+<br>
+
+### *dsl_sink_message_payload_debug_dir_get*
+```C++
+DslReturnType dsl_sink_message_payload_debug_dir_get(const wchar_t* name, 
+    const wchar_t** debug_dir);
+```
+This service gets the current payload dumping/debugging directory for the named Message Sink. Null string indicates that payload dumping is disabled.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to query.
+* `debug_dir` - [out] absolute or relative path to the directory to dump payload data.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, debug_dir = dsl_sink_message_payload_debug_dir_get('my-message-sink')
+```
+
+<br>
+
+### *dsl_sink_message_payload_debug_dir_set*
+```C++
+DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name, 
+    const wchar_t* debug_dir);
+```
+This service sets the payload dumping/debugging directory for the named Message Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `debug_dir` - [in] absolute or relative path to the directory to dump payload data.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_message_payload_debug_dir_set('my-message-sink', './dump')
 ```
 
 <br>
