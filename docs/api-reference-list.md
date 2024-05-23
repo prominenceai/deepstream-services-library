@@ -521,6 +521,7 @@
 * [`dsl_sink_frame_capture_schedule`](/docs/api-sink.md#dsl_sink_frame_capture_schedule)
 
 ## Custom Components:
+* [Overview](/docs/api-gst.md)
 * [`dsl_gst_element_new`](/docs/api-gst.md#dsl_gst_element_new)
 * [`dsl_gst_bin_new`](docs/api-gst.md#dsl_gst_bin_new)
 * [`dsl_gst_bin_new_element_add_many`](docs/api-gst.md#dsl_gst_bin_new_element_add_many)
