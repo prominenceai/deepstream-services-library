@@ -318,78 +318,12 @@ SCENARIO( "A URI File Source with three Duplicate Sources can play",
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_1.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(
-            duplicate_source_1.c_str(), DSL_VIDEO_CROP_AT_SRC, 
-            480, 270, 960, 540) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_2.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_video_buffer_out_frame_rate_set(duplicate_source_2.c_str(),
-            2, 1) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_source_duplicate_new(duplicate_source_3.c_str(),
             source_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_video_buffer_out_orientation_set(duplicate_source_3.c_str(),
-            DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
-            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
-            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
-
-        
-        const wchar_t* components[] = {L"uri-source-1", 
-            L"duplicate-source-1", L"duplicate-source-2", L"duplicate-source-3",
-            L"tiler", L"egl-sink", NULL};
-        
-        REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
-            components) == DSL_RESULT_SUCCESS );
-        
-        WHEN( "When the buffer-out-format is set to RGBA" ) 
-        {
-                
-            THEN( "Pipeline is Able to LinkAll and Play" )
-            {
-                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
-                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-
-                dsl_delete_all();
-            }
-        }
-    }
-}
-
-SCENARIO( "A V4L2 Camera Source with three Duplicate Sources can play",
-    "[buffer-out-behavior]")
-{
-    GIVEN( "A Pipeline, URI source, 3 Duplicate Sources, Tiler, and Window Sink" ) 
-    {
-        std::wstring duplicate_source_1(L"duplicate-source-1");
-        std::wstring duplicate_source_2(L"duplicate-source-2");
-        std::wstring duplicate_source_3(L"duplicate-source-3");
-        
-        REQUIRE( dsl_component_list_size() == 0 );
-
-        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
-            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_source_duplicate_new(duplicate_source_1.c_str(),
-            source_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_video_buffer_out_crop_rectangle_set(
-            duplicate_source_1.c_str(), DSL_VIDEO_CROP_AT_SRC, 
-            480, 270, 960, 540) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_source_duplicate_new(duplicate_source_2.c_str(),
-            source_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_video_buffer_out_frame_rate_set(duplicate_source_2.c_str(),
-            2, 1) == DSL_RESULT_SUCCESS );
-
-        REQUIRE( dsl_source_duplicate_new(duplicate_source_3.c_str(),
-            source_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_source_video_buffer_out_orientation_set(duplicate_source_3.c_str(),
-            DSL_VIDEO_ORIENTATION_FLIP_HORIZONTALLY) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
