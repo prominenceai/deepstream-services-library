@@ -3,6 +3,8 @@ The DeepStream Services Library (DSL) is built on the NVIDIA® [DeepStream SDK](
 
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
+> The following instructions are for NVIDIA DeepStream Versions 6.4 and 7.0 on Ubuntu 22.04.
+
 ## Contents
 * [Base Install - Jetson and dGPU](#base-install---jetson-and-dgpu)
 * [Additional WebRTC Dependencies](#additional-webrtc-dependencies---deepstream-64--gstreamer-120)
@@ -13,6 +15,7 @@ Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com
 ---
 
 ## Base Install - Jetson and dGPU
+### Native Install 
 Enter the following command to install the minimal requirements to build DSL
 ```bash
 sudo apt update && sudo apt-get install \
@@ -26,8 +29,22 @@ sudo apt update && sudo apt-get install \
     libcurl4-openssl-dev
 ```    
 
+### Container Install 
+The same as above, but without using sudo
+```bash
+apt update && apt-get install \
+    libgstrtspserver-1.0-dev \
+    gstreamer1.0-rtsp \
+    libapr1 \
+    libapr1-dev \
+    libaprutil1 \
+    libaprutil1-dev \
+    libgeos-dev \
+    libcurl4-openssl-dev
+```    
+
 ## Additional WebRTC Dependencies - DeepStream 6.4 / GStreamer 1.20
-Enter the following command to install the additional WebRTC (Ubuntu 22.04)
+Enter the following command to install the additional WebRTC
 ```bash
 sudo apt-get install \
     libjson-glib-dev \
@@ -46,15 +63,33 @@ DSL provides a choice of using [FFmpeg](https://ffmpeg.org/) or [OpenCV](https:/
 * [Frame Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new)
 
 ### Using FFmpeg
-Building with FFmpeg on Ubuntu 22.04 requies the following development libraries to be intalled (assuming FFmpeg is alread installed by default).
+#### Native Install 
+Building with FFmpeg on Ubuntu 22.04 requires the following development libraries to be installed.
 ```bash
 sudo apt-get install \
     libavformat-dev \
     libswscale-dev  
 ```
+#### Container Install
+To use FFmpeg within a DeepStream Docker Container, you must clone, build, and install the latest version of the FFmpeg development libraries. 
+Copy and execute each of the following commands, one at a time, to setup the required dependencies.
+```bash
+$ mkdir ~/ffmpeg; cd ~/ffmpeg
+$ git clone https://github.com/FFmpeg/FFmpeg.git
+$ cd FFmpeg
+$ ./configure --enable-shared --disable-lzma
+$ make
+$ sudo make install
+```
 
 ### Using OpenCV
-If using OpenCV, it is recommended to use the NVIDIA SDK Manager to install OpenCV, or an NVIDIA DeepStream Docker container with OpenCV pre-installed.
+#### Native Install 
+Copy and execute the following command to install the OpenCV development library (as an alternative to using FFmpeg).
+```bash
+sudo apt-get install -y libopencv-dev
+```
+#### Container Install
+There are insufficient dependencies in the Docker container to install and use libopencv-dev as show above. Using OpenCV in a Docker container is not recommended!
 
 ### Updating the Makefile
 To enable the Extended Image Services, search for the following section in the DSL Makefile and set the appropriate BUILD_WITH flag to true.

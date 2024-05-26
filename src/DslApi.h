@@ -8194,22 +8194,22 @@ DslReturnType dsl_sink_message_broker_settings_set(const wchar_t* name,
     const wchar_t* connection_string, const wchar_t* topic);
 
 /**
- * @brief Enables payload dumping/debugging for the named Message Sink .
- * @param name unique name of the Message Sink to update.
+ * @brief Get the current payload dumping/debugging directory for the named 
+ * Message Sink. Null string indicates that payload dumping is disabled. 
+ * @param[in] name unique name of the Message Sink to query.
  * @param[out] debug_dir absolute or relative path to the directory to
- * to dump payload data. 
+ * to dump payload data.
  */
- DslReturnType dsl_sink_message_payload_debug_dir_get(const wchar_t* name, 
+DslReturnType dsl_sink_message_payload_debug_dir_get(const wchar_t* name, 
     const wchar_t** debug_dir);
 
 /**
- * @brief Get the current payload dumping/debugging directory for the named 
- * Message Sink. Null string indicates that payload dumping is disabled. 
- * @param name unique name of the Message Sink to update.
+ * @brief Enables payload dumping/debugging for the named Message Sink.
+ * @param[in] name unique name of the Message Sink to update.
  * @param[in] debug_dir absolute or relative path to the directory to
- * to dump payload data. 
+ * to dump payload data.
  */
- DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name, 
+DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name, 
     const wchar_t* debug_dir);
 
 /**

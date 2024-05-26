@@ -506,6 +506,8 @@
 * [`dsl_sink_message_converter_settings_set`](/docs/api-sink.md#dsl_sink_message_converter_settings_set)
 * [`dsl_sink_message_broker_settings_get`](/docs/api-sink.md#dsl_sink_message_broker_settings_get)
 * [`dsl_sink_message_broker_settings_set`](/docs/api-sink.md#dsl_sink_message_broker_settings_set)
+* [`dsl_sink_message_payload_debug_dir_get`](/docs/api-sink.md#dsl_sink_message_payload_debug_dir_get)
+* [`dsl_sink_message_payload_debug_dir_set`](/docs/api-sink.md#dsl_sink_message_payload_debug_dir_set)
 * [`dsl_sink_interpipe_forward_settings_get`](/docs/api-sink.md#dsl_sink_interpipe_forward_settings_get)
 * [`dsl_sink_interpipe_forward_settings_set`](/docs/api-sink.md#dsl_sink_interpipe_forward_settings_set)
 * [`dsl_sink_interpipe_num_listeners_get`](/docs/api-sink.md#dsl_sink_interpipe_num_listeners_get)
@@ -521,6 +523,7 @@
 * [`dsl_sink_frame_capture_schedule`](/docs/api-sink.md#dsl_sink_frame_capture_schedule)
 
 ## Custom Components:
+* [Overview](/docs/api-gst.md)
 * [`dsl_gst_element_new`](/docs/api-gst.md#dsl_gst_element_new)
 * [`dsl_gst_bin_new`](docs/api-gst.md#dsl_gst_bin_new)
 * [`dsl_gst_bin_new_element_add_many`](docs/api-gst.md#dsl_gst_bin_new_element_add_many)

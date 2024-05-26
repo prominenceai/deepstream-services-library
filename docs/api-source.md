@@ -643,6 +643,7 @@ This service creates a new, uniquely named RTSP Source component. The RTSP Sourc
   -   (0): decode_all       - Decode all frames
   -   (1): decode_non_ref   - Decode non-ref frame
   -   (2): decode_key       - decode key frames
+* `drop_frame_interval` - [in] number of frames to drop between each decoded frame. 0 = decode all frames.
 * `latency` - [in] source latency setting in milliseconds, equates to the amount of data to buffer. 
 * `timeout` - [in] maximum time between successive frame buffers in units of seconds before initiating a "reconnection-cycle". Set to 0 to disable the timeout.
 
