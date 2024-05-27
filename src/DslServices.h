@@ -35,9 +35,9 @@ THE SOFTWARE.
 #include "DslOdeTrigger.h"
 #include "DslPipelineBintr.h"
 #include "DslMessageBroker.h"
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION >= 20
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC == true
     #include "DslSinkWebRtcBintr.h"
 #endif
 

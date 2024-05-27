@@ -8754,10 +8754,11 @@ DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
     const wchar_t* turn_server, uint codec, uint bitrate, uint interval)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8785,10 +8786,11 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
 
 DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     std::wstring wstrName(name);
@@ -8801,10 +8803,11 @@ DslReturnType dsl_sink_webrtc_connection_close(const wchar_t* name)
 DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name, 
     const wchar_t** stun_server, const wchar_t** turn_server)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     std::wstring wstrName(name);
@@ -8836,10 +8839,11 @@ DslReturnType dsl_sink_webrtc_servers_get(const wchar_t* name,
 DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name, 
     const wchar_t* stun_server, const wchar_t* turn_server)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8868,10 +8872,11 @@ DslReturnType dsl_sink_webrtc_servers_set(const wchar_t* name,
 DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name, 
     dsl_sink_webrtc_client_listener_cb listener, void* client_data)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8888,10 +8893,11 @@ DslReturnType dsl_sink_webrtc_client_listener_add(const wchar_t* name,
 DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name, 
     dsl_sink_webrtc_client_listener_cb listener)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8907,10 +8913,11 @@ DslReturnType dsl_sink_webrtc_client_listener_remove(const wchar_t* name,
 
 DslReturnType dsl_websocket_server_path_add(const wchar_t* path)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(path);
@@ -8925,10 +8932,11 @@ DslReturnType dsl_websocket_server_path_add(const wchar_t* path)
 
 DslReturnType dsl_websocket_server_listening_start(uint port_number)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
@@ -8938,10 +8946,11 @@ DslReturnType dsl_websocket_server_listening_start(uint port_number)
 
 DslReturnType dsl_websocket_server_listening_stop()
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
@@ -8952,10 +8961,11 @@ DslReturnType dsl_websocket_server_listening_stop()
 DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
     uint* port_number)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     return DSL::Services::GetServices()->
@@ -8966,10 +8976,11 @@ DslReturnType dsl_websocket_server_listening_state_get(boolean* is_listening,
 DslReturnType dsl_websocket_server_client_listener_add( 
     dsl_websocket_server_client_listener_cb listener, void* client_data)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -8982,10 +8993,11 @@ DslReturnType dsl_websocket_server_client_listener_add(
 DslReturnType dsl_websocket_server_client_listener_remove( 
     dsl_websocket_server_client_listener_cb listener)
 {
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
-    LOG_ERROR("WebRTC & WebSocket services require GStreamer 1.20 or later");
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+    LOG_ERROR("WebRTC & WebSocket services require BUILD_WEBRTC to be set to true \
+        in the Makefile");
     return DSL_RESULT_API_NOT_SUPPORTED;
 #else
     RETURN_IF_PARAM_IS_NULL(listener);

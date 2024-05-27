@@ -216,9 +216,9 @@ THE SOFTWARE.
 }while(0); 
 
 
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(FileSinkBintr)) and  \
@@ -346,9 +346,9 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#if !defined(GSTREAMER_SUB_VERSION)
-    #error "GSTREAMER_SUB_VERSION must be defined"
-#elif GSTREAMER_SUB_VERSION < 20
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
