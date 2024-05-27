@@ -6,9 +6,8 @@ The DSL shared library is built using GCC and GNU Make. The MakeFile is located 
 1. Clone this repository to pull down all source
 2. Use the make (all) default to build the `dsl-test-app` executable
 3. Use the `sudo make install` option to build the object files into `libdsl.so` and intall the lib
-4. Generate caffemodel engine files (optional)
+4. Generate trafficcamnet engine files (optional)
 5. Import the shared lib using Python3
-6. Run the `dsl-test-app` to verify DSL changes (optional)
 
 ### Clone the Repository
 Clone the repository to pull all source code required to build the DSL test application - then navigate to the `deepstream-services-library` root folder.
@@ -23,13 +22,8 @@ cd deepstream-services-library
 Invoke the standard make (all) to compile all source code and test scenarios into objects files, and link them into a [Catch2](https://github.com/catchorg/Catch2) test application. On successful build, the `dsl-test-app` will be found under the same root folder.
 
 ```bash
-make -j <num-cores>
+make -j$(nproc)
 ```
-For example:
-```bash
-make -j 4
-```
-to use 4 CPU cores for the parallel.
 
 ### Make and install the shared library and install dsl.py
 Once the dsl-test-app.exe has been created, the source-only objects can be re-linked into the `libdsl.so` with the make install option. Root level privileges are required for the Makefile to copy the lib to `/usr/local/lib` once built. 
@@ -40,23 +34,19 @@ The DSL Python bindings file (dsl.py) is also copied to `.local/lib/python3.6/si
 sudo make install
 ```
 
-### Generate caffemodel engine files (optional)
-Enable DSL logging if you wish to monitor the process (optional).
-```bash
-export GST_DEBUG=1,DSL:4
-```
+### Generate trafficcamnet engine files (optional)
+
 execute the python script in the `deepstream-services-library` root folder.
 ```bash
-sudo python3 make_caffemodel_engine_files.py
+sudo python3 make_trafficcamnet_engine_files.py
 ```
 **Note:** this script can take several minutes to run.
 
-The following files are generated (Jetson Nano versions by default)
+The following files are generated
 ```
-/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector_Nano/resnet10.caffemodel_b8_gpu0_fp16.engine
-/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarColor/resnet18.caffemodel_b8_gpu0_fp16.engine
-/opt/nvidia/deepstream/deepstream/samples/models/Secondary_CarMake/resnet18.caffemodel_b8_gpu0_fp16.engine
-/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypesresnet18.caffemodel_b8_gpu0_fp16.engine
+/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine
+/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine
+/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine
 ```
 Update the Primary detector path specification in the script to generate files for other devices.
 
