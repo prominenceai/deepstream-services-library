@@ -122,23 +122,14 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-PGIE_CLASS_ID_VEHICLE = 0
-PGIE_CLASS_ID_BICYCLE = 1
-PGIE_CLASS_ID_PERSON = 2
-PGIE_CLASS_ID_ROADSIGN = 3
-
+## 
+# Custom PPH added to the sink-pad (input) of the Tiler
+## 
 def custom_pad_probe_handler(buffer, user_data):
-    frame_number=0
-    #Intiallizing object counter with 0.
-    obj_counter = {
-        PGIE_CLASS_ID_VEHICLE:0,
-        PGIE_CLASS_ID_PERSON:0,
-        PGIE_CLASS_ID_BICYCLE:0,
-        PGIE_CLASS_ID_ROADSIGN:0
-    }
-
 
     # Retrieve batch metadata from the gst_buffer
+    # IMPORTANT! do not use the hash function to cast the buffer.
+    
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
     l_frame = batch_meta.frame_meta_list
     while l_frame is not None:
@@ -231,23 +222,22 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Custom Pad Probe Handler to call Nvidia's example callback 
-        # for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=custom_pad_probe_handler, client_data=None)
-        
-        # Add the custom PPH to the Sink pad of the OSD
-        retval = dsl_tracker_pph_add('iou-tracker', 
-            handler='custom-pph', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
         # New Tiler with dimensions for two tiles - for the two sources
         retval = dsl_tiler_new('tiler', WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with text, clock and bbox display all enabled. 
+        # New Custom Pad Probe Handler to call Nvidia's example callback 
+        # for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', 
+            client_handler=custom_pad_probe_handler, client_data=None)
+
+        # Add the custom PPH to the Sink pad (input) of the Tiler.
+        retval = dsl_tiler_pph_add('tiler', 
+            handler='custom-pph', pad=DSL_PAD_SINK)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+                # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, 
             bbox_enabled=True, mask_enabled=False)
