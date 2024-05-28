@@ -1012,9 +1012,45 @@ Multiple Pipelines, each with their own Interpipe Source, can listen to the same
 ## Working with Buffer-Surfaces and OpenCV
 
 ### Using NVIDIA's pyds and python
-NVIDIA's python bindings provides a function ([pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface)) to get a frame-buffer-surface from a batched buffer in NumPy format.  
+NVIDIA's python bindings provides a function called [pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface) to get a frame-buffer-surface from a batched buffer as a Python array. The Python array, once converted to a NumPy array, can be processed using OpenCV as shown with the [Custom Pad Probe Handler](/api-pph.md)below.
 
-From the link above, *"This function returns the frame in NumPy format. Only RGBA format is supported. For x86_64, only CUDA unified memory is supported. For Jetson, the buffer is mapped to CPU memory."*
+```python
+## 
+# Custom PPH added to the sink-pad (input) of the Tiler
+## 
+def custom_pad_probe_handler(buffer, user_data):
+
+    # Retrieve the batch metadata from the gst_buffer.
+    # IMPORTANT! do not use the hash function to cast the buffer.
+    
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
+    l_frame = batch_meta.frame_meta_list
+    while l_frame is not None:
+        try:
+            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
+        except StopIteration:
+            break
+
+            # get the current frame as identified by batch_id in python array format
+            n_frame = pyds.get_nvds_buf_surface(buffer, frame_meta.batch_id)
+
+            # convert the python array into numpy array format.
+            frame_image = np.array(n_frame,copy=True,order='C')
+
+            # covert the array into cv2 default BGRA format
+            frame_image = cv2.cvtColor(frame_image,cv2.COLOR_RGBA2BGRA)
+
+            # write out the image
+            cv2.imwrite(filename,frame_image)
+
+        try:
+            l_frame=l_frame.next
+        except StopIteration:
+            break
+    return DSL_PAD_PROBE_OK
+```
+
+From the [pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface) documentation, _"This function returns the frame in NumPy format. **Only RGBA format is supported. For x86_64, only CUDA unified memory is supported**. For Jetson, the buffer is mapped to CPU memory."_
 
 To meet the above requirements:
 
@@ -1045,7 +1081,7 @@ else:
 See the complete example [4file_custom_pph_using_opencv.py](/examples/python/4file_custom_pph_using_opencv.py)
 
 ### Using "DslSurfaceTransform.h and C/C++
-DSL Provides a set of utility classes (used internally) to simplyfy the process of creating a frame-buffer-surface from a batched buffer that can be processed using OpenCV. The utility classes and OpenCV are used inside a [Custom Pad Probe Handler](/docs/api-pph) --
+DSL Provides a set of utility classes (used internally) to simplyfy the process of creating a frame-buffer-surface from a batched buffer that can be processed using OpenCV. The utility classes and OpenCV are used within a [Custom Pad Probe Handler](/docs/api-pph.md).
 
 See the example [4file_custom_pph_using_opencv.cpp](/examples/cpp/4file_custom_pph_using_opencv.cpp) for complete details.
 
