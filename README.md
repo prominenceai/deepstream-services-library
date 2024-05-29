@@ -36,14 +36,7 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 ---
 
 ## Important Bulletins
-The latest releases (`v0.28.alpha` and `v0.29.alpha`) were developed to support DeepSteam 6.3 and 6.4. However, there are several critical NVIDIA bugs that affect DSL's behavior. We are currently waiting on an ETA for a new DeepStream release (hopefully for NVIDIA GTC 2024 | March 18–21). Issues include:
-1. [Pipelines with new `nvstreammux` and `nvstreamdemux` fail to play correctly in DS 6.3](https://forums.developer.nvidia.com/t/pipelines-with-new-nvstreammux-and-nvstreamdemux-fail-to-play-correctly-in-ds-6-3/278396/5)
-2. [Unable to record with deepstream-testsr example on Jetson Orin Nano with DeepStream 6.4](https://forums.developer.nvidia.com/t/unable-to-record-with-deepstream-testsr-example-on-jetson-orin-nano-with-deepstream-6-4/279778)
-3. [Pipelines with jpegenc and multifilesink produce invalid jpeg files in DS 6.4](https://forums.developer.nvidia.com/t/pipelines-with-jpegenc-and-multifilesink-produce-invalid-jpeg-files-in-ds-6-4/280216)
-4. [DeepStream can’t decode certain H265 streams properly](https://forums.developer.nvidia.com/t/deepstream-cant-decode-certain-h265-streams-properly/276027)
-5. There are other New nvstreammux issues that still need to be reported.
-
-### _IMPORANT! There are breaking changes in the most recent release. Please read the [Release Notes](/Release%20Notes/v0.29.alpha.md) carefully._
+The latest release `v0.30.alpha` was developed to support DeepSteam 6.4 and 7.0 on Ubuntu 22.04. 
 
 ## Contributing
 
