@@ -132,6 +132,22 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
+# Function to be called on End-of-Stream (EOS) event
+## 
+def eos_event_listener(client_data):
+    print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
+
+## 
+# Function to be called on every change of Pipeline state
+## 
+def state_change_listener(old_state, new_state, client_data):
+    print('previous state = ', old_state, ', new state = ', new_state)
+    if new_state == DSL_STATE_PLAYING:
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+        
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
@@ -189,6 +205,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        ## Add the listener callback functions defined above
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
