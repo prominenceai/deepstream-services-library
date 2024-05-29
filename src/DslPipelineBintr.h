@@ -350,7 +350,6 @@ namespace DSL
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
         
-        
         /**
          * @brief optional Tiler for the Stream-muxer's output
          */

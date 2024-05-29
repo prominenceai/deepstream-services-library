@@ -643,6 +643,7 @@ This service creates a new, uniquely named RTSP Source component. The RTSP Sourc
   -   (0): decode_all       - Decode all frames
   -   (1): decode_non_ref   - Decode non-ref frame
   -   (2): decode_key       - decode key frames
+* `drop_frame_interval` - [in] number of frames to drop between each decoded frame. 0 = decode all frames.
 * `latency` - [in] source latency setting in milliseconds, equates to the amount of data to buffer. 
 * `timeout` - [in] maximum time between successive frame buffers in units of seconds before initiating a "reconnection-cycle". Set to 0 to disable the timeout.
 
@@ -2697,6 +2698,9 @@ retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-usb-source
 * [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
+* [Component](/docs/api-component.md)
+* [Custom Component](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
@@ -2704,8 +2708,6 @@ retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-usb-source
 * [ODE Area](/docs/api-ode-area.md)
 * [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
-* [Branch](/docs/api-branch.md)
-* [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)

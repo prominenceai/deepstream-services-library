@@ -211,6 +211,8 @@ As a general rule
 * [`dsl_sink_message_converter_settings_set`](#dsl_sink_message_converter_settings_set)
 * [`dsl_sink_message_broker_settings_get`](#dsl_sink_message_broker_settings_get)
 * [`dsl_sink_message_broker_settings_set`](#dsl_sink_message_broker_settings_set)
+* [`dsl_sink_message_payload_debug_dir_get`](#dsl_sink_message_payload_debug_dir_get)
+* [`dsl_sink_message_payload_debug_dir_set`](#dsl_sink_message_payload_debug_dir_set)
 
 **Interpipe Sink Methods**
 * [`dsl_sink_interpipe_forward_settings_get`](#dsl_sink_interpipe_forward_settings_get)
@@ -2747,6 +2749,48 @@ retval = dsl_sink_message_broker_settings_get('my-message-sink',
 
 <br>
 
+### *dsl_sink_message_payload_debug_dir_get*
+```C++
+DslReturnType dsl_sink_message_payload_debug_dir_get(const wchar_t* name, 
+    const wchar_t** debug_dir);
+```
+This service gets the current payload dumping/debugging directory for the named Message Sink. Null string indicates that payload dumping is disabled.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to query.
+* `debug_dir` - [out] absolute or relative path to the directory to dump payload data.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, debug_dir = dsl_sink_message_payload_debug_dir_get('my-message-sink')
+```
+
+<br>
+
+### *dsl_sink_message_payload_debug_dir_set*
+```C++
+DslReturnType dsl_sink_message_payload_debug_dir_set(const wchar_t* name, 
+    const wchar_t* debug_dir);
+```
+This service sets the payload dumping/debugging directory for the named Message Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Message Sink to update.
+* `debug_dir` - [in] absolute or relative path to the directory to dump payload data.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_message_payload_debug_dir_set('my-message-sink', './dump')
+```
+
+<br>
+
 ## Interpipe Sink Methods
 
 ### *dsl_sink_interpipe_forward_settings_get*
@@ -3065,14 +3109,15 @@ retval = dsl_sink_frame_capture_schedule('my-frame-capture-sink', frame_meta.fra
 * [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * **Sink**
+* [Branch](/docs/api-branch.md)
+* [Component](/docs/api-component.md)
+* [Custom Component](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
 * [ODE Acton](/docs/api-ode-action.md)
 * [ODE Area](/docs/api-ode-area.md)
 * [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
-* [Branch](/docs/api-branch.md)
-* [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)

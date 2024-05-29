@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         
         // Add the Buffer and DS Event probes to the sink-pad of the tee element.
-        AddSinkPadProbes(m_pTee);
+        AddSinkPadProbes(m_pTee->GetGstElement());
     }
     
     MultiBranchesBintr::~MultiBranchesBintr()
@@ -113,11 +113,15 @@ namespace DSL
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, linkAll Elementrs now 
-        // and Link to the 
+        // If the Pipeline is currently in a linked state, 
         if (IsLinked())
         {
-            // link back upstream to the Tee, the src for this Child Component 
+            // Propagate the link method and batch size to the Child Component
+            pChildComponent->SetLinkMethod(m_linkMethod);
+            pChildComponent->SetBatchSize(m_batchSize);
+            
+            // Link the child and then link back upstream to the Tee, 
+            // the src for this Child Component 
             if (!pChildComponent->LinkAll() or 
                 !pChildComponent->LinkToSourceTee(m_pTee, "src_%u"))
             {
@@ -299,6 +303,10 @@ namespace DSL
 
         for (auto const& imap: m_pChildBranchesIndexed)
         {
+            // Propagate the link method and batch size to the Child Component
+            imap.second->SetLinkMethod(m_linkMethod);
+            imap.second->SetBatchSize(m_batchSize);
+            
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSourceTee(m_pTee, "src_%u"))

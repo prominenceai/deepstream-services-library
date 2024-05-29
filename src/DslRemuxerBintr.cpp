@@ -193,9 +193,11 @@ namespace DSL
             }
         }
         
-        // Set the batch-size for the Child Branch and all of its childern.
-        // Then link the Streammuxer to the Child Branch
+        // Propagate the link method and batch size to the Child Branch
+        m_pChildBranch->SetLinkMethod(m_linkMethod);
         m_pChildBranch->SetBatchSize(m_batchSize);
+            
+        // Then link the Streammuxer to the Child Branch
         if (!m_pChildBranch->LinkAll() or
             !m_pStreammux->LinkToSink(m_pChildBranch))
         {
@@ -584,8 +586,8 @@ namespace DSL
         m_pMetamuxer->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event probes to the input Tee and Metamuxer.
-        AddSinkPadProbes(m_pInputTee);
-        AddSrcPadProbes(m_pMetamuxer);
+        AddSinkPadProbes(m_pInputTee->GetGstElement());
+        AddSrcPadProbes(m_pMetamuxer->GetGstElement());
     }    
     
     RemuxerBintr::~RemuxerBintr()
@@ -763,7 +765,6 @@ namespace DSL
         uint i(1);
         for (auto const& imap: m_childBranches)
         {
-            
             if (UseNewStreammux())
             {
                 if (!imap.second->SetBatchSize(m_batchSize))
@@ -781,10 +782,12 @@ namespace DSL
                     return false;
                 }                
             }
-
+            // Propagate the current link-method to each child branch
+            imap.second->SetLinkMethod(m_linkMethod);
+                
             std::string sinkPadName = "sink_" + std::to_string(i++);
             
-            // Linkup all child branches
+            // Linkup each child branch
             if (!imap.second->LinkAll() or
                 !imap.second->LinkToSourceTees(m_tees) or
                 !imap.second->LinkToSinkMuxer(m_pMetamuxer, sinkPadName.c_str()))

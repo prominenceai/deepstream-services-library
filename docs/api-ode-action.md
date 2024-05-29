@@ -72,9 +72,11 @@ ODE Actions are added to an ODE Accumulator by calling [`dsl_ode_accumulator_act
 * [`dsl_ode_action_file_new`](#dsl_ode_action_file_new)
 * [`dsl_ode_action_fill_frame_new`](#dsl_ode_action_fill_frame_new)
 * [`dsl_ode_action_fill_surroundings_new`](#dsl_ode_action_fill_surroundings_new)
+* [`dsl_ode_action_label_connect_to_bbox_new`](#dsl_ode_action_label_connect_to_bbox_new)
 * [`dsl_ode_action_label_customize_new`](#dsl_ode_action_label_customize_new)
 * [`dsl_ode_action_label_format_new`](#dsl_ode_action_label_format_new)
 * [`dsl_ode_action_label_offset_new`](#dsl_ode_action_label_offset_new)
+* [`dsl_ode_action_label_snap_to_grid_new`](#dsl_ode_action_label_snap_to_grid_new)
 * [`dsl_ode_action_handler_disable_new`](#dsl_ode_action_handler_disable_new)
 * [`dsl_ode_action_log_new`](#dsl_ode_action_log_new)
 * [`dsl_ode_action_message_meta_add_new`](#dsl_ode_action_message_meta_add_new)
@@ -172,6 +174,22 @@ The following return codes are used by the ODE Action API
 #define DSL_RESULT_ODE_ACTION_MAILER_REMOVE_FAILED                  0x000F000F
 #define DSL_RESULT_ODE_ACTION_PARAMETER_INVALID                     0x000F0010
 ```
+
+## Bounding Box Point Values
+Constant values defining specific points on an Object Bbound Box.
+```c
+#define DSL_BBOX_POINT_CENTER                                       0
+#define DSL_BBOX_POINT_NORTH_WEST                                   1
+#define DSL_BBOX_POINT_NORTH                                        2
+#define DSL_BBOX_POINT_NORTH_EAST                                   3
+#define DSL_BBOX_POINT_EAST                                         4
+#define DSL_BBOX_POINT_SOUTH_EAST                                   5
+#define DSL_BBOX_POINT_SOUTH                                        6
+#define DSL_BBOX_POINT_SOUTH_WEST                                   7
+#define DSL_BBOX_POINT_WEST                                         8
+#define DSL_BBOX_POINT_ANY                                          9
+```
+
 ---
 
 ## Types:
@@ -903,6 +921,34 @@ retval = dsl_ode_action_fill_surroundings_new('my-fill-object-action', 'opaque-g
 
 <br>
 
+### *dsl_ode_action_label_connect_to_bbox_new*
+```C++
+DslReturnType dsl_ode_action_label_connect_to_bbox_new(const wchar_t* name,  
+    const wchar_t* line_color, uint line_width, uint bbox_point);
+```
+The constructor creates a uniquely named **Connect Label** ODE Action. When invoked, this Action connects the Object's label (x,y offset coordinates) to a defined point on the Object's bounding-box for display by a downstream On-Screen-Display (OSD) component. 
+
+**Important:** Use a RGBA Color Palette to uniquely color the label's connecting line using the object's class id as the Palette index. Ensure that the Palette size is at least equal to the number of class-ids inferred on. See the [Display Type Reference](/docs/api-display-type.md) for more information.
+
+**Note** The Action is typically used along with the [`dsl_ode_action_label_offset_new`](#dsl_ode_action_label_offset_new) ODE Action.
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `line_color` - [in] unique name of the [RGBA color](/docs/api-display-type.md) to use for the connecting line.
+* `line_width` - [in] width value for the connecting line..
+* `bbox_point` - [in] one of the [Bounding Box Point Values](#bounding-box-point-values) to connect to. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_ode_action_label_connect_to_bbox_new('my-connect-label-action',
+    'my-custom-color, 3, DSL_BBOX_POINT_NORTH_WEST)
+```
+
+<br>
+
 ### *dsl_ode_action_label_customize_new*
 ```C++
 DslReturnType dsl_ode_action_label_customize_new(const wchar_t* name,  
@@ -952,7 +998,6 @@ retval = dsl_ode_action_label_format_new('my-format-label-action',
 
 <br>
 
-
 ### *dsl_ode_action_label_offset_new*
 ```C++
 DslReturnType dsl_ode_action_label_offset_new(const wchar_t* name,  
@@ -971,6 +1016,28 @@ The constructor creates a uniquely named **Offset Label** ODE Action. When invok
 **Python Example**
 ```Python    
 retval = dsl_ode_action_label_offset_new('my-offset-label-action', 0, -5)
+```
+
+<br>
+
+### *dsl_ode_action_label_snap_to_grid_new*
+```C++
+DslReturnType dsl_ode_action_label_snap_to_grid_new(const wchar_t* name,  
+    uint module_width, uint module_height);
+```
+The constructor creates a uniquely named **Snap Label** ODE Action. When invoked, this Action snaps (moves) an Object's label from its current x,y coordinates to the closest point on a two dimensional grid. 
+
+**Parameters**
+* `name` - [in] unique name for the ODE Action to create.
+* `module_width` - [in] width of each module (square) in the grid in units of pixels.
+* `module_width` - [in] heightof each module (square) in the grid in units of pixels.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python    
+retval = dsl_ode_action_label_snap_to_grid_new('my-snap-label-action', 20, 20)
 ```
 
 <br>
@@ -1866,6 +1933,9 @@ size = dsl_ode_action_list_size()
 * [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
+* [Component](/docs/api-component.md)
+* [Custom Component](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
@@ -1873,8 +1943,6 @@ size = dsl_ode_action_list_size()
 * [ODE Area](/docs/api-ode-area.md)
 * [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
-* [Branch](/docs/api-branch.md)
-* [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)

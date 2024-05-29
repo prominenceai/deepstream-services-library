@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "catch.hpp"
 #include "DslPadProbeHandler.h"
 #include "DslTrackerBintr.h"
+#include "DslOdeTrigger.h"
 
 using namespace DSL;
 

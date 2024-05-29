@@ -821,13 +821,26 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer and Primary GI
             
         REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
 
         REQUIRE( pPipelineBintr->IsLinked() == false );
 
         WHEN( "The Pipeline is Linked with the Demuxer and Primary GIE" )
         {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_POSITION);
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+
+            THEN( "The Pipeline can be unlinked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+        WHEN( "The Pipeline is Linked with the Demuxer and Primary GIE" )
+        {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER);
             REQUIRE( pPipelineBintr->LinkAll() == true );
             REQUIRE( pPipelineBintr->IsLinked() == true );
 
@@ -865,15 +878,28 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
         REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
-        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
+        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
 
         REQUIRE( pPipelineBintr->IsLinked() == false );
 
         WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
         {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_POSITION);
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+
+            THEN( "The Pipeline can be unlinked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+        WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
+        {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER);
             REQUIRE( pPipelineBintr->LinkAll() == true );
             REQUIRE( pPipelineBintr->IsLinked() == true );
 
@@ -916,16 +942,30 @@ SCENARIO( "A Pipeline is able to LinkAll/UnlinkAll with a Demuxer, Primary GIE, 
         DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
             
         REQUIRE( pDemuxerBintr->AddChild(pSinkBintr) == true );
-        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
+        
         REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pPrimaryGieBintr->AddToParent(pPipelineBintr) == true );
+        REQUIRE( pTrackerBintr->AddToParent(pPipelineBintr) == true );
         REQUIRE( pSecondaryGieBintr->AddToParent(pPipelineBintr) == true );
+        REQUIRE( pDemuxerBintr->AddToParent(pPipelineBintr) == true );
 
         REQUIRE( pPipelineBintr->IsLinked() == false );
 
         WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
         {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_POSITION);
+            REQUIRE( pPipelineBintr->LinkAll() == true );
+            REQUIRE( pPipelineBintr->IsLinked() == true );
+
+            THEN( "The Pipeline can be unlinked correctly" )
+            {
+                pPipelineBintr->UnlinkAll();
+                REQUIRE( pPipelineBintr->IsLinked() == false );
+            }
+        }
+        WHEN( "The Pipeline is Linked with the Demuxer, Primary GIE, and Tracker" )
+        {
+            pPipelineBintr->SetLinkMethod(DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER);
             REQUIRE( pPipelineBintr->LinkAll() == true );
             REQUIRE( pPipelineBintr->IsLinked() == true );
 

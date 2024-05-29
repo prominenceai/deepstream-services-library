@@ -61,7 +61,7 @@ namespace DSL
             DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
 
         // Add PipelineSourcesBintr as chid of this PipelineBintr.
-        AddChild(m_pPipelineSourcesBintr);
+        GstNodetr::AddChild(m_pPipelineSourcesBintr);
     }
 
     PipelineBintr::~PipelineBintr()
@@ -287,7 +287,7 @@ namespace DSL
             return false;
         }
         m_pStreammuxTilerBintr = std::dynamic_pointer_cast<TilerBintr>(pTilerBintr);
-        return AddChild(m_pStreammuxTilerBintr);
+        return GstNodetr::AddChild(m_pStreammuxTilerBintr);
     }
     
     bool PipelineBintr::RemoveStreammuxTiler()
@@ -304,7 +304,7 @@ namespace DSL
                 << GetName() << "' as it's currently linked");
             return false;
         }
-        RemoveChild(m_pStreammuxTilerBintr);
+        GstNodetr::RemoveChild(m_pStreammuxTilerBintr);
         m_pStreammuxTilerBintr = nullptr;
         return true;
     }
@@ -343,8 +343,9 @@ namespace DSL
 
         if (m_pStreammuxTilerBintr)
         {
-            // Link All Tiler Elementrs and add as the next component in the Branch
+            m_pStreammuxTilerBintr->SetLinkMethod(m_linkMethod);
             m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
+            // Link All Tiler Elementrs and add as the next component in the Branch
             if (!m_pStreammuxTilerBintr->LinkAll() or
                 !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
             {
@@ -357,7 +358,7 @@ namespace DSL
         }
 
         // call the base class to Link all remaining components.
-        return BranchBintr::LinkAll();
+        return BranchBintr::LinkAll(); 
     }
 
     bool PipelineBintr::Play()

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
+#include "DslGstBintr.h"
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSInfersBintr.h"
@@ -104,6 +105,13 @@ namespace DSL
         bool AddSegVisualBintr(DSL_BASE_PTR pSegVisualBintr);
 
         /**
+         * @brief removes a single SegVisualBintr from this Branch 
+         * @param[in] pSegVisualBintr shared pointer to the SegVisual Bintr to remove
+         * @return true on successful remove, false otherwise
+         */
+        bool RemoveSegVisualBintr(DSL_BASE_PTR pSegVisualBintr);
+
+        /**
          * @brief adds a single TrackerBintr to this Branch 
          * @param[in] pTrackerBintr shared pointer to the Tracker Bintr to add
          * @return true on successful add, false otherwise
@@ -125,6 +133,13 @@ namespace DSL
         bool AddOfvBintr(DSL_BASE_PTR pOfvBintr);
         
         /**
+         * @brief removes a single OfvBintr to this Branch 
+         * @param[in] pOfvBintr shared pointer to the OFV Bintr to remove
+         * @return true on successful remove, false otherwise
+         */
+        bool RemoveOfvBintr(DSL_BASE_PTR pOfvBintr);
+        
+        /**
          * @brief adds a single TilerBintr to this Branch 
          * @param[in] pDisplayBintr shared pointer to Tiler Bintr to add
          * @return true on successful add, false otherwise
@@ -137,6 +152,20 @@ namespace DSL
          * @return true on succesful remove, false otherwise.
          */
         bool RemoveTilerBintr(DSL_BASE_PTR pTilerBintr);
+        
+        /**
+         * @brief adds an GstBintr to this Branch 
+         * @param[in] pGstBintr shared pointer to GST Bintr to add
+         * @return true on succesful add, false otherwise.
+         */
+        bool AddGstBintr(DSL_BASE_PTR pGstBintr);
+        
+        /**
+         * @brief removes a GstBintr from this Branch 
+         * @param[in] pGstBintr shared pointer to GstBintr to remove
+         * @return true on succesful remove, false otherwise.
+         */
+        bool RemoveGstBintr(DSL_BASE_PTR pGstBintr);
         
         /**
          * @brief adds an OsdBintr to this Branch 
@@ -212,13 +241,48 @@ namespace DSL
         
         void UnlinkAll();
         
+    private:
+    
+        /**
+         * @brief adds a child GstNodetr to this Branch Bintr
+         * @param[in] pChild to add. Once added, calling InUse()
+         *  on the Child Bintr will return true
+         * @return true if pChild was added successfully, false otherwise
+         */
+        bool AddChild(DSL_BASE_PTR pChild);
+        
+        /**
+         * @brief removes a child from this Branch Bintr
+         * @param[in] pChild to remove. Once removed, calling InUse()
+         *  on the Child Bintr will return false
+         */
+        bool RemoveChild(DSL_BASE_PTR pChild);
+
+        /**
+         * @brief links all children of this Branch Bintr by add order
+         * @return true on successful link, false otherwise
+         */
+        bool LinkAllPositional();
+
+        /**
+         * @brief links all children of this Branch Bintr by add order
+         * @return true on successful link, false otherwise
+         */
+        bool LinkAllOrdered();
+
     protected:
     
         /**
-         * @brief Created and added as first componet if instantiated as a
-         * Branch t linked to Demuxer or Splitter Tees. 
+         * @brief Index variable to incremment/assign on component add.
+         * For components other than Sinks
          */
-        DSL_ELEMENT_PTR  m_pBranchQueue;
+        uint m_nextComponentIndex;
+        
+        /**
+         * @brief Map of child components for this Branch, other than sinks,
+         * indexed by thier add-order for execution
+         */
+        std::map <uint, DSL_BINTR_PTR> m_componentsIndexed;
         
         /**
          * @brief vector of linked components to simplfy the unlink process
@@ -266,6 +330,22 @@ namespace DSL
          */
         DSL_OFV_PTR m_pOfvBintr;
 
+        /**
+         * @brief Index variable to incremment/assign on GST Bin add.
+         */
+        uint m_nextGstBintrIndex;
+        
+        /**
+         * @brief Map of child Custom GST Bins for this Branch
+         */
+        std::map <std::string, DSL_GST_BINTR_PTR> m_gstBintrs;
+        
+        /**
+         * @brief Map of child Custom GST Bins for this Branch
+         * indexed by thier add-order for execution
+         */
+        std::map <uint, DSL_GST_BINTR_PTR> m_gstBintrsIndexed;
+        
         /**
          * @brief optional, one at most OSD for this Branch
          */

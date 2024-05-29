@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslPadProbeHandler.h"
-#include "DslBase.h"
+#include "DslOdeTrigger.h"
 #include "DslBintr.h"
 #include <gst-nvevent.h>
 
@@ -89,8 +89,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
             
         if (!pParentBintr->AddPadProbeBufferHandler(shared_from_this(), pad))
         {
@@ -107,8 +107,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
         
         if (!pParentBintr->RemovePadProbeBufferHandler(shared_from_this(), pad))
         {
@@ -138,8 +138,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
             
         if (!pParentBintr->AddPadProbeEventHandler(shared_from_this(), pad))
         {
@@ -156,8 +156,8 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
         
-        DSL_BINTR_PTR pParentBintr = 
-            std::dynamic_pointer_cast<Bintr>(pParent);
+           DSL_GSTNODETR_PTR pParentBintr = 
+            std::dynamic_pointer_cast<GstNodetr>(pParent);
         
         if (!pParentBintr->RemovePadProbeEventHandler(shared_from_this(), pad))
         {
@@ -1034,11 +1034,11 @@ for Buffer Timer PPH '" << GetName() << "'");
     //--------------------------------------------------------------------------------
 
     PadProbetr::PadProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement, 
+        const char* factoryName, GstElement* parentElement, 
         GstPadProbeType padProbeType)
         : Base(name)
         , m_factoryName(factoryName)
-        , m_pParentGstElement(parentElement->GetGstElement())
+        , m_pParentGstElement(parentElement)
         , m_padProbeId(0)
         , m_padProbeType(padProbeType)
         , m_pStaticPad(NULL)
@@ -1131,7 +1131,7 @@ for Buffer Timer PPH '" << GetName() << "'");
     //--------------------------------------------------------------------------------
 
     PadBufferProbetr::PadBufferProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement)
+        const char* factoryName, GstElement* parentElement)
         : PadProbetr(name, factoryName, parentElement, GST_PAD_PROBE_TYPE_BUFFER)
     {
         LOG_FUNC();
@@ -1206,7 +1206,7 @@ for Buffer Timer PPH '" << GetName() << "'");
     //--------------------------------------------------------------------------------
 
     PadEventDownStreamProbetr::PadEventDownStreamProbetr(const char* name, 
-        const char* factoryName, DSL_ELEMENT_PTR parentElement)
+        const char* factoryName, GstElement* parentElement)
         : PadProbetr(name, factoryName, parentElement, 
             GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM)
     {

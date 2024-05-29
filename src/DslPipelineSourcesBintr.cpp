@@ -105,7 +105,7 @@ namespace DSL
         m_pStreammux->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
-        AddSrcPadProbes(m_pStreammux);
+        AddSrcPadProbes(m_pStreammux->GetGstElement());
         
         // If the unqiue pipeline-id is greater than 0, then we need to add the
         // SourceIdOffsetterPadProbeHandler to offset every source-id found in

@@ -149,6 +149,39 @@ namespace DSL
         }
         
         /**
+         * @brief returns the currently assigned Index mapped by key, used for 
+         * mapping order
+         * @return current index value, default = 0, updated with SetIndex()
+         */
+        uint GetIndex(std::string key)
+        {
+            LOG_FUNC();
+            
+            return m_indexMap[key];
+        }
+        
+        /**
+         * @brief sets the Index for map sorting, by key
+         */
+        void SetIndex(std::string key, uint index)
+        {
+            LOG_FUNC();
+            
+            m_indexMap[key] = index;
+        }
+        
+        /**
+        /**
+         * @brief sets the Index for map sorting, by key
+         */
+        void EraseIndex(std::string key)
+        {
+            LOG_FUNC();
+            
+            m_indexMap.erase(key);
+        }
+        
+        /**
          * @brief returns the name given to this DSL Object on creation
          * @return const c_str name given to this DSL Object
          */
@@ -309,6 +342,11 @@ namespace DSL
          * @brief Index used when sorting derived objects of DslBase
          */
         uint m_index;
+        
+        /**
+         * @brief Index used when sorting derived objects of DslBase
+         */
+        std::map <std::string,uint> m_indexMap;
 
         /**
          * @brief Unique name of the Parent DSL object if in use.

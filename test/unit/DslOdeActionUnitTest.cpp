@@ -127,7 +127,7 @@ SCENARIO( "A new FormatBBoxOdeAction is created correctly", "[OdeAction]" )
         double red(0.12), green(0.34), blue(0.56), alpha(0.78);
         DSL_RGBA_COLOR_PTR pBorderColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
             red, green, blue, alpha);
-        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(borderColorName.c_str(), 
+        DSL_RGBA_COLOR_PTR pBgColor = DSL_RGBA_COLOR_NEW(bgColorName.c_str(), 
             red, green, blue, alpha);
 
         WHEN( "A new FormatBBoxOdeAction is created" )
@@ -963,6 +963,126 @@ SCENARIO( "A OffsetLabelOdeAction handles an ODE Occurence correctly", "[OdeActi
 //                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
 //            }
 //        }
+    }
+}
+
+SCENARIO( "A new SnapLabelToGridOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new SnapLabelToGridOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        uint moduleWidth(10), moduleHeight(10);
+
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR pAction = 
+                DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(
+                    actionName.c_str(), moduleWidth, moduleHeight);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
+    }
+}
+
+SCENARIO( "A SnapLabelToGridOdeAction handles an ODE Occurence correctly", "[OdeAction]" )
+{
+    GIVEN( "A new SnapLabelToGridOdeAction" ) 
+    {
+        std::string triggerName("first-occurence");
+        std::string source;
+        uint classId(1);
+        uint limit(1);
+        
+        uint moduleWidth(10), moduleHeight(10);
+        std::string actionName("ode-action");
+
+        DSL_ODE_TRIGGER_OCCURRENCE_PTR pTrigger = 
+            DSL_ODE_TRIGGER_OCCURRENCE_NEW(triggerName.c_str(), source.c_str(), classId, limit);
+
+        NvDsObjectMeta objectMeta = {0};
+        objectMeta.class_id = classId; // must match Trigger's classId
+        objectMeta.object_id = INT64_MAX; 
+        objectMeta.rect_params.left = 20;
+        objectMeta.rect_params.top = 20;
+        objectMeta.rect_params.width = 36;
+        objectMeta.rect_params.height = 55;
+        
+        NvDsFrameMeta frameMeta =  {0};
+        frameMeta.bInferDone = true;  // required to process
+        frameMeta.frame_num = 444;
+        frameMeta.ntp_timestamp = INT64_MAX;
+        frameMeta.source_id = 2;
+        frameMeta.pipeline_width = DSL_1K_HD_WIDTH;
+        frameMeta.pipeline_height = DSL_1K_HD_HEIGHT;
+
+        DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR pAction = 
+            DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(
+                actionName.c_str(), moduleWidth, moduleHeight);
+
+        WHEN( "The offsets are less than half the grid size" )
+        {
+
+            objectMeta.text_params.x_offset = 4;
+            objectMeta.text_params.y_offset = 4;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(0), exp_y_offset(0);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+        WHEN( "offsets are defined negative and out-of-frame" )
+        {
+            objectMeta.text_params.x_offset = 6;
+            objectMeta.text_params.y_offset = 6;
+                
+            THEN( "The OdeAction can Handle the Occurrence" )
+            {
+                uint exp_x_offset(10), exp_y_offset(10);
+                
+                pAction->HandleOccurrence(pTrigger, NULL, 
+                    displayMetaData, &frameMeta, &objectMeta);
+                    
+                REQUIRE( objectMeta.text_params.x_offset == exp_x_offset );
+                REQUIRE( objectMeta.text_params.y_offset == exp_y_offset );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new ConnectLabelToBBoxOdeAction is created correctly", "[OdeAction]" )
+{
+    GIVEN( "Attributes for a new ConnectLabelToBBoxOdeAction" ) 
+    {
+        std::string actionName("ode-action");
+        std::string lineColorName("line-color");
+        double red(0.12), green(0.34), blue(0.56), alpha(0.78);
+        DSL_RGBA_COLOR_PTR pLineColor = DSL_RGBA_COLOR_NEW(lineColorName.c_str(), 
+            red, green, blue, alpha);
+        uint lineWidth(2);
+        uint bboxPoint(DSL_BBOX_POINT_NORTH_WEST);
+
+        WHEN( "A new OdeAction is created with an array of content types" )
+        {
+            DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_PTR pAction = 
+                DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_NEW(actionName.c_str(), 
+                    pLineColor, lineWidth, bboxPoint);
+
+            THEN( "The Action's members are setup and returned correctly" )
+            {
+                std::string retName = pAction->GetCStrName();
+                REQUIRE( actionName == retName );
+            }
+        }
     }
 }
 

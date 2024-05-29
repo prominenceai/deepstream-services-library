@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ namespace DSL
         m_pQueue->AddGhostPadToParent("sink");
         
         // Add the Buffer and DS Event probes to the sink-pad of the queue element.
-        AddSinkPadProbes(m_pQueue);
+        AddSinkPadProbes(m_pQueue->GetGstElement());
     }
 
     SinkBintr::~SinkBintr()
@@ -2469,9 +2469,8 @@ namespace DSL
     MessageSinkBintr::MessageSinkBintr(const char* name, const char* converterConfigFile, 
         uint payloadType, const char* brokerConfigFile, const char* protocolLib, 
         const char* connectionString, const char* topic)
-        : SinkBintr(name) // used for fake sink only
+        : SinkBintr(name)
         , m_metaType(NVDS_EVENT_MSG_META)
-        , m_converterConfigFile(converterConfigFile)
         , m_payloadType(payloadType)
         , m_brokerConfigFile(brokerConfigFile)
         , m_connectionString(connectionString)
@@ -2480,8 +2479,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pTee = DSL_ELEMENT_NEW("tee", name);
-        m_pMsgConverterQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvmsgconv");
         m_pMsgConverter = DSL_ELEMENT_NEW("nvmsgconv", name);
         
         // Message broker is primary sink component.
@@ -2500,11 +2497,12 @@ namespace DSL
         // Disable the last-sample property for performance reasons.
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
         
-        m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
-        m_pFakeSink = DSL_ELEMENT_NEW("fakesink", name);
-        
         //m_pMsgConverter->SetAttribute("comp-id", m_metaType);
-        m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
+        if (converterConfigFile)
+        {
+            m_converterConfigFile = converterConfigFile;
+            m_pMsgConverter->SetAttribute("config", m_converterConfigFile.c_str());
+        }
         m_pMsgConverter->SetAttribute("payload-type", m_payloadType);
 
         m_pSink->SetAttribute("proto-lib", m_protocolLib.c_str());
@@ -2520,23 +2518,20 @@ namespace DSL
         }
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
+        LOG_INFO("Initial property values for MessageSinkBintr '" << name << "'");
         LOG_INFO("  converter-config   : " << m_converterConfigFile);
         LOG_INFO("  payload-type       : " << m_payloadType);
         LOG_INFO("  broker-config      : " << m_brokerConfigFile);
         LOG_INFO("  proto-lib          : " << m_protocolLib);
+        LOG_INFO("  debug-dir          : " << m_debugDir);
         LOG_INFO("  sync               : " << m_sync);
         LOG_INFO("  async              : " << m_async);
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
         
-        AddChild(m_pTee);
-        AddChild(m_pMsgConverterQueue);
         AddChild(m_pMsgConverter);
         AddChild(m_pSink);
-        AddChild(m_pFakeSinkQueue);
-        AddChild(m_pFakeSink);
     }
 
     MessageSinkBintr::~MessageSinkBintr()
@@ -2558,12 +2553,8 @@ namespace DSL
             LOG_ERROR("MessageSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pTee) or
-            !m_pMsgConverterQueue->LinkToSourceTee(m_pTee, "src_%u") or
-            !m_pMsgConverterQueue->LinkToSink(m_pMsgConverter) or
-            !m_pMsgConverter->LinkToSink(m_pSink) or
-            !m_pFakeSinkQueue->LinkToSourceTee(m_pTee, "src_%u") or
-            !m_pFakeSinkQueue->LinkToSink(m_pFakeSink))
+        if (!m_pQueue->LinkToSink(m_pMsgConverter) or
+            !m_pMsgConverter->LinkToSink(m_pSink))
         {
             return false;
         }
@@ -2580,12 +2571,8 @@ namespace DSL
             LOG_ERROR("MessageSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pFakeSinkQueue->UnlinkFromSink();
-        m_pFakeSinkQueue->UnlinkFromSourceTee();
-        m_pMsgConverter->UnlinkFromSink();
-        m_pMsgConverterQueue->UnlinkFromSink();
-        m_pMsgConverterQueue->UnlinkFromSourceTee();
         m_pQueue->UnlinkFromSink();
+        m_pMsgConverter->UnlinkFromSink();
         m_isLinked = false;
     }
     
@@ -2675,6 +2662,118 @@ namespace DSL
         return true;
     }
 
+    const char*  MessageSinkBintr::GetDebugDir()
+    {
+        LOG_FUNC();
+        
+        return m_debugDir.c_str();
+    }
+
+    bool MessageSinkBintr::SetDebugDir(const char* debugDir)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set debug-payload-dir for MessageSinkBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_debugDir = debugDir;
+        m_pMsgConverter->SetAttribute("debug-payload-dir", debugDir);
+        
+        return true;
+    }   
+
+    // -------------------------------------------------------------------------------
+    
+    LiveKitWebRtcSinkBintr::LiveKitWebRtcSinkBintr(const char* name, const char* url, 
+        const char* apiKey, const char* secretKey, const char* room, 
+        const char* identity, const char* participant)
+        : SinkBintr(name) 
+        , m_url(url)
+        , m_apiKey(apiKey)
+        , m_secretKey(secretKey)
+        , m_room(room)
+    {
+        LOG_FUNC();
+        
+        m_pSink = DSL_ELEMENT_NEW("livekitwebrtcsink", name);
+
+        m_pSink->SetAttribute("signaller::ws-url", url);
+        m_pSink->SetAttribute("signaller::api-key", apiKey);
+        m_pSink->SetAttribute("signaller::secret-key", secretKey);
+        m_pSink->SetAttribute("signaller::room", room);
+        
+        if (identity)
+        {
+            m_identity = identity;
+            m_pSink->SetAttribute("signaller::identity", identity);
+        }    
+        if (participant)
+        {
+            m_participant = participant;
+            m_pSink->SetAttribute("signaller::participant", participant);
+        }    
+
+        // set the only common property.
+        m_pSink->SetAttribute("async-handling", m_async);
+
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for LiveKitWebRtcSinkBintr '" << name << "'");
+        LOG_INFO("  signaller -------- : ");
+        LOG_INFO("    ws-url           : " << m_url);
+        LOG_INFO("    api-key          : " << std::string(m_apiKey.size(), '*')); 
+        LOG_INFO("    secret-key       : " << std::string(m_secretKey.size(), '*'));
+        LOG_INFO("    room             : " << m_room);
+        LOG_INFO("    identity         : " << m_identity);
+        LOG_INFO("    participant      : " << m_participant);
+        LOG_INFO("  async              : " << m_async);
+        
+        AddChild(m_pSink);
+    }
+
+    LiveKitWebRtcSinkBintr::~LiveKitWebRtcSinkBintr()
+    {
+        LOG_FUNC();
+    
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool LiveKitWebRtcSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("LiveKitWebRtcSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+        if (!m_pQueue->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void LiveKitWebRtcSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("LiveKitWebRtcSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+    
     //-------------------------------------------------------------------------
 
     InterpipeSinkBintr::InterpipeSinkBintr(const char* name,

@@ -144,6 +144,16 @@ namespace DSL
         std::shared_ptr<OffsetLabelOdeAction>(new OffsetLabelOdeAction(name, \
             offsetX, offsetY))
 
+    #define DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_PTR std::shared_ptr<SnapLabelToGridOdeAction>
+    #define DSL_ODE_ACTION_LABEL_SNAP_TO_GRID_NEW(name, cols, rows) \
+        std::shared_ptr<SnapLabelToGridOdeAction>(new SnapLabelToGridOdeAction(name, \
+            cols, rows))
+            
+    #define DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_PTR std::shared_ptr<ConnectLabelToBBoxOdeAction>
+    #define DSL_ODE_ACTION_LABEL_CONNECT_TO_BBOX_NEW(name, pLineColor, lineWidth, bboxPoint) \
+        std::shared_ptr<ConnectLabelToBBoxOdeAction>(new ConnectLabelToBBoxOdeAction(name, \
+            pLineColor, lineWidth, bboxPoint))
+
     #define DSL_ODE_ACTION_LOG_PTR std::shared_ptr<LogOdeAction>
     #define DSL_ODE_ACTION_LOG_NEW(name) \
         std::shared_ptr<LogOdeAction>(new LogOdeAction(name))
@@ -1529,6 +1539,116 @@ namespace DSL
          * bounding box corner.
          */
         int m_offsetY;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class SnapLabelToGridOdeAction
+     * @brief Snap Object Label to Grid ODE Action class
+     */
+    class SnapLabelToGridOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Snap Label to Grid ODE Action class
+         * @param[in] name unique name for the ODE Action.
+         * @param[in] moduleWidth width of each module (square) in the grid.
+         * @param[in] moduleHeight height of each module (sqaure) in the grid.
+         */
+        SnapLabelToGridOdeAction(const char* name,
+            uint moduleWidth, uint moduleHeight);
+        
+        /**
+         * @brief dtor for the ODE Format Label Action class
+         */
+        ~SnapLabelToGridOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by snapping each object label to a 
+         * measured 2D grid.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Width of each module in the grid.
+         */
+        uint m_moduleWidth;
+
+        /**
+         * @brief Height of each module in the grid.
+         */
+        uint m_moduleHeight;
+
+    };
+    
+    // ********************************************************************
+
+    /**
+     * @class ConnectLabelToBBoxOdeAction
+     * @brief Connect Object Label to BBox ODE Action class
+     */
+    class ConnectLabelToBBoxOdeAction : public OdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Connect Object Label to BBox ODE Action class
+         * @param[in] name unique name for the ODE Action.
+         * @param[in] lineColor shared pointer to an RGBA color display-type.
+         * @param[in] lineWidth Width of the connecting line.
+         * @param[in] bboxPoint bbox point to connect to. One of the 
+         * DSL_BOX_POINT symbolic constants.
+         */
+        ConnectLabelToBBoxOdeAction(const char* name,
+            DSL_RGBA_COLOR_PTR pLineColor, uint lineWidth, uint bboxPoint);
+        
+        /**
+         * @brief dtor for the ODE Format Label Action class
+         */
+        ~ConnectLabelToBBoxOdeAction();
+
+        /**
+         * @brief Handles the ODE occurrence by connecting each object label to a 
+         * to a specified point on the Object's bbox.
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pOdeTrigger shared pointer to ODE Trigger that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         * @param[in] pObjectMeta pointer to Object Meta if Object detection event, 
+         * NULL if Frame level absence, total, min, max, etc. events.
+         */
+        void HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+            GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+            NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta);
+        
+    private:
+    
+        /**
+         * @brief Shared pointer to a RGBA color display type.
+         */
+        DSL_RGBA_COLOR_PTR m_pLineColor;
+        
+        /**
+         * @brief Width of the connecting line.
+         */
+        uint m_lineWidth;
+
+        /**
+         * @brief BBox point to connect to. One of the 
+         * DSL_BOX_POINT symbolic constants.
+         */
+        uint m_bboxPoint;
 
     };
     

@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024, Prominence AI, Inc.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,12 +39,11 @@ else
 endif
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.29.alpha"'
+DSL_VERSION:='L"v0.30.alpha"'
 GLIB_VERSION:=2.0
 
-# Update GStreamer sub-version to 20 to enabled the WebRtcSink
 GSTREAMER_VERSION:=1.0
-GSTREAMER_SUB_VERSION:=18
+GSTREAMER_SUB_VERSION:=20
 GSTREAMER_SDP_VERSION:=1.0
 GSTREAMER_WEBRTC_VERSION:=1.0
 LIBSOUP_VERSION:=2.4
@@ -59,6 +58,14 @@ BUILD_WITH_OPENCV:=false
 # To enable the InterPipe Sink and Source components
 # - set BUILD_INTER_PIPE:=true
 BUILD_INTER_PIPE:=false
+
+# To enable the WebRTC Sink component (requires GStreamer >= 1.20)
+# - set BUILD_WEBRTC:=true
+BUILD_WEBRTC:=false
+
+# To enable the LiveKit WebRTC Sink component (requires GStreamer >= 1.22)
+# - set BUILD_LIVEKIT_WEBRTC:=true
+BUILD_LIVEKIT_WEBRTC:=false
 
 # To enable the Non Maximum Processor (NMP) Pad Probe Handler (PPH)
 # - set BUILD_NMP_PPH:=true and NUM_CPP_PATH:=<path-to-numcpp-include-folder>
@@ -92,6 +99,10 @@ ifeq ($(BUILD_INTER_PIPE),true)
 SRCS+= $(wildcard ./test/interpipe/*.cpp)
 endif
 
+ifeq ($(BUILD_LIVEKIT_WEBRTC),true)
+SRCS+= $(wildcard ./test/livekitwebrtc/*.cpp)
+endif
+
 ifeq ($(BUILD_NMP_PPH),true)
 SRCS+= $(wildcard ./src/nmp/*.cpp)
 SRCS+= $(wildcard ./test/nmp/*.cpp)
@@ -111,7 +122,7 @@ INCS+= $(wildcard ./test/*.hpp)
 TEST_OBJS+= $(wildcard ./test/api/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
+ifeq ($(BUILD_WEBRTC),true)
 SRCS+= $(wildcard ./src/webrtc/*.cpp)
 SRCS+= $(wildcard ./test/webrtc/*.cpp)
 INCS+= $(wildcard ./src/webrtc/*.h)
@@ -145,8 +156,9 @@ CFLAGS+= -I$(INC_INSTALL_DIR) \
 	-DDSL_LOGGER_IMP='"DslLogGst.h"'\
 	-DBUILD_WITH_FFMPEG=$(BUILD_WITH_FFMPEG) \
 	-DBUILD_WITH_OPENCV=$(BUILD_WITH_OPENCV) \
-	-DGSTREAMER_SUB_VERSION=$(GSTREAMER_SUB_VERSION) \
 	-DBUILD_INTER_PIPE=$(BUILD_INTER_PIPE) \
+	-DBUILD_WEBRTC=$(BUILD_WEBRTC) \
+	-DBUILD_LIVEKIT_WEBRTC=$(BUILD_LIVEKIT_WEBRTC) \
 	-DBUILD_NMP_PPH=$(BUILD_NMP_PPH) \
 	-DBUILD_MESSAGE_SINK=$(BUILD_MESSAGE_SINK) \
 	-DNVDS_MOT_LIB='"$(LIB_INSTALL_DIR)/libnvds_nvmultiobjecttracker.so"' \
@@ -168,7 +180,11 @@ CFLAGS+= -I /usr/include/opencv4 \
 	-I./test/avfile
 endif	
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
+ifeq ($(BUILD_LIVEKIT_WEBRTC),true)
+CFLAGS+= -I./test/livekitwebrtc
+endif	
+
+ifeq ($(BUILD_WEBRTC),true)
 CFLAGS+= -I/usr/include/libsoup-$(LIBSOUP_VERSION) \
 	-I/usr/include/json-glib-$(JSON_GLIB_VERSION) \
 	-I./src/webrtc
@@ -207,7 +223,7 @@ LIBS+= -L$(LIB_INSTALL_DIR) \
 	-L/usr/local/cuda/lib64/ -lcudart \
 	-Wl,-rpath,$(LIB_INSTALL_DIR)
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
+ifeq ($(BUILD_WEBRTC),true)
 LIBS+= -Lgstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	-Lgstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	-Llibsoup-$(LIBSOUP_VERSION) \
@@ -229,7 +245,7 @@ PKGS:= gstreamer-$(GSTREAMER_VERSION) \
 	gstreamer-rtsp-server-$(GSTREAMER_VERSION) \
 	x11
 
-ifeq ($(shell test $(GSTREAMER_SUB_VERSION) -gt 18; echo $$?),0)
+ifeq ($(BUILD_WEBRTC),true)
 PKGS+= gstreamer-sdp-$(GSTREAMER_SDP_VERSION) \
 	gstreamer-webrtc-$(GSTREAMER_WEBRTC_VERSION) \
 	libsoup-$(LIBSOUP_VERSION) \

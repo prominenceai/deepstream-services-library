@@ -32,7 +32,7 @@ from dsl import *
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
 # RTSP Source URI for HIKVISION Camera    
-hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
+hikvision_rtsp_uri = 'rtsp://admin:Segvisual44@192.168.1.64:554/Streaming/Channels/101'    
 
 WINDOW_WIDTH = DSL_1K_HD_WIDTH    
 WINDOW_HEIGHT = DSL_1K_HD_HEIGHT    
@@ -101,7 +101,9 @@ def main(args):
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
+        retval = dsl_sink_fake_new('fake-sink')    
+
         retval = dsl_player_new('rtsp-player', 'rtsp-source', 'egl-sink')
         if retval != DSL_RETURN_SUCCESS:    
             break

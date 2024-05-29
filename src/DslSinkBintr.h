@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -97,7 +97,13 @@ namespace DSL
         std::shared_ptr<MessageSinkBintr>(new MessageSinkBintr(name, \
             converterConfigFile, payloadType, brokerConfigFile, \
             protocolLib, connectionString, topic))
-        
+
+    #define DSL_LIVEKIT_WEBRTC_SINK_PTR std::shared_ptr<LiveKitWebRtcSinkBintr>
+    #define DSL_LIVEKIT_WEBRTC_SINK_NEW(name, \
+            url, apiKey, secretKey, room, identity, participant) \
+        std::shared_ptr<LiveKitWebRtcSinkBintr>(new LiveKitWebRtcSinkBintr(name, \
+            url, apiKey, secretKey, room, identity, participant))
+
     #define DSL_INTERPIPE_SINK_PTR std::shared_ptr<InterpipeSinkBintr>
     #define DSL_INTERPIPE_SINK_NEW(name, forwardEos, forwardEvents) \
         std::shared_ptr<InterpipeSinkBintr>( \
@@ -1306,11 +1312,24 @@ namespace DSL
         bool SetBrokerSettings(const char* brokerConfigFile, const char* protocolLib, 
             const char* connectionString, const char* topic);
 
+        /**
+         * @brief Gets the current payload-debug-directory.
+         * @return current payload-debug-directory. Null if unset.
+         */
+        const char* GetDebugDir();
+        
+        /**
+         * @brief Sets the current payload-debug-directory.
+         * @param[in] debugDir new payload-debug-directory to use.
+         * @return true if successful, false otherwise.
+         */
+        bool SetDebugDir(const char* debugDir);
+
     private:
 
         /**
          * @brief defines the base_meta.meta_type id filter to use for
-         * all message meta to convert and send. Default = NVDS_EVENT_MSG_META.
+         * all message meta to convert and s IN. Default = NVDS_EVENT_MSG_META.
          * Custom values must be greater than NVDS_START_USER_META
          * Both constants are defined in nvdsmeta.h 
          */
@@ -1347,29 +1366,87 @@ namespace DSL
         std::string m_topic;
     
         /**
-         * @brief Tee element for this MessageSinkBintr 
+         * @brief Directory to dump payload-debug-files into.
          */
-        DSL_ELEMENT_PTR m_pTee;
-
-        /**
-         * @brief Tee Src Queue for the message-converter element for this MessageSinkBintr 
-         */
-        DSL_ELEMENT_PTR m_pMsgConverterQueue;
-        
+        std::string m_debugDir;
+    
         /**
          * @brief NVIDIA message-converter element for this MessageSinkBintr 
          */
         DSL_ELEMENT_PTR m_pMsgConverter;
 
+    };
+
+    //-------------------------------------------------------------------------
+
+    /**
+     * @class LiveKitWebRtcSinkBintr 
+     * @brief Implements a Live Kit WebRTC Sink Bin Container Class (Bintr)
+     */
+    class LiveKitWebRtcSinkBintr : public SinkBintr
+    {
+    public: 
+    
         /**
-         * @brief Tee Src Queue for the Fake Sink element for this MessageSinkBintr 
+         * @brief Ctor for the LiveKitWebRtcSinkBintr class
          */
-        DSL_ELEMENT_PTR m_pFakeSinkQueue;
+        LiveKitWebRtcSinkBintr(const char* name, const char* url, 
+        const char* apiKey, const char* secretKey, const char* room, 
+        const char* identity, const char* participant);
 
         /**
-         * @brief Fake Sink element for the MessageSinkBintr.
+         * @brief Dtor for the LiveKitWebRtcSinkBintr class
          */
-        DSL_ELEMENT_PTR m_pFakeSink;
+        ~LiveKitWebRtcSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this LiveKitWebRtcSinkBintr
+         * @return true if all links were successful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this LiveKitWebRtcSinkBintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+    private:
+
+        /**
+         * @brief LiveKit URL to publish the stream to.
+         */
+        std::string m_url;
+        
+        /**
+         * @brief LiveKit API Key required to connect.
+         */
+        std::string  m_apiKey; 
+        
+        /**
+         * @brief LiveKit Secret Key required to connect.
+         */
+        std::string m_secretKey; 
+        
+        /**
+         * @brief connection string used as end-point for communication with server.
+         */
+        std::string m_room;
+        
+        /**
+         * @brief Absolute pathname to the library that contains the protocol adapter.
+         */
+        std::string m_identity; 
+        
+        /**
+         * @brief (optional) message topic name.
+         */
+        std::string m_participant;
+    
+        /**
+         * @brief LiveKit WebRTC plugin for LiveKitWebRtcSinkBintr 
+         */
+        DSL_ELEMENT_PTR m_pSink;
 
     };
 

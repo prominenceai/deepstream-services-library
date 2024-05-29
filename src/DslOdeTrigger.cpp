@@ -1070,16 +1070,18 @@ namespace DSL
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(imap.second);
-            try
-            {
-                pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, 
-                    displayMetaData, pFrameMeta, pObjectMeta);
-            }
-            catch(...)
-            {
-                LOG_ERROR("Trigger '" << GetName() << "' => Action '" 
-                    << pOdeAction->GetName() << "' threw exception");
-            }
+            pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, 
+                displayMetaData, pFrameMeta, pObjectMeta);
+            // try
+            // {
+            //     pOdeAction->HandleOccurrence(shared_from_this(), pBuffer, 
+            //         displayMetaData, pFrameMeta, pObjectMeta);
+            // }
+            // catch(...)
+            // {
+            //     LOG_ERROR("Trigger '" << GetName() << "' => Action '" 
+            //         << pOdeAction->GetName() << "' threw exception");
+            // }
         }
         return true;
     }
@@ -2000,7 +2002,8 @@ namespace DSL
         LOG_FUNC();
         
         m_pTrackedObjectsPerSource = std::shared_ptr<TrackedObjects>(
-            new TrackedObjects(maxTracePoints));
+            new TrackedObjects(maxTracePoints, 
+                DSL_ODE_TRACKED_OBJECT_MISSING_FROM_FRAME_MAX));
     }
 
     TrackingOdeTrigger::~TrackingOdeTrigger()

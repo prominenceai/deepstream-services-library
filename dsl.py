@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c)  2019 - 2022, Prominence AI, Inc.
+# Copyright (c)  2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,9 @@ DSL_4K_UHD_WIDTH  = 3840
 DSL_4K_UHD_HEIGHT = 2160
 DSL_1K_HD_WIDTH   = 1920
 DSL_1K_HD_HEIGHT  = 1080
+
+DSL_PIPELINE_LINK_METHOD_BY_POSITION = 0
+DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER = 1
 
 DSL_PAD_SINK = 0
 DSL_PAD_SRC = 1
@@ -290,9 +293,7 @@ DSL_WEBSOCKET_SERVER_DEFAULT_HTTP_PORT = 60001
 
 DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
 DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
-
-DSL_MSG_PAYLOAD_DEEPSTREAM         = 0
-DSL_MSG_PAYLOAD_DEEPSTREAM_MINIMAL = 1
+DSL_MSG_PAYLOAD_CUSTOM             = 0x101
 
 DSL_STATUS_BROKER_OK            = 0
 DSL_STATUS_BROKER_ERROR         = 1
@@ -358,6 +359,7 @@ class dsl_ode_occurrence_object_info(Structure):
         ('inference_component_id', c_uint),
         ('tracking_id', c_uint),
         ('label', c_wchar_p),
+        ('classifierLabels', c_wchar_p),
         ('persistence', c_uint),
         ('direction', c_uint),
         ('inference_confidence', c_float),
@@ -397,9 +399,15 @@ class dsl_ode_occurrence_info(Structure):
         ('accumulative_info', dsl_ode_occurrence_accumulative_info),
         ('criteria_info', dsl_ode_occurrence_criteria_info)]
 
+class dsl_threshold_value(Structure):
+    _fields_ = [
+        ('threshold', c_uint),
+        ('value', c_uint)]
+
 ##
 ## Pointer Typedefs
 ##
+DSL_VOID_PP = POINTER(c_void_p)
 DSL_INT_P = POINTER(c_int)
 DSL_INT64_P = POINTER(c_int64)
 DSL_UINT_P = POINTER(c_uint)
@@ -886,6 +894,21 @@ def dsl_ode_action_bbox_scale_new(name, scale):
     return int(result)
 
 ##
+## dsl_ode_action_bbox_style_corners_new()
+##
+#_dsl.dsl_ode_action_bbox_style_corners_new.argtypes = [c_wchar_p, 
+#    c_wchar_p, c_uint, c_uint, ??, c_uint]
+_dsl.dsl_ode_action_bbox_style_corners_new.restype = c_uint
+def dsl_ode_action_bbox_style_corners_new(name,
+    color, length, max_length, thickness_values, num_values):
+    global _dsl
+    arr = (dsl_threshold_value * num_values)()
+    arr[:] = thickness_values
+    result =_dsl.dsl_ode_action_bbox_style_corners_new(name, 
+    color, length, max_length, arr, num_values)
+    return int(result)
+
+##
 ## dsl_ode_action_custom_new()
 ##
 _dsl.dsl_ode_action_custom_new.argtypes = [c_wchar_p, DSL_ODE_HANDLE_OCCURRENCE, c_void_p]
@@ -1105,6 +1128,43 @@ def dsl_ode_action_label_format_new(name,
     global _dsl
     result =_dsl.dsl_ode_action_label_format_new(name, 
         font, has_bg_color, bg_color)
+    return int(result)
+
+##
+## dsl_ode_action_label_offset_new()
+##
+_dsl.dsl_ode_action_label_offset_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_ode_action_label_offset_new.restype = c_uint
+def dsl_ode_action_label_offset_new(name, offset_x, offset_y):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_offset_new(name, 
+        offset_x, offset_y)
+    return int(result)
+
+##
+## dsl_ode_action_label_snap_to_grid_new()
+##
+_dsl.dsl_ode_action_label_snap_to_grid_new.argtypes = [c_wchar_p, 
+    c_uint, c_uint]
+_dsl.dsl_ode_action_label_snap_to_grid_new.restype = c_uint
+def dsl_ode_action_label_snap_to_grid_new(name, module_width, module_height):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_snap_to_grid_new(name, 
+        module_width, module_height)
+    return int(result)
+
+##
+## dsl_ode_action_label_connect_to_bbox_new()
+##
+_dsl.dsl_ode_action_label_connect_to_bbox_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint]
+_dsl.dsl_ode_action_label_connect_to_bbox_new.restype = c_uint
+def dsl_ode_action_label_connect_to_bbox_new(name, 
+    line_color, line_width, bbox_point):
+    global _dsl
+    result =_dsl.dsl_ode_action_label_connect_to_bbox_new(name, 
+        line_color, line_width, bbox_point)
     return int(result)
 
 ##
@@ -3123,10 +3183,281 @@ def dsl_pph_list_size():
     return int(result)
 
 ##
+## dsl_gst_element_new()
+##
+_dsl.dsl_gst_element_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_element_new.restype = c_uint
+def dsl_gst_element_new(name, factory_name):
+    global _dsl
+    result =_dsl.dsl_gst_element_new(name, factory_name)
+    return int(result)
+
+##
+## dsl_gst_element_property_boolean_get()
+##
+_dsl.dsl_gst_element_property_boolean_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_gst_element_property_boolean_get.restype = c_uint
+def dsl_gst_element_property_boolean_get(name, property):
+    global _dsl
+    value = c_bool(0)
+    result = _dsl.dsl_gst_element_property_boolean_get(name, 
+        property, DSL_BOOL_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_boolean_set()
+##
+_dsl.dsl_gst_element_property_boolean_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool]
+_dsl.dsl_gst_element_property_boolean_set.restype = c_uint
+def dsl_gst_element_property_boolean_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_boolean_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_float_get()
+##
+_dsl.dsl_gst_element_property_float_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_float)]
+_dsl.dsl_gst_element_property_float_get.restype = c_uint
+def dsl_gst_element_property_float_get(name, property):
+    global _dsl
+    value = c_float(0)
+    result = _dsl.dsl_gst_element_property_float_get(name, 
+        property, DSL_FLOAT_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_float_set()
+##
+_dsl.dsl_gst_element_property_float_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_float]
+_dsl.dsl_gst_element_property_float_set.restype = c_uint
+def dsl_gst_element_property_float_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_float_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_int_get()
+##
+_dsl.dsl_gst_element_property_int_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_int)]
+_dsl.dsl_gst_element_property_int_get.restype = c_uint
+def dsl_gst_element_property_int_get(name, property):
+    global _dsl
+    value = c_int(0)
+    result = _dsl.dsl_gst_element_property_int_get(name, 
+        property, DSL_INT_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_int_set()
+##
+_dsl.dsl_gst_element_property_int_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_int]
+_dsl.dsl_gst_element_property_int_set.restype = c_uint
+def dsl_gst_element_property_int_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_int_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_uint_get()
+##
+_dsl.dsl_gst_element_property_uint_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_gst_element_property_uint_get.restype = c_uint
+def dsl_gst_element_property_uint_get(name, property):
+    global _dsl
+    value = c_uint(0)
+    result = _dsl.dsl_gst_element_property_uint_get(name, 
+        property, DSL_UINT_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_uint_set()
+##
+_dsl.dsl_gst_element_property_uint_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint]
+_dsl.dsl_gst_element_property_uint_set.restype = c_uint
+def dsl_gst_element_property_uint_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_int_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_int64_get()
+##
+_dsl.dsl_gst_element_property_int64_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_int64)]
+_dsl.dsl_gst_element_property_int64_get.restype = c_uint
+def dsl_gst_element_property_int64_get(name, property):
+    global _dsl
+    value = c_int64(0)
+    result = _dsl.dsl_gst_element_property_int64_get(name, 
+        property, DSL_INT64_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_int64_set()
+##
+_dsl.dsl_gst_element_property_int64_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_int64]
+_dsl.dsl_gst_element_property_int64_set.restype = c_uint
+def dsl_gst_element_property_int64_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_int_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_uint64_get()
+##
+_dsl.dsl_gst_element_property_uint64_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_uint64)]
+_dsl.dsl_gst_element_property_uint64_get.restype = c_uint
+def dsl_gst_element_property_uint64_get(name, property):
+    global _dsl
+    value = c_uint64(0)
+    result = _dsl.dsl_gst_element_property_uint64_get(name, 
+        property, DSL_UINT64_P(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_uint64_set()
+##
+_dsl.dsl_gst_element_property_uint64_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint64]
+_dsl.dsl_gst_element_property_uint64_set.restype = c_uint
+def dsl_gst_element_property_uint64_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_uint64_set(name, 
+        property, value)
+    return int(result)
+    
+##
+## dsl_gst_element_property_string_get()
+##
+_dsl.dsl_gst_element_property_string_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_gst_element_property_string_get.restype = c_uint
+def dsl_gst_element_property_string_get(name, property):
+    global _dsl
+    value = c_wchar_p(0)
+    result = _dsl.dsl_gst_element_property_string_get(name, 
+        property, DSL_WCHAR_PP(value))
+    return int(result), value.value 
+    
+##
+## dsl_gst_element_property_string_set()
+##
+_dsl.dsl_gst_element_property_string_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_element_property_string_set.restype = c_uint
+def dsl_gst_element_property_string_set(name, property, value):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_string_set(name, 
+        property, value)
+    return int(result)
+
+##
+## dsl_gst_element_pph_add()
+##
+_dsl.dsl_gst_element_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_gst_element_pph_add.restype = c_uint
+def dsl_gst_element_pph_add(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_gst_element_pph_add(name, handler, pad)
+    return int(result)
+
+##
+## dsl_gst_element_pph_remove()
+##
+_dsl.dsl_gst_element_pph_remove.argtypes = [c_wchar_p, c_wchar_p, c_uint]
+_dsl.dsl_gst_element_pph_remove.restype = c_uint
+def dsl_gst_element_pph_remove(name, handler, pad):
+    global _dsl
+    result = _dsl.dsl_gst_element_pph_remove(name, handler, pad)
+    return int(result)
+
+##
+## dsl_gst_bin_new()
+##
+_dsl.dsl_gst_bin_new.argtypes = [c_wchar_p]
+_dsl.dsl_gst_bin_new.restype = c_uint
+def dsl_gst_bin_new(name):
+    global _dsl
+    result =_dsl.dsl_gst_bin_new(name)
+    return int(result)
+
+##
+## dsl_gst_bin_new_element_add_many()
+##
+#_dsl.dsl_gst_bin_new_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_new_element_add_many.restype = c_uint
+def dsl_gst_bin_new_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_bin_new_element_add_many(name, arr)
+    return int(result)
+    
+##
+## dsl_gst_bin_element_add()
+##
+_dsl.dsl_gst_bin_element_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_add.restype = c_uint
+def dsl_gst_bin_element_add(name, element):
+    global _dsl
+    result =_dsl.dsl_gst_bin_element_add(name, element)
+    return int(result)
+
+##
+## dsl_gst_bin_element_add_many()
+##
+#_dsl.dsl_gst_bin_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_add_many.restype = c_uint
+def dsl_gst_bin_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_bin_element_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_gst_bin_element_remove()
+##
+_dsl.dsl_gst_bin_element_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_remove.restype = c_uint
+def dsl_gst_bin_element_remove(name, element):
+    global _dsl
+    result =_dsl.dsl_gst_bin_element_remove(name, element)
+    return int(result)
+
+##
+## dsl_gst_bin_element_remove_many()
+##
+#_dsl.dsl_gst_bin_element_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_bin_element_remove_many.restype = c_uint
+def dsl_gst_bin_element_remove_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_bin_element_remove_many(name, arr)
+    return int(result)
+    
+##
 ## dsl_source_app_new()
 ##
 _dsl.dsl_source_app_new.argtypes = [c_wchar_p, 
-    c_bool, c_uint, c_uint, c_uint, c_uint, c_uint]
+    c_bool, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_source_app_new.restype = c_uint
 def dsl_source_app_new(name, is_live, buffer_in_format, width, height, fps_n, fps_d):
     global _dsl
@@ -6416,6 +6747,19 @@ def dsl_sink_webrtc_client_listener_remove(name, client_listener):
     return int(result)
 
 ##
+## dsl_sink_webrtc_livekit_new()
+##
+_dsl.dsl_sink_webrtc_livekit_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p,
+    c_wchar_p, c_wchar_p, c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_webrtc_livekit_new.restype = c_uint
+def dsl_sink_webrtc_livekit_new(name, url, api_key, secret_key, 
+    room, identity, participant):
+    global _dsl
+    result =_dsl.dsl_sink_webrtc_livekit_new(name, url, api_key, secret_key, 
+    room, identity, participant)
+    return int(result)
+
+##
 ## dsl_sink_message_new()
 ##
 _dsl.dsl_sink_message_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_wchar_p, 
@@ -6428,6 +6772,27 @@ def dsl_sink_message_new(name, converter_config_file, payload_type,
         broker_config_file, protocol_lib, connection_string, topic)
     return int(result)
 
+## dsl_sink_message_payload_debug_dir_get()
+##
+_dsl.dsl_sink_message_payload_debug_dir_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_sink_message_payload_debug_dir_get.restype = c_uint
+def dsl_sink_message_payload_debug_dir_get(name):
+    global _dsl
+    debug_dir = c_wchar_p(0)
+    result = _dsl.dsl_sink_message_payload_debug_dir_get(name, 
+        DSL_WCHAR_PP(debug_dir))
+    return int(result), debug_dir.value 
+
+##
+## dsl_sink_message_payload_debug_dir_set()
+##
+_dsl.dsl_sink_message_payload_debug_dir_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_message_payload_debug_dir_set.restype = c_uint
+def dsl_sink_message_payload_debug_dir_set(name, debug_dir):
+    global _dsl
+    result = _dsl.dsl_sink_message_payload_debug_dir_set(name, debug_dir)
+    return int(result)
 ##
 ## dsl_sink_interpipe_new()
 ##
@@ -7374,6 +7739,27 @@ _dsl.dsl_pipeline_streammux_pph_remove.restype = c_uint
 def dsl_pipeline_streammux_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_pph_remove(name, handler)
+    return int(result)
+
+##
+## dsl_pipeline_link_method_get()
+##
+_dsl.dsl_pipeline_link_method_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_pipeline_link_method_get.restype = c_uint
+def dsl_pipeline_link_method_get(name):
+    global _dsl
+    link_method = c_uint(0)
+    result =_dsl.dsl_pipeline_link_method_get(name, DSL_UINT_P(link_method))
+    return int(result), link_method.value
+
+##
+## dsl_pipeline_link_method_set()
+##
+_dsl.dsl_pipeline_link_method_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_pipeline_link_method_set.restype = c_uint
+def dsl_pipeline_link_method_set(name, link_method):
+    global _dsl
+    result =_dsl.dsl_pipeline_link_method_set(name, link_method)
     return int(result)
 
 ##

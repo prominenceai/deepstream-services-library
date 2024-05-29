@@ -65,8 +65,8 @@ SOURCE_WIDTH = 960
 SOURCE_HEIGHT = 540
 
 # Window Sink dimensions same as Streammux dimensions - no scaling.
-SINK_WIDTH = SOURCE_WIDTH
-sink_height = SOURCE_HEIGHT
+WINDOW_WIDTH = SOURCE_WIDTH
+WINDOW_HEIGHT = SOURCE_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event

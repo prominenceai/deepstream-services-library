@@ -79,8 +79,8 @@ namespace DSL
         m_pTracker->AddGhostPadToParent("src");
         
         // Add the Buffer and DS Event probes to the tracker element.
-        AddSinkPadProbes(m_pTracker);
-        AddSrcPadProbes(m_pTracker);
+        AddSinkPadProbes(m_pTracker->GetGstElement());
+        AddSrcPadProbes(m_pTracker->GetGstElement());
     }
 
     TrackerBintr::~TrackerBintr()

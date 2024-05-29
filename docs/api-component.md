@@ -11,6 +11,7 @@ The Pipeline Component API provides the common services that apply to multiple P
 * [On Screen Displays](/docs/api-osd.md)
 * [Sinks](/docs/api-sink.md)
 * [Branches](/docs/api-branch.md)
+* [Custom Components](/docs/api-gst.md)
 
 ---
 
@@ -277,6 +278,9 @@ retval = dsl_component_nvbuf_mem_type_set_many(
 * [Remuxer](/docs/api-remxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](/docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
+* **Component**
+* [Custom Component](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
@@ -284,8 +288,6 @@ retval = dsl_component_nvbuf_mem_type_set_many(
 * [ODE Area](/docs/api-ode-area.md)
 * [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
-* [Branch](/docs/api-branch.md)
-* **Component**
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)

@@ -196,7 +196,7 @@ namespace DSL
         m_pSourceQueue->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
-        AddSrcPadProbes(m_pSourceQueue);
+        AddSrcPadProbes(m_pSourceQueue->GetGstElement());
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -1636,7 +1636,7 @@ namespace DSL
 
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pdGpuVidConv = DSL_ELEMENT_EXT_NEW("nvvideoconvert", name, "1");
+            m_pdGpuVidConv = DSL_ELEMENT_EXT_NEW("videoconvert", name, "1");
             AddChild(m_pdGpuVidConv);
         }
         

@@ -1302,6 +1302,35 @@ namespace DSL
 
             }
 
+            if (pObjectMeta->classifier_meta_list)
+            {
+                body.push_back(std::string("  Classifier Data   : ------------------------<br>"));
+                // For each frame in the batched meta data
+                for (NvDsClassifierMetaList* pClassifierMetaList = 
+                        pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                            pClassifierMetaList = pClassifierMetaList->next)
+                {
+                    NvDsClassifierMeta* pClassifierMeta = 
+                        (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                    if (pClassifierMeta != NULL)
+                    {
+                        body.push_back(std::string("    Infer Id        : " 
+                            + std::to_string(pClassifierMeta->unique_component_id) + "<br>"));
+                        for (NvDsLabelInfoList* pLabelInfoList = 
+                                pClassifierMeta->label_info_list; pLabelInfoList; 
+                                    pLabelInfoList = pLabelInfoList->next)
+                        {
+                            NvDsLabelInfo* pLabelInfo = 
+                                (NvDsLabelInfo*)(pLabelInfoList->data);
+                            if(pLabelInfo != NULL)
+                            {
+                                body.push_back(std::string("      label         : "
+                                    + std::string(pLabelInfo->result_label) + "<br>"));
+                            }
+                        }
+                    }
+                }
+            }
             body.push_back(std::string("  Criteria          : ------------------------<br>"));
             body.push_back(std::string("    Class Id        : " 
                 +  std::to_string(pTrigger->m_classId) + "<br>"));
@@ -1981,6 +2010,35 @@ namespace DSL
                         << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]);
                 }
             }
+            if (pObjectMeta->classifier_meta_list)
+            {
+                LOG_INFO("  Classifier Data   : ------------------------");
+                // For each frame in the batched meta data
+                for (NvDsClassifierMetaList* pClassifierMetaList = 
+                        pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                            pClassifierMetaList = pClassifierMetaList->next)
+                {
+                    NvDsClassifierMeta* pClassifierMeta = 
+                        (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                    if (pClassifierMeta != NULL)
+                    {
+                        LOG_INFO("    Infer Id        : " 
+                            << pClassifierMeta->unique_component_id);
+                        for (NvDsLabelInfoList* pLabelInfoList = 
+                                pClassifierMeta->label_info_list; pLabelInfoList; 
+                                    pLabelInfoList = pLabelInfoList->next)
+                        {
+                            NvDsLabelInfo* pLabelInfo = 
+                                (NvDsLabelInfo*)(pLabelInfoList->data);
+                            if(pLabelInfo != NULL)
+                            {
+                                LOG_INFO("      label         : " 
+                                    << pLabelInfo->result_label);
+                            }
+                        }
+                    }
+                }
+            }
             LOG_INFO("  Criteria          : ------------------------");
             LOG_INFO("    Class Id        : " << pTrigger->m_classId );
             LOG_INFO("    Min Infer Id    : " << pTrigger->m_inferId );
@@ -2017,6 +2075,7 @@ namespace DSL
         pDstMeta->ts = g_strdup(pSrcMeta->ts);
         pDstMeta->sensorStr = g_strdup(pSrcMeta->sensorStr);
         pDstMeta->objectId = g_strdup(pSrcMeta->objectId);
+        pDstMeta->otherAttrs = g_strdup(pSrcMeta->otherAttrs);
 
         return pDstMeta;
     }
@@ -2029,6 +2088,7 @@ namespace DSL
         g_free(pSrcMeta->ts);
         g_free(pSrcMeta->sensorStr);
         g_free(pSrcMeta->objectId);
+        g_free(pSrcMeta->otherAttrs);
 
         g_free(pUserMeta->user_meta_data);
         pUserMeta->user_meta_data = NULL;
@@ -2061,6 +2121,7 @@ namespace DSL
             const char* sourceName;
             Services::GetServices()->SourceNameGet(pFrameMeta->source_id, 
                 &sourceName);
+                
             pMsgMeta->sensorStr = g_strdup(sourceName);
             pMsgMeta->frameId = pFrameMeta->frame_num;
             pMsgMeta->ts = g_strdup(Ntp2Str(pFrameMeta->ntp_timestamp).c_str());
@@ -2068,12 +2129,46 @@ namespace DSL
             if (pObjectMeta)
             {
                 pMsgMeta->objectId = g_strdup(pObjectMeta->obj_label);
+                pMsgMeta->componentId = pObjectMeta->unique_component_id;
                 pMsgMeta->confidence = pObjectMeta->confidence;
                 pMsgMeta->trackingId = pObjectMeta->object_id;
                 pMsgMeta->bbox.left = pObjectMeta->rect_params.left;
                 pMsgMeta->bbox.top = pObjectMeta->rect_params.top;
                 pMsgMeta->bbox.width = pObjectMeta->rect_params.width;
                 pMsgMeta->bbox.height = pObjectMeta->rect_params.height;
+                
+                // look for classifier meta to find labels like licence plate numbers
+                if (pObjectMeta->classifier_meta_list)
+                {
+                    std::ostringstream labelStream;
+                    
+                    for (NvDsClassifierMetaList* pClassifierMetaList = 
+                            pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                                pClassifierMetaList = pClassifierMetaList->next)
+                    {
+                        NvDsClassifierMeta* pClassifierMeta = 
+                            (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                        if (pClassifierMeta != NULL)
+                        {
+                            for (NvDsLabelInfoList* pLabelInfoList = 
+                                    pClassifierMeta->label_info_list; pLabelInfoList; 
+                                        pLabelInfoList = pLabelInfoList->next)
+                            {
+                                NvDsLabelInfo* pLabelInfo = 
+                                    (NvDsLabelInfo*)(pLabelInfoList->data);
+                                if(pLabelInfo != NULL)
+                                {
+                                    if (labelStream.str().size())
+                                    {
+                                        labelStream << " ";
+                                    }
+                                    labelStream << pLabelInfo->result_label;
+                                }
+                            }
+                        }
+                    }
+                    pMsgMeta->otherAttrs = g_strdup(labelStream.str().c_str());
+                }
             }
 
             NvDsBatchMeta *pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
@@ -2162,9 +2257,10 @@ namespace DSL
             info.source_info.frame_width = pFrameMeta->source_frame_width;
             info.source_info.frame_height = pFrameMeta->source_frame_height;
             
-            // Automatic varaible needs to be valid for call to the client callback
+            // Automatic varaibles needs to be valid for call to the client callback
             // Create here at higher scope - in case it is used for Object metadata.
             std::wstring wstrLabel;
+            std::wstring wstrClassifierLabels;
             
             // true if the ODE occurrence information is for a specific object,
             // false for frame-level multi-object events. (absence, new-high count, etc.). 
@@ -2194,6 +2290,42 @@ namespace DSL
                 info.object_info.top = round(pObjectMeta->rect_params.top);
                 info.object_info.width = round(pObjectMeta->rect_params.width);
                 info.object_info.height = round(pObjectMeta->rect_params.height);
+
+                // look for classifier meta to find labels like licence plate numbers
+                if (pObjectMeta->classifier_meta_list)
+                {
+                    std::ostringstream labelStream;
+                    
+                    for (NvDsClassifierMetaList* pClassifierMetaList = 
+                            pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                                pClassifierMetaList = pClassifierMetaList->next)
+                    {
+                        NvDsClassifierMeta* pClassifierMeta = 
+                            (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                        if (pClassifierMeta != NULL)
+                        {
+                            for (NvDsLabelInfoList* pLabelInfoList = 
+                                    pClassifierMeta->label_info_list; pLabelInfoList; 
+                                        pLabelInfoList = pLabelInfoList->next)
+                            {
+                                NvDsLabelInfo* pLabelInfo = 
+                                    (NvDsLabelInfo*)(pLabelInfoList->data);
+                                if(pLabelInfo != NULL)
+                                {
+                                    if (labelStream.str().size())
+                                    {
+                                        labelStream << " ";
+                                    }
+                                    labelStream << pLabelInfo->result_label;
+                                }
+                            }
+                        }
+                    }
+                    std::string classifierlabels(labelStream.str());
+                    wstrClassifierLabels.assign(classifierlabels.begin(), 
+                        classifierlabels.end());
+                    info.object_info.classiferLabels = wstrClassifierLabels.c_str();
+                }
             }
             else
             {
@@ -2324,6 +2456,160 @@ namespace DSL
             {
                 pObjectMeta->text_params.y_offset = originalOffsetY + m_offsetY;
             }
+        }
+    }
+
+
+    // ********************************************************************
+
+    SnapLabelToGridOdeAction::SnapLabelToGridOdeAction(const char* name,
+        uint moduleWidth, uint moduleHeight)
+        : OdeAction(name)
+        , m_moduleWidth(moduleWidth)
+        , m_moduleHeight(moduleHeight)
+    {
+        LOG_FUNC();
+    }
+
+    SnapLabelToGridOdeAction::~SnapLabelToGridOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void SnapLabelToGridOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            pObjectMeta->text_params.x_offset = 
+                ((pObjectMeta->text_params.x_offset + m_moduleWidth/2)
+                    / m_moduleWidth) * m_moduleWidth;
+            
+            pObjectMeta->text_params.y_offset = 
+                ((pObjectMeta->text_params.y_offset + m_moduleHeight/2)
+                    / m_moduleHeight) * m_moduleHeight;
+        }
+    }
+
+    // ********************************************************************
+
+    ConnectLabelToBBoxOdeAction::ConnectLabelToBBoxOdeAction(const char* name,
+        DSL_RGBA_COLOR_PTR pLineColor, uint lineWidth, uint bboxPoint)
+        : OdeAction(name)
+        , m_pLineColor(pLineColor)
+        , m_lineWidth(lineWidth)
+        , m_bboxPoint(bboxPoint)
+    {
+        LOG_FUNC();
+    }
+
+    ConnectLabelToBBoxOdeAction::~ConnectLabelToBBoxOdeAction()
+    {
+        LOG_FUNC();
+    }
+
+    void ConnectLabelToBBoxOdeAction::HandleOccurrence(DSL_BASE_PTR pOdeTrigger, 
+        GstBuffer* pBuffer, std::vector<NvDsDisplayMeta*>& displayMetaData,
+        NvDsFrameMeta* pFrameMeta, NvDsObjectMeta* pObjectMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+
+        if (m_enabled and pObjectMeta)
+        {   
+            uint x(0), y(0);
+            switch (m_bboxPoint)
+            {
+            case DSL_BBOX_POINT_CENTER :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width/2);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_NORTH_WEST :
+                x = round(pObjectMeta->rect_params.left);
+                y = round(pObjectMeta->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width/2);
+                y = round(pObjectMeta->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_NORTH_EAST :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width);
+                y = round(pObjectMeta->rect_params.top);
+                break;
+            case DSL_BBOX_POINT_EAST :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height/2);
+                break;
+            case DSL_BBOX_POINT_SOUTH_EAST :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH :
+                x = round(pObjectMeta->rect_params.left + 
+                    pObjectMeta->rect_params.width/2);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_SOUTH_WEST :
+                x = round(pObjectMeta->rect_params.left);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height);
+                break;
+            case DSL_BBOX_POINT_WEST :
+                x = round(pObjectMeta->rect_params.left);
+                y = round(pObjectMeta->rect_params.top + 
+                    pObjectMeta->rect_params.height/2);
+                break;
+            default:
+                LOG_ERROR("Invalid DSL_BBOX_POINT = '" << m_bboxPoint 
+                    << "' for Action '" << GetName() << "'");
+                throw std::exception();
+            }
+
+            DSL_RGBA_LINE_PTR pConnectingLine1;
+            DSL_RGBA_LINE_PTR pConnectingLine2;          
+            int xDelta(pObjectMeta->text_params.x_offset - x);
+            int yDelta(pObjectMeta->text_params.y_offset - y);
+            int xAbsDelta(abs(xDelta));
+            int yAbsDelta(abs(yDelta));
+            int xDeltaSign = (xDelta < 0) ? -1 : 1;
+            int yDeltaSign = (yDelta < 0) ? -1 : 1;
+
+            if (xAbsDelta > yAbsDelta)
+            {
+                pConnectingLine1 = DSL_RGBA_LINE_NEW("",  
+                    x, y, x+yAbsDelta*xDeltaSign, y+yAbsDelta*yDeltaSign, 
+                    m_lineWidth, m_pLineColor);
+                pConnectingLine2 = DSL_RGBA_LINE_NEW("",  
+                    x+yAbsDelta*xDeltaSign, y+yAbsDelta*yDeltaSign, 
+                    pObjectMeta->text_params.x_offset, 
+                    pObjectMeta->text_params.y_offset, 
+                    m_lineWidth, m_pLineColor);
+            } 
+            else
+            {
+                pConnectingLine1 = DSL_RGBA_LINE_NEW("",  
+                    x, y, x+xAbsDelta*xDeltaSign, y+xAbsDelta*yDeltaSign, 
+                    m_lineWidth, m_pLineColor);
+                pConnectingLine2 = DSL_RGBA_LINE_NEW("",  
+                    x+xAbsDelta*xDeltaSign, y+xAbsDelta*yDeltaSign, 
+                    pObjectMeta->text_params.x_offset, 
+                    pObjectMeta->text_params.y_offset, 
+                    m_lineWidth, m_pLineColor);
+            }
+
+            pConnectingLine1->AddMeta(displayMetaData, pFrameMeta);
+            pConnectingLine2->AddMeta(displayMetaData, pFrameMeta);
         }
     }
 
@@ -2639,8 +2925,38 @@ namespace DSL
 
         }
 
+        if (pObjectMeta->classifier_meta_list)
+        {
+            std::cout << "  Classifier Data   : ------------------------" << "\n";
+            // For each frame in the batched meta data
+            for (NvDsClassifierMetaList* pClassifierMetaList = 
+                    pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                        pClassifierMetaList = pClassifierMetaList->next)
+            {
+                NvDsClassifierMeta* pClassifierMeta = 
+                    (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                if (pClassifierMeta != NULL)
+                {
+                    std::cout << "    Infer Id        : " 
+                        << pClassifierMeta->unique_component_id <<"\n";
+                    for (NvDsLabelInfoList* pLabelInfoList = 
+                            pClassifierMeta->label_info_list; pLabelInfoList; 
+                                pLabelInfoList = pLabelInfoList->next)
+                    {
+                        NvDsLabelInfo* pLabelInfo = 
+                            (NvDsLabelInfo*)(pLabelInfoList->data);
+                        if(pLabelInfo != NULL)
+                        {
+                            std::cout << "      label         : " 
+                                << pLabelInfo->result_label <<"\n";
+                        }
+                    }
+                }
+            }
+        }
         std::cout << "  Criteria          : ------------------------" << "\n";
         std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
+        std::cout << "    Infer Id        : " << pTrigger->m_inferId << "\n";
         std::cout << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
         std::cout << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
         std::cout << "    Min Frame Count : " << pTrigger->m_minFrameCountN

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021-2023, Prominence AI, Inc.
+Copyright (c)   2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -878,7 +878,7 @@ namespace DSL
             {
                 LOG_ERROR("Unable to access outdir '" << outdir 
                     << "' for Record Sink '" << name << "'");
-                return DSL_RESULT_SINK_FILE_PATH_NOT_FOUND;
+                return DSL_RESULT_SINK_PATH_NOT_FOUND;
             }
 
             if (codec > DSL_CODEC_H265)
@@ -2200,11 +2200,15 @@ namespace DSL
 
             LOG_INFO("Message Converter config file: " << converterConfigFile);
 
-            std::ifstream configFile(converterConfigFile);
-            if (!configFile.good())
+            std::string testConfig(converterConfigFile);
+            if (testConfig.size())
             {
-                LOG_ERROR("Message Converter config file not found");
-                return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+                std::ifstream configFile(converterConfigFile);
+                if (!configFile.good())
+                {
+                    LOG_ERROR("Message Converter config file not found");
+                    return DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND;
+                }
             }
             std::string testPath(brokerConfigFile);
             if (testPath.size())
@@ -2452,6 +2456,113 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::GetSinkMessagePayloadDebugDirGet(const char* name, 
+            const char** debugDir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MessageSinkBintr);
+
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            *debugDir = pMessageSinkBintr->GetDebugDir();
+
+            LOG_INFO("Message Sink '" << name 
+                << "' returned payload-debug-dir = '" << *debugDir 
+                << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception getting payload-debug-dir");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::GetSinkMessagePayloadDebugDirSet(const char* name, 
+            const char* debugDir)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                MessageSinkBintr);
+
+            // ensure debugDir exists
+            struct stat info;
+            if ((stat(debugDir, &info) != 0) or !(info.st_mode & S_IFDIR))
+            {
+                LOG_ERROR("Unable to access payload-debug-dir '" << debugDir 
+                    << "' for Message Sink '" << name << "'");
+                return DSL_RESULT_SINK_PATH_NOT_FOUND;
+            }
+            DSL_MESSAGE_SINK_PTR pMessageSinkBintr = 
+                std::dynamic_pointer_cast<MessageSinkBintr>(m_components[name]);
+
+            if (!pMessageSinkBintr->SetDebugDir(debugDir))
+            {
+                LOG_ERROR("Message Sink '" << name 
+                    << "' failed to set payload-debug-dir");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Message Sink '" << name 
+                << "' set payload-debug-dir = '" << debugDir << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Message Sink'" << name 
+                << "' threw an exception setting payload-debug-dir");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkWebRtcLiveKitNew(const char* name, 
+        const char* url,  const char* apiKey, const char* secretKey, 
+        const char* room, const char* identity, const char* participant)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+
+            LOG_INFO("livekit url: " << url);
+
+            m_components[name] = DSL_LIVEKIT_WEBRTC_SINK_NEW(name,
+                url, apiKey, secretKey, room, identity, participant);
+
+            LOG_INFO("New LiveKit WebRTC Sink '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New LiveKit WebRTC Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkImageMultiNew(const char* name, 
         const char* filepath, uint width, uint height,
         uint fps_n, uint fps_d)    

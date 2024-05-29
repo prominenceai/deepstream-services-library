@@ -26,11 +26,11 @@
 # This example demonstrates the use of an ODE Monitor Action -- added to an 
 # ODE Occurrence Trigger with the below criteria -- to monitor all 
 # ODE Occurrences
-#   - class id            = PGIE_CLASS_ID_PERSON
+#   - class id            = PGIE_CLASS_ID_VEHICLE
 #   - inference-done-only = TRUE
-#   - minimum confidience = PERSON_MIN_CONFIDENCE
-#   - minimum width       = PERSON_MIN_WIDTH
-#   - minimum height      = PERSON_MIN_HEIGHT
+#   - minimum confidience = VEHICLE_MIN_CONFIDENCE
+#   - minimum width       = VEHICLE_MIN_WIDTH
+#   - minimum height      = VEHICLE_MIN_HEIGHT
 
 
 #!/usr/bin/env python
@@ -50,6 +50,17 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+# Filespecs for the Secondary GIE
+sgie1_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehiclemake.txt'
+sgie1_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine'
+
+sgie2_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt'
+sgie2_model_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine'
+    
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
@@ -59,10 +70,10 @@ WINDOW_WIDTH = DSL_1K_HD_WIDTH // 4
 WINDOW_HEIGHT = DSL_1K_HD_HEIGHT // 4
 
 # Minimum Inference confidence level to Trigger ODE Occurrence
-PERSON_MIN_CONFIDENCE = 0.4 # 40%
+VEHICLE_MIN_CONFIDENCE = 0.4 # 40%
 
-PERSON_MIN_WIDTH = 120
-PERSON_MIN_HEIGHT = 320
+VEHICLE_MIN_WIDTH = 120
+VEHICLE_MIN_HEIGHT = 320
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -123,6 +134,7 @@ def ode_occurrence_monitor(info_ptr, client_data):
         print('    Infer Comp Id   :', info.object_info.inference_component_id)
         print('    Tracking Id     :', info.object_info.tracking_id)
         print('    Label           :', info.object_info.label)
+        print('    Classifiers     :', info.object_info.classifierLabels)
         print('    Persistence     :', info.object_info.persistence)
         print('    Direction       :', info.object_info.direction)
         print('    Infer Conf      :', info.object_info.inference_confidence)
@@ -188,44 +200,44 @@ def main(args):
             break
 
         #```````````````````````````````````````````````````````````````````````````````````
-        # Next, create an Occurrence Trigger to filter on People - defined with
+        # Next, create an Occurrence Trigger to filter on Vehicles - defined with
         # a minimuim confidence level to eleminate most false positives
 
-        # New Occurrence Trigger, filtering on PERSON class_id,
-        retval = dsl_ode_trigger_occurrence_new('person-occurrence-trigger', 
+        # New Occurrence Trigger, filtering on VEHICLE class_id,
+        retval = dsl_ode_trigger_occurrence_new('vehicle-occurrence-trigger', 
             source = DSL_ODE_ANY_SOURCE,
-            class_id = PGIE_CLASS_ID_PERSON,
+            class_id = PGIE_CLASS_ID_VEHICLE,
             limit = DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Set a minimum confidence level to avoid false positives.
-        retval = dsl_ode_trigger_infer_confidence_min_set('person-occurrence-trigger',
-            min_confidence = PERSON_MIN_CONFIDENCE)
+        retval = dsl_ode_trigger_infer_confidence_min_set('vehicle-occurrence-trigger',
+            min_confidence = VEHICLE_MIN_CONFIDENCE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Set the inference done only filter. 
-        retval = dsl_ode_trigger_infer_done_only_set('person-occurrence-trigger',
+        retval = dsl_ode_trigger_infer_done_only_set('vehicle-occurrence-trigger',
             True)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Set minimum bounding box dimensions to trigger.
-        retval = dsl_ode_trigger_dimensions_min_set('person-occurrence-trigger',
-            min_width = PERSON_MIN_WIDTH, min_height = PERSON_MIN_HEIGHT)
+        retval = dsl_ode_trigger_dimensions_min_set('vehicle-occurrence-trigger',
+            min_width = VEHICLE_MIN_WIDTH, min_height = VEHICLE_MIN_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_action_monitor_new('person-occurrence-monitor',
+        retval = dsl_ode_action_monitor_new('vehicle-occurrence-monitor',
             client_monitor = ode_occurrence_monitor,
             client_data = None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Add the Person-Occurrence Monitor to the Person Occurrence Trigger.
-        retval = dsl_ode_trigger_action_add('person-occurrence-trigger', 
-            action='person-occurrence-monitor')
+        # Add the Vehicle-Occurrence Monitor to the Vehicle Occurrence Trigger.
+        retval = dsl_ode_trigger_action_add('vehicle-occurrence-trigger', 
+            action='vehicle-occurrence-monitor')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -238,7 +250,7 @@ def main(args):
         
         # Add the two Triggers to the ODE PPH to be invoked on every frame. 
         retval = dsl_pph_ode_trigger_add_many('ode-handler', 
-            triggers=['every-occurrence-trigger', 'person-occurrence-trigger', None])
+            triggers=['every-occurrence-trigger', 'vehicle-occurrence-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
@@ -260,6 +272,16 @@ def main(args):
 
         # New IOU Tracker, setting operational width and hieght
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Secondary GIEs using the filespecs above with interval = 0
+        retval = dsl_infer_gie_secondary_new('vehiclemake-sgie', 
+            sgie1_config_file, sgie1_model_file, 'primary-gie', 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_infer_gie_secondary_new('vehicletype-sgie', 
+            sgie2_config_file, sgie2_model_file, 'primary-gie', 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -293,7 +315,8 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 
+            ['uri-source', 'primary-gie', 'iou-tracker',
+            'vehiclemake-sgie', 'vehicletype-sgie',
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

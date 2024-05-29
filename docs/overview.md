@@ -11,6 +11,8 @@
   * [Sinks](#sinks)
   * [Tees and Branches](#tees-and-branches)
   * [Remuxer](#remuxer)
+  * [Custom Components](#custom-components)
+  * [Linking Components](#linking-components)
   * [Pad Probe Handlers](#pad-probe-handlers)
 * [Display Types](#display-types)
 * [Object Detection Event (ODE) Services](#object-detection-event-ode-services)
@@ -22,6 +24,7 @@
 * [Selective Parallel Inference](#selective-parallel-inference)
 * [Dynamic Pipelines](#dynamic-pipelines)
 * [Interpipe Services](#interpipe-services)
+* [Working with Buffer-Surfaces and OpenCV](#working-with-buffer-surfaces-and-opencv)
 * [Smart Recording](#smart-recording)
 * [RTSP Stream Connection Management](#rtsp-stream-connection-management)
 * [X11 Window Services](#x11-window-services)
@@ -257,6 +260,95 @@ See the [Demuxer and Splitter Tee API](/docs/api-tee.md) reference section for m
 The Remuxer is an aggregate component linking together a Demuxer, Tees, Streammuxers, Inference Branches, and a Metamuxer, all to implement [Selective Parallel Inference](#selective-parallel-inference). Click the link for a complete overview.
 
 See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.
+
+---
+
+## Custom Components
+Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the [DSL GST API](/docs/api-gst.md). Once created, they can be added to a Pipeline along with other DSL Components. 
+
+See the [GST API Reference](/docs/api-gst.md) for more information.
+
+---
+
+## Linking Components
+All Components added to the Pipeline are linked together during the call to [`dsl_pipeline_play`](/docs/api-pipeline.md#dsl_pipeline_play) and unlinked during the call to [`dsl_pipeline_stop`](/docs/api-pipeline.md#dsl_pipeline_stop). 
+It is **IMPORTANT** to not that there are two methods available to link the components together as defined in `DslApi.h`.
+1. `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER` - all components are linked in the order they are added to the Pipeline (except Sources which are always linked to the Pipeline's built-in Streammuxer).
+2. `DSL_PIPELINE_LINK_METHOD_BY_POSITION` - all components are linked in a specific position based on type.
+
+The default link method is `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER`. 
+
+### Linking by Add-Order
+When linking by add order (default):
+* All Components, except for Source, Branches, and Sinks, must be added to the Pipeline at the same time in the order they are to be linked.
+* Sources are still always linked to the Streammuxer first, regardless of the order added.
+* Demuxers, Tees, and Sinks must always be added last. 
+* Sources and Sinks can be added/removed at runtime.
+* Demuxer and Tee Branches can be added/removed at runtime.  Remuxer Branches cannot.
+
+
+### Linking by Position
+Linking by position allows Pipelines to be constructed or updated over subsequent calls. Using Python for example.
+
+```python
+# create the initial Pipeline
+retval = dsl_pipeline_new_component_add_many('pipeline', 
+    ['rtsp-source', 'primary-gie', 'egl-sink', None])
+
+# at some point later it is determined that additional components should be
+# added, perhaps after the Pipeline has been played 
+retval = dsl_pipeline_component_add_many('pipeline',
+    ['iou-tracker', 'on-screen-display', None])
+
+# The Pipeline will link correctly if linking by position, 
+# The Pipeline would fail to link if linked by add-order.
+retval = dsl_pipeline_play('pipeline')    
+```
+
+The link-method can be changed to by positon by calling [`dsl_pipeline_link_method_set`](/docs/api-pipeline.md#dsl_pipeline_link_method_set). Click the link for more details.
+
+When linking by position, Pipeline components are linked in the order shown in the diagram below.
+
+![pipeline-linked-by-position-with-tiler-and-sinks](/Images/pipeline-linked-by-position-with-tiler-and-sinks.png)
+
+| # |  Component        | Count |    Notes                                                                                   |
+|---|-------------------|-------|--------------------------------------------------------------------------------------------|
+| 1 | Source            | 1..n  | One Source is required to play the Pipeline. Sources are always linked to the Streammuxer. |
+| 2 | Streammuxer       | 1     | Required and built into every DSL Pipeline.                                                |
+| 3 | Remuxer           | 0..1  | Optional, and if added, inference components are added to the Remuxer branches.            |
+| 4 | Preprocessor      | 0..1  | Optional, one at most. Always added before the Primary Inference Component(s).             |
+| 5 | Primary Infer     | 0..n  | Optional, one or more Primary Inference Components linked by add order.                    |
+| 6 | Tracker           | 0..1  | Optional, one at most, always linked after the Primary Inference Component(s).             |
+| 7 | Secondary Infer   | 0..n  | Optional, one or more Secondary Inference Components linked as a graph.                    |
+| 8 | 2D Tiler          | 0..1  | Optional, one at most. Tiler or Demuxer typically required if using multiple Sources.      | 
+| 9 | On Screen Display | 0..1  | Optional, one at most. Always downstream of Tiler or in Demuxer branch.                    | 
+| 10| Sinks             | 1..n  | One Sink is required to play the Pipeline. Sinks are always linked last                    | 
+
+When using a Demuxer or Splitter Tee -- both mutually exlusive with the Tiler -- they are linked as the last element in the Pipeline as shown below. Branches are then created and added to src-pads (output) of the Demuxer or Splitter Tee. 
+
+![pipeline-linked-by-position-with-demuxer-or-tee](/Images/pipeline-linked-by-position-with-demuxer-or-tee.png)
+
+| #     |  Component        | Count |    Notes                                                  |
+|-------|-------------------|-------|-----------------------------------------------------------|
+| 1...9 | Same as above     | n     | -- components 1..9 - same notes as in the table above --  |
+| 10    | Demuxer or Tee    | 0..1  | Optional, but always the last component linked if added.  |
+
+<br>
+
+Components, when added to a Branch, are linked in the order as shown in the diagram below.
+
+![pipeline-linked-by-position-with-tiler-and-sinks](/Images/branch-linked-by-position-with-tiler-and-sinks.png)
+
+| # |  Component        | Count |    Notes                                                                                   |
+|---|-------------------|-------|--------------------------------------------------------------------------------------------|
+| 1 | Remuxer           | 0..1  | Optional, typically added to a Pipeline with Inference branches added to the Remuxer.      |
+| 2 | Preprocessor      | 0..1  | Optional, one at most. Always added before the Primary Inference Component(s).             |
+| 3 | Primary Infer     | 0..n  | Optional, one or more Primary Inference Components linked by add order.                    |
+| 4 | Tracker           | 0..1  | Optional, one at most, always linked after the Primary Inference Component(s).             |
+| 5 | Secondary Infer   | 0..n  | Optional, one or more Secondary Inference Components linked as a graph.                    |
+| 6 | 2D Tiler          | 0..1  | Optional, one at most. Tiler or Demuxer typically required if using multiple Sources.      | 
+| 7 | On Screen Display | 0..1  | Optional, one at most. Always downstream of Tiler or in Demuxer branch.                    | 
+| 8 | Sinks             | 1..n  | One Sink is required to play the Pipeline. Sinks are always linked last.                   | 
 
 ---
 
@@ -917,6 +1009,84 @@ Multiple Pipelines, each with their own Interpipe Source, can listen to the same
 
 --- 
 
+## Working with Buffer-Surfaces and OpenCV
+
+### Using NVIDIA's pyds and python
+NVIDIA's python bindings provides a function called [pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface) to get a frame-buffer-surface from a batched buffer as a Python array. The Python array, once converted to a NumPy array, can be processed using OpenCV as shown with the [Custom Pad Probe Handler](/api-pph.md)below.
+
+```python
+## 
+# Custom PPH added to the sink-pad (input) of the Tiler
+## 
+def custom_pad_probe_handler(buffer, user_data):
+
+    # Retrieve the batch metadata from the gst_buffer.
+    # IMPORTANT! do not use the hash function to cast the buffer.
+    
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(buffer)
+    l_frame = batch_meta.frame_meta_list
+    while l_frame is not None:
+        try:
+            frame_meta = pyds.glist_get_nvds_frame_meta(l_frame.data)
+        except StopIteration:
+            break
+
+            # get the current frame as identified by batch_id in python array format
+            n_frame = pyds.get_nvds_buf_surface(buffer, frame_meta.batch_id)
+
+            # convert the python array into numpy array format.
+            frame_image = np.array(n_frame,copy=True,order='C')
+
+            # covert the array into cv2 default BGRA format
+            frame_image = cv2.cvtColor(frame_image,cv2.COLOR_RGBA2BGRA)
+
+            # write out the image
+            cv2.imwrite(filename,frame_image)
+
+        try:
+            l_frame=l_frame.next
+        except StopIteration:
+            break
+    return DSL_PAD_PROBE_OK
+```
+
+From the [pyds.get_nvds_buf_surface()](https://docs.nvidia.com/metropolis/deepstream/5.0DP/python-api/Methods/methodsdoc.html#get-nvds-buf-surface) documentation, _"This function returns the frame in NumPy format. **Only RGBA format is supported. For x86_64, only CUDA unified memory is supported**. For Jetson, the buffer is mapped to CPU memory."_
+
+To meet the above requirements:
+
+1. Use the [dsl_source_video_buffer_out_format_set](/docs/api-source.md#dsl_source_video_buffer_out_format_set) service to set the buffer out format to RGBA for each source. 
+
+```python
+# IMPORTANT! We must set the buffer format to RGBA for each source.        
+retval = dsl_source_video_buffer_out_format_set('my-source-0', 
+    DSL_VIDEO_FORMAT_RGBA)
+
+```
+
+2. (dGPU Only) Depending on which NVIDIA Streammux plugin is used, to set the buffer memory type use [dsl_component_nvbuf_mem_type_set_many](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many) or [dsl_pipeline_streammux_nvbuf_mem_type_set](/docs/api-pipeline.md#dsl_pipeline_streammux_nvbuf_mem_type_set) as shown below.
+```python
+# If using the new Streammux, then change the memory type of each source
+if dsl_info_use_new_nvstreammux_get():
+    retval = dsl_component_nvbuf_mem_type_set_many(
+        ['my-source-0', 'my-source-1', 'my-source-2', 'my-source-3'],
+        DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED)
+                
+# if using the old Streammux we set the memtype of the Streammux itself.    
+else:
+    retval = dsl_pipeline_streammux_nvbuf_mem_type_set('pipeline',
+        DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED)
+
+```
+
+See the complete example [4file_custom_pph_using_opencv.py](/examples/python/4file_custom_pph_using_opencv.py)
+
+### Using "DslSurfaceTransform.h and C/C++
+DSL Provides a set of utility classes (used internally) to simplyfy the process of creating a frame-buffer-surface from a batched buffer that can be processed using OpenCV. The utility classes and OpenCV are used within a [Custom Pad Probe Handler](/docs/api-pph.md).
+
+See the example [4file_custom_pph_using_opencv.cpp](/examples/cpp/4file_custom_pph_using_opencv.cpp) for complete details.
+
+---
+
 ## Smart Recording
 As mentioned above, there are two components that provide cached-video recording:
 1. Record Tap - that taps into the pre-decoded stream to record the original video - added to a RTSP Source component directly.
@@ -1518,6 +1688,9 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Remuxer](/docs/api-remuxer.md)
 * [On-Screen Display](/docs/api-osd.md)
 * [Sink](docs/api-sink.md)
+* [Branch](/docs/api-branch.md)
+* [Component](/docs/api-component.md)
+* [Custom Component](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
@@ -1525,8 +1698,6 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [ODE Area](/docs/api-ode-area.md)
 * [ODE Heat-Mapper](/docs/api-ode-heat-mapper.md)
 * [Display Type](/docs/api-display-type.md)
-* [Branch](/docs/api-branch.md)
-* [Component](/docs/api-component.md)
 * [Mailer](/docs/api-mailer.md)
 * [WebSocket Server](/docs/api-ws-server.md)
 * [Message Broker](/docs/api-msg-broker.md)

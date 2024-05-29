@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,10 +52,10 @@ namespace DSL
         m_pOptFlowVisual->AddGhostPadToParent("src");
 
         // Add the sink-pad Buffer and DS Event probes to the nvof element.
-        AddSinkPadProbes(m_pOptFlow);
+        AddSinkPadProbes(m_pOptFlow->GetGstElement());
 
         // Add the src-pad Buffer and DS Event probes to the nvofvisual element.
-        AddSrcPadProbes(m_pOptFlowVisual);
+        AddSrcPadProbes(m_pOptFlowVisual->GetGstElement());
     }    
     
     OfvBintr::~OfvBintr()
@@ -111,4 +111,12 @@ namespace DSL
             AddOfvBintr(shared_from_this());
     }
     
+    bool OfvBintr::RemoveFromParent(DSL_BASE_PTR pBranchBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' OSD from the Parent Pipeline 
+        return std::dynamic_pointer_cast<BranchBintr>(pBranchBintr)->
+            AddOfvBintr(shared_from_this());
+    }
 }    
