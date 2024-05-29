@@ -543,7 +543,7 @@
 * [`dsl_gst_element_property_int64_get`](/docs/api-gst.md#dsl_gst_element_property_int64_get)
 * [`dsl_gst_element_property_int64_set`](/docs/api-gst.md#dsl_gst_element_property_int64_set)
 * [`dsl_gst_element_property_string_get`](/docs/api-gst.md#dsl_gst_element_property_string_get)
-* [`dsl_gst_element_property_string_set`](#dsl_gst_element_property_string_set)
+* [`dsl_gst_element_property_string_set`](/docs/api-gst.md#dsl_gst_element_property_string_set)
 * [`dsl_gst_element_list_size`](/docs/api-gst.md#dsl_gst_element_list_size)
 * [`dsl_gst_element_pph_add`](/docs/api-gst.md#dsl_gst_element_pph_add)
 * [`dsl_gst_element_pph_remove`](/docs/api-gst.md#dsl_gst_element_pph_remove)
