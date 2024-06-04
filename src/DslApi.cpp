@@ -9650,6 +9650,24 @@ DslReturnType dsl_component_queue_leaky_set(const wchar_t* name, uint leaky)
         cstrName.c_str(), leaky);
 }
 
+DslReturnType dsl_component_queue_leaky_set_many(const wchar_t** names, uint leaky)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentQueueLeakySet(
+            cstrName.c_str(), leaky);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_queue_max_size_get(const wchar_t* name, 
     uint unit, uint64_t* max_size)
 {
@@ -9675,6 +9693,25 @@ DslReturnType dsl_component_queue_max_size_set(const wchar_t* name,
         cstrName.c_str(), unit, max_size);
 }
 
+DslReturnType dsl_component_queue_max_size_set_many(const wchar_t** names, 
+    uint unit, uint64_t max_size)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentQueueMaxSizeSet(
+            cstrName.c_str(), unit, max_size);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_queue_min_threshold_get(const wchar_t* name, 
     uint unit, uint64_t* min_threshold)
 {
@@ -9698,6 +9735,25 @@ DslReturnType dsl_component_queue_min_threshold_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->ComponentQueueMinThresholdSet(
         cstrName.c_str(), unit, min_threshold);
+}
+
+DslReturnType dsl_component_queue_min_threshold_set_many(const wchar_t** names, 
+    uint unit, uint64_t min_threshold)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueMinThresholdSet(cstrName.c_str(), unit, min_threshold);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name, 
