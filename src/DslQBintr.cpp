@@ -59,7 +59,6 @@ namespace DSL
         AddChild(m_pQueue);
     }
 
-
     QBintr::~QBintr()
     { 
         LOG_FUNC(); 
