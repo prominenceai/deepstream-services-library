@@ -73,6 +73,26 @@ SCENARIO( "A DCF Tracker is created correctly", "[TrackerBintr]" )
                 REQUIRE( retTrackOnGie == "" );
                 
                 REQUIRE( pTrackerBintr->GetIdDisplayEnabled() == 1 );
+
+                REQUIRE( pTrackerBintr->GetQueueLeaky() == DSL_COMPONENT_QUEUE_LEAKY_NO );
+                REQUIRE( pTrackerBintr->GetQueueCurrentLevel(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueCurrentLevel(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueCurrentLevel(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueMaxSize(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == 200 );
+                REQUIRE( pTrackerBintr->GetQueueMaxSize(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == 10485760 );
+                REQUIRE( pTrackerBintr->GetQueueMaxSize(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == 1000000000 );
+                REQUIRE( pTrackerBintr->GetQueueMinThreshold(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueMinThreshold(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueMinThreshold(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == 0 );
             }
         }
     }
@@ -105,6 +125,20 @@ SCENARIO( "An IOU Tracker is created correctly", "[TrackerBintr]" )
                 pTrackerBintr->GetDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == width );
                 REQUIRE( retHeight == height );
+                
+                REQUIRE( pTrackerBintr->GetQueueLeaky() == DSL_COMPONENT_QUEUE_LEAKY_NO );
+                REQUIRE( pTrackerBintr->GetQueueMaxSize(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == 200 );
+                REQUIRE( pTrackerBintr->GetQueueMaxSize(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == 10485760 );
+                REQUIRE( pTrackerBintr->GetQueueMaxSize(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == 1000000000 );
+                REQUIRE( pTrackerBintr->GetQueueMinThreshold(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueMinThreshold(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == 0 );
+                REQUIRE( pTrackerBintr->GetQueueMinThreshold(
+                        DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == 0 );
             }
         }
     }
