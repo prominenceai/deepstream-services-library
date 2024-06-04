@@ -29,9 +29,13 @@ namespace DSL
     QBintr::QBintr(const char* name)
         : Bintr(name)
     { 
-        LOG_FUNC(); 
+        LOG_FUNC();
 
-        // Create the Queue
+        // Persist the wstring name to pass to the client callbacks on queue
+        // overrun/underrun
+        m_wstrName.assign(m_name.begin(), m_name.end());
+
+        // Create the Queue element for the QBintr
         m_pQueue = DSL_ELEMENT_NEW("queue", name);
 
         // Get all default values
@@ -42,6 +46,13 @@ namespace DSL
         m_pQueue->GetAttribute("min-threshold-buffers", &m_minThresholdBuffers);
         m_pQueue->GetAttribute("min-threshold-bytes", &m_minThresholdBytes);
         m_pQueue->GetAttribute("min-threshold-time", &m_minThresholdTime);
+
+        // Connec the local static functions to the queue elements overrun/
+        // underrun signals 
+        g_signal_connect(m_pQueue->GetGObject(), "overrun",
+            G_CALLBACK(QueueOverrunCB), this);
+        g_signal_connect(m_pQueue->GetGObject(), "underrun",
+            G_CALLBACK(QueueUnderrunCB), this);
 
         // and the Queue element as a child of this QBintr
         AddChild(m_pQueue);
@@ -269,5 +280,49 @@ namespace DSL
         
         return true;
     }
-        
+
+    void QBintr::HandleQueueOverrun() 
+    {
+        LOG_FUNC();
+
+        LOG_WARN("Queue overrun signal received for Component " 
+            << GetName() << "'");
+
+        // iterate through the map of queue-overrun-listeners calling each
+        for(auto const& imap: m_queueOverrunListeners)
+        {
+            try
+            {
+                imap.first(m_wstrName.c_str(), imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Component '" << GetName() 
+                    << "' threw exception calling Client queue-overrun-listener");
+            }
+        }
+    }
+    
+    void QBintr::HandleQueueUnderrun() 
+    {
+        LOG_FUNC();
+
+        LOG_WARN("Queue overrun signal received for Component " 
+            << GetName() << "'");
+            
+        // iterate through the map of queue-underrun-listeners calling each
+        for(auto const& imap: m_queueUnderrunListeners)
+        {
+            try
+            {
+                imap.first(m_wstrName.c_str(), imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Component '" << GetName() 
+                    << "' threw exception calling Client queue-underrun-listener");
+            }
+        }
+    }
+    
 }
