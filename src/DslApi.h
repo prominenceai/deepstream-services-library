@@ -748,10 +748,17 @@ THE SOFTWARE.
 #define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
 #define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
 
+/**
+ * @brief Component Queue Leaky Constants - must match queue-leaky members
+ * see https://gstreamer.freedesktop.org/documentation/coreelements/queue.html#named-constants
+*/
 #define DSL_COMPONENT_QUEUE_LEAKY_NO                                0
 #define DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM                          1
 #define DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM                        2
 
+/**
+ * @brief Component Queue measurement units 
+*/
 #define DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS                         0
 #define DSL_COMPONENT_QUEUE_UNIT_OF_BYTES                           1
 #define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
