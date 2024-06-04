@@ -143,6 +143,16 @@ namespace DSL
          */
         bool RemoveQueueUnderrunListener(
                 dsl_component_queue_underrun_listener_cb listener);
+
+        /**
+         * @brief Handles a queue overrun signal for the QBintr.
+         */
+        void HandleQueueOverrun();
+            
+        /**
+         * @brief Handles a queue underrun signal for the QBintr.
+         */
+        void HandleQueueUnderrun();
             
     protected:
 
@@ -198,11 +208,37 @@ namespace DSL
             m_queueUnderrunListeners;
 
         /**
+         * @brief wstring version of this QBintr's name to return to the client
+         * when calling the overrun and underrun callback functions.
+         */
+        std::wstring m_wstrName;
+        
+        /**
          * @brief Primary Queue Elementr for this QBintr
          */
         DSL_ELEMENT_PTR  m_pQueue;
 
     };
+
+    /**
+     * @brief Queue overrun signal callback.
+     * @param[in] queue pointer to the actual GST queue element
+     * @param[in] pQBintr opaque pointer to the QBintr that ownes the queue
+    */
+    static void QueueOverrunCB(GstElement* queue, gpointer pQBintr)
+    {
+        static_cast<QBintr*>(pQBintr)->HandleQueueOverrun();
+    }
+
+    /**
+     * @brief Queue underrun signal callback.
+     * @param[in] queue pointer to the actual GST queue element
+     * @param[in] pQBintr opaque pointer to the QBintr that ownes the queue
+    */
+    static void QueueUnderrunCB(GstElement* queue, gpointer pQBintr)
+    {
+        static_cast<QBintr*>(pQBintr)->HandleQueueUnderrun();
+    }
 
 } // DSL
 
