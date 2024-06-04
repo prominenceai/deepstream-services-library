@@ -395,6 +395,57 @@ THE SOFTWARE.
 }while(0);
 #endif
 
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(TrackerBintr)) and  \
+        !components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a QBintr"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0);
+#else
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(TrackerBintr)) and  \
+        !components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
+        !components[name]->IsType(typeid(WebRtcSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a QBintr"); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0);
+#endif
+
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
 { \
     if (!components[name]->IsType(typeid(RecordTapBintr))) \
