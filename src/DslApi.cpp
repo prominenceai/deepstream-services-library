@@ -9760,6 +9760,7 @@ DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name,
     dsl_component_queue_overrun_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -9772,6 +9773,7 @@ DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name,
     dsl_component_queue_overrun_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -9784,6 +9786,7 @@ DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name,
     dsl_component_queue_underrun_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -9792,10 +9795,11 @@ DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name,
         cstrName.c_str(), listener, client_data);
 }
     
-DslReturnType dsl_component_queue_underrun_listener_remvoe(const wchar_t* name, 
+DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
     dsl_component_queue_underrun_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

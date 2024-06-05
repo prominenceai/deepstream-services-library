@@ -8655,7 +8655,7 @@ DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name,
  * @param[in] listener pointer to the client's function to remove.
  */
 DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
-    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+    dsl_component_queue_underrun_listener_cb listener);
 
 /**
  * @brief Gets the named component's current GPU ID
