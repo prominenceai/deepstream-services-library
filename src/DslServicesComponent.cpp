@@ -171,7 +171,7 @@ namespace DSL
             {
                 LOG_ERROR("Invalid queue leaky setting = " << leaky 
                     << " for Component '"  << name << "'");
-                DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
+                return DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
             }
 
             DSL_QBINTR_PTR pQBintrComponent = 
@@ -248,7 +248,7 @@ namespace DSL
             {
                 LOG_ERROR("Invalid queue measurement unit = " << unit 
                     << " for Component '"  << name << "'");
-                DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
+                return DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
             }
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);
@@ -323,7 +323,7 @@ namespace DSL
             {
                 LOG_ERROR("Invalid queue measurement unit = " << unit 
                     << " for Component '"  << name << "'");
-                DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
+                return DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
             }
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);

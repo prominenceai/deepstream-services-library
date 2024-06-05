@@ -226,6 +226,68 @@ SCENARIO( "A new component can Set and Get Queue Properties correctly", "[compon
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
+        WHEN( "Invalid parameters are used to set queue properies" ) 
+        {
+            uint new_leaky(DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM);
+            uint64_t new_max_size_buffers(123);
+            uint64_t new_max_size_bytes(4321);
+            uint64_t new_max_size_time(987654);
+            uint64_t new_min_threshold_buffers(12);
+            uint64_t new_min_threshold_bytes(432);
+            uint64_t new_min_threshold_time(9876);
+            
+            REQUIRE( dsl_component_queue_leaky_set(trackerName.c_str(), 
+                DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM+1) 
+                == DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED );
+
+            REQUIRE( dsl_component_queue_max_size_set(trackerName.c_str(), 
+                DSL_COMPONENT_QUEUE_UNIT_OF_TIME+1, new_max_size_time) 
+                == DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED );
+
+            REQUIRE( dsl_component_queue_min_threshold_set(trackerName.c_str(), 
+                DSL_COMPONENT_QUEUE_UNIT_OF_TIME+1, new_min_threshold_time) 
+                == DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED );
+
+            THEN( "The default values are unchanged" ) 
+            {
+                REQUIRE( dsl_component_queue_leaky_get(trackerName.c_str(), &ret_leaky) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_NO );
+
+                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == 200 );
+
+                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == 10485760 );
+                
+                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == 1000000000 );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == 0 );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == 0 );
+                
+                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == 0 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
     }
 }    
     
