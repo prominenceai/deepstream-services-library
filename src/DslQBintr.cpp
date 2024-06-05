@@ -180,7 +180,7 @@ namespace DSL
             m_pQueue->GetAttribute("min-threshold-buffers", &m_minThresholdBuffers);
             minThreshold = m_minThresholdBuffers;
         }
-        if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
+        else if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
         {
             m_pQueue->GetAttribute("min-threshold-bytes", &m_minThresholdBytes);
             minThreshold = m_minThresholdBytes;
@@ -209,7 +209,7 @@ namespace DSL
             m_minThresholdBuffers = (uint)minThreshold;
             m_pQueue->SetAttribute("min-threshold-buffers", m_minThresholdBuffers);
         }
-        if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
+        else if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
         {
             m_minThresholdBytes = (uint)minThreshold;
             m_pQueue->SetAttribute("min-threshold-bytes", m_minThresholdBytes);
