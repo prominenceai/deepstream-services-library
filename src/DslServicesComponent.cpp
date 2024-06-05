@@ -66,7 +66,8 @@ namespace DSL
                     // In the case of Delete all
                     if (imap.second->IsInUse())
                     {
-                        LOG_ERROR("Component '" << imap.second->GetName() << "' is currently in use");
+                        LOG_ERROR("Component '" << imap.second->GetName() 
+                            << "' is currently in use");
                         return DSL_RESULT_COMPONENT_IN_USE;
                     }
                 }
@@ -115,7 +116,7 @@ namespace DSL
             *currentLevel = pQBintrComponent->GetQueueCurrentLevel(unit);
 
             LOG_INFO("Current queue level = " << *currentLevel 
-                << " in units of = " << unit <<  "returned for Component '" 
+                << " in units of = " << unit <<  " returned for Component '" 
                 << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -144,7 +145,7 @@ namespace DSL
             *leaky = pQBintrComponent->GetQueueLeaky();
 
             LOG_INFO("Queue leaky setting = " << *leaky 
-                 <<  "returned for Component '" << name << "' successfully");
+                 <<  " returned for Component '" << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -219,7 +220,7 @@ namespace DSL
             *maxSize = pQBintrComponent->GetQueueMaxSize(unit);
 
             LOG_INFO("Queue max-size = " << *maxSize 
-                << " in units of = " << unit <<  "returned for Component '" 
+                << " in units of = " << unit <<  " returned for Component '" 
                 << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -294,7 +295,7 @@ namespace DSL
             *minThreshold = pQBintrComponent->GetQueueMinThreshold(unit);
 
             LOG_INFO("Queue min-threshold = " << *minThreshold 
-                << " in units of = " << unit <<  "returned for Component '" 
+                << " in units of = " << unit <<  " returned for Component '" 
                 << name << "' successfully");
 
             return DSL_RESULT_SUCCESS;
@@ -460,7 +461,7 @@ namespace DSL
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);
             
-            if (!pQBintrComponent->RemoveQueueOverrunListener(listener))
+            if (!pQBintrComponent->RemoveQueueUnderrunListener(listener))
             {
                 LOG_ERROR("Component '" << name 
                     << "' failed to remove a queue overrun listener");
