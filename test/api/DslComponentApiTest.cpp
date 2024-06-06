@@ -1167,7 +1167,6 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
 
         REQUIRE( dsl_osd_new(osd_name.c_str(), 
             true, true, true, false) == DSL_RESULT_SUCCESS );
-
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
         
