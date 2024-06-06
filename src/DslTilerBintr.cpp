@@ -30,7 +30,7 @@ namespace DSL
 {
 
     TilerBintr::TilerBintr(const char* name, uint width, uint height)
-        : Bintr(name)
+        : QBintr(name)
         , m_width(width)
         , m_height(height)
         , m_rows(0)
@@ -43,7 +43,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        // New Tiler element for this TilerBintr
         m_pTiler = DSL_ELEMENT_NEW("nvmultistreamtiler", name);
 
         // Don't overwrite the default "best-fit" columns and rows on construction
@@ -54,24 +54,33 @@ namespace DSL
         m_pTiler->GetAttribute("show-source", &m_showSourceId);
         m_pTiler->GetAttribute("gpu-id", &m_gpuId);
         m_pTiler->GetAttribute("compute-hw", &m_computeHw);
-        m_pTiler->GetAttribute("gpu-id", &m_gpuId);
         m_pTiler->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
 
         LOG_INFO("");
         LOG_INFO("Initial property values for TilerBintr '" << name << "'");
-        LOG_INFO("  rows              : " << m_rows);
-        LOG_INFO("  columns           : " << m_columns);
-        LOG_INFO("  width             : " << m_width);
-        LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  show-source       : " << m_showSourceId);
-        LOG_INFO("  gpu-id            : " << m_gpuId);
-        LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
-        LOG_INFO("  compute-hw        : " << m_computeHw);
+        LOG_INFO("  rows                 : " << m_rows);
+        LOG_INFO("  columns              : " << m_columns);
+        LOG_INFO("  width                : " << m_width);
+        LOG_INFO("  height               : " << m_height);
+        LOG_INFO("  show-source          : " << m_showSourceId);
+        LOG_INFO("  gpu-id               : " << m_gpuId);
+        LOG_INFO("  nvbuf-memory-type    : " << m_nvbufMemType);
+        LOG_INFO("  compute-hw           : " << m_computeHw);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
-        AddChild(m_pQueue);
         AddChild(m_pTiler);
 
-        // Float the queue element as a sink-ghost-pad for this Bintr.
+        // Float the queue element (from parent QBintr) as a sink-ghost-pad 
+        // for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
 
         // Float the tiler element as a src-ghost-pad for this Bintr.

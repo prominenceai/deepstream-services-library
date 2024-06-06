@@ -40,7 +40,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // New Queue and Tracker element for this TrackerBintr
+        // New Tracker element for this TrackerBintr
         m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
@@ -80,7 +80,8 @@ namespace DSL
 
         AddChild(m_pTracker);
 
-        // Float the queue element as a sink-ghost-pad for this Bintr.
+        // Float the queue element (from parent QBintr) as a sink-ghost-pad 
+        // for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
 
         // Float the tracker element as a src-ghost-pad for this Bintr.

@@ -33,7 +33,7 @@ namespace DSL
     std::list<uint> PreprocBintr::s_uniqueIds;
 
     PreprocBintr::PreprocBintr(const char* name, const char* configFile)
-        : Bintr(name)
+        : QBintr(name)
         , m_configFile(configFile)
         , m_enabled(true) // enabled by default.
     {
@@ -48,7 +48,6 @@ namespace DSL
         s_uniqueIds.push_back(m_uniqueId);
         
         m_pPreproc = DSL_ELEMENT_NEW("nvdspreprocess", name);
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
 
         m_pPreproc->SetAttribute("unique-id", m_uniqueId);
         m_pPreproc->SetAttribute("gpu-id", m_gpuId);
@@ -57,15 +56,25 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for PreprocBintr '" << name << "'");
-        LOG_INFO("  config-file        : " << m_configFile);
-        LOG_INFO("  unique-id          : " << m_uniqueId);
-        LOG_INFO("  enabled            : " << m_enabled);
-        LOG_INFO("  gpu-id             : " << m_gpuId);
+        LOG_INFO("  config-file          : " << m_configFile);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  enabled              : " << m_enabled);
+        LOG_INFO("  gpu-id               : " << m_gpuId);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
         
         AddChild(m_pPreproc);
-        AddChild(m_pQueue);
 
-        // Float the queue element as a sink-ghost-pad for this Bintr.
+        // Float the queue element (from parent QBintr) as a sink-ghost-pad 
+        // for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
 
         // Float the preprocessor element as a src-ghost-pad for this Bintr.
