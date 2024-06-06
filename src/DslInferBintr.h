@@ -29,7 +29,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslElementr.h"
 
 namespace DSL
@@ -84,7 +84,7 @@ namespace DSL
      * @brief Implements a base class container for either a 
      * GST Inferece Engine (GIE) or Triton Inference Server (TIS)
      */
-    class InferBintr : public Bintr
+    class InferBintr : public QBintr
     {
     public: 
     
@@ -273,11 +273,6 @@ namespace DSL
          * NOTE: only used by the GIE Binters at this time
          */
         bool m_outputTensorMetaEnabled;
-
-        /**
-         * @brief Queue Elementr as Sink for this InferBintr
-         */
-        DSL_ELEMENT_PTR  m_pQueue;
 
         /**
          * @brief Infer Elementr, either GIE or TIS

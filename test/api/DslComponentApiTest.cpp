@@ -29,25 +29,34 @@ THE SOFTWARE.
 static const std::wstring uri(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
-static const std::wstring preproc_name(L"preprocessor");
 static const std::wstring sourceName(L"test-source");
-static const std::wstring windowSinkName(L"egl-sink");
+static const std::wstring preproc_name(L"preprocessor");
+static const std::wstring primary_gie_name(L"primary-gie");
+static const std::wstring secondary_gie_name(L"secondary-gie");
 static const std::wstring tiler_name(L"tiler");
-static const std::wstring pgieName(L"pgie");
 static const std::wstring osdName(L"osd");
+static const std::wstring windowSinkName(L"egl-sink");
 static const std::wstring fileSinkName(L"file-sink");
 static const std::wstring filePath(L"./output.mp4");
      
 static const std::wstring preproc_config(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
 
-static const std::wstring infer_config_file_jetson(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
-static const std::wstring infer_config_file_dgpu(
+static std::wstring infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 
+static std::wstring model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
+
+static uint interval(1);
+
+static std::wstring secondary_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_secondary_vehicletypes.txt");
+static std::wstring secondary_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleTypes/resnet18_vehicletypenet.etlt_b8_gpu0_int8.engine");
+
 static const std::wstring tracker_name(L"iou-tracker");
-static const std::wstring configFile(
+static const std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
 static const std::wstring dewarperName(L"dewarper");
@@ -92,7 +101,7 @@ SCENARIO( "A new component can Set and Get Queue Properties correctly",
         uint width(480);
         uint height(272);
 
-        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         uint64_t ret_current_level(99);
@@ -310,14 +319,23 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
             preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name.c_str(), 
+            secondary_infer_config_file.c_str(), secondary_model_engine_file.c_str(), 
+            primary_gie_name.c_str(), interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(), 
             tacker_width, tacker_height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
 
         const wchar_t* components[] = {
-            preproc_name.c_str(), tracker_name.c_str(), tiler_name.c_str(), 
+            preproc_name.c_str(), primary_gie_name.c_str(), secondary_gie_name.c_str(),
+            tracker_name.c_str(), tiler_name.c_str(), 
             NULL};
         
         WHEN( "The new component is called to set their queue properies" ) 
@@ -364,21 +382,38 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 uint64_t ret_max_size(99);
                 uint64_t ret_min_threshold(99);
                 
-                REQUIRE( dsl_component_queue_leaky_get(preproc_name.c_str(), &ret_leaky) 
-                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_queue_leaky_get(preproc_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
 
-                REQUIRE( dsl_component_queue_leaky_get(tracker_name.c_str(), &ret_leaky) 
-                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_queue_leaky_get(primary_gie_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+                REQUIRE( dsl_component_queue_leaky_get(secondary_gie_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
 
-                REQUIRE( dsl_component_queue_leaky_get(tiler_name.c_str(), &ret_leaky) 
-                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_queue_leaky_get(tracker_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
+                REQUIRE( dsl_component_queue_leaky_get(tiler_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
 
                 // ---------------------------------
 
                 REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
+                REQUIRE( dsl_component_queue_max_size_get(primary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
+                REQUIRE( dsl_component_queue_max_size_get(secondary_gie_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == new_max_size_buffers );
@@ -400,6 +435,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == new_max_size_bytes );
                 
+                REQUIRE( dsl_component_queue_max_size_get(primary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
+                REQUIRE( dsl_component_queue_max_size_get(secondary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
                 REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
@@ -413,6 +458,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 // ---------------------------------
 
                 REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
+                REQUIRE( dsl_component_queue_max_size_get(primary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
+                REQUIRE( dsl_component_queue_max_size_get(secondary_gie_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == new_max_size_time );
@@ -430,6 +485,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 // ---------------------------------
 
                 REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(primary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(secondary_gie_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == new_min_threshold_buffers );
@@ -451,6 +516,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == new_min_threshold_bytes );
                 
+                REQUIRE( dsl_component_queue_min_threshold_get(primary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
+                REQUIRE( dsl_component_queue_min_threshold_get(secondary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
                 REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
@@ -464,6 +539,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 // ---------------------------------
 
                 REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(primary_gie_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(secondary_gie_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == new_min_threshold_time );
@@ -503,7 +588,7 @@ SCENARIO( "A component can add and remove queue client listeners", "[component-a
         uint width(480);
         uint height(272);
 
-        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         WHEN( "A state-change-listener is added" )
@@ -572,17 +657,11 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         REQUIRE( dsl_dewarper_new(dewarperName.c_str(), 
             dewarper_config_file.c_str(), 1) == DSL_RESULT_SUCCESS );
 
-        if (dsl_info_gpu_type_get(GPUID0) == DSL_GPU_TYPE_INTEGRATED)
-        {
-            REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), 
-                infer_config_file_jetson.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
-        }
-        else
-        {
-            REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), 
-                infer_config_file_dgpu.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
-        }
-        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), 
@@ -599,7 +678,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
 
         
         retGpuId = 99;
-        REQUIRE( dsl_component_gpuid_get(pgieName.c_str(), 
+        REQUIRE( dsl_component_gpuid_get(primary_gie_name.c_str(), 
             &retGpuId) == DSL_RESULT_SUCCESS );
         REQUIRE( retGpuId == 0);
         retGpuId = 99;
@@ -621,15 +700,22 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             
             if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
             {
-                const wchar_t* components[] = {L"test-source", L"dewarper", L"pgie", 
-                    L"iou-tracker", L"tiler", L"osd", L"file-sink", NULL};
-                REQUIRE( dsl_component_gpuid_set_many(components, newGpuId) == DSL_RESULT_SUCCESS );
+                const wchar_t* components[] = {sourceName.c_str(), 
+                    dewarperName.c_str(), primary_gie_name.c_str(), 
+                    tracker_name.c_str(), tiler_name.c_str(), 
+                    osdName.c_str(), fileSinkName.c_str(), NULL};
+                REQUIRE( dsl_component_gpuid_set_many(components, newGpuId) 
+                    == DSL_RESULT_SUCCESS );
             }
             else
             {
-                const wchar_t* components[] = {L"test-source", L"dewarper", L"pgie", 
-                    L"iou-tracker", L"tiler", L"osd", L"egl-sink", L"file-sink", NULL};
-                REQUIRE( dsl_component_gpuid_set_many(components, newGpuId) == DSL_RESULT_SUCCESS );
+                const wchar_t* components[] = {sourceName.c_str(), 
+                    dewarperName.c_str(), primary_gie_name.c_str(), 
+                    tracker_name.c_str(), tiler_name.c_str(), 
+                    osdName.c_str(), windowSinkName.c_str(), 
+                    fileSinkName.c_str(), NULL};
+                REQUIRE( dsl_component_gpuid_set_many(components, newGpuId) 
+                    == DSL_RESULT_SUCCESS );
             }
 
             THEN( "All components return the correct GPU ID of get" ) 
@@ -643,7 +729,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;
-                REQUIRE( dsl_component_gpuid_get(pgieName.c_str(), 
+                REQUIRE( dsl_component_gpuid_get(primary_gie_name.c_str(), 
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;

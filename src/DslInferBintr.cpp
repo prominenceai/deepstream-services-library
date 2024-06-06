@@ -35,7 +35,7 @@ namespace DSL
     InferBintr::InferBintr(const char* name, uint processMode, 
         const char* inferConfigFile, const char* modelEngineFile, 
         uint interval, uint inferType)
-        : Bintr(name)
+        : QBintr(name)
         , m_inferType(inferType)
         , m_processMode(processMode)
         , m_interval(interval)
@@ -98,12 +98,22 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for InferBintr '" << name << "'");
-        LOG_INFO("  Inference Type    : " << m_pInferEngine->GetFactoryName());
-        LOG_INFO("  config-file-path  : " << m_inferConfigFile);
-        LOG_INFO("  process-mode      : " << m_processMode);
-        LOG_INFO("  unique-id         : " << m_uniqueId);
-        LOG_INFO("  interval          : " << m_interval);
-        LOG_INFO("  model-engine-file : " << m_modelEngineFile);
+        LOG_INFO("  Inference Type       : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
+        LOG_INFO("  process-mode         : " << m_processMode);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  model-engine-file    : " << m_modelEngineFile);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
         // update the InferEngine interval setting
         SetInterval(m_interval);
@@ -394,9 +404,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        
-        AddChild(m_pQueue);
         AddChild(m_pInferEngine);
 
         // Float the queue element as a sink-ghost-pad for this Bintr.
@@ -539,7 +546,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_EXT_NEW("queue", name, "tee");
         m_pTee = DSL_ELEMENT_NEW("tee", name);
         m_pFakeSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "fakesink");
         
@@ -550,10 +556,16 @@ namespace DSL
         
         LOG_INFO("  Infer on name     : " << inferOn);
         
-        // Note: the Elementrs created/owned by this SecondaryInferBintr are added as 
-        // children to the parent InferBintr, and not to this Bintr's GST BIN
-        // In this way, all SecondaryInferBintrs Infer on the same buffer of data, regardless
-        // of the depth of secondary Inference. Ghost Pads are not required for this bin
+        // Note: the Elementrs created/owned by this SecondaryInferBintr are added 
+        // as children to the parent InferBintr, and not to this Bintr's GST BIN
+        // In this way, all SecondaryInferBintrs Infer on the same buffer of data, 
+        // regardlessof the depth of secondary Inference. Ghost Pads are not required 
+        // for this bin
+
+        // The Queue element is added as a child of this QBintr by default. Need to 
+        // remove it so that it can be added as a child to the SecondaryInferBintrs as 
+        // mentionded above.
+        RemoveChild(m_pQueue);        
     }    
     
     SecondaryInferBintr::~SecondaryInferBintr()
