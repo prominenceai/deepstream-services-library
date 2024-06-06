@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 
 namespace DSL
 {
@@ -39,7 +39,7 @@ namespace DSL
     #define DSL_TILER_NEW(name, width, height) \
         std::shared_ptr<TilerBintr>(new TilerBintr(name, width, height))
         
-    class TilerBintr : public Bintr
+    class TilerBintr : public QBintr
     {
     public: 
     
@@ -204,11 +204,6 @@ namespace DSL
          */
         DSL_PPH_FRAME_NUMBER_ADDER_PTR m_pFrameNumberAdder;
         
-        /**
-         * @brief Queue Elementr as Sink for this TilerBintr
-         */
-        DSL_ELEMENT_PTR m_pQueue;
- 
         /**
          * @brief Tiler Elementr as Source for this TilerBintr
          */

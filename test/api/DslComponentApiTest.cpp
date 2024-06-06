@@ -29,20 +29,24 @@ THE SOFTWARE.
 static const std::wstring uri(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
-static const std::wstring sourceName  = L"test-source";
-static const std::wstring windowSinkName = L"egl-sink";
-static const std::wstring tilerName = L"tiler";
-static const std::wstring pgieName = L"pgie";
-static const std::wstring osdName = L"osd";
+static const std::wstring preproc_name(L"preprocessor");
+static const std::wstring sourceName(L"test-source");
+static const std::wstring windowSinkName(L"egl-sink");
+static const std::wstring tiler_name(L"tiler");
+static const std::wstring pgieName(L"pgie");
+static const std::wstring osdName(L"osd");
 static const std::wstring fileSinkName(L"file-sink");
 static const std::wstring filePath(L"./output.mp4");
      
+static const std::wstring preproc_config(
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
+
 static const std::wstring infer_config_file_jetson(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static const std::wstring infer_config_file_dgpu(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 
-static const std::wstring trackerName(L"iou-tracker");
+static const std::wstring tracker_name(L"iou-tracker");
 static const std::wstring configFile(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
@@ -65,7 +69,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
                 false, 0, 0) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
                 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
-            REQUIRE( dsl_tiler_new(tilerName.c_str(), 
+            REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
                 1280, 720) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size and contents are updated correctly" ) 
@@ -80,71 +84,72 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
     }
 }    
     
-SCENARIO( "A new component can Set and Get Queue Properties correctly", "[component-api]" )
+SCENARIO( "A new component can Set and Get Queue Properties correctly", 
+    "[component-api]" )
 {
     GIVEN( "Three new components" ) 
     {
         uint width(480);
         uint height(272);
 
-        REQUIRE( dsl_tracker_new(trackerName.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         uint64_t ret_current_level(99);
-        REQUIRE( dsl_component_queue_current_level_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_current_level_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_current_level) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_current_level == 0 );
 
         ret_current_level = 99;
-        REQUIRE( dsl_component_queue_current_level_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_current_level_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_current_level) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_current_level == 0 );
 
         ret_current_level = 99;
-        REQUIRE( dsl_component_queue_current_level_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_current_level_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_current_level) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_current_level == 0 );
 
         uint ret_leaky(99);
-        REQUIRE( dsl_component_queue_leaky_get(trackerName.c_str(), &ret_leaky) 
+        REQUIRE( dsl_component_queue_leaky_get(tracker_name.c_str(), &ret_leaky) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_NO );
 
         uint64_t ret_max_size(99);
-        REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_max_size == 200 );
 
         ret_max_size = 99;
-        REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_max_size == 10485760 );
 
         ret_max_size = 99;
-        REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_max_size == 1000000000 );
 
         uint64_t ret_min_threshold(99);
-        REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_min_threshold == 0 );
 
         ret_min_threshold = 99;
-        REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_min_threshold == 0 );
 
         ret_min_threshold = 99;
-        REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+        REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
             DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
             == DSL_RESULT_SUCCESS );
         REQUIRE( ret_min_threshold == 0 );
@@ -159,65 +164,65 @@ SCENARIO( "A new component can Set and Get Queue Properties correctly", "[compon
             uint64_t new_min_threshold_bytes(432);
             uint64_t new_min_threshold_time(9876);
             
-            REQUIRE( dsl_component_queue_leaky_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_leaky_set(tracker_name.c_str(), 
                 new_leaky) == DSL_RESULT_SUCCESS );
  
-            REQUIRE( dsl_component_queue_max_size_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_max_size_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, new_max_size_buffers) 
                 == DSL_RESULT_SUCCESS );
  
-            REQUIRE( dsl_component_queue_max_size_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_max_size_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, new_max_size_bytes) 
                 == DSL_RESULT_SUCCESS );
  
-            REQUIRE( dsl_component_queue_max_size_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_max_size_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_TIME, new_max_size_time) 
                 == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_component_queue_min_threshold_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_min_threshold_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, new_min_threshold_buffers) 
                 == DSL_RESULT_SUCCESS );
  
-            REQUIRE( dsl_component_queue_min_threshold_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_min_threshold_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, new_min_threshold_bytes) 
                 == DSL_RESULT_SUCCESS );
  
-            REQUIRE( dsl_component_queue_min_threshold_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_min_threshold_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_TIME, new_min_threshold_time) 
                 == DSL_RESULT_SUCCESS );
 
             THEN( "The correct values are returned on get" ) 
             {
-                REQUIRE( dsl_component_queue_leaky_get(trackerName.c_str(), &ret_leaky) 
+                REQUIRE( dsl_component_queue_leaky_get(tracker_name.c_str(), &ret_leaky) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
 
-                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == new_max_size_buffers );
 
-                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == new_max_size_bytes );
                 
-                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == new_max_size_time );
 
-                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == new_min_threshold_buffers );
 
-                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == new_min_threshold_bytes );
                 
-                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == new_min_threshold_time );
@@ -236,50 +241,50 @@ SCENARIO( "A new component can Set and Get Queue Properties correctly", "[compon
             uint64_t new_min_threshold_bytes(432);
             uint64_t new_min_threshold_time(9876);
             
-            REQUIRE( dsl_component_queue_leaky_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_leaky_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM+1) 
                 == DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED );
 
-            REQUIRE( dsl_component_queue_max_size_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_max_size_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_TIME+1, new_max_size_time) 
                 == DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED );
 
-            REQUIRE( dsl_component_queue_min_threshold_set(trackerName.c_str(), 
+            REQUIRE( dsl_component_queue_min_threshold_set(tracker_name.c_str(), 
                 DSL_COMPONENT_QUEUE_UNIT_OF_TIME+1, new_min_threshold_time) 
                 == DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED );
 
             THEN( "The default values are unchanged" ) 
             {
-                REQUIRE( dsl_component_queue_leaky_get(trackerName.c_str(), &ret_leaky) 
+                REQUIRE( dsl_component_queue_leaky_get(tracker_name.c_str(), &ret_leaky) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_NO );
 
-                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == 200 );
 
-                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == 10485760 );
                 
-                REQUIRE( dsl_component_queue_max_size_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_max_size == 1000000000 );
 
-                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == 0 );
 
-                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == 0 );
                 
-                REQUIRE( dsl_component_queue_min_threshold_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_min_threshold == 0 );
@@ -291,6 +296,195 @@ SCENARIO( "A new component can Set and Get Queue Properties correctly", "[compon
     }
 }    
     
+SCENARIO( "Multiple new components can Set and Get Queue Properties correctly", 
+    "[component-api]" )
+{
+    GIVEN( "Three new components" ) 
+    {
+        uint tacker_width(480);
+        uint tacker_height(272);
+
+        uint tiler_width(1280);
+        uint tiler_height(720);
+
+        REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
+            tacker_width, tacker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
+            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {
+            preproc_name.c_str(), tracker_name.c_str(), tiler_name.c_str(), 
+            NULL};
+        
+        WHEN( "The new component is called to set their queue properies" ) 
+        {
+            uint new_leaky(DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM);
+            uint64_t new_max_size_buffers(123);
+            uint64_t new_max_size_bytes(4321);
+            uint64_t new_max_size_time(987654);
+            uint64_t new_min_threshold_buffers(12);
+            uint64_t new_min_threshold_bytes(432);
+            uint64_t new_min_threshold_time(9876);
+            
+            REQUIRE( dsl_component_queue_leaky_set_many(components, 
+                new_leaky) == DSL_RESULT_SUCCESS );
+ 
+            REQUIRE( dsl_component_queue_max_size_set_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, new_max_size_buffers) 
+                == DSL_RESULT_SUCCESS );
+ 
+            REQUIRE( dsl_component_queue_max_size_set_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, new_max_size_bytes) 
+                == DSL_RESULT_SUCCESS );
+ 
+            REQUIRE( dsl_component_queue_max_size_set_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_TIME, new_max_size_time) 
+                == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_queue_min_threshold_set_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, new_min_threshold_buffers) 
+                == DSL_RESULT_SUCCESS );
+ 
+            REQUIRE( dsl_component_queue_min_threshold_set_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, new_min_threshold_bytes) 
+                == DSL_RESULT_SUCCESS );
+ 
+            REQUIRE( dsl_component_queue_min_threshold_set_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_TIME, new_min_threshold_time) 
+                == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct values are returned on get" ) 
+            {
+                uint64_t ret_current_level(99);
+                uint ret_leaky(99);
+                uint64_t ret_max_size(99);
+                uint64_t ret_min_threshold(99);
+                
+                REQUIRE( dsl_component_queue_leaky_get(preproc_name.c_str(), &ret_leaky) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
+                REQUIRE( dsl_component_queue_leaky_get(tracker_name.c_str(), &ret_leaky) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
+                REQUIRE( dsl_component_queue_leaky_get(tiler_name.c_str(), &ret_leaky) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
+                // ---------------------------------
+
+                REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
+                REQUIRE( dsl_component_queue_max_size_get(tiler_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
+                // ---------------------------------
+
+                REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
+                REQUIRE( dsl_component_queue_max_size_get(tiler_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
+                // ---------------------------------
+
+                REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
+                REQUIRE( dsl_component_queue_max_size_get(tracker_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
+                REQUIRE( dsl_component_queue_max_size_get(tiler_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
+                // ---------------------------------
+
+                REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(tiler_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
+
+                // ---------------------------------
+
+                REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
+                REQUIRE( dsl_component_queue_min_threshold_get(tiler_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
+                // ---------------------------------
+
+                REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(tracker_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(tiler_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 static void queue_overrun_listener_cb(const wchar_t* name, void* client_data)
 {
 
@@ -309,45 +503,45 @@ SCENARIO( "A component can add and remove queue client listeners", "[component-a
         uint width(480);
         uint height(272);
 
-        REQUIRE( dsl_tracker_new(trackerName.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         WHEN( "A state-change-listener is added" )
         {
-            REQUIRE( dsl_component_queue_overrun_listener_add(trackerName.c_str(),
+            REQUIRE( dsl_component_queue_overrun_listener_add(tracker_name.c_str(),
                 queue_overrun_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
             // Second add of the same listener must fail
-            REQUIRE( dsl_component_queue_overrun_listener_add(trackerName.c_str(),
+            REQUIRE( dsl_component_queue_overrun_listener_add(tracker_name.c_str(),
                 queue_overrun_listener_cb, (void*)0x12345678) 
                 == DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED );
 
-            REQUIRE( dsl_component_queue_underrun_listener_add(trackerName.c_str(),
+            REQUIRE( dsl_component_queue_underrun_listener_add(tracker_name.c_str(),
                 queue_underrun_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
             // Second add of the same listener must fail
-            REQUIRE( dsl_component_queue_underrun_listener_add(trackerName.c_str(),
+            REQUIRE( dsl_component_queue_underrun_listener_add(tracker_name.c_str(),
                 queue_underrun_listener_cb, (void*)0x12345678) 
                 == DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED );
 
             THEN( "The same listener can be removed" ) 
             {
                 REQUIRE( dsl_component_queue_overrun_listener_remove(
-                    trackerName.c_str(), queue_overrun_listener_cb) 
+                    tracker_name.c_str(), queue_overrun_listener_cb) 
                     == DSL_RESULT_SUCCESS );
 
                 // Second remove of the same listener must fail
                 REQUIRE( dsl_component_queue_overrun_listener_remove(
-                    trackerName.c_str(), queue_overrun_listener_cb) 
+                    tracker_name.c_str(), queue_overrun_listener_cb) 
                     == DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_queue_underrun_listener_remove(
-                    trackerName.c_str(), queue_underrun_listener_cb) 
+                    tracker_name.c_str(), queue_underrun_listener_cb) 
                     == DSL_RESULT_SUCCESS );
 
                 // Second remove of the same listener must fail
                 REQUIRE( dsl_component_queue_underrun_listener_remove(
-                    trackerName.c_str(), queue_underrun_listener_cb) 
+                    tracker_name.c_str(), queue_underrun_listener_cb) 
                     == DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
@@ -388,7 +582,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             REQUIRE( dsl_infer_gie_primary_new(pgieName.c_str(), 
                 infer_config_file_dgpu.c_str(), NULL, 0) == DSL_RESULT_SUCCESS );
         }
-        REQUIRE( dsl_tracker_new(trackerName.c_str(), configFile.c_str(), 
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), configFile.c_str(), 
             width, height) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), 
@@ -397,7 +591,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         REQUIRE( dsl_sink_window_egl_new(windowSinkName.c_str(), 
             0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), 
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
@@ -409,7 +603,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             &retGpuId) == DSL_RESULT_SUCCESS );
         REQUIRE( retGpuId == 0);
         retGpuId = 99;
-        REQUIRE( dsl_component_gpuid_get(tilerName.c_str(), 
+        REQUIRE( dsl_component_gpuid_get(tiler_name.c_str(), 
             &retGpuId) == DSL_RESULT_SUCCESS );
         REQUIRE( retGpuId == 0);
         retGpuId = 99;
@@ -453,11 +647,11 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;
-                REQUIRE( dsl_component_gpuid_get(trackerName.c_str(), 
+                REQUIRE( dsl_component_gpuid_get(tracker_name.c_str(), 
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;
-                REQUIRE( dsl_component_gpuid_get(tilerName.c_str(), 
+                REQUIRE( dsl_component_gpuid_get(tiler_name.c_str(), 
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;
@@ -499,7 +693,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
 
         REQUIRE( dsl_osd_new(osdName.c_str(), 
             true, true, true, false) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_tiler_new(tilerName.c_str(), 
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
         
         REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), 
@@ -508,7 +702,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         retNvbufMem = 99;
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
             retNvbufMem = 99;
             REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
@@ -516,7 +710,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         }
         else
         {
-            REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
             retNvbufMem = 99;
             REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
@@ -545,7 +739,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
                     &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
                 retNvbufMem = 99;
-                REQUIRE( dsl_component_nvbuf_mem_type_get(tilerName.c_str(), 
+                REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), 
                     &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
                 retNvbufMem = 99;
