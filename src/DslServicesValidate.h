@@ -400,7 +400,9 @@ THE SOFTWARE.
 #elif BUILD_WEBRTC != true
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(TrackerBintr)) and  \
+    if (!components[name]->IsType(typeid(PreprocBintr)) and  \
+        !components[name]->IsType(typeid(TrackerBintr)) and  \
+        !components[name]->IsType(typeid(TilerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
@@ -416,14 +418,16 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a QBintr"); \
+        LOG_ERROR("Component '" << name << "' does not have a queue element "); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
     } \
 }while(0);
 #else
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(TrackerBintr)) and  \
+    if (!components[name]->IsType(typeid(PreprocBintr)) and  \
+        !components[name]->IsType(typeid(TrackerBintr)) and  \
+        !components[name]->IsType(typeid(TilerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
@@ -440,7 +444,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
     { \
-        LOG_ERROR("Component '" << name << "' is not a QBintr"); \
+        LOG_ERROR("Component '" << name << "' does not have a queue element "); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
     } \
 }while(0);

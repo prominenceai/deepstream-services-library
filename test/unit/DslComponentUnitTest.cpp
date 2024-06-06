@@ -88,23 +88,26 @@ static void queue_underrun_listener_cb2(const wchar_t* name, void* client_data)
     std::wcout << L"Underrun listener-2 called for Component '" 
         << name << L"'" << std::endl;
 }
+
 SCENARIO( "Queue overrun and underrun events are handled correctly", "[QBintr]" )
 {
-    GIVEN( "Attributes for a new IOU Tracker as sample component" ) 
+    GIVEN( "Two new IOU Trackers as sample components" ) 
     {
         std::string trackerName1("iou-tracker-1");
         std::string trackerName2("iou-tracker-2");
         uint width(200);
         uint height(100);
 
-        WHEN( "The IOU Tracker is created" )
+        DSL_TRACKER_PTR pTrackerBintr1 = 
+            DSL_TRACKER_NEW(trackerName1.c_str(), iouTrackerConfigFile.c_str(), 
+            width, height);
+
+        DSL_TRACKER_PTR pTrackerBintr2 = 
+            DSL_TRACKER_NEW(trackerName2.c_str(), iouTrackerConfigFile.c_str(), 
+            width, height);
+
+        WHEN( "Client listeners are added to the two Trackers" )
         {
-            DSL_TRACKER_PTR pTrackerBintr1 = 
-                DSL_TRACKER_NEW(trackerName1.c_str(), iouTrackerConfigFile.c_str(), width, height);
-
-            DSL_TRACKER_PTR pTrackerBintr2 = 
-                DSL_TRACKER_NEW(trackerName2.c_str(), iouTrackerConfigFile.c_str(), width, height);
-
             REQUIRE( pTrackerBintr1->AddQueueOverrunListener(
                 queue_overrun_listener_cb1, (void*)0x12345678) == true );
 
@@ -129,7 +132,7 @@ SCENARIO( "Queue overrun and underrun events are handled correctly", "[QBintr]" 
             REQUIRE( pTrackerBintr2->AddQueueUnderrunListener(
                 queue_underrun_listener_cb2, (void*)0x87654321) == true );
 
-            THEN( "The Tracker's lib is found, loaded, and returned correctly")
+            THEN( "The client listeners are called correctly")
             {
                 // Note: requires manual verification using callback cout calls.
                 QueueOverrunCB(NULL, (void*)&(*pTrackerBintr1));
