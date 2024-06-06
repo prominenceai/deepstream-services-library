@@ -401,6 +401,10 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
     if (!components[name]->IsType(typeid(PreprocBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryGieBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryTisBintr)) and  \
         !components[name]->IsType(typeid(TrackerBintr)) and  \
         !components[name]->IsType(typeid(TilerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
@@ -426,6 +430,10 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
     if (!components[name]->IsType(typeid(PreprocBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryGieBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryTisBintr)) and  \
         !components[name]->IsType(typeid(TrackerBintr)) and  \
         !components[name]->IsType(typeid(TilerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
