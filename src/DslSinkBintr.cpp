@@ -34,7 +34,7 @@ THE SOFTWARE.
 namespace DSL
 {
     SinkBintr::SinkBintr(const char* name) 
-        : Bintr(name)
+        : QBintr(name)
         , m_sync(false)         // Note: each derived bintr will update the 2 of th 4
         , m_maxLateness(-1)     // common propery settings (sync,  max-latness)
         , m_qos(false)          // with get-property calls on bintr construction.
@@ -46,14 +46,6 @@ namespace DSL
 
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
-        
-        // SinkBintrs well be connected to either the MultiSinksBintr
-        // or as a Branch to a Demuxer, Remuxer, or Splitter Tee.
-        // In all cases a Tee - therefore we need a downstream queue as first element.
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        
-        // Add the Queue as a child of the SinkBintr
-        AddChild(m_pQueue);
         
         // Float the Queue as sink (input) ghost pad for this SinkBintr
         m_pQueue->AddGhostPadToParent("sink");
@@ -246,6 +238,16 @@ namespace DSL
             LOG_INFO("  max-lateness       : " << m_maxLateness);
             LOG_INFO("  qos                : " << m_qos);
             LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+            LOG_INFO("  queue              : " );
+            LOG_INFO("    leaky            : " << m_leaky);
+            LOG_INFO("    max-size         : ");
+            LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+            LOG_INFO("      bytes          : " << m_maxSizeBytes);
+            LOG_INFO("      time           : " << m_maxSizeTime);
+            LOG_INFO("    min-threshold    : ");
+            LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+            LOG_INFO("      bytes          : " << m_minThresholdBytes);
+            LOG_INFO("      time           : " << m_minThresholdTime);
         }
         AddChild(m_pSink);
     }
@@ -405,6 +407,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         // override the client data (set to NULL above) to this pointer.
         m_clientData = this;
@@ -545,6 +557,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
     }
@@ -1173,6 +1195,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
     }
@@ -1304,6 +1336,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pTransform);
         AddChild(m_pSink);
@@ -1752,6 +1794,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
 
         AddChild(m_pContainer);
         AddChild(m_pSink);
@@ -1838,6 +1890,16 @@ namespace DSL
         LOG_INFO("  sync               : " << "n/a");
         LOG_INFO("  async              : " << "n/a");
         LOG_INFO("  qos                : " << "n/a");
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -1959,6 +2021,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
 
         AddChild(m_pFlvmux);
         AddChild(m_pSink);
@@ -2118,6 +2190,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
 
         AddChild(m_pPayloader);
         AddChild(m_pSink);
@@ -2300,6 +2382,16 @@ namespace DSL
         LOG_INFO("  async                : " << "na");
         LOG_INFO("  max-lateness         : " << "na");
         LOG_INFO("  qos                  : " << "na");
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
         AddChild(m_pSink);
     }
@@ -2529,6 +2621,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pMsgConverter);
         AddChild(m_pSink);
@@ -2730,6 +2832,16 @@ namespace DSL
         LOG_INFO("    identity         : " << m_identity);
         LOG_INFO("    participant      : " << m_participant);
         LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
     }
@@ -2811,6 +2923,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         LOG_INFO("interpipesink full name = " << m_pSink->GetName());
 
@@ -2954,6 +3076,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pVideoConv);
         AddChild(m_pVideoRate);
@@ -3211,6 +3343,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
         AddChild(m_pTransform);
