@@ -904,6 +904,30 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for DuplicateSourceBintr '" << name << "'");
         LOG_INFO("  original-source   : " << m_original);
+<<<<<<< HEAD
+=======
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
+>>>>>>> 3158b5e (Implement Component Queue get/set services)
 
         // Source queue is both "sink" and "src" ghost-pad for the DuplicateSourceBintr
         m_pQueue->AddGhostPadToParent("src");
