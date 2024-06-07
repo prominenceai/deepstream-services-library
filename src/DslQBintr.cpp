@@ -307,7 +307,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        LOG_WARN("Queue overrun signal received for Component " 
+        LOG_DEBUG("Queue underrun signal received for Component " 
             << GetName() << "'");
             
         // iterate through the map of queue-underrun-listeners calling each

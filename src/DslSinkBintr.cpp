@@ -2002,7 +2002,7 @@ namespace DSL
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
+        LOG_INFO("Initial property values for RtmpSinkBintr '" << name << "'");
         LOG_INFO("  uri                : " << m_uri);
         LOG_INFO("  codec              : " << m_codec);
         if (m_bitrate)

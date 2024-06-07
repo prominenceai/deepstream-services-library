@@ -29,7 +29,7 @@ THE SOFTWARE.
 static const std::wstring uri(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
-static const std::wstring sourceName(L"test-source");
+static const std::wstring source_name(L"test-source");
 static const std::wstring preproc_name(L"preprocessor");
 static const std::wstring primary_gie_name(L"primary-gie");
 static const std::wstring secondary_gie_name(L"secondary-gie");
@@ -77,7 +77,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
         WHEN( "Several new components are created" ) 
         {
 
-            REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), 
+            REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
                 false, 0, 0) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
                 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
@@ -319,6 +319,9 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
         uint tiler_width(1280);
         uint tiler_height(720);
 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            false, 0, 0) == DSL_RESULT_SUCCESS );
+            
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
             preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -342,7 +345,7 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {
-            preproc_name.c_str(), primary_gie_name.c_str(), secondary_gie_name.c_str(),
+            source_name.c_str(), preproc_name.c_str(), primary_gie_name.c_str(), secondary_gie_name.c_str(),
             tracker_name.c_str(), tiler_name.c_str(), window_sink_name.c_str(),
             fake_sink_name.c_str(),
             NULL};
@@ -729,7 +732,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         uint bitrate(2000000);
         uint interval(0);
 
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, 0, 0) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_dewarper_new(dewarperName.c_str(), 
             dewarper_config_file.c_str(), 1) == DSL_RESULT_SUCCESS );
@@ -777,7 +780,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             
             if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
             {
-                const wchar_t* components[] = {sourceName.c_str(), 
+                const wchar_t* components[] = {source_name.c_str(), 
                     dewarperName.c_str(), primary_gie_name.c_str(), 
                     tracker_name.c_str(), tiler_name.c_str(), 
                     osdName.c_str(), file_sink_name.c_str(), NULL};
@@ -786,7 +789,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             }
             else
             {
-                const wchar_t* components[] = {sourceName.c_str(), 
+                const wchar_t* components[] = {source_name.c_str(), 
                     dewarperName.c_str(), primary_gie_name.c_str(), 
                     tracker_name.c_str(), tiler_name.c_str(), 
                     osdName.c_str(), window_sink_name.c_str(), 
@@ -798,7 +801,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             THEN( "All components return the correct GPU ID of get" ) 
             {
                 retGpuId = 99;
-                REQUIRE( dsl_component_gpuid_get(sourceName.c_str(), 
+                REQUIRE( dsl_component_gpuid_get(source_name.c_str(), 
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;
@@ -851,7 +854,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
 
         uint retNvbufMem(99);
 
-        REQUIRE( dsl_source_uri_new(sourceName.c_str(), uri.c_str(), 
+        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
             false, 0, 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), 
@@ -859,7 +862,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), 
+        REQUIRE( dsl_component_nvbuf_mem_type_get(source_name.c_str(), 
               &retNvbufMem) == DSL_RESULT_SUCCESS );
         REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
         retNvbufMem = 99;
@@ -898,7 +901,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
             THEN( "All components return the correct NVIDIA mem type on get" ) 
             {
                 retNvbufMem = 99;
-                REQUIRE( dsl_component_nvbuf_mem_type_get(sourceName.c_str(), 
+                REQUIRE( dsl_component_nvbuf_mem_type_get(source_name.c_str(), 
                     &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
                 retNvbufMem = 99;
