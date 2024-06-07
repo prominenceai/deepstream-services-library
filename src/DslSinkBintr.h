@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslElementr.h"
 #include "DslRecordMgr.h"
 #include "DslSourceMeter.h"
@@ -121,7 +121,7 @@ namespace DSL
 
     //-------------------------------------------------------------------------
 
-    class SinkBintr : public Bintr
+    class SinkBintr : public QBintr
     {
     public: 
     
@@ -233,11 +233,6 @@ namespace DSL
          */
         gboolean m_enableLastSample;
  
-        /**
-         * @brief Queue element as sink for all Sink Bintrs.
-         */
-        DSL_ELEMENT_PTR m_pQueue;
-        
         /**
          * @brief Actual sink element specific to each Sink Bintr.
          */
