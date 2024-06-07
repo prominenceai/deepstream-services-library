@@ -80,7 +80,7 @@ namespace DSL
     }
     
     SourceBintr::SourceBintr(const char* name)
-        : Bintr(name)
+        : QBintr(name)
         , m_cudaDeviceProp{0}
         , m_isLive(true)
         , m_fpsN(0)
@@ -183,20 +183,15 @@ namespace DSL
             throw;
         }
 
-        // ---- Queue as ghost pad to connect to Streammuxer
-        
-        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
-        
         // add both elementrs as children to this Bintr
         AddChild(m_pBufferOutVidConv);
         AddChild(m_pBufferOutCapsFilter);
-        AddChild(m_pSourceQueue);
 
         // Source (output) queue is "src" ghost-pad for all SourceBintrs
-        m_pSourceQueue->AddGhostPadToParent("src");
+        m_pQueue->AddGhostPadToParent("src");
 
         // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
-        AddSrcPadProbes(m_pSourceQueue->GetGstElement());
+        AddSrcPadProbes(m_pQueue->GetGstElement());
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -342,7 +337,7 @@ namespace DSL
         // Link to the final queue element - the source-ghost-pad for the bintr.
         // IMPORTANT we don't add the queue to vector of linked elements.
         // as we'll call UnlinkFromSink on each element.
-        if(!m_linkedCommonElements.back()->LinkToSink(m_pSourceQueue))
+        if(!m_linkedCommonElements.back()->LinkToSink(m_pQueue))
         {
             return false;
         }
@@ -913,6 +908,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // add all elementrs as childer to this Bintr
         AddChild(m_pSinkQueue);
@@ -1059,6 +1064,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // TODO support GST 1.20 properties
         // LOG_INFO("max-buffers = " << m_maxBuffers);
@@ -1506,6 +1521,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1665,6 +1690,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1935,6 +1970,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2407,6 +2452,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
     }
@@ -2571,6 +2626,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
         
         AddChild(m_pSourceElement);
 
@@ -2760,6 +2825,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2966,6 +3041,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
+        LOG_INFO("  queue               : " );
+        LOG_INFO("    leaky             : " << m_leaky);
+        LOG_INFO("    max-size          : ");
+        LOG_INFO("      buffers         : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes           : " << m_maxSizeBytes);
+        LOG_INFO("      time            : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold     : ");
+        LOG_INFO("      buffers         : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes           : " << m_minThresholdBytes);
+        LOG_INFO("      time            : " << m_minThresholdTime);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -3175,6 +3260,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
         LOG_INFO("    crop-post-conv     : 0:0:0:0" );
         LOG_INFO("    orientation        : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pDepayCapsfilter);
