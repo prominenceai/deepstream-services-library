@@ -1704,6 +1704,9 @@ namespace DSL {
         DslReturnType ComponentQueueCurrentLevelGet(const char* name, 
             uint unit, uint64_t* currentLevel);
 
+        DslReturnType ComponentQueueCurrentLevelPrint(const char* name, 
+            uint unit);
+
         DslReturnType ComponentQueueLeakyGet(const char* name, uint* leaky);
 
         DslReturnType ComponentQueueLeakySet(const char* name, uint leaky);

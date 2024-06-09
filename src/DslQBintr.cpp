@@ -58,19 +58,12 @@ namespace DSL
         AddChild(m_pQueue);
     }
 
-    /**
-     * @brief Dtor for the QBintr class
-     */
+
     QBintr::~QBintr()
     { 
         LOG_FUNC(); 
     }
 
-    /**
-     * @brief Gets the current level for the Queue element by unit.
-     * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
-     * @return current level for the specified unit.
-     */
     uint64_t QBintr::GetQueueCurrentLevel(uint unit)
     {
         LOG_FUNC(); 
@@ -93,6 +86,36 @@ namespace DSL
             m_pQueue->GetAttribute("current-level-time", &currentLevel);
         }
         return currentLevel;
+    }
+
+    void QBintr::PrintQueueCurrentLevel(uint unit)
+    {
+        LOG_FUNC(); 
+
+        if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS)
+        {
+            uint currentLevelBuffers(0);
+            m_pQueue->GetAttribute("current-level-buffers", &currentLevelBuffers);
+            std::cout << "'current-level-buffers' = " << currentLevelBuffers 
+                << "/" << m_maxSizeBuffers << " for QBintr '" << GetName() 
+                << "'" << std::endl;
+        }
+        else if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
+        {
+            uint currentLevelBytes(0);
+            m_pQueue->GetAttribute("current-level-bytes", &currentLevelBytes);
+            std::cout << "'current-level-bytes' = " << currentLevelBytes 
+                << "/" << m_maxSizeBytes << " for QBintr '" << GetName() 
+                << "'" << std::endl;
+        }
+        else
+        {
+            uint64_t currentLevelTime(0);
+            m_pQueue->GetAttribute("current-level-time", &currentLevelTime);
+            std::cout << "'current-level-time' = " << currentLevelTime 
+                << "/" << m_maxSizeTime << " for QBintr '" << GetName() 
+                << "'" << std::endl;
+        }
     }
 
     uint QBintr::GetQueueLeaky()
