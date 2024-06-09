@@ -412,6 +412,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr)) and \
         !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
+        !components[name]->IsType(typeid(RecordTapBintr)) and  \
         !components[name]->IsType(typeid(PreprocBintr)) and  \
         !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
@@ -419,6 +420,10 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SecondaryTisBintr)) and  \
         !components[name]->IsType(typeid(TrackerBintr)) and  \
         !components[name]->IsType(typeid(TilerBintr)) and  \
+        !components[name]->IsType(typeid(OsdBintr)) and  \
+        !components[name]->IsType(typeid(MultiSinksBintr)) and  \
+        !components[name]->IsType(typeid(SplitterBintr)) and  \
+        !components[name]->IsType(typeid(DemuxerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
@@ -453,6 +458,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
         !components[name]->IsType(typeid(RtspSourceBintr)) and \
         !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
+        !components[name]->IsType(typeid(RecordTapBintr)) and  \
         !components[name]->IsType(typeid(PreprocBintr)) and  \
         !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
@@ -460,6 +466,10 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SecondaryTisBintr)) and  \
         !components[name]->IsType(typeid(TrackerBintr)) and  \
         !components[name]->IsType(typeid(TilerBintr)) and  \
+        !components[name]->IsType(typeid(OsdBintr)) and  \
+        !components[name]->IsType(typeid(MultiSinksBintr)) and  \
+        !components[name]->IsType(typeid(SplitterBintr)) and  \
+        !components[name]->IsType(typeid(DemuxerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \

@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslPadProbeHandler.h"
    
 namespace DSL 
@@ -56,7 +56,7 @@ namespace DSL
      * @brief Implements a virtual base Tee binter that can add, link, 
      * unlink, and remove child branches
      */
-    class TeeBintr : public Bintr
+    class TeeBintr : public QBintr
     {
     public: 
     
@@ -65,7 +65,7 @@ namespace DSL
          * @param[in] name name to give the new Bintr
          */
         TeeBintr(const char* name) 
-            : Bintr(name)
+            : QBintr(name)
             , m_blockingTimeout(DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC)
         {
             LOG_FUNC();
@@ -242,12 +242,6 @@ namespace DSL
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
 
-        /**
-         * @brief queue element for this Bintr to create a new process 
-         * for this Bintr to run in
-         */
-        DSL_ELEMENT_PTR m_pQueue;
-        
         /**
          * @brief Tee element -- multi-sinks, splitter or demuxer i.e. the
          * actual plugin is specific to the derived child class below.
