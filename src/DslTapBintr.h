@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslElementr.h"
 #include "DslRecordMgr.h"
 
@@ -38,10 +38,11 @@ namespace DSL
     #define DSL_TAP_PTR std::shared_ptr<TapBintr>
 
     #define DSL_RECORD_TAP_PTR std::shared_ptr<RecordTapBintr>
-    #define DSL_RECORD_TAP_NEW(name, outdir, container, clientListener) std::shared_ptr<RecordTapBintr>( \
-        new RecordTapBintr(name, outdir, container, clientListener))
+    #define DSL_RECORD_TAP_NEW(name, outdir, container, clientListener) \
+        std::shared_ptr<RecordTapBintr>( \
+            new RecordTapBintr(name, outdir, container, clientListener))
 
-    class TapBintr : public Bintr
+    class TapBintr : public QBintr
     {
     public: 
     
@@ -51,12 +52,6 @@ namespace DSL
         
         virtual void HandleEos() = 0;
         
-    protected:
-    
-        /**
-         * @brief Queue element as sink for all Tap Bintrs.
-         */
-        DSL_ELEMENT_PTR m_pQueue;
     };
 
     //-------------------------------------------------------------------------
