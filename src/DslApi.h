@@ -8513,11 +8513,32 @@ uint dsl_component_list_size();
  * named Component.
  * @param[in] name name of the Component to query.
  * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
- * @param[out]  current_level the current queue level for the specified unit.
+ * @param[out] current_level the current queue level for the specified unit.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
  */
 DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
     uint unit, uint64_t* current_level);
+
+/**
+ * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_print(const wchar_t* name, 
+    uint unit);
+
+/**
+ * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
+ * for a null terminated list of named Components.
+ * @param[in] names null termainted list of names of components to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_print_many(const wchar_t** names, 
+    uint unit);
 
 /**
  * @brief Gets the current queue-leaky setting for the named Component.

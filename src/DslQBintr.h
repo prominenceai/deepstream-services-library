@@ -67,6 +67,12 @@ namespace DSL
         uint64_t GetQueueCurrentLevel(uint unit);
 
         /**
+         * @brief Prints the current level for the Queue element by unit to stdout.
+         * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+         */
+        void PrintQueueCurrentLevel(uint unit);
+
+        /**
          * @brief Gets the leaky property for the Queue element.
          * @return One of the DSL_COMPONENT_QUEUE_LEAKY constant values.
          */

@@ -129,6 +129,40 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::ComponentQueueCurrentLevelPrint(const char* name, 
+        uint unit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            
+            if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
+            {
+                LOG_ERROR("Invalid queue measurement unit = " << unit 
+                    << " for Component '"  << name << "'");
+                return DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
+            }
+            DSL_QBINTR_PTR pQBintrComponent = 
+                std::dynamic_pointer_cast<QBintr>(m_components[name]);
+
+            pQBintrComponent->PrintQueueCurrentLevel(unit);
+ 
+            LOG_INFO("Component '" << name << "' print current-level for unit = " 
+                << unit << " successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception printing queue current-level");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
+ 
     DslReturnType Services::ComponentQueueLeakyGet(const char* name, uint* leaky)
     {
         LOG_FUNC();
