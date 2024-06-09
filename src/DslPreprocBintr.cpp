@@ -56,20 +56,20 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for PreprocBintr '" << name << "'");
-        LOG_INFO("  config-file          : " << m_configFile);
-        LOG_INFO("  unique-id            : " << m_uniqueId);
-        LOG_INFO("  enabled              : " << m_enabled);
-        LOG_INFO("  gpu-id               : " << m_gpuId);
-        LOG_INFO("  queue                : " );
-        LOG_INFO("    leaky              : " << m_leaky);
-        LOG_INFO("    max-size           : ");
-        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes            : " << m_maxSizeBytes);
-        LOG_INFO("      time             : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold      : ");
-        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes            : " << m_minThresholdBytes);
-        LOG_INFO("      time             : " << m_minThresholdTime);
+        LOG_INFO("  config-file       : " << m_configFile);
+        LOG_INFO("  unique-id         : " << m_uniqueId);
+        LOG_INFO("  enabled           : " << m_enabled);
+        LOG_INFO("  gpu-id            : " << m_gpuId);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
         
         AddChild(m_pPreproc);
 

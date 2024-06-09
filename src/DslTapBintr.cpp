@@ -30,12 +30,12 @@ namespace DSL
 {
 
     TapBintr::TapBintr(const char* name)
-        : Bintr(name)
+        : QBintr(name)
     {
         LOG_FUNC();
 
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        AddChild(m_pQueue);
+        // Float the queue element (from parent QBintr) as a sink-ghost-pad 
+        // for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
     }
 
@@ -55,8 +55,18 @@ namespace DSL
         
         LOG_INFO("");
         LOG_INFO("Initial property values for RecordTapBintr '" << name << "'");
-        LOG_INFO("  outdir             : " << outdir);
-        LOG_INFO("  container          : " << container);
+        LOG_INFO("  outdir            : " << outdir);
+        LOG_INFO("  container         : " << container);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
     }
     
     RecordTapBintr::~RecordTapBintr()
