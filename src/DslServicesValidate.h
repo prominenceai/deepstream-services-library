@@ -400,7 +400,19 @@ THE SOFTWARE.
 #elif BUILD_WEBRTC != true
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(PreprocBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
+        !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr)) and \
+        !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
+        !components[name]->IsType(typeid(PreprocBintr)) and  \
         !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
         !components[name]->IsType(typeid(SecondaryGieBintr)) and  \
@@ -429,7 +441,19 @@ THE SOFTWARE.
 #else
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(PreprocBintr)) and  \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
+        !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr)) and \
+        !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
+        !components[name]->IsType(typeid(PreprocBintr)) and  \
         !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
         !components[name]->IsType(typeid(SecondaryGieBintr)) and  \

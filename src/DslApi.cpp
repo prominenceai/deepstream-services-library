@@ -9689,6 +9689,38 @@ DslReturnType dsl_component_queue_current_level_get(const wchar_t* name,
         cstrName.c_str(), unit, current_level);
 }
 
+DslReturnType dsl_component_queue_current_level_print(const wchar_t* name, 
+    uint unit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentQueueCurrentLevelPrint(
+        cstrName.c_str(), unit);
+}
+
+DslReturnType dsl_component_queue_current_level_print_many(const wchar_t** names, 
+    uint unit)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueCurrentLevelPrint(cstrName.c_str(), unit);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_queue_leaky_get(const wchar_t* name, uint* leaky)
 {
     RETURN_IF_PARAM_IS_NULL(name);

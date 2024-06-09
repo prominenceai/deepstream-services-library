@@ -29,7 +29,8 @@ THE SOFTWARE.
 static const std::wstring uri(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
-static const std::wstring source_name(L"test-source");
+static const std::wstring uri_source_name(L"uri-source");
+static const std::wstring v4l2_source_name(L"v4l2-source");
 static const std::wstring preproc_name(L"preprocessor");
 static const std::wstring primary_gie_name(L"primary-gie");
 static const std::wstring secondary_gie_name(L"secondary-gie");
@@ -41,6 +42,7 @@ static const std::wstring fake_sink_name(L"fake-sink");
 
 
 static const std::wstring filePath(L"./output.mp4");
+static const std::wstring def_device_location(L"/dev/video0");
      
 static const std::wstring preproc_config(
     L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
@@ -77,7 +79,7 @@ SCENARIO( "The Components container is updated correctly on multiple new compone
         WHEN( "Several new components are created" ) 
         {
 
-            REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+            REQUIRE( dsl_source_uri_new(uri_source_name.c_str(), uri.c_str(), 
                 false, 0, 0) == DSL_RESULT_SUCCESS );
             REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
                 0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
@@ -319,9 +321,12 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
         uint tiler_width(1280);
         uint tiler_height(720);
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+        REQUIRE( dsl_source_uri_new(uri_source_name.c_str(), uri.c_str(), 
             false, 0, 0) == DSL_RESULT_SUCCESS );
             
+        REQUIRE( dsl_source_v4l2_new(v4l2_source_name.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
+
         REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
             preproc_config.c_str()) == DSL_RESULT_SUCCESS );
 
@@ -345,7 +350,8 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
         REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
         
         const wchar_t* components[] = {
-            source_name.c_str(), preproc_name.c_str(), primary_gie_name.c_str(), secondary_gie_name.c_str(),
+            uri_source_name.c_str(), v4l2_source_name.c_str(), preproc_name.c_str(), 
+            primary_gie_name.c_str(), secondary_gie_name.c_str(),
             tracker_name.c_str(), tiler_name.c_str(), window_sink_name.c_str(),
             fake_sink_name.c_str(),
             NULL};
@@ -394,6 +400,14 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 uint64_t ret_max_size(99);
                 uint64_t ret_min_threshold(99);
                 
+                REQUIRE( dsl_component_queue_leaky_get(uri_source_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
+                REQUIRE( dsl_component_queue_leaky_get(v4l2_source_name.c_str(), 
+                    &ret_leaky) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
                 REQUIRE( dsl_component_queue_leaky_get(preproc_name.c_str(), 
                     &ret_leaky) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
@@ -401,6 +415,7 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 REQUIRE( dsl_component_queue_leaky_get(primary_gie_name.c_str(), 
                     &ret_leaky) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
+
                 REQUIRE( dsl_component_queue_leaky_get(secondary_gie_name.c_str(), 
                     &ret_leaky) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_leaky == DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM );
@@ -423,6 +438,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
 
                 // ---------------------------------
 
+                REQUIRE( dsl_component_queue_max_size_get(uri_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
+                REQUIRE( dsl_component_queue_max_size_get(v4l2_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_buffers );
+
                 REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
@@ -460,6 +485,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
 
                 // ---------------------------------
 
+                REQUIRE( dsl_component_queue_max_size_get(uri_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
+                REQUIRE( dsl_component_queue_max_size_get(v4l2_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_bytes );
+                
                 REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
@@ -497,6 +532,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 
                 // ---------------------------------
 
+                REQUIRE( dsl_component_queue_max_size_get(uri_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
+                REQUIRE( dsl_component_queue_max_size_get(v4l2_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size_time );
+
                 REQUIRE( dsl_component_queue_max_size_get(preproc_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_max_size) 
                     == DSL_RESULT_SUCCESS );
@@ -533,6 +578,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 REQUIRE( ret_max_size == new_max_size_bytes );
                 
                 // ---------------------------------
+
+                REQUIRE( dsl_component_queue_min_threshold_get(uri_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(v4l2_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_buffers );
 
                 REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, &ret_min_threshold) 
@@ -571,6 +626,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
 
                 // ---------------------------------
 
+                REQUIRE( dsl_component_queue_min_threshold_get(uri_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
+                REQUIRE( dsl_component_queue_min_threshold_get(v4l2_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_bytes );
+                
                 REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_BYTES, &ret_min_threshold) 
                     == DSL_RESULT_SUCCESS );
@@ -607,6 +672,16 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
                 REQUIRE( ret_min_threshold == new_min_threshold_bytes );
                 
                 // ---------------------------------
+
+                REQUIRE( dsl_component_queue_min_threshold_get(uri_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
+
+                REQUIRE( dsl_component_queue_min_threshold_get(v4l2_source_name.c_str(), 
+                    DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_min_threshold == new_min_threshold_time );
 
                 REQUIRE( dsl_component_queue_min_threshold_get(preproc_name.c_str(), 
                     DSL_COMPONENT_QUEUE_UNIT_OF_TIME, &ret_min_threshold) 
@@ -649,6 +724,68 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
         }
     }
 }
+
+SCENARIO( "Multiple new components can Print their Queue levels/max-sizes correctly", 
+    "[now]" )
+{
+    GIVEN( "Three new components" ) 
+    {
+        uint tacker_width(480);
+        uint tacker_height(272);
+
+        uint tiler_width(1280);
+        uint tiler_height(720);
+
+        REQUIRE( dsl_source_uri_new(uri_source_name.c_str(), uri.c_str(), 
+            false, 0, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_preproc_new(preproc_name.c_str(), 
+            preproc_config.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), model_engine_file.c_str(), 
+            interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_infer_gie_secondary_new(secondary_gie_name.c_str(), 
+            secondary_infer_config_file.c_str(), secondary_model_engine_file.c_str(), 
+            primary_gie_name.c_str(), interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(), 
+            tacker_width, tacker_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
+            tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(), 
+            0, 0, 1280, 720) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {
+            uri_source_name.c_str(), preproc_name.c_str(), primary_gie_name.c_str(), secondary_gie_name.c_str(),
+            tracker_name.c_str(), tiler_name.c_str(), window_sink_name.c_str(),
+            fake_sink_name.c_str(),
+            NULL};
+        
+        WHEN( "The new components are called to print their queue levels" ) 
+        {
+            REQUIRE( dsl_component_queue_current_level_print_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_queue_current_level_print_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_queue_current_level_print_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == DSL_RESULT_SUCCESS );
+
+            THEN( "The values are printed out correctly" ) 
+            {
+                // Note: requires manual verification of the print statements.
+            }
+        }
+    }
+}
+
 
 static void queue_overrun_listener_cb(const wchar_t* name, void* client_data)
 {
@@ -732,7 +869,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         uint bitrate(2000000);
         uint interval(0);
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+        REQUIRE( dsl_source_uri_new(uri_source_name.c_str(), uri.c_str(), 
             false, 0, 0) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_dewarper_new(dewarperName.c_str(), 
             dewarper_config_file.c_str(), 1) == DSL_RESULT_SUCCESS );
@@ -780,7 +917,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             
             if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
             {
-                const wchar_t* components[] = {source_name.c_str(), 
+                const wchar_t* components[] = {uri_source_name.c_str(), 
                     dewarperName.c_str(), primary_gie_name.c_str(), 
                     tracker_name.c_str(), tiler_name.c_str(), 
                     osdName.c_str(), file_sink_name.c_str(), NULL};
@@ -789,7 +926,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             }
             else
             {
-                const wchar_t* components[] = {source_name.c_str(), 
+                const wchar_t* components[] = {uri_source_name.c_str(), 
                     dewarperName.c_str(), primary_gie_name.c_str(), 
                     tracker_name.c_str(), tiler_name.c_str(), 
                     osdName.c_str(), window_sink_name.c_str(), 
@@ -801,7 +938,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
             THEN( "All components return the correct GPU ID of get" ) 
             {
                 retGpuId = 99;
-                REQUIRE( dsl_component_gpuid_get(source_name.c_str(), 
+                REQUIRE( dsl_component_gpuid_get(uri_source_name.c_str(), 
                     &retGpuId) == DSL_RESULT_SUCCESS );
                 REQUIRE( retGpuId == newGpuId);
                 retGpuId = 99;
@@ -854,7 +991,7 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
 
         uint retNvbufMem(99);
 
-        REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(), 
+        REQUIRE( dsl_source_uri_new(uri_source_name.c_str(), uri.c_str(), 
             false, 0, 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_osd_new(osdName.c_str(), 
@@ -862,24 +999,28 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
         REQUIRE( dsl_tiler_new(tiler_name.c_str(), 
             1280, 720) == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_component_nvbuf_mem_type_get(source_name.c_str(), 
+        REQUIRE( dsl_component_nvbuf_mem_type_get(uri_source_name.c_str(), 
               &retNvbufMem) == DSL_RESULT_SUCCESS );
         REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
         retNvbufMem = 99;
         if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
         {
-            REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), 
+                &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
             retNvbufMem = 99;
-            REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), 
+                &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
         }
         else
         {
-            REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_get(tiler_name.c_str(), 
+                &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
             retNvbufMem = 99;
-            REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), &retNvbufMem) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_nvbuf_mem_type_get(osdName.c_str(), 
+                &retNvbufMem) == DSL_RESULT_SUCCESS );
             REQUIRE( retNvbufMem == DSL_NVBUF_MEM_TYPE_DEFAULT);
         }
 
@@ -895,13 +1036,16 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
                 newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
             }
 
-            const wchar_t* components[] = {L"test-source", L"tiler", L"osd", NULL};
-            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, newNvbufMemType) == DSL_RESULT_SUCCESS );
+            const wchar_t* components[] = {
+                uri_source_name.c_str(), tiler_name.c_str(), 
+                osdName.c_str(), NULL};
+            REQUIRE( dsl_component_nvbuf_mem_type_set_many(components, 
+                newNvbufMemType) == DSL_RESULT_SUCCESS );
 
             THEN( "All components return the correct NVIDIA mem type on get" ) 
             {
                 retNvbufMem = 99;
-                REQUIRE( dsl_component_nvbuf_mem_type_get(source_name.c_str(), 
+                REQUIRE( dsl_component_nvbuf_mem_type_get(uri_source_name.c_str(), 
                     &retNvbufMem) == DSL_RESULT_SUCCESS );
                 REQUIRE( retNvbufMem == newNvbufMemType );
                 retNvbufMem = 99;
@@ -951,6 +1095,12 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
                     0, &current_level) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_current_level_get(component_name.c_str(), 
                     0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_current_level_print(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_current_level_print_many(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_leaky_get(NULL, &leaky) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
