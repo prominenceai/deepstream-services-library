@@ -24,6 +24,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslServices.h"
+#include "spdlog/spdlog.h"
 
 #define RETURN_IF_PARAM_IS_NULL(input_string) do \
 { \
@@ -11559,3 +11560,7 @@ DslReturnType dsl_info_log_function_restore()
     return DSL::Services::GetServices()->InfoLogFunctionRestore();
 }
 
+DslReturnType dsl_setup_sdp_logger(std::shared_ptr<spdlog::logger> logger)
+{
+    return DSL::Services::GetServices()->SetSpdLogger(logger);
+}

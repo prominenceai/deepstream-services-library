@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslServices.h"
+#include "spdlog/spdlog.h"
 
 namespace DSL
 {
@@ -353,11 +354,75 @@ namespace DSL
         }
     }
 
+    static void gst_to_spdlog_log_function(GstDebugCategory *category, GstDebugLevel level,
+        const gchar *file, const gchar *function, gint line,
+        GObject *object, GstDebugMessage *message, gpointer user_data)
+    {
+        spdlog::level::level_enum spdlog_level;
+        switch (level)
+        {
+        case GST_LEVEL_ERROR:
+            spdlog_level = spdlog::level::err;
+            break;
+        case GST_LEVEL_WARNING:
+            spdlog_level = spdlog::level::warn;
+            break;
+        case GST_LEVEL_INFO:
+            spdlog_level = spdlog::level::info;
+            break;
+        case GST_LEVEL_DEBUG:
+            spdlog_level = spdlog::level::debug;
+            break;
+        case GST_LEVEL_LOG:
+            spdlog_level = spdlog::level::trace;
+            break;
+        default:
+            spdlog_level = spdlog::level::info;
+            break;
+        }
+
+        auto logger = static_cast<spdlog::logger*>(user_data);
+        logger->log(spdlog_level, "[{}:{}] {}", file, line, gst_debug_message_get(message));
+    }
+
     static void gst_debug_log_override(GstDebugCategory * category, GstDebugLevel level,
         const gchar * file, const gchar * function, gint line,
         GObject * object, GstDebugMessage * message, gpointer unused)
     {
-        gst_debug_log_default(category, level, file, function, line, 
+        auto logger = Services::GetServices()->GetSpdLogger();
+        if (logger)
+        {
+            gst_to_spdlog_log_function(category, level, file, function, line, object, message, logger.get());
+        }
+        else
+        {
+            gst_debug_log_default(category, level, file, function, line,
             object, message, Services::GetServices()->InfoLogFileHandleGet());
+        }
+    }
+
+    std::shared_ptr<spdlog::logger> Services::GetSpdLogger()
+    {
+        return m_spdLogger;
+    }
+
+    DslReturnType Services::SetSpdLogger(std::shared_ptr<spdlog::logger> logger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            gst_debug_remove_log_function(gst_debug_log_default);
+            gst_debug_add_log_function(gst_debug_log_override, nullptr, nullptr);
+            m_spdLogger = logger;
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("DSL threw an exception on setting SpdLogger");
+            return DSL_RESULT_THREW_EXCEPTION;
+        }
     }
 }

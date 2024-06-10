@@ -40,6 +40,7 @@ THE SOFTWARE.
 #elif BUILD_WEBRTC == true
     #include "DslSinkWebRtcBintr.h"
 #endif
+#include "spdlog/spdlog.h"
 
 
 namespace DSL {
@@ -2033,6 +2034,10 @@ namespace DSL {
         
         FILE* InfoLogFileHandleGet();
 
+        DslReturnType SetSpdLogger(std::shared_ptr<spdlog::logger> logger);
+
+        std::shared_ptr<spdlog::logger> GetSpdLogger();
+
         GMainLoop* GetMainLoopHandle()
         {
             LOG_FUNC();
@@ -2257,6 +2262,11 @@ namespace DSL {
          * @brief File handle for the Debug Log File if open.
          */
         FILE* m_debugLogFileHandle;
+
+        /**
+        * @brief Shared pointer to the spdlog logger instance for logging.
+        */
+        std::shared_ptr<spdlog::logger> m_spdLogger;
 
     };  
 

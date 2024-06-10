@@ -33,6 +33,8 @@ THE SOFTWARE.
 #define EXTERN_C_END
 #endif
 
+#include "spdlog/spdlog.h"
+
 #define DSL_FALSE                                                   0
 #define DSL_TRUE                                                    1
 
@@ -9823,6 +9825,12 @@ DslReturnType dsl_info_log_file_set_with_ts(const wchar_t* file_path);
  */
 DslReturnType dsl_info_log_function_restore();
 
+/**
+ * @brief Sets up the spdlog logger instance for logging within the DSL services.
+ * @param[in] logger Shared pointer to the spdlog logger to be used for logging.
+ * @return DSL_RETURN_SUCCESS on successful setup, DSL_RETURN_FAILURE otherwise.
+ */
+DslReturnType dsl_setup_sdp_logger(std::shared_ptr<spdlog::logger> logger);
 
 EXTERN_C_END
 
