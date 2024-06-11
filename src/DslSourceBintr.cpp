@@ -136,7 +136,45 @@ namespace DSL
         return std::dynamic_pointer_cast<PipelineBintr>(pParentBintr)->
             RemoveSourceBintr(std::dynamic_pointer_cast<SourceBintr>(shared_from_this()));
     }
-    
+    //--------------------------------------------------------------------------------
+
+    CustomSourceBintr::CustomSourceBintr(const char* name, const char* elementName, const char* factoryName, 
+        void** element) 
+    : SourceBintr(name)
+    {
+        LOG_FUNC();
+        m_pCustomSourceElement = DSL_ELEMENT_NEW(factoryName, elementName);        
+        *element = m_pCustomSourceElement.get()->GetGstElement();
+
+        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
+
+        AddChild(m_pCustomSourceElement);
+        AddChild(m_pSourceQueue);
+
+        // Source (output) queue is "src" ghost-pad for all SourceBintrs
+        m_pSourceQueue->AddGhostPadToParent("src");
+    }
+
+    /**
+     * @brief dtor for the VideoSourceBintr base class
+     */
+    CustomSourceBintr::~CustomSourceBintr() 
+    {
+        LOG_FUNC();
+    }
+
+    bool CustomSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+        return true;
+    }
+
+    void CustomSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        m_isLinked = false;
+    }
+
     //--------------------------------------------------------------------------------
     
     VideoSourceBintr::VideoSourceBintr(const char* name)

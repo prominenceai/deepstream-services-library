@@ -59,6 +59,33 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::SourceCustomNew(const char* name, const char* elementName, const char* factory,
+        void** element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness
+            if (m_components.find(name) != m_components.end())
+            {
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_CUSTOM_SOURCE_NEW(name, elementName, factory, element);
+
+            LOG_INFO("New Custom Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch (...)
+        {
+            LOG_ERROR("New Custom Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceAppDataHandlersAdd(const char* name,
         dsl_source_app_need_data_handler_cb needDataHandler, 
         dsl_source_app_enough_data_handler_cb enoughDataHandler, 
