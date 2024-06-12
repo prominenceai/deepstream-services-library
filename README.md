@@ -38,6 +38,22 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 ## Important Bulletins
 The latest release `v0.30.alpha` was developed to support DeepSteam 6.4 and 7.0 on Ubuntu 22.04. 
 
+> WARNING! There is a cricical error in the DeepStream 7.0 Installation Instructions.
+
+Under the section [Install librdkafka](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html#install-librdkafka-to-enable-kafka-protocol-adaptor-for-message-broker), the following instructions
+```bash
+$ sudo mkdir -p /opt/nvidia/deepstream/deepstream/lib
+$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream/lib
+```
+Must be replaced with.
+```bash
+$ sudo mkdir -p /opt/nvidia/deepstream/deepstream-7.0/lib
+$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream-7.0/lib
+```
+See [Error in DeepStream 7.0 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-0-installation-instructions-symlink-fails-to-create/296026) for more information.
+
+---
+
 ## Contributing
 
 DSL is released under the [MIT License](LICENSE). Contributions are welcome and greatly appreciated. Please review our [code of conduct](/CODE_OF_CONDUCT.md).
