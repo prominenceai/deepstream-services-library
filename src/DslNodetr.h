@@ -516,6 +516,67 @@ namespace DSL
             }
         }
 
+        static gboolean print_field(GQuark field, const GValue* value, gpointer pfx)
+        {
+            gchar* str = gst_value_serialize(value);
+
+            g_print("%s  %15s: %s\n", (gchar*)pfx, g_quark_to_string(field), str);
+            g_free(str);
+            return TRUE;
+        }
+
+        static void print_caps(const GstCaps* caps, const gchar* pfx)
+        {
+            guint i;
+
+            g_return_if_fail(caps != NULL);
+
+            if (gst_caps_is_any(caps))
+            {
+                g_print("%sANY\n", pfx);
+                return;
+            }
+            if (gst_caps_is_empty(caps))
+            {
+                g_print("%sEMPTY\n", pfx);
+                return;
+            }
+
+            for (i = 0; i < gst_caps_get_size(caps); i++)
+            {
+                GstStructure* structure = gst_caps_get_structure(caps, i);
+
+                g_print("%s%s\n", pfx, gst_structure_get_name(structure));
+                gst_structure_foreach(structure, print_field, (gpointer)pfx);
+            }
+        }
+
+        /* Shows the CURRENT capabilities of the requested pad in the given element */
+        static void print_pad_capabilities(GstElement* element, gchar* pad_name)
+        {
+            GstPad* pad = NULL;
+            GstCaps* caps = NULL;
+
+            /* Retrieve pad */
+            pad = gst_element_get_static_pad(element, pad_name);
+            if (!pad)
+            {
+                g_printerr("Could not retrieve pad '%s'\n", pad_name);
+                return;
+            }
+
+            /* Retrieve negotiated caps (or acceptable caps if negotiation is not finished yet) */
+            caps = gst_pad_get_current_caps(pad);
+            if (!caps)
+                caps = gst_pad_query_caps(pad, NULL);
+
+            /* Print and free */
+            g_print("Caps for the %s pad:\n", pad_name);
+            print_caps(caps, "      ");
+            gst_caps_unref(caps);
+            gst_object_unref(pad);
+        }
+
         /**
          * @brief links this Elementr as Source to a given Sink Elementr
          * @param[in] pSink to link to
@@ -528,9 +589,11 @@ namespace DSL
             // Then call GST to Link Source Element to Sink Element 
             if (!Nodetr::LinkToSink(pSink) or 
                 !gst_element_link(GetGstElement(), m_pSink->GetGstElement()))
-            {
+            {                            
                 LOG_ERROR("Failed to link " << GetName() 
                     << " to " << pSink->GetName());
+                print_pad_capabilities(GetGstElement(), (gchar*)"src");
+                print_pad_capabilities(m_pSink->GetGstElement(), (gchar*)"sink");
                 return false;
             }
             return true;

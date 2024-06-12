@@ -143,16 +143,28 @@ namespace DSL
     : SourceBintr(name)
     {
         LOG_FUNC();
-        m_pCustomSourceElement = DSL_ELEMENT_NEW(factoryName, elementName);        
+        m_pCustomSourceElement = DSL_ELEMENT_NEW(factoryName, elementName);
         *element = m_pCustomSourceElement.get()->GetGstElement();
+        GstPad* pad = gst_element_get_static_pad(m_pCustomSourceElement.get()->GetGstElement(), "src");
+        gst_pad_set_caps(pad, gst_caps_new_simple("ds3d/datamap", NULL));
 
-        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
+        g_object_set(
+            G_OBJECT(m_pCustomSourceElement.get()->GetGObject()), "do-timestamp", TRUE, "stream-type", GST_APP_STREAM_TYPE_STREAM,
+            "max-bytes", (uint64_t)(6 * sizeof(24)), "min-percent", 80, "caps",
+            gst_caps_from_string("ds3d/datamap"), NULL);
+
+        // m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
+        // pad = gst_element_get_static_pad(m_pSourceQueue.get()->GetGstElement(), "src");
+        // gst_pad_set_caps(pad, gst_caps_new_simple("ds3d/datamap", NULL));
 
         AddChild(m_pCustomSourceElement);
-        AddChild(m_pSourceQueue);
+        //AddChild(m_pSourceQueue);
 
         // Source (output) queue is "src" ghost-pad for all SourceBintrs
-        m_pSourceQueue->AddGhostPadToParent("src");
+        m_pCustomSourceElement->AddGhostPadToParent("src");
+
+        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
+        //AddSrcPadProbes(m_pCustomSourceElement->GetGstElement());
     }
 
     /**
@@ -171,6 +183,7 @@ namespace DSL
 
     void CustomSourceBintr::UnlinkAll()
     {
+        m_pCustomSourceElement->RemoveGhostPadFromParent("src");
         LOG_FUNC();
         m_isLinked = false;
     }
