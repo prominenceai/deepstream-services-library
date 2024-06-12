@@ -947,6 +947,74 @@ SCENARIO( "A component can add and remove queue client listeners", "[component-a
     }
 }    
 
+SCENARIO( "Multiple components can add and remove a queue client listener",
+    "[component-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+
+    GIVEN( "A Component in memory" ) 
+    {
+        uint width(480);
+        uint height(272);
+
+        REQUIRE( dsl_source_uri_new(uri_source_name.c_str(), uri.c_str(), 
+            false, 0, 0) == DSL_RESULT_SUCCESS );
+            
+        REQUIRE( dsl_source_v4l2_new(v4l2_source_name.c_str(), 
+            def_device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_tracker_new(tracker_name.c_str(), tracker_config_file.c_str(), 
+            width, height) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {
+            uri_source_name.c_str(), v4l2_source_name.c_str(),
+            tracker_name.c_str(), NULL};
+        
+        WHEN( "A state-change-listener is added to multiple clients" )
+        {
+            REQUIRE( dsl_component_queue_overrun_listener_add_many(components,
+                queue_overrun_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            // Second add of the same listeners must fail
+            REQUIRE( dsl_component_queue_overrun_listener_add_many(components,
+                queue_overrun_listener_cb, (void*)0x12345678) 
+                == DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED );
+
+            REQUIRE( dsl_component_queue_underrun_listener_add_many(components,
+                queue_underrun_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            // Second add of the same listener must fail
+            REQUIRE( dsl_component_queue_underrun_listener_add_many(components,
+                queue_underrun_listener_cb, (void*)0x12345678) 
+                == DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED );
+
+            THEN( "The same listener can be removed" ) 
+            {
+                REQUIRE( dsl_component_queue_overrun_listener_remove_many(
+                    components, queue_overrun_listener_cb) 
+                    == DSL_RESULT_SUCCESS );
+
+                // Second remove of the same listener must fail
+                REQUIRE( dsl_component_queue_overrun_listener_remove_many(
+                    components, queue_overrun_listener_cb) 
+                    == DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED );
+
+                REQUIRE( dsl_component_queue_underrun_listener_remove_many(
+                    components, queue_underrun_listener_cb) 
+                    == DSL_RESULT_SUCCESS );
+
+                // Second remove of the same listener must fail
+                REQUIRE( dsl_component_queue_underrun_listener_remove_many(
+                    components, queue_underrun_listener_cb) 
+                    == DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-api]" )
 {
     GIVEN( "Three new components" ) 
@@ -1167,7 +1235,10 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
 {
     GIVEN( "An empty list of Components" ) 
     {
-        std::wstring component_name(L"test-component");
+        std::wstring component_name1(L"test-component-1");
+        std::wstring component_name2(L"test-component-2");
+        const wchar_t* components[] = {
+            component_name1.c_str(), component_name2.c_str(), NULL};
         uint64_t current_level(0);
         uint leaky(0);
         uint64_t max_size(0);
@@ -1188,7 +1259,7 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
                 
                 REQUIRE( dsl_component_queue_current_level_get(NULL, 
                     0, &current_level) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_component_queue_current_level_get(component_name.c_str(), 
+                REQUIRE( dsl_component_queue_current_level_get(component_name1.c_str(), 
                     0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_current_level_print(NULL, 
@@ -1199,7 +1270,7 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
 
                 REQUIRE( dsl_component_queue_leaky_get(NULL, &leaky) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_component_queue_leaky_get(component_name.c_str(), 
+                REQUIRE( dsl_component_queue_leaky_get(component_name1.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_leaky_set(NULL, leaky) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1208,7 +1279,7 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
 
                 REQUIRE( dsl_component_queue_max_size_get(NULL, 0, &max_size) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_component_queue_max_size_get(component_name.c_str(), 
+                REQUIRE( dsl_component_queue_max_size_get(component_name1.c_str(), 
                     0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_max_size_set(NULL, 
                     0, max_size) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1217,7 +1288,7 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
 
                 REQUIRE( dsl_component_queue_min_threshold_get(NULL, 
                     0, &min_threshold) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_component_queue_min_threshold_get(component_name.c_str(), 
+                REQUIRE( dsl_component_queue_min_threshold_get(component_name1.c_str(), 
                     0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_min_threshold_set(NULL, 
                     0, min_threshold) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -1227,25 +1298,49 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
                 REQUIRE( dsl_component_queue_overrun_listener_add(NULL, 
                     NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_overrun_listener_add(
-                    component_name.c_str(), NULL, NULL) 
+                    component_name1.c_str(), NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_overrun_listener_add_many(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_queue_overrun_listener_add_many(
+                    components, NULL, NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_overrun_listener_remove(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_overrun_listener_remove(
-                    component_name.c_str(), NULL) 
+                    component_name1.c_str(), NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_overrun_listener_remove_many(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_queue_overrun_listener_remove_many(
+                    components, NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_underrun_listener_add(NULL, 
                     NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_underrun_listener_add(
-                    component_name.c_str(), NULL, NULL) 
+                    component_name1.c_str(), NULL, NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_underrun_listener_add_many(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_queue_underrun_listener_add_many(
+                    components, NULL, NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_underrun_listener_remove(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_queue_underrun_listener_remove(
-                    component_name.c_str(), NULL) 
+                    component_name1.c_str(), NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_underrun_listener_remove_many(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_queue_underrun_listener_remove_many(
+                    components, NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_gpuid_get(NULL, 

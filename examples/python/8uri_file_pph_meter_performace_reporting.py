@@ -30,6 +30,29 @@ import time
 
 from dsl import *
 
+# Unique names for each of the Pipeline components
+URI_SOURCE_NAME_0 = 'uri-source-0'
+URI_SOURCE_NAME_1 = 'uri-source-1'
+URI_SOURCE_NAME_2 = 'uri-source-2'
+URI_SOURCE_NAME_3 = 'uri-source-3'
+URI_SOURCE_NAME_4 = 'uri-source-4'
+URI_SOURCE_NAME_5 = 'uri-source-5'
+URI_SOURCE_NAME_6 = 'uri-source-6'
+URI_SOURCE_NAME_7 = 'uri-source-7'
+PRIMARY_GIE_NAME = 'primary-gie'
+IOU_TRACKER_NAME = 'iou-tracker'
+TILER_NAME = 'tiler'
+OSD_NAME = 'on-screen-display'
+WINDOW_SINK_NAME = 'window-sink'
+
+# Null terminated list of all Pipeline Component names - will be used when 
+# calling Queue services collectively
+
+COMPONENTS = [
+    URI_SOURCE_NAME_0, URI_SOURCE_NAME_1, URI_SOURCE_NAME_2, URI_SOURCE_NAME_3, 
+    URI_SOURCE_NAME_4, URI_SOURCE_NAME_5, URI_SOURCE_NAME_6, URI_SOURCE_NAME_7, 
+    PRIMARY_GIE_NAME, IOU_TRACKER_NAME, TILER_NAME, OSD_NAME, WINDOW_SINK_NAME, None]
+
 # Test URI used for all sources
 uri = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4'
 
@@ -49,31 +72,19 @@ TILER_HEIGHT = 720
 WINDOW_WIDTH = TILER_WIDTH
 WINDOW_HEIGHT = TILER_HEIGHT
 
+ 
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     if key_string.upper() == 'P':
-        
-        # if we're able to pause the Pipeline (i.e. it's not already paused)
-        if dsl_pipeline_pause('pipeline') == DSL_RETURN_SUCCESS:
-        
-            # then disable the sink meter from reporting metrics
-            dsl_sink_meter_enabled_set('meter-sink', False)
-            
+        dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
-    
-        # if we're able to Resume the Pipeline 
-        if dsl_pipeline_play('pipeline') == DSL_RETURN_SUCCESS:
-
-            # then re-enable the sink meter to start reporting metrics again
-            dsl_sink_meter_enabled_set('meter-sink', True)
-
+        dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
- 
 ## 
 # Function to be called on XWindow Delete event
 ## 
@@ -98,30 +109,38 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
+## 
+# Function to be called if any of the Pipeline Component Queues becomes full.
+# A buffer is full if the total amount of data inside it (buffers, bytes, 
+# or time) is higher than the max-size values set for each unit. Max-size values
+# can be set by calling dsl_component_queue_max_size_set.
+# ## 
+def queue_overrun_listener(name, client_data):
+    print('WARNING Queue Overrun occurred for component = ', name)
+
 ##
-# To be used as client_data with our Meter Sink, and passed to our client_calback
+# To be used as client_data with our Source Meter PPH, and passed to our 
+# client_calback
 ##
 class ReportData:
-  def __init__(self, header_interval):
+  def __init__(self):
     self.m_report_count = 0
-    self.m_header_interval = header_interval
     
 ## 
 # Meter Sink client callback funtion
 ## 
-def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
+def meter_pph_handler(session_avgs, interval_avgs, source_count, client_data):
 
     # cast the C void* client_data back to a py_object pointer and deref
     report_data = cast(client_data, POINTER(py_object)).contents.value
 
-    # Print header on interval
-    if (report_data.m_report_count % report_data.m_header_interval == 0):
-        header = ""
-        for source in range(source_count):
-            subheader = f"FPS {source} (AVG)"
-            header += "{:<15}".format(subheader)
-        print()
-        print(header)
+    # Print header
+    header = ""
+    for source in range(source_count):
+        subheader = f"FPS {source} (AVG)"
+        header += "{:<15}".format(subheader)
+    print()
+    print(header)
 
     # Print FPS counters
     counters = ""
@@ -129,9 +148,14 @@ def meter_sink_handler(session_avgs, interval_avgs, source_count, client_data):
         counter = "{:.2f} ({:.2f})".format(interval_avgs[source], session_avgs[source])
         counters += "{:<15}".format(counter)
     print(counters)
+    print()
 
     # Increment reporting count
     report_data.m_report_count += 1
+
+    # Print out the current Component Queue levels
+    dsl_component_queue_current_level_print_many(COMPONENTS,
+        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS)
     
     return True
         
@@ -150,68 +174,69 @@ def main(args):
         # Note: Session averages are reset each time the Meter is disabled and 
         # then re-enabled.
 
-        report_data = ReportData(header_interval=12)
+        report_data = ReportData()
         
         retval = dsl_pph_meter_new('meter-pph', interval=1, 
-            client_handler=meter_sink_handler, client_data=report_data)
+            client_handler=meter_pph_handler, client_data=report_data)
         if retval != DSL_RETURN_SUCCESS:
             break
         #
         # Create the remaining Pipeline components
         # ... starting with eight URI File Sources
         
-        retval = dsl_source_uri_new('Camera 1', uri, False, False, 0)
+        retval = dsl_source_uri_new(URI_SOURCE_NAME_0, uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
-        dsl_source_uri_new('Camera 2', uri, False, False, 0)
-        dsl_source_uri_new('Camera 3', uri, False, False, 0)
-        dsl_source_uri_new('Camera 4', uri, False, False, 0)
-        dsl_source_uri_new('Camera 5', uri, False, False, 0)
-        dsl_source_uri_new('Camera 6', uri, False, False, 0)
-        dsl_source_uri_new('Camera 7', uri, False, False, 0)
-        dsl_source_uri_new('Camera 8', uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_1, uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_2, uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_3, uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_4, uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_5, uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_6, uri, False, False, 0)
+        dsl_source_uri_new(URI_SOURCE_NAME_7, uri, False, False, 0)
 
         # New Primary GIE using the filespecs above, with interval and Id
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 4)
+        retval = dsl_infer_gie_primary_new(PRIMARY_GIE_NAME, 
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New IOU Tracker, setting operational width and hieght
-        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        retval = dsl_tracker_new(IOU_TRACKER_NAME, iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Tiler, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
+        retval = dsl_tiler_new(TILER_NAME, TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # Important: add the Meter to the Sink pad of the Tiler, while the stream 
         # is still batched and measurements can be made for all sources. Adding 
         # downstream will measure the combined, tiled stream.
-        retval = dsl_tiler_pph_add('tiler', 'meter-pph', DSL_PAD_SINK)
+        retval = dsl_tiler_pph_add(TILER_NAME, 'meter-pph', DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
+        retval = dsl_osd_new(OSD_NAME, 
             text_enabled=True, clock_enabled=True, 
             bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_window_egl_new(WINDOW_SINK_NAME,
+             0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the XWindow event handler functions defined above to the Window Sink
-        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_key_event_handler_add(WINDOW_SINK_NAME, 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_delete_event_handler_add(WINDOW_SINK_NAME, 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -220,12 +245,16 @@ def main(args):
         # Pipeline assembly
         #
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['Camera 1', 'Camera 2', 'Camera 3', 'Camera 4', 'Camera 5', 
-            'Camera 6',  'Camera 7', 'Camera 8', 'primary-gie', 'iou-tracker', 
-            'tiler', 'on-screen-display', 'egl-sink', None])
+            COMPONENTS)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Add the queue-overrun callback funtion to each of the Pipeline Components
+        retval = dsl_component_queue_overrun_listener_add_many(COMPONENTS,
+            queue_overrun_listener, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
         ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)
