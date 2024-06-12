@@ -8650,11 +8650,33 @@ DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name,
     dsl_component_queue_overrun_listener_cb listener, void* client_data);
 
 /**
+ * @brief Adds a queue-client-listener callback function to a list of named Components 
+ * to be called when any of the Component queue buffers becomes full (overrun). A   
+ * buffer is full if the total amount of data inside it (buffers, byte or time) is   
+ * higher than the max-size values set for each unit. Max-size values can be set by  
+ * calling dsl_component_queue_max_size_set.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_overrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+
+/**
  * @brief Removes a queue-client-listener callback function from a named Component.
  * @param[in] name name of the Component to update.
  * @param[in] listener pointer to the client's function to remove.
  */
 DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a list of named 
+ * Components.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_overrun_listener_remove_many(const wchar_t** names, 
     dsl_component_queue_overrun_listener_cb listener);
 
 /**
@@ -8671,11 +8693,33 @@ DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name,
     dsl_component_queue_underrun_listener_cb listener, void* client_data);
 
 /**
+ * @brief Adds a queue-client-listener callback function to a list of named   
+ * Components to be called when any of the Component queue buffers becomes
+ * empty (underrun). A buffer is empty if the total amount of data inside it 
+ * (buffers, byte or time) is lower than the min-threshold values set for each unit.
+ * Min-threshold values can be set by calling dsl_component_queue_min_threshold_set.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_underrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+
+/**
  * @brief Removes a queue-client-listener callback function from a named Component.
  * @param[in] name name of the Component to update.
  * @param[in] listener pointer to the client's function to remove.
  */
 DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a list of 
+ * named Component as.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_underrun_listener_remove_many(const wchar_t** names, 
     dsl_component_queue_underrun_listener_cb listener);
 
 /**
