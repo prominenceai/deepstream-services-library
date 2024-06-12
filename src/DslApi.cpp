@@ -9863,6 +9863,26 @@ DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name,
         cstrName.c_str(), listener, client_data);
 }
 
+DslReturnType dsl_component_queue_overrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueOverrunListenerAdd(cstrName.c_str(), listener, client_data);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name, 
     dsl_component_queue_overrun_listener_cb listener)
 {
@@ -9874,6 +9894,26 @@ DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name,
 
     return DSL::Services::GetServices()->ComponentQueueOverrunListenerRemove(
         cstrName.c_str(), listener);
+}
+
+DslReturnType dsl_component_queue_overrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueOverrunListenerRemove(cstrName.c_str(), listener);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name, 
@@ -9889,6 +9929,26 @@ DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name,
         cstrName.c_str(), listener, client_data);
 }
     
+DslReturnType dsl_component_queue_underrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueUnderrunListenerAdd(cstrName.c_str(), listener, client_data);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
     dsl_component_queue_underrun_listener_cb listener)
 {
@@ -9902,6 +9962,26 @@ DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name,
         cstrName.c_str(), listener);
 }
     
+DslReturnType dsl_component_queue_underrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueUnderrunListenerRemove(cstrName.c_str(), listener);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_gpuid_get(const wchar_t* name, uint* gpuid)
 {
     RETURN_IF_PARAM_IS_NULL(name);
