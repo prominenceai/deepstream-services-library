@@ -140,8 +140,14 @@ namespace DSL
         }
         // Setup the ghost pads for the first and last Elementrs, which would
         // be the same in the case of one element.
-        m_elementrsLinked.front()->AddGhostPadToParent("sink");
-        m_elementrsLinked.back()->AddGhostPadToParent("src");
+        if (gst_element_get_static_pad(m_elementrsLinked.back().get()->GetGstElement(), "src"))
+        {
+            m_elementrsLinked.back()->AddGhostPadToParent("src");
+        }
+        if (gst_element_get_static_pad(m_elementrsLinked.front().get()->GetGstElement(), "sink"))
+        {
+            m_elementrsLinked.front()->AddGhostPadToParent("sink");
+        }       
  
         m_isLinked = true;
         

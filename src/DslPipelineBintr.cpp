@@ -61,7 +61,7 @@ namespace DSL
             DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
 
         // Add PipelineSourcesBintr as chid of this PipelineBintr.
-        GstNodetr::AddChild(m_pPipelineSourcesBintr);
+        // GstNodetr::AddChild(m_pPipelineSourcesBintr);
     }
 
     PipelineBintr::~PipelineBintr()
@@ -80,11 +80,13 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pPipelineSourcesBintr->
-            AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
-        {
-            return false;
-        }
+        // if (!m_pPipelineSourcesBintr->
+        //     AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
+        // {
+        //     return false;
+        // }
+        m_pSourcesBintr = std::dynamic_pointer_cast<SourceBintr>(pSourceBintr);
+        GstNodetr::AddChild(pSourceBintr);
         return true;
     }
 
@@ -318,11 +320,11 @@ namespace DSL
             LOG_INFO("Components for Pipeline '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pPipelineSourcesBintr->GetNumChildren())
-        {
-            LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
-            return false;
-        }
+        // if (!m_pPipelineSourcesBintr->GetNumChildren())
+        // {
+        //     LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
+        //     return false;
+        // }
 
         
         // Start with an empty list of linked components
@@ -330,12 +332,14 @@ namespace DSL
 
         // Link all Source Elementrs (required component), and all Sources to the Streammuxer
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
-        if (!m_pPipelineSourcesBintr->LinkAll())
-        {
-            return false;
-        }
-        m_linkedComponents.push_back(m_pPipelineSourcesBintr);
-        
+        // if (!m_pPipelineSourcesBintr->LinkAll())
+        // {
+        //     return false;
+        // }
+        // m_linkedComponents.push_back(m_pPipelineSourcesBintr);
+
+        m_linkedComponents.push_back(m_pSourcesBintr);
+
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 

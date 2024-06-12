@@ -349,6 +349,11 @@ namespace DSL
          * @brief parent bin for all Source bins in this PipelineBintr
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
+
+        /**
+         * @brief SourceBin in this PipelineBintr
+         */
+        std::shared_ptr<SourceBintr> m_pSourcesBintr;
         
         /**
          * @brief optional Tiler for the Stream-muxer's output
