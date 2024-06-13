@@ -177,6 +177,20 @@ The following return codes are used by the Component API
 #define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
 ```
 
+## Component Queue Leaky Constants
+```C
+#define DSL_COMPONENT_QUEUE_LEAKY_NO                                0
+#define DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM                          1
+#define DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM                        2
+```
+
+## Component Queue Units of Measurement
+```C
+#define DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS                         0
+#define DSL_COMPONENT_QUEUE_UNIT_OF_BYTES                           1
+#define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
+```
+
 ## NVIDIA Buffer Memory Types
 ```C
 #define DSL_NVBUF_MEM_TYPE_DEFAULT                                  0
@@ -928,6 +942,464 @@ This service removes a queue-client-listener callback function from a list of na
 retval = dsl_component_queue_underrun_listener_remove_many(
   ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
   queue_overrun_listener_cb, None)
+```
+
+<br>
+
+### *dsl_component_queue_current_level_get*
+```c++
+DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
+    uint unit, uint64_t* current_level);
+```
+This service gets the queue-current-level by unit (buffers, bytes, or time) for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `current_level` - [out] the current queue level for the specified unit.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval, current_level = dsl_component_queue_current_level_get('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_queue_current_level_print*
+```c++
+DslReturnType dsl_component_queue_current_level_print(const wchar_t* name, 
+    uint unit);
+```
+This service prints the queue-current-level by unit (buffers, bytes, or time) to stdout for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_current_level_print('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_queue_current_level_print_many*
+```c++
+DslReturnType dsl_component_queue_current_level_print_many(const wchar_t** names, 
+    uint unit);
+```
+This service prints the queue-current-level by unit (buffers, bytes, or time) to stdout for a null terminated list of named Components.
+
+**Parameters**
+* `names` - [in] null termainted list of names of components to query..
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_current_level_print_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None])
+```
+
+<br>
+
+### *dsl_component_queue_leaky_get*
+```c++
+DslReturnType dsl_component_queue_leaky_get(const wchar_t* name, uint* leaky);
+```
+This service gets the queue-leaky setting for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `leaky` - [out] one of the [`DSL_COMPONENT_QUEUE_LEAKY`](#component-queue-leaky-constants) constant values. Default = `DSL_COMPONENT_QUEUE_LEAKY_NO`
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval, leaky = dsl_component_queue_leaky_get('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_queue_leaky_set*
+```c++
+DslReturnType dsl_component_queue_leaky_set(const wchar_t* name, uint leaky);
+```
+This service sets the queue-leaky setting for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `leaky` - [in] one of the [`DSL_COMPONENT_QUEUE_LEAKY`](#component-queue-leaky-constants) constant values. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_leaky_set('my-primary-gie',
+    DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM)
+```
+
+<br>
+
+### *dsl_component_queue_leaky_set_many*
+```c++
+DslReturnType dsl_component_queue_leaky_set_many(const wchar_t** names, uint leaky);
+```
+This service sets the queue-leaky setting for a null terminated list of named Components. 
+
+**Parameters**
+* `names` - [in] null termainted list of names of components to update.
+* `leaky` - [in] one of the [`DSL_COMPONENT_QUEUE_LEAKY`](#component-queue-leaky-constants) constant values. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_leaky_set(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM)
+```
+
+<br>
+
+### *dsl_component_queue_max_size_get*
+```c++
+DslReturnType dsl_component_queue_max_size_get(const wchar_t* name, 
+    uint unit, uint64_t* max_size);
+```
+This service gets the current queue-max-size setting by unit (buffers, bytes, or time) for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `max_size` - [out] current max-size setting for the specified unit. Default values: buffers=200, bytes=10485760, time=1000000000ns
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval, max_size = dsl_component_queue_max_size_get('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_queue_max_size_set*
+```c++
+DslReturnType dsl_component_queue_max_size_set(const wchar_t* name, 
+    uint unit, uint64_t max_size);
+```
+This service sets the queue-max-size setting by unit (buffers, bytes, or time) for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `max_size` - [out] new max-size setting for the specified unit. Default values: buffers=200, bytes=10485760, time=1000000000ns
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_max_size_set('my-primary-gie',
+    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, 10)
+```
+
+<br>
+
+### *dsl_component_queue_max_size_set_many*
+```c++
+DslReturnType dsl_component_queue_max_size_set_many(const wchar_t** names, 
+    uint unit, uint64_t max_size);
+```
+This service sets the queue-max-size setting by unit (buffers, bytes, or time) for a null terminated list of named Components.
+
+**Parameters**
+* `names` - [in] null termainted list of names of components to update.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `max_size` - [out] new max-size setting for the specified unit. Default values: buffers=200, bytes=10485760, time=1000000000ns
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_max_size_set_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, 10)
+```
+
+<br>
+
+### *dsl_component_queue_min_threshold_get*
+```c++
+DslReturnType dsl_component_queue_min_threshold_get(const wchar_t* name, 
+    uint unit, uint64_t* min_threshold);
+```
+This service gets thus current queue-min-threshold setting by unit (buffers, bytes, or time) for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `min_threshold` - [out] current min-threshold setting for the specified unit. Default values: buffers=200, bytes=10485760, time=1000000000ns
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval, min_threshold = dsl_component_queue_min_threshold_get('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_queue_min_threshold_set*
+```c++
+DslReturnType dsl_component_queue_min_threshold_set(const wchar_t* name, 
+    uint unit, uint64_t min_threshold);
+```
+This service sets the queue-min-threshold setting by unit (buffers, bytes, or time) for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `min_threshold` - [out] new min-threshold setting for the specified unit. Default values: buffers=200, bytes=10485760, time=1000000000ns
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_min_threshold_set('my-primary-gie',
+    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, 5)
+```
+
+<br>
+
+### *dsl_component_queue_min_threshold_set_many*
+```c++
+DslReturnType dsl_component_queue_min_threshold_set_many(const wchar_t** names, 
+    uint unit, uint64_t min_threshold);
+```
+This service sets the queue-min-threshold setting by unit (buffers, bytes, or time) for a null terminated list of named Components.
+
+**Parameters**
+* `names` - [in] null termainted list of names of components to update.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+* `min_threshold` - [out] new min-threshold setting for the specified unit. Default values: buffers=200, bytes=10485760, time=1000000000ns
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_min_threshold_set_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS, 5)
+```
+
+<br>
+
+### *dsl_component_queue_overrun_listener_add*
+```c++
+DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+```
+This service adds a queue-client-listener callback function to a named Component to be called when the queue's buffer becomes full (overrun). A buffer is full if the total amount of data inside it (buffers, byte or time) is higher than the max-size values set for each unit. Max-size values can be set by calling [`dsl_component_queue_max_size_set`](#dsl_component_queue_max_size_set).
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_overrun_listener_cb`](#dsl_component_queue_overrun_listener_cb) to call on Queue overrun.
+* `client_data` - [in] opaque pointer to user data to pass to the listener on callback
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+def queue_overrun_listener_cb(name, client_data):
+    print('WARNING queue qverrun occurred for component = ', name)
+
+retval = dsl_component_queue_overrun_listener_add('my-primary-gie',
+    queue_overrun_listener_cb, None)
+```
+
+### *dsl_component_queue_overrun_listener_add_many*
+```c++
+DslReturnType dsl_component_queue_overrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+```
+This service adds a queue-client-listener callback function to a list of named Component to be called when any of the Component queue buffers becomes full (overrun). A buffer is full if the total amount of data inside it (buffers, byte or time) is higher than the max-size values set for each unit. Max-size values can be set by calling [`dsl_component_queue_max_size_set`](#dsl_component_queue_max_size_set).
+
+**Parameters**
+* `names` - [in] names null terminated list of names of Components to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_overrun_listener_cb`](#dsl_component_queue_overrun_listener_cb) to call on Queue overrun.
+* `client_data` - [in] opaque pointer to user data to pass to the listener on callback
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+def queue_overrun_listener_cb(name, client_data):
+    print('WARNING queue overrun occurred for component = ', name)
+
+
+retval = dsl_component_queue_overrun_listener_add_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    queue_overrun_listener_cb, None)
+```
+
+<br>
+
+### *dsl_component_queue_overrun_listener_remove*
+```c++
+DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener);
+```
+This service removes a queue-client-listener callback function from a named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_overrun_listener_cb`](#dsl_component_queue_overrun_listener_cb) to call on Queue overrun.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_overrun_listener_remove('my-primary-gie',
+    queue_overrun_listener_cb)
+```
+
+### *dsl_component_queue_overrun_listener_remove_many*
+```c++
+DslReturnType dsl_component_queue_overrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+```
+This service removes a queue-client-listener callback function from a list of named Components.
+
+**Parameters**
+* `names` - [in] names null terminated list of names of Components to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_overrun_listener_cb`](#dsl_component_queue_overrun_listener_cb) to call on Queue overrun.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+
+retval = dsl_component_queue_overrun_listener_remove_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    queue_overrun_listener_cb, None)
+```
+
+<br>
+
+### *dsl_component_queue_underrun_listener_add*
+```c++
+DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+```
+This service adds a queue-client-listener callback function to a named Component to be called when the queue's buffer becomes empty (underrun). A buffer is empty if the total amount of data inside it (buffers, byte or time) is lower than the min-threshold values set for each unit. Min-threshold values can be set by calling [`dsl_component_queue_min_threshold_set`](#dsl_component_queue_min_threshold_set).
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_underrun_listener_cb`](#dsl_component_queue_underrun_listener_cb) to call on Queue underrun.
+* `client_data` - [in] opaque pointer to user data to pass to the listener on callback
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+def queue_underrun_listener_cb(name, client_data):
+    print('INFO queue underrun occurred for component = ', name)
+
+retval = dsl_component_queue_underrun_listener_add('my-primary-gie',
+    queue_underrun_listener_cb, None)
+```
+
+### *dsl_component_queue_underrun_listener_add_many*
+```c++
+DslReturnType dsl_component_queue_underrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+```
+This service adds a queue-client-listener callback function to a list of named Component to be called when any of the Component queue buffers becomes empty (underrun). A buffer is empty if the total amount of data inside it (buffers, byte or time) is lower than the min-threshold values set for each unit. Min-threshold values can be set by calling [`dsl_component_queue_min_threshold_set`](#dsl_component_queue_min_threshold_set).
+
+**Parameters**
+* `names` - [in] names null terminated list of names of Components to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_underrun_listener_cb`](#dsl_component_queue_underrun_listener_cb) to call on Queue underrun.
+* `client_data` - [in] opaque pointer to user data to pass to the listener on callback
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+def queue_underrun_listener_cb(name, client_data):
+    print('INFO queue underrun occurred for component = ', name)
+
+
+retval = dsl_component_queue_underrun_listener_add_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    queue_underrun_listener_cb, None)
+```
+
+<br>
+
+### *dsl_component_queue_underrun_listener_remove*
+```c++
+DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener);
+```
+This service removes a queue-client-listener callback function from a named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_underrun_listener_cb`](#dsl_component_queue_underrun_listener_cb) to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_underrun_listener_remove('my-primary-gie',
+    queue_underrun_listener_cb)
+```
+
+### *dsl_component_queue_underrun_listener_remove_many*
+```c++
+DslReturnType dsl_component_queue_underrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+```
+This service removes a queue-client-listener callback function from a list of named Components.
+
+**Parameters**
+* `names` - [in] names null terminated list of names of Components to update.
+* `listener` - [in] pointer to the client's function of type [`dsl_component_queue_underrun_listener_cb`](#dsl_component_queue_underrun_listener_cb) to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+
+retval = dsl_component_queue_underrun_listener_remove_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
+    queue_overrun_listener_cb, None)
 ```
 
 <br>
