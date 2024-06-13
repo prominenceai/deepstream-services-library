@@ -351,9 +351,9 @@ namespace DSL
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;
 
         /**
-         * @brief SourceBin in this PipelineBintr
+         * @brief custom SourceBin in this PipelineBintr
          */
-        std::shared_ptr<SourceBintr> m_pSourcesBintr;
+        std::shared_ptr<CustomSourceBintr> m_pCustomSourcesBintr;
         
         /**
          * @brief optional Tiler for the Stream-muxer's output
