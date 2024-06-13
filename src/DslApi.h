@@ -8704,7 +8704,7 @@ DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name,
  * buffer is full if the total amount of data inside it (buffers, byte or time) is   
  * higher than the max-size values set for each unit. Max-size values can be set by  
  * calling dsl_component_queue_max_size_set.
- * @param[in] names null terminated list names of Components to update.
+ * @param[in] names null terminated list of names of Components to update.
  * @param[in] listener pointer to the client's function to call on Queue overrun.
  * @param[in] client_data opaque pointer to client data passed into the listener function.
  */
