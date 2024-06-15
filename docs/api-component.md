@@ -1011,6 +1011,49 @@ retval = dsl_component_queue_current_level_print_many(
 
 <br>
 
+### *dsl_component_queue_current_level_log*
+```c++
+DslReturnType dsl_component_queue_current_level_log(const wchar_t* name, 
+    uint unit);
+```
+This service logs the queue-current-level by unit (buffers, bytes, or time) at a level of LOG_INFO.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_current_level_log('my-primary-gie')
+```
+
+<br>
+
+### *dsl_component_queue_current_level_log_many*
+```c++
+DslReturnType dsl_component_queue_current_level_log_many(const wchar_t** names, 
+    uint unit);
+```
+This service logs the queue-current-level by unit (buffers, bytes, or time) at a level of LOG_INFO for a null terminated list of named Components.
+
+**Parameters**
+* `names` - [in] null termainted list of names of components to query..
+* `unit` - [in] one of the [`DSL_COMPONENT_QUEUE_UNIT_OF`](#component-queue-units-of-measurement) constants
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_queue_current_level_log_many(
+    ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None])
+```
+
+<br>
+
 ### *dsl_component_queue_leaky_get*
 ```c++
 DslReturnType dsl_component_queue_leaky_get(const wchar_t* name, uint* leaky);
