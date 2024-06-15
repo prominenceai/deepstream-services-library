@@ -9706,13 +9706,44 @@ DslReturnType dsl_component_queue_current_level_print_many(const wchar_t** names
 {
     RETURN_IF_PARAM_IS_NULL(names);
 
-
     for (const wchar_t** name = names; *name; name++)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
         DslReturnType retval = DSL::Services::GetServices()->
             ComponentQueueCurrentLevelPrint(cstrName.c_str(), unit);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_component_queue_current_level_log(const wchar_t* name, 
+    uint unit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentQueueCurrentLevelLog(
+        cstrName.c_str(), unit);
+}
+
+DslReturnType dsl_component_queue_current_level_log_many(const wchar_t** names, 
+    uint unit)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentQueueCurrentLevelLog(cstrName.c_str(), unit);
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;

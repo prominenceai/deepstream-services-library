@@ -102,7 +102,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
             {
@@ -138,7 +138,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
             {
@@ -163,6 +163,38 @@ namespace DSL
         }
     }
  
+    DslReturnType Services::ComponentQueueCurrentLevelLog(const char* name, 
+        uint unit)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
+            
+            if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
+            {
+                LOG_ERROR("Invalid queue measurement unit = " << unit 
+                    << " for Component '"  << name << "'");
+                return DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED;
+            }
+            DSL_QBINTR_PTR pQBintrComponent = 
+                std::dynamic_pointer_cast<QBintr>(m_components[name]);
+
+            pQBintrComponent->LogQueueCurrentLevel(unit);
+ 
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception logging queue current-level");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
+ 
     DslReturnType Services::ComponentQueueLeakyGet(const char* name, uint* leaky)
     {
         LOG_FUNC();
@@ -171,7 +203,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
 
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);
@@ -199,7 +231,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (leaky > DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM)
             {
@@ -240,7 +272,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
             {
@@ -276,7 +308,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
             {
@@ -315,7 +347,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
             {
@@ -351,7 +383,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             if (unit > DSL_COMPONENT_QUEUE_UNIT_OF_TIME)
             {
@@ -391,7 +423,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);
@@ -424,7 +456,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);
@@ -457,7 +489,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);
@@ -490,7 +522,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name)
+            DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(m_components, name);
             
             DSL_QBINTR_PTR pQBintrComponent = 
                 std::dynamic_pointer_cast<QBintr>(m_components[name]);

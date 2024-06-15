@@ -7268,6 +7268,30 @@ def dsl_component_queue_current_level_print_many(names, unit):
     return int(result)
 
 ##
+## dsl_component_queue_current_level_log()
+##
+_dsl.dsl_component_queue_current_level_log.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_component_queue_current_level_log.restype = c_uint
+def dsl_component_queue_current_level_log(name, unit):
+    global _dsl
+    result =_dsl.dsl_component_queue_current_level_log(name, unit)
+    return int(result)
+
+##
+## dsl_component_queue_current_level_log_many()
+##
+# _dsl.dsl_component_queue_current_level_log_many.argtypes = [c_wchar_pp, 
+    # c_uint]
+_dsl.dsl_component_queue_current_level_log_many.restype = c_uint
+def dsl_component_queue_current_level_log_many(names, unit):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_current_level_log_many(arr, unit)
+    return int(result)
+
+##
 ## dsl_component_queue_leaky_get()
 ##
 _dsl.dsl_component_queue_leaky_get.argtypes = [c_wchar_p, 

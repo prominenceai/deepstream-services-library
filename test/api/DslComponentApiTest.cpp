@@ -805,7 +805,7 @@ SCENARIO( "Multiple new components can Set and Get Queue Properties correctly",
     }
 }
 
-SCENARIO( "Multiple new components can Print their Queue levels/max-sizes correctly", 
+SCENARIO( "Multiple new components can Print and Log their Queue levels/max-sizes correctly", 
     "[component-api]" )
 {
     GIVEN( "Three new components" ) 
@@ -858,7 +858,7 @@ SCENARIO( "Multiple new components can Print their Queue levels/max-sizes correc
             window_sink_name.c_str(), fake_sink_name.c_str(),
             NULL};
         
-        WHEN( "The new components are called to print their queue levels" ) 
+        WHEN( "The new components are called to print and log their queue levels" ) 
         {
             REQUIRE( dsl_component_queue_current_level_print_many(components, 
                 DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == DSL_RESULT_SUCCESS );
@@ -867,6 +867,15 @@ SCENARIO( "Multiple new components can Print their Queue levels/max-sizes correc
                 DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_component_queue_current_level_print_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_queue_current_level_log_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_queue_current_level_log_many(components, 
+                DSL_COMPONENT_QUEUE_UNIT_OF_BYTES) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_queue_current_level_log_many(components, 
                 DSL_COMPONENT_QUEUE_UNIT_OF_TIME) == DSL_RESULT_SUCCESS );
 
             THEN( "The values are printed out correctly" ) 
@@ -1266,6 +1275,12 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_current_level_print_many(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_current_level_log(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_component_queue_current_level_log_many(NULL, 
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_leaky_get(NULL, &leaky) 
