@@ -98,7 +98,7 @@ namespace DSL
             uint currentLevelBuffers(0);
             m_pQueue->GetAttribute("current-level-buffers", &currentLevelBuffers);
             std::cout << "'current-level-buffers' = " << currentLevelBuffers 
-                << "/" << m_maxSizeBuffers << " for QBintr '" << GetName() 
+                << "/" << m_maxSizeBuffers << " for component '" << GetName() 
                 << "'" << std::endl;
         }
         else if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
@@ -106,7 +106,7 @@ namespace DSL
             uint currentLevelBytes(0);
             m_pQueue->GetAttribute("current-level-bytes", &currentLevelBytes);
             std::cout << "'current-level-bytes' = " << currentLevelBytes 
-                << "/" << m_maxSizeBytes << " for QBintr '" << GetName() 
+                << "/" << m_maxSizeBytes << " for component '" << GetName() 
                 << "'" << std::endl;
         }
         else
@@ -114,8 +114,38 @@ namespace DSL
             uint64_t currentLevelTime(0);
             m_pQueue->GetAttribute("current-level-time", &currentLevelTime);
             std::cout << "'current-level-time' = " << currentLevelTime 
-                << "/" << m_maxSizeTime << " for QBintr '" << GetName() 
+                << "/" << m_maxSizeTime << " for component '" << GetName() 
                 << "'" << std::endl;
+        }
+    }
+
+    void QBintr::LogQueueCurrentLevel(uint unit)
+    {
+        LOG_FUNC(); 
+
+        if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS)
+        {
+            uint currentLevelBuffers(0);
+            m_pQueue->GetAttribute("current-level-buffers", &currentLevelBuffers);
+            LOG_INFO("'current-level-buffers' = " << currentLevelBuffers 
+                << "/" << m_maxSizeBuffers << " for component '" << GetName() 
+                << "'");
+        }
+        else if (unit == DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
+        {
+            uint currentLevelBytes(0);
+            m_pQueue->GetAttribute("current-level-bytes", &currentLevelBytes);
+            LOG_INFO("'current-level-bytes' = " << currentLevelBytes 
+                << "/" << m_maxSizeBytes << " for component '" << GetName() 
+                << "'");
+        }
+        else
+        {
+            uint64_t currentLevelTime(0);
+            m_pQueue->GetAttribute("current-level-time", &currentLevelTime);
+            LOG_INFO("'current-level-time' = " << currentLevelTime 
+                << "/" << m_maxSizeTime << " for component '" << GetName() 
+                << "'");
         }
     }
 

@@ -73,6 +73,12 @@ namespace DSL
         void PrintQueueCurrentLevel(uint unit);
 
         /**
+         * @brief Logs the current level for the Queue element at level LOG_INFO.
+         * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+         */
+        void LogQueueCurrentLevel(uint unit);
+
+        /**
          * @brief Gets the leaky property for the Queue element.
          * @return One of the DSL_COMPONENT_QUEUE_LEAKY constant values.
          */
