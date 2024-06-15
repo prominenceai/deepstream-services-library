@@ -153,9 +153,11 @@ def meter_pph_handler(session_avgs, interval_avgs, source_count, client_data):
     # Increment reporting count
     report_data.m_report_count += 1
 
-    # Print out the current Component Queue levels
+    # Print (or log) out the current Component Queue levels
     dsl_component_queue_current_level_print_many(COMPONENTS,
         DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS)
+    # dsl_component_queue_current_level_log_many(COMPONENTS,
+    #     DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS)
     
     return True
         
