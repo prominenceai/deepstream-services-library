@@ -59,6 +59,10 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
 #define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
 #define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
+#define DSL_RESULT_COMPONENT_GET_QUEUE_PROPERTY_FAILED              0x0001000B
+#define DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED              0x0001000C
+#define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000D
+#define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000E
 
 /**
  * Source API Return Values
@@ -743,6 +747,21 @@ THE SOFTWARE.
 #define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
 #define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
 #define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
+
+/**
+ * @brief Component Queue Leaky Constants - must match queue-leaky members
+ * see https://gstreamer.freedesktop.org/documentation/coreelements/queue.html#named-constants
+*/
+#define DSL_COMPONENT_QUEUE_LEAKY_NO                                0
+#define DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM                          1
+#define DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM                        2
+
+/**
+ * @brief Component Queue measurement units 
+*/
+#define DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS                         0
+#define DSL_COMPONENT_QUEUE_UNIT_OF_BYTES                           1
+#define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -1858,6 +1877,32 @@ typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
  */
 typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
     void* data, void* client_data);
+
+/**
+ * @brief Callback typedef for all components with a Queue element. The callback
+ * is registered with a call to dsl_component_queue_overrun_listener_add(). Once
+ * added, the callback will be called if the Component's queue buffer becomes full
+ * (overrun). A buffer is full if the total amount of data inside it (buffers, bytes, 
+ * or time) is higher than the max-size values set for each unit. Max-size values
+ * can be set by calling dsl_component_queue_max_size_set.
+ * @param[in] name name of the Component that owns the Queue that has overrun.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_component_queue_overrun_listener_cb)(const wchar_t* name, 
+    void* client_data);
+
+/**
+ * @brief Callback typedef for all components with a Queue element. The callback
+ * is registered with a call to dsl_component_queue_underrun_listener_add(). Once
+ * added, the callback will be called if the Component's queue buffer becomes empty
+ * (underrun) A buffer is empty if the total amount of data inside it (buffers, bytes, 
+ * or time) is less than the min-threshold values set for each unit. Min-threshold values
+ * can be set by calling dsl_component_queue_min_threshold_set.
+ * @param[in] name name of the Component that owns the Queue that has underrun.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_component_queue_underrun_listener_cb)(const wchar_t* name, 
+    void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -8462,6 +8507,241 @@ DslReturnType dsl_component_delete_all();
  * @return size of the list of components
  */
 uint dsl_component_list_size();
+
+/**
+ * @brief Gets the queue-current-level by unit (buffers, bytes, or time) for the 
+ * named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
+    uint unit, uint64_t* current_level);
+
+/**
+ * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_print(const wchar_t* name, 
+    uint unit);
+
+/**
+ * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
+ * for a null terminated list of named Components.
+ * @param[in] names null terminated list of names of components to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_print_many(const wchar_t** names, 
+    uint unit);
+
+/**
+ * @brief Logs the queue-current-level by unit (buffers, bytes, or time) at the 
+ * level of LOG_INFO.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_log(const wchar_t* name, 
+    uint unit);
+
+/**
+ * @brief Logs the queue-current-level by unit (buffers, bytes, or time) at the 
+ * level of LOG_INFO.
+ * @param[in] names null terminated list of names of components to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_log_many(const wchar_t** names, 
+    uint unit);
+
+/**
+ * @brief Gets the current queue-leaky setting for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[out] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_leaky_get(const wchar_t* name, uint* leaky);
+
+/**
+ * @brief Sets the queue-leaky setting for the named Component.
+ * @param[in] name name of the component to update.
+ * @param[in] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_queue_leaky_set(const wchar_t* name, uint leaky);
+
+/**
+ * @brief Sets the queue-leaky setting for a null terminated list of named Components.
+ * @param[in] names null terminated list of names of components to update.
+ * @param[in] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_queue_leaky_set_many(const wchar_t** names, uint leaky);
+
+/**
+ * @brief Gets the current queue-max-size setting by unit (buffers, bytes, or time)  
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] max_size the current max-size setting for the specified unit.
+ * Default values: buffers=200, bytes=10485760, time=1000000000ns
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_max_size_get(const wchar_t* name, 
+    uint unit, uint64_t* max_size);
+
+/**
+ * @brief Sets the queue-max-size setting by unit (buffers, bytes, or time) for the 
+ * named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] max_size the new max-size setting for the specified unit.
+ * Default values: buffers=200, bytes=10485760, time=1000000000ns
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_max_size_set(const wchar_t* name, 
+    uint unit, uint64_t max_size);
+
+/**
+ * @brief Sets the queue-max-size setting by unit (buffers, bytes, or time) for a null  
+ * terminated list of named Components.
+ * @param[in] names null terminated list of names of Components to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] max_size the new max-size setting for the specified unit.
+ * Default values: buffers=200, bytes=10485760, time=1000000000ns
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_max_size_set_many(const wchar_t** names, 
+    uint unit, uint64_t max_size);
+
+/**
+ * @brief Gets the current queue-min-threshold setting by unit (buffers, bytes, or time) 
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] min_threshold the current min-threshold setting for the specified unit.
+ * Default value = 0  for all units. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_min_threshold_get(const wchar_t* name, 
+    uint unit, uint64_t* min_threshold);
+
+/**
+ * @brief Sets the queue-min-threshold setting by unit (buffers, bytes, or time) for the 
+ * named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] min_threshold the new min-threshold setting for the specified unit. 
+ * Default value = 0  for all units. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_min_threshold_set(const wchar_t* name, 
+    uint unit, uint64_t min_threshold);
+
+/**
+ * @brief Sets the queue-min-threshold setting by unit (buffers, bytes, or time) for a 
+ * null terminated list of named Components.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] min_threshold the new min-threshold setting for the specified unit. 
+ * Default value = 0  for all units. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+    DslReturnType dsl_component_queue_min_threshold_set_many(const wchar_t** names, 
+        uint unit, uint64_t min_threshold);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a named Component to 
+ * be called when the queue's buffer becomes full (overrun). A buffer is full if  
+ * the total amount of data inside it (buffers, byte or time) is higher than the  
+ * max-size values set for each unit. Max-size values can be set by calling 
+ * dsl_component_queue_max_size_set.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a list of named Components 
+ * to be called when any of the Component queue buffers becomes full (overrun). A   
+ * buffer is full if the total amount of data inside it (buffers, byte or time) is   
+ * higher than the max-size values set for each unit. Max-size values can be set by  
+ * calling dsl_component_queue_max_size_set.
+ * @param[in] names null terminated list of names of Components to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_overrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a list of named 
+ * Components.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_overrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a named Component to  
+ * be called when the queue's buffer becomes empty (underrun). A buffer is empty if 
+ * the total amount of data inside it (buffers, byte or time) is lower than the 
+ * min-threshold values set for each unit. Min-threshold values can be set by calling 
+ * dsl_component_queue_min_threshold_set.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a list of named   
+ * Components to be called when any of the Component queue buffers becomes
+ * empty (underrun). A buffer is empty if the total amount of data inside it 
+ * (buffers, byte or time) is lower than the min-threshold values set for each unit.
+ * Min-threshold values can be set by calling dsl_component_queue_min_threshold_set.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_underrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a list of 
+ * named Component as.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_underrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener);
 
 /**
  * @brief Gets the named component's current GPU ID

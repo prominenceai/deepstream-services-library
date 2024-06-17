@@ -63,6 +63,38 @@ namespace DSL
         m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for WebRtcSinkBintr '" << name << "'");
+        LOG_INFO("  stun-server        : " << m_stunServer);
+        LOG_INFO("  turn-server        : " << m_turnServer); 
+        LOG_INFO("  codec              : " << m_codec);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
+        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
+        
         AddChild(m_pPayloader);
         AddChild(m_pWebRtcCapsFilter);
 

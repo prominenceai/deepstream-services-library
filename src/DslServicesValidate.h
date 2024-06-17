@@ -395,6 +395,103 @@ THE SOFTWARE.
 }while(0);
 #endif
 
+#if !defined(BUILD_WEBRTC)
+    #error "BUILD_WEBRTC must be defined"
+#elif BUILD_WEBRTC != true
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
+        !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr)) and \
+        !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
+        !components[name]->IsType(typeid(RecordTapBintr)) and  \
+        !components[name]->IsType(typeid(PreprocBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryGieBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryTisBintr)) and  \
+        !components[name]->IsType(typeid(TrackerBintr)) and  \
+        !components[name]->IsType(typeid(TilerBintr)) and  \
+        !components[name]->IsType(typeid(OsdBintr)) and  \
+        !components[name]->IsType(typeid(MultiSinksBintr)) and  \
+        !components[name]->IsType(typeid(SplitterBintr)) and  \
+        !components[name]->IsType(typeid(DemuxerBintr)) and  \
+        !components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' does not have a queue element "); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0);
+#else
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
+        !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr)) and \
+        !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
+        !components[name]->IsType(typeid(RecordTapBintr)) and  \
+        !components[name]->IsType(typeid(PreprocBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryGieBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryTisBintr)) and  \
+        !components[name]->IsType(typeid(TrackerBintr)) and  \
+        !components[name]->IsType(typeid(TilerBintr)) and  \
+        !components[name]->IsType(typeid(OsdBintr)) and  \
+        !components[name]->IsType(typeid(MultiSinksBintr)) and  \
+        !components[name]->IsType(typeid(SplitterBintr)) and  \
+        !components[name]->IsType(typeid(DemuxerBintr)) and  \
+        !components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
+        !components[name]->IsType(typeid(FakeSinkBintr)) and  \
+        !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
+        !components[name]->IsType(typeid(EglSinkBintr)) and  \
+        !components[name]->IsType(typeid(FileSinkBintr)) and  \
+        !components[name]->IsType(typeid(RecordSinkBintr)) and  \
+        !components[name]->IsType(typeid(RtmpSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspClientSinkBintr)) and \
+        !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
+        !components[name]->IsType(typeid(MessageSinkBintr)) and \
+        !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
+        !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
+        !components[name]->IsType(typeid(WebRtcSinkBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' does not have a queue element "); \
+        return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
+    } \
+}while(0);
+#endif
+
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TAP(components, name) do \
 { \
     if (!components[name]->IsType(typeid(RecordTapBintr))) \

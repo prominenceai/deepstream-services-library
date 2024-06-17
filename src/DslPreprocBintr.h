@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 
 namespace DSL
 {
@@ -46,7 +46,7 @@ namespace DSL
      * @class PreprocBintr
      * @brief Implements an On-Screen-Display bin container
      */
-    class PreprocBintr : public Bintr
+    class PreprocBintr : public QBintr
     {
     public: 
     
@@ -146,12 +146,6 @@ namespace DSL
          * @brief Absolute or relative path to the Pre-Process plugin config file.
          */
         std::string m_configFile;
-        
-        
-        /**
-         * @brief Queue element for the PreprocBintr.
-         */
-        DSL_ELEMENT_PTR m_pQueue;
         
         /**
          * @brief nvdspreprocess element for the PreprocBintr.

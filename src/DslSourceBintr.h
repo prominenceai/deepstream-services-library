@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslElementr.h"
 #include "DslDewarperBintr.h"
 #include "DslTapBintr.h"
@@ -130,7 +130,7 @@ namespace DSL
      * @class SourceBintr
      * @brief Implements a base Source Bintr for all derived Source types.
      */
-    class SourceBintr : public Bintr
+    class SourceBintr : public QBintr
     {
     public: 
     
@@ -545,11 +545,6 @@ namespace DSL
          */ 
         DSL_DEWARPER_PTR m_pDewarperBintr;
         
-        /**
-         * @brief Source Queue for SourceBintr - set as ghost-pad for each source
-         */
-        DSL_ELEMENT_PTR  m_pSourceQueue;
-
         /**
          * @brief Conditional Tee used if this VideoSourceBintr has 1 or more
          * DuplicateSourceBintrs.

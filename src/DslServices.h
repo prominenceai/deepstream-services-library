@@ -1701,6 +1701,43 @@ namespace DSL {
         
         uint ComponentListSize();
 
+        DslReturnType ComponentQueueCurrentLevelGet(const char* name, 
+            uint unit, uint64_t* currentLevel);
+
+        DslReturnType ComponentQueueCurrentLevelPrint(const char* name, 
+            uint unit);
+
+        DslReturnType ComponentQueueCurrentLevelLog(const char* name, 
+            uint unit);
+
+        DslReturnType ComponentQueueLeakyGet(const char* name, uint* leaky);
+
+        DslReturnType ComponentQueueLeakySet(const char* name, uint leaky);
+
+        DslReturnType ComponentQueueMaxSizeGet(const char* name, 
+            uint unit, uint64_t* maxSize);
+
+        DslReturnType ComponentQueueMaxSizeSet(const char* name, 
+            uint unit, uint64_t maxSize);
+
+        DslReturnType ComponentQueueMinThresholdGet(const char* name, 
+            uint unit, uint64_t* minThreshold);
+
+        DslReturnType ComponentQueueMinThresholdSet(const char* name, 
+            uint unit, uint64_t minThreshold);
+
+        DslReturnType ComponentQueueOverrunListenerAdd(const char* name, 
+            dsl_component_queue_overrun_listener_cb listener, void* clientData);
+
+        DslReturnType ComponentQueueOverrunListenerRemove(const char* name, 
+            dsl_component_queue_overrun_listener_cb listener);
+
+        DslReturnType ComponentQueueUnderrunListenerAdd(const char* name, 
+            dsl_component_queue_underrun_listener_cb listener, void* clientData);
+
+        DslReturnType ComponentQueueUnderrunListenerRemove(const char* name, 
+            dsl_component_queue_underrun_listener_cb listener);
+
         DslReturnType ComponentGpuIdGet(const char* name, uint* gpuid);
         
         DslReturnType ComponentGpuIdSet(const char* name, uint gpuid);

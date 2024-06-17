@@ -141,6 +141,14 @@ DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT  = 0x00000020
 DSL_V4L2_DEVICE_TYPE_TUNER       = 0x00010000
 DSL_V4L2_DEVICE_TYPE_AUDIO       = 0x00020000
 
+DSL_COMPONENT_QUEUE_LEAKY_NO         = 0
+DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM   = 1
+DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM = 2
+
+DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS = 0
+DSL_COMPONENT_QUEUE_UNIT_OF_BYTES   = 1
+DSL_COMPONENT_QUEUE_UNIT_OF_TIME    = 2
+
 DSL_STATE_NULL = 1
 DSL_STATE_READY = 2
 DSL_STATE_PAUSED = 3
@@ -539,6 +547,14 @@ DSL_SOURCE_APP_ENOUGH_DATA_HANDLER = \
 # dsl_sink_app_new_data_handler_cb
 DSL_SINK_APP_NEW_DATA_HANDLER = \
     CFUNCTYPE(c_uint, c_uint, c_void_p, c_void_p)
+
+# dsl_component_queue_overrun_listener_cb
+DSL_COMPONENT_QUEUE_OVERRUN_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_void_p)
+
+# dsl_component_queue_underrun_listener_cb
+DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_void_p)
 
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
@@ -7173,6 +7189,301 @@ def dsl_component_list_size():
     return int(result)
 
 ##
+## dsl_component_queue_current_level_get()
+##
+_dsl.dsl_component_queue_current_level_get.argtypes = [c_wchar_p, 
+    c_uint, POINTER(c_uint64)]
+_dsl.dsl_component_queue_current_level_get.restype = c_uint
+def dsl_component_queue_current_level_get(name, unit):
+    global _dsl
+    current_level = c_uint64(0)
+    result = _dsl.dsl_component_queue_current_level_get(name, 
+        unit, DSL_UINT64_P(current_level))
+    return int(result), current_level.value
+
+##
+## dsl_component_queue_current_level_print()
+##
+_dsl.dsl_component_queue_current_level_print.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_component_queue_current_level_print.restype = c_uint
+def dsl_component_queue_current_level_print(name, unit):
+    global _dsl
+    result =_dsl.dsl_component_queue_current_level_print(name, unit)
+    return int(result)
+
+##
+## dsl_component_queue_current_level_print_many()
+##
+# _dsl.dsl_component_queue_current_level_print_many.argtypes = [c_wchar_pp, 
+    # c_uint]
+_dsl.dsl_component_queue_current_level_print_many.restype = c_uint
+def dsl_component_queue_current_level_print_many(names, unit):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_current_level_print_many(arr, unit)
+    return int(result)
+
+##
+## dsl_component_queue_current_level_log()
+##
+_dsl.dsl_component_queue_current_level_log.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_component_queue_current_level_log.restype = c_uint
+def dsl_component_queue_current_level_log(name, unit):
+    global _dsl
+    result =_dsl.dsl_component_queue_current_level_log(name, unit)
+    return int(result)
+
+##
+## dsl_component_queue_current_level_log_many()
+##
+# _dsl.dsl_component_queue_current_level_log_many.argtypes = [c_wchar_pp, 
+    # c_uint]
+_dsl.dsl_component_queue_current_level_log_many.restype = c_uint
+def dsl_component_queue_current_level_log_many(names, unit):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_current_level_log_many(arr, unit)
+    return int(result)
+
+##
+## dsl_component_queue_leaky_get()
+##
+_dsl.dsl_component_queue_leaky_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_component_queue_leaky_get.restype = c_uint
+def dsl_component_queue_leaky_get(name):
+    global _dsl
+    leaky = c_uint(0)
+    result = _dsl.dsl_component_queue_leaky_get(name, DSL_UINT_P(leaky))
+    return int(result), leaky.value
+
+##
+## dsl_component_queue_leaky_set()
+##
+_dsl.dsl_component_queue_leaky_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_queue_leaky_set.restype = c_uint
+def dsl_component_queue_leaky_set(name, leaky):
+    global _dsl
+    result =_dsl.dsl_component_queue_leaky_set(name, leaky)
+    return int(result)
+
+##
+## dsl_component_queue_leaky_set_many()
+##
+#_dsl.dsl_component_queue_leaky_set_many.argtypes = []?
+_dsl.dsl_component_queue_leaky_set_many.restype = c_uint
+def dsl_component_queue_leaky_set_many(names, leaky):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_leaky_set_many(arr, leaky)
+    return int(result)
+
+##
+## dsl_component_queue_max_size_get()
+##
+_dsl.dsl_component_queue_max_size_get.argtypes = [c_wchar_p, 
+    c_uint, POINTER(c_uint64)]
+_dsl.dsl_component_queue_max_size_get.restype = c_uint
+def dsl_component_queue_max_size_get(name, unit):
+    global _dsl
+    max_size = c_uint64(0)
+    result = _dsl.dsl_component_queue_max_size_get(name, 
+        unit, DSL_UINT64_P(max_size))
+    return int(result), max_size.value
+
+##
+## dsl_component_queue_max_size_set()
+##
+_dsl.dsl_component_queue_max_size_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint64]
+_dsl.dsl_component_queue_max_size_set.restype = c_uint
+def dsl_component_queue_max_size_set(name, unit, max_size):
+    global _dsl
+    result =_dsl.dsl_component_queue_max_size_set(name, 
+        unit, max_size)
+    return int(result)
+
+##
+## dsl_component_queue_max_size_set_many()
+##
+# _dsl.dsl_component_queue_max_size_set_many.argtypes = [] ??
+_dsl.dsl_component_queue_max_size_set_many.restype = c_uint
+def dsl_component_queue_max_size_set_many(names, unit, max_size):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_max_size_set_many(arr, 
+        unit, max_size)
+    return int(result)
+
+##
+## dsl_component_queue_min_threshold_get()
+##
+_dsl.dsl_component_queue_min_threshold_get.argtypes = [c_wchar_p, 
+    c_uint, POINTER(c_uint64)]
+_dsl.dsl_component_queue_min_threshold_get.restype = c_uint
+def dsl_component_queue_min_threshold_get(name, unit):
+    global _dsl
+    min_threshold = c_uint64(0)
+    result = _dsl.dsl_component_queue_min_threshold_get(name, 
+        unit, DSL_UINT64_P(min_threshold))
+    return int(result), min_threshold.value
+
+##
+## dsl_component_queue_min_threshold_set()
+##
+_dsl.dsl_component_queue_min_threshold_set.argtypes = [c_wchar_p, 
+    c_uint, c_uint64]
+_dsl.dsl_component_queue_min_threshold_set.restype = c_uint
+def dsl_component_queue_min_threshold_set(name, unit, min_threshold):
+    global _dsl
+    result =_dsl.dsl_component_queue_min_threshold_set(name, 
+        unit, min_threshold)
+    return int(result)
+
+##
+## dsl_component_queue_min_threshold_set_many()
+##
+# _dsl.dsl_component_queue_min_threshold_set_many.argtypes = [] ??
+_dsl.dsl_component_queue_min_threshold_set_many.restype = c_uint
+def dsl_component_queue_min_threshold_set_many(names, unit, min_threshold):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_min_threshold_set_many(arr, 
+        unit, min_threshold)
+    return int(result)
+
+##
+## dsl_component_queue_overrun_listener_add()
+##
+_dsl.dsl_component_queue_overrun_listener_add.argtypes = [c_wchar_p, 
+    DSL_COMPONENT_QUEUE_OVERRUN_LISTENER, c_void_p]
+_dsl.dsl_component_queue_overrun_listener_add.restype = c_uint
+def dsl_component_queue_overrun_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_COMPONENT_QUEUE_OVERRUN_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_component_queue_overrun_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_component_queue_overrun_listener_add_many()
+##
+# _dsl.dsl_component_queue_overrun_listener_add_many.argtypes = [c_wchar_p, 
+#     DSL_COMPONENT_QUEUE_OVERRUN_LISTENER, c_void_p]
+_dsl.dsl_component_queue_overrun_listener_add_many.restype = c_uint
+def dsl_component_queue_overrun_listener_add_many(names, client_listener, client_data):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    c_client_listener = DSL_COMPONENT_QUEUE_OVERRUN_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_component_queue_overrun_listener_add_many(arr, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_component_queue_overrun_listener_remove()
+##
+_dsl.dsl_component_queue_overrun_listener_remove.argtypes = [c_wchar_p, 
+    DSL_COMPONENT_QUEUE_OVERRUN_LISTENER]
+_dsl.dsl_component_queue_overrun_listener_remove.restype = c_uint
+def dsl_component_queue_overrun_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_COMPONENT_QUEUE_OVERRUN_LISTENER(client_listener)
+    result = _dsl.dsl_component_queue_overrun_listener_remove(name, 
+        c_client_listener)
+    return int(result)
+
+##
+## dsl_component_queue_overrun_listener_remove_many()
+##
+#_dsl.dsl_component_queue_overrun_listener_remove_many.argtypes = [c_wchar_p, 
+#    DSL_COMPONENT_QUEUE_OVERRUN_LISTENER]
+_dsl.dsl_component_queue_overrun_listener_remove.restype = c_uint
+def dsl_component_queue_overrun_listener_remove(names, client_listener):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    c_client_listener = DSL_COMPONENT_QUEUE_OVERRUN_LISTENER(client_listener)
+    result = _dsl.dsl_component_queue_overrun_listener_remove(arr, 
+        c_client_listener)
+    return int(result)
+
+##
+## dsl_component_queue_underrun_listener_add()
+##
+_dsl.dsl_component_queue_underrun_listener_add.argtypes = [c_wchar_p, 
+    DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER, c_void_p]
+_dsl.dsl_component_queue_underrun_listener_add.restype = c_uint
+def dsl_component_queue_underrun_listener_add(name, client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_component_queue_underrun_listener_add(name, 
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_component_queue_underrun_listener_add_many()
+##
+_dsl.dsl_component_queue_underrun_listener_add_many.argtypes = [c_wchar_p, 
+    DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER, c_void_p]
+_dsl.dsl_component_queue_underrun_listener_add_many.restype = c_uint
+def dsl_component_queue_underrun_listener_add_many(names, client_listener, client_data):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    c_client_listener = DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_component_queue_underrun_listener_add_many(arr, 
+        c_client_listener, c_client_data)
+    return int(result)
+
+##
+## dsl_component_queue_underrun_listener_remove()
+##
+_dsl.dsl_component_queue_underrun_listener_remove.argtypes = [c_wchar_p, 
+    DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER]
+_dsl.dsl_component_queue_underrun_listener_remove.restype = c_uint
+def dsl_component_queue_underrun_listener_remove(name, client_listener):
+    global _dsl
+    c_client_listener = DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER(client_listener)
+    result = _dsl.dsl_component_queue_underrun_listener_remove(name, 
+        c_client_listener)
+    return int(result)
+
+##
+## dsl_component_queue_underrun_listener_remove_many()
+##
+_dsl.dsl_component_queue_underrun_listener_remove_many.argtypes = [c_wchar_p, 
+    DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER]
+_dsl.dsl_component_queue_underrun_listener_remove_many.restype = c_uint
+def dsl_component_queue_underrun_listener_remove_many(names, client_listener):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    c_client_listener = DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER(client_listener)
+    result = _dsl.dsl_component_queue_underrun_listener_remove_many(arr, 
+        c_client_listener)
+    return int(result)
+
+##
 ## dsl_component_gpuid_get()
 ##
 _dsl.dsl_component_gpuid_get.argtypes = [c_wchar_p, POINTER(c_uint)]
@@ -7198,10 +7509,10 @@ def dsl_component_gpuid_set(name, gpuid):
 ##
 #_dsl.dsl_component_gpuid_set_many.argtypes = [Array]
 _dsl.dsl_component_gpuid_set_many.restype = c_uint
-def dsl_component_gpuid_set_many(components, gpuid):
+def dsl_component_gpuid_set_many(names, gpuid):
     global _dsl
-    arr = (c_wchar_p * len(components))()
-    arr[:] = components
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
     result =_dsl.dsl_component_gpuid_set_many(arr, gpuid)
     return int(result)
 
