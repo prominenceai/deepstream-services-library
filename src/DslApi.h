@@ -8533,7 +8533,7 @@ DslReturnType dsl_component_queue_current_level_print(const wchar_t* name,
 /**
  * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
  * for a null terminated list of named Components.
- * @param[in] names null termainted list of names of components to query.
+ * @param[in] names null terminated list of names of components to query.
  * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
  */
@@ -8554,7 +8554,7 @@ DslReturnType dsl_component_queue_current_level_log(const wchar_t* name,
 /**
  * @brief Logs the queue-current-level by unit (buffers, bytes, or time) at the 
  * level of LOG_INFO.
- * @param[in] names null termainted list of names of components to query.
+ * @param[in] names null terminated list of names of components to query.
  * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
  */
@@ -8579,7 +8579,7 @@ DslReturnType dsl_component_queue_leaky_set(const wchar_t* name, uint leaky);
 
 /**
  * @brief Sets the queue-leaky setting for a null terminated list of named Components.
- * @param[in] names null termainted list of names of components to update.
+ * @param[in] names null terminated list of names of components to update.
  * @param[in] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
  */
