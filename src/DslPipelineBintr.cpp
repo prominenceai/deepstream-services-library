@@ -59,9 +59,6 @@ namespace DSL
         std::string sourcesBinName = GetName() + "-sources-bin";
         m_pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(sourcesBinName.c_str(), m_pipelineId);
-
-        // Add PipelineSourcesBintr as chid of this PipelineBintr.
-        GstNodetr::AddChild(m_pPipelineSourcesBintr);
     }
 
     PipelineBintr::~PipelineBintr()
@@ -80,11 +77,23 @@ namespace DSL
     {
         LOG_FUNC();
 
+        // Check if custom source bin is used 
+        m_pCustomSourcesBintr = std::dynamic_pointer_cast<CustomSourceBintr>(pSourceBintr);
+        if (m_pCustomSourcesBintr)
+        {
+            GstNodetr::AddChild(m_pCustomSourcesBintr);
+            return true;
+        }
+
+        // Otherwise add source as child of default pipeline source bin
         if (!m_pPipelineSourcesBintr->
             AddChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr)))
         {
             return false;
         }
+        // Add PipelineSourcesBintr as chid of this PipelineBintr.
+        GstNodetr::AddChild(m_pPipelineSourcesBintr);
+
         return true;
     }
 
@@ -318,7 +327,7 @@ namespace DSL
             LOG_INFO("Components for Pipeline '" << GetName() << "' are already assembled");
             return false;
         }
-        if (!m_pPipelineSourcesBintr->GetNumChildren())
+        if (!m_pCustomSourcesBintr && !m_pPipelineSourcesBintr->GetNumChildren())
         {
             LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
             return false;
@@ -328,14 +337,24 @@ namespace DSL
         // Start with an empty list of linked components
         m_linkedComponents.clear();
 
-        // Link all Source Elementrs (required component), and all Sources to the Streammuxer
-        // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
-        if (!m_pPipelineSourcesBintr->LinkAll())
-        {
-            return false;
+        //Link all Source Elementrs (required component), and all Sources to the Streammuxer
+        //then add the PipelineSourcesBintr as the Source (head) component for this Pipeline.
+        //
+        //If a custom source was added to the pipeline, need to add that as the head component and
+        //ignore the streammuxer. 
+        if (m_pCustomSourcesBintr) {
+            m_linkedComponents.push_back(m_pCustomSourcesBintr);
         }
-        m_linkedComponents.push_back(m_pPipelineSourcesBintr);
-        
+        else
+        {
+            // Add Default Source to pipeline (Streammuxer)
+            if (!m_pPipelineSourcesBintr->LinkAll())
+            {
+                return false;
+            }
+            m_linkedComponents.push_back(m_pPipelineSourcesBintr);
+        }        
+
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
