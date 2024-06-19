@@ -761,7 +761,10 @@ namespace DSL {
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
             const char* bufferInFormat, uint width, uint height, 
             uint fpsN, uint fpsD);
-            
+
+        DslReturnType SourceCustomNew(const char* name, const char* elementName, 
+            const char* factory, void** element);
+
         DslReturnType SourceAppDataHandlersAdd(const char* name,
             dsl_source_app_need_data_handler_cb needDataHandler, 
             dsl_source_app_enough_data_handler_cb enoughDataHandler, 

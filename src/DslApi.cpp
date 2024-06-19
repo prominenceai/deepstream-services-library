@@ -4199,7 +4199,25 @@ DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live,
     return DSL::Services::GetServices()->SourceAppNew(cstrName.c_str(), 
         is_live, cstrBufferInFormat.c_str(), width, height, fps_n, fps_d);
 }
- 
+
+DslReturnType dsl_source_custom_new(const wchar_t* name, const wchar_t* elementName,
+                                    const wchar_t* factoryName, void** element) 
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elementName);
+    RETURN_IF_PARAM_IS_NULL(factoryName);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(elementName);
+    std::string cstrElement(wstrElement.begin(),wstrElement.end());
+    std::wstring wstrFactory(factoryName);
+    std::string cstrFactory(wstrFactory.begin(), wstrFactory.end());
+
+    return DSL::Services::GetServices()->SourceCustomNew(cstrName.c_str(), cstrElement.c_str(), 
+        cstrFactory.c_str(), element);                                        
+}
+
 DslReturnType dsl_source_app_data_handlers_add(const wchar_t* name, 
     dsl_source_app_need_data_handler_cb need_data_handler, 
     dsl_source_app_enough_data_handler_cb enough_data_handler, 

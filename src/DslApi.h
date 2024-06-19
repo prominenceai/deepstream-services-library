@@ -4766,6 +4766,17 @@ DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live,
     const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d);
 
 /**
+ * @brief Creates a new, uniquely named Custom Source component to insert data
+ * into a DSL pipeline.
+ * @param[in] name unique name for the new Source bin.  
+ * @param[in] elementName unique name of the custom source element.
+ * @param[in] factoryName name of the factory plugin used to create the custom element. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new(const wchar_t* name, const wchar_t* elementName,
+                                    const wchar_t* factoryName, void** element);
+                                    
+/**
  * @brief Adds data-handler callback functions to a named App Source component.
  * @param[in] name unique name of the App Source to update
  * @param[in] need_data_handler callback function to be called when new data is needed.

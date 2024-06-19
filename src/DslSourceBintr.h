@@ -42,6 +42,10 @@ namespace DSL
 
     #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
 
+#define DSL_CUSTOM_SOURCE_PTR std::shared_ptr<CustomSourceBintr>
+#define DSL_CUSTOM_SOURCE_NEW(name, elementName, factory, element) \
+    std::shared_ptr<CustomSourceBintr>(new CustomSourceBintr(name, elementName, factory, element))
+
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
     #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
@@ -256,6 +260,48 @@ namespace DSL
          */
         DSL_ELEMENT_PTR m_pSourceElement;
         
+    };
+
+    /**
+     * @class CustomSourceBintr
+     * @brief Implements a base Video Source Bintr for all derived Video Source types.
+     */
+    class CustomSourceBintr : public SourceBintr
+    {
+    public:
+        /**
+         * @brief ctor for the CustomSourceBintr base class
+         * @param[in] name unique name for the new CustomSourceBintr
+         */
+        CustomSourceBintr(const char* name, const char* elementName, const char* factoryName,
+                          void** element);
+
+        /**
+         * @brief dtor for the CustomSourceBintr class
+         */
+        ~CustomSourceBintr();
+
+        /**
+         * @brief virtual function for derived classes to implement
+         * a bintr type specific function to link all children.
+         */
+        virtual bool LinkAll();
+
+        /**
+         * @brief virtual function for derived classes to implement
+         * a bintr type specific function to unlink all child elements.
+         */
+        virtual void UnlinkAll();
+
+    protected:
+        /**
+         * @brief variable placeholder for custom source element
+         */
+        DSL_ELEMENT_PTR m_pCustomSourceElement;
+        /**
+         * @brief default sink for custom source element
+         */
+        DSL_ELEMENT_PTR m_pSourceQueue;
     };
 
     /**
