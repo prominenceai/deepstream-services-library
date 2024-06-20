@@ -416,14 +416,14 @@ namespace DSL
          * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
          * @return true if the DuplicateSourceBintr could be added, false otherwise.
          */
-        bool AddDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
+        bool AddDuplicateSource(DSL_SOURCE_PTR pDuplicateSource);
 
         /**
          * @brief Removes a DuplicateSourceBintr from this VideoSourceBintr.
          * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
          * @return true if the DuplicateSourceBintr could be added, false otherwise.
          */
-        bool RemoveDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
+        bool RemoveDuplicateSource(DSL_SOURCE_PTR pDuplicateSource);
 
     private:
 
@@ -465,12 +465,6 @@ namespace DSL
          */
         bool LinkToCommon(GstPad* pSrcPad);
 
-        /**
-         * @brief Common shared code for the two LinkToCommon methods.
-         * @return True on success, false otherwise
-         */
-        bool CompleteLinkToCommon();
-        
         /**
          * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
          */
@@ -560,7 +554,7 @@ namespace DSL
         /**
          * @brief map of DuplicateSourceBintrs to duplicate this VideSourceBintr
          */
-        std::map <std::string, DSL_VIDEO_SOURCE_PTR> m_duplicateSources;
+        std::map <std::string, DSL_SOURCE_PTR> m_duplicateSources;
         
         /**
          * @brief vecotr of requested source pads from m_pDuplicateSourceTee
@@ -574,7 +568,7 @@ namespace DSL
      * @brief Implements a Source that can be added to any other Video Source
      * to duplicate the original stream.
      */
-    class DuplicateSourceBintr : public VideoSourceBintr
+    class DuplicateSourceBintr : public SourceBintr
     {
     public: 
     
@@ -621,11 +615,6 @@ namespace DSL
          * @brief name of the Original Source -- currently added to -- to duplicate.
          */
         std::string m_original;
-        
-        /**
-         * @brief Sink (input) queue for this DuplicateSourceBintr.
-         */
-        DSL_ELEMENT_PTR m_pSinkQueue;
         
     };
 

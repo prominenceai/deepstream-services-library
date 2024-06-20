@@ -183,7 +183,7 @@ SCENARIO( "A URI File Source can play with scaled-down frame-rate",
         WHEN( "When the buffer-out-frame-rate is set" ) 
         {
             REQUIRE( dsl_source_video_buffer_out_frame_rate_set(source_name1.c_str(),
-                2, 1) == DSL_RESULT_SUCCESS );
+                5, 1) == DSL_RESULT_SUCCESS );
                 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
@@ -341,7 +341,9 @@ SCENARIO( "A URI File Source with three Duplicate Sources can play",
         
         WHEN( "When the buffer-out-format is set to RGBA" ) 
         {
-                
+            REQUIRE( dsl_source_video_buffer_out_format_set(source_name1.c_str(),
+                DSL_VIDEO_FORMAT_RGBA) == DSL_RESULT_SUCCESS );
+
             THEN( "Pipeline is Able to LinkAll and Play" )
             {
                 REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
