@@ -2037,9 +2037,9 @@ namespace DSL {
         
         FILE* InfoLogFileHandleGet();
 
-        DslReturnType SetSpdLogger(std::shared_ptr<spdlog::logger> logger);
+        DslReturnType SetSpdLogger(spdlog::logger* logger);
 
-        std::shared_ptr<spdlog::logger> GetSpdLogger();
+        spdlog::logger* GetSpdLogger();
 
         GMainLoop* GetMainLoopHandle()
         {
@@ -2269,7 +2269,7 @@ namespace DSL {
         /**
         * @brief Shared pointer to the spdlog logger instance for logging.
         */
-        std::shared_ptr<spdlog::logger> m_spdLogger;
+        spdlog::logger* m_spdLogger;
 
     };  
 

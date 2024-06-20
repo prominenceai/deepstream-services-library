@@ -392,7 +392,7 @@ namespace DSL
         auto logger = Services::GetServices()->GetSpdLogger();
         if (logger)
         {
-            gst_to_spdlog_log_function(category, level, file, function, line, object, message, logger.get());
+            gst_to_spdlog_log_function(category, level, file, function, line, object, message, logger);
         }
         else
         {
@@ -401,12 +401,12 @@ namespace DSL
         }
     }
 
-    std::shared_ptr<spdlog::logger> Services::GetSpdLogger()
+    spdlog::logger* Services::GetSpdLogger()
     {
         return m_spdLogger;
     }
 
-    DslReturnType Services::SetSpdLogger(std::shared_ptr<spdlog::logger> logger)
+    DslReturnType Services::SetSpdLogger(spdlog::logger* logger)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

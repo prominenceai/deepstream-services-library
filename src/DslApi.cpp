@@ -11578,7 +11578,7 @@ DslReturnType dsl_info_log_function_restore()
     return DSL::Services::GetServices()->InfoLogFunctionRestore();
 }
 
-DslReturnType dsl_setup_sdp_logger(std::shared_ptr<spdlog::logger> logger)
+DslReturnType dsl_setup_spd_logger(spdlog::logger* logger)
 {
     return DSL::Services::GetServices()->SetSpdLogger(logger);
 }
