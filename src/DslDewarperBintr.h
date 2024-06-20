@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 
 namespace DSL
 {
@@ -39,7 +39,7 @@ namespace DSL
     #define DSL_DEWARPER_NEW(name, configFile, cameraId) \
         std::shared_ptr<DewarperBintr>(new DewarperBintr(name, configFile, cameraId))
         
-    class DewarperBintr : public Bintr
+    class DewarperBintr : public QBintr
     {
     public: 
     
@@ -160,6 +160,11 @@ namespace DSL
          * @brief Number of Surfaces per output Buffer
          */
         uint m_numBatchBuffers;
+
+        /**
+         * @brief Vidconverter plugin for the DewarperBintr.
+         */
+        DSL_ELEMENT_PTR m_pVidConv;
 
         /**
          * @brief Dewarper Element for the DewarperBintr
