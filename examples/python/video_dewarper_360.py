@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2023, Prominence AI, Inc.
+# Copyright (c) 2023-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -176,6 +176,15 @@ def main(args):
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['file-source', 'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 
             'egl-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # File source has a slow frame rate. The default max-queue-size is 1 second.
+        # Need to disable the max-size for time to avoid queue overruns. 
+        # The max-sizes for buffers and bytes will be left unchanged. 
+        retval = dsl_component_queue_max_size_set_many(['file-source', '360-dewarper',
+            'primary-gie', 'iou-tracker', 'tiler', 'on-screen-display', 'egl-sink', 
+            None], DSL_COMPONENT_QUEUE_UNIT_OF_TIME, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

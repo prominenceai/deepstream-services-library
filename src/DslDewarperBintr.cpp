@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,14 +31,14 @@ namespace DSL
 
     DewarperBintr::DewarperBintr(const char* name, 
         const char* configFile, uint cameraId)
-        : Bintr(name)
+        : QBintr(name)
         , m_configFile(configFile)
         , m_cameraId(cameraId)
     {
         LOG_FUNC();
 
         m_pDewarper = DSL_ELEMENT_NEW("nvdewarper", name);
-
+        m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
     
         m_pDewarper->SetAttribute("config-file", configFile);
         m_pDewarper->SetAttribute("source-id", m_cameraId);
@@ -55,8 +55,9 @@ namespace DSL
         LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
 
         AddChild(m_pDewarper);
+        AddChild(m_pVidConv);
 
-        m_pDewarper->AddGhostPadToParent("sink");
+        m_pQueue->AddGhostPadToParent("sink");
         m_pDewarper->AddGhostPadToParent("src");
     }
 
@@ -91,6 +92,12 @@ namespace DSL
             return false;
         }
         
+        if (!m_pQueue->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pDewarper) )
+        {
+            return false;
+        }
+
         // single element - nothing to link
         m_isLinked = true;
         
@@ -106,7 +113,8 @@ namespace DSL
             LOG_ERROR("DewarperBintr '" << m_name << "' is not linked");
             return;
         }
-        // single element - nothing to link
+        m_pQueue->UnlinkFromSink();
+        m_pVidConv->UnlinkFromSink();
         
         m_isLinked = false;
     }
@@ -159,26 +167,6 @@ namespace DSL
         return true;
     }
     
-    bool  DewarperBintr::SetGpuId(uint gpuId)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set gpu-id for DewarperBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
-
-        m_gpuId = gpuId;
-        m_pDewarper->SetAttribute("gpu-id", m_gpuId);
-
-        LOG_INFO("DewarperBintr '" << GetName() 
-            << "' - new GPU ID = " << m_gpuId );
-            
-        return true;
-    }
-
     uint DewarperBintr::GetNumBatchBuffers()
     {
         LOG_FUNC();
@@ -202,7 +190,26 @@ namespace DSL
         m_pDewarper->SetAttribute("num-batch-buffers", m_numBatchBuffers);
         return true;
     }
-    
+
+    bool DewarperBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Unable to set GPU ID for DewarperBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+
+        m_pVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pDewarper->SetAttribute("gpu-id", m_gpuId);
+
+        return true;
+    }
+
     bool DewarperBintr::SetNvbufMemType(uint nvbufMemType)
     {
         LOG_FUNC();
@@ -214,6 +221,7 @@ namespace DSL
             return false;
         }
         m_nvbufMemType = nvbufMemType;
+        m_pVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
         m_pDewarper->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         return true;

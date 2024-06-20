@@ -1314,9 +1314,6 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == isLive );
-
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
