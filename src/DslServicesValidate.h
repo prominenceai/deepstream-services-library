@@ -413,6 +413,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspSourceBintr)) and \
         !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
         !components[name]->IsType(typeid(RecordTapBintr)) and  \
+        !components[name]->IsType(typeid(DewarperBintr)) and  \
         !components[name]->IsType(typeid(PreprocBintr)) and  \
         !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
@@ -459,6 +460,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspSourceBintr)) and \
         !components[name]->IsType(typeid(DuplicateSourceBintr)) and \
         !components[name]->IsType(typeid(RecordTapBintr)) and  \
+        !components[name]->IsType(typeid(DewarperBintr)) and  \
         !components[name]->IsType(typeid(PreprocBintr)) and  \
         !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and  \
