@@ -218,7 +218,6 @@ namespace DSL
         bool retval = LinkToCommon(pStaticSrcPad);
 
         gst_object_unref(pStaticSrcPad);
-
         return retval;
     }
 
@@ -905,6 +904,7 @@ namespace DSL
         LOG_INFO("Initial property values for DuplicateSourceBintr '" << name << "'");
         LOG_INFO("  original-source   : " << m_original);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         LOG_INFO("  is-live           : " << m_isLive);
         LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
@@ -928,6 +928,8 @@ namespace DSL
         LOG_INFO("      bytes         : " << m_minThresholdBytes);
         LOG_INFO("      time          : " << m_minThresholdTime);
 >>>>>>> 3158b5e (Implement Component Queue get/set services)
+=======
+>>>>>>> 223a789 (Refactor VideoSource, DuplicateSouce, and Dewarper)
 
         // Source queue is both "sink" and "src" ghost-pad for the DuplicateSourceBintr
         m_pQueue->AddGhostPadToParent("src");
