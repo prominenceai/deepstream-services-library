@@ -63,6 +63,9 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED              0x0001000C
 #define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000D
 #define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000E
+#define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x0001000F
+#define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010010
+#define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010011
 
 /**
  * Source API Return Values
@@ -516,20 +519,6 @@ THE SOFTWARE.
 #define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00D00006
 #define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00D00007
 #define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00D00008
-
-/**
- * GStreamer Bin API Return Values
- */
-#define DSL_RESULT_GST_BIN_RESULT                                   0x00E00000
-#define DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE                          0x00E00001
-#define DSL_RESULT_GST_BIN_NAME_NOT_FOUND                           0x00E00002
-#define DSL_RESULT_GST_BIN_NAME_BAD_FORMAT                          0x00E00003
-#define DSL_RESULT_GST_BIN_THREW_EXCEPTION                          0x00E00004
-#define DSL_RESULT_GST_BIN_IS_IN_USE                                0x00E00005
-#define DSL_RESULT_GST_BIN_SET_FAILED                               0x00E00006
-#define DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED                       0x00E00007
-#define DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED                    0x00E00008
-#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E00009
 
 /**
  * GPU Types
@@ -4733,7 +4722,7 @@ DslReturnType dsl_gst_element_property_string_set(const wchar_t* name,
  * @param[in] name unique name of the GStreamer Element to update
  * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_pph_add(const wchar_t* name, 
     const wchar_t* handler, uint pad);
@@ -4743,64 +4732,11 @@ DslReturnType dsl_gst_element_pph_add(const wchar_t* name,
  * @param[in] name unique name of the GStreamer Element to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_pph_remove(const wchar_t* name, 
     const wchar_t* handler, uint pad);
-    
 
-/**
- * @brief creates a new, uniquely named GStreamer Bin
- * @param[in] name unique name for the new GStreamer Bin
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_new(const wchar_t* name);
-
-/**
- * @brief creates a new GStreamer Bin and adds a list of Elements to it.
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] elements NULL terminated array of Element names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_new_element_add_many(const wchar_t* name, 
-    const wchar_t** components);
-
-/**
- * @brief adds a single Element to a GStreamer Bin 
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] element Element names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_add(const wchar_t* name, 
-    const wchar_t* component);
-
-/**
- * @brief adds a list of Elements to a GStreamer Bin 
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] components NULL terminated array of element names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_add_many(const wchar_t* name, 
-    const wchar_t** components);
-
-/**
- * @brief removes an Element from a GStreamer Bin
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] element name of the Element to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_remove(const wchar_t* name, 
-    const wchar_t* component);
-
-/**
- * @brief removes a list of Elements from a GStreamer Bin
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] components NULL terminated array of Element names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_remove_many(const wchar_t* name, 
-    const wchar_t** components);
-    
 /**
  * @brief Creates a new, uniquely named App Source component to insert data 
  * into a DSL pipeline.
@@ -8529,9 +8465,70 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
+ * @brief creates a new, uniquely named Custom Component
+ * @param[in] name unique name for the new Custom Component
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_new(const wchar_t* name);
+
+/**
+ * @brief creates a new Custom Component and adds a list of Elements to it.
+ * @param[in] name name of the Custom Component to update
+ * @param[in] elements NULL terminated array of Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_new_element_add(const wchar_t* name, 
+    const wchar_t* component);
+
+/**
+ * @brief creates a new Custom Component and adds a list of Elements to it.
+ * @param[in] name name of the Custom Component to update
+ * @param[in] elements NULL terminated array of Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_new_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief adds a single Element to a Custom Component 
+ * @param[in] name name of the Custom Component to update
+ * @param[in] element Element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief adds a list of Elements to a Custom Component 
+ * @param[in] name name of the Custom Component to update
+ * @param[in] elements NULL terminated array of element names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief removes an Element from a Custom Component
+ * @param[in] name name of the Custom Component to update
+ * @param[in] elements name of the Element to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief removes a list of Elements from a Custom Component
+ * @param[in] name name of the Custom Component to update
+ * @param[in] elements NULL terminated array of Element names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
+    
+/**
  * @brief deletes a Component object by name
  * @param[in] name name of the Component object to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  * @info the function checks that the name is not 
  * owned by a pipeline before deleting, and returns
  * DSL_RESULT_COMPONENT_IN_USE as failure
@@ -8541,7 +8538,7 @@ DslReturnType dsl_component_delete(const wchar_t* name);
 /**
  * @brief deletes a NULL terminated list of components
  * @param[in] names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_delete_many(const wchar_t** names);
 

@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslServicesValidate.h"
 #include "DslElementr.h"
-#include "DslGstBintr.h"
+
 
 namespace DSL
 {
@@ -586,112 +586,5 @@ namespace DSL
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
     }
-    
-    DslReturnType Services::GstBinNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        try
-        {
-            if (m_components[name])
-            {   
-                LOG_ERROR("GST Bin name '" << name << "' is not unique");
-                return DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE;
-            }
-            
-            m_components[name] = std::shared_ptr<GstBintr>(new GstBintr(name));
-            LOG_INFO("New GST Bin '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New GST Bin '" << name << "' threw exception on create");
-            return DSL_RESULT_GST_BIN_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::GstBinElementAdd(const char* name, 
-        const char* element)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, GstBintr);
-            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
-            
-            // Can't add elements if they're In use by another GstBin
-            if (m_gstElements[element]->IsInUse())
-            {
-                LOG_ERROR("Unable to add element '" << element 
-                    << "' as it's currently in use");
-                return DSL_RESULT_GST_ELEMENT_IN_USE;
-            }
-
-            // Cast the Bin Component to a GST Bintr to call the correct AddChild method.
-            DSL_GST_BINTR_PTR pBranchBintr = 
-                std::dynamic_pointer_cast<GstBintr>(m_components[name]);
-                
-            if (!pBranchBintr->AddChild(m_gstElements[element]))
-            {
-                LOG_ERROR("GST Bin '" << name
-                    << "' failed to add element '" << element << "'");
-                return DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED;
-            }
-            LOG_INFO("Element '" << element 
-                << "' was added to GST Bin '" << name << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("GST Bin '" << name
-                << "' threw exception adding element '" << element << "'");
-            return DSL_RESULT_GST_BIN_THREW_EXCEPTION;
-        }
-    }    
-    
-    DslReturnType Services::GstBinElementRemove(const char* name, 
-        const char* element)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-
-            if (!m_gstElements[element]->IsParent(m_components[name]))
-            {
-                LOG_ERROR("Element '" << element << 
-                    "' is not in use by GST Bin '" << name << "'");
-                return DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE;
-            }
-            // Cast the Bin Component to a GST Bintr to call the correct AddChild method.
-            DSL_GST_BINTR_PTR pBranchBintr = 
-                std::dynamic_pointer_cast<GstBintr>(m_components[name]);
-                
-            if (!pBranchBintr->RemoveChild(m_gstElements[element]))
-            {
-                LOG_ERROR("GST Bin '" << name
-                    << "' failed to remove element '" << element << "'");
-                return DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED;
-            }
-            LOG_INFO("Element '" << element 
-                << "' was removed from GST Bin '" << name << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("GST Bin '" << name 
-                << "' threw an exception removing component");
-            return DSL_RESULT_GST_BIN_THREW_EXCEPTION;
-        }
-    }
-    
 }
