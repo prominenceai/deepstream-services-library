@@ -7311,6 +7311,19 @@ def dsl_component_custom_new(name):
     return int(result)
 
 ##
+<<<<<<< HEAD
+=======
+## dsl_component_custom_new()
+##
+_dsl.dsl_component_custom_new.argtypes = [c_wchar_p]
+_dsl.dsl_component_custom_new.restype = c_uint
+def dsl_component_custom_new(name):
+    global _dsl
+    result =_dsl.dsl_component_custom_new(name)
+    return int(result)
+
+##
+>>>>>>> e21d5b4 (Rename dsl_gst_bin_* to dsl_component_custom_*)
 ## dsl_component_custom_new_element_add()
 ##
 _dsl.dsl_component_custom_new_element_add.argtypes = [c_wchar_p, c_wchar_p]
