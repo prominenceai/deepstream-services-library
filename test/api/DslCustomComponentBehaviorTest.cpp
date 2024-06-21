@@ -45,14 +45,14 @@ static const uint sink_height(720);
 
 static const std::wstring window_sink_name(L"egl-sink");
 
-static const std::wstring gst_bin_name(L"gst-bin");
+static const std::wstring custom_component_name(L"custom-component");
 static const std::wstring gst_element_name1(L"gst-element-1");
 static const std::wstring gst_element_name2(L"gst-element-2");
 
-static const std::wstring factory_name1(L"queue");
-static const std::wstring factory_name2(L"identity");
+static const std::wstring factory_name1(L"identity");
+static const std::wstring factory_name2(L"queue");
 
-static const std::wstring pipeline_graph_name(L"gst-bin-behavior");
+static const std::wstring pipeline_graph_name(L"custom-component-behavior");
 
 GThread* main_loop_thread(NULL);
 // ---------------------------------------------------------------------------
@@ -68,9 +68,9 @@ void dsl_error_message_handler(const wchar_t* source,
 }
 
 
-SCENARIO( "A Pipeline with a Custom Component can play]", "[gst-bin-behavior]")
+SCENARIO( "A Pipeline with a Custom Component can play]", "[custom-component-behavior]")
 {
-    GIVEN( "A Pipeline, URI source, GST Bin, and Window Sink" ) 
+    GIVEN( "A Pipeline, URI source, Component Custom, and Window Sink" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -86,17 +86,18 @@ SCENARIO( "A Pipeline with a Custom Component can play]", "[gst-bin-behavior]")
         REQUIRE( dsl_gst_element_new(gst_element_name2.c_str(), 
             factory_name2.c_str()) == DSL_RESULT_SUCCESS );
 
-        REQUIRE( dsl_gst_bin_new(gst_bin_name.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_custom_new(custom_component_name.c_str()) 
+            == DSL_RESULT_SUCCESS );
         
-        REQUIRE( dsl_gst_bin_element_add(gst_bin_name.c_str(),
+        REQUIRE( dsl_component_custom_element_add(custom_component_name.c_str(),
             gst_element_name1.c_str()) == DSL_RESULT_SUCCESS );
-        REQUIRE( dsl_gst_bin_element_add(gst_bin_name.c_str(),
+        REQUIRE( dsl_component_custom_element_add(custom_component_name.c_str(),
             gst_element_name2.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "When the Pipeline is assembled" ) 
         {
             const wchar_t* components[] = {source_name1.c_str(), 
-                gst_bin_name.c_str(), window_sink_name.c_str(), NULL};
+                custom_component_name.c_str(), window_sink_name.c_str(), NULL};
             
             REQUIRE( dsl_pipeline_new_component_add_many(pipeline_name.c_str(), 
                 components) == DSL_RESULT_SUCCESS );
@@ -106,7 +107,7 @@ SCENARIO( "A Pipeline with a Custom Component can play]", "[gst-bin-behavior]")
 
             THEN( "The Pipeline is able to LinkAll and Play" )
             {
-                REQUIRE( dsl_gst_element_property_uint_set(gst_element_name2.c_str(),
+                REQUIRE( dsl_gst_element_property_uint_set(gst_element_name1.c_str(),
                     L"error-after", 50) == DSL_RESULT_SUCCESS );
 
                 dsl_pipeline_play(pipeline_name.c_str());              

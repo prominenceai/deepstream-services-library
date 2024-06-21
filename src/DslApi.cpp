@@ -4067,122 +4067,6 @@ DslReturnType dsl_gst_element_pph_remove(const wchar_t* name,
         cstrHandler.c_str(), pad);
 }
 
-DslReturnType dsl_gst_bin_new(const wchar_t* name)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-
-    return DSL::Services::GetServices()->GstBinNew(cstrName.c_str());
-}
-
-DslReturnType dsl_gst_bin_new_element_add_many(const wchar_t* name, 
-    const wchar_t** elements)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(elements);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    DslReturnType retval = DSL::Services::GetServices()->GstBinNew(
-        cstrName.c_str());
-    if (retval != DSL_RESULT_SUCCESS)
-    {
-        return retval;
-    }
-    for (const wchar_t** element = elements; *element; element++)
-    {
-        std::wstring wstrElement(*element);
-        std::string cstrElement(wstrElement.begin(), wstrElement.end());
-        DslReturnType retval = DSL::Services::GetServices()->GstBinElementAdd(
-            cstrName.c_str(), cstrElement.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_gst_bin_element_add(const wchar_t* name, 
-    const wchar_t* element)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(element);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrElement(element);
-    std::string cstrElement(wstrElement.begin(), wstrElement.end());
-
-    return DSL::Services::GetServices()->GstBinElementAdd(
-        cstrName.c_str(), cstrElement.c_str());
-}
-
-DslReturnType dsl_gst_bin_element_add_many(const wchar_t* name, 
-    const wchar_t** elements)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(elements);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    for (const wchar_t** element = elements; *element; element++)
-    {
-        std::wstring wstrElement(*element);
-        std::string cstrElement(wstrElement.begin(), wstrElement.end());
-        DslReturnType retval = DSL::Services::GetServices()->GstBinElementAdd(
-            cstrName.c_str(), cstrElement.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
-DslReturnType dsl_gst_bin_element_remove(const wchar_t* name, 
-    const wchar_t* element)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(element);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    std::wstring wstrElement(element);
-    std::string cstrElement(wstrElement.begin(), wstrElement.end());
-
-    return DSL::Services::GetServices()->GstBinElementRemove(cstrName.c_str(), 
-        cstrElement.c_str());
-}
-
-DslReturnType dsl_gst_bin_element_remove_many(const wchar_t* name, 
-    const wchar_t** elements)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(elements);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    for (const wchar_t** element = elements; *element; element++)
-    {
-        std::wstring wstrElement(*element);
-        std::string cstrElement(wstrElement.begin(), wstrElement.end());
-        DslReturnType retval = 
-            DSL::Services::GetServices()->GstBinElementRemove(cstrName.c_str(), 
-                cstrElement.c_str());
-        if (retval != DSL_RESULT_SUCCESS)
-        {
-            return retval;
-        }
-    }
-    return DSL_RESULT_SUCCESS;
-}
-
 DslReturnType dsl_source_app_new(const wchar_t* name, boolean is_live, 
     const wchar_t* buffer_in_format, uint width, uint height, uint fps_n, uint fps_d)
 {
@@ -9577,6 +9461,143 @@ DslReturnType dsl_sink_pph_remove(const wchar_t* name,
         cstrHandler.c_str());
 }
 
+DslReturnType dsl_component_custom_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->ComponentCustomNew(cstrName.c_str());
+}
+
+DslReturnType dsl_component_custom_new_element_add(const wchar_t* name,
+    const wchar_t* element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(element);
+    std::string cstrElement(wstrElement.begin(), wstrElement.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->ComponentCustomNew(
+        cstrName.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+    return DSL::Services::GetServices()->ComponentCustomElementAdd(
+        cstrName.c_str(), cstrElement.c_str());
+}
+
+DslReturnType dsl_component_custom_new_element_add_many(const wchar_t* name, 
+    const wchar_t** elements)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elements);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    DslReturnType retval = DSL::Services::GetServices()->ComponentCustomNew(
+        cstrName.c_str());
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+    for (const wchar_t** element = elements; *element; element++)
+    {
+        std::wstring wstrElement(*element);
+        std::string cstrElement(wstrElement.begin(), wstrElement.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentCustomElementAdd(
+            cstrName.c_str(), cstrElement.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_component_custom_element_add(const wchar_t* name, 
+    const wchar_t* element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(element);
+    std::string cstrElement(wstrElement.begin(), wstrElement.end());
+
+    return DSL::Services::GetServices()->ComponentCustomElementAdd(
+        cstrName.c_str(), cstrElement.c_str());
+}
+
+DslReturnType dsl_component_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elements);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    for (const wchar_t** element = elements; *element; element++)
+    {
+        std::wstring wstrElement(*element);
+        std::string cstrElement(wstrElement.begin(), wstrElement.end());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentCustomElementAdd(
+            cstrName.c_str(), cstrElement.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_component_custom_element_remove(const wchar_t* name, 
+    const wchar_t* element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(element);
+    std::string cstrElement(wstrElement.begin(), wstrElement.end());
+
+    return DSL::Services::GetServices()->ComponentCustomElementRemove(cstrName.c_str(), 
+        cstrElement.c_str());
+}
+
+DslReturnType dsl_component_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elements);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    for (const wchar_t** element = elements; *element; element++)
+    {
+        std::wstring wstrElement(*element);
+        std::string cstrElement(wstrElement.begin(), wstrElement.end());
+        DslReturnType retval = 
+            DSL::Services::GetServices()->ComponentCustomElementRemove(
+                cstrName.c_str(), cstrElement.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -9595,7 +9616,8 @@ DslReturnType dsl_component_delete_many(const wchar_t** names)
     {
         std::wstring wstrName(*name);
         std::string cstrName(wstrName.begin(), wstrName.end());
-        DslReturnType retval = DSL::Services::GetServices()->ComponentDelete(cstrName.c_str());
+        DslReturnType retval = DSL::Services::GetServices()->ComponentDelete(
+            cstrName.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
             return retval;
