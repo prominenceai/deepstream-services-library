@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include "DslSegVisualBintr.h"
 #include "DslTrackerBintr.h"
 #include "DslOfvBintr.h"
-#include "DslGstBintr.h"
+#include "DslCustomBintr.h"
 #include "DslOsdBintr.h"
 #include "DslTilerBintr.h"
 #include "DslPipelineSInfersBintr.h"
@@ -154,18 +154,18 @@ namespace DSL
         bool RemoveTilerBintr(DSL_BASE_PTR pTilerBintr);
         
         /**
-         * @brief adds an GstBintr to this Branch 
-         * @param[in] pGstBintr shared pointer to GST Bintr to add
+         * @brief adds an CustomBintr to this Branch 
+         * @param[in] pCustomBintr shared pointer to Custom Bintr to add
          * @return true on succesful add, false otherwise.
          */
-        bool AddGstBintr(DSL_BASE_PTR pGstBintr);
+        bool AddCustomBintr(DSL_BASE_PTR pCustomBintr);
         
         /**
-         * @brief removes a GstBintr from this Branch 
-         * @param[in] pGstBintr shared pointer to GstBintr to remove
+         * @brief removes a CustomBintr from this Branch 
+         * @param[in] pCustomBintr shared pointer to CustomBintr to remove
          * @return true on succesful remove, false otherwise.
          */
-        bool RemoveGstBintr(DSL_BASE_PTR pGstBintr);
+        bool RemoveCustomBintr(DSL_BASE_PTR pCustomBintr);
         
         /**
          * @brief adds an OsdBintr to this Branch 
@@ -331,20 +331,20 @@ namespace DSL
         DSL_OFV_PTR m_pOfvBintr;
 
         /**
-         * @brief Index variable to incremment/assign on GST Bin add.
+         * @brief Index variable to incremment/assign on Custom Component add.
          */
-        uint m_nextGstBintrIndex;
+        uint m_nextCustomBintrIndex;
         
         /**
-         * @brief Map of child Custom GST Bins for this Branch
+         * @brief Map of child Custom Custom Components for this Branch
          */
-        std::map <std::string, DSL_GST_BINTR_PTR> m_gstBintrs;
+        std::map <std::string, DSL_CUSTOM_BINTR_PTR> m_custonBintrs;
         
         /**
-         * @brief Map of child Custom GST Bins for this Branch
+         * @brief Map of child Custom Custom Components for this Branch
          * indexed by thier add-order for execution
          */
-        std::map <uint, DSL_GST_BINTR_PTR> m_gstBintrsIndexed;
+        std::map <uint, DSL_CUSTOM_BINTR_PTR> m_custonBintrsIndexed;
         
         /**
          * @brief optional, one at most OSD for this Branch

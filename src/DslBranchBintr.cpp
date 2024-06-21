@@ -35,7 +35,7 @@ namespace DSL
     BranchBintr::BranchBintr(const char* name, bool isPipeline)
         : Bintr(name, isPipeline)
         , m_nextPrimaryInferBintrIndex(0)
-        , m_nextGstBintrIndex(0)
+        , m_nextCustomBintrIndex(0)
         , m_nextComponentIndex(0)
     {
         LOG_FUNC();
@@ -559,13 +559,13 @@ namespace DSL
         return RemoveChild(pTilerBintr);
     }
 
-    bool BranchBintr::AddGstBintr(DSL_BASE_PTR pGstBintr)
+    bool BranchBintr::AddCustomBintr(DSL_BASE_PTR pCustomBintr)
     {
         LOG_FUNC();
         
-        // Need to cast to GstBintr from Base class
-        DSL_GST_BINTR_PTR pChildBintr = 
-            std::dynamic_pointer_cast<GstBintr>(pGstBintr);
+        // Need to cast to CustomBintr from Base class
+        DSL_CUSTOM_BINTR_PTR pChildBintr = 
+            std::dynamic_pointer_cast<CustomBintr>(pCustomBintr);
         
         if (IsLinked())
         {
@@ -574,10 +574,10 @@ namespace DSL
                 <<"' as it is currently linked");
             return false;
         }
-        if (m_gstBintrs.find(pChildBintr->GetName()) 
-            != m_gstBintrs.end())
+        if (m_custonBintrs.find(pChildBintr->GetName()) 
+            != m_custonBintrs.end())
         {
-            LOG_ERROR("GST Bin '" << pGstBintr->GetName() 
+            LOG_ERROR("GST Bin '" << pCustomBintr->GetName() 
                 << "' is already a child of Pipeline/Branch '" << GetName() << "'");
             return false;
         }
@@ -585,26 +585,26 @@ namespace DSL
             << "' to Pipeline/Branch '" << GetName() << "'");
         
         // increment next index, assign to the Action, and update parent releationship.
-        pChildBintr->SetIndex(++m_nextGstBintrIndex);
+        pChildBintr->SetIndex(++m_nextCustomBintrIndex);
 
-        // Add the shared pointer to GstBintr to both Maps, by name and index
-        m_gstBintrs[pChildBintr->GetName()] = pChildBintr;
-        m_gstBintrsIndexed[m_nextGstBintrIndex] = pChildBintr;
+        // Add the shared pointer to CustomBintr to both Maps, by name and index
+        m_custonBintrs[pChildBintr->GetName()] = pChildBintr;
+        m_custonBintrsIndexed[m_nextCustomBintrIndex] = pChildBintr;
         
         return AddChild(pChildBintr);
     }
 
-    bool BranchBintr::RemoveGstBintr(DSL_BASE_PTR pGstBintr)
+    bool BranchBintr::RemoveCustomBintr(DSL_BASE_PTR pCustomBintr)
     {
         LOG_FUNC();
         
 
-        // Need to cast to GstBintr from Base class
-        DSL_GST_BINTR_PTR pChildBintr = 
-            std::dynamic_pointer_cast<GstBintr>(pGstBintr);
+        // Need to cast to CustomBintr from Base class
+        DSL_CUSTOM_BINTR_PTR pChildBintr = 
+            std::dynamic_pointer_cast<CustomBintr>(pCustomBintr);
             
-        if (m_gstBintrs.find(pChildBintr->GetName()) 
-            == m_gstBintrs.end())
+        if (m_custonBintrs.find(pChildBintr->GetName()) 
+            == m_custonBintrs.end())
         {
             LOG_ERROR("GST Bin '" << pChildBintr->GetName() 
                 << "' is not a child of Pipeline/Branch '" << GetName() << "'");
@@ -620,8 +620,8 @@ namespace DSL
             << "' from Pipeline/Branch '" << GetName() << "'");
             
         // Erase the child from both maps
-        m_gstBintrs.erase(pChildBintr->GetName());
-        m_gstBintrsIndexed.erase(pChildBintr->GetIndex());
+        m_custonBintrs.erase(pChildBintr->GetName());
+        m_custonBintrsIndexed.erase(pChildBintr->GetIndex());
 
         // Clear the parent relationship and index
         pChildBintr->SetIndex(0);
@@ -949,9 +949,9 @@ namespace DSL
                 << m_pTilerBintr->GetName() << "' successfully");
         }
 
-        if (m_gstBintrs.size())
+        if (m_custonBintrs.size())
         {
-            for (auto const &imap: m_gstBintrsIndexed)
+            for (auto const &imap: m_custonBintrsIndexed)
             {
                 // We don't set link-method or batch-size for custom components
 

@@ -22,40 +22,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _DSL_GST_BINTR_BINTR_H
-#define _DSL_GST_BINTR_BINTR_H
+#ifndef _DSL_CUSTOM_BINTR_BINTR_H
+#define _DSL_CUSTOM_BINTR_BINTR_H
 
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 
 namespace DSL
 {
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_GST_BINTR_PTR std::shared_ptr<GstBintr>
-    #define DSL_GST_BINTR_NEW(name) \
-        std::shared_ptr<GstBintr>(new GstBintr(name))
+    #define DSL_CUSTOM_BINTR_PTR std::shared_ptr<CustomBintr>
+    #define DSL_CUSTOM_BINTR_NEW(name) \
+        std::shared_ptr<CustomBintr>(new CustomBintr(name))
         
-    class GstBintr : public Bintr
+    class CustomBintr : public QBintr
     {
     public: 
     
         /**
-         * @brief Ctor for the GstBintr class - i.e. custom Pipeline component.
+         * @brief Ctor for the CustomBintr class - i.e. custom Pipeline component.
          * @param[in] name unique name to give to the .
         */
-        GstBintr(const char* name);
+        CustomBintr(const char* name);
 
         /**
-         * @brief dtor for the GstBintr class.
+         * @brief dtor for the CustomBintr class.
          */
-        ~GstBintr();
+        ~CustomBintr();
 
         /**
-         * @brief Adds the GstBintr to a Parent Branch Bintr.
+         * @brief Adds the CustomBintr to a Parent Branch Bintr.
          * @param pParentBintr Parent Branch to add this Bintr to.
         */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
@@ -92,17 +92,17 @@ namespace DSL
         uint m_nextElementIndex;
         
         /**
-         * @brief Map of child Elementrs for this GstBintr.
+         * @brief Map of child Elementrs for this CustomBintr.
          * indexed by thier add-order for execution.
          */
         std::map <uint, DSL_ELEMENT_PTR> m_elementrsIndexed;
         
         /**
-         * @brief Map of child Elementrs for this GstBintr.
+         * @brief Map of child Elementrs for this CustomBintr.
          * indexed by thier add-order, added when linked.
          */
         std::vector <DSL_ELEMENT_PTR> m_elementrsLinked;
     };
  
 } 
-#endif // _DSL_GST_BINTR_BINTR_H
+#endif // _DSL_CUSTOM_BINTR_BINTR_H
