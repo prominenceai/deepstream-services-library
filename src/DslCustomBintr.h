@@ -45,7 +45,7 @@ namespace DSL
     
         /**
          * @brief Ctor for the CustomBintr class - i.e. custom Pipeline component.
-         * @param[in] name unique name to give to the .
+         * @param[in] name unique name to give to the CustomBintr.
         */
         CustomBintr(const char* name);
 

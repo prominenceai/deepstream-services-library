@@ -57,7 +57,7 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' CustomBintr to the Parent Pipeline 
+        // add 'this' CustomBintr to the Parent Pipeline/Branch 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddCustomBintr(shared_from_this());
         return true;

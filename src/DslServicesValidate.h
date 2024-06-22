@@ -438,7 +438,8 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
-        !components[name]->IsType(typeid(MultiImageSinkBintr))) \
+        !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
+        !components[name]->IsType(typeid(CustomBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' does not have a queue element "); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
@@ -486,7 +487,8 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
-        !components[name]->IsType(typeid(WebRtcSinkBintr))) \
+        !components[name]->IsType(typeid(WebRtcSinkBintr)) and \
+        !components[name]->IsType(typeid(CustomBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' does not have a queue element "); \
         return DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK; \
