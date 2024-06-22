@@ -8423,54 +8423,54 @@ DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_component_custom_new(const wchar_t* name);
 
 /**
- * @brief creates a new Custom Component and adds a list of Elements to it.
- * @param[in] name name of the Custom Component to update
- * @param[in] elements NULL terminated array of Element names to add
+ * @brief creates a new Custom Component and adds a new Element to it.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] element name of the GST Element to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_custom_new_element_add(const wchar_t* name, 
-    const wchar_t* component);
+    const wchar_t* element);
 
 /**
- * @brief creates a new Custom Component and adds a list of Elements to it.
- * @param[in] name name of the Custom Component to update
- * @param[in] elements NULL terminated array of Element names to add
+ * @brief creates a new Custom Component and adds a list of GST Elements to it.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_custom_new_element_add_many(const wchar_t* name, 
     const wchar_t** elements);
 
 /**
- * @brief adds a single Element to a Custom Component 
- * @param[in] name name of the Custom Component to update
- * @param[in] element Element names to add
+ * @brief adds a single GST Element to a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] element Element names to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_custom_element_add(const wchar_t* name, 
     const wchar_t* elements);
 
 /**
- * @brief adds a list of Elements to a Custom Component 
- * @param[in] name name of the Custom Component to update
- * @param[in] elements NULL terminated array of element names to add
+ * @brief adds a list of GST Elements to a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_custom_element_add_many(const wchar_t* name, 
     const wchar_t** elements);
 
 /**
- * @brief removes an Element from a Custom Component
- * @param[in] name name of the Custom Component to update
- * @param[in] elements name of the Element to remove
+ * @brief removes an GST Element from a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements name of the GST Element to remove.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_custom_element_remove(const wchar_t* name, 
     const wchar_t* elements);
 
 /**
- * @brief removes a list of Elements from a Custom Component
- * @param[in] name name of the Custom Component to update
- * @param[in] elements NULL terminated array of Element names to remove
+ * @brief removes a list of GST Elements from a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_custom_element_remove_many(const wchar_t* name, 

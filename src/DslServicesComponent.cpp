@@ -42,7 +42,7 @@ namespace DSL
                 return DSL_RESULT_COMPONENT_NAME_NOT_UNIQUE;
             }
             
-            m_components[name] = std::shared_ptr<CustomBintr>(new CustomBintr(name));
+            m_components[name] = DSL_CUSTOM_BINTR_NEW(name);
             LOG_INFO("New Custom Component '" << name << "' created successfully");
 
             return DSL_RESULT_SUCCESS;
