@@ -135,12 +135,17 @@ def main(args):
             break
             
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Create a new Custom Component and adds the elements to it. If multple 
         # elements they will be linked in the order they're added.
 =======
         # Create a new bin and add the elements to it. The elements will be linked 
         # in the order they're added.
 >>>>>>> e21d5b4 (Rename dsl_gst_bin_* to dsl_component_custom_*)
+=======
+        # Create a new Custom Component and adds the elements to it. If multple 
+        # elements they will be linked in the order they're added.
+>>>>>>> 7ba048e (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
         retval = dsl_component_custom_new_element_add('identity-bin', 
             'identity-element')
         if retval != DSL_RETURN_SUCCESS:
