@@ -38,13 +38,13 @@ namespace DSL
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_gstElements[name])
-        {   
-            LOG_ERROR("Element name '" << name << "' is not unique");
-            return DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE;
-        }
         try
         {
+            if (m_gstElements[name])
+            {   
+                LOG_ERROR("Element name '" << name << "' is not unique");
+                return DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE;
+            }
             m_gstElements[name] = DSL_ELEMENT_NEW(factoryName, name);
             m_gstElements[name]->AddPadProbes();
         }
