@@ -610,10 +610,16 @@
 
 ## Common Component API:
 * [Overview](/docs/api-component.md)
+* [`dsl_component_custom_new`](/docs/api-component.md#dsl_component_custom_new)
+* [`dsl_component_custom_new_element_add`](/docs/api-component.md#dsl_component_custom_new_element_add)
+* [`dsl_component_custom_new_element_add_many`](/docs/api-component.md#dsl_component_custom_new_element_add_many)
 * [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete)
 * [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many)
 * [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all)
-* [`dsl_component_list_size`](/docs/api-component.md#dsl_component_list_size)
+* [`dsl_component_custom_element_add`](/docs/api-component.md#dsl_component_custom_element_add)
+* [`dsl_component_custom_element_add_many`](/docs/api-component.md#dsl_component_custom_element_add_many)
+* [`dsl_component_custom_element_remove`](/docs/api-component.md#dsl_component_custom_element_remove)
+* [`dsl_component_custom_element_remove_many`](/docs/api-component.md#dsl_component_custom_element_remove_many)
 * [`dsl_component_queue_current_level_get`](/docs/api-component.md#dsl_component_queue_current_level_get)
 * [`dsl_component_queue_current_level_print`](/docs/api-component.md#dsl_component_queue_current_level_print)
 * [`dsl_component_queue_current_level_print_many`](/docs/api-component.md#dsl_component_queue_current_level_print_many)
@@ -640,7 +646,7 @@
 * [`dsl_component_nvbuf_mem_type_get`](/docs/api-component.md#dsl_component_nvbuf_mem_type_get)
 * [`dsl_component_nvbuf_mem_type_set`](/docs/api-component.md#dsl_component_nvbuf_mem_type_set)
 * [`dsl_component_nvbuf_mem_type_set_many`](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many)
-* [`dsl_component_is_in_use`](/docs/api-component.md#dsl_component_is_in_use)
+* [`dsl_component_list_size`](/docs/api-component.md#dsl_component_list_size)
 
 ## Pad Probe Handler:
 * [Overview](/docs/api-pph.md)
