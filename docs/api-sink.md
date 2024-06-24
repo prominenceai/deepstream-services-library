@@ -3136,7 +3136,7 @@ retval = dsl_sink_frame_capture_schedule('my-frame-capture-sink', frame_meta.fra
 * **Sink**
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)

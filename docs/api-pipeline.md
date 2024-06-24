@@ -1504,7 +1504,7 @@ Except for the prefix, this method performs the identical service as
 * [Sink](/docs/api-sink.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pad-probe-handler.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
