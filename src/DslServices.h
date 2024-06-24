@@ -751,12 +751,6 @@ namespace DSL {
         DslReturnType GstElementPphRemove(const char* name, 
             const char* handler, uint pad);
             
-        DslReturnType GstBinNew(const char* name);
-        
-        DslReturnType GstBinElementAdd(const char* name, const char* element);
-
-        DslReturnType GstBinElementRemove(const char* name, const char* element);
-        
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
             const char* bufferInFormat, uint width, uint height, 
             uint fpsN, uint fpsD);
@@ -1692,6 +1686,12 @@ namespace DSL {
             const char* url, const char*  apiKey, const char* secretKey, 
             const char* room, const char* identity, const char* participant);
             
+        DslReturnType ComponentCustomNew(const char* name);
+        
+        DslReturnType ComponentCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType ComponentCustomElementRemove(const char* name, const char* element);
+        
         // TODO        
         // boolean ComponentIsInUse(const char* name);
         

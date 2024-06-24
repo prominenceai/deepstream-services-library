@@ -23,25 +23,27 @@ THE SOFTWARE.
 */
 
 #include "Dsl.h"
-#include "DslGstBintr.h"
+#include "DslCustomBintr.h"
 #include "DslBranchBintr.h"
 
 namespace DSL
 {
 
-    GstBintr::GstBintr(const char* name)
-        : Bintr(name)
+    CustomBintr::CustomBintr(const char* name)
+        : QBintr(name)
         , m_nextElementIndex(0)
     {
         LOG_FUNC();
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for GstBintr '" << name << "'");
+        LOG_INFO("Initial property values for CustomBintr '" << name << "'");
         LOG_INFO("  none - applicable       : " );
 
+        // Bintr Queue as first element and Sink ghost pad for the CustomBintr
+        m_pQueue->AddGhostPadToParent("sink");
    }
 
-    GstBintr::~GstBintr()
+    CustomBintr::~CustomBintr()
     {
         LOG_FUNC();
 
@@ -51,76 +53,76 @@ namespace DSL
         }
     }
 
-    bool GstBintr::AddToParent(DSL_BASE_PTR pParentBintr)
+    bool CustomBintr::AddToParent(DSL_BASE_PTR pParentBintr)
     {
         LOG_FUNC();
         
-        // add 'this' GstBintr to the Parent Pipeline 
+        // add 'this' CustomBintr to the Parent Pipeline/Branch 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
-            AddGstBintr(shared_from_this());
+            AddCustomBintr(shared_from_this());
         return true;
     }
     
-    bool GstBintr::AddChild(DSL_ELEMENT_PTR pChild)
+    bool CustomBintr::AddChild(DSL_ELEMENT_PTR pChild)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
             LOG_ERROR("Can't add child '" << pChild->GetName() 
-                << "' to GstBintr '" << m_name << "' as it is currently linked");
+                << "' to CustomBintr '" << m_name << "' as it is currently linked");
             return false;
         }
         if (IsChild(pChild))
         {
             LOG_ERROR("GstElementr '" << pChild->GetName() 
-                << "' is already a child of GstBintr '" << GetName() << "'");
+                << "' is already a child of CustomBintr '" << GetName() << "'");
             return false;
         }
  
         // increment next index, assign to the Element.
         pChild->SetIndex(++m_nextElementIndex);
 
-        // Add the shared pointer to the GstBintr to the indexed map and as a child.
+        // Add the shared pointer to the CustomBintr to the indexed map and as a child.
         m_elementrsIndexed[m_nextElementIndex] = pChild;
         return GstNodetr::AddChild(pChild);
     }
     
-    bool GstBintr::RemoveChild(DSL_ELEMENT_PTR pChild)
+    bool CustomBintr::RemoveChild(DSL_ELEMENT_PTR pChild)
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
             LOG_ERROR("Can't remove child '" << pChild->GetName() 
-                << "' from GstBintr '" << m_name << "' as it is currently linked");
+                << "' from CustomBintr '" << m_name << "' as it is currently linked");
             return false;
         }
         if (!IsChild(pChild))
         {
             LOG_ERROR("GstElementr '" << pChild->GetName() 
-                << "' is not a child of GstBintr '" << GetName() << "'");
+                << "' is not a child of CustomBintr '" << GetName() << "'");
             return false;
         }
         
-        // Remove the shared pointer to the GstBintr from the indexed map and 
+        // Remove the shared pointer to the CustomBintr from the indexed map and 
         // as a child.
         m_elementrsIndexed.erase(pChild->GetIndex());
         return GstNodetr::RemoveChild(pChild);
     }
     
-    bool GstBintr::LinkAll()
+    bool CustomBintr::LinkAll()
     {
         LOG_FUNC();
         
         if (m_isLinked)
         {
-            LOG_ERROR("GstBintr '" << m_name << "' is already linked");
+            LOG_ERROR("CustomBintr '" << m_name << "' is already linked");
             return false;
         }
         if (!m_elementrsIndexed.size()) 
         {
-            LOG_ERROR("GstBintr '" << m_name << "' has no Elements to link");
+            LOG_ERROR("CustomBintr '" << m_name << "' has no Elements to link");
             return false;
         }
         for (auto const &imap: m_elementrsIndexed)
@@ -135,36 +137,37 @@ namespace DSL
             // Add Elementr to the end of the linked Elementrs vector.
             m_elementrsLinked.push_back(imap.second);
 
-            LOG_INFO("GstBintr '" << GetName() << "' Linked up child Elementrs as '" << 
+            LOG_INFO("CustomBintr '" << GetName() << "' Linked up child Elementrs as '" << 
                 imap.second->GetName() << "' successfully");                    
         }
-        // Setup the ghost pads for the first and last Elementrs, which would
+        // Setup the ghost pad for the last Element, which would
         // be the same in the case of one element.
-        m_elementrsLinked.front()->AddGhostPadToParent("sink");
         m_elementrsLinked.back()->AddGhostPadToParent("src");
- 
+
+        // Link the input queue to the first custom element
+        m_pQueue->LinkToSink(m_elementrsLinked.front());
+
         m_isLinked = true;
         
         return true;
     }
     
-    void GstBintr::UnlinkAll()
+    void CustomBintr::UnlinkAll()
     {
         LOG_FUNC();
         
         if (!m_isLinked)
         {
-            LOG_ERROR("GstBintr '" << m_name << "' is not linked");
+            LOG_ERROR("CustomBintr '" << m_name << "' is not linked");
             return;
         }
         if (!m_elementrsLinked.size()) 
         {
-            LOG_ERROR("GstBintr '" << m_name << "' has no Elements to unlink");
+            LOG_ERROR("CustomBintr '" << m_name << "' has no Elements to unlink");
             return;
         }
-        // Remove the ghost pads for the first and last element, which would
+        // Remove the sink ghost pad from the last element, which would
         // be the same in the case of one element.
-        m_elementrsLinked.front()->RemoveGhostPadFromParent("sink");
         m_elementrsLinked.back()->RemoveGhostPadFromParent("src");
         
         // iterate through the list of Linked Components, unlinking each

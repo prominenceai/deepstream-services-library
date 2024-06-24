@@ -3404,72 +3404,6 @@ def dsl_gst_element_pph_remove(name, handler, pad):
     return int(result)
 
 ##
-## dsl_gst_bin_new()
-##
-_dsl.dsl_gst_bin_new.argtypes = [c_wchar_p]
-_dsl.dsl_gst_bin_new.restype = c_uint
-def dsl_gst_bin_new(name):
-    global _dsl
-    result =_dsl.dsl_gst_bin_new(name)
-    return int(result)
-
-##
-## dsl_gst_bin_new_element_add_many()
-##
-#_dsl.dsl_gst_bin_new_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gst_bin_new_element_add_many.restype = c_uint
-def dsl_gst_bin_new_element_add_many(name, elements):
-    global _dsl
-    arr = (c_wchar_p * len(elements))()
-    arr[:] = elements
-    result =_dsl.dsl_gst_bin_new_element_add_many(name, arr)
-    return int(result)
-    
-##
-## dsl_gst_bin_element_add()
-##
-_dsl.dsl_gst_bin_element_add.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gst_bin_element_add.restype = c_uint
-def dsl_gst_bin_element_add(name, element):
-    global _dsl
-    result =_dsl.dsl_gst_bin_element_add(name, element)
-    return int(result)
-
-##
-## dsl_gst_bin_element_add_many()
-##
-#_dsl.dsl_gst_bin_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gst_bin_element_add_many.restype = c_uint
-def dsl_gst_bin_element_add_many(name, elements):
-    global _dsl
-    arr = (c_wchar_p * len(elements))()
-    arr[:] = elements
-    result =_dsl.dsl_gst_bin_element_add_many(name, arr)
-    return int(result)
-
-##
-## dsl_gst_bin_element_remove()
-##
-_dsl.dsl_gst_bin_element_remove.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gst_bin_element_remove.restype = c_uint
-def dsl_gst_bin_element_remove(name, element):
-    global _dsl
-    result =_dsl.dsl_gst_bin_element_remove(name, element)
-    return int(result)
-
-##
-## dsl_gst_bin_element_remove_many()
-##
-#_dsl.dsl_gst_bin_element_remove_many.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_gst_bin_element_remove_many.restype = c_uint
-def dsl_gst_bin_element_remove_many(name, elements):
-    global _dsl
-    arr = (c_wchar_p * len(elements))()
-    arr[:] = elements
-    result =_dsl.dsl_gst_bin_element_remove_many(name, arr)
-    return int(result)
-    
-##
 ## dsl_source_app_new()
 ##
 _dsl.dsl_source_app_new.argtypes = [c_wchar_p, 
@@ -7148,6 +7082,92 @@ def dsl_websocket_server_client_listener_remove(client_listener):
     result = _dsl.dsl_websocket_server_client_listener_remove(c_client_listener)
     return int(result)
 
+##
+## dsl_component_custom_new()
+##
+_dsl.dsl_component_custom_new.argtypes = [c_wchar_p]
+_dsl.dsl_component_custom_new.restype = c_uint
+def dsl_component_custom_new(name):
+    global _dsl
+    result =_dsl.dsl_component_custom_new(name)
+    return int(result)
+
+##
+## dsl_component_custom_new()
+##
+_dsl.dsl_component_custom_new.argtypes = [c_wchar_p]
+_dsl.dsl_component_custom_new.restype = c_uint
+def dsl_component_custom_new(name):
+    global _dsl
+    result =_dsl.dsl_component_custom_new(name)
+    return int(result)
+
+##
+## dsl_component_custom_new_element_add()
+##
+_dsl.dsl_component_custom_new_element_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_component_custom_new_element_add.restype = c_uint
+def dsl_component_custom_new_element_add(name, element):
+    global _dsl
+    result =_dsl.dsl_component_custom_new_element_add(name, element)
+    return int(result)
+
+##
+## dsl_component_custom_new_element_add_many()
+##
+#_dsl.dsl_component_custom_new_element_add_many.argtypes = [c_wchar_p, c_wchar_p] ??
+_dsl.dsl_component_custom_new_element_add_many.restype = c_uint
+def dsl_component_custom_new_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_component_custom_new_element_add_many(name, arr)
+    return int(result)
+    
+##
+## dsl_component_custom_element_add()
+##
+_dsl.dsl_component_custom_element_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_component_custom_element_add.restype = c_uint
+def dsl_component_custom_element_add(name, element):
+    global _dsl
+    result =_dsl.dsl_component_custom_element_add(name, element)
+    return int(result)
+
+##
+## dsl_component_custom_element_add_many()
+##
+#_dsl.dsl_component_custom_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_component_custom_element_add_many.restype = c_uint
+def dsl_component_custom_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_component_custom_element_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_component_custom_element_remove()
+##
+_dsl.dsl_component_custom_element_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_component_custom_element_remove.restype = c_uint
+def dsl_component_custom_element_remove(name, element):
+    global _dsl
+    result =_dsl.dsl_component_custom_element_remove(name, element)
+    return int(result)
+
+##
+## dsl_component_custom_element_remove_many()
+##
+#_dsl.dsl_component_custom_element_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_component_custom_element_remove_many.restype = c_uint
+def dsl_component_custom_element_remove_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_component_custom_element_remove_many(name, arr)
+    return int(result)
+    
 ##
 ## dsl_component_delete()
 ##

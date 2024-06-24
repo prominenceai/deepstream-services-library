@@ -2,7 +2,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2024, Prominence AI, Inc.
+# Copyright (c) 2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,35 +25,34 @@
 
 ################################################################################
 #
-# The example demonstrates how to create a custom DSL Pipeline Component using
-# the DSL GStreamer (GST) API. NOTE! All DSL Pipeline Components are derived 
-# from the GST Bin container class. Bins allow you to combine a group of linked 
-# elements into one logical element. 
+# The example demonstrates how to create a custom DSL Pipeline Component with
+# a custom GStreamer (GST) Element.  
 #
 # Elements are constructed from plugins installed with GStreamer or 
 # using your own proprietary -- with a call to
 #
 #     dsl_gst_element_new('my-element', 'my-plugin-factory-name' )
 #
-# This example creates a simple GST Bin with two elements derived from
-#  1. A 'queue' plugin - to create a new thread boundary for our Bin
-#  2. An 'identity' plugin - a GST debug plugin to mimic our proprietary element
+# IMPORTANT! All DSL Pipeline Components, intrinsic and custom, include
+# a queue element to create a new thread boundary for the component's element(s)
+# to process in. 
 #
-# Elements can be added to a bin on creation be calling
+# This example creates a simple Custom Component with two elements
+#  1. The built-in 'queue' plugin - to create a new thread boundary.
+#  2. An 'identity' plugin - a GST debug plugin to mimic our proprietary element.
 #
-#    dsl_gst_bin_new_element_add_many('my-bin',
+# A single GST Element can be added to the Component on creation by calling
+#
+#    dsl_component_custom_new_element_add('my-custom-component',
+#        'my-element')
+#
+# Multiple elements can be added to a Component on creation be calling
+#
+#    dsl_component_custom_new_element_add_many('my-bin',
 #        ['my-element-1', 'my-element-2', None])
 #
-# IMPORTANT! When adding your own Custom Components, it is important to
-# set the Pipeline's link methods to DSL_PIPELINE_LINK_METHOD_BY_ORDER
-# by calling
-#
-#   dsl_pipeline_link_method_set('pipeline', DSL_PIPELINE_LINK_METHOD_BY_ORDER)
-#
-# otherwise, all components will be linked in a fixed position (default).
-# See the GST API Reference section at
-#
 # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
+# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-component.md
 #
 ################################################################################
 
@@ -130,34 +129,17 @@ def main(args):
         # more details.
         # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
 
-        # IMPORTANT! We create a queue element to be our first element of our bin.
-        # The queue will create a new thread on the source pad (output) to decouple 
-        # the processing on sink and source pad, effectively creating a new thread for 
-        # our custom component.
-        retval = dsl_gst_element_new('identity-queue', factory_name='queue')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Create a new element from the identity plugin
         retval = dsl_gst_element_new('identity-element', factory_name='identity')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new bin and add the elements to it. The elements will be linked 
-        # in the order they're added.
-        ret_val = dsl_gst_bin_new_element_add_many('identity-bin', 
-            elements = ['identity-queue', 'identity-element', None])
+        # Create a new Custom Component and adds the elements to it. If multple 
+        # elements they will be linked in the order they're added.
+        retval = dsl_component_custom_new_element_add('identity-bin', 
+            'identity-element')
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Once created, the Element's properties can be queryied or updated.
-        # For example, we can read the 'flush-on-eos' from our queue
-        retval, flush_on_eos = dsl_gst_element_property_boolean_get('identity-queue',
-            property='flush-on-eos')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
-        print('flush-on-eos =', flush_on_eos)
             
         # IMPORTANT! Pad Probe handlers can be added to any sink or src pad of 
         # any GST Element.

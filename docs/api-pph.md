@@ -996,7 +996,7 @@ pph_count = dsl_pph_list_size()
 * [Sink](/docs/api-sink.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * **Pad Probe Handler**
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)

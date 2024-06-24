@@ -264,9 +264,22 @@ See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.
 ---
 
 ## Custom Components
-Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the [DSL GST API](/docs/api-gst.md). Once created, they can be added to a Pipeline along with other DSL Components. 
+Custom Components are built with [Custom GST Elements](/docs/api-gst.md) derived from installed or proprietary GStreamer (GST) plugins. Once created, they can be added to a Pipeline along with other DSL Components. 
 
-See the [GST API Reference](/docs/api-gst.md) for more information.
+There are three types of Custom Components supported.
+1. Custom Componets that are not Sources or Sinks - linked after the Pipeline's Streammuxer along with other DSL non Source and Sink components.
+2. Custom Source Components - linked to the Pipeline's built-in Streammuxer along with other DSL Sources.
+3. Custom Sink components - linked to the Pipeline or Branch's multi-sink Tee along with other DSL Sinks.
+
+See the following reference sections for more information:
+* [GST API Reference](/docs/api-gst.md)
+* [Custom Component API Reference](/docs/api-component.md#custom-components)
+* Custom Source API Reference (TODO)
+* Custom Sink API Reference (TODO)
+
+See the following examples for more detail:
+* [pipeline_with_custom_component.py](/examples/python/pipeline_with_custom_component.py)
+* [pipeline_with_custom_component.cpp](/examples/cpp/pipeline_with_custom_component.cpp)
 
 ---
 
@@ -280,7 +293,7 @@ The default link method is `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER`.
 
 ### Linking by Add-Order
 When linking by add order (default):
-* All Components, except for Source, Branches, and Sinks, must be added to the Pipeline at the same time in the order they are to be linked.
+* All Components, except for Sources, Branches, and Sinks, must be added to the Pipeline at the same time in the order they are to be linked.
 * Sources are still always linked to the Streammuxer first, regardless of the order added.
 * Demuxers, Tees, and Sinks must always be added last. 
 * Sources and Sinks can be added/removed at runtime.
@@ -1690,7 +1703,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Sink](docs/api-sink.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
