@@ -4256,6 +4256,144 @@ DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
 //        leaky_type);
 //}
   
+DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceCustomNew(cstrName.c_str(),
+        is_live);
+}
+
+DslReturnType dsl_source_custom_new_element_add(const wchar_t* name,
+    boolean is_live, const wchar_t* element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(element);
+    std::string cstrElement(wstrElement.begin(), wstrElement.end());
+
+    DslReturnType retval = DSL::Services::GetServices()->SourceCustomNew(
+        cstrName.c_str(), is_live);
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+    return DSL::Services::GetServices()->SourceCustomElementAdd(
+        cstrName.c_str(), cstrElement.c_str());
+}
+
+DslReturnType dsl_source_custom_new_element_add_many(const wchar_t* name, 
+    boolean is_live, const wchar_t** elements)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elements);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    DslReturnType retval = DSL::Services::GetServices()->SourceCustomNew(
+        cstrName.c_str(), is_live);
+    if (retval != DSL_RESULT_SUCCESS)
+    {
+        return retval;
+    }
+    for (const wchar_t** element = elements; *element; element++)
+    {
+        std::wstring wstrElement(*element);
+        std::string cstrElement(wstrElement.begin(), wstrElement.end());
+        DslReturnType retval = DSL::Services::GetServices()->SourceCustomElementAdd(
+            cstrName.c_str(), cstrElement.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_source_custom_element_add(const wchar_t* name, 
+    const wchar_t* element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(element);
+    std::string cstrElement(wstrElement.begin(), wstrElement.end());
+
+    return DSL::Services::GetServices()->SourceCustomElementAdd(
+        cstrName.c_str(), cstrElement.c_str());
+}
+
+DslReturnType dsl_source_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elements);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    for (const wchar_t** element = elements; *element; element++)
+    {
+        std::wstring wstrElement(*element);
+        std::string cstrElement(wstrElement.begin(), wstrElement.end());
+        DslReturnType retval = DSL::Services::GetServices()->SourceCustomElementAdd(
+            cstrName.c_str(), cstrElement.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_source_custom_element_remove(const wchar_t* name, 
+    const wchar_t* element)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(element);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrElement(element);
+    std::string cstrElement(wstrElement.begin(), wstrElement.end());
+
+    return DSL::Services::GetServices()->SourceCustomElementRemove(cstrName.c_str(), 
+        cstrElement.c_str());
+}
+
+DslReturnType dsl_source_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(elements);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    for (const wchar_t** element = elements; *element; element++)
+    {
+        std::wstring wstrElement(*element);
+        std::string cstrElement(wstrElement.begin(), wstrElement.end());
+        DslReturnType retval = 
+            DSL::Services::GetServices()->SourceCustomElementRemove(
+                cstrName.c_str(), cstrElement.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_source_csi_new(const wchar_t* name, 
     uint width, uint height, uint fps_n, uint fps_d)
 {
