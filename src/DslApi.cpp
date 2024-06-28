@@ -3733,7 +3733,7 @@ uint dsl_pph_list_size()
     return DSL::Services::GetServices()->PphListSize();
 }
 
-DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name)
+DslReturnType dsl_gst_caps_new(const wchar_t* name, const wchar_t* factory_name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(factory_name);
@@ -3744,8 +3744,61 @@ DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_na
     std::string cstrFactoryName(wstrFactoryName.begin(), 
         wstrFactoryName.end());
 
-    return DSL::Services::GetServices()->GstElementNew(cstrName.c_str(), 
+    return DSL::Services::GetServices()->GstCapsNew(cstrName.c_str(), 
         cstrFactoryName.c_str());
+}
+
+DslReturnType dsl_gst_caps_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->GstCapsDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_gst_caps_delete_many(const wchar_t** names)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+
+        DslReturnType retval = DSL::Services::GetServices()->GstCapsDelete(cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_gst_caps_delete_all()
+{
+    return DSL::Services::GetServices()->GstCapsDeleteAll();
+}
+
+uint dsl_gst_caps_list_size()
+{
+    return DSL::Services::GetServices()->GstCapsListSize();
+}
+
+DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* caps)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(caps);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrCaps(caps);
+    std::string cstrCaps(wstrCaps.begin(), 
+        wstrCaps.end());
+
+    return DSL::Services::GetServices()->GstElementNew(cstrName.c_str(), 
+        cstrCaps.c_str());
 }
 
 DslReturnType dsl_gst_element_delete(const wchar_t* name)
