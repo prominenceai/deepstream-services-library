@@ -30,6 +30,13 @@ THE SOFTWARE.
 namespace DSL
 {
     /**
+     * @brief convenience macros for shared pointer abstraction
+     */
+    #define DSL_CAPS_PTR std::shared_ptr<DslCaps>
+    #define DSL_CAPS_NEW(caps) \
+        std::shared_ptr<DslCaps>(new DslCaps(caps))   
+
+    /**
      * @class DslCaps
      * @brief Helper class to create GST Caps from String
      */
@@ -72,11 +79,25 @@ namespace DSL
             }
             m_capsString = ssCaps.str();
             
-            LOG_INFO("Creating new cap from string = ' " 
+            LOG_INFO("Creating new cap from string = '" 
                 << m_capsString << "'");
             m_pGstCaps = gst_caps_from_string(m_capsString.c_str());
         }
-        
+
+        /**
+         * @brief ctor for DslCaps class
+         */
+        DslCaps(const char* caps)
+        {
+            LOG_FUNC();
+
+            m_capsString = caps;
+            
+            LOG_INFO("Creating new cap from string = '" 
+                << m_capsString << "'");
+            m_pGstCaps = gst_caps_from_string(m_capsString.c_str());
+        }
+
         /**
          * @brief dtor for DslCaps class
          */

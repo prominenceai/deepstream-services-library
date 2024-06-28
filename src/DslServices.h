@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "DslCaps.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslOdeAccumulator.h"
@@ -692,6 +693,14 @@ namespace DSL {
         DslReturnType PphDeleteAll();
         
         uint PphListSize();
+        
+        DslReturnType GstCapsNew(const char* name, const char* caps);
+        
+        DslReturnType GstCapsDelete(const char* name);
+        
+        DslReturnType GstCapsDeleteAll();
+        
+        uint GstCapsListSize();
         
         DslReturnType GstElementNew(const char* name, const char* factoryName);
         
@@ -2214,6 +2223,11 @@ namespace DSL {
          */
         std::map <std::string, DSL_PPH_PTR> m_padProbeHandlers;
         
+        /**
+         * @brief map of all GST Caps Objects created by the client, key=name
+         */
+        std::map <std::string, DSL_CAPS_PTR> m_gstCapsObjects;
+
         /**
          * @brief map of all GST Elements created by the client, key=name
          */

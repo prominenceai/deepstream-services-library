@@ -511,17 +511,25 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 
 /**
+ * GStreamer Caps API Return Values
+ */
+#define DSL_RESULT_GST_CAPS_RESULT                                  0x00D00000
+#define DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE                         0x00D00001
+#define DSL_RESULT_GST_CAPS_NAME_NOT_FOUND                          0x00D00002
+#define DSL_RESULT_GST_CAPS_THREW_EXCEPTION                         0x00D00003
+
+/**
  * GStreamer Element API Return Values
  */
-#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
-#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00D00001
-#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00D00002
-#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
-#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
-#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
-#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00D00006
-#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00D00007
-#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00D00008
+#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00E00000
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00E00001
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00E00002
+#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00E00003
+#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00E00004
+#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00E00005
+#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00E00006
+#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00E00007
+#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00E00008
 
 /**
  * GPU Types
@@ -4538,9 +4546,44 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /** 
+ * @brief Creates a uniquely named GStreamer Caps Object from a string representation.
+ * @param[in] name unique name for the GStreamer Caps Object to create.
+ * @param[in] caps a string defining the caps to create.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_caps_new(const wchar_t* name, const wchar_t* caps);
+
+/**
+ * @brief Deletes a GStreamer Caps Object by name.
+ * @param[in] name unique name of the Element to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */
+DslReturnType dsl_gst_caps_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of Caps Objects.
+ * @param[in] names NULL terminated list of names of Caps Objects to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */
+DslReturnType dsl_gst_caps_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all GStreamer Caps Objects in memory.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+
+ */
+DslReturnType dsl_gst_caps_delete_all();
+
+/**
+ * @brief returns the current number of GStreamer Caps Objects.
+ * @return size of the list of GStreamer Caps Objects.
+ */
+uint dsl_gst_element_list_size();
+
+/** 
  * @brief Creates a uniquely named GStreamer Element from a plugin factory name.
- * @param[in] name unique name for the Element to create
- * @param[in] factory_name factory (plugin) name for the Element to create
+ * @param[in] name unique name for the Element to create.
+ * @param[in] factory_name factory (plugin) name for the Element to create.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */ 
 DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
@@ -4548,20 +4591,20 @@ DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_na
 /**
  * @brief Deletes a GStreamer Element by name.
  * @param[in] name unique name of the Element to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_delete(const wchar_t* name);
 
 /**
- * @brief deletes a NULL terminated list of GStreamer Elements
- * @param[in] names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ * @brief deletes a NULL terminated list of GStreamer Elements.
+ * @param[in] names NULL terminated list of names to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_delete_many(const wchar_t** names);
 
 /**
- * @brief deletes all GStreamer Elements in memory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @brief deletes all GStreamer Elements in memory.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT.
 
  */
 DslReturnType dsl_gst_element_delete_all();
