@@ -66,7 +66,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
-
+ 
             *caps = m_gstCapsObjects[name]->c_str();
 
             LOG_INFO("GST Caps '" << name << "' returned string = '"
