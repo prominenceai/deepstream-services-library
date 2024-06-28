@@ -96,6 +96,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 #define DSL_RESULT_SOURCE_HANDLER_ADD_FAILED                        0x00020017
 #define DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED                     0x00020018
+#define DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED                        0x00020019
+#define DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED                     0x0002002A
+#define DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE                        0x0003002B
 
 /**
  * Dewarper API Return Values
@@ -4917,6 +4920,68 @@ DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
  */
 //DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
 //    uint leaky_type);
+    
+/**
+ * @brief creates a new, uniquely named Custom Source Component.
+ * @param[in] name unique name for the new Custom Source.
+ * @param[in] is_live true if source is live false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
+
+/**
+ * @brief creates a new Custom Source Component and adds a new Element to it.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] element name of the GST Element to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new_element_add(const wchar_t* name, 
+    boolean is_live, const wchar_t* element);
+
+/**
+ * @brief creates a new Custom Source Component and adds a list of GST Elements to it.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new_element_add_many(const wchar_t* name, 
+    boolean is_live, const wchar_t** elements);
+
+/**
+ * @brief adds a single GST Element to a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] element Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief adds a list of GST Elements to a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief removes an GST Element from a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements name of the GST Element to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief removes a list of GST Elements from a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
     
 /**
  * @brief creates a new, uniquely named CSI Camera Source component. A unique 

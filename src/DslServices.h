@@ -799,6 +799,12 @@ namespace DSL {
 //        DslReturnType SourceAppLeakyTypeSet(const char* name,
 //            uint leakyType);
 
+        DslReturnType SourceCustomNew(const char* name, boolean is_live);
+        
+        DslReturnType SourceCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType SourceCustomElementRemove(const char* name, const char* element);
+        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
             

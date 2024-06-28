@@ -37,7 +37,16 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for CustomBintr '" << name << "'");
-        LOG_INFO("  none - applicable       : " );
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Bintr Queue as first element and Sink ghost pad for the CustomBintr
         m_pQueue->AddGhostPadToParent("sink");
@@ -63,6 +72,15 @@ namespace DSL
         return true;
     }
     
+    bool CustomBintr::RemoveFromParent(DSL_BASE_PTR pParentBintr)
+    {
+        LOG_FUNC();
+        
+        // remove 'this' CustomBintr from the Parent Branch
+        return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
+            RemoveCustomBintr(shared_from_this());
+    }
+
     bool CustomBintr::AddChild(DSL_ELEMENT_PTR pChild)
     {
         LOG_FUNC();

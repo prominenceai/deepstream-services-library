@@ -47,6 +47,10 @@ namespace DSL
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
             bufferInFormat, width, height, fpsN, fpsD))
         
+    #define DSL_CUSTOM_SOURCE_PTR std::shared_ptr<CustomSourceBintr>
+    #define DSL_CUSTOM_SOURCE_NEW(name, isLive) \
+        std::shared_ptr<CustomSourceBintr>(new CustomSourceBintr(name, isLive))
+        
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
         std::shared_ptr<CsiSourceBintr>(new CsiSourceBintr(name, width, height, fpsN, fpsD))
@@ -881,10 +885,77 @@ namespace DSL
         gpointer pAppSrcBintr);
         
     //*********************************************************************************
+
     /**
-     * @class CsiSourceBintr
-     * @brief 
-     */
+     * @class CustomSourceBintr
+     * @brief Implements a Custom Source Bintr with Custom GST Elements 
+     */    
+    class CustomSourceBintr : public VideoSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the CustomSourceBintr class
+         * @param[in] name unique name to give to the CustomsSourceBintr.
+         * @param[in] isLive set to true if Source Element is a live-source.
+        */
+        CustomSourceBintr(const char* name, bool isLive);
+
+        /**
+         * @brief dtor for the CustomSourceBintr class.
+         */
+        ~CustomSourceBintr();
+
+        /**
+         * @brief Adds a Child Element to this Bintr.
+         * @param pChild Child Element to add this Bintr to.
+        */
+        bool AddChild(DSL_ELEMENT_PTR pChild);
+    
+        /**
+         * @brief Removes a Child Element from this Bintr.
+         * @param pChild Child Element to add this Bintr to.
+        */
+        bool RemoveChild(DSL_ELEMENT_PTR pChild);
+ 
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr.
+         * @return true if all links were succesful, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Bintr.
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+    
+    private:
+
+        /**
+         * @brief Index variable to incremment/assign on Element add.
+         */
+        uint m_nextElementIndex;
+        
+        /**
+         * @brief Map of child Elementrs for this CustomSourceBintr.
+         * indexed by thier add-order for execution.
+         */
+        std::map <uint, DSL_ELEMENT_PTR> m_elementrsIndexed;
+        
+        /**
+         * @brief Map of child Elementrs for this CustomSourceBintr.
+         * indexed by thier add-order, added when linked.
+         */
+        std::vector <DSL_ELEMENT_PTR> m_elementrsLinked;
+    };
+ 
+    //*********************************************************************************
+
+    /**
+     * @class CSI Source Bintr
+     * @brief Implements a CSI Camera Source 
+     */    
     class CsiSourceBintr : public VideoSourceBintr
     {
     public: 
