@@ -32,6 +32,86 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    DslReturnType Services::GstCapsNew(const char* name, 
+        const char* caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            if (m_gstCapsObjects[name])
+            {   
+                LOG_ERROR("Caps name '" << name << "' is not unique");
+                return DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE;
+            }
+            m_gstCapsObjects[name] = DSL_CAPS_NEW(caps);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New GST Caps '" << name << "' threw exception on create");
+            m_gstCapsObjects.erase(name);
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+        LOG_INFO("New GST Caps '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::GstCapsDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+            
+            m_gstCapsObjects.erase(name);
+
+            LOG_INFO("GST Caps '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Caps '" << name << "' threw exception on deletion");
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::GstCapsDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (m_gstCapsObjects.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
+            m_gstCapsObjects.clear();
+
+            LOG_INFO("All GST Caps deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Caps threw exception on delete all");
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::GstCapsListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_gstCapsObjects.size();
+    }
+    
     DslReturnType Services::GstElementNew(const char* name, 
         const char* factoryName)
     {
