@@ -38,7 +38,11 @@ namespace DSL
     #define DSL_CUSTOM_BINTR_PTR std::shared_ptr<CustomBintr>
     #define DSL_CUSTOM_BINTR_NEW(name) \
         std::shared_ptr<CustomBintr>(new CustomBintr(name))
-        
+
+    /**
+     * @class CustomBintr
+     * @brief Implements a Custom Pipeline Bintr with Custom GST Elements 
+     */    
     class CustomBintr : public QBintr
     {
     public: 
@@ -59,6 +63,13 @@ namespace DSL
          * @param pParentBintr Parent Branch to add this Bintr to.
         */
         bool AddToParent(DSL_BASE_PTR pParentBintr);
+
+        /**
+         * @brief Removes this CustomSourceBintr from its Parent Branch Bintr
+         * @param[in] pParentBintr parent Branch/Pipeline to remove from
+         * @return true on successful add, false otherwise
+         */
+        bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
 
         /**
          * @brief Adds a Child Element to this Bintr.

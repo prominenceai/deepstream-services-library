@@ -1385,7 +1385,176 @@ namespace DSL
         static_cast<AppSourceBintr*>(pAppSrcBintr)->
             HandleEnoughData();
     }
+
+    //*********************************************************************************
+    CustomSourceBintr::CustomSourceBintr(const char* name, bool isLive)
+        : VideoSourceBintr(name) 
+        , m_nextElementIndex(0)
+    {
+        LOG_FUNC();
         
+        m_isLive = isLive;
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for CustomSourceBintr '" << name << "'");
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
+
+    }
+
+    CustomSourceBintr::~CustomSourceBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool CustomSourceBintr::AddChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't add child '" << pChild->GetName() 
+                << "' to CustomSourceBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is already a child of CustomSourceBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+ 
+        // increment next index, assign to the Element.
+        pChild->SetIndex(++m_nextElementIndex);
+
+        // Add the shared pointer to the CustomSourceBintr to the indexed map 
+        // and as a child.
+        m_elementrsIndexed[m_nextElementIndex] = pChild;
+        return GstNodetr::AddChild(pChild);
+    }
+    
+    bool CustomSourceBintr::RemoveChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't remove child '" << pChild->GetName() 
+                << "' from CustomSourceBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (!IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is not a child of CustomSourceBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        
+        // Remove the shared pointer to the CustomSourceBintr from the indexed map  
+        // and as a child.
+        m_elementrsIndexed.erase(pChild->GetIndex());
+        return GstNodetr::RemoveChild(pChild);
+    }
+    
+    bool CustomSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' is already linked");
+            return false;
+        }
+        if (!m_elementrsIndexed.size()) 
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' has no Elements to link");
+            return false;
+        }
+        for (auto const &imap: m_elementrsIndexed)
+        {
+            // Link the Elementr to the last/previous Elementr in the vector 
+            // of linked Elementrs 
+            if (m_elementrsLinked.size() and 
+                !m_elementrsLinked.back()->LinkToSink(imap.second))
+            {
+                return false;
+            }
+            // Add Elementr to the end of the linked Elementrs vector.
+            m_elementrsLinked.push_back(imap.second);
+
+            LOG_INFO("CustomSourceBintr '" << GetName() 
+                << "' Linked up child Elementrs as '" << 
+                imap.second->GetName() << "' successfully");                    
+        }
+        // Link the back element to the common VideoSource buffer out elements
+        LinkToCommon(m_elementrsLinked.back());
+
+        m_isLinked = true;
+        
+        return true;
+    }
+    
+    void CustomSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' is not linked");
+            return;
+        }
+        if (!m_elementrsLinked.size()) 
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' has no Elements to unlink");
+            return;
+        }
+        // Unlink the common elements
+        UnlinkCommon();
+        
+        // iterate through the list of Linked Components, unlinking each
+        for (auto const& ivector: m_elementrsLinked)
+        {
+            // all but the tail element will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
+        }
+        m_elementrsLinked.clear();
+
+        m_isLinked = false;
+    }
+
     //*********************************************************************************
     // Initilize the unique id list for all CsiSourceBintrs 
     std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
