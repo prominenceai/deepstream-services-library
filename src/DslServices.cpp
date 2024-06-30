@@ -233,9 +233,11 @@ namespace DSL
         PlayerDeleteAll(false);
         ComponentDeleteAll();
         GstElementDeleteAll();
+        GstCapsDeleteAll();
         PphDeleteAll();
         OdeTriggerDeleteAll();
         OdeAccumulatorDeleteAll();
+        OdeHeatMapperDeleteAll();
         OdeAreaDeleteAll();
         OdeActionDeleteAll();
         DisplayTypeDeleteAll();
