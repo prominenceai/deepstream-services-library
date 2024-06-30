@@ -99,6 +99,25 @@ namespace DSL
         }
 
         /**
+         * @brief ctor for DslCaps class
+         */
+        DslCaps(GstCaps* caps)
+        {
+            LOG_FUNC();
+
+            m_pGstCaps = caps;
+
+            gchar* capsString = gst_caps_serialize(caps, GST_SERIALIZE_FLAG_NONE); 
+            m_capsString = capsString;
+
+            LOG_INFO("Created new DslCaps from GstCaps* with string = '" 
+                << m_capsString << "'");
+
+            // need to free the string allocated with gst_caps_serialize
+            g_free(capsString);
+        }
+
+         /**
          * @brief dtor for DslCaps class
          */
         ~DslCaps()

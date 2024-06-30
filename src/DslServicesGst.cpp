@@ -58,6 +58,30 @@ namespace DSL
         return DSL_RESULT_SUCCESS;
     }
     
+    DslReturnType Services::GstCapsStringGet(const char* name, const char** caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+
+            *caps = m_gstCapsObjects[name]->c_str();
+
+            LOG_INFO("GST Caps '" << name << "' returned string = '"
+                << *caps << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Caps '" << name 
+                << "' threw exception getting string representation");
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::GstCapsDelete(const char* name)
     {
         LOG_FUNC();
@@ -585,6 +609,58 @@ namespace DSL
         {
             LOG_ERROR("GST Element '" << name 
                 << "' threw an exception setting string property");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::GstElementPropertyCapsGet(const char* name, 
+        const char* property, const char* caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            // DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+
+            GstCaps* pCaps;
+            m_gstElements[name]->GetAttribute(property, &pCaps);
+
+            // LOG_INFO("GST Element '" << name 
+            //     << "' returned caps = '" << m_gstCapsObjects[name]->c_str() << "' for property '"
+            //     << property << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name 
+                << "' threw an exception setting caps property");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::GstElementPropertyCapsSet(const char* name, 
+        const char* property, const char* caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+
+            m_gstElements[name]->SetAttribute(property, &(*m_gstCapsObjects[name]));
+
+            LOG_INFO("GST Element '" << name 
+                << "' set Caps value = '" << m_gstCapsObjects[name]->c_str() 
+                << "' for property '" << property << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name 
+                << "' threw an exception Setting caps property");
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
     }

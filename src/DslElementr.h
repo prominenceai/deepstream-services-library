@@ -219,6 +219,21 @@ namespace DSL
         }
 
         /**
+         * @brief Gets a GST Element's attributeof type GstCaps.
+         * @param[in] name name of the attribute to set
+         * @param[in] value c
+         */
+        void GetAttribute(const char* name, GstCaps ** value)
+        {
+            LOG_FUNC();
+            
+            g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute  '" << name 
+                << "' returned GstCaps* value '");
+        }
+        
+        /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * value of int
          * @param[in] name name of the attribute to set

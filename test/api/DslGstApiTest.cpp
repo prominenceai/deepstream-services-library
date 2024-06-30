@@ -27,9 +27,41 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-SCENARIO( "An invalid factory name causes an exception", "[gst-element-api]" )
+SCENARIO( "The GST Caps container is updated correctly on new Caps", "[gst-api]" )
 {
-    GIVEN( "An empty list of Events" ) 
+    GIVEN( "A name and representitive string for new caps") 
+    {
+        std::wstring caps_name(L"caps");
+        std::wstring caps_string(L"video/x-raw(memory:NVMM),format=(string)I420");
+        
+        REQUIRE( dsl_gst_caps_list_size() == 0 );
+
+        WHEN( "A new Caps is created" ) 
+        {
+            REQUIRE( dsl_gst_caps_new(caps_name.c_str(),
+                caps_string.c_str()) == DSL_RESULT_SUCCESS );
+             
+            THEN( "The list size and events are updated correctly" ) 
+            {
+                REQUIRE( dsl_gst_caps_list_size() == 1 );
+
+                const wchar_t* c_ret_caps_string;
+                REQUIRE( dsl_gst_caps_string_get(caps_name.c_str(),
+                    &c_ret_caps_string) == DSL_RESULT_SUCCESS );
+
+                std::wstring ret_caps_string(c_ret_caps_string);
+                REQUIRE( ret_caps_string == caps_string );
+
+                REQUIRE( dsl_gst_caps_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_caps_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "An invalid factory name causes an exception", "[gst-api]" )
+{
+    GIVEN( "An invalid factory name" ) 
     {
         std::wstring element_name(L"element");
         
@@ -37,12 +69,13 @@ SCENARIO( "An invalid factory name causes an exception", "[gst-element-api]" )
         
         REQUIRE( dsl_gst_element_list_size() == 0 );
 
-        WHEN( "Several new Elements are created" ) 
+        WHEN( "The Element constructor is called" ) 
         {
+            // The constructor must throw and exception.
             REQUIRE( dsl_gst_element_new(element_name.c_str(),
                 factory_name.c_str()) == DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION );
 
-            THEN( "The list size and events are not updated" ) 
+            THEN( "The container of elements is not updated" ) 
             {
                 REQUIRE( dsl_gst_element_list_size() == 0 );
             }
@@ -50,7 +83,7 @@ SCENARIO( "An invalid factory name causes an exception", "[gst-element-api]" )
     }
 }
                 
-SCENARIO( "The GST Elements container is updated correctly on multiple new Elements", "[gst-element-api]" )
+SCENARIO( "The GST Elements container is updated correctly on multiple new Elements", "[gst-api]" )
 {
     GIVEN( "An empty list of Events" ) 
     {
@@ -82,7 +115,7 @@ SCENARIO( "The GST Elements container is updated correctly on multiple new Eleme
     }
 }
 
-SCENARIO( "The GST Elements container is updated correctly on Delete GST Element", "[gst-element-api]" )
+SCENARIO( "The GST Elements container is updated correctly on Delete GST Element", "[gst-api]" )
 {
     GIVEN( "A list of several GST Elements" ) 
     {
@@ -139,7 +172,7 @@ SCENARIO( "The GST Elements container is updated correctly on Delete GST Element
     }
 }
 
-SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-element-api]" )
+SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-api]" )
 {
     GIVEN( "An empty list of Events" ) 
     {
@@ -317,7 +350,7 @@ static boolean pad_probe_handler_cb2(void* buffer, void* user_data)
     return true;
 }    
 SCENARIO( "A Sink Pad Probe Handler can be added and removed from a GST Element", 
-    "[gst-element-api]" )
+    "[gst-api]" )
 {
     GIVEN( "A new GST Element and Custom PPH" ) 
     {
@@ -368,7 +401,7 @@ SCENARIO( "A Sink Pad Probe Handler can be added and removed from a GST Element"
 }
 
 SCENARIO( "A Source Pad Probe Handler can be added and removed from a GST Element", 
-    "[gst-element-api]" )
+    "[gst-api]" )
 {
     GIVEN( "A new GST Element and Custom PPH" ) 
     {
@@ -418,10 +451,11 @@ SCENARIO( "A Source Pad Probe Handler can be added and removed from a GST Elemen
     }
 }
 
-SCENARIO( "The Element API checks for NULL input parameters", "[gst-element-api]" )
+SCENARIO( "The GST API checks for NULL input parameters", "[gst-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
+        std::wstring caps_name(L"caps");
         std::wstring element_name(L"element");
         std::wstring property(L"property");
         
@@ -431,11 +465,31 @@ SCENARIO( "The Element API checks for NULL input parameters", "[gst-element-api]
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_gst_caps_new(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_caps_new(caps_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_gst_caps_string_get(NULL,
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_caps_string_get(element_name.c_str(),
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_gst_caps_delete(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_caps_delete_many(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_gst_element_new(NULL,
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gst_element_new(element_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                    
+
+                REQUIRE( dsl_gst_element_delete(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_gst_element_delete_many(NULL) 
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+
                 REQUIRE( dsl_gst_element_property_boolean_get(NULL,
                     NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_gst_element_property_boolean_get(element_name.c_str(),

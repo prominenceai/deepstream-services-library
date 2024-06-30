@@ -696,6 +696,8 @@ namespace DSL {
         
         DslReturnType GstCapsNew(const char* name, const char* caps);
         
+        DslReturnType GstCapsStringGet(const char* name, const char** caps);
+
         DslReturnType GstCapsDelete(const char* name);
         
         DslReturnType GstCapsDeleteAll();
@@ -754,6 +756,12 @@ namespace DSL {
         DslReturnType GstElementPropertyStringSet(const char* name, 
             const char* property, const char* value);
    
+        DslReturnType GstElementPropertyCapsGet(const char* name, 
+            const char* property, const char* caps);
+
+        DslReturnType GstElementPropertyCapsSet(const char* name, 
+            const char* property, const char* caps);
+
         DslReturnType GstElementPphAdd(const char* name, 
             const char* handler, uint pad);
 
