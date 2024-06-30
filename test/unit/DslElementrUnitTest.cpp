@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 #include "catch.hpp"
+#include "DslCaps.h"
 #include "DslElementr.h"
 
 using namespace DSL;
@@ -97,3 +98,32 @@ SCENARIO( "Two Elementrs are linked correctly", "[Elementr]" )
         }
     }
 }
+
+SCENARIO( "An Elementr can set and get its caps property", "[Elementr]" )
+{
+    GIVEN( "A new capsfilter Elementr in memory" )
+    {
+        std::string elementName  = "test-element";
+        std::string initial_str("video/x-raw(memory:NVMM), format=(string)I420");
+
+        DSL_ELEMENT_PTR pElementr = DSL_ELEMENT_NEW("capsfilter", elementName.c_str());
+
+        DSL_CAPS_PTR pCaps = DSL_CAPS_NEW(initial_str.c_str());
+
+        WHEN( "An Elmentr's caps are set" )
+        {
+            pElementr->SetAttribute("caps", &(*pCaps));
+
+            THEN( "Its member variables are initialized correctly" )
+            {
+                GstCaps* pRetCaps;
+                pElementr->GetAttribute("caps", &pRetCaps);
+                
+                DslCaps retCaps(pRetCaps);
+                std::string ret_str(retCaps.c_str());
+                REQUIRE( ret_str == initial_str );
+            }
+        }
+    }
+}
+

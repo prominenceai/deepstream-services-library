@@ -3748,6 +3748,29 @@ DslReturnType dsl_gst_caps_new(const wchar_t* name, const wchar_t* factory_name)
         cstrFactoryName.c_str());
 }
 
+DslReturnType dsl_gst_caps_string_get(const wchar_t* name, const wchar_t** caps)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(caps);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cCaps;
+    static std::string cstrCaps;
+    static std::wstring wcstrCaps;
+    
+    uint retval = DSL::Services::GetServices()->GstCapsStringGet(
+        cstrName.c_str(), &cCaps);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrCaps.assign(cCaps);
+        wcstrCaps.assign(cstrCaps.begin(), cstrCaps.end());
+        *caps = wcstrCaps.c_str();
+    }
+    return retval;
+}
+
 DslReturnType dsl_gst_caps_delete(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -4088,6 +4111,42 @@ DslReturnType dsl_gst_element_property_string_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->GstElementPropertyStringSet(
         cstrName.c_str(), cstrProperty.c_str(), cstrValue.c_str());
+}
+    
+DslReturnType dsl_gst_element_property_caps_get(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* caps)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(caps);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+    std::wstring wstrCaps(caps);
+    std::string cstrCaps(wstrCaps.begin(), wstrCaps.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyCapsGet(
+        cstrName.c_str(), cstrProperty.c_str(), cstrCaps.c_str());
+}
+    
+DslReturnType dsl_gst_element_property_caps_set(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* caps)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(property);
+    RETURN_IF_PARAM_IS_NULL(caps);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrProperty(property);
+    std::string cstrProperty(wstrProperty.begin(), wstrProperty.end());
+    std::wstring wstrCaps(caps);
+    std::string cstrCaps(wstrCaps.begin(), wstrCaps.end());
+
+    return DSL::Services::GetServices()->GstElementPropertyCapsSet(
+        cstrName.c_str(), cstrProperty.c_str(), cstrCaps.c_str());
 }
     
 DslReturnType dsl_gst_element_pph_add(const wchar_t* name, 
