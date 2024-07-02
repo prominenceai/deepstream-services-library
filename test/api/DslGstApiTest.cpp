@@ -179,10 +179,16 @@ SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-api]" 
         std::wstring element_name1(L"element-1");
         std::wstring element_name2(L"element-2");
         std::wstring element_name3(L"element-3");
+        std::wstring element_name4(L"element-4");
         
         std::wstring factory_name1(L"queue");
         std::wstring factory_name2(L"identity");
         std::wstring factory_name3(L"v4l2sink");
+        std::wstring factory_name4(L"capsfilter");
+        
+        std::wstring caps_name1(L"caps-1");
+        std::wstring caps_name2(L"caps-2");
+        std::wstring caps_string(L"video/x-raw(memory:NVMM), format=(string)I420");
         
         std::wstring property_boolean(L"flush-on-eos");
         std::wstring property_float(L"drop-probability");
@@ -191,6 +197,7 @@ SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-api]" 
         std::wstring property_int64(L"ts-offset");
         std::wstring property_uint64(L"max-size-time");
         std::wstring property_string(L"device");
+        std::wstring property_caps(L"caps");
         
         REQUIRE( dsl_gst_element_new(element_name1.c_str(),
             factory_name1.c_str()) == DSL_RESULT_SUCCESS );
@@ -200,6 +207,9 @@ SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-api]" 
 
         REQUIRE( dsl_gst_element_new(element_name3.c_str(),
             factory_name3.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_gst_element_new(element_name4.c_str(),
+            factory_name4.c_str()) == DSL_RESULT_SUCCESS );
 
         WHEN( "A boolean value is updated" ) 
         {
@@ -335,6 +345,45 @@ SCENARIO( "A GST Element can get and set properperties correctly",  "[gst-api]" 
                 std::wstring curValue = curCValue;
                 REQUIRE( curValue == newValue );
             
+                REQUIRE( dsl_gst_element_delete_all() == 0 );
+            }
+        }
+        WHEN( "A caps property is updated" ) 
+        {
+            // Test default value first
+
+            REQUIRE( dsl_gst_element_property_caps_get(element_name4.c_str(),
+                property_caps.c_str(), caps_name1.c_str()) == DSL_RESULT_SUCCESS );
+
+            const wchar_t* c_ret_caps_string;
+            REQUIRE( dsl_gst_caps_string_get(caps_name1.c_str(),
+                &c_ret_caps_string) == DSL_RESULT_SUCCESS );
+            std::wstring ret_caps_string(c_ret_caps_string);
+
+            // Default should always be ANY
+            REQUIRE( ret_caps_string == L"ANY" );
+
+            // Need to delete the caps created by the get call
+            REQUIRE( dsl_gst_caps_delete(caps_name1.c_str()) == DSL_RESULT_SUCCESS );
+                
+            REQUIRE( dsl_gst_caps_new(caps_name2.c_str(),
+                caps_string.c_str()) == DSL_RESULT_SUCCESS );
+                
+            REQUIRE( dsl_gst_element_property_caps_set(element_name4.c_str(),
+                property_caps.c_str(), caps_name2.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" ) 
+            {
+                REQUIRE( dsl_gst_element_property_caps_get(element_name4.c_str(),
+                    property_caps.c_str(), caps_name1.c_str()) == DSL_RESULT_SUCCESS );
+            
+                c_ret_caps_string;
+                REQUIRE( dsl_gst_caps_string_get(caps_name1.c_str(),
+                    &c_ret_caps_string) == DSL_RESULT_SUCCESS );
+                ret_caps_string = c_ret_caps_string;
+                REQUIRE( ret_caps_string == caps_string );
+
+                REQUIRE( dsl_gst_caps_delete_all() == 0 );
                 REQUIRE( dsl_gst_element_delete_all() == 0 );
             }
         }
