@@ -3199,6 +3199,47 @@ def dsl_pph_list_size():
     return int(result)
 
 ##
+## dsl_gst_caps_new()
+##
+_dsl.dsl_gst_caps_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_caps_new.restype = c_uint
+def dsl_gst_caps_new(name, caps):
+    global _dsl
+    result =_dsl.dsl_gst_caps_new(name, caps)
+    return int(result)
+
+##
+## dsl_gst_caps_delete()
+##
+_dsl.dsl_gst_caps_delete.argtypes = [c_wchar_p]
+_dsl.dsl_gst_caps_delete.restype = c_uint
+def dsl_gst_caps_delete(name):
+    global _dsl
+    result =_dsl.dsl_gst_caps_delete(name)
+    return int(result)
+
+##
+## dsl_gst_caps_delete_many()
+##
+#_dsl.dsl_gst_caps_delete_many.argtypes = [Array]
+_dsl.dsl_gst_caps_delete_many.restype = c_uint
+def dsl_gst_caps_delete_many(caps):
+    global _dsl
+    arr = (c_wchar_p * len(caps))()
+    arr[:] = caps
+    result =_dsl.dsl_gst_caps_delete_many(arr)
+    return int(result)
+
+##
+## dsl_gst_caps_delete_all()
+##
+_dsl.dsl_gst_caps_delete_all.restype = c_uint
+def dsl_gst_caps_delete_all():
+    global _dsl
+    result =_dsl.dsl_gst_caps_delete_all()
+    return int(result)
+
+##
 ## dsl_gst_element_new()
 ##
 _dsl.dsl_gst_element_new.argtypes = [c_wchar_p, c_wchar_p]
@@ -3206,6 +3247,37 @@ _dsl.dsl_gst_element_new.restype = c_uint
 def dsl_gst_element_new(name, factory_name):
     global _dsl
     result =_dsl.dsl_gst_element_new(name, factory_name)
+    return int(result)
+
+##
+## dsl_gst_element_delete()
+##
+_dsl.dsl_gst_element_delete.argtypes = [c_wchar_p]
+_dsl.dsl_gst_element_delete.restype = c_uint
+def dsl_gst_element_delete(name):
+    global _dsl
+    result =_dsl.dsl_gst_element_delete(name)
+    return int(result)
+
+##
+## dsl_gst_element_delete_many()
+##
+#_dsl.dsl_gst_element_delete_many.argtypes = [Array]
+_dsl.dsl_gst_element_delete_many.restype = c_uint
+def dsl_gst_element_delete_many(elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_gst_element_delete_many(arr)
+    return int(result)
+
+##
+## dsl_gst_element_delete_all()
+##
+_dsl.dsl_gst_element_delete_all.restype = c_uint
+def dsl_gst_element_delete_all():
+    global _dsl
+    result =_dsl.dsl_gst_element_delete_all()
     return int(result)
 
 ##

@@ -621,14 +621,22 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
-            // DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+            if (m_gstCapsObjects[caps])
+            {   
+                LOG_ERROR("Caps name '" << caps << "' is not unique");
+                return DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE;
+            }
 
             GstCaps* pCaps;
             m_gstElements[name]->GetAttribute(property, &pCaps);
 
-            // LOG_INFO("GST Element '" << name 
-            //     << "' returned caps = '" << m_gstCapsObjects[name]->c_str() << "' for property '"
-            //     << property << "' successfully");
+            m_gstCapsObjects[caps] = std::shared_ptr<DslCaps>(new DslCaps(pCaps));
+
+            LOG_INFO("GST Caps '" << caps << "' created successfully");
+
+            LOG_INFO("GST Element '" << name 
+                << "' returned caps = '" << m_gstCapsObjects[caps]->c_str() 
+                << "' for property '" << property << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -648,12 +656,12 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
-            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, caps);
 
-            m_gstElements[name]->SetAttribute(property, &(*m_gstCapsObjects[name]));
+            m_gstElements[name]->SetAttribute(property, &(*m_gstCapsObjects[caps]));
 
             LOG_INFO("GST Element '" << name 
-                << "' set Caps value = '" << m_gstCapsObjects[name]->c_str() 
+                << "' set Caps value = '" << m_gstCapsObjects[caps]->c_str() 
                 << "' for property '" << property << "' successfully");
             return DSL_RESULT_SUCCESS;
         }
