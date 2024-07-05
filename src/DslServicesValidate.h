@@ -410,6 +410,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CustomSourceBintr)) and  \
         !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
@@ -458,6 +459,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CustomSourceBintr)) and  \
         !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \

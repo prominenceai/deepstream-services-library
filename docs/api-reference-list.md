@@ -161,6 +161,9 @@
 * [`dsl_source_image_multi_new`](/docs/api-source.md#dsl_source_image_multi_new)
 * [`dsl_source_image_stream_new`](/docs/api-source.md#dsl_source_image_stream_new)
 * [`dsl_source_duplicate_new`](/docs/api-source.md#dsl_source_duplicate_new)
+* [`dsl_source_custom_new`](/docs/api-source.md#dsl_source_custom_new)
+* [`dsl_source_custom_new_element_add`](/docs/api-source.md#dsl_source_custom_new_element_add)
+* [`dsl_source_custom_new_element_add_many`](/docs/api-source.md#dsl_source_custom_new_element_add_many)
 * [`dsl_source_unique_id_get`](/docs/api-source.md#dsl_source_unique_id_get)
 * [`dsl_source_stream_id_get`](/docs/api-source.md#dsl_source_stream_id_get)
 * [`dsl_source_name_get`](/docs/api-source.md#dsl_source_name_get)
@@ -247,6 +250,10 @@
 * [`dsl_source_image_stream_timeout_set`](/docs/api-source.md#dsl_source_image_stream_timeout_get)
 * [`dsl_source_duplicate_original_get`](/docs/api-source.md#dsl_source_duplicate_original_get)
 * [`dsl_source_duplicate_original_set`](/docs/api-source.md#dsl_source_duplicate_original_set)
+* [`dsl_source_custom_element_add`](/docs/api-source.md#dsl_source_custom_element_add)
+* [`dsl_source_custom_element_add_many`](/docs/api-source.md#dsl_source_custom_element_add_many)
+* [`dsl_source_custom_element_remove`](/docs/api-source.md#dsl_source_custom_element_remove)
+* [`dsl_source_custom_element_remove_many`](/docs/api-source.md#dsl_source_custom_element_remove_many)
   
 ## Source Tap API:
 * [Overview](/docs/api-tap.md)
