@@ -21,7 +21,7 @@ List of component types that are used with this API:
 * [Custom Components](/docs/api-gst.md)
 
 ## Custom Components
-The Custom Component API is used to create custom DSL Pipeline Components -- other than Sources and Sinks -- using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or built-in GStreamer plugins. See also Custom Video Sources and Custom Sinks (TODO).
+The Custom Component API is used to create custom DSL Pipeline Components -- other than Sources and Sinks -- using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or built-in GStreamer plugins. See also [Custom Video Sources](/docs/api-source.md#dsl_source_custom_new) and Custom Sinks (TODO).
 
 Custom Components are created by calling [`dsl_component_custom_new`](#dsl_component_custom_new), [`dsl_component_custom_new_element_add`](#dsl_component_custom_new_element_add) or [`dsl_component_custom_new_element_add_many`](#dsl_component_custom_new_element_add_many). As with all Pipeline Components, Custom Components are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all).
 
@@ -241,6 +241,8 @@ DslReturnType dsl_component_custom_new_element_add(const wchar_t* name,
 ```
 This constructor creates a uniquely named Custom Component and adds a [GST Element](/docs/api-gst.md) to it. Construction will fail if the name is currently in use.
 
+**IMPORTAT!** Elements added to Custom Component will be linked in the order they are added.
+
 **Parameters**
 * `name` - [in] unique name for the Custom Component to create.
 * `element` - [in] unique name of the GST Element to add.
@@ -262,6 +264,8 @@ DslReturnType dsl_component_custom_new_element_add_many(const wchar_t* name,
   const wchar_t** elements);
 ```
 This constructor creates a uniquely named Custom Component and adds a list of GST Elements to it. Construction will fail if the name is currently in use.
+
+**IMPORTAT!** Elements added to Custom Component will be linked in the order they are added.
 
 **Parameters**
 * `name` - [in] unique name for the Custom Component to create.
@@ -343,6 +347,8 @@ DslReturnType dsl_component_custom_element_add(const wchar_t* name,
 ```
 This service adds a single named GST Element to a named Custom Component. The add service will fail if the Element is currently `in-use` by any other Component. The Element's `in-use` state will be set to `true` on successful add.
 
+**IMPORTAT!** Elements added to Custom Component will be linked in the order they are added.
+
 **Parameters**
 * `name` - [in] unique name of the Custom Component to update.
 * `element` - [in] unique name of the GST Element to add.
@@ -362,6 +368,8 @@ retval = dsl_component_custom_element_add('my-component', 'my-element')
 DslReturnType dsl_component_custom_element_add_many(const wchar_t* name, const wchar_t** elements);
 ```
 Adds a list of named GST Elements to a named Custom Component. The add service will fail if any of the Elements are currently `in-use` by any other Component. All of the Element's `in-use` state will be set to true on successful add.
+
+**IMPORTAT!** Elements added to Custom Component will be linked in the order they are added.
 
 * `name` - [in] unique name of the Custom Component to update.
 * `elements` - [in] a NULL terminated array of uniquely named GST Elements to add.
