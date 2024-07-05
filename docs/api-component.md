@@ -367,10 +367,6 @@ This service adds a single named GST Element to a named Custom Component. The ad
 * `name` - [in] unique name of the Custom Component to update.
 * `element` - [in] unique name of the GST Element to add.
 
-**Parameters**
-* `name` - [in] unique name of the Custom Component to update.
-* `element` - [in] unique name of the GST Element to add.
-
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
 

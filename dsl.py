@@ -7312,6 +7312,7 @@ def dsl_component_custom_new(name):
 
 ##
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 ## dsl_component_custom_new()
 ##
@@ -7324,6 +7325,8 @@ def dsl_component_custom_new(name):
 
 ##
 >>>>>>> e21d5b4 (Rename dsl_gst_bin_* to dsl_component_custom_*)
+=======
+>>>>>>> 60bb57c (Implement Custom Source Component)
 ## dsl_component_custom_new_element_add()
 ##
 _dsl.dsl_component_custom_new_element_add.argtypes = [c_wchar_p, c_wchar_p]
