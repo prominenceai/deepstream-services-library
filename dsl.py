@@ -3456,6 +3456,30 @@ def dsl_gst_element_property_string_set(name, property, value):
     return int(result)
 
 ##
+## dsl_gst_element_property_caps_get()
+##
+_dsl.dsl_gst_element_property_caps_get.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_element_property_caps_get.restype = c_uint
+def dsl_gst_element_property_caps_get(name, property, caps):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_caps_get(name, 
+        property, caps)
+    return int(result)
+
+##
+## dsl_gst_element_property_caps_set()
+##
+_dsl.dsl_gst_element_property_caps_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p]
+_dsl.dsl_gst_element_property_caps_set.restype = c_uint
+def dsl_gst_element_property_caps_set(name, property, caps):
+    global _dsl
+    result = _dsl.dsl_gst_element_property_caps_set(name, 
+        property, caps)
+    return int(result)
+
+##
 ## dsl_gst_element_pph_add()
 ##
 _dsl.dsl_gst_element_pph_add.argtypes = [c_wchar_p, c_wchar_p, c_uint]
@@ -3651,6 +3675,82 @@ def dsl_source_app_max_level_bytes_set(name, level):
     result = _dsl.dsl_source_app_max_level_bytes_set(name, level)
     return int(result)
 
+##
+## dsl_source_custom_new()
+##
+_dsl.dsl_source_custom_new.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_source_custom_new.restype = c_uint
+def dsl_source_custom_new(name, is_live):
+    global _dsl
+    result =_dsl.dsl_source_custom_new(name, is_live)
+    return int(result)
+
+##
+## dsl_source_custom_new_element_add()
+##
+_dsl.dsl_source_custom_new_element_add.argtypes = [c_wchar_p, c_bool, c_wchar_p]
+_dsl.dsl_source_custom_new_element_add.restype = c_uint
+def dsl_source_custom_new_element_add(name, is_live, element):
+    global _dsl
+    result =_dsl.dsl_source_custom_new_element_add(name, is_live, element)
+    return int(result)
+
+##
+## dsl_source_custom_new_element_add_many()
+##
+#_dsl.dsl_source_custom_new_element_add_many.argtypes = [c_wchar_p, c_wchar_p] ??
+_dsl.dsl_source_custom_new_element_add_many.restype = c_uint
+def dsl_source_custom_new_element_add_many(name, is_live, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_source_custom_new_element_add_many(name, is_live, arr)
+    return int(result)
+    
+##
+## dsl_source_custom_element_add()
+##
+_dsl.dsl_source_custom_element_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_custom_element_add.restype = c_uint
+def dsl_source_custom_element_add(name, element):
+    global _dsl
+    result =_dsl.dsl_source_custom_element_add(name, element)
+    return int(result)
+
+##
+## dsl_source_custom_element_add_many()
+##
+#_dsl.dsl_source_custom_element_add_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_custom_element_add_many.restype = c_uint
+def dsl_source_custom_element_add_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_source_custom_element_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_source_custom_element_remove()
+##
+_dsl.dsl_source_custom_element_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_custom_element_remove.restype = c_uint
+def dsl_source_custom_element_remove(name, element):
+    global _dsl
+    result =_dsl.dsl_source_custom_element_remove(name, element)
+    return int(result)
+
+##
+## dsl_source_custom_element_remove_many()
+##
+#_dsl.dsl_source_custom_element_remove_many.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_custom_element_remove_many.restype = c_uint
+def dsl_source_custom_element_remove_many(name, elements):
+    global _dsl
+    arr = (c_wchar_p * len(elements))()
+    arr[:] = elements
+    result =_dsl.dsl_source_custom_element_remove_many(name, arr)
+    return int(result)
+    
 ##
 ## dsl_source_csi_new()
 ##
@@ -7194,16 +7294,6 @@ def dsl_websocket_server_client_listener_remove(client_listener):
     global _dsl
     c_client_listener = DSL_WEBSOCKET_SERVER_CLIENT_LISTENER(client_listener)
     result = _dsl.dsl_websocket_server_client_listener_remove(c_client_listener)
-    return int(result)
-
-##
-## dsl_component_custom_new()
-##
-_dsl.dsl_component_custom_new.argtypes = [c_wchar_p]
-_dsl.dsl_component_custom_new.restype = c_uint
-def dsl_component_custom_new(name):
-    global _dsl
-    result =_dsl.dsl_component_custom_new(name)
     return int(result)
 
 ##

@@ -4771,10 +4771,12 @@ DslReturnType dsl_gst_element_property_string_set(const wchar_t* name,
     const wchar_t* property, const wchar_t* value);
     
 /** 
- * @brief Updates a named GST Caps Object from a named Element.
+ * @brief Creates a named GST Caps Object from a named Element's property of 
+ * type caps. After the call, the new Caps Object can be queried for its
+ * string representation by calling dsl_gst_caps_string_get
  * @param[in] name unique name for the Element to query.
  * @param[in] property unique name of the property to query, typically "caps". 
- * @param[in] caps unique name for the Caps Object to update. The updated caps 
+ * @param[in] caps unique name for the Caps Object to create. The Obejects caps 
  * string can be queried by calling dsl_gst_caps_string_get.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
@@ -4782,7 +4784,7 @@ DslReturnType dsl_gst_element_property_caps_get(const wchar_t* name,
     const wchar_t* property, const wchar_t* caps);
     
 /** 
- * @brief Sets a named caps property for a named Element.
+ * @brief Sets a named caps property for a named Element using a GST Caps Object.
  * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update, typically "caps". 
  * @param[in] caps unique name of the Caps Object to use. 
@@ -5002,7 +5004,7 @@ DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
 DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
 
 /**
- * @brief creates a new Custom Source Component and adds a new Element to it.
+ * @brief creates a new Custom Source Component and adds a GST Element to it.
  * @param[in] name name of the Custom Source to update.
  * @param[in] element name of the GST Element to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
