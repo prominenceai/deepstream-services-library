@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "DslCaps.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslOdeAccumulator.h"
@@ -693,6 +694,16 @@ namespace DSL {
         
         uint PphListSize();
         
+        DslReturnType GstCapsNew(const char* name, const char* caps);
+        
+        DslReturnType GstCapsStringGet(const char* name, const char** caps);
+
+        DslReturnType GstCapsDelete(const char* name);
+        
+        DslReturnType GstCapsDeleteAll();
+        
+        uint GstCapsListSize();
+        
         DslReturnType GstElementNew(const char* name, const char* factoryName);
         
         DslReturnType GstElementDelete(const char* name);
@@ -745,6 +756,12 @@ namespace DSL {
         DslReturnType GstElementPropertyStringSet(const char* name, 
             const char* property, const char* value);
    
+        DslReturnType GstElementPropertyCapsGet(const char* name, 
+            const char* property, const char* caps);
+
+        DslReturnType GstElementPropertyCapsSet(const char* name, 
+            const char* property, const char* caps);
+
         DslReturnType GstElementPphAdd(const char* name, 
             const char* handler, uint pad);
 
@@ -799,6 +816,12 @@ namespace DSL {
 //        DslReturnType SourceAppLeakyTypeSet(const char* name,
 //            uint leakyType);
 
+        DslReturnType SourceCustomNew(const char* name, boolean is_live);
+        
+        DslReturnType SourceCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType SourceCustomElementRemove(const char* name, const char* element);
+        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
             
@@ -2200,6 +2223,11 @@ namespace DSL {
          */
         std::map <std::string, DSL_PPH_PTR> m_padProbeHandlers;
         
+        /**
+         * @brief map of all GST Caps Objects created by the client, key=name
+         */
+        std::map <std::string, DSL_CAPS_PTR> m_gstCapsObjects;
+
         /**
          * @brief map of all GST Elements created by the client, key=name
          */

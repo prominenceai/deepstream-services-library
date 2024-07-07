@@ -166,6 +166,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(caps, name) do \
+{ \
+    if (caps.find(name) == caps.end()) \
+    { \
+        LOG_ERROR("Caps name '" << name << "' was not found"); \
+        return DSL_RESULT_GST_CAPS_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(elements, name) do \
 { \
     if (elements.find(name) == elements.end()) \
@@ -401,6 +410,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CustomSourceBintr)) and  \
         !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \
@@ -449,6 +459,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_QBINTR(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CustomSourceBintr)) and  \
         !components[name]->IsType(typeid(CsiSourceBintr)) and  \
         !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
         !components[name]->IsType(typeid(UriSourceBintr)) and  \

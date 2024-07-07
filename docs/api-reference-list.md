@@ -161,6 +161,9 @@
 * [`dsl_source_image_multi_new`](/docs/api-source.md#dsl_source_image_multi_new)
 * [`dsl_source_image_stream_new`](/docs/api-source.md#dsl_source_image_stream_new)
 * [`dsl_source_duplicate_new`](/docs/api-source.md#dsl_source_duplicate_new)
+* [`dsl_source_custom_new`](/docs/api-source.md#dsl_source_custom_new)
+* [`dsl_source_custom_new_element_add`](/docs/api-source.md#dsl_source_custom_new_element_add)
+* [`dsl_source_custom_new_element_add_many`](/docs/api-source.md#dsl_source_custom_new_element_add_many)
 * [`dsl_source_unique_id_get`](/docs/api-source.md#dsl_source_unique_id_get)
 * [`dsl_source_stream_id_get`](/docs/api-source.md#dsl_source_stream_id_get)
 * [`dsl_source_name_get`](/docs/api-source.md#dsl_source_name_get)
@@ -247,6 +250,10 @@
 * [`dsl_source_image_stream_timeout_set`](/docs/api-source.md#dsl_source_image_stream_timeout_get)
 * [`dsl_source_duplicate_original_get`](/docs/api-source.md#dsl_source_duplicate_original_get)
 * [`dsl_source_duplicate_original_set`](/docs/api-source.md#dsl_source_duplicate_original_set)
+* [`dsl_source_custom_element_add`](/docs/api-source.md#dsl_source_custom_element_add)
+* [`dsl_source_custom_element_add_many`](/docs/api-source.md#dsl_source_custom_element_add_many)
+* [`dsl_source_custom_element_remove`](/docs/api-source.md#dsl_source_custom_element_remove)
+* [`dsl_source_custom_element_remove_many`](/docs/api-source.md#dsl_source_custom_element_remove_many)
   
 ## Source Tap API:
 * [Overview](/docs/api-tap.md)
@@ -524,9 +531,13 @@
 * [`dsl_sink_frame_capture_initiate`](/docs/api-sink.md#dsl_sink_frame_capture_initiate)
 * [`dsl_sink_frame_capture_schedule`](/docs/api-sink.md#dsl_sink_frame_capture_schedule)
 
-## Custom Components:
+## GST API:
 * [Overview](/docs/api-gst.md)
+* [`dsl_gst_caps_new`](/docs/api-gst.md#dsl_gst_caps_new)
 * [`dsl_gst_element_new`](/docs/api-gst.md#dsl_gst_element_new)
+* [`dsl_gst_caps_delete`](/docs/api-gst.md#dsl_gst_caps_delete)
+* [`dsl_gst_caps_delete_many`](/docs/api-gst.md#dsl_gst_caps_delete_many)
+* [`dsl_gst_caps_delete_all`](/docs/api-gst.md#dsl_gst_caps_delete_all)
 * [`dsl_gst_element_delete`](docs/api-gst.md#dsl_gst_element_delete)
 * [`dsl_gst_element_delete_many`](docs/api-gst.md#dsl_gst_element_delete_many)
 * [`dsl_gst_element_delete_all`](docs/api-gst.md#dsl_gst_element_delete_all)
@@ -544,6 +555,8 @@
 * [`dsl_gst_element_property_int64_set`](/docs/api-gst.md#dsl_gst_element_property_int64_set)
 * [`dsl_gst_element_property_string_get`](/docs/api-gst.md#dsl_gst_element_property_string_get)
 * [`dsl_gst_element_property_string_set`](/docs/api-gst.md#dsl_gst_element_property_string_set)
+* [`dsl_gst_element_property_caps_get`](/docs/api-gst.md#dsl_gst_element_property_caps_get)
+* [`dsl_gst_element_property_caps_set`](/docs/api-gst.md#dsl_gst_element_property_caps_set)
 * [`dsl_gst_element_list_size`](/docs/api-gst.md#dsl_gst_element_list_size)
 * [`dsl_gst_element_pph_add`](/docs/api-gst.md#dsl_gst_element_pph_add)
 * [`dsl_gst_element_pph_remove`](/docs/api-gst.md#dsl_gst_element_pph_remove)

@@ -583,6 +583,121 @@ namespace DSL
 //        }
 //    }
     
+    DslReturnType Services::SourceCustomNew(const char* name, boolean is_live)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            if (m_components[name])
+            {   
+                LOG_ERROR("Custom Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            
+            m_components[name] = DSL_CUSTOM_SOURCE_NEW(name, is_live);
+            LOG_INFO("New Custom Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Custom Source '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceCustomElementAdd(const char* name, 
+        const char* element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, CustomSourceBintr);
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
+            
+            // Can't add elements if they're In use by another GstBin
+            if (m_gstElements[element]->IsInUse())
+            {
+                LOG_ERROR("Unable to add element '" << element 
+                    << "' as it's currently in use");
+                return DSL_RESULT_GST_ELEMENT_IN_USE;
+            }
+
+            // Cast the Component to a CustomSourceBintr to call the correct 
+            // AddChild method.
+            DSL_CUSTOM_SOURCE_PTR pCustomSourceBintr = 
+                std::dynamic_pointer_cast<CustomSourceBintr>(m_components[name]);
+                
+            if (!pCustomSourceBintr->AddChild(m_gstElements[element]))
+            {
+                LOG_ERROR("Custom Source '" << name
+                    << "' failed to add element '" << element << "'");
+                return DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED;
+            }
+            LOG_INFO("Element '" << element 
+                << "' was added to Custom Source '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custom Source '" << name
+                << "' threw exception adding element '" << element << "'");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }    
+    
+    DslReturnType Services::SourceCustomElementRemove(const char* name, 
+        const char* element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, CustomSourceBintr);
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
+            
+            if (!m_gstElements[element]->IsParent(m_components[name]))
+            {
+                LOG_ERROR("Element '" << element << 
+                    "' is not in use by Custom Source '" << name << "'");
+                return DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE;
+            }
+            // Cast the Component to a CustomSourceBintr to call the correct 
+            // AddChild method.
+            DSL_CUSTOM_SOURCE_PTR pCustomSourceBintr = 
+                std::dynamic_pointer_cast<CustomSourceBintr>(m_components[name]);
+                
+            if (!pCustomSourceBintr->RemoveChild(m_gstElements[element]))
+            {
+                LOG_ERROR("Custom Source '" << name
+                    << "' failed to remove element '" << element << "'");
+                return DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED;
+            }
+            LOG_INFO("Element '" << element 
+                << "' was removed from Custom Source '" << name 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custom Source '" << name 
+                << "' threw an exception removing Element");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SourceCsiNew(const char* name,
         uint width, uint height, uint fpsN, uint fpsD)
     {

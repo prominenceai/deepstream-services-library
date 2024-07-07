@@ -96,6 +96,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 #define DSL_RESULT_SOURCE_HANDLER_ADD_FAILED                        0x00020017
 #define DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED                     0x00020018
+#define DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED                        0x00020019
+#define DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED                     0x0002002A
+#define DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE                        0x0003002B
 
 /**
  * Dewarper API Return Values
@@ -508,17 +511,25 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 
 /**
+ * GStreamer Caps API Return Values
+ */
+#define DSL_RESULT_GST_CAPS_RESULT                                  0x00D00000
+#define DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE                         0x00D00001
+#define DSL_RESULT_GST_CAPS_NAME_NOT_FOUND                          0x00D00002
+#define DSL_RESULT_GST_CAPS_THREW_EXCEPTION                         0x00D00003
+
+/**
  * GStreamer Element API Return Values
  */
-#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
-#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00D00001
-#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00D00002
-#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
-#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
-#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
-#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00D00006
-#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00D00007
-#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00D00008
+#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00E00000
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00E00001
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00E00002
+#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00E00003
+#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00E00004
+#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00E00005
+#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00E00006
+#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00E00007
+#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00E00008
 
 /**
  * GPU Types
@@ -4526,9 +4537,52 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /** 
+ * @brief Creates a uniquely named GSTCaps Object from a string representation.
+ * @param[in] name unique name for the GST Caps Object to create.
+ * @param[in] caps a string defining the caps to create.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_caps_new(const wchar_t* name, const wchar_t* caps);
+
+/** 
+ * @brief Queries a uniquely named GST Caps Object for its current caps string representation.
+ * @param[in] name unique name for the GST Caps Object to query.
+ * @param[out] caps a string representation of the Caps Object's current caps.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_caps_string_get(const wchar_t* name, const wchar_t** caps);
+
+/**
+ * @brief Deletes a GST Caps Object by name.
+ * @param[in] name unique name of the GST Caps Object to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */
+DslReturnType dsl_gst_caps_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of GST Caps Objects.
+ * @param[in] names NULL terminated list of names of Caps Objects to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */
+DslReturnType dsl_gst_caps_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all GST Caps Objects in memory.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+
+ */
+DslReturnType dsl_gst_caps_delete_all();
+
+/**
+ * @brief returns the current number of GST Caps Objects.
+ * @return size of the list of GST Caps Objects.
+ */
+uint dsl_gst_caps_list_size();
+
+/** 
  * @brief Creates a uniquely named GStreamer Element from a plugin factory name.
- * @param[in] name unique name for the Element to create
- * @param[in] factory_name factory (plugin) name for the Element to create
+ * @param[in] name unique name for the Element to create.
+ * @param[in] factory_name factory (plugin) name for the Element to create.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */ 
 DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
@@ -4536,20 +4590,20 @@ DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_na
 /**
  * @brief Deletes a GStreamer Element by name.
  * @param[in] name unique name of the Element to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_delete(const wchar_t* name);
 
 /**
- * @brief deletes a NULL terminated list of GStreamer Elements
- * @param[in] names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ * @brief deletes a NULL terminated list of GStreamer Elements.
+ * @param[in] names NULL terminated list of names to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_delete_many(const wchar_t** names);
 
 /**
- * @brief deletes all GStreamer Elements in memory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @brief deletes all GStreamer Elements in memory.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT.
 
  */
 DslReturnType dsl_gst_element_delete_all();
@@ -4570,7 +4624,7 @@ DslReturnType dsl_gst_element_get(const wchar_t* name, void** element);
 
 /** 
  * @brief Gets a named boolean property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4580,7 +4634,7 @@ DslReturnType dsl_gst_element_property_boolean_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named boolean property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4590,7 +4644,7 @@ DslReturnType dsl_gst_element_property_boolean_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named float property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4600,7 +4654,7 @@ DslReturnType dsl_gst_element_property_float_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named float property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4610,7 +4664,7 @@ DslReturnType dsl_gst_element_property_float_set(const wchar_t* name,
    
 /** 
  * @brief Gets a named unsigned int property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4620,7 +4674,7 @@ DslReturnType dsl_gst_element_property_uint_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named unsigned int property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4630,7 +4684,7 @@ DslReturnType dsl_gst_element_property_uint_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named signed int property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4640,7 +4694,7 @@ DslReturnType dsl_gst_element_property_int_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named signed int property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4650,7 +4704,7 @@ DslReturnType dsl_gst_element_property_int_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named uint64_t property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4660,7 +4714,7 @@ DslReturnType dsl_gst_element_property_uint64_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named uint64_t property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4669,7 +4723,7 @@ DslReturnType dsl_gst_element_property_uint64_set(const wchar_t* name,
     const wchar_t* property, uint64_t value);
     /** 
  * @brief Gets a named signed int64_t property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4679,7 +4733,7 @@ DslReturnType dsl_gst_element_property_int64_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named signed int64_t property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4689,7 +4743,7 @@ DslReturnType dsl_gst_element_property_int64_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named string property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4699,13 +4753,36 @@ DslReturnType dsl_gst_element_property_string_get(const wchar_t* name,
     
 /** 
  * @brief Sets a named string property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
     const wchar_t* property, const wchar_t* value);
+    
+/** 
+ * @brief Creates a named GST Caps Object from a named Element's property of 
+ * type caps. After the call, the new Caps Object can be queried for its
+ * string representation by calling dsl_gst_caps_string_get
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query, typically "caps". 
+ * @param[in] caps unique name for the Caps Object to create. The Obejects caps 
+ * string can be queried by calling dsl_gst_caps_string_get.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_caps_get(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* caps);
+    
+/** 
+ * @brief Sets a named caps property for a named Element using a GST Caps Object.
+ * @param[in] name unique name of the Element to update.
+ * @param[in] property unique name of the property to update, typically "caps". 
+ * @param[in] caps unique name of the Caps Object to use. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_caps_set(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* caps);
     
 /**
  * @brief Adds a pad-probe-handler to a named GStreamer Element.
@@ -4908,6 +4985,68 @@ DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
  */
 //DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
 //    uint leaky_type);
+    
+/**
+ * @brief creates a new, uniquely named Custom Source Component.
+ * @param[in] name unique name for the new Custom Source.
+ * @param[in] is_live true if source is live false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
+
+/**
+ * @brief creates a new Custom Source Component and adds a GST Element to it.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] element name of the GST Element to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new_element_add(const wchar_t* name, 
+    boolean is_live, const wchar_t* element);
+
+/**
+ * @brief creates a new Custom Source Component and adds a list of GST Elements to it.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new_element_add_many(const wchar_t* name, 
+    boolean is_live, const wchar_t** elements);
+
+/**
+ * @brief adds a single GST Element to a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] element Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief adds a list of GST Elements to a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief removes an GST Element from a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements name of the GST Element to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief removes a list of GST Elements from a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
     
 /**
  * @brief creates a new, uniquely named CSI Camera Source component. A unique 
