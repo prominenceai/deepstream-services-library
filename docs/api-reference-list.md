@@ -531,7 +531,7 @@
 * [`dsl_sink_frame_capture_initiate`](/docs/api-sink.md#dsl_sink_frame_capture_initiate)
 * [`dsl_sink_frame_capture_schedule`](/docs/api-sink.md#dsl_sink_frame_capture_schedule)
 
-## Custom Components:
+## GST API:
 * [Overview](/docs/api-gst.md)
 * [`dsl_gst_caps_new`](/docs/api-gst.md#dsl_gst_caps_new)
 * [`dsl_gst_element_new`](/docs/api-gst.md#dsl_gst_element_new)
