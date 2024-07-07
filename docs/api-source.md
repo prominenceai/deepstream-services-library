@@ -54,7 +54,7 @@ A Source's production of new buffers can be monitored for timeout by adding a [N
 ... currently under design.
 
 ## Video Sources
-There are eleven Video Source components supported, three of which are [Image Video Sources](image-video-sources):
+There are twelve (12) Video Source components supported, three of which are [Image Video Sources](image-video-sources):
 
 * [App Source](#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
