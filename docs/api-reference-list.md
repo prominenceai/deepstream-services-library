@@ -533,7 +533,11 @@
 
 ## Custom Components:
 * [Overview](/docs/api-gst.md)
+* [`dsl_gst_caps_new`](/docs/api-gst.md#dsl_gst_caps_new)
 * [`dsl_gst_element_new`](/docs/api-gst.md#dsl_gst_element_new)
+* [`dsl_gst_caps_delete`](/docs/api-gst.md#dsl_gst_caps_delete)
+* [`dsl_gst_caps_delete_many`](/docs/api-gst.md#dsl_gst_caps_delete_many)
+* [`dsl_gst_caps_delete_all`](/docs/api-gst.md#dsl_gst_caps_delete_all)
 * [`dsl_gst_element_delete`](docs/api-gst.md#dsl_gst_element_delete)
 * [`dsl_gst_element_delete_many`](docs/api-gst.md#dsl_gst_element_delete_many)
 * [`dsl_gst_element_delete_all`](docs/api-gst.md#dsl_gst_element_delete_all)
@@ -551,6 +555,8 @@
 * [`dsl_gst_element_property_int64_set`](/docs/api-gst.md#dsl_gst_element_property_int64_set)
 * [`dsl_gst_element_property_string_get`](/docs/api-gst.md#dsl_gst_element_property_string_get)
 * [`dsl_gst_element_property_string_set`](/docs/api-gst.md#dsl_gst_element_property_string_set)
+* [`dsl_gst_element_property_caps_get`](/docs/api-gst.md#dsl_gst_element_property_caps_get)
+* [`dsl_gst_element_property_caps_set`](/docs/api-gst.md#dsl_gst_element_property_caps_set)
 * [`dsl_gst_element_list_size`](/docs/api-gst.md#dsl_gst_element_list_size)
 * [`dsl_gst_element_pph_add`](/docs/api-gst.md#dsl_gst_element_pph_add)
 * [`dsl_gst_element_pph_remove`](/docs/api-gst.md#dsl_gst_element_pph_remove)

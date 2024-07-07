@@ -4547,7 +4547,7 @@ DslReturnType dsl_gst_caps_new(const wchar_t* name, const wchar_t* caps);
 /** 
  * @brief Queries a uniquely named GST Caps Object for its current caps string representation.
  * @param[in] name unique name for the GST Caps Object to query.
- * @param[out] caps a string representation of the Caps Object current caps.
+ * @param[out] caps a string representation of the Caps Object's current caps.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
  */ 
 DslReturnType dsl_gst_caps_string_get(const wchar_t* name, const wchar_t** caps);
