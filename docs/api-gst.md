@@ -70,6 +70,7 @@ Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.
 * [`dsl_gst_caps_new`](#dsl_gst_caps_new)
 * [`dsl_gst_element_new`](#dsl_gst_element_new)
 
+
 **Destructors**
 * [`dsl_gst_caps_delete`](#dsl_gst_caps_delete)
 * [`dsl_gst_caps_delete_many`](#dsl_gst_caps_delete_many)
@@ -107,9 +108,11 @@ Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
 
+
 ---
 ## Return Values
 The following return codes are used by the GStreamer Element API
+
 
 ```C
 #define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
@@ -124,9 +127,13 @@ The following return codes are used by the GStreamer Element API
 ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
+=======
+
+>>>>>>> 3b88dca (Document GST Caps Object services)
 ---
 
 
@@ -178,9 +185,13 @@ retval = dsl_gst_element_new('my-element', 'my-plugin)
 ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
+=======
+
+>>>>>>> 3b88dca (Document GST Caps Object services)
 ---
 
 
@@ -264,9 +275,14 @@ This destructor deletes a uniquely named GST Element. This service will fail if 
 
 **Parameters**
 * `name` - [in] unique name for the GST Element to delete.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3b88dca (Document GST Caps Object services)
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+
 
 **Python Example**
 ```Python
@@ -282,9 +298,17 @@ retval = dsl_gst_element_delete('my-element')
 DslReturnType dsl_gst_element_delete_many(const wchar_t** names);
 ```
 This destructor deletes a NULL terminated list of GST Elements. This service will return with an error if any of the Elements are currently in-use or not found.
+<<<<<<< HEAD
 
 **Parameters**
 * `names` - [in] NULL terminated list of GST Elements to delete.
+=======
+
+
+**Parameters**
+* `names` - [in] NULL terminated list of GST Elements to delete.
+
+>>>>>>> 3b88dca (Document GST Caps Object services)
 
 **Returns**
 `DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
