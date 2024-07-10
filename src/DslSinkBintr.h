@@ -1813,15 +1813,14 @@ namespace DSL
         DSL_ELEMENT_PTR m_pIdentity;
 
         /**
-         * @brief Caps Filter required for for the V4l2SinkBintr.
-         */
-        DSL_ELEMENT_PTR m_pCapsFilter;
-
-        /**
-         * @brief Video converter required for the V4l2SinkBintr.
+         * @brief NV Video converter required for the V4l2SinkBintr.
          */
         DSL_ELEMENT_PTR m_pTransform;
   
+        /**
+         * @brief Caps Filter required for the V4l2SinkBintr.
+         */
+        DSL_ELEMENT_PTR m_pCapsFilter;
     };
 
 }
