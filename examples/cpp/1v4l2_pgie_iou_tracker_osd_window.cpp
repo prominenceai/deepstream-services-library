@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 /* ##############################################################################
 #
-# The simple example demonstrates how to create a set of Pipeline components, 
+# This example demonstrates how to create a set of Pipeline components, 
 # specifically:
 #   - V4L2 Source - Web Camera
 #   - Primary GST Inference Engine (PGIE)
@@ -61,9 +61,6 @@ THE SOFTWARE.
 int brightness=0;
 int contrast=0;
 int hue=0;
-
-std::wstring uri_h265(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
 // Config and model-engine files 
 std::wstring primary_infer_config_file(

@@ -143,15 +143,15 @@ def main(args):
             break
 
         # New RTSP Server Sink 
-        retVal = dsl_sink_rtsp_server_new('rtsp-sink', 
+        retval = dsl_sink_rtsp_server_new('rtsp-sink', 
             host = "0.0.0.0",       # 0.0.0.0 = "this host, this network."
             udp_port = 5400,        # UDP port 5400 uses the Datagram Protocol.             
             rtsp_port = 8554,       # 
             codec = DSL_CODEC_H265, # High Efficiency Video Coding (HEVC)
             bitrate = 0,            # Set to 0 to use plugin default (4000000)
             interval = 0)           # 0 = encode everyframe           
-        if retVal != DSL_RETURN_SUCCESS:
-            print(dsl_return_value_to_string(retVal)) 
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
