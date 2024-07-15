@@ -111,6 +111,8 @@ static const uint sink_width(1280);
 static const uint sink_height(720);
 
 static const std::wstring window_sink_name(L"egl-sink");
+static const std::wstring v4l2_sink_name(L"v4l2-sink");
+static const std::wstring device_location = L"/dev/video3";
 
 static const std::wstring rtsp_sink_name(L"rtsp-sink");
 static const std::wstring host(L"rjhowell-desktop.local");
@@ -120,7 +122,7 @@ static const uint codec(DSL_CODEC_H264);
 static const uint bitrate(4000000);
 static const uint interval(0);
 
-SCENARIO( "A new Pipeline with a URI File Source, FakeSink", "[pipeline-play]" )
+SCENARIO( "A new Pipeline with a URI File Source and FakeSink can play", "[pipeline-play]" )
 {
     GIVEN( "A Pipeline, URI source, Fake Sink" ) 
     {
@@ -1973,6 +1975,81 @@ SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Wi
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a URI File Source, Window Sink, and V4L2 Sink can play", 
+    "[pipeline-play]" )
+{
+    GIVEN( "A Pipeline, URI source, Window Sink, V4L2 Sink" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        REQUIRE( dsl_source_uri_new(source_name1.c_str(), uri.c_str(), 
+            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
+            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_sink_v4l2_new(v4l2_sink_name.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+        const wchar_t* components[] = {L"uri-source-1", L"egl-sink", L"v4l2-sink", NULL};
+        
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_POSITION) == DSL_RESULT_SUCCESS );
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_pipeline_state_get(pipeline_name.c_str(), 
+                    &currentState) == DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "When the Pipeline is Assembled" ) 
+        {
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+
+            THEN( "Pipeline is Able to LinkAll and Play" )
+            {
+                REQUIRE( dsl_pipeline_link_method_set(pipeline_name.c_str(),
+                    DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER) == DSL_RESULT_SUCCESS );
+                
+                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                uint currentState(DSL_STATE_NULL);
+                REQUIRE( dsl_pipeline_state_get(pipeline_name.c_str(), &currentState) == DSL_RESULT_SUCCESS );
+                REQUIRE( currentState == DSL_STATE_PLAYING );
+                
+                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                dsl_delete_all();
+                REQUIRE( dsl_pipeline_list_size() == 0 );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }

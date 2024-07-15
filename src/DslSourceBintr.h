@@ -1104,7 +1104,7 @@ namespace DSL
         DSL_ELEMENT_PTR m_pSourceCapsFilter;
         
         /**
-         * @brief Video converter, first of two, for the V4L2 Source if dGPU
+         * @brief Video converter for the V4L2 Source if dGPU
          */
         DSL_ELEMENT_PTR m_pdGpuVidConv;
 

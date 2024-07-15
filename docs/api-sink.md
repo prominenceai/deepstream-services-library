@@ -81,6 +81,31 @@ As a general rule
 * <b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
 * <b id="f2">2</b> _The rtspclientsink plugin is not derived from the GStreamer basesink which implements the common sink properties._ [↩](#a2)
 
+## Using the V4L2 Sink with V4L2 Loopback
+From the [GStream documentation](https://gstreamer.freedesktop.org/documentation/video4linux2/v4l2sink.html?gi-language=c#v4l2sink-page):
+> _"The V4L2 Sink can be used to display video to V4L2 capatible video devices (screen overlays provided by the graphics hardware, tv-out, etc)."_ 
+
+[V4L2 Loopback](https://github.com/umlaeute/v4l2loopback) can be used to create "virtual V4L2 video devices" allowing applications to read the virtual devices as V4L2 input sources. See: https://github.com/umlaeute/v4l2loopback for more information.
+
+Applicable DSL examples:
+* [1file_pgie_iou_tracker_osd_window_v4l2.py](/examples/python/1file_pgie_iou_tracker_osd_window_v4l2.py)
+* [1file_pgie_iou_tracker_osd_window_v4l2.cpp](/examples/python/1file_pgie_iou_tracker_osd_window_v4l2.cpp)
+
+You can install v4l2loopback with the command below. Depending on your device, there may be extra steps to install a kernel module. Follow the prompts as directed.
+```bash
+   $ sudo apt-get install v4l2loopback-dkms
+```
+
+Run the following to setup '/dev/video3' (used by the examples above)
+```bash
+    $ sudo modprobe v4l2loopback video_nr=3
+```
+
+You can use the following GStreamer launch command to test the loopback device when the example pipeline is running.
+```bash
+   $ gst-launch-1.0 v4l2src device=/dev/video3 ! videoconvert  ! xvimagesink
+```
+
 ## Sink API
 **Types:**
 * [`dsl_recording_info`](#dsl_recording_info)
