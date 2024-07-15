@@ -3187,15 +3187,15 @@ namespace DSL
         m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
         m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
-        // Setup the default caps/buffer-format to YUY2
-        std::wstring L_bufferInFormat(DSL_VIDEO_FORMAT_YUY2);
+        // Setup the default caps/buffer-format to I420
+        std::wstring L_bufferInFormat(DSL_VIDEO_FORMAT_I420);
         std::string bufferInFormat(L_bufferInFormat.begin(), 
             L_bufferInFormat.end());
         SetBufferInFormat(bufferInFormat.c_str());
         
         m_pIdentity = DSL_ELEMENT_NEW("identity", name);
         m_pIdentity->SetAttribute("drop-allocation", 1);
-        
+
         LOG_INFO("");
         LOG_INFO("Initial property values for v4L2SinkBintr '" << name << "'");
         LOG_INFO("  device-location    : " << m_deviceLocation);
@@ -3240,16 +3240,14 @@ namespace DSL
 
         if (!m_pQueue->LinkToSink(m_pTransform) or
             !m_pTransform->LinkToSink(m_pCapsFilter) or    
-            !m_pCapsFilter->LinkToSink(m_pSink))
-            // !m_pCapsFilter->LinkToSink(m_pIdentity) or
-            // !m_pIdentity->LinkToSink(m_pSink))
+            !m_pCapsFilter->LinkToSink(m_pIdentity) or    
+            !m_pIdentity->LinkToSink(m_pSink))
         {
             return false;
         }
-
-    m_isLinked = true;
-    return true;
-}
+        m_isLinked = true;
+        return true;
+    }
     
     void V4l2SinkBintr::UnlinkAll()
     {
@@ -3378,12 +3376,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't set picture-settings for V4l2SinkBintr '" 
-                << GetName() << "' as it is currently in a linked state");
-            return false;
-        }
         m_brightness = brightness;
         m_contrast = contrast;
         m_saturation = saturation;

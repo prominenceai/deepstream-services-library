@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2023-2024, Prominence AI, Inc.
+# Copyright (c) 2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -31,8 +31,24 @@
 #   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
-#   - H265 RTSP Sink
+#   - V4L2 Sink
 # ...and how to add them to a new Pipeline and play.
+#
+# The V4L2 Sink is used to display video to v4l2 video devices. 
+# 
+# V4L2 Loopback can be used to create "virtual video devices". Normal (v4l2) 
+# applications will read these devices as if they were ordinary video devices.
+# See: https://github.com/umlaeute/v4l2loopback for more information.
+#
+# You can install v4l2loopback with
+#    $ sudo apt-get install v4l2loopback-dkms
+#
+# Run the following to setup '/dev/video3'
+#    $ sudo modprobe v4l2loopback video_nr=3
+#
+# When the script is running, you can use the following GStreamer launch 
+# command to test the loopback
+#    $ gst-launch-1.0 v4l2src device=/dev/video3 ! videoconvert  ! xvimagesink
 #
 # The example registers handler callback functions for:
 #   - key-release events
@@ -48,9 +64,6 @@ import sys
 import time
 from dsl import *
 
-# update host URL to IP address if clients are off device.
-host_uri = '0.0.0.0'
-
 file_path = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
@@ -62,6 +75,9 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# V4L2 Sink device location to stream to
+DEVICE_LOCATION = '/dev/video3'
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -142,21 +158,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New RTSP Server Sink 
-        retval = dsl_sink_rtsp_server_new('rtsp-sink', 
-            host = "0.0.0.0",       # 0.0.0.0 = "this host, this network."
-            udp_port = 5400,        # UDP port 5400 uses the Datagram Protocol.             
-            rtsp_port = 8554,       # 
-            codec = DSL_CODEC_H265, # High Efficiency Video Coding (HEVC)
-            bitrate = 0,            # Set to 0 to use plugin default (4000000)
-            interval = 0)           # 0 = encode everyframe           
+        # New V4L2 Sink 
+        retval = dsl_sink_v4l2_new('v4l2-sink', 
+            device_location=DEVICE_LOCATION)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['file-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
-            'window-sink', 'rtsp-sink', None])
+            'window-sink', 'v4l2-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -172,6 +183,7 @@ def main(args):
 
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
         if retval != DSL_RETURN_SUCCESS:
             break
 

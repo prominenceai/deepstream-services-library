@@ -24,29 +24,38 @@ THE SOFTWARE.
 
 /* ##############################################################################
 #
-# This example demonstrates how to create a set of Pipeline components, 
+# This simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - V4L2 Source - Web Camera
+#   - A File Source
 #   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
-# ...and how to add them to a new Pipeline and play
+#   - V4L2 Sink
+# ...and how to add them to a new Pipeline and play.
+#
+# The V4L2 Sink is used to display video to v4l2 video devices. 
 # 
-# The example registers handler callback functions with the Pipeline for:
+# V4L2 Loopback can be used to create "virtual video devices". Normal (v4l2) 
+# applications will read these devices as if they were ordinary video devices.
+# See: https://github.com/umlaeute/v4l2loopback for more information.
+#
+# You can install v4l2loopback with
+#    $ sudo apt-get install v4l2loopback-dkms
+#
+# Run the following to setup '/dev/video3'
+#    $ sudo modprobe v4l2loopback video_nr=3
+#
+# When the script is running, you can use the following GStreamer launch 
+# command to test the loopback
+#    $ gst-launch-1.0 v4l2src device=/dev/video3 ! videoconvert  ! xvimagesink
+#
+# The example registers handler callback functions for:
 #   - key-release events
 #   - delete-window events
-#
-# The key-release handler function will update the V4L2 device picture settings
-# based on the key value as follows during runtime.
-#   * brightness - or more correctly the black level. 
-#                  enter 'B' to increase, 'b' to decrease
-#   * contrast   - color contrast setting or luma gain.
-#                  enter 'C' to increase, 'c' to decrease
-#   * hue        - color hue or color balence.
-#                  enter 'H' to increase, 'h' to decrease
-#
-# The Picture Settings are all integer values, range 
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
 ############################################################################## */
 
 #include <iostream>
@@ -57,10 +66,8 @@ THE SOFTWARE.
 
 #include "DslApi.h"
 
-// Picture settings, read after device negotiation.
-int brightness=0;
-int contrast=0;
-int hue=0;
+std::wstring file_path(
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 
 // Config and model-engine files 
 std::wstring primary_infer_config_file(
@@ -71,6 +78,9 @@ std::wstring primary_model_engine_file(
 // Config file used by the IOU Tracker    
 std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+
+// V4L2 Sink device location to stream to
+std::wstring DEVICE_LOCATION = L"/dev/video3";
 
 uint WINDOW_WIDTH = 1280;
 uint WINDOW_HEIGHT = 720;
@@ -83,52 +93,6 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     std::wstring wkey(in_key); 
     std::string key(wkey.begin(), wkey.end());
     std::cout << "key released = " << key << std::endl;
-    
-    bool update(false);
-    
-    // Upper case 'B' - increase the picture brighness by 10
-    if (key == "B")
-    {
-        brightness += 10;
-        update = true;
-    }    
-    // Lower case 'b' - decrease the picture brighness by 10
-    else if (key == "b")
-    {
-        brightness -= 10;
-        update = true;
-    }    
-    // Upper case 'C' - increase the picture contrast (luma gain) by 10
-    else if (key == "C")
-    {
-        contrast += 10;
-        update = true;
-    }   
-    // Lower case 'c' - decrease the picture contrast (luma gain) by 10
-    else if (key == "c")
-    {
-        contrast -= 10;
-        update = true;
-    }
-    // Upper case 'H' - increase the picture hue (color balence) by 10
-    else if (key == "H")
-    {
-        hue += 10;
-        update = true;
-    }
-    // Lower case 'h' - decrease the picture hue (color balence) by 10
-    else if (key == "h")
-    {
-        hue -= 10;
-        update = true;
-    }
-    if (update)
-    {
-        dsl_source_v4l2_picture_settings_set(L"v4l2-source",
-            brightness, contrast, hue);
-        return;    
-    }
-    
     key = std::toupper(key[0]);
     if(key == "P"){
         dsl_pipeline_pause(L"pipeline");
@@ -178,8 +142,8 @@ int main(int argc, char** argv)
     while(true) 
     {    
 
-        // New V4L2 Live Web Camera Source
-        retval = dsl_source_v4l2_new(L"v4l2-source", L"/dev/video0");
+        // New File Source using the file path specified above, repeat enabled.
+        retval = dsl_source_file_new(L"file-source", file_path.c_str(), true);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -219,9 +183,13 @@ int main(int argc, char** argv)
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
+        // New V4L2 Sink 
+        retval = dsl_sink_v4l2_new(L"v4l2-sink", DEVICE_LOCATION.c_str());
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"v4l2-source",  L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"window-sink", NULL};
+        const wchar_t* components[] = {L"file-source",  L"primary-gie", 
+            L"iou-tracker", L"on-screen-display", L"window-sink", L"v4l2-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);
@@ -235,33 +203,6 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_play(L"pipeline");
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // Once playing, we can retrieve the device information: 
-        // name, file-descriptor, and device-flags
-        const wchar_t* device_name;
-        retval = dsl_source_v4l2_device_name_get(L"v4l2-source", &device_name);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        int device_fd;
-        retval = dsl_source_v4l2_device_fd_get(L"v4l2-source", &device_fd);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        uint device_flags;
-        retval = dsl_source_v4l2_device_flags_get(L"v4l2-source", &device_flags);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Get the initial values updated after the Pipeline is playing.
-        retval = dsl_source_v4l2_picture_settings_get(L"v4l2-source",
-            &brightness, &contrast, &hue);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        std::wcout << L"V4L2 Device Propertes" << std::endl;
-        std::wcout << L"   Name       : " << device_name << std::endl;
-        std::wcout << L"   File Desc  : " << device_fd << std::endl;
-        std::wcout << L"   Flags      : " << device_flags << std::endl;
-        std::wcout << L"   Brightness : " << brightness << std::endl;
-        std::wcout << L"   Contrast   : " << contrast << std::endl;
-        std::wcout << L"   Hue        : " << hue << std::endl;
-
         // Start and join the main-loop
         dsl_main_loop_run();
         break;

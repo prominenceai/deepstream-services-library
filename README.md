@@ -36,7 +36,25 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 ---
 
 ## Important Bulletins
-The latest release `v0.30.alpha` was developed to support DeepSteam 6.4 and 7.0 on Ubuntu 22.04. 
+The latest release [v0.30.a.alpha](/Release%20Notes/v0.30.a.alpha.md) is a patch for the v0.30.alpha release that fixes a [critical bug](https://github.com/prominenceai/deepstream-services-library/issues/1238) in the V4L2 Sink. 
+
+The [v0.30.alpha](/Release%20Notes/v0.30.alpha.md) release was developed to support DeepSteam 6.4 and 7.0 on Ubuntu 22.04. 
+
+> WARNING! There is a cricical error in the DeepStream 7.0 Installation Instructions.
+
+Under the section [Install librdkafka](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html#install-librdkafka-to-enable-kafka-protocol-adaptor-for-message-broker), the following instructions
+```bash
+$ sudo mkdir -p /opt/nvidia/deepstream/deepstream/lib
+$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream/lib
+```
+Must be replaced with.
+```bash
+$ sudo mkdir -p /opt/nvidia/deepstream/deepstream-7.0/lib
+$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream-7.0/lib
+```
+See [Error in DeepStream 7.0 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-0-installation-instructions-symlink-fails-to-create/296026) for more information.
+
+---
 
 > WARNING! There is a cricical error in the DeepStream 7.0 Installation Instructions.
 
