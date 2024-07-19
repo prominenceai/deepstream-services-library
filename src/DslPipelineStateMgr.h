@@ -237,6 +237,11 @@ namespace DSL
          * GST Pipeline Object, provided on construction by the derived parent Pipeline.
          */
         GstObject* m_pGstPipeline;
+
+        /**
+         * Name of the parent Pipeline.
+         */
+        std::string m_pipelineName;
         
         /**
          * @brief unique id of the installed Bus Watch function. This handle is
