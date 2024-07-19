@@ -40,7 +40,7 @@ namespace DSL
 
         _initMaps();
 
-        // Get and persist the Pipeline name
+        // Get and persist and free the Pipeline name.
         gchar* pipelineName = gst_object_get_name(m_pGstPipeline);
         m_pipelineName = pipelineName;
         g_free(pipelineName);
