@@ -204,7 +204,9 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Get the static sink-pad for the pSrcNodetr
+        // If linking as a Nodetr (element), get the static sink-pad for 
+        // and then call the LinkToCommon(GstPad*) function below.
+        // IMPORTANT! This Nodetr must be unlinked in the UnlinkCommon()
         GstPad* pStaticSrcPad = gst_element_get_static_pad(
                 pSrcNodetr->GetGstElement(), "src");
         if (!pStaticSrcPad)
@@ -216,6 +218,7 @@ namespace DSL
         bool retval = LinkToCommon(pStaticSrcPad);
 
         gst_object_unref(pStaticSrcPad);
+
         return retval;
     }
 
@@ -312,6 +315,41 @@ namespace DSL
     void VideoSourceBintr::UnlinkCommon()
     {
         LOG_FUNC();
+
+        // Get a reference to the sink pad of the first common element
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_linkedCommonElements.front()->GetGstElement(), "sink");
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad for Elementr '" 
+                << m_linkedCommonElements.front()->GetName() << "'");
+            return;
+        }
+        // Check to see if it is currently linked.  This will be true for all
+        // sources that call LinkToCommon(DSL_NODETR_PTR) and false for all 
+        // sources that call LinkToCommon(GstPad*) from pad_added callbacks.
+        if (gst_pad_is_linked(pStaticSinkPad))
+        {                
+            GstPad* pSrcPad = gst_pad_get_peer(pStaticSinkPad);
+            if (!pSrcPad)
+            {
+                LOG_ERROR("Failed to get peer src pad for Elementr '" 
+                    << m_linkedCommonElements.front()->GetName() << "'");
+                return;
+            }
+            LOG_INFO("Unlinking common front Elementr '" 
+                << m_linkedCommonElements.front()->GetName() 
+                << "' from its peer src pad");
+
+            if (!gst_pad_unlink(pSrcPad, pStaticSinkPad))
+            {
+                LOG_ERROR("Failed to unlink src pad for Elementr '" 
+                    << m_linkedCommonElements.front()->GetName() << "'");
+                return;
+            }
+            gst_object_unref(pSrcPad);
+        }
+        gst_object_unref(pStaticSinkPad);
 
         // iterate through the list of linked Elements, unlinking each
         for (auto const& ivec: m_linkedCommonElements)
@@ -1060,7 +1098,6 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        m_pSourceElement->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -1681,7 +1718,6 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
-        m_pSourceCapsFilter->UnlinkFromSink();
         UnlinkCommon();
         
         m_isLinked = false;
@@ -2619,7 +2655,6 @@ namespace DSL
         }
         m_pSourceElement->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-        m_pDecoder->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -2799,7 +2834,6 @@ namespace DSL
         
         m_pSourceElement->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-        m_pDecoder->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -3060,7 +3094,6 @@ namespace DSL
         
         m_pSourceElement->UnlinkFromSink();
         m_pSourceCapsFilter->UnlinkFromSink();
-        m_pImageOverlay->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -3213,7 +3246,6 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        m_pSourceElement->UnlinkFromSink();
         UnlinkCommon();
         
         m_isLinked = false;
