@@ -218,6 +218,7 @@ namespace DSL
         bool retval = LinkToCommon(pStaticSrcPad);
 
         gst_object_unref(pStaticSrcPad);
+
         return retval;
     }
 
