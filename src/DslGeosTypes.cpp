@@ -36,20 +36,20 @@ namespace DSL
         if (!geosCoordSequence)
         {
             LOG_ERROR("Exception when creating GEOS Coordinate Sequence for GEOS Point");
-            throw;
+            throw std::exception();
         }
         if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(x)) or 
             !GEOSCoordSeq_setY(geosCoordSequence, 0, double(y))) 
         {
             LOG_ERROR("Exception when setting GEOS Coordinate Sequence for GEOS Point");
-            throw;
+            throw std::exception();
         }
         
         m_pGeosPoint = GEOSGeom_createPoint(geosCoordSequence);
         if (!m_pGeosPoint)
         {
             LOG_ERROR("Exception when setting GEOS Point");
-            throw;
+            throw std::exception();
         }
     }
 
@@ -71,7 +71,7 @@ namespace DSL
         if (!GEOSDistance(m_pGeosPoint, testPoint.m_pGeosPoint, &distance))
         {
             LOG_ERROR("Exception when calling GEOS Distance");
-            throw;
+            throw std::exception();
         }
         return (uint)round(distance);
     }
@@ -87,7 +87,7 @@ namespace DSL
         if (!geosCoordSequence)
         {
             LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(line.x1)) or 
             !GEOSCoordSeq_setY(geosCoordSequence, 0, double(line.y1)) or
@@ -95,7 +95,7 @@ namespace DSL
             !GEOSCoordSeq_setY(geosCoordSequence, 1, double(line.y2))) 
         {
             LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         
         // once created, m_pGeosLine will own the memory of geosCoordSequence
@@ -104,7 +104,7 @@ namespace DSL
         if (!m_pGeosLine)
         {
             LOG_ERROR("Exception when creating GEOS Line String");
-            throw;
+            throw std::exception();
         }
     }
     
@@ -117,7 +117,7 @@ namespace DSL
         if (!geosCoordSequence)
         {
             LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(x1)) or 
             !GEOSCoordSeq_setY(geosCoordSequence, 0, double(y1)) or
@@ -125,7 +125,7 @@ namespace DSL
             !GEOSCoordSeq_setY(geosCoordSequence, 1, double(y2))) 
         {
             LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         
         // once created, m_pGeosLine will own the memory of geosCoordSequence
@@ -134,7 +134,7 @@ namespace DSL
         if (!m_pGeosLine)
         {
             LOG_ERROR("Exception when creating GEOS Line String");
-            throw;
+            throw std::exception();
         }
     }
     
@@ -156,7 +156,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Line Strings cross");
-            throw;
+            throw std::exception();
         }
         return bool(result);
     }
@@ -169,7 +169,7 @@ namespace DSL
         if (!GEOSDistance(m_pGeosLine, testPoint.m_pGeosPoint, &distance))
         {
             LOG_ERROR("Exception when calling GEOS Distance");
-            throw;
+            throw std::exception();
         }
         return (uint)round(distance);
     }
@@ -185,7 +185,7 @@ namespace DSL
         if (!geosCoordSequence)
         {
             LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(rectangle.left)) or   
             !GEOSCoordSeq_setY(geosCoordSequence, 0, double(rectangle.top)) or
@@ -199,21 +199,21 @@ namespace DSL
             !GEOSCoordSeq_setY(geosCoordSequence, 4, double(rectangle.top))) 
         {
             LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         
         GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence);
         if (!outerRing)
         {
             LOG_ERROR("Exception when creating GEOS outer ring");
-            throw;
+            throw std::exception();
         }
 
         m_pGeosRectangle = GEOSGeom_createPolygon(outerRing, NULL, 0);
         if (!m_pGeosRectangle)
         {
             LOG_ERROR("Exception when creating GEOS Polygon");
-            throw;
+            throw std::exception();
         }
     }
 
@@ -235,7 +235,7 @@ namespace DSL
         if (!GEOSDistance(m_pGeosRectangle, testRectangle.m_pGeosRectangle, &distance))
         {
             LOG_ERROR("Exception when calling GEOS Distance");
-            throw;
+            throw std::exception();
         }
         return (uint)round(distance);
     }
@@ -248,7 +248,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Rectangles overlap");
-            throw;
+            throw std::exception();
         }
         return bool(result);
         
@@ -258,45 +258,55 @@ namespace DSL
 
     GeosPolygon::GeosPolygon(const dsl_polygon_params& polygon)
         : m_pGeosPolygon(NULL)
+        , m_pGeosMultiLine(NULL)
     {
         // Don't log function entry/exit
         
         // first coordinate needs to be added to both the start and end of the sequence
         // therefore, we need num_coordinates+1
-        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(polygon.num_coordinates+1, 2);
-        if (!geosCoordSequence)
+        GEOSCoordSequence* geosCoordSequence1 = GEOSCoordSeq_create(polygon.num_coordinates+1, 2);
+        GEOSCoordSequence* geosCoordSequence2 = GEOSCoordSeq_create(polygon.num_coordinates+1, 2);
+        if (!geosCoordSequence1 or !geosCoordSequence2)
         {
-            LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
+            LOG_ERROR("Exception when creating GEOS Coordinate Sequences");
+            throw std::exception();
         }
         for (uint i = 0; i < polygon.num_coordinates+1; i++)
         {
-            if (!GEOSCoordSeq_setX(geosCoordSequence, i, 
+            if (!GEOSCoordSeq_setX(geosCoordSequence1, i, 
                     double(polygon.coordinates[(i)%polygon.num_coordinates].x)) or   
-                !GEOSCoordSeq_setY(geosCoordSequence, i, 
+                !GEOSCoordSeq_setY(geosCoordSequence1, i, 
                     double(polygon.coordinates[(i)%polygon.num_coordinates].y))) 
             {
                 LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-                throw;
+                throw std::exception();
+            }
+            if (!GEOSCoordSeq_setX(geosCoordSequence2, i, 
+                    double(polygon.coordinates[(i)%polygon.num_coordinates].x)) or   
+                !GEOSCoordSeq_setY(geosCoordSequence2, i, 
+                    double(polygon.coordinates[(i)%polygon.num_coordinates].y))) 
+            {
+                LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
+                throw std::exception();
             }
         }
 
         // First, create Line String to use for calculating a points distance
         // to the boarder of the Polygon, inside and out.
-        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
+        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence1);
         if (!m_pGeosMultiLine)
         {
             LOG_ERROR("Exception when creating GEOS Line String");
-            throw;
+            throw std::exception();
         }
         
         // Next, create an outer ring from the coordinate sequence needed 
         // to create a Polygon geometry.
-        GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence);
+        GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence2);
         if (!outerRing)
         {
             LOG_ERROR("Exception when creating GEOS outer ring");
-            throw;
+            throw std::exception();
         }
 
         // Finally, create the Polygon to use for checking if a point is
@@ -305,7 +315,7 @@ namespace DSL
         if (!m_pGeosPolygon)
         {
             LOG_ERROR("Exception when creating GEOS Polygon");
-            throw;
+            throw std::exception();
         }
     }
 
@@ -314,52 +324,64 @@ namespace DSL
     {
         // Don't log function entry/exit
         
-        GEOSCoordSequence* geosCoordSequence = GEOSCoordSeq_create(5, 2);
-        if (!geosCoordSequence)
+        GEOSCoordSequence* geosCoordSequence1 = GEOSCoordSeq_create(5, 2);
+        GEOSCoordSequence* geosCoordSequence2 = GEOSCoordSeq_create(5, 2);
+        if (!geosCoordSequence1 or !geosCoordSequence2)
         {
             LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
-        if (!GEOSCoordSeq_setX(geosCoordSequence, 0, double(rectangle.left)) or   
-            !GEOSCoordSeq_setY(geosCoordSequence, 0, double(rectangle.top)) or
-            !GEOSCoordSeq_setX(geosCoordSequence, 1, double(rectangle.left + rectangle.width)) or   
-            !GEOSCoordSeq_setY(geosCoordSequence, 1, double(rectangle.top)) or
-            !GEOSCoordSeq_setX(geosCoordSequence, 2, double(rectangle.left + rectangle.width)) or   
-            !GEOSCoordSeq_setY(geosCoordSequence, 2, double(rectangle.top + rectangle.height)) or
-            !GEOSCoordSeq_setX(geosCoordSequence, 3, double(rectangle.left)) or   
-            !GEOSCoordSeq_setY(geosCoordSequence, 3, double(rectangle.top + rectangle.height)) or
-            !GEOSCoordSeq_setX(geosCoordSequence, 4, double(rectangle.left)) or   
-            !GEOSCoordSeq_setY(geosCoordSequence, 4, double(rectangle.top))) 
+        if (!GEOSCoordSeq_setX(geosCoordSequence1, 0, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence1, 0, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence1, 1, double(rectangle.left + rectangle.width)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence1, 1, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence1, 2, double(rectangle.left + rectangle.width)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence1, 2, double(rectangle.top + rectangle.height)) or
+            !GEOSCoordSeq_setX(geosCoordSequence1, 3, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence1, 3, double(rectangle.top + rectangle.height)) or
+            !GEOSCoordSeq_setX(geosCoordSequence1, 4, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence1, 4, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence2, 0, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence2, 0, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence2, 1, double(rectangle.left + rectangle.width)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence2, 1, double(rectangle.top)) or
+            !GEOSCoordSeq_setX(geosCoordSequence2, 2, double(rectangle.left + rectangle.width)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence2, 2, double(rectangle.top + rectangle.height)) or
+            !GEOSCoordSeq_setX(geosCoordSequence2, 3, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence2, 3, double(rectangle.top + rectangle.height)) or
+            !GEOSCoordSeq_setX(geosCoordSequence2, 4, double(rectangle.left)) or   
+            !GEOSCoordSeq_setY(geosCoordSequence2, 4, double(rectangle.top))) 
         {
             LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         
         // First, create Line String to use for calculating a points distance
         // to the boarder of the Polygon, inside and out.
-        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence);
+        m_pGeosMultiLine = GEOSGeom_createLineString(geosCoordSequence1);
         if (!m_pGeosMultiLine)
         {
             LOG_ERROR("Exception when creating GEOS Line String");
-            throw;
+            throw std::exception();
         }
         
         // Next, create an outer ring from the coordinate sequence needed 
         // to create a Polygon geometry.
-        GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence);
+        GEOSGeometry* outerRing = GEOSGeom_createLinearRing(geosCoordSequence2);
         if (!outerRing)
         {
             LOG_ERROR("Exception when creating GEOS outer ring");
-            throw;
+            throw std::exception();
         }
 
         // Finally, create the Polygon to use for checking if a point is
-        // within the Polygond
+        // within the Polygon. IMPORTANT! ownership of the "outerRing" is
+        // passed to the created Polygon.
         m_pGeosPolygon = GEOSGeom_createPolygon(outerRing, NULL, 0);
         if (!m_pGeosPolygon)
         {
             LOG_ERROR("Exception when creating GEOS Polygon");
-            throw;
+            throw std::exception();
         }
     }
     
@@ -367,6 +389,10 @@ namespace DSL
     {
         // Don't log function entry/exit
         
+        if (m_pGeosMultiLine)
+        {
+            GEOSGeom_destroy(m_pGeosMultiLine);
+        }
         if (m_pGeosPolygon)
         {
             GEOSGeom_destroy(m_pGeosPolygon);
@@ -383,7 +409,7 @@ namespace DSL
         if (!GEOSDistance(m_pGeosMultiLine, testPoint.m_pGeosPoint, &distance))
         {
             LOG_ERROR("Exception when calling GEOS Distance");
-            throw;
+            throw std::exception();
         }
         return (uint)round(distance);
     }
@@ -396,7 +422,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Polygons intersect");
-            throw;
+            throw std::exception();
         }
         return bool(result);
         
@@ -410,7 +436,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Polygons intersect");
-            throw;
+            throw std::exception();
         }
         return bool(result);
         
@@ -425,7 +451,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Polygons intersect");
-            throw;
+            throw std::exception();
         }
         return bool(result);
     }
@@ -441,7 +467,7 @@ namespace DSL
         if (!geosCoordSequence)
         {
             LOG_ERROR("Exception when creating GEOS Coordinate Sequence");
-            throw;
+            throw std::exception();
         }
         for (uint i = 0; i < multiLine.num_coordinates; i++)
         {
@@ -451,7 +477,7 @@ namespace DSL
                     double(multiLine.coordinates[i].y))) 
             {
                 LOG_ERROR("Exception when setting GEOS Coordinate Sequence");
-                throw;
+                throw std::exception();
             }
         }
         
@@ -461,7 +487,7 @@ namespace DSL
         if (!m_pGeosMultiLine)
         {
             LOG_ERROR("Exception when creating GEOS Line String");
-            throw;
+            throw std::exception();
         }
     }
     
@@ -483,7 +509,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Multi-Line crosses Line");
-            throw;
+            throw std::exception();
         }
         return bool(result);
     }
@@ -496,7 +522,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Multi-line crosses Polygon");
-            throw;
+            throw std::exception();
         }
         return bool(result);
     }
@@ -509,7 +535,7 @@ namespace DSL
         if (result == 2)
         {
             LOG_ERROR("Exception when testing if GEOS Multi-line crosses Multi-Line");
-            throw;
+            throw std::exception();
         }
         return bool(result);
     }
@@ -522,7 +548,7 @@ namespace DSL
         if (!GEOSDistance(m_pGeosMultiLine, testPoint.m_pGeosPoint, &distance))
         {
             LOG_ERROR("Exception when calling GEOS Distance");
-            throw;
+            throw std::exception();
         }
         return (uint)round(distance);
     }
