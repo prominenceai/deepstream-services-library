@@ -1,0 +1,393 @@
+{
+   <libcuda_1>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+}
+{
+   <libcuda_2>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+   fun:dsl_info_gpu_type_get
+   fun:_ZL19C_A_T_C_H_T_E_S_T_0v
+}
+{
+   <libcuda_3>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+   fun:dsl_info_gpu_type_get
+}
+{
+   <libcuda_4>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_5>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.34
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_6>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+}
+{
+   <libcuda_7>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+}
+{
+   <libcuda_8>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_9>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_8>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_10>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_11>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+}
+{
+   <libcuda_12>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_13>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaSetDevice
+}
+{
+   <libcuda_14>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+}
+{
+   <libcuda_15>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+   fun:_ZN3DSL11SourceBintrC1EPKc
+   fun:_ZN3DSL16VideoSourceBintrC1EPKc
+}
+{
+   <libcuda_16>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+   fun:_ZN3DSL11SourceBintrC1EPKc
+}
+{
+   libcuda_17
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   fun:_Z34cuvidv4l2_handle_video_sequence_cbPvP13CUVIDEOFORMAT
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   fun:_Z25cuvidv4l2_dec_thread_funcPv
+}
+{
+   libcuda_18
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   fun:_Z34cuvidv4l2_handle_video_sequence_cbPvP13CUVIDEOFORMAT
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libnvcuvid.so.535.183.01
+}
+{
+   libcuda_19
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:realloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+}
+{
+   libcuda_20
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+   fun:_ZN3DSL9SinkBintrC1EPKc
+   fun:_ZN3DSL13FakeSinkBintrC1EPKc
+}
+{
+   libcuda_21y
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/lib/x86_64-linux-gnu/libcuda.so.535.183.01
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:__pthread_once_slow
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   obj:/usr/local/cuda-12.2/targets/x86_64-linux/lib/libcudart.so.12.2.140
+   fun:cudaGetDeviceProperties_v2
+   fun:_ZN3DSL9SinkBintrC1EPKc
+}
+{
+   <dsl_init>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_quark_init
+   fun:glib_init
+   fun:glib_init
+   fun:glib_init_ctor
+   fun:call_init.part.0
+   fun:call_init
+   fun:_dl_init
+   obj:/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+   obj:*
+   obj:*
+   obj:*
+}
