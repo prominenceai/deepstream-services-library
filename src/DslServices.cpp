@@ -159,7 +159,7 @@ namespace DSL
             if (result != CURLE_OK)
             {
                 LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
-                throw;
+                throw std::exception();
             }
             curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
             
@@ -185,7 +185,7 @@ namespace DSL
         if (InfoInitDebugSettings() != DSL_RESULT_SUCCESS)
         {
             LOG_ERROR("DSL threw exception intializing Debug Settings");
-            throw;
+            throw std::exception();
         }
         const char* value = getenv("USE_NEW_NVSTREAMMUX");
         if (value and std::string(value) == "yes")
@@ -198,8 +198,7 @@ namespace DSL
 
     Services::~Services()
     {
-        LOG_FUNC();
-        
+        // Do not LOG_FUNC - this dtor de-initializes GStreamer
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
@@ -211,15 +210,15 @@ namespace DSL
             
             InfoDeinitDebugSettings();
             
+            if (m_pMainLoop)
+            {
+                g_main_loop_unref(m_pMainLoop);
+            }
+            
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
             {
                 gst_deinit();
-            }
-            
-            if (m_pMainLoop)
-            {
-                g_main_loop_unref(m_pMainLoop);
             }
         }
     }

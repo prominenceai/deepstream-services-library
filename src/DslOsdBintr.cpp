@@ -302,13 +302,13 @@ namespace DSL
         m_clockColor.blue = blue;
         m_clockColor.alpha = alpha;
 
-        uint clkRgbaColor =
+        m_clkRgbaColor =
             ((((uint) (m_clockColor.red * 255)) & 0xFF) << 24) |
             ((((uint) (m_clockColor.green * 255)) & 0xFF) << 16) |
             ((((uint) (m_clockColor.blue * 255)) & 0xFF) << 8) | 
             ((((uint) (m_clockColor.alpha * 255)) & 0xFF));
 
-        m_pOsd->SetAttribute("clock-color", clkRgbaColor);
+        m_pOsd->SetAttribute("clock-color", m_clkRgbaColor);
 
         return true;
     }

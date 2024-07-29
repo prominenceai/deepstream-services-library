@@ -40,6 +40,11 @@ namespace DSL
 
         _initMaps();
 
+        // Get and persist and free the Pipeline name.
+        gchar* pipelineName = gst_object_get_name(m_pGstPipeline);
+        m_pipelineName = pipelineName;
+        g_free(pipelineName);
+
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
 
         // Add the bus-watch and callback function to the default main context
@@ -66,7 +71,7 @@ namespace DSL
         if (m_pMainLoop)
         {
             LOG_ERROR("A main-loop has already been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
 
@@ -78,7 +83,7 @@ namespace DSL
         m_pMainContext = g_main_context_new();
         if (!m_pMainContext)
         {
-            LOG_ERROR("Pipeline '" << gst_object_get_name(m_pGstPipeline) 
+            LOG_ERROR("Pipeline '" << m_pipelineName
                 << "' failed to create own main-context");
             return false;
         }
@@ -87,7 +92,7 @@ namespace DSL
         m_pMainLoop = g_main_loop_new(m_pMainContext, FALSE);
         if (!m_pMainLoop)
         {
-            LOG_ERROR("Pipeline '" << gst_object_get_name(m_pGstPipeline)
+            LOG_ERROR("Pipeline '" << m_pipelineName
                 << "' failed to create main-loop");
             return false;
         }
@@ -110,13 +115,13 @@ namespace DSL
         if (!m_pMainLoop)
         {
             LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         if (g_main_loop_is_running(m_pMainLoop))
         {
             LOG_ERROR("A Main-Loop is already running for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         // Acquire context and set it as the thread-default context for the current thread.
@@ -143,13 +148,13 @@ namespace DSL
         if (!m_pMainLoop)
         {
             LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         if (!g_main_loop_is_running(m_pMainLoop))
         {
             LOG_ERROR("Main-loop for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "' is not running");
+                << m_pipelineName << "'");
             return false;
         }
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_mainLoopMutex);
@@ -166,7 +171,7 @@ namespace DSL
         if (!m_pMainLoop)
         {
             LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         // destroy the bus-watch - which unattaches the bus-watch from the main-context
@@ -418,7 +423,7 @@ namespace DSL
     void PipelineStateMgr::HandleEosMessage(GstMessage* pMessage)
     {
         LOG_INFO("EOS message recieved for Pipeline '" 
-            << gst_object_get_name(m_pGstPipeline) << "'");
+            << m_pipelineName << "'");
         
         // If the EOS event was sent from HandleStop
         if (m_eosFlag)
@@ -449,15 +454,19 @@ namespace DSL
         
         const GstStructure* msgPayload = gst_message_get_structure(pMessage);
 
+
+
         // only one application message at this time. 
         if(gst_structure_has_name(msgPayload, "stop-pipline"))
         {
+            LOG_INFO("Stop-pipeline message recieved by Pipeline '"
+                << m_pipelineName << "'");
             HandleStop();
         }
         else
         {
             LOG_ERROR("Unknown Application message received by Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
         }
     }
     

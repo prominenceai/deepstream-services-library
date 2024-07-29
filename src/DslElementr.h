@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ namespace DSL
                 throw std::exception();  
             }
         };
-        
+              
         /**
          * @brief ctor for the container class
          * @brief[in] factoryname unique GST factory name to create from
