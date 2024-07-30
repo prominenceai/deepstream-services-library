@@ -3520,7 +3520,6 @@ namespace DSL
             }
             m_pDepay->UnlinkFromSink();
             m_pParser->UnlinkFromSink();
-            m_pDecoder->UnlinkFromSink();
             UnlinkCommon();
         }
         m_isLinked = false;
