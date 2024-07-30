@@ -671,6 +671,101 @@ namespace DSL
             // call the parent class to complete the link-to-sink
             return Nodetr::LinkToSink(pMuxer);
         }
+
+        /**
+         * @brief Sets the state of the Src to NULL and then sends flush-start, 
+         * flush-stop, EOS events to the muxers Sink Pad connected to this GstNoder.
+         * @return true if able to successfully EOS the Sink Pad
+         */
+        virtual bool NullSrcEosSinkMuxer()
+        {
+            LOG_FUNC();
+            
+            if (!IsLinkedToSink())
+            {
+                return false;
+            }
+
+            GstState currState, nextState;
+            GstStateChangeReturn result = gst_element_get_state(GetGstElement(), 
+                &currState, &nextState, 1);
+
+            if (currState < GST_STATE_PLAYING)
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' is not in a PLAYING state");
+                return false;
+            }
+
+            // Get a reference to this GstNodetr's source pad
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Failed to get static source pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            
+            // Get a reference to the Muxer's sink pad that is connected
+            // to this GstNodetr's source pad
+            GstPad* pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
+            if (!pRequestedSinkPad)
+            {
+                LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+
+            GstStateChangeReturn changeResult = gst_element_set_state(
+                GetGstElement(), GST_STATE_NULL);
+                
+            switch (changeResult)
+            {
+            case GST_STATE_CHANGE_FAILURE:
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' failed to set state to NULL");
+                return false;
+
+            case GST_STATE_CHANGE_ASYNC:
+                LOG_INFO("GstNodetr '" << GetName() 
+                    << "' changing state to NULL async");
+                    
+                // block on get state until change completes. 
+                if (gst_element_get_state(GetGstElement(), 
+                    NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
+                {
+                    LOG_ERROR("GstNodetr '" << GetName() 
+                        << "' failed to set state to NULL");
+                    return false;
+                }
+                // drop through on success - DO NOT BREAK
+
+            case GST_STATE_CHANGE_SUCCESS:
+                LOG_INFO("GstNodetr '" << GetName() 
+                    << "' changed state to NULL successfully");
+                    
+                // Send flush-start and flush-stop events downstream to the muxer 
+                // followed by an end-of-stream for this GstNodetr's stream
+                gst_pad_send_event(pRequestedSinkPad, 
+                    gst_event_new_flush_start());
+                gst_pad_send_event(pRequestedSinkPad, 
+                    gst_event_new_flush_stop(TRUE));
+                gst_pad_send_event(pRequestedSinkPad, 
+                    gst_event_new_eos());
+
+                break;
+            default:
+                LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
+                return false;
+            }
+
+            // unreference both the static source pad and requested sink
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pRequestedSinkPad);
+            
+            // Call the parent class to complete the unlink from sink
+            return true;
+        }
         
         /**
          * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
@@ -773,7 +868,7 @@ namespace DSL
             gst_object_unref(pRequestedSinkPad);
             
             // Call the parent class to complete the unlink from sink
-                return Nodetr::UnlinkFromSink();
+            return Nodetr::UnlinkFromSink();
         }
         
         /**
@@ -947,7 +1042,7 @@ namespace DSL
         bool SendEos()
         {
             LOG_FUNC();
-            
+
             return gst_element_send_event(GetGstElement(), gst_event_new_eos());
         }
 
