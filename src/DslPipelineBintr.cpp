@@ -516,8 +516,15 @@ namespace DSL
         {
             m_eosFlag = true;
             
-            // Send an EOS event to the Pipline bin. 
+            // IMPORTANT! There are two methods to send the EOS event. 
+            // The best method is still under investigation. Only call one.
+
+            // 1. Send the event to the Pipeline bin
             SendEos();
+
+            // 2. Send the event to each Streammuxer sink pads connected
+            // to a Source component.  
+            // m_pPipelineSourcesBintr->EosAll();
             
             // once the EOS event has been received on all sink pads of all
             // elements, an EOS message will be posted on the bus. We need to

@@ -405,9 +405,10 @@ namespace DSL
         // Send EOS message to each source object.
         for (auto const& imap: m_pChildSources)
         {
-            LOG_INFO("Sending EOS message to Source "  << imap.second->GetName());
-            gst_element_send_event(imap.second->GetGstElement(), 
-                gst_event_new_eos());
+            LOG_INFO("Sending EOS for Source "  << imap.second->GetName());
+            imap.second->NullSrcEosSinkMuxer();
+            // gst_element_send_event(imap.second->GetGstElement(), 
+            //     gst_event_new_eos());
         }
     }
     
