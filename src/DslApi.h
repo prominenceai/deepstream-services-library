@@ -1737,6 +1737,16 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
     const wchar_t* message, void* client_data);
 
 /**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called on receipt of a buffering message on the Pipeline bus.
+ * @param[in] source name of the element or component that is the source of the message
+ * @param[in] percent buffering. 100% means buffering is done. 
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_buffering_message_handler_cb)(const wchar_t* source, 
+    uint percent, void* client_data);
+
+/**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. 
  * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow KeyRelease events.
@@ -9571,6 +9581,30 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener);
+
+/**
+ * @brief Adds a callback to be notified when a buffering message is received by
+ * the Pipeline's bus-watcher. The callback is called from the mainloop context 
+ * allowing clients to Pause non-live Pipelines while buffering. 
+ * @param[in] name name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to add
+ * @param[in] client_data opaque pointer to client data passed back to the 
+ * handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_buffering_message_handler_add(const wchar_t* name, 
+    dsl_buffering_message_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with 
+ * dsl_pipeline_buffering_message_handler_add
+ * @param[in] name name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_buffering_message_handler_remove(const wchar_t* name, 
+    dsl_buffering_message_handler_cb handler);
+
 
 /**
  * @brief Creates a new main-context and main-loop for a named Pipeline. This service

@@ -86,8 +86,10 @@ namespace DSL
             
         /**
          * @brief adds a callback to be notified on change of Pipeline state
-         * @param[in] listener pointer to the client's function to call on state change
-         * @param[in] clientData opaque pointer to client data passed into the listner function.
+         * @param[in] listener pointer to the client's function to call on 
+         * state change
+         * @param[in] clientData opaque pointer to client data passed into the 
+         * listner function.
          * @return true on successful listener add, false otherwise.
          */
         bool AddEosListener(dsl_eos_listener_cb listener, void* clientData);
@@ -107,12 +109,16 @@ namespace DSL
         bool RemoveEosListener(dsl_eos_listener_cb listener);
             
         /**
-         * @brief adds a callback to be notified on the event an error message is recieved on the bus
-         * @param[in] handler pointer to the client's function to call on error message
-         * @param[in] clientData opaque pointer to client data passed into the handler function.
+         * @brief adds a callback to be notified on the event an error message
+         *  is recieved on the bus
+         * @param[in] handler pointer to the client's function to call on 
+         * error message
+         * @param[in] clientData opaque pointer to client data passed into the 
+         * handler function.
          * @return true on successful handler add, false otherwise.
          */
-        bool AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData);
+        bool AddErrorMessageHandler(dsl_error_message_handler_cb handler, 
+            void* clientData);
 
         /**
          * @brief removes a previously added callback
@@ -120,6 +126,25 @@ namespace DSL
          * @return true on successful handler remove, false otherwise.
          */
         bool RemoveErrorMessageHandler(dsl_error_message_handler_cb handler);
+            
+        /**
+         * @brief adds a callback to be notified on the event an buffering message
+         *  is recieved on the bus
+         * @param[in] handler pointer to the client's function to call on 
+         * buffering message
+         * @param[in] clientData opaque pointer to client data passed into the 
+         * handler function.
+         * @return true on successful handler add, false otherwise.
+         */
+        bool AddBufferingMessageHandler(dsl_buffering_message_handler_cb handler, 
+            void* clientData);
+
+        /**
+         * @brief removes a previously added callback
+         * @param[in] handler pointer to the client's function to remove
+         * @return true on successful handler remove, false otherwise.
+         */
+        bool RemoveBufferingMessageHandler(dsl_buffering_message_handler_cb handler);
             
         /**
          * @brief handles incoming Message Packets received
@@ -297,6 +322,18 @@ namespace DSL
          * Note: in wchar format for client handlers
          */
         std::wstring m_lastErrorMessage;
+        
+        /**
+         * @brief map of all currently registered buffering message Handler
+         * callback functions mapped with the user provided data
+         */
+        std::map<dsl_buffering_message_handler_cb, void*>m_bufferingMessageHandlers;
+        
+        /**
+         * @brief private helper function to handle a Pipeline buffering message.
+         * @param[in] pointer to the buffer message to handle.
+         */
+        void HandleBufferingMessage(GstMessage* pMessage);
         
         /**
          * @brief maps a GstState constant value to a string for logging

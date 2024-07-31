@@ -253,7 +253,8 @@ namespace DSL
         return true;
     }
 
-    bool PipelineStateMgr::AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData)
+    bool PipelineStateMgr::AddErrorMessageHandler(
+        dsl_error_message_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         
@@ -267,7 +268,8 @@ namespace DSL
         return true;
     }
 
-    bool PipelineStateMgr::RemoveErrorMessageHandler(dsl_error_message_handler_cb handler)
+    bool PipelineStateMgr::RemoveErrorMessageHandler(
+        dsl_error_message_handler_cb handler)
     {
         LOG_FUNC();
         
@@ -277,6 +279,38 @@ namespace DSL
             return false;
         }
         m_errorMessageHandlers.erase(handler);
+        
+        return true;
+    }
+    
+    bool PipelineStateMgr::AddBufferingMessageHandler(
+        dsl_buffering_message_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        
+        if (m_bufferingMessageHandlers.find(handler) 
+            != m_bufferingMessageHandlers.end())
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return false;
+        }
+        m_bufferingMessageHandlers[handler] = clientData;
+        
+        return true;
+    }
+
+    bool PipelineStateMgr::RemoveBufferingMessageHandler(
+        dsl_buffering_message_handler_cb handler)
+    {
+        LOG_FUNC();
+        
+        if (m_bufferingMessageHandlers.find(handler) 
+            == m_bufferingMessageHandlers.end())
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return false;
+        }
+        m_bufferingMessageHandlers.erase(handler);
         
         return true;
     }
@@ -293,7 +327,6 @@ namespace DSL
         guint64 dropped(0);
         GError* error(NULL);
         gchar* debugInfo(NULL);
-        gint percent(0);
         gchar* propertyName(NULL);
         GstProgressType progressType(GST_PROGRESS_TYPE_ERROR);
         gchar* code;
@@ -328,10 +361,8 @@ namespace DSL
             break;
             
         case GST_MESSAGE_BUFFERING:
-            gst_message_parse_buffering(pMessage, &percent);
             LOG_INFO("Message type : " << name);
-            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
-            LOG_INFO("   percent   : " << percent);
+                        HandleBufferingMessage(pMessage);            
             break;
             
         case GST_MESSAGE_LATENCY:
@@ -545,6 +576,33 @@ namespace DSL
         return false;
     }
 
+    void PipelineStateMgr::HandleBufferingMessage(GstMessage* pMessage)
+    {
+        gint percent(0);
+        gst_message_parse_buffering(pMessage, &percent);
+        std::string source(GST_OBJECT_NAME(GST_OBJECT_PARENT(pMessage->src)));
+        std::wstring wsource(source.begin(), source.end());
+
+        LOG_INFO("Message type : " << 
+            gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+        LOG_INFO("   source    : " << source);
+        LOG_INFO("   percent   : " << percent);
+
+        
+        // iterate through the map of EOS-listeners calling each
+        for(auto const& imap: m_bufferingMessageHandlers)
+        {
+            try
+            {
+                imap.first(wsource.c_str(), percent, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Buffering Message Handler");
+            }
+        }
+    }
+    
     void PipelineStateMgr::_initMaps()
     {
         m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";
