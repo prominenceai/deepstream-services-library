@@ -11174,7 +11174,34 @@ DslReturnType dsl_pipeline_error_message_last_get(const wchar_t* name,
     }
     return retval;
 }
-    
+
+DslReturnType dsl_pipeline_buffering_message_handler_add(const wchar_t* name, 
+    dsl_buffering_message_handler_cb handler, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PipelineBufferingMessageHandlerAdd(cstrName.c_str(), handler, client_data);
+}
+
+DslReturnType dsl_pipeline_buffering_message_handler_remove(const wchar_t* name, 
+    dsl_buffering_message_handler_cb handler)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(handler);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        PipelineBufferingMessageHandlerRemove(cstrName.c_str(), handler);
+}
+
+
 DslReturnType dsl_pipeline_main_loop_new(const wchar_t* name)
 {
     RETURN_IF_PARAM_IS_NULL(name);
