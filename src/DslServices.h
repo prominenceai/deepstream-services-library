@@ -1914,6 +1914,12 @@ namespace DSL {
         DslReturnType PipelineErrorMessageLastGet(const char* name,
             std::wstring& source, std::wstring& message);
                         
+        DslReturnType PipelineBufferingMessageHandlerAdd(const char* name, 
+            dsl_buffering_message_handler_cb handler, void* clientData);
+
+        DslReturnType PipelineBufferingMessageHandlerRemove(const char* name, 
+            dsl_buffering_message_handler_cb handler);
+            
         DslReturnType PipelineMainLoopNew(const char* name);
 
         DslReturnType PipelineMainLoopRun(const char* name);

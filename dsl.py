@@ -480,6 +480,10 @@ DSL_EOS_LISTENER = \
 DSL_ERROR_MESSAGE_HANDLER = \
     CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 
+# dsl_buffering_message_handler_cb
+DSL_BUFFERING_MESSAGE_HANDLER = \
+    CFUNCTYPE(None, c_wchar_p, c_uint, c_void_p)
+
 # dsl_sink_window_key_event_handler_cb
 DSL_SINK_WINDOW_KEY_EVENT_HANDLER = \
     CFUNCTYPE(None, c_wchar_p, c_void_p)
@@ -8370,7 +8374,8 @@ def dsl_pipeline_dump_to_dot_with_ts(pipeline, filename):
 ##
 ## dsl_pipeline_state_change_listener_add()
 ##
-_dsl.dsl_pipeline_state_change_listener_add.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_pipeline_state_change_listener_add.argtypes = [c_wchar_p, 
+    DSL_STATE_CHANGE_LISTENER, c_void_p]
 _dsl.dsl_pipeline_state_change_listener_add.restype = c_uint
 def dsl_pipeline_state_change_listener_add(name, client_listener, client_data):
     global _dsl
@@ -8378,24 +8383,28 @@ def dsl_pipeline_state_change_listener_add(name, client_listener, client_data):
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_pipeline_state_change_listener_add(name, c_client_listener, c_client_data)
+    result = _dsl.dsl_pipeline_state_change_listener_add(name, 
+        c_client_listener, c_client_data)
     return int(result)
     
 ##
 ## dsl_pipeline_state_change_listener_remove()
 ##
-_dsl.dsl_pipeline_state_change_listener_remove.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER]
+_dsl.dsl_pipeline_state_change_listener_remove.argtypes = [c_wchar_p, 
+    DSL_STATE_CHANGE_LISTENER]
 _dsl.dsl_pipeline_state_change_listener_remove.restype = c_uint
 def dsl_pipeline_state_change_listener_remove(name, client_listener):
     global _dsl
     c_client_listener = DSL_STATE_CHANGE_LISTENER(client_listener)
-    result = _dsl.dsl_pipeline_state_change_listener_remove(name, c_client_listener)
+    result = _dsl.dsl_pipeline_state_change_listener_remove(name, 
+        c_client_listener)
     return int(result)
 
 ##
 ## dsl_pipeline_eos_listener_add()
 ##
-_dsl.dsl_pipeline_eos_listener_add.argtypes = [c_wchar_p, DSL_EOS_LISTENER, c_void_p]
+_dsl.dsl_pipeline_eos_listener_add.argtypes = [c_wchar_p, 
+    DSL_EOS_LISTENER, c_void_p]
 _dsl.dsl_pipeline_eos_listener_add.restype = c_uint
 def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
     global _dsl
@@ -8403,7 +8412,8 @@ def dsl_pipeline_eos_listener_add(name, client_listener, client_data):
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_pipeline_eos_listener_add(name, c_client_listener, c_client_data)
+    result = _dsl.dsl_pipeline_eos_listener_add(name, 
+        c_client_listener, c_client_data)
     return int(result)
     
 ##
@@ -8420,7 +8430,8 @@ def dsl_pipeline_eos_listener_remove(name, client_listener):
 ##
 ## dsl_pipeline_error_message_handler_add()
 ##
-_dsl.dsl_pipeline_error_message_handler_add.argtypes = [c_wchar_p, DSL_ERROR_MESSAGE_HANDLER, c_void_p]
+_dsl.dsl_pipeline_error_message_handler_add.argtypes = [c_wchar_p, 
+    DSL_ERROR_MESSAGE_HANDLER, c_void_p]
 _dsl.dsl_pipeline_error_message_handler_add.restype = c_uint
 def dsl_pipeline_error_message_handler_add(name, client_handler, client_data):
     global _dsl
@@ -8428,18 +8439,50 @@ def dsl_pipeline_error_message_handler_add(name, client_handler, client_data):
     callbacks.append(c_client_handler)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_pipeline_error_message_handler_add(name, c_client_handler, c_client_data)
+    result = _dsl.dsl_pipeline_error_message_handler_add(name, 
+        c_client_handler, c_client_data)
     return int(result)
     
 ##
 ## dsl_pipeline_error_message_handler_remove()
 ##
-_dsl.dsl_pipeline_error_message_handler_remove.argtypes = [c_wchar_p, DSL_ERROR_MESSAGE_HANDLER]
+_dsl.dsl_pipeline_error_message_handler_remove.argtypes = [c_wchar_p, 
+    DSL_ERROR_MESSAGE_HANDLER]
 _dsl.dsl_pipeline_error_message_handler_remove.restype = c_uint
 def dsl_pipeline_error_message_handler_remove(name, client_handler):
     global _dsl
     c_client_handler = DSL_ERROR_MESSAGE_HANDLER(client_handler)
-    result = _dsl.dsl_pipeline_error_message_handler_remove(name, c_client_handler)
+    result = _dsl.dsl_pipeline_error_message_handler_remove(name, 
+        c_client_handler)
+    return int(result)
+
+##
+## dsl_pipeline_buffering_message_handler_add()
+##
+_dsl.dsl_pipeline_buffering_message_handler_add.argtypes = [c_wchar_p, 
+    DSL_BUFFERING_MESSAGE_HANDLER, c_void_p]
+_dsl.dsl_pipeline_buffering_message_handler_add.restype = c_uint
+def dsl_pipeline_buffering_message_handler_add(name, client_handler, client_data):
+    global _dsl
+    c_client_handler = DSL_BUFFERING_MESSAGE_HANDLER(client_handler)
+    callbacks.append(c_client_handler)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_pipeline_buffering_message_handler_add(name, 
+        c_client_handler, c_client_data)
+    return int(result)
+    
+##
+## dsl_pipeline_buffering_message_handler_remove()
+##
+_dsl.dsl_pipeline_buffering_message_handler_remove.argtypes = [c_wchar_p, 
+    DSL_BUFFERING_MESSAGE_HANDLER]
+_dsl.dsl_pipeline_buffering_message_handler_remove.restype = c_uint
+def dsl_pipeline_buffering_message_handler_remove(name, client_handler):
+    global _dsl
+    c_client_handler = DSL_BUFFERING_MESSAGE_HANDLER(client_handler)
+    result = _dsl.dsl_pipeline_buffering_message_handler_remove(name, 
+        c_client_handler)
     return int(result)
 
 ##
