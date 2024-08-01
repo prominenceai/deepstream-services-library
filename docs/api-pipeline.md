@@ -92,11 +92,12 @@ Components added to a Pipeline can be linked using one of [two methods](/docs/ov
 
 Pipelines - with a minimum required set of components - can be **played** by calling [`dsl_pipeline_play`](#dsl_pipeline_play), **paused** by calling [`dsl_pipeline_pause`](#dsl_pipeline_pause) and **stopped** by calling [`dsl_pipeline_stop`](#dsl_pipeline_stop).
 
-## Pipeline Client-Listener Notifications
+## Pipeline Client Callback Functions
 Clients can be notified of Pipeline events by registering/deregistering one or more callback functions with the following services.
 * _Change of State_ - with [`dsl_pipeline_state_change_listener_add`](#dsl_pipeline_state_change_listener_add) / [`dsl_pipeline_state_change_listener_remove`](#dsl_pipeline_state_change_listener_remove).
 * _End of Stream (EOS)_ - with [`dsl_pipeline_eos_listener_add`](#dsl_pipeline_eos_listener_add) / [`dsl_pipeline_eos_listener_remove`](#dsl_pipeline_eos_listener_remove).
 * _Error Message Received_ - with [`dsl_pipeline_error_message_handler_add`](#dsl_pipeline_error_message_handler_add) / [`dsl_pipeline_error_message_handler_remove`](#dsl_pipeline_error_message_handler_remove).
+* _Buffering Message Received_ - with [`dsl_pipeline_buffering_message_handler_add`](#dsl_pipeline_buffering_message_handler_add) / [`dsl_pipeline_buffering_message_handler_remove`](#dsl_pipeline_buffering_message_handler_remove)
 
 ---
 ## Pipeline API
@@ -104,6 +105,7 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_state_change_listener_cb`](#dsl_state_change_listener_cb)
 * [`dsl_eos_listener_cb`](#dsl_eos_listener_cb)
 * [`dsl_error_message_handler_cb`](#dsl_error_message_handler_cb)
+* [`dsl_buffering_message_handler_cb`](#dsl_buffering_message_handler_cb)
 
 **Constructors**
 * [`dsl_pipeline_new`](#dsl_pipeline_new)
@@ -162,6 +164,8 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_error_message_handler_add`](#dsl_pipeline_error_message_handler_add)
 * [`dsl_pipeline_error_message_handler_remove`](#dsl_pipeline_error_message_handler_remove)
 * [`dsl_pipeline_error_message_last_get`](#dsl_pipeline_error_message_last_get)
+* [`dsl_pipeline_buffering_message_handler_add`](#dsl_pipeline_buffering_message_handler_add)
+* [`dsl_pipeline_buffering_message_handler_remove`](#dsl_pipeline_buffering_message_handler_remove)
 * [`dsl_pipeline_link_method_get`](#dsl_pipeline_link_method_get)
 * [`dsl_pipeline_link_method_set`](#dsl_pipeline_link_method_set)
 * [`dsl_pipeline_play`](#dsl_pipeline_play)
@@ -237,7 +241,8 @@ Jetson 0 & 4 only, dGPU 0 through 3 only
 ## Client Callback Typedefs
 ### *dsl_state_change_listener_cb*
 ```C++
-typedef void (*dsl_state_change_listener_cb)(uint old_state, uint new_state, void* client_data);
+typedef void (*dsl_state_change_listener_cb)(uint old_state, 
+    uint new_state, void* client_data);
 ```
 Callback typedef for a client state-change listener. Functions of this type are added to a Pipeline by calling [dsl_pipeline_state_change_listener_add](#dsl_pipeline_state_change_listener_add). Once added, the function will be called on every change of Pipeline state until the client removes the listener by calling [dsl_pipeline_state_change_listener_remove](#dsl_pipeline_state_change_listener_remove).
 
@@ -261,7 +266,8 @@ Callback typedef for a client EOS listener function. Functions of this type are 
 
 ### *dsl_error_message_handler_cb*
 ```C++
-typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, const wchar_t* message, void* client_data);
+typedef void (*dsl_error_message_handler_cb)(const wchar_t* source, 
+    const wchar_t* message, void* client_data);
 ```
 Callback typedef for a client error-message-handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_error_message_handler_add](#dsl_pipeline_error_message_handler_add). Once added, the function will be called in the event of an error message received by the Pipeline's bus-watcher. The handler function is removed by calling [dsl_pipeline_error_message_handler_remove](#dsl_pipeline_error_message_handler_remove) .
 
@@ -272,6 +278,19 @@ Callback typedef for a client error-message-handler function. Functions of this 
 
 <br>
 
+## *dsl_buffering_message_handler_cb*
+```C++
+typedef void (*dsl_buffering_message_handler_cb)(const wchar_t* source, 
+    uint percent, void* client_data);
+```
+Callback typedef for a client buffering-message-handler function. Functions of this type are added to a Pipeline by calling [dsl_pipeline_buffering_message_handler_add](#dsl_pipeline_buffering_message_handler_add). Once added, the function will be called in the event of a buffering message received by the Pipeline's bus-watcher. The handler function is removed by calling [dsl_pipeline_buffering_message_handler_remove](#dsl_pipeline_buffering_message_handler_remove) .
+
+**Parameters**
+* `source` - [in] name of the GST Object that is the source of the message
+* `percent` - [in] percent buffering. 100% means buffering is done.
+* `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add
+
+<br>
 
 
 ---
@@ -917,7 +936,8 @@ This service adds a named Pad-Probe-Handler to a named Pipeline's Streammuxer. O
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_streammux_pph_add('my-pipeline', 'my-source-meter-pph')
+retval = dsl_pipeline_streammux_pph_add('my-pipeline', 
+    'my-source-meter-pph')
 ```
 
 <br>
@@ -938,7 +958,8 @@ This service removes a named Pad-Probe-Handler from a named Pipeline's Streammux
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_streammux_pph_remove('my-pipeline', 'my-source-meter-pph')
+retval = dsl_pipeline_streammux_pph_remove('my-pipeline', 
+    'my-source-meter-pph')
 ```
 
 <br>
@@ -946,7 +967,8 @@ retval = dsl_pipeline_streammux_pph_remove('my-pipeline', 'my-source-meter-pph')
 ## Pipeline Methods
 ### *dsl_pipeline_component_add*
 ```C++
-DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, const wchar_t* component);
+DslReturnType dsl_pipeline_component_add(const wchar_t* pipeline, 
+    const wchar_t* component);
 ```
 Adds a single named Component to a named Pipeline. The add service will fail if the component is currently `in-use` by any Pipeline. The add service will also fail if adding a `one-only` type of Component, such as a Tiled-Display, when the Pipeline already has one. The Component's `in-use` state will be set to `true` on successful add.
 
@@ -971,7 +993,8 @@ retval = dsl_pipeline_component_add('my-pipeline', 'my-camera-source')
 
 ### *dsl_pipeline_component_add_many*
 ```C++
-DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, const wchar_t** components);
+DslReturnType dsl_pipeline_component_add_many(const wchar_t* pipeline, 
+    const wchar_t** components);
 ```
 Adds a list of named components to a named Pipeline. The add service will fail if any of the components are currently `in-use` by any Pipeline. The add service will fail if any of the components to add are a `one-only` type and the Pipeline already has one. All of the component's `in-use` states will be set to true on successful add.
 
@@ -990,7 +1013,8 @@ retval = dsl_source_csi_new('my-camera-source', 1280, 720, 30, 1)
 retval = dsl_display_new('my-tiled-display', 1280, 720)
 retval = dsl_pipeline_new('my-pipeline')
 
-retval = dsl_pipeline_component_add_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
+retval = dsl_pipeline_component_add_many('my-pipeline', 
+    ['my-camera-source', 'my-tiled-display', None])
 ```
 
 <br>
@@ -1045,7 +1069,8 @@ If a Pipeline is in a `playing` or `paused` state, the service will attempt a dy
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_component_remove_many('my-pipeline', ['my-camera-source', 'my-tiled-display', None])
+retval = dsl_pipeline_component_remove_many('my-pipeline', 
+    ['my-camera-source', 'my-tiled-display', None])
 ```
 
 <br>
@@ -1091,7 +1116,8 @@ def state_change_listener(old_state, new_state, client_data, client_data):
     print('old_state = ', old_state)
     print('new_state = ', new_state)
    
-retval = dsl_pipeline_state_change_listener_add('my-pipeline', state_change_listener, None)
+retval = dsl_pipeline_state_change_listener_add('my-pipeline', 
+    state_change_listener, None)
 ```
 
 <br>
@@ -1113,7 +1139,8 @@ pipeline identified by its unique name.
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_state_change_listener_remove('my-pipeline', state_change_listener)
+retval = dsl_pipeline_state_change_listener_remove('my-pipeline', 
+    state_change_listener)
 ```
 
 <br>
@@ -1184,7 +1211,8 @@ def error_message_handler(source, message, client_data):
     print('Error: source = ', source, ' message = ', message)
     dsl_main_loop_quit()
    
-retval = dsl_pipeline_error_message_handler_add('my-pipeline', error_message_handler, None)
+retval = dsl_pipeline_error_message_handler_add('my-pipeline', 
+    error_message_handler, None)
 ```
 
 <br>
@@ -1204,7 +1232,71 @@ This service remove a callback function of type [dsl_error_message_handler_cb](#
 
 **Python Example**
 ```Python
-retval = dsl_pipeline_error_message_handler_remove('my-pipeline', error_message_handler)
+retval = dsl_pipeline_error_message_handler_remove('my-pipeline', 
+    error_message_handler)
+```
+
+<br>
+
+### *dsl_pipeline_buffering_message_handler_add*
+```C++
+DslReturnType dsl_pipeline_buffering_message_handler_add(const wchar_t* pipeline,
+    dsl_buffering_message_handler_cb handler, void* client_data);
+```
+This service adds a callback function of type [dsl_buffering_message_handler_cb](#dsl_buffering_message_handler_cb) to a Pipeline identified by its unique name. The function will be called when the Pipeline's bus-watcher receives an buffering message from one of the GST Objects. Multiple callback functions can be registered with one Pipeline, and one callback function can be registered with multiple Pipelines.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `handler` - [in] buffering message handler callback function to add.
+* `client_data` - [in] opaque pointer to user data returned to the listener is called back
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+## 
+# Function to be called when a buffering-message is received on the Pipeline bus.
+## 
+def buffering_message_handler(source, percent, client_data):
+
+    global buffering
+
+    if percent == 100:
+        print('playing pipeline - buffering complete at 100 % for Source', source)
+        dsl_pipeline_play('pipeline')
+        buffering = False
+
+    else:
+        if not buffering:
+            print('pausing pipeline - buffering starting at ', percent,
+                '% for Source', source)
+            dsl_pipeline_pause('pipeline')
+        buffering = True
+
+# Add the callback to the Pipeline   
+retval = dsl_pipeline_buffering_message_handler_add('my-pipeline', 
+    buffering_message_handler, None)
+```
+
+<br>
+
+### *dsl_pipeline_buffering_message_handler_remove*
+```C++
+DslReturnType dsl_pipeline_buffering_message_handler_remove(const wchar_t* pipeline,
+    dsl_buffering_message_handler_cb handler);
+```
+This service remove a callback function of type [dsl_buffering_message_handler_cb](#dsl_buffering_message_handler_cb), previously added with [dsl_pipeline_buffering_message_handler_add](#dsl_pipeline_buffering_message_handler_add), from a Pipeline identified by its unique name.
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to update.
+* `handler` - [in] buffering message handler callback function to remove.
+
+**Returns**  `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_pipeline_buffering_message_handler_remove('my-pipeline', 
+    buffering_message_handler)
 ```
 
 <br>
