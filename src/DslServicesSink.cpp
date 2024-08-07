@@ -129,6 +129,121 @@ namespace DSL
         }
     }
         
+    DslReturnType Services::SinkCustomNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            if (m_components[name])
+            {   
+                LOG_ERROR("Custom Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            
+            m_components[name] = DSL_CUSTOM_SINK_NEW(name);
+            LOG_INFO("New Custom Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Custom Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkCustomElementAdd(const char* name, 
+        const char* element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, CustomSinkBintr);
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
+            
+            // Can't add elements if they're In use by another GstBin
+            if (m_gstElements[element]->IsInUse())
+            {
+                LOG_ERROR("Unable to add element '" << element 
+                    << "' as it's currently in use");
+                return DSL_RESULT_GST_ELEMENT_IN_USE;
+            }
+
+            // Cast the Component to a CustomSinkBintr to call the correct 
+            // AddChild method.
+            DSL_CUSTOM_SINK_PTR pCustomSinkBintr = 
+                std::dynamic_pointer_cast<CustomSinkBintr>(m_components[name]);
+                
+            if (!pCustomSinkBintr->AddChild(m_gstElements[element]))
+            {
+                LOG_ERROR("Custom Sink '" << name
+                    << "' failed to add element '" << element << "'");
+                return DSL_RESULT_SINK_ELEMENT_ADD_FAILED;
+            }
+            LOG_INFO("Element '" << element 
+                << "' was added to Custom Sink '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custom Sink '" << name
+                << "' threw exception adding element '" << element << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }    
+    
+    DslReturnType Services::SinkCustomElementRemove(const char* name, 
+        const char* element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, CustomSinkBintr);
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
+            
+            if (!m_gstElements[element]->IsParent(m_components[name]))
+            {
+                LOG_ERROR("Element '" << element << 
+                    "' is not in use by Custom Sink '" << name << "'");
+                return DSL_RESULT_SINK_ELEMENT_NOT_IN_USE;
+            }
+            // Cast the Component to a CustomSinkBintr to call the correct 
+            // AddChild method.
+            DSL_CUSTOM_SINK_PTR pCustomSinkBintr = 
+                std::dynamic_pointer_cast<CustomSinkBintr>(m_components[name]);
+                
+            if (!pCustomSinkBintr->RemoveChild(m_gstElements[element]))
+            {
+                LOG_ERROR("Custom Sink '" << name
+                    << "' failed to remove element '" << element << "'");
+                return DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED;
+            }
+            LOG_INFO("Element '" << element 
+                << "' was removed from Custom Sink '" << name 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custom Sink '" << name 
+                << "' threw an exception removing Element");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkFakeNew(const char* name)
     {
         LOG_FUNC();
@@ -3331,6 +3446,7 @@ namespace DSL
         }
     }
             
+
     DslReturnType Services::SinkSyncEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();
@@ -3345,7 +3461,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *enabled = (boolean)pSinkBintr->GetSyncEnabled();
+            if (!pSinkBintr->GetSyncEnabled(enabled))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned sync enabled = " 
                 << *enabled  << " successfully");
@@ -3406,7 +3525,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *enabled = (boolean)pSinkBintr->GetAsyncEnabled();
+            if (!pSinkBintr->GetAsyncEnabled(enabled))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned async enabled = " 
                 << *enabled  << " successfully");
@@ -3468,7 +3590,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *maxLateness = pSinkBintr->GetMaxLateness();
+            if (!pSinkBintr->GetMaxLateness(maxLateness))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned max-lateness = " 
                 << *maxLateness  << " successfully");
@@ -3530,7 +3655,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *enabled = (boolean)pSinkBintr->GetQosEnabled();
+            if (!pSinkBintr->GetQosEnabled(enabled))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned qos enabled = " 
                 << *enabled  << " successfully");

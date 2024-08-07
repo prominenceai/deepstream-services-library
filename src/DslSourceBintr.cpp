@@ -2,7 +2,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1575,7 +1575,7 @@ namespace DSL
             m_elementrsLinked.push_back(imap.second);
 
             LOG_INFO("CustomSourceBintr '" << GetName() 
-                << "' Linked up child Elementrs as '" << 
+                << "' Linked up child Elementr '" << 
                 imap.second->GetName() << "' successfully");                    
         }
         // Link the back element to the common VideoSource buffer out elements

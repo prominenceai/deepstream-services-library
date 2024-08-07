@@ -1610,6 +1610,77 @@ SCENARIO( "A new Duplicate Source can update it Origian Source correctly",
     }
 }    
 
+SCENARIO( "The Components container is updated correctly on new and delete Custom Source",
+    "[source-api]" )
+    
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring source_name = L"custom-source";
+        std::wstring element_name_1 = L"element-1";
+        std::wstring element_name_2 = L"element-2";
+        std::wstring factory_name_1 = L"videotestsrc";
+        std::wstring factory_name_2 = L"capsfilter";
+
+        boolean is_live(false);
+
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Custom Source is created" ) 
+        {
+            REQUIRE( dsl_source_custom_new(source_name.c_str(), is_live) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Custom Source is created with multiple Elements" ) 
+        {
+            REQUIRE( dsl_gst_element_new(element_name_2.c_str(),
+                factory_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+
+            REQUIRE( dsl_source_custom_new_element_add(source_name.c_str(), is_live,
+                element_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Custom Source is created with multiple Elements" ) 
+        {
+            REQUIRE( dsl_gst_element_new(element_name_1.c_str(),
+                factory_name_1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_gst_element_new(element_name_2.c_str(),
+                factory_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+            const wchar_t* elements[] = {element_name_1.c_str(), 
+                element_name_2.c_str(), NULL};
+            
+            REQUIRE( dsl_source_custom_new_element_add_many(source_name.c_str(), is_live,
+                elements) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete(source_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
 
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
@@ -1659,6 +1730,43 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_app_max_level_bytes_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
                     
+                REQUIRE( dsl_source_custom_new(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_new_element_add(
+                    NULL, false, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_new_element_add(
+                    source_name.c_str(), false, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_new_element_add_many(
+                    NULL, false, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_new_element_add_many(
+                    source_name.c_str(), false, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_add(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_add(
+                    source_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_add_many(NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_add_many(
+                    source_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_remove(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_remove(
+                    source_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_remove_many(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_custom_element_remove_many(
+                    source_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                
                     
                 REQUIRE( dsl_source_csi_new(NULL, 0, 0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_csi_sensor_id_get(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

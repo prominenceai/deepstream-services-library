@@ -97,8 +97,8 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_HANDLER_ADD_FAILED                        0x00020017
 #define DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED                     0x00020018
 #define DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED                        0x00020019
-#define DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED                     0x0002002A
-#define DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE                        0x0003002B
+#define DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED                     0x0002001A
+#define DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE                        0x0002001B
 
 /**
  * Dewarper API Return Values
@@ -135,26 +135,30 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_THREW_EXCEPTION                             0x00040004
 #define DSL_RESULT_SINK_PATH_NOT_FOUND                              0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
-#define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
-#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
-#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000D
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
-#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
-#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
-#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
-#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
-#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
-#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
-#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
-#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
+#define DSL_RESULT_SINK_GET_FAILED                                  0x00040008
+#define DSL_RESULT_SINK_SET_FAILED                                  0x00040009
+#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x0004000A
+#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000B
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000C
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000D
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000E
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000F
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x00040010
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040011
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040012
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040013
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040014
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040015
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040017
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040018
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040019
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x0004001A
+#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x0004001B
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x0004001C
+#define DSL_RESULT_SINK_ELEMENT_ADD_FAILED                          0x0004001D
+#define DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED                       0x0004001E
+#define DSL_RESULT_SINK_ELEMENT_NOT_IN_USE                          0x0004001F
     
 /**
  * OSD API Return Values
@@ -5023,7 +5027,7 @@ DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
 /**
  * @brief creates a new, uniquely named Custom Source Component.
  * @param[in] name unique name for the new Custom Source.
- * @param[in] is_live true if source is live false if not.
+ * @param[in] is_live true if the source is live, false if not.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
@@ -5031,6 +5035,7 @@ DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
 /**
  * @brief creates a new Custom Source Component and adds a GST Element to it.
  * @param[in] name name of the Custom Source to update.
+ * @param[in] is_live true if the source is live, false if not.
  * @param[in] element name of the GST Element to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -5040,6 +5045,7 @@ DslReturnType dsl_source_custom_new_element_add(const wchar_t* name,
 /**
  * @brief creates a new Custom Source Component and adds a list of GST Elements to it.
  * @param[in] name name of the Custom Source to update.
+ * @param[in] is_live true if the source is live, false if not.
  * @param[in] elements NULL terminated array of GST Element names to add.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
@@ -7387,6 +7393,67 @@ DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
 DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
     
 /**
+ * @brief Creates a new, uniquely named Custom Sink Component.
+ * @param[in] name unique name for the new Custom Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_new(const wchar_t* name);
+
+/**
+ * @brief Creates a new Custom Sink Component and adds a GST Element to it.
+ * @param[in] name unique name for the new Custom Sink.
+ * @param[in] element name of the GST Element to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_new_element_add(const wchar_t* name, 
+    const wchar_t* element);
+
+/**
+ * @brief Creates a new Custom Sink Component and adds a list of GST Elements to it.
+ * @param[in] name unique name for the new Custom Sink.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_new_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief Adds a single GST Element to a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] element Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief Adds a list of GST Elements to a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief Removes a GST Element from a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] elements name of the GST Element to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief Removes a list of GST Elements from a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
+ 
+/**
  * @brief Creates a new, uniquely named Fake Sink component.
  * @param[in] name unique component name for the new Fake Sink.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
@@ -8532,7 +8599,7 @@ DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
     int brightness, int contrast, int saturation);
-
+   
 /**
  * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
  * the Sink will synchronize on the clock.

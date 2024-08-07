@@ -1,5 +1,5 @@
 # GStreamer (GST) Element API Reference
-The GST API is used to create *Custom GStreamer (GST) Elements*. Once created, GST Elements can be added to either a Custom Video Source (TODO), [Custom Component](/docs/api-component.md#custom-components), or Custom Sink (TODO)).
+The GST API is used to create *Custom GStreamer (GST) Elements*. Once created, GST Elements can be added to either a [Custom Source](/docs/api-source.md#custom-video-sources) [Custom Component](/docs/api-component.md#custom-components), or [Custom Sink](/docs/api-sink.md#custom-video-sinks)).
 
 
 There are restrictions imposed on the type of Elements that can be added to one of the Custom Types. The Element must have at most a single static sink (input) pad and at most a single static source (output) pad. Therefore, no tees, muxers, aggregators, or demuxers (this list may not be complete).

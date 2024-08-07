@@ -41,15 +41,19 @@ namespace DSL
         std::shared_ptr<AppSinkBintr>( \
         new AppSinkBintr(name, dataType, clientHandler, clientData))
 
-    #define DSL_FRAME_CAPTURE_SINK_PTR std::shared_ptr<FrameCaptureSinkBintr>
-    #define DSL_FRAME_CAPTURE_SINK_NEW(name, pFrameCaptureAction) \
-        std::shared_ptr<FrameCaptureSinkBintr>( \
-        new FrameCaptureSinkBintr(name, pFrameCaptureAction))
-
+    #define DSL_CUSTOM_SINK_PTR std::shared_ptr<CustomSinkBintr>
+    #define DSL_CUSTOM_SINK_NEW(name) \
+        std::shared_ptr<CustomSinkBintr>(new CustomSinkBintr(name))
+        
     #define DSL_FAKE_SINK_PTR std::shared_ptr<FakeSinkBintr>
     #define DSL_FAKE_SINK_NEW(name) \
         std::shared_ptr<FakeSinkBintr>( \
         new FakeSinkBintr(name))
+
+    #define DSL_FRAME_CAPTURE_SINK_PTR std::shared_ptr<FrameCaptureSinkBintr>
+    #define DSL_FRAME_CAPTURE_SINK_NEW(name, pFrameCaptureAction) \
+        std::shared_ptr<FrameCaptureSinkBintr>( \
+        new FrameCaptureSinkBintr(name, pFrameCaptureAction))
 
     #define DSL_WINDOW_SINK_PTR std::shared_ptr<WindowSinkBintr>
 
@@ -151,51 +155,59 @@ namespace DSL
         
         /**
          * @brief returns the current sync enabled property for the SinkBintr.
-         * @return true if the sync property is enabled, false othewise.
+         * @param[out] enabled current sync enabled property value.
+         * @return true on successful get, false othewise.
          */
-        virtual gboolean GetSyncEnabled();
+        bool GetSyncEnabled(boolean* enabled);
         
         /**
          * @brief sets the sync enabled property for the SinkBintr.
          * @param[in] enabled new sync enabled property value.
+         * @return true on successful set, false othewise.
          */
-        virtual bool SetSyncEnabled(gboolean enabled);
+        bool SetSyncEnabled(boolean enabled);
 
         /**
          * @brief returns the current async enabled property value for the SinkBintr.
-         * @return true if the async property is enabled, false othewise.
+         * @param[out] enabled current sync enabled property value.
+         * @return true on successful get, false othewise.
          */
-        virtual gboolean GetAsyncEnabled();
+        bool GetAsyncEnabled(boolean* enabled);
         
         /**
          * @brief sets the async enabled property for the SinkBintr.
          * @param[in] enabled new async property value.
+         * @return true on successful set, false othewise.
          */
-        virtual bool SetAsyncEnabled(gboolean enabled);
+        bool SetAsyncEnabled(boolean enabled);
         
         /**
          * @brief returns the current max-lateness property value for the SinkBintr.
-         * @return current max-lateness (default = -1 unlimited).
+         * @param[out] maxLateness current max-lateness proprty value.
+         * @return true on successful get, false othewise.
          */
-        virtual gint64 GetMaxLateness();
+        bool GetMaxLateness(gint64* maxLateness);
         
         /**
          * @brief sets the max-lateness property for the SinkBintr.
          * @param[in] maxLateness new max-lateness proprty value.
+         * @return true on successful set, false othewise.
          */
-        virtual bool SetMaxLateness(gint64 maxLateness);
+        bool SetMaxLateness(int64_t maxLateness);
 
         /**
          * @brief returns the current qos enabled property value for the SinkBintr.
-         * @return true if the qos property is enabled, false othewise.
+         * @param[out] enabled current qos enabled property value.
+         * @return true on successful get, false othewise.
          */
-        virtual gboolean GetQosEnabled();
+        bool GetQosEnabled(boolean* enabled);
         
         /**
          * @brief sets the qos enabled property for the SinkBintr.
          * @param[in] enabled new qos enabled property value.
+         * @return true on successful set, false othewise.
          */
-        virtual bool SetQosEnabled(gboolean enabled);
+        bool SetQosEnabled(boolean enabled);
 
     protected:
 
@@ -208,13 +220,13 @@ namespace DSL
          * @brief Sink element's current "sync" property setting.
          * Set to true to Sync on the clock.
          */
-        gboolean m_sync;
+        boolean m_sync;
 
         /**
          * @brief Sink element's current "async" property setting.
          * set to true to go asynchronously to PAUSED.
          */
-        gboolean m_async;
+        boolean m_async;
 
         /**
          * @brief Sink element's current "max-lateness" property setting.
@@ -226,12 +238,12 @@ namespace DSL
         /**
          * @brief Generate Quality-of-Service events upstream if true.
          */
-        gboolean m_qos;
+        boolean m_qos;
         
         /**
          * @brief Enable/disabled the last-sample property.
          */
-        gboolean m_enableLastSample;
+        boolean m_enableLastSample;
  
         /**
          * @brief Actual sink element specific to each Sink Bintr.
@@ -261,18 +273,6 @@ namespace DSL
          * Calling UnlinkAll when in an unlinked state has no effect.
          */
         void UnlinkAll();
-        
-        /**
-         * @brief sets the sync enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetSyncEnabled(bool enabled);
-        
-        /**
-         * @brief sets the async enabled setting for the SinkBintr
-         * @param[in] enabled current sync setting.
-         */
-        bool SetAsyncEnabled(bool enabled);
         
         /**
          * @brief Handles the new sample on signal call and provides either
@@ -418,6 +418,71 @@ namespace DSL
     static uint on_new_buffer_cb(uint data_type, 
         void* buffer, void* client_data);    
 
+    //*********************************************************************************
+
+    /**
+     * @class CustomSinkBintr
+     * @brief Implements a Custom Sink Bintr with Custom GST Elements 
+     */    
+    class CustomSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the CustomSinkBintr class
+         * @param[in] name unique name to give to the CustomsSinkBintr.
+        */
+        CustomSinkBintr(const char* name);
+
+        /**
+         * @brief dtor for the CustomSinkBintr class.
+         */
+        ~CustomSinkBintr();
+
+        /**
+         * @brief Adds a Child Element to this Bintr.
+         * @param pChild Child Element to add this Bintr to.
+        */
+        bool AddChild(DSL_ELEMENT_PTR pChild);
+    
+        /**
+         * @brief Removes a Child Element from this Bintr.
+         * @param pChild Child Element to add this Bintr to.
+        */
+        bool RemoveChild(DSL_ELEMENT_PTR pChild);
+ 
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr.
+         * @return true if all links were succesful, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Bintr.
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+    
+    private:
+
+        /**
+         * @brief Index variable to incremment/assign on Element add.
+         */
+        uint m_nextElementIndex;
+        
+        /**
+         * @brief Map of child Elementrs for this CustomSinkBintr.
+         * indexed by thier add-order for execution.
+         */
+        std::map <uint, DSL_ELEMENT_PTR> m_elementrsIndexed;
+        
+        /**
+         * @brief Map of child Elementrs for this CustomSinkBintr.
+         * indexed by thier add-order, added when linked.
+         */
+        std::vector <DSL_ELEMENT_PTR> m_elementrsLinked;
+    };
+ 
     //-------------------------------------------------------------------------
 
     class FakeSinkBintr : public SinkBintr

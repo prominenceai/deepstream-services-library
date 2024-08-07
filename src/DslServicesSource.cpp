@@ -694,7 +694,7 @@ namespace DSL
         {
             LOG_ERROR("Custom Source '" << name 
                 << "' threw an exception removing Element");
-            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     

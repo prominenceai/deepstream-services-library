@@ -24,6 +24,7 @@ DSL supports fifteen (15) different types of Sinks:
 * [Multi-Image Sink](#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
 * [Frame-Capture Sink](#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on demand or on schedule. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Fake Sink](#dsl_sink_fake_new) - consumes/drops all data.
+* [Custom Sink](#dsl_sink_custom_new) - Used to create a Custom Video Sink using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or released GStreamer plugins.
 
 ### Sink Construction and Destruction
 Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created. 
@@ -77,9 +78,14 @@ As a general rule
 | Multi-Image Sink   | multifilesink  | false | true/false  |      -1      | false       |
 | Frame-Capture Sink | appsink        | true  | true/false  |      -1      | false       |
 | Fake Sink          | fakesink       | false | true/false  |      -1      | false       |
+| Custom Sink<sup id="a3">[3](#f3)</sup>        | custom         | na    | na          |    na        | na          |
 
 * <b id="f1">1</b> _The NVIDIA Smart Recording Bin - used by the Record Sink - does not support/extern any of the common sink properties._ [↩](#a1)
 * <b id="f2">2</b> _The rtspclientsink plugin is not derived from the GStreamer basesink which implements the common sink properties._ [↩](#a2)
+* <b id="f3">3</b> _The sink plugin is selected by the user and is transparent to DSL._ [↩](#a3)
+
+## Custom Video Sinks
+The Custom Sink API is used to create custom DSL Video Sink Components using [GStreamer (GST) Elements](/docs/api-gst.md) created from installed or proprietary GStreamer plugins. See also [Custom Sources](/docs/api-source.md#custom-video-sources) and [Custom Components](/docs/api-component.md#custom-components).
 
 ## Using the V4L2 Sink with V4L2 Loopback
 From the [GStream documentation](https://gstreamer.freedesktop.org/documentation/video4linux2/v4l2sink.html?gi-language=c#v4l2sink-page):
@@ -134,6 +140,9 @@ You can use the following GStreamer launch command to test the loopback device w
 * [`dsl_sink_image_multi_new`](#dsl_sink_image_multi_new)
 * [`dsl_sink_frame_capture_new`](#dsl_sink_frame_capture_new)
 * [`dsl_sink_fake_new`](#dsl_sink_fake_new)
+* [`dsl_sink_custom_new`](#dsl_sink_custom_new)
+* [`dsl_sink_custom_new_element_add`](#dsl_sink_custom_new_element_add)
+* [`dsl_sink_custom_new_element_add_many`](#dsl_sink_custom_new_element_add_many)
 
 **Sink Methods**
 * [`dsl_sink_sync_enabled_get`](#dsl_sink_sync_enabled_get)
@@ -260,6 +269,12 @@ You can use the following GStreamer launch command to test the loopback device w
 * [`dsl_sink_frame_capture_initiate`](#dsl_sink_frame_capture_initiate)
 * [`dsl_sink_frame_capture_schedule`](#dsl_sink_frame_capture_schedule)
 
+**Custom Sink Methods**
+* [`dsl_sink_custom_element_add`](#dsl_sink_custom_element_add)
+* [`dsl_sink_custom_element_add_many`](#dsl_sink_custom_element_add_many)
+* [`dsl_sink_custom_element_remove`](#dsl_sink_custom_element_remove)
+* [`dsl_sink_custom_element_remove_many`](#dsl_sink_custom_element_remove_many)
+
 ## Return Values
 The following return codes are used by the Sink API
 ```C++
@@ -268,28 +283,32 @@ The following return codes are used by the Sink API
 #define DSL_RESULT_SINK_NAME_NOT_FOUND                              0x00040002
 #define DSL_RESULT_SINK_NAME_BAD_FORMAT                             0x00040003
 #define DSL_RESULT_SINK_THREW_EXCEPTION                             0x00040004
-#define DSL_RESULT_SINK_FILE_PATH_NOT_FOUND                         0x00040005
+#define DSL_RESULT_SINK_PATH_NOT_FOUND                              0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
-#define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
-#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
-#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000D
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
-#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
-#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
-#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
-#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
-#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
-#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
-#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
-#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
+#define DSL_RESULT_SINK_GET_FAILED                                  0x00040008
+#define DSL_RESULT_SINK_SET_FAILED                                  0x00040009
+#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x0004000A
+#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000B
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000C
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000D
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000E
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000F
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x00040010
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040011
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040012
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040013
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040014
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040015
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040017
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040018
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040019
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x0004001A
+#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x0004001B
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x0004001C
+#define DSL_RESULT_SINK_ELEMENT_ADD_FAILED                          0x0004001D
+#define DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED                       0x0004001E
+#define DSL_RESULT_SINK_ELEMENT_NOT_IN_USE                          0x0004001F
 ```
 
 ## Codec Types
@@ -1051,6 +1070,88 @@ The constructor creates a uniquely named Fake Sink. Construction will fail if th
 **Python Example**
 ```Python
 retVal = dsl_sink_fake_new('my-fake-sink')
+```
+
+<br>
+
+### *dsl_sink_custom_new*
+```C
+DslReturnType dsl_sink_custom_new(const wchar_t* name);
+```
+This service creates a new, uniquely named Custom Sink component. 
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`custom sink`](#custom-sink-methods)<br>
+
+**Parameters**
+* `name` - [in] unique name for the new Sink
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_new('my-custom-sink')
+```
+
+<br>
+
+### *dsl_sink_custom_new_element_add*
+```C
+DslReturnType dsl_sink_custom_new_element_add(const wchar_t* name, 
+    const wchar_t* element);
+```
+This service creates a new, uniquely named Custom Sink component and adds a GST Element to it. 
+
+**IMPORTAT!** Elements added to Custom Sink will be linked in the order they are added.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`custom sink`](#custom-sink-methods)<br>
+
+**Parameters**
+* `name` - [in] unique name for the new Sink
+* `element` [in] name of the GST Element to add..
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_new_element_add('my-custom-sink', 
+    'my-element')
+```
+
+<br>
+
+### *dsl_sink_custom_new_element_add_many*
+```C
+DslReturnType dsl_sink_custom_new_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+```
+This service creates a new, uniquely named Custom Sink component and adds a NULL terminated list of named GST Elements to it. 
+
+**IMPORTAT!** Elements added to Custom Sink will be linked in the order they are added.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`custom sink`](#custom-sink-methods)<br>
+
+**Parameters**
+* `name` - [in] unique name for the new Sink
+* `elements` [in] NULL terminated array of GST Element names to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_new_element_add_many('my-custom-sink', 
+    ['my-element-1', 'my-element-2', 'my-element-3', None)
 ```
 
 <br>
@@ -3179,6 +3280,95 @@ This service schedules a "frame-capture action" for a specified frame-number to 
 **Python Example**
 ```Python
 retval = dsl_sink_frame_capture_schedule('my-frame-capture-sink', frame_meta.frame_num)
+```
+
+<br>
+
+## Custom Sink Methods
+### *dsl_sink_custom_element_add*
+```C++
+DslReturnType dsl_sink_custom_element_add(const wchar_t* name,
+   const wchar_t* element);
+```
+This service adds a single named GST Element to a named Custom Sink. The add service will fail if the Element is currently `in-use` by any other Component. The Element's `in-use` state will be set to `true` on successful add.
+
+**IMPORTAT!** Elements added to Custom Sink will be linked in the order they are added.
+
+**Parameters**
+* `name` - [in] unique name of the Custom Sink to update.
+* `element` - [in] unique name of the GST Element to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_element_add('my-custom-sink', 'my-element')
+```
+
+<br>
+
+### *dsl_sink_custom_element_add_many*
+```C++
+DslReturnType dsl_sink_custom_element_add_many(const wchar_t* name, const wchar_t** elements);
+```
+Adds a list of named GST Elements to a named Custom Sink. The add service will fail if any of the Elements are currently `in-use` by any other Component. All of the Element's `in-use` state will be set to true on successful add.
+
+**IMPORTAT!** Elements added to Custom Sink will be linked in the order they are added.
+
+* `name` - [in] unique name of the Custom Sink to update.
+* `elements` - [in] a NULL terminated array of uniquely named GST Elements to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
+
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_element_add_many('my-custom-sink',
+  ['my-element-1', 'my-element-2', None])
+```
+
+<br>
+
+---
+### *dsl_sink_custom_element_remove*
+```C++
+DslReturnType dsl_sink_custom_element_remove(const wchar_t* name, const wchar_t* element);
+```
+This service removes a single named GST Element from a named Custom Sink.
+
+**Parameters**
+* `name` - [in] unique name of the Custom Sink to update.
+* `element` - [in] unique name of the GST Element to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_element_remove('my-custom-sink', 'my-element')
+```
+
+<br>
+
+
+### *dsl_sink_custom_element_remove_many*
+```C++
+DslReturnType dsl_sink_custom_element_remove_many(const wchar_t* name, const wchar_t** elements);
+```
+This services removes a list of named Elements from a named Custom Sink.
+
+* `name` - [in] unique name for the Custom Sink to update.
+* `elements` - [in] a NULL terminated array of uniquely named GST Elements to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_custom_element_remove_many('my-custom-sink',
+  ['my-element-1', 'my-element-2', None])
 ```
 
 <br>

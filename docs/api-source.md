@@ -119,6 +119,9 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 &emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `image source`
 
+### Custom Video Sources
+The Custom Source API is used to create custom DSL Video Source Components using [GStreamer (GST) Elements](/docs/api-gst.md) created from installed or proprietary GStreamer plugins. See also [Custom Components](/docs/api-component.md#custom-components)[Custom Sink](/docs/api-source.md#custom-sinks).
+
 ## Source API
 **Typedefs**
 * [`dsl_rtsp_connection_data`](#dsl_rtsp_connection_data)
@@ -2797,7 +2800,7 @@ This service adds a single named GST Element to a named Custom Source. The add s
 
 **Python Example**
 ```Python
-retval = dsl_source_custom_element_add('my-component', 'my-element')
+retval = dsl_source_custom_element_add('my-custom-source', 'my-element')
 ```
 
 <br>
@@ -2819,7 +2822,7 @@ Adds a list of named GST Elements to a named Custom Source. The add service will
 
 **Python Example**
 ```Python
-retval = dsl_source_custom_element_add_many('my-component',
+retval = dsl_source_custom_element_add_many('my-custom-source',
   ['my-element-1', 'my-element-2', None])
 ```
 
@@ -2841,7 +2844,7 @@ This service removes a single named GST Element from a named Custom Source.
 
 **Python Example**
 ```Python
-retval = dsl_source_custom_element_remove('my-component', 'my-element')
+retval = dsl_source_custom_element_remove('my-custom-source', 'my-element')
 ```
 
 <br>
@@ -2861,7 +2864,7 @@ This services removes a list of named Elements from a named Custom Source.
 
 **Python Example**
 ```Python
-retval = dsl_source_custom_element_remove_many('my-component',
+retval = dsl_source_custom_element_remove_many('my-custom-source',
   ['my-element-1', 'my-element-2', None])
 ```
 

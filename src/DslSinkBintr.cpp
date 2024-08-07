@@ -92,19 +92,31 @@ namespace DSL
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    gboolean SinkBintr::GetSyncEnabled()
+    bool SinkBintr::GetSyncEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("sync", &m_sync);
-
-        return m_sync;
+        *enabled = m_sync;
+        return true;
     }
     
-    bool SinkBintr::SetSyncEnabled(gboolean enabled)
+    bool SinkBintr::SetSyncEnabled(boolean enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set sync enabled property for SinkBintr '" 
@@ -112,25 +124,35 @@ namespace DSL
             return false;
         }
         m_sync = enabled;
-        
         m_pSink->SetAttribute("sync", m_sync);
-        
         return true;
     }
     
-    gboolean SinkBintr::GetAsyncEnabled()
+    bool SinkBintr::GetAsyncEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("async", &m_async);
-        
-        return m_async;
+        *enabled = m_async;
+        return true;
     }
 
-    bool SinkBintr::SetAsyncEnabled(gboolean enabled)
+    bool SinkBintr::SetAsyncEnabled(boolean enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set async enabled property for SinkBintr '" 
@@ -138,24 +160,35 @@ namespace DSL
             return false;
         }
         m_async = enabled;
-        
         m_pSink->SetAttribute("async", m_async);
-        
         return true;
     }
 
-    gint64 SinkBintr::GetMaxLateness()
+    bool SinkBintr::GetMaxLateness(int64_t* maxLateness)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        return m_maxLateness;
+        *maxLateness = m_maxLateness;
+        return true;
     }
 
-    bool SinkBintr::SetMaxLateness(gint64 maxLateness)
+    bool SinkBintr::SetMaxLateness(int64_t maxLateness)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set the max-lateness property for SinkBintr '" 
@@ -163,25 +196,35 @@ namespace DSL
             return false;
         }
         m_maxLateness = maxLateness;
-        
         m_pSink->SetAttribute("max-lateness", m_maxLateness);
-        
         return true;
     }
 
-    gboolean SinkBintr::GetQosEnabled()
+    bool SinkBintr::GetQosEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("qos", &m_qos);
-        
-        return m_qos;
+        *enabled = m_qos;
+        return true;
     }
 
-    bool SinkBintr::SetQosEnabled(gboolean enabled)
+    bool SinkBintr::SetQosEnabled(boolean enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set the qos enabled setting for SinkBintr '" 
@@ -189,9 +232,7 @@ namespace DSL
             return false;
         }
         m_qos = enabled;
-        
         m_pSink->SetAttribute("qos", m_qos);
-        
         return true;
     }
 
@@ -386,6 +427,168 @@ namespace DSL
     {
         return static_cast<AppSinkBintr*>(pAppSinkBintr)->
             HandleNewSample();
+    }
+
+    //*********************************************************************************
+    CustomSinkBintr::CustomSinkBintr(const char* name)
+        : SinkBintr(name) 
+        , m_nextElementIndex(0)
+    {
+        LOG_FUNC();
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for CustomSinkBintr '" << name << "'");
+        LOG_INFO("  sync               : unknown");
+        LOG_INFO("  async              : unknown");
+        LOG_INFO("  max-lateness       : unknown");
+        LOG_INFO("  qos                : unknown");
+        LOG_INFO("  enable-last-sample : unknown");
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
+
+    }
+
+    CustomSinkBintr::~CustomSinkBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool CustomSinkBintr::AddChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't add child '" << pChild->GetName() 
+                << "' to CustomSinkBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is already a child of CustomSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+ 
+        // increment next index, assign to the Element.
+        pChild->SetIndex(++m_nextElementIndex);
+
+        // Add the shared pointer to the CustomSinkBintr to the indexed map 
+        // and as a child.
+        m_elementrsIndexed[m_nextElementIndex] = pChild;
+        return GstNodetr::AddChild(pChild);
+    }
+    
+    bool CustomSinkBintr::RemoveChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't remove child '" << pChild->GetName() 
+                << "' from CustomSinkBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (!IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is not a child of CustomSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        
+        // Remove the shared pointer to the CustomSinkBintr from the indexed map  
+        // and as a child.
+        m_elementrsIndexed.erase(pChild->GetIndex());
+        return GstNodetr::RemoveChild(pChild);
+    }
+    
+    bool CustomSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' is already linked");
+            return false;
+        }
+        if (!m_elementrsIndexed.size()) 
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' has no Elements to link");
+            return false;
+        }
+        for (auto const &imap: m_elementrsIndexed)
+        {
+            // Link the Elementr to the last/previous Elementr in the vector 
+            // of linked Elementrs 
+            if (m_elementrsLinked.size() and 
+                !m_elementrsLinked.back()->LinkToSink(imap.second))
+            {
+                return false;
+            }
+            // Add Elementr to the end of the linked Elementrs vector.
+            m_elementrsLinked.push_back(imap.second);
+
+            LOG_INFO("CustomSinkBintr '" << GetName() 
+                << "' Linked up child Elementr '" << 
+                imap.second->GetName() << "' successfully");                    
+        }
+
+        // Link the input queue to the first element in the list.
+        if (!m_pQueue->LinkToSink(m_elementrsLinked.front()))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+    
+    void CustomSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' is not linked");
+            return;
+        }
+        if (!m_elementrsLinked.size()) 
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' has no Elements to unlink");
+            return;
+        }
+        
+        // unlink the input queue from the front element.
+        m_pQueue->UnlinkFromSink();
+
+        // iterate through the list of Linked Components, unlinking each
+        for (auto const& ivector: m_elementrsLinked)
+        {
+            // all but the tail element will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
+        }
+        m_elementrsLinked.clear();
+
+        m_isLinked = false;
     }
 
     //-------------------------------------------------------------------------
