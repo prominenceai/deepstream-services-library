@@ -199,7 +199,128 @@ SCENARIO( "The Components container is updated correctly on new and delete Frame
     }
 }
     
-SCENARIO( "The Components container is updated correctly on new Fake Sink", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on new and delete Custom Sink",
+    "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring sink_name = L"custom-sink";
+        std::wstring element_name_1 = L"element-1";
+        std::wstring element_name_2 = L"element-2";
+        std::wstring factory_name_1 = L"capsfilter";
+        std::wstring factory_name_2 = L"xvimagesink";
+
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Custom Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_custom_new(sink_name.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                // All get calls should fail .. since it's not derived from GST Base-Sink
+                boolean enabled(false);
+                int64_t max_lateness(99);
+                REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
+                    &enabled) == DSL_RESULT_SINK_GET_FAILED );
+                REQUIRE( dsl_sink_async_enabled_get(sink_name.c_str(), 
+                    &enabled) == DSL_RESULT_SINK_GET_FAILED );
+                REQUIRE( dsl_sink_max_lateness_get(sink_name.c_str(), 
+                    &max_lateness) == DSL_RESULT_SINK_GET_FAILED );
+                REQUIRE( dsl_sink_qos_enabled_get(sink_name.c_str(), 
+                    &enabled) == DSL_RESULT_SINK_GET_FAILED );
+                REQUIRE( dsl_component_delete(sink_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Custom Sink is created with multiple Elements" ) 
+        {
+            REQUIRE( dsl_gst_element_new(element_name_2.c_str(),
+                factory_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+
+            REQUIRE( dsl_sink_custom_new_element_add(sink_name.c_str(),
+                element_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete(sink_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Custom Sink is created with multiple Elements" ) 
+        {
+            REQUIRE( dsl_gst_element_new(element_name_1.c_str(),
+                factory_name_1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_gst_element_new(element_name_2.c_str(),
+                factory_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+            const wchar_t* elements[] = {element_name_1.c_str(), 
+                element_name_2.c_str(), NULL};
+            
+            REQUIRE( dsl_sink_custom_new_element_add_many(sink_name.c_str(),
+                elements) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete(sink_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A new Custom Sink can Add and Remove multiple GST Elements", 
+    "[sink-api]" )
+{
+    GIVEN( "A new Custom Component and new GST Element" ) 
+    {
+
+        std::wstring sink_name = L"custom-sink";
+        std::wstring element_name_1 = L"element-1";
+        std::wstring element_name_2 = L"element-2";
+        std::wstring factory_name_1 = L"capsfilter";
+        std::wstring factory_name_2 = L"xvimagesink";
+        
+        REQUIRE( dsl_sink_custom_new(sink_name.c_str()) 
+            == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_gst_element_new(element_name_1.c_str(),
+            factory_name_1.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_gst_element_new(element_name_2.c_str(),
+            factory_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The GST Elements are added to the Custom Sink" ) 
+        {
+            REQUIRE( dsl_sink_custom_element_add(sink_name.c_str(), 
+                element_name_1.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_sink_custom_element_add(sink_name.c_str(), 
+                element_name_2.c_str()) == DSL_RESULT_SUCCESS );
+             
+            THEN( "The same GST Elements can be removed correctly" ) 
+            {
+                REQUIRE( dsl_sink_custom_element_remove(sink_name.c_str(), 
+                    element_name_1.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sink_custom_element_remove(sink_name.c_str(), 
+                    element_name_2.c_str()) == DSL_RESULT_SUCCESS );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_gst_element_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Components container is updated correctly on new and delete Fake Sink", 
+    "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -218,7 +339,7 @@ SCENARIO( "The Components container is updated correctly on new Fake Sink", "[si
                 REQUIRE( dsl_sink_sync_enabled_get(sink_name.c_str(), 
                     &sync) == DSL_RESULT_SUCCESS );
                 REQUIRE( sync == false );
-                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete(sink_name.c_str()) == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
@@ -2699,7 +2820,7 @@ SCENARIO( "The Components container is updated correctly on new V4L2 Sink", "[si
                 REQUIRE( dsl_sink_v4l2_buffer_in_format_get(v4l2_sink_name.c_str(), 
                     &c_bufffer_in_format) == DSL_RESULT_SUCCESS );
                 std::wstring ret_buffer_in_format(c_bufffer_in_format);
-                REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_YUY2 );
+                REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_I420 );
 
                 int retBrightness(0), retContrast(0), retSaturation(0);
                 REQUIRE( dsl_sink_v4l2_picture_settings_get(v4l2_sink_name.c_str(), 
@@ -2781,7 +2902,7 @@ SCENARIO( "A new V4L2 Sink can update its properties correctly", "[sink-api]" )
             REQUIRE( dsl_sink_v4l2_buffer_in_format_get(v4l2_sink_name.c_str(), 
                 &c_bufffer_in_format) == DSL_RESULT_SUCCESS );
             std::wstring ret_buffer_in_format(c_bufffer_in_format);
-            REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_YUY2 );
+            REQUIRE( ret_buffer_in_format == DSL_VIDEO_FORMAT_I420 );
 
             REQUIRE( dsl_sink_v4l2_buffer_in_format_set(v4l2_sink_name.c_str(), 
                 DSL_VIDEO_FORMAT_YVYU) == DSL_RESULT_SUCCESS );
@@ -2855,6 +2976,43 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_app_new(sink_name.c_str(), 0, NULL, NULL) 
                     == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_sink_custom_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_new_element_add(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_new_element_add(
+                    sink_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_new_element_add_many(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_new_element_add_many(
+                    sink_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_add(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_add(
+                    sink_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_add_many(NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_add_many(
+                    sink_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_remove(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_remove(
+                    sink_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_remove_many(
+                    NULL, NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_custom_element_remove_many(
+                    sink_name.c_str(), NULL)
+                    == DSL_RESULT_INVALID_INPUT_PARAM );
+                
                 REQUIRE( dsl_sink_fake_new(NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_window_3d_new(NULL, 

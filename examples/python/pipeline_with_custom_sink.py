@@ -25,11 +25,11 @@
 
 ################################################################################
 #
-# The example demonstrates how to create a custom DSL Pipeline Component with
-# a custom GStreamer (GST) Element.  
+# The example demonstrates how to create a custom DSL Sink Component with
+# using custom GStreamer (GST) Elements.  
 #
 # Elements are constructed from plugins installed with GStreamer or 
-# using your own proprietary -- with a call to
+# using your own proprietary with a call to
 #
 #     dsl_gst_element_new('my-element', 'my-plugin-factory-name' )
 #
@@ -37,22 +37,21 @@
 # a queue element to create a new thread boundary for the component's element(s)
 # to process in. 
 #
-# This example creates a simple Custom Component with two elements
-#  1. The built-in 'queue' plugin - to create a new thread boundary.
-#  2. An 'identity' plugin - a GST debug plugin to mimic our proprietary element.
+# This example creates a simple Custom Sink with four elements in total
+#  1. The built-in 'queue' element - to create a new thread boundary.
+#  2. An 'nvvideoconvert' element -  to convert the buffer from 
+#     'video/x-raw(memory:NVMM)' to 'video/x-raw'
+#  3. A 'capsfilter' plugin - to filter the 'nvvideoconvert' caps to 
+#     'video/x-raw'
+#  4. A 'glimagesink' plugin - the actual Sink element for this Sink component.
 #
-# A single GST Element can be added to the Component on creation by calling
+# Multiple elements can be added to a Custom Sink on creation be calling
 #
-#    dsl_component_custom_new_element_add('my-custom-component',
-#        'my-element')
-#
-# Multiple elements can be added to a Component on creation be calling
-#
-#    dsl_component_custom_new_element_add_many('my-bin',
-#        ['my-element-1', 'my-element-2', None])
+#    dsl_sink_custom_new_element_add_many('my-bin',
+#        ['my-element-1', 'my-element-2', 'my-element-3', None])
 #
 # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
-# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-component.md
+# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-sink.md
 #
 ################################################################################
 
@@ -65,7 +64,7 @@ from dsl import *
 # Import NVIDIA's pyds Pad Probe Handler example
 from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4"
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_run.mov"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -76,31 +75,6 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
-
-TILER_WIDTH = 1280
-TILER_HEIGHT = 720
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-## 
-# Function to be called on XWindow KeyRelease event
-## 
-def xwindow_key_event_handler(key_string, client_data):
-    print('key released = ', key_string)
-    if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline')
-    elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
-        dsl_pipeline_stop('pipeline')
-        dsl_main_loop_quit()
- 
-## 
-# Function to be called on XWindow Delete event
-## 
-def xwindow_delete_event_handler(client_data):
-    print('delete window event')
-    dsl_pipeline_stop('pipeline')
-    dsl_main_loop_quit()
 
 ## 
 # Function to be called on End-of-Stream (EOS) event
@@ -123,38 +97,55 @@ def main(args):
     while True:
 
         # ---------------------------------------------------------------------------
-        # Custom DSL Pipeline Component, using the GStreamer "identify" plugin
-        # as an example. Any GStreamer or proprietary plugin (with limitations)
-        # can be used to create a custom component. See the GST API reference for 
-        # more details.
+        # Custom DSL Pipeline Sink compossed of the four elements (including the built-in queue). 
+        # See the GST API reference for more details.
         # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
 
-        # Create a new element from the identity plugin
-        retval = dsl_gst_element_new('identity-element', factory_name='identity')
+        # Create a new element from the nvvideoconvert plugin to to convert the buffer from 
+        # 'video/x-raw(memory:NVMM)' to 'video/x-raw'
+        retval = dsl_gst_element_new('nvvideoconvert-element', 
+            factory_name='nvvideoconvert')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new Custom Component and adds the elements to it. If multple 
-        # elements they will be linked in the order they're added.
-        retval = dsl_component_custom_new_element_add('identity-bin', 
-            'identity-element')
+        # Create a new element from the capsfilter plugin to filter the 
+        # nvvideoconvert's capabilities to 'video/x-raw'.
+        retval = dsl_gst_element_new('capsfilter-element', 
+            factory_name='capsfilter')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new caps object to set the caps for the capsfilter
+        retval = dsl_gst_caps_new('caps-object', 
+            'video/x-raw')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Set the caps property for the capsfilter using the caps object. 
+        retval = dsl_gst_element_property_caps_set('capsfilter-element', 
+            'caps', 'caps-object')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Done with the caps object so let's delete it.
+        retval = dsl_gst_caps_delete('caps-object')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new element from the glimagesink plugin - actual Sink element
+        retval = dsl_gst_element_new('glimagesink-element', 
+            factory_name='glimagesink')
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # IMPORTANT! Pad Probe handlers can be added to any sink or src pad of 
-        # any GST Element.
-            
-        # New Custom Pad Probe Handler to call Nvidia's example callback 
-        # for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=custom_pad_probe_handler, client_data=None)
-        
-        # Add the custom PPH to the Src pad (output) of the identity-element
-        retval = dsl_gst_element_pph_add('identity-element', 
-            handler='custom-pph', pad=DSL_PAD_SRC)
+        # Create a new Custom Sink Component and add the elements to it. 
+        # IMPORTANT! The elements will be linked in the order they're added.
+        retval = dsl_sink_custom_new_element_add_many('glimagesink-sink', 
+            ['nvvideoconvert-element', 'capsfilter-element', 'glimagesink-element',
+            None])
         if retval != DSL_RETURN_SUCCESS:
             break
-        
+            
         # ---------------------------------------------------------------------------
         # Create the remaining pipeline components
 
@@ -174,33 +165,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with text, clock and bbox display all enabled. 
+        # New OSD with text, clock, and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=False, 
             bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions defined above.
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
-            WINDOW_WIDTH, WINDOW_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'identity-bin',
-            'on-screen-display', 'egl-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker',
+            'on-screen-display', 'glimagesink-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -212,7 +187,7 @@ def main(args):
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+        
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:

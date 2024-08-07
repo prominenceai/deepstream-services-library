@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021-2032, Prominence AI, Inc.
+Copyright (c)   2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -694,7 +694,7 @@ namespace DSL
         {
             LOG_ERROR("Custom Source '" << name 
                 << "' threw an exception removing Element");
-            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     

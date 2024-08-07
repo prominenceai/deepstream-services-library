@@ -75,7 +75,7 @@ namespace DSL
                 }
                 else
                 {
-                    LOG_ERROR("Failed to find WindowSinkBintr in registry");
+                    LOG_INFO("Failed to find WindowSinkBintr in registry - Custom Sink?");
                 }
                     
                 UNREF_MESSAGE_ON_RETURN(pMessage);

@@ -52,10 +52,16 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == dataType );
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -105,10 +111,127 @@ SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetDataType() == DSL_SINK_APP_DATA_TYPE_BUFFER );
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new CustomSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new Custom Sink" ) 
+    {
+        std::string sinkName("custom-sink");
+
+        WHEN( "The CustomSinkBintr is created " )
+        {
+            DSL_CUSTOM_SINK_PTR pSinkBintr = 
+                DSL_CUSTOM_SINK_NEW(sinkName.c_str());
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == false );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A CustomSinkBintr can add and remove a child element",  
+    "[SinkBintr]" )
+{
+    GIVEN( "A new CustomBintr and Elementr" ) 
+    {
+        std::string sinkName("custom-sink");
+        std::string elementName("element");
+
+        DSL_CUSTOM_SINK_PTR pSinkBintr = DSL_CUSTOM_SINK_NEW(
+            sinkName.c_str());
+        DSL_ELEMENT_PTR pGstElementr = DSL_ELEMENT_NEW("xvimagesink", 
+            elementName.c_str());
+        
+        WHEN( "The an Element is added to the CustomBintr" )
+        {
+            REQUIRE( pSinkBintr->AddChild(pGstElementr) == true );
+            
+            // The second call must fail
+            REQUIRE( pSinkBintr->AddChild(pGstElementr) == false );
+            THEN( "The same Element can be removed correctly")
+            {
+                REQUIRE( pSinkBintr->RemoveChild(pGstElementr) == true );
+            
+                // The second call must fail
+                REQUIRE( pSinkBintr->RemoveChild(pGstElementr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new CustomSinkBintr can LinkAll and Unlink All Child Elementrs",
+    "[SinkBintr]" )
+{
+    GIVEN( "A new CustomSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("custom-sink");
+        static const std::string elementName1("element-1");
+        static const std::string elementName2("element-2");
+
+        DSL_CUSTOM_SINK_PTR pSinkBintr = 
+            DSL_CUSTOM_SINK_NEW(sinkName.c_str());
+
+        DSL_ELEMENT_PTR pGstElementr1 = DSL_ELEMENT_NEW("capsfilter", 
+            elementName1.c_str());
+        DSL_ELEMENT_PTR pGstElementr2 = DSL_ELEMENT_NEW("xvimagesink", 
+            elementName2.c_str());
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "The CustomSinkBintr has no child element" )
+        {
+             
+            THEN( "The CustomSinkBintr will fail to link")
+            {
+               REQUIRE( pSinkBintr->LinkAll() == false );
+            }
+        }
+        WHEN( "The CustomSinkBintr has a single element" )
+        {
+            REQUIRE( pSinkBintr->AddChild(pGstElementr1) == true );
+            
+            REQUIRE( pSinkBintr->LinkAll() == true );
+            REQUIRE( pSinkBintr->IsLinked() == true );
+
+            // second call must fail
+            REQUIRE( pSinkBintr->LinkAll() == false );
+
+            THEN( "The CustomSinkBintr can be unlinked")
+            {
+                pSinkBintr->UnlinkAll();
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+        WHEN( "The CustomSyncBintr has a multiple elements" )
+        {
+            REQUIRE( pSinkBintr->AddChild(pGstElementr1) == true );
+            REQUIRE( pSinkBintr->AddChild(pGstElementr2) == true );
+            
+            THEN( "The CustomSinkBintr can be successfully Linked and unlinked")
+            {
+                REQUIRE( pSinkBintr->LinkAll() == true );
+                pSinkBintr->UnlinkAll();
             }
         }
     }
@@ -127,16 +250,22 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
             
             THEN( "The correct attribute values are returned" )
             {
-                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
 }
 
-SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+SCENARIO( "A new FakeSinkBintr can LinkAll and Unlink All Child Elementrs", "[SinkBintr]" )
 {
     GIVEN( "A new FakeSinkBintr in an Unlinked state" ) 
     {
@@ -150,10 +279,15 @@ SCENARIO( "A new FakeSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
         WHEN( "A new FakeSinkBintr is Linked" )
         {
             REQUIRE( pSinkBintr->LinkAll() == true );
+            REQUIRE( pSinkBintr->IsLinked() == true );
 
-            THEN( "The FakeSinkBintr's IsLinked state is updated correctly" )
+            // second call must fail
+            REQUIRE( pSinkBintr->LinkAll() == false );
+
+            THEN( "The FakeSinkBintr can be unlinked")
             {
-                REQUIRE( pSinkBintr->IsLinked() == true );
+                pSinkBintr->UnlinkAll();
+                REQUIRE( pSinkBintr->IsLinked() == false );
             }
         }
     }
@@ -180,10 +314,16 @@ SCENARIO( "A new 3dSinkBintr is created correctly",  "[SinkBintr]" )
                 
                 THEN( "The correct attribute values are returned" )
                 {
-                    REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                    REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                    REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                    REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                    boolean retEnabled(false);
+                    int64_t retMaxLatness(99);
+                    REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                    REQUIRE( retEnabled == true );
+                    REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                    REQUIRE( retEnabled == false );
+                    REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                    REQUIRE( retMaxLatness == -1 );
+                    REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                    REQUIRE( retEnabled == false );
                 }
             }
         }
@@ -385,10 +525,16 @@ SCENARIO( "A new EglSinkBintr is created correctly",  "[SinkBintr]" )
             THEN( "The correct attribute values are returned" )
             {
                 REQUIRE( pSinkBintr->GetForceAspectRatio() == false );
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -890,10 +1036,16 @@ SCENARIO( "A new DSL_CODEC_H264 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
                 
-                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -985,10 +1137,16 @@ SCENARIO( "A new DSL_CODEC_H265 FileSinkBintr is created correctly",  "[SinkBint
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
 
-                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -1426,10 +1584,16 @@ SCENARIO( "A new RtmpSinkBintr is created correctly",  "[SinkBintr]" )
                 std::string retUri(pSinkBintr->GetUri());
                 REQUIRE( retUri == uri );
                 
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -1613,10 +1777,16 @@ SCENARIO( "A new DSL_CODEC_H264 RtspServerSinkBintr is created correctly",  "[Si
                 REQUIRE( retUdpPort == udpPort );
                 REQUIRE( retRtspPort == rtspPort );
                 REQUIRE( retCodec == codec );
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -1707,7 +1877,9 @@ SCENARIO( "A new DSL_CODEC_H265 RtspServerSinkBintr is created correctly",  "[Si
                 pSinkBintr->GetServerSettings(&retUdpPort, &retRtspPort);
                 REQUIRE( retUdpPort == udpPort);
                 REQUIRE( retRtspPort == rtspPort);
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
+                boolean retEnabled;
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
             }
         }
     }
@@ -1841,10 +2013,16 @@ SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
 
                 REQUIRE( pSinkBintr->GetMaxFiles() == 0 );
                 
-                REQUIRE( pSinkBintr->GetSyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }
@@ -1937,10 +2115,16 @@ SCENARIO( "A new V4l2SinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retContrast == 0 );
                 REQUIRE( retSaturation == 0 );
                 
-                REQUIRE( pSinkBintr->GetSyncEnabled() == true );
-                REQUIRE( pSinkBintr->GetAsyncEnabled() == false );
-                REQUIRE( pSinkBintr->GetMaxLateness() == -1 );
-                REQUIRE( pSinkBintr->GetQosEnabled() == false );
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
             }
         }
     }

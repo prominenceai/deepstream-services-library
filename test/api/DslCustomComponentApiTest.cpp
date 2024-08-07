@@ -224,7 +224,7 @@ SCENARIO( "A new Custom Component can Add and Remove a GST Element",
     }
 }
 
-SCENARIO( "A new Custom Component can Add and Remove a Multiple GST Elements", 
+SCENARIO( "A new Custom Component can Add and Remove multiple GST Elements", 
     "[custom-component-api]" )
 {
     GIVEN( "A new Custom Component and new GST Element" ) 

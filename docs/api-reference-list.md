@@ -440,6 +440,9 @@
 * [`dsl_sink_image_multi_new`](/docs/api-sink.md#dsl_sink_image_multi_new)
 * [`dsl_sink_frame_capture_new`](/docs/api-sink.md#dsl_sink_frame_capture_new)
 * [`dsl_sink_fake_new`](/docs/api-sink.md#dsl_sink_fake_new)
+* [`dsl_sink_custom_new`](/docs/api-sink.md#dsl_sink_custom_new)
+* [`dsl_sink_custom_new_element_add`](/docs/api-sink.md#dsl_sink_custom_new_element_add)
+* [`dsl_sink_custom_new_element_add_many`](/docs/api-sink.md#dsl_sink_custom_new_element_add_many)
 * [`dsl_sink_sync_enabled_get`](/docs/api-sink.md#dsl_sink_sync_enabled_get)
 * [`dsl_sink_sync_enabled_set`](/docs/api-sink.md#dsl_sink_sync_enabled_set)
 * [`dsl_sink_async_enabled_get`](/docs/api-sink.md#dsl_sink_async_enabled_get)
@@ -533,6 +536,10 @@
 * [`dsl_sink_image_multi_file_max_set`](/docs/api-sink.md#dsl_sink_image_multi_file_max_set)
 * [`dsl_sink_frame_capture_initiate`](/docs/api-sink.md#dsl_sink_frame_capture_initiate)
 * [`dsl_sink_frame_capture_schedule`](/docs/api-sink.md#dsl_sink_frame_capture_schedule)
+* [`dsl_sink_custom_element_add`](/docs/api-sink.md#dsl_sink_custom_element_add)
+* [`dsl_sink_custom_element_add_many`](/docs/api-sink.md#dsl_sink_custom_element_add_many)
+* [`dsl_sink_custom_element_remove`](/docs/api-sink.md#dsl_sink_custom_element_remove)
+* [`dsl_sink_custom_element_remove_many`](/docs/api-sink.md#dsl_sink_custom_element_remove_many)
 
 ## GST API:
 * [Overview](/docs/api-gst.md)
