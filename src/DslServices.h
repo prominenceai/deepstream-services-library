@@ -1384,6 +1384,12 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
+        DslReturnType SinkCustomNew(const char* name);
+        
+        DslReturnType SinkCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType SinkCustomElementRemove(const char* name, const char* element);
+        
         // ---------------------------------------------------------------------------
         // The following three internal services provide access to the
         // database of active Window Sinks

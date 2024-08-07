@@ -275,12 +275,16 @@ There are three types of Custom Components supported.
 See the following reference sections for more information:
 * [GST API Reference](/docs/api-gst.md)
 * [Custom Component API Reference](/docs/api-component.md#custom-components)
-* [Custom Source API Reference](/docs/api-source.md#dsl_source_custom_new)
-* Custom Sink API Reference (TODO)
+* [Custom Source API Reference](/docs/api-source.md#custom-video-sources)
+* [Custom Sink API Reference](/docs/api-sink.md#custom-video-sinks)
 
 See the following examples for more detail:
 * [pipeline_with_custom_component.py](/examples/python/pipeline_with_custom_component.py)
 * [pipeline_with_custom_component.cpp](/examples/cpp/pipeline_with_custom_component.cpp)
+* [pipeline_with_custom_source.py](/examples/python/pipeline_with_custom_source.py)
+* [pipeline_with_custom_source.cpp](/examples/cpp/pipeline_with_custom_source.cpp)
+* [pipeline_with_custom_sink.py](/examples/python/pipeline_with_custom_sink.py)
+* [pipeline_with_custom_sink.cpp](/examples/cpp/pipeline_with_custom_sink.cpp)
 
 ---
 

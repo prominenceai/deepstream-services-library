@@ -21,7 +21,7 @@ List of component types that are used with this API:
 * [Custom Components](/docs/api-gst.md)
 
 ## Custom Components
-The Custom Component API is used to create custom DSL Pipeline Components -- other than Sources and Sinks -- using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or built-in GStreamer plugins. See also [Custom Video Sources](/docs/api-source.md#dsl_source_custom_new) and Custom Sinks (TODO).
+The Custom Component API is used to create custom DSL Pipeline Components -- other than Sources and Sinks -- using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or built-in GStreamer plugins. See also [Custom Sources](/docs/api-source.md#custom-video-sources) and [Custom Sinks](/docs/api-sink.md#custom-video-sinks).
 
 Custom Components are created by calling [`dsl_component_custom_new`](#dsl_component_custom_new), [`dsl_component_custom_new_element_add`](#dsl_component_custom_new_element_add) or [`dsl_component_custom_new_element_add_many`](#dsl_component_custom_new_element_add_many). As with all Pipeline Components, Custom Components are deleted by calling [`dsl_component_delete`](/docs/api-component.md#dsl_component_delete), [`dsl_component_delete_many`](/docs/api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](/docs/api-component.md#dsl_component_delete_all).
 

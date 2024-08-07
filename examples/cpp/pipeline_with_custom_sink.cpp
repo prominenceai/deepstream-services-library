@@ -24,11 +24,11 @@ THE SOFTWARE.
 
 /*################################################################################
 #
-# The example demonstrates how to create a custom DSL Pipeline Component with
-# a custom GStreamer (GST) Element.  
+# The example demonstrates how to create a custom DSL Sink Component with
+# using custom GStreamer (GST) Elements.  
 #
 # Elements are constructed from plugins installed with GStreamer or 
-# using your own proprietary -- with a call to
+# using your own proprietary with a call to
 #
 #     dsl_gst_element_new('my-element', 'my-plugin-factory-name' )
 #
@@ -36,22 +36,21 @@ THE SOFTWARE.
 # a queue element to create a new thread boundary for the component's element(s)
 # to process in. 
 #
-# This example creates a simple Custom Component with two elements
-#  1. The built-in 'queue' plugin - to create a new thread boundary.
-#  2. An 'identity' plugin - a GST debug plugin to mimic our proprietary element.
+# This example creates a simple Custom Sink with four elements in total
+#  1. The built-in 'queue' element - to create a new thread boundary.
+#  2. An 'nvvideoconvert' element -  to convert the buffer from 
+#     'video/x-raw(memory:NVMM)' to 'video/x-raw'
+#  3. A 'capsfilter' plugin - to filter the 'nvvideoconvert' caps to 
+#     'video/x-raw'
+#  4. A 'glimagesink' plugin - the actual Sink element for this Sink component.
 #
-# A single GST Element can be added to the Component on creation by calling
+# Multiple elements can be added to a Custom Sink on creation be calling
 #
-#    dsl_component_custom_new_element_add('my-custom-component',
-#        'my-element')
-#
-# Multiple elements can be added to a Component on creation be calling
-#
-#    dsl_component_custom_new_element_add_many('my-bin',
-#        ['my-element-1', 'my-element-2', None])
+#    dsl_sink_custom_new_element_add_many('my-bin',
+#        ['my-element-1', 'my-element-2', 'my-element-3', None])
 #
 # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
-# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-component.md
+# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-sink.md
 #
 ##############################################################################*/
 
@@ -63,7 +62,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 
 std::wstring uri_h265(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_run.mov");
 
 // Config and model-engine files 
 std::wstring primary_infer_config_file(
@@ -75,46 +74,7 @@ std::wstring primary_model_engine_file(
 std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
-
-uint PGIE_CLASS_ID_VEHICLE = 0;
-uint PGIE_CLASS_ID_BICYCLE = 1;
-uint PGIE_CLASS_ID_PERSON = 2;
-uint PGIE_CLASS_ID_ROADSIGN = 3;
-
-uint WINDOW_WIDTH = DSL_1K_HD_WIDTH;
-uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
-
-// 
-// Function to be called on XWindow KeyRelease event
-// 
-void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
-{   
-    std::wstring wkey(in_key); 
-    std::string key(wkey.begin(), wkey.end());
-    std::cout << "key released = " << key << std::endl;
-    
-    key = std::toupper(key[0]);
-    if(key == "P"){
-        dsl_pipeline_pause(L"pipeline");
-    } else if (key == "R"){
-        dsl_pipeline_play(L"pipeline");
-    } else if (key == "Q" or key == "" or key == ""){
-        std::cout << "Main Loop Quit" << std::endl;
-        dsl_pipeline_stop(L"pipeline");
-        dsl_main_loop_quit();
-    }
-}
-
-// 
-// Function to be called on XWindow Delete event
-//
-void xwindow_delete_event_handler(void* client_data)
-{
-    std::cout<<"delete window event"<<std::endl;
-    dsl_pipeline_stop(L"pipeline");
-    dsl_main_loop_quit();
-}
-    
+   
 // 
 // Function to be called on End-of-Stream (EOS) event
 // 
@@ -134,27 +94,6 @@ void state_change_listener(uint old_state, uint new_state, void* client_data)
         << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
 
-// Custom Pad Probe Handler function called with every buffer
-// 
-uint custom_pad_probe_handler(void* buffer, void* user_data)
-{
-    // Retrieve batch metadata from the gst_buffer
-    NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta((GstBuffer*)buffer);
-    
-    // For each frame in the batched meta data
-    for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
-        pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
-    {
-        // Check for valid frame data
-        NvDsFrameMeta* pFrameMeta = (NvDsFrameMeta*)(pFrameMetaList->data);
-        if (pFrameMeta != NULL)
-        {
-            // process frame and object metadata as needed. 
- 
-        }
-    }
-    return DSL_PAD_PROBE_OK;
-}
 
 int main(int argc, char** argv)
 {
@@ -164,42 +103,50 @@ int main(int argc, char** argv)
     while(true) 
     {    
 
-        // ---------------------------------------------------------------------------
-        // Custom DSL Pipeline Component, using the GStreamer "identify" plugin
-        // as an example. Any GStreamer or proprietary plugin (with limitations)
-        // can be used to create a custom component. See the GST API reference for 
+         // ---------------------------------------------------------------------------
+        // Custom DSL Pipeline Sink compossed of the four elements (including the built-in queue). 
+        // aSee the GST API reference for 
         // more details.
         // https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
 
-        // Create a new element from the identity plugin
-        retval = dsl_gst_element_new(L"identity-element", L"identity");
+        // Create a new element from the nvvideoconvert plugin to to convert the buffer from 
+        // 'video/x-raw(memory:NVMM)' to 'video/x-raw'
+        retval = dsl_gst_element_new(L"nvvideoconvert-element", L"nvvideoconvert");
         if (retval != DSL_RESULT_SUCCESS) break;
             
+        retval = dsl_gst_element_new(L"capsfilter-element", L"capsfilter");
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Create a new caps object to set the caps for the capsfilter
+        retval = dsl_gst_caps_new(L"caps-object", L"video/x-raw");
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Set the caps property for the capsfilter using the caps object created above 
+        retval = dsl_gst_element_property_caps_set(L"capsfilter-element", 
+            L"caps", L"caps-object");
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Done with the caps object so let's delete it.
+        retval = dsl_gst_caps_delete(L"caps-object");
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        retval = dsl_gst_element_new(L"glimagesink-element", L"glimagesink");
+        if (retval != DSL_RESULT_SUCCESS) break;
+            
+        const wchar_t* elements[] {L"nvvideoconvert-element",
+            L"capsfilter-element", L"glimagesink-element", NULL};
+
         // Create a new bin and add the elements to it. The elements will be linked 
         // in the order they're added.
-        retval = dsl_component_custom_new_element_add(L"identity-bin", 
-            L"identity-element");
+        retval = dsl_sink_custom_new_element_add_many(L"glimagesink-sink", 
+            elements);
         if (retval != DSL_RESULT_SUCCESS) break;
-            
-        // IMPORTANT! Pad Probe handlers can be added to any sink or src pad of 
-        // any GST Element.
-            
-        // New Custom Pad Probe Handler to call Nvidia's example callback 
-        // for handling the Batched Meta Data
-        retval = dsl_pph_custom_new(L"custom-pph", 
-            custom_pad_probe_handler, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-        
-        // Add the custom PPH to the Src pad (output) of the identity-element
-        retval = dsl_gst_element_pph_add(L"identity-element", 
-            L"custom-pph", DSL_PAD_SRC);
-        if (retval != DSL_RESULT_SUCCESS) break;
-            
+                       
         // ---------------------------------------------------------------------------
         // Create the remaining pipeline components
         
         // New File Source
-        retval = dsl_source_file_new(L"uri-source-1", uri_h265.c_str(), true);
+        retval = dsl_source_file_new(L"uri-source-1", uri_h265.c_str(), false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -216,22 +163,9 @@ int main(int argc, char** argv)
         retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add(L"egl-sink", 
-            xwindow_key_event_handler, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        retval = dsl_sink_window_delete_event_handler_add(L"egl-sink", 
-            xwindow_delete_event_handler, NULL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-    
         // Create a list of Pipeline Components to add to the new Pipeline.
         const wchar_t* components[] = {L"uri-source-1", L"primary-gie", 
-            L"iou-tracker", L"identity-bin", L"on-screen-display", L"egl-sink", NULL};
+            L"iou-tracker", L"on-screen-display", L"glimagesink-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

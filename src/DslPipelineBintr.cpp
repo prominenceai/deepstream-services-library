@@ -70,7 +70,8 @@ namespace DSL
         
         if (m_isLinked)
         {
-            Stop();
+            SetState(GST_STATE_NULL, 
+                DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND);
         }
         // clear the pipeline-id for reuse.
         m_usedPipelineIds[m_pipelineId] = false;

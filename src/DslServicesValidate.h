@@ -321,6 +321,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_BRANCH(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(CustomSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
@@ -361,6 +362,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(CustomSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
@@ -383,6 +385,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_SINK(components, name) do \
 { \
     if (!components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(CustomSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
@@ -436,6 +439,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SplitterBintr)) and  \
         !components[name]->IsType(typeid(DemuxerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(CustomSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
@@ -485,6 +489,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(SplitterBintr)) and  \
         !components[name]->IsType(typeid(DemuxerBintr)) and  \
         !components[name]->IsType(typeid(AppSinkBintr)) and  \
+        !components[name]->IsType(typeid(CustomSinkBintr)) and  \
         !components[name]->IsType(typeid(FrameCaptureSinkBintr)) and  \
         !components[name]->IsType(typeid(FakeSinkBintr)) and  \
         !components[name]->IsType(typeid(ThreeDSinkBintr)) and  \
