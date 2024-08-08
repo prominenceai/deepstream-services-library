@@ -523,7 +523,7 @@ namespace DSL
     //--------------------------------------------------------------------------------
             
     RemuxerBintr::RemuxerBintr(const char* name)
-        : Bintr(name)
+        : QBintr(name)
         , m_batchSizeSetByClient(false)
         , m_useNewStreammux(false)
         , m_batchTimeout(-1)
@@ -548,9 +548,10 @@ namespace DSL
         // which is the parent bin for the Streammuxer allocated, so the Pipeline
         // can be notified of individual source EOS events. 
         g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
-        
+
+        // IMPORTANT! The QBintr::m_pQueue is used to connect the input tee
+        // to the Metamuxer's active sink pad.         
         m_pInputTee = DSL_ELEMENT_EXT_NEW("tee", name, "input");
-        m_pMetamuxerQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsmetamux");
         m_pMetamuxer = DSL_ELEMENT_NEW("nvdsmetamux", name);
         m_pDemuxerQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvstreamdemux");
         m_pDemuxer = DSL_ELEMENT_NEW("nvstreamdemux", name);
@@ -577,7 +578,6 @@ namespace DSL
         
         // Add the demuxer as child and elevate as sink ghost pad
         Bintr::AddChild(m_pInputTee);
-        Bintr::AddChild(m_pMetamuxerQueue);
         Bintr::AddChild(m_pMetamuxer);
         Bintr::AddChild(m_pDemuxerQueue);
         Bintr::AddChild(m_pDemuxer);
@@ -709,8 +709,8 @@ namespace DSL
         // Create the Metamuxer config-file utility.
         RemuxerConfigFile configFile(m_configFilePath);
         
-        if (!m_pMetamuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
-            !m_pMetamuxerQueue->LinkToSinkMuxer(m_pMetamuxer, "sink_0") or
+        if (!m_pQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
+            !m_pQueue->LinkToSinkMuxer(m_pMetamuxer, "sink_0") or
             !m_pDemuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
             !m_pDemuxerQueue->LinkToSink(m_pDemuxer))
         {
@@ -821,8 +821,8 @@ namespace DSL
             return;
         }
 
-        m_pMetamuxerQueue->UnlinkFromSourceTee();
-        m_pMetamuxerQueue->UnlinkFromSinkMuxer();
+        m_pQueue->UnlinkFromSourceTee();
+        m_pQueue->UnlinkFromSinkMuxer();
         m_pDemuxerQueue->UnlinkFromSourceTee();
         m_pDemuxerQueue->UnlinkFromSink();
 

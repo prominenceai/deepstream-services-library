@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 
 namespace DSL
 {
@@ -355,7 +355,7 @@ namespace DSL
      * @class RemuxerBintr
      * @brief Implements a Remuxer (demuxer-streammuxers-metamuxer) bin container
      */
-    class RemuxerBintr : public Bintr
+    class RemuxerBintr : public QBintr
     {
     public: 
     
@@ -594,11 +594,6 @@ namespace DSL
          * @brief Input Tee for the RemuxerBintr.
          */
         DSL_ELEMENT_PTR m_pInputTee;
-        
-        /**
-         * @brief Metamuxer input queue for the RemuxerBintr.
-         */
-        DSL_ELEMENT_PTR m_pMetamuxerQueue;
         
         /**
          * @brief Metamuxer for the RemuxerBintr.
