@@ -276,11 +276,6 @@ namespace DSL
         DSL_ELEMENT_PTR m_pVidConv;
 
         /**
-         * @brief OSD queue plugin for the OsdBintr.
-         */
-        DSL_ELEMENT_PTR m_pOsdQueue;
-
-        /**
          * @brief NVIDIA OSD plugin for the OsdBintr.
          */
         DSL_ELEMENT_PTR m_pOsd;

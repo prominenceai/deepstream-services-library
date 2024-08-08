@@ -49,7 +49,6 @@ namespace DSL
         
         // Create all elements
         m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pOsdQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsosd");
         m_pOsd = DSL_ELEMENT_NEW("nvdsosd", name);
 
         // Get property defaults that aren't specifically set
@@ -103,7 +102,6 @@ namespace DSL
         
         // Add each of the elements as children to this Binter. 
         AddChild(m_pVidConv);
-        AddChild(m_pOsdQueue);
         AddChild(m_pOsd);
 
         // Float the queue element as a sink-ghost-pad for this Bintr.
@@ -138,8 +136,7 @@ namespace DSL
         }
         
         if (!m_pQueue->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pOsdQueue) or
-            !m_pOsdQueue->LinkToSink(m_pOsd))
+            !m_pVidConv->LinkToSink(m_pOsd))
         {
             return false;
         }
@@ -158,7 +155,6 @@ namespace DSL
         }
         m_pQueue->UnlinkFromSink();
         m_pVidConv->UnlinkFromSink();
-        m_pOsdQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
