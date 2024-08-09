@@ -1279,6 +1279,36 @@ namespace DSL
                     +  std::to_string(lrint(pObjectMeta->rect_params.width)) + "<br>"));
                 body.push_back(std::string("    Height          : " 
                     +  std::to_string(lrint(pObjectMeta->rect_params.height)) + "<br>"));
+
+                if (pObjectMeta->classifier_meta_list)
+                {
+                    body.push_back(std::string("  Classifier Data   : ------------------------<br>"));
+                    // For each frame in the batched meta data
+                    for (NvDsClassifierMetaList* pClassifierMetaList = 
+                            pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                                pClassifierMetaList = pClassifierMetaList->next)
+                    {
+                        NvDsClassifierMeta* pClassifierMeta = 
+                            (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                        if (pClassifierMeta != NULL)
+                        {
+                            body.push_back(std::string("    Infer Id        : " 
+                                + std::to_string(pClassifierMeta->unique_component_id) + "<br>"));
+                            for (NvDsLabelInfoList* pLabelInfoList = 
+                                    pClassifierMeta->label_info_list; pLabelInfoList; 
+                                        pLabelInfoList = pLabelInfoList->next)
+                            {
+                                NvDsLabelInfo* pLabelInfo = 
+                                    (NvDsLabelInfo*)(pLabelInfoList->data);
+                                if(pLabelInfo != NULL)
+                                {
+                                    body.push_back(std::string("      label         : "
+                                        + std::string(pLabelInfo->result_label) + "<br>"));
+                                }
+                            }
+                        }
+                    }
+                }
             }
             else
             {
@@ -1302,35 +1332,6 @@ namespace DSL
 
             }
 
-            if (pObjectMeta->classifier_meta_list)
-            {
-                body.push_back(std::string("  Classifier Data   : ------------------------<br>"));
-                // For each frame in the batched meta data
-                for (NvDsClassifierMetaList* pClassifierMetaList = 
-                        pObjectMeta->classifier_meta_list; pClassifierMetaList; 
-                            pClassifierMetaList = pClassifierMetaList->next)
-                {
-                    NvDsClassifierMeta* pClassifierMeta = 
-                        (NvDsClassifierMeta*)(pClassifierMetaList->data);
-                    if (pClassifierMeta != NULL)
-                    {
-                        body.push_back(std::string("    Infer Id        : " 
-                            + std::to_string(pClassifierMeta->unique_component_id) + "<br>"));
-                        for (NvDsLabelInfoList* pLabelInfoList = 
-                                pClassifierMeta->label_info_list; pLabelInfoList; 
-                                    pLabelInfoList = pLabelInfoList->next)
-                        {
-                            NvDsLabelInfo* pLabelInfo = 
-                                (NvDsLabelInfo*)(pLabelInfoList->data);
-                            if(pLabelInfo != NULL)
-                            {
-                                body.push_back(std::string("      label         : "
-                                    + std::string(pLabelInfo->result_label) + "<br>"));
-                            }
-                        }
-                    }
-                }
-            }
             body.push_back(std::string("  Criteria          : ------------------------<br>"));
             body.push_back(std::string("    Class Id        : " 
                 +  std::to_string(pTrigger->m_classId) + "<br>"));
@@ -1992,6 +1993,36 @@ namespace DSL
                 LOG_INFO("    Top             : " << pObjectMeta->rect_params.top);
                 LOG_INFO("    Width           : " << pObjectMeta->rect_params.width);
                 LOG_INFO("    Height          : " << pObjectMeta->rect_params.height);
+
+                if (pObjectMeta->classifier_meta_list)
+                {
+                    LOG_INFO("  Classifier Data   : ------------------------");
+                    // For each frame in the batched meta data
+                    for (NvDsClassifierMetaList* pClassifierMetaList = 
+                            pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                                pClassifierMetaList = pClassifierMetaList->next)
+                    {
+                        NvDsClassifierMeta* pClassifierMeta = 
+                            (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                        if (pClassifierMeta != NULL)
+                        {
+                            LOG_INFO("    Infer Id        : " 
+                                << pClassifierMeta->unique_component_id);
+                            for (NvDsLabelInfoList* pLabelInfoList = 
+                                    pClassifierMeta->label_info_list; pLabelInfoList; 
+                                        pLabelInfoList = pLabelInfoList->next)
+                            {
+                                NvDsLabelInfo* pLabelInfo = 
+                                    (NvDsLabelInfo*)(pLabelInfoList->data);
+                                if(pLabelInfo != NULL)
+                                {
+                                    LOG_INFO("      label         : " 
+                                        << pLabelInfo->result_label);
+                                }
+                            }
+                        }
+                    }
+                }
             }
             else
             {
@@ -2008,35 +2039,6 @@ namespace DSL
                         << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_IN]);
                     LOG_INFO("    Occurrences Out     : " 
                         << pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES_DIRECTION_OUT]);
-                }
-            }
-            if (pObjectMeta->classifier_meta_list)
-            {
-                LOG_INFO("  Classifier Data   : ------------------------");
-                // For each frame in the batched meta data
-                for (NvDsClassifierMetaList* pClassifierMetaList = 
-                        pObjectMeta->classifier_meta_list; pClassifierMetaList; 
-                            pClassifierMetaList = pClassifierMetaList->next)
-                {
-                    NvDsClassifierMeta* pClassifierMeta = 
-                        (NvDsClassifierMeta*)(pClassifierMetaList->data);
-                    if (pClassifierMeta != NULL)
-                    {
-                        LOG_INFO("    Infer Id        : " 
-                            << pClassifierMeta->unique_component_id);
-                        for (NvDsLabelInfoList* pLabelInfoList = 
-                                pClassifierMeta->label_info_list; pLabelInfoList; 
-                                    pLabelInfoList = pLabelInfoList->next)
-                        {
-                            NvDsLabelInfo* pLabelInfo = 
-                                (NvDsLabelInfo*)(pLabelInfoList->data);
-                            if(pLabelInfo != NULL)
-                            {
-                                LOG_INFO("      label         : " 
-                                    << pLabelInfo->result_label);
-                            }
-                        }
-                    }
                 }
             }
             LOG_INFO("  Criteria          : ------------------------");
@@ -2905,6 +2907,36 @@ namespace DSL
             std::cout << "    Top             : " << lrint(pObjectMeta->rect_params.top) << "\n";
             std::cout << "    Width           : " << lrint(pObjectMeta->rect_params.width) << "\n";
             std::cout << "    Height          : " << lrint(pObjectMeta->rect_params.height) << "\n";
+
+            if (pObjectMeta->classifier_meta_list)
+            {
+                std::cout << "  Classifier Data   : ------------------------" << "\n";
+                // For each frame in the batched meta data
+                for (NvDsClassifierMetaList* pClassifierMetaList = 
+                        pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+                            pClassifierMetaList = pClassifierMetaList->next)
+                {
+                    NvDsClassifierMeta* pClassifierMeta = 
+                        (NvDsClassifierMeta*)(pClassifierMetaList->data);
+                    if (pClassifierMeta != NULL)
+                    {
+                        std::cout << "    Infer Id        : " 
+                            << pClassifierMeta->unique_component_id <<"\n";
+                        for (NvDsLabelInfoList* pLabelInfoList = 
+                                pClassifierMeta->label_info_list; pLabelInfoList; 
+                                    pLabelInfoList = pLabelInfoList->next)
+                        {
+                            NvDsLabelInfo* pLabelInfo = 
+                                (NvDsLabelInfo*)(pLabelInfoList->data);
+                            if(pLabelInfo != NULL)
+                            {
+                                std::cout << "      label         : " 
+                                    << pLabelInfo->result_label <<"\n";
+                            }
+                        }
+                    }
+                }
+            }
         }
         else
         {
@@ -2925,35 +2957,6 @@ namespace DSL
 
         }
 
-        if (pObjectMeta->classifier_meta_list)
-        {
-            std::cout << "  Classifier Data   : ------------------------" << "\n";
-            // For each frame in the batched meta data
-            for (NvDsClassifierMetaList* pClassifierMetaList = 
-                    pObjectMeta->classifier_meta_list; pClassifierMetaList; 
-                        pClassifierMetaList = pClassifierMetaList->next)
-            {
-                NvDsClassifierMeta* pClassifierMeta = 
-                    (NvDsClassifierMeta*)(pClassifierMetaList->data);
-                if (pClassifierMeta != NULL)
-                {
-                    std::cout << "    Infer Id        : " 
-                        << pClassifierMeta->unique_component_id <<"\n";
-                    for (NvDsLabelInfoList* pLabelInfoList = 
-                            pClassifierMeta->label_info_list; pLabelInfoList; 
-                                pLabelInfoList = pLabelInfoList->next)
-                    {
-                        NvDsLabelInfo* pLabelInfo = 
-                            (NvDsLabelInfo*)(pLabelInfoList->data);
-                        if(pLabelInfo != NULL)
-                        {
-                            std::cout << "      label         : " 
-                                << pLabelInfo->result_label <<"\n";
-                        }
-                    }
-                }
-            }
-        }
         std::cout << "  Criteria          : ------------------------" << "\n";
         std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
         std::cout << "    Infer Id        : " << pTrigger->m_inferId << "\n";

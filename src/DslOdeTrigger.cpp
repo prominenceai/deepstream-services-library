@@ -745,6 +745,8 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta)
     {
+        LOG_FUNC();
+
         // Reset the occurrences from the last frame, even if disabled  
         m_occurrences = 0;
 
@@ -777,6 +779,8 @@ namespace DSL
         std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta)
     {
+        LOG_FUNC();
+        
         // Note: function is called from the system (callback) context
         // Gaurd against property updates from the client API
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -853,6 +857,8 @@ namespace DSL
     bool OdeTrigger::CheckForMinCriteria(NvDsFrameMeta* pFrameMeta, 
         NvDsObjectMeta* pObjectMeta)
     {
+        LOG_FUNC();
+        
         // Filter on enable and skip-frame interval
         if (!m_enabled or m_skipFrame)
         {
@@ -927,6 +933,8 @@ namespace DSL
 
     bool OdeTrigger::CheckForInside(NvDsObjectMeta* pObjectMeta)
     {
+        LOG_FUNC();
+        
         // If areas are defined, check condition
 
         if (m_pOdeAreasIndexed.size())
