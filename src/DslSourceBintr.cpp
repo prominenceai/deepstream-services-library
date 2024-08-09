@@ -880,8 +880,8 @@ namespace DSL
         // set the Caps Filter back as source ghost pad.
         if (!m_duplicateSources.size())
         {
-            m_pBufferOutCapsFilter->AddGhostPadToParent("src");
             m_pDuplicateSourceTeeQueue->RemoveGhostPadFromParent("src");
+            m_pBufferOutCapsFilter->AddGhostPadToParent("src");
             RemoveChild(m_pDuplicateSourceTee);
             RemoveChild(m_pDuplicateSourceTeeQueue);
             m_pDuplicateSourceTee = nullptr;
