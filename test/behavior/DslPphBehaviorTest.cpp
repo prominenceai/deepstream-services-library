@@ -209,13 +209,13 @@ static void buffer_timeout_handler_cb(uint timeout, void* client_data)
     std::cout << "Buffer Timeout Handeler called with timeout = " 
         << timeout << std::endl;
         
-    if (++count >=3)
+    if (++count >3)
     {
         dsl_main_loop_quit();
     }
 }
 
-SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[hold]" )
+SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[pph-behavior]" )
 {
     GIVEN( "A Pipeline, four images source, and Window Sink" ) 
     {
