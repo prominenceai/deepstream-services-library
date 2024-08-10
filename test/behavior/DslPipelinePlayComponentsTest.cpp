@@ -1790,7 +1790,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
             false, skip_frames, interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), sem_seg_infer_config_file.c_str(), 
-            sem_seg_model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
+            NULL, 0) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );
         
@@ -1845,54 +1845,51 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Semantic Segmentation"
     }
 }
 
-//SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentation, Window Sink can play", "[pipeline-play]" )
-//{
-//    GIVEN( "A Pipeline, URI source, Segmentation Visualizer, Primary GIE, and Window Sink" ) 
-//    {
-//        REQUIRE( dsl_component_list_size() == 0 );
-//
-////        REQUIRE( dsl_source_uri_new(source_name1.c_str(), image_path2.c_str(), 
-////            false, skip_frames, interval) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
-//            fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), ind_seg_infer_config_file.c_str(), 
-//            ind_seg_model_engine_file.c_str(), 0) == DSL_RESULT_SUCCESS );
-//
-//        REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );
-//        
-//        REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
-//            bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
-//        
-//        REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
-//            offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
-//
-//        const wchar_t* components[] = {L"image-source", L"primary-gie",
-//            L"segvisual", L"on-screen-display", L"egl-sink", NULL};
-//        
-//        WHEN( "When the Pipeline is Assembled" ) 
-//        {
-//            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-//        
-//            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
-//            
-//            THEN( "Pipeline is Able to LinkAll and Play" )
-//            {
-//                bool currIsClockEnabled(false);
-//                
-//                REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-//                std::this_thread::sleep_for(TIME_TO_SLEEP_FOR*20);
-//                REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-//
-//                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_pipeline_list_size() == 0 );
-//                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
-//                REQUIRE( dsl_component_list_size() == 0 );
-//            }
-//        }
-//    }
-//}
+SCENARIO( "A new Pipeline with a URI Source, Primary GIE, Industrial Segmentation, Window Sink can play", "[pipeline-play]" )
+{
+   GIVEN( "A Pipeline, URI source, Segmentation Visualizer, Primary GIE, and Window Sink" ) 
+   {
+       REQUIRE( dsl_component_list_size() == 0 );
+
+       REQUIRE( dsl_source_image_stream_new(image_source.c_str(), image_path1.c_str(), false, 
+           fps_n, fps_d, 0) == DSL_RESULT_SUCCESS );
+
+       REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), ind_seg_infer_config_file.c_str(), 
+           NULL, 0) == DSL_RESULT_SUCCESS );
+
+       REQUIRE( dsl_segvisual_new(seg_visual_name.c_str(), seg_visual_width, seg_visual_height) == DSL_RESULT_SUCCESS );
+       
+       REQUIRE( dsl_osd_new(osd_name.c_str(), text_enabled, clock_enabled,
+           bbox_enabled, mask_enabled) == DSL_RESULT_SUCCESS );
+       
+       REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
+           offest_x, offest_y, sink_width, sink_height) == DSL_RESULT_SUCCESS );
+
+       const wchar_t* components[] = {L"image-source", L"primary-gie",
+           L"segvisual", L"on-screen-display", L"egl-sink", NULL};
+       
+       WHEN( "When the Pipeline is Assembled" ) 
+       {
+           REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+       
+           REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+           
+           THEN( "Pipeline is Able to LinkAll and Play" )
+           {
+               bool currIsClockEnabled(false);
+               
+               REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+               std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+               REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+               REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+               REQUIRE( dsl_pipeline_list_size() == 0 );
+               REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+               REQUIRE( dsl_component_list_size() == 0 );
+           }
+       }
+   }
+}
 
 SCENARIO( "A new Pipeline-Stream-Muxer with Tiler 4 URI Sources, Primary GIE, Window Sink", 
     "[pipeline-play]" )

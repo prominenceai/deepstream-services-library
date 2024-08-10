@@ -112,6 +112,7 @@ SRCS+= $(wildcard ./src/*.cpp)
 SRCS+= $(wildcard ./src/thirdparty/*.cpp)
 SRCS+= $(wildcard ./test/*.cpp)
 SRCS+= $(wildcard ./test/api/*.cpp)
+SRCS+= $(wildcard ./test/behavior/*.cpp)
 SRCS+= $(wildcard ./test/unit/*.cpp)
 
 INCS+= $(wildcard ./src/*.h)
@@ -119,6 +120,7 @@ INCS+= $(wildcard ./src/thirdparty/*.h)
 INCS+= $(wildcard ./test/*.hpp)
 
 TEST_OBJS+= $(wildcard ./test/api/*.o)
+TEST_OBJS+= $(wildcard ./test/behavior/*.o)
 TEST_OBJS+= $(wildcard ./test/unit/*.o)
 
 ifeq ($(BUILD_WEBRTC),true)
