@@ -4271,7 +4271,7 @@ SCENARIO( "A new Fixed-Pixel OdeDistanceTrigger handles occurrence correctly", "
     }
 }
 
-SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[yup]" )
+SCENARIO( "A new Ralational OdeDistanceTrigger handles occurrence correctly", "[OdeTrigger]" )
 {
     GIVEN( "Attributes for a new Distance Trigger" ) 
     {

@@ -3068,20 +3068,28 @@ namespace DSL
             maximum = m_maximum;
             break;
         case DSL_DISTANCE_METHOD_PERCENT_WIDTH_A :
-            minimum = uint((m_minimum*pObjectMetaA->rect_params.width)/100);
-            maximum = uint((m_maximum*pObjectMetaA->rect_params.width)/100);
+            minimum = uint(((uint64_t)m_minimum * 
+                (uint64_t)pObjectMetaA->rect_params.width)/100);
+            maximum = uint(((uint64_t)m_maximum * 
+                (uint64_t)pObjectMetaA->rect_params.width)/100);
             break;
         case DSL_DISTANCE_METHOD_PERCENT_WIDTH_B :
-            minimum = uint((m_minimum*pObjectMetaB->rect_params.width)/100);
-            maximum = uint((m_maximum*pObjectMetaB->rect_params.width)/100);
+            minimum = uint(((uint64_t)m_minimum * 
+                (uint64_t)pObjectMetaB->rect_params.width)/100);
+            maximum = uint(((uint64_t)m_maximum *
+                (uint64_t)pObjectMetaB->rect_params.width)/100);
             break;
         case DSL_DISTANCE_METHOD_PERCENT_HEIGHT_A :
-            minimum = uint((m_minimum*pObjectMetaA->rect_params.height)/100);
-            maximum = uint((m_maximum*pObjectMetaA->rect_params.height)/100);
+            minimum = uint(((uint64_t)m_minimum *
+                (uint64_t)pObjectMetaA->rect_params.height)/100);
+            maximum = uint(((uint64_t)m_maximum *
+                (uint64_t)pObjectMetaA->rect_params.height)/100);
             break;
         case DSL_DISTANCE_METHOD_PERCENT_HEIGHT_B :
-            minimum = uint((m_minimum*pObjectMetaB->rect_params.height)/100);
-            maximum = uint((m_maximum*pObjectMetaB->rect_params.height)/100);
+            minimum = uint(((uint64_t)m_minimum *
+                (uint64_t)pObjectMetaB->rect_params.height)/100);
+            maximum = uint(((uint64_t)m_maximum * 
+                (uint64_t)pObjectMetaB->rect_params.height)/100);
             break;
         }    
         return (minimum > distance or maximum < distance);
