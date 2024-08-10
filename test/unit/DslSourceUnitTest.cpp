@@ -1521,7 +1521,7 @@ SCENARIO( "A DuplicateSourceBintr added and removed correctly",  "[SourceBintr]"
 }
 
 SCENARIO( "Multiple DuplicateSourceBintrs can be added and linked with a VideoSourceBintr",  
-    "[temp]" )
+    "[SourceBintr]" )
 {
     GIVEN( "A new DuplicateSourceBintr and VideoSourceBintr" ) 
     {
