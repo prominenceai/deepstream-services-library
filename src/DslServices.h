@@ -658,23 +658,6 @@ namespace DSL {
 
         DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
-        DslReturnType PphNmpNew(const char* name, const char* labelFile,
-            uint processMethod, uint matchMethod, float matchThreshold);
-            
-        DslReturnType PphNmpLabelFileGet(const char* name, const char** labelFile);
-        
-        DslReturnType PphNmpLabelFileSet(const char* name, const char* labelFile);
-
-        DslReturnType PphNmpProcessMethodGet(const char* name, uint* processMethod);
-        
-        DslReturnType PphNmpProcessMethodSet(const char* name, uint processMethod);
-        
-        DslReturnType PphNmpMatchSettingsGet(const char* name, 
-            uint* matchMethod, float* matchThreshold);
-        
-        DslReturnType PphNmpMatchSettingsSet(const char* name, 
-            uint matchMethod, float matchThreshold);
-        
         DslReturnType PphBufferTimeoutNew(const char* name,
             uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
     
