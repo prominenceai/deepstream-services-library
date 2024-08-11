@@ -373,35 +373,17 @@ Components, when added to a Branch, are linked in the order as shown in the diag
 ## Pad Probe Handlers
 Pipeline components are linked together using directional ["pads"](https://gstreamer.freedesktop.org/documentation/gstreamer/gstpad.html?gi-language=c) with a Source Pad from one component as the producer of data connected to the Sink Pad of the next component as the consumer. Data flowing over the component’s pads can be monitored, inspected and updated using a Pad-Probe with a specific Handler function.
 
-There are six Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Recording Taps and Secondary GIE's.
+There are five Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Recording Taps and Secondary GIE's.
 1. [Custom PPH](/docs/api-pph.md#dsl_pph_custom_new) - allows the client to install a callback with custom behavior. 
 2. [Stream Event PPH](/docs/api-pph.md#dsl_pph_stream_event_new) - allows the client to listen for and handle Stream Added, Deleted, and Ended (EOS) events.
 3. [New Buffer Timeout PPH](/docs/api-pph.md#dsl_pph_buffer_timeout_new) - informs the client that a new buffer has not been received within a specified time limit.
 4. [Source Meter PPH](/docs/api-pph.md#dsl_pph_meter_new) - measures the throughput for each source in the Pipeline.
 5. [Object Detection Event PPH](/docs/api-pph.md#dsl_pph_ode_new) - manages a collection of [Triggers](/docs/api-ode-trigger.md) that invoke [Actions](/docs/api-ode-action.md) on the occurrence of specific frame and object metadata. 
-6. [Non-Maximum Processor PPH](/docs/api-pph.md#dsl_pph_nmp_new) - implements an inference cluster algorithm providing a more flexible alternative to the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin.
  
 See the [Pad Probe Handler API](/docs/api-pph.md) reference section for additional information.
 
 ### Custom Pad Probe Handler
 Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
-
-### Stream Muxer Stream Event Pad Probe Handler
-The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
-* The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
-   * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
-   * and when a new Source is added at runtime.
-* A `DSL_PPH_EVENT_STREAM_DELETED` event is sent if a Source is removed at runtime. 
-* A `DSL_PPH_EVENT_STREAM_ENDED` event is sent when the Stream ends (EOS) including when a Source is removed at runtime.
-
-### New Buffer Timeout Pad Probe Handler
-It can be important for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applications, in the event of new-buffer-timeout, can take informative and/or corrective action.
-
-### Pipeline Meter Pad Probe Handler
-The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with a new session started at any time. 
-
-### Object Detection Event Pad Probe Handler
-The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
 
 Using Python and [NVIDIA's python bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) for example:
 
@@ -429,6 +411,24 @@ retval = dsl_pph_custom_new('custom-handler',
 ```
 
 See the [complete example](/examples/python/1uri_file_pgie_iou_tracker_osd_custom_pph_window.py).
+
+### Stream Muxer Stream Event Pad Probe Handler
+The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
+* The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
+   * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
+   * and when a new Source is added at runtime.
+* A `DSL_PPH_EVENT_STREAM_DELETED` event is sent if a Source is removed at runtime. 
+* A `DSL_PPH_EVENT_STREAM_ENDED` event is sent when the Stream ends (EOS) including when a Source is removed at runtime.
+
+### New Buffer Timeout Pad Probe Handler
+It can be important for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applications, in the event of new-buffer-timeout, can take informative and/or corrective action.
+
+### Pipeline Meter Pad Probe Handler
+The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with a new session started at any time. 
+
+### Object Detection Event Pad Probe Handler
+The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
+
 
 Refer to the [ODE Pad Probe Handler API Reference](/docs/api-pph.md) for more information.
 
