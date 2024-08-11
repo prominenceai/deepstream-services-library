@@ -220,8 +220,6 @@ SCENARIO( "The Pipeline Callback API checks for NULL input parameters", "[pipeli
     {
         std::wstring pipeline_name  = L"test-pipeline";
         
-        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
-        
         WHEN( "When NULL pointers are used as input" ) 
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
