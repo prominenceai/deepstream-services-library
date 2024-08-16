@@ -235,6 +235,8 @@
 * [`dsl_source_rtsp_drop_on_latency_enabled_set`](/docs/api-source.md#dsl_source_rtsp_drop_on_latency_enabled_set)
 * [`dsl_source_rtsp_tls_validation_flags_get`](/docs/api-source.md#dsl_source_rtsp_tls_validation_flags_get)
 * [`dsl_source_rtsp_tls_validation_flags_set`](/docs/api-source.md#dsl_source_rtsp_tls_validation_flags_set)
+* [`dsl_source_rtsp_udp_buffer_size_get`](/docs/api-source.md#dsl_source_rtsp_udp_buffer_size_get)
+* [`dsl_source_rtsp_udp_buffer_size_set`](/docs/api-source.md#dsl_source_rtsp_udp_buffer_size_set)
 * [`dsl_source_rtsp_state_change_listener_add`](/docs/api-source.md#dsl_source_rtsp_state_change_listener_add)
 * [`dsl_source_rtsp_state_change_listener_remove`](/docs/api-source.md#dsl_source_rtsp_state_change_listener_remove)
 * [`dsl_source_rtsp_tap_add`](/docs/api-source.md#dsl_source_rtsp_tap_add)

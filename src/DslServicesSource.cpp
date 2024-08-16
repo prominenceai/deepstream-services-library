@@ -3081,6 +3081,73 @@ namespace DSL
         }
     }
         
+    DslReturnType Services::SourceRtspUdpBufferSizeGet(const char* name, 
+        uint* size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            *size = pSourceBintr->GetUdpBufferSize();
+
+            LOG_INFO("RTSP Source '" << name  
+                << "' returned udp-buffer-size = " << *size 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception getting udp-buffer-size");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceRtspUdpBufferSizeSet(const char* name, 
+        uint size)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RtspSourceBintr);   
+
+            DSL_RTSP_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<RtspSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetUdpBufferSize(size))
+            {
+                LOG_ERROR("RTSP Source '" << name 
+                    << "' failed to set udp-buffer-size");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("RTSP Source '" << name 
+                << "' set udp-buffer-size = " << size 
+                << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("RTSP Source '" << name 
+                << "' threw exception setting udp-buffer-size");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::SourceRtspStateChangeListenerAdd(const char* name, 
         dsl_state_change_listener_cb listener, void* clientData)
     {
