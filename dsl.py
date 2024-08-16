@@ -4489,9 +4489,35 @@ def dsl_source_rtsp_tls_validation_flags_set(name, flags):
     return int(result)
 
 ##
+## dsl_source_rtsp_udp_buffer_size_get()
+##
+_dsl.dsl_source_rtsp_udp_buffer_size_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_rtsp_udp_buffer_size_get.restype = c_uint
+def dsl_source_rtsp_udp_buffer_size_get(name):
+    global _dsl
+    size = c_uint(0)
+    result = _dsl.dsl_source_rtsp_udp_buffer_size_get(name, 
+        DSL_UINT_P(size))
+    return int(result), size.value
+
+##
+## dsl_source_rtsp_udp_buffer_size_set()
+##
+_dsl.dsl_source_rtsp_udp_buffer_size_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_source_rtsp_udp_buffer_size_set.restype = c_uint
+def dsl_source_rtsp_udp_buffer_size_set(name, size):
+    global _dsl
+    result = _dsl.dsl_source_rtsp_udp_buffer_size_set(name, 
+        size)
+    return int(result)
+
+##
 ## dsl_source_rtsp_state_change_listener_add()
 ##
-_dsl.dsl_source_rtsp_state_change_listener_add.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_source_rtsp_state_change_listener_add.argtypes = [c_wchar_p, 
+    DSL_STATE_CHANGE_LISTENER, c_void_p]
 _dsl.dsl_source_rtsp_state_change_listener_add.restype = c_uint
 def dsl_source_rtsp_state_change_listener_add(name, client_listener, client_data):
     global _dsl
@@ -4499,13 +4525,15 @@ def dsl_source_rtsp_state_change_listener_add(name, client_listener, client_data
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_source_rtsp_state_change_listener_add(name, c_client_listener, c_client_data)
+    result = _dsl.dsl_source_rtsp_state_change_listener_add(name, 
+        c_client_listener, c_client_data)
     return int(result)
     
 ##
 ## dsl_source_rtsp_state_change_listener_remove()
 ##
-_dsl.dsl_source_rtsp_state_change_listener_remove.argtypes = [c_wchar_p, DSL_STATE_CHANGE_LISTENER]
+_dsl.dsl_source_rtsp_state_change_listener_remove.argtypes = [c_wchar_p, 
+    DSL_STATE_CHANGE_LISTENER]
 _dsl.dsl_source_rtsp_state_change_listener_remove.restype = c_uint
 def dsl_source_rtsp_state_change_listener_remove(name, client_listener):
     global _dsl

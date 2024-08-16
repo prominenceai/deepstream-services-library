@@ -1264,6 +1264,39 @@ SCENARIO( "An RTSP Source's tls-validation-flags can be updated correctly", "[so
     }
 }
 
+SCENARIO( "An RTSP Source's udp-buffer-size can be updated correctly", 
+    "[source-api]" )
+{
+    GIVEN( "A new RTSP Source" )
+    {
+        REQUIRE( dsl_source_rtsp_new(source_name.c_str(), rtsp_uri.c_str(), protocol,
+            skip_frames, interval, latency, timeout) == DSL_RESULT_SUCCESS );
+            
+        boolean ret_udp_buffer_size(0);
+        
+        REQUIRE( dsl_source_rtsp_udp_buffer_size_get(source_name.c_str(), 
+            &ret_udp_buffer_size) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_udp_buffer_size == 524288 );
+
+        WHEN( "The RTSP Source's udp-buffer-size is updated" ) 
+        {
+            boolean new_udp_buffer_size(600000);
+                
+            REQUIRE( dsl_source_rtsp_udp_buffer_size_set(source_name.c_str(), 
+                new_udp_buffer_size) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct value is returned after update" )
+            {
+                REQUIRE( dsl_source_rtsp_udp_buffer_size_get(source_name.c_str(), 
+                    &ret_udp_buffer_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_udp_buffer_size == new_udp_buffer_size );
+                    
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
+
 static void source_state_change_listener_cb1(uint prev_state, uint curr_state, void* user_data)
 {
 }
@@ -1818,6 +1851,13 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                 REQUIRE( dsl_source_rtsp_tls_validation_flags_get(source_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_rtsp_tls_validation_flags_set(NULL,
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_rtsp_udp_buffer_size_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_udp_buffer_size_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_rtsp_udp_buffer_size_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_rtsp_tap_add(NULL,

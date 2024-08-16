@@ -230,6 +230,8 @@ The Custom Source API is used to create custom DSL Video Source Components using
 * [`dsl_source_rtsp_drop_on_latency_enabled_set`](#dsl_source_rtsp_drop_on_latency_enabled_set)
 * [`dsl_source_rtsp_tls_validation_flags_get`](#dsl_source_rtsp_tls_validation_flags_get)
 * [`dsl_source_rtsp_tls_validation_flags_set`](#dsl_source_rtsp_tls_validation_flags_set)
+* [`dsl_source_rtsp_udp_buffer_size_get`](#dsl_source_rtsp_udp_buffer_size_get)
+* [`dsl_source_rtsp_udp_buffer_size_set`](#dsl_source_rtsp_udp_buffer_size_set)
 * [`dsl_source_rtsp_state_change_listener_add`](#dsl_source_rtsp_state_change_listener_add)
 * [`dsl_source_rtsp_state_change_listener_remove`](#dsl_source_rtsp_state_change_listener_remove)
 * [`dsl_source_rtsp_tap_add`](#dsl_source_rtsp_tap_add)
@@ -2373,6 +2375,46 @@ This service sets the TLS certificate validation flags for the named RTSP Source
 ```Python
 retval = dsl_source_rtsp_tls_validation_flags_set('my-rtsp-source',
     DSL_TLS_CERTIFICATE_UNKNOWN_CA | DSL_TLS_CERTIFICATE_BAD_IDENTITY)
+```
+<br>
+
+### *dsl_source_rtsp_udp_buffer_size_get*
+```C
+DslReturnType dsl_source_rtsp_udp_buffer_size_get(const wchar_t* name,
+    uint* size);
+```
+This service gets the current size of the kernel UDP receive buffer for the named RTSP Source.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `size` - [out] current size of the kernel UDP receive buffer in bytes. Default = 524288.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, size = dsl_source_rtsp_udp_buffer_size_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_udp_buffer_size_set*
+```C
+DslReturnType dsl_source_rtsp_udp_buffer_size_set(const wchar_t* name,
+    uint size);
+```
+This service sets the size of the kernel UDP receive buffer for the named RTSP Source to use.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to update
+ * `size ` - [in] new size for the kernel UDP receive buffer in bytes. 
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_udp_buffer_size_set('my-rtsp-source', new_buffer_size)
 ```
 <br>
 

@@ -5361,24 +5361,6 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
     boolean accept_eos, boolean accept_events);
     
 /**
- * @brief creates a new, uniquely named RTSP Source component
- * @param[in] name Unique for the new RTSP Source.
- * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] skip_frames Type of frames to skip during decoding.
- *   (0): decode_all       - Decode all frames
- *   (1): decode_non_ref   - Decode non-ref frame
- *   (2): decode_key       - decode key frames
- * @param[in] drop_frame_interval, set to 0 to decode every frame.
- * @param[in] latency the amount of data to buffer in milliseconds.
- * @param[in] timeout time to wait between successive frames before determining the 
- * connection is lost. Set to 0 to disable timeout.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
-    const wchar_t* uri, uint protocol, uint skip_frames, uint drop_frame_interval, 
-    uint latency, uint timeout);
-
-/**
  * @brief Creates a new, uniquely name Duplicate Source used to duplicate the stream 
  * of another named Video Source. Both the Duplicate Source and the Original Source
  * must be added to the same Pipeline. The Duplicate Source will be Tee'd into the
@@ -5620,6 +5602,24 @@ DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri);
 DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri);
 
 /**
+ * @brief creates a new, uniquely named RTSP Source component
+ * @param[in] name Unique for the new RTSP Source.
+ * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
+ * @param[in] skip_frames Type of frames to skip during decoding.
+ *   (0): decode_all       - Decode all frames
+ *   (1): decode_non_ref   - Decode non-ref frame
+ *   (2): decode_key       - decode key frames
+ * @param[in] drop_frame_interval, set to 0 to decode every frame.
+ * @param[in] latency the amount of data to buffer in milliseconds.
+ * @param[in] timeout time to wait between successive frames before determining the 
+ * connection is lost. Set to 0 to disable timeout.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
+    const wchar_t* uri, uint protocol, uint skip_frames, uint drop_frame_interval, 
+    uint latency, uint timeout);
+
+/**
  * @brief Sets the current URI for the named RTSP Source to use.
  * @param[in] name name of the Source to update.
  * @param[in] uri new URI for the RTSP Source to use.
@@ -5743,6 +5743,24 @@ DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
  */
 DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
     uint flags);
+
+/**
+ * @brief Gets the current upd-buffer-size for the named RTSP Source.
+ * @param[in] name name of the source object to query
+ * @param[out] size current size of the kernel UDP receive buffer in bytes. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_udp_buffer_size_get(const wchar_t* name,
+    uint* size);
+
+/**
+ * @brief Sets the upd-buffer-size for the named RTSP Source to use.
+ * @param[in] name name of the source object to update
+ * @param[in] size new size of the kernel UDP receive buffer in bytes. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_udp_buffer_size_set(const wchar_t* name,
+    uint size);
 
 /**
  * @brief adds a callback to be notified on change of RTSP Source state
