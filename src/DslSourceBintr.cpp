@@ -3340,6 +3340,7 @@ namespace DSL
         // Get the default properties
         m_pSourceElement->GetAttribute("tls-validation-flags", 
             &m_tlsValidationFlags);
+        m_pSourceElement->GetAttribute("udp-buffer-size", &m_udpBufferSize);
         m_pSourceElement->GetAttribute("drop-on-latency", &m_dropOnLatency);
         
         // Configure the source to generate NTP sync values
@@ -3349,10 +3350,10 @@ namespace DSL
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
 
-        g_signal_connect (m_pSourceElement->GetGObject(), "select-stream",
+        // Connect RTSP Source Setup Callbacks
+        g_signal_connect(m_pSourceElement->GetGObject(), "select-stream",
             G_CALLBACK(RtspSourceSelectStreamCB), this);
 
-        // Connect RTSP Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(RtspSourceElementOnPadAddedCB), this);
 
@@ -3385,6 +3386,7 @@ namespace DSL
         LOG_INFO("  drop-on-latency      : " << m_dropOnLatency);
         LOG_INFO("  drop-frame-interval  : " << m_dropFrameInterval);
         LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
+        LOG_INFO("  udp-buffer-size      : " << m_udpBufferSize);
         LOG_INFO("  width                : " << m_width);
         LOG_INFO("  height               : " << m_height);
         LOG_INFO("  fps-n                : " << m_fpsN);
@@ -3399,16 +3401,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
         LOG_INFO("    crop-post-conv     : 0:0:0:0" );
         LOG_INFO("    orientation        : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pDepayCapsfilter);
@@ -3668,7 +3670,7 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
-                << GetName() << "' as it's currently in use");
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_latency = latency;
@@ -3690,8 +3692,8 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
-                << GetName() << "' as it's currently in use");
+            LOG_ERROR("Unable to set drop-on-latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_dropOnLatency = dropOnLatency;
@@ -3714,12 +3716,36 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set tls-validation-flags for RtspSourceBintr '" 
-                << GetName() << "' as it's currently in use");
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_tlsValidationFlags = flags;
         m_pSourceElement->SetAttribute("tls-validation-flags", 
             m_tlsValidationFlags);
+    
+        return true;
+    }
+
+    guint RtspSourceBintr::GetUdpBufferSize()
+    {
+        LOG_FUNC();
+
+        return m_udpBufferSize;
+    }
+    
+    bool RtspSourceBintr::SetUdpBufferSize(uint size)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set udp-buffer-size for RtspSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_udpBufferSize = size;
+        m_pSourceElement->SetAttribute("udp-buffer-size", 
+            m_udpBufferSize);
     
         return true;
     }

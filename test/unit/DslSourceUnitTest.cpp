@@ -814,6 +814,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetDropOnLatencyEnabled() == false );
                 REQUIRE( pSourceBintr->GetTlsValidationFlags() == 
                     DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+                REQUIRE( pSourceBintr->GetUdpBufferSize() == 524288);
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
                 
                 dsl_rtsp_connection_data data{0};
@@ -903,6 +904,17 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
             THEN( "The correct value is returned on get" )
             {
                 REQUIRE( pSourceBintr->GetTlsValidationFlags() == newTlsValidationFlags );
+            }
+        }
+        WHEN( "The RtspSourceBintr's udp-buffer-size is set " )
+        {
+            uint newUdpBufferSize(600000);
+            
+            pSourceBintr->SetUdpBufferSize(newUdpBufferSize);
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pSourceBintr->GetUdpBufferSize() == newUdpBufferSize );
             }
         }
     }

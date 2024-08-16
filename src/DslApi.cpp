@@ -5490,6 +5490,31 @@ DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
         cstrName.c_str(), flags);
 }
     
+DslReturnType dsl_source_rtsp_udp_buffer_size_get(const wchar_t* name,
+    uint* size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspUdpBufferSizeGet(
+        cstrName.c_str(), size);
+}
+    
+DslReturnType dsl_source_rtsp_udp_buffer_size_set(const wchar_t* name,
+    uint size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceRtspUdpBufferSizeSet(
+        cstrName.c_str(), size);
+}
+    
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* source, 
     dsl_state_change_listener_cb listener, void* client_data)
 {

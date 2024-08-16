@@ -997,6 +997,12 @@ namespace DSL {
         DslReturnType SourceRtspTlsValidationFlagsSet(const char* name, 
             uint flags);
 
+        DslReturnType SourceRtspUdpBufferSizeGet(const char* name, 
+            uint* size);
+
+        DslReturnType SourceRtspUdpBufferSizeSet(const char* name, 
+            uint size);
+
         DslReturnType SourceRtspStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);
         

@@ -1945,6 +1945,19 @@ namespace DSL
         bool SetTlsValidationFlags(uint flags);
         
         /**
+         * @brief Gets the current udp-buffer-size for the RtspSourceBintr.
+         * @return Current size of the kernel UDP receive buffer in bytes
+         */
+        uint GetUdpBufferSize();
+        
+        /**
+         * @brief Sets the udp-buffer-size for the RtspSourceBintr to use.
+         * @param[in] size new size for the kernel UDP receive buffer in bytes. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetUdpBufferSize(uint size);
+        
+        /**
          * @brief adds a TapBintr to the RTSP Source - one at most
          * @return true if the Source was able to add the Child TapBintr
          */
@@ -2018,6 +2031,11 @@ namespace DSL
          * RTSP server certificate.
          */
         uint m_tlsValidationFlags;
+
+        /**
+         * @brief Size of the kernel UDP receive buffer in bytes
+         */
+        uint m_udpBufferSize;
 
         /**
          * @brief optional child TapBintr, tapped in pre-decode
