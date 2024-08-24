@@ -926,9 +926,6 @@ THE SOFTWARE.
 #define DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC                     10
 #define DSL_DEFAULT_WAIT_FOR_EOS_TIMEOUT_IN_SEC                     2
 
-#define DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC                       30
-#define DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC                    30
-
 #define DSL_TEE_DEFAULT_BLOCKING_TIMEOUT_IN_SEC                     1
 
 #define DSL_BBOX_POINT_CENTER                                       0
@@ -985,6 +982,18 @@ THE SOFTWARE.
  */
 #define DSL_RENDER_TYPE_3D                                          0
 #define DSL_RENDER_TYPE_EGL                                         1
+
+/**
+ * @brief Default maximum size for any Tap/Sink smart record in seconds.
+ * start + duration < max-size  
+*/
+#define DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC                    600
+
+/**
+ * @brief Default cache size for any Tap/Sink smart record in seconds.
+ * start < cache-size  
+*/
+#define DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC                  60
 
 /**
  * @brief Smart Recording Events - to identify which event
@@ -5921,28 +5930,48 @@ DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container)
 
 /**
  * @brief returns the video recording container type for the named Record Tap
- * @param[in] name name of the Record Tap to query
+ * @param[in] name name of the Record Tap to query.
  * @param[in] container new setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_container_set(const wchar_t* name,  uint container);
 
 /**
- * @brief returns the video recording cache size in units of seconds
- * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
- * @param[in] name name of the Record Tap to query
- * @param[out] cache_size current cache size setting
+ * @brief Returns the video recording max size in units of seconds for the named 
+ * Record Tap.
+ * The default max size is set to DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC.
+ * @param[in] name name of the Record Tap to query.
+ * @param[out] max_size current max size setting in units of seconds.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure.
+ */
+DslReturnType dsl_tap_record_max_size_get(const wchar_t* name, uint* max_size);
+
+/**
+ * @brief Sets the video recording max size in units of seconds for the named 
+ * Record Tap.
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC
+ * @param[in] name name of the Record Tap to update.
+ * @param[in] max_size new cache size setting to use in units of seconds.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure.
+ */
+DslReturnType dsl_tap_record_max_size_set(const wchar_t* name, uint max_size);
+
+/**
+ * @brief Returns the video recording cache size in units of seconds for the named 
+ * Record Tap. A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC.
+ * @param[in] name name of the Record Tap to query.
+ * @param[out] cache_size current cache size setting in units of seconds.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size);
 
 /**
- * @brief sets the video recording cache size in units of seconds
- * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
- * @param[in] name name of the Record Tap to update
- * @param[in] cache_size new cache size setting to use on Pipeline play
+ * @brief Sets the video recording cache size in units of seconds for the named 
+ * Record Tap. A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC.
+ * @param[in] name name of the Record Tap to update.
+ * @param[in] cache_size new cache size setting in units of seconds.
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size);
@@ -7487,7 +7516,7 @@ DslReturnType dsl_sink_record_outdir_set(const wchar_t* name, const wchar_t* out
 /**
  * @brief returns the video recording container type for the named Sink
  * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC
  * @param[in] name name of the Record Tap to query
  * @param[out] container current setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
@@ -7503,21 +7532,41 @@ DslReturnType dsl_sink_record_container_get(const wchar_t* name, uint* container
 DslReturnType dsl_sink_record_container_set(const wchar_t* name,  uint container);
 
 /**
- * @brief returns the video recording cache size in units of seconds
- * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
- * @param[in] name name of the Record Sink to query
- * @param[out] cache_size current cache size setting
+ * @brief returns the video recording max size in units of seconds for the named 
+ * Record Sink. The max size is fixed when the Pipeline is linked and played. 
+ * The default max size is set to DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC.
+ * @param[in] name name of the Record Sink to query.
+ * @param[out] max_size current max size setting in units of seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_record_max_size_get(const wchar_t* name, uint* max_size);
+
+/**
+ * @brief sets the video recording max size in units of seconds for the named 
+ * Record Sink. The max size is fixed when the Pipeline is linked and played. 
+ * The default max size is set to DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC.
+ * @param[in] name name of the Record Sink to query.
+ * @param[in] max_size new max size setting in units of seconds.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
+ */
+DslReturnType dsl_sink_record_max_size_set(const wchar_t* name, uint max_size);
+
+/**
+ * @brief returns the video recording cache size in units of seconds for the named 
+ * Record Sink. A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC.
+ * @param[in] name name of the Record Sink to query.
+ * @param[out] cache_size current cache size setting in units of seconds.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size);
 
 /**
- * @brief sets the video recording cache size in units of seconds
- * A fixed size cache is created when the Pipeline is linked and played. 
- * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
- * @param[in] name name of the Record Sink to query
- * @param[in] cache_size new cache size setting to use on Pipeline play
+ * @brief sets the video recording cache size in units of seconds for the named 
+ * Record Sink. A fixed size cache is created when the Pipeline is linked and played. 
+ * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC.
+ * @param[in] name name of the Record Sink to query.
+ * @param[in] cache_size new cache size setting in units of seconds.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT
  */
 DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_size);

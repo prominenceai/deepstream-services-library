@@ -1189,7 +1189,11 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Sin
                 std::string retOutdir = pSinkBintr->GetOutdir();
                 REQUIRE( outdir == retOutdir );
                 
-                REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
+            REQUIRE( pSinkBintr->GetMaxSize() == 
+                DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC );
+                
+                REQUIRE( pSinkBintr->GetCacheSize() == 
+                    DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC );
                 
                 // The following should produce warning messages as there is no record-bin context 
                 // prior to linking. Unfortunately, this requires visual verification.
@@ -1217,9 +1221,24 @@ SCENARIO( "A RecordSinkBintr's Init Parameters can be Set/Get ",  "[SinkBintr]" 
         DSL_RECORD_SINK_PTR pSinkBintr = DSL_RECORD_SINK_NEW(sinkName.c_str(), 
             outdir.c_str(), codec, container, bitrate, interval, clientListener);
 
+        WHEN( "The Video Max Size is set" )
+        {
+            REQUIRE( pSinkBintr->GetMaxSize() == 
+                DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC );
+            
+            uint newMaxSize(200);
+            REQUIRE( pSinkBintr->SetMaxSize(newMaxSize) == true );
+
+            THEN( "The correct max size value is returned" )
+            {
+                REQUIRE( pSinkBintr->GetMaxSize() == newMaxSize );
+            }
+        }
+
         WHEN( "The Video Cache Size is set" )
         {
-            REQUIRE( pSinkBintr->GetCacheSize() == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
+            REQUIRE( pSinkBintr->GetCacheSize() == 
+                DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC );
             
             uint newCacheSize(20);
             REQUIRE( pSinkBintr->SetCacheSize(newCacheSize) == true );

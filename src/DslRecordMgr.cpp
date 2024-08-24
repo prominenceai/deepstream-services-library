@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -72,8 +72,8 @@ namespace DSL
         m_initParams.fileNamePrefix = const_cast<gchar*>(m_name.c_str());
         m_initParams.dirpath = const_cast<gchar*>(m_outdir.c_str());
         
-        m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_DURATION_IN_SEC;
-        m_initParams.cacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC;
+        m_initParams.defaultDuration = DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC;
+        m_initParams.cacheSize = DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC;
     }
     
     RecordMgr::~RecordMgr()
@@ -109,20 +109,21 @@ namespace DSL
             LOG_ERROR("There is no context to destroy for RecordMgr '" << m_name << "'");
             return;
         }
-        if (IsOn())
+        // NOTE: There is a bug in the NVIDIA Smart Record bin. The IsOn()
+        // function returns true after the bin receives an EOS and stops the
+        // recording. We need to test the session-id to see if a session is
+        // truly in progress (which is cleared in HandleRecordComplete below).
+        if (IsOn() and m_currentSessionId < UINT32_MAX)
         {
             LOG_INFO("RecordMgr '" << m_name 
                 << "' is in session, stopping before destroying context");
             StopSession(true);
         }
-        // NOTE: This conditional is required to avoid a potential lockup on the x86_64 platform
-        cudaDeviceProp deviceProp;
-        cudaGetDeviceProperties(&deviceProp, m_parentGpuId);
-        if (g_main_loop_is_running(Services::GetServices()->GetMainLoopHandle()) or 
-            !deviceProp.integrated)
-        {
-            NvDsSRDestroy(m_pContext);
-        }
+        // NOTE: There is a bug in the NVIDIA Smart Record bin that will lock 
+        // up if called when a recording is in progress, sometimes even if 
+        // stopped first.
+        
+        // NvDsSRDestroy(m_pContext);
             
         m_pContext = NULL;
     }
@@ -142,7 +143,7 @@ namespace DSL
         if (m_pContext)
         {
             LOG_ERROR("Unable to set the Output for RecordMgr '" << m_name 
-                << "' as it is currently in use");
+                << "' as it is currently linked");
             return false;
         }
         
@@ -164,7 +165,7 @@ namespace DSL
         if (m_pContext)
         {
             LOG_ERROR("Unable to set container type for RecordMgr '" << m_name 
-                << "' as it is currently in use");
+                << "' as it is currently linked");
             return false;
         }
 
@@ -184,6 +185,29 @@ namespace DSL
         return true;
     }
 
+    uint RecordMgr::GetMaxSize()
+    {
+        LOG_FUNC();
+        
+        return m_initParams.defaultDuration;
+    }
+
+    bool RecordMgr::SetMaxSize(uint maxSize)
+    {
+        LOG_FUNC();
+        
+        if (m_pContext)
+        {
+            LOG_ERROR("Unable to set max size for RecordMgr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+
+        m_initParams.defaultDuration = maxSize;
+        
+        return true;
+    }
+
     uint RecordMgr::GetCacheSize()
     {
         LOG_FUNC();
@@ -198,7 +222,7 @@ namespace DSL
         if (m_pContext)
         {
             LOG_ERROR("Unable to set cache size for RecordMgr '" << m_name 
-                << "' as it is currently in use");
+                << "' as it is currently linked");
             return false;
         }
 
@@ -222,7 +246,7 @@ namespace DSL
         if (m_pContext)
         {
             LOG_ERROR("Unable to set Dimensions for RecordMgr '" << m_name 
-                << "' as it is currently in use");
+                << "' as it is currently linked");
             return false;
         }
 
@@ -246,13 +270,26 @@ namespace DSL
         if (IsOn() or m_listenerNotifierTimerId)
         {
             LOG_INFO("Unable to start NEW session for RecordMgr '" << m_name 
-                << "' a it's in a recording session, ");
+                << "' -- session in progress");
             return false;
         }
-        
         LOG_INFO("Starting record session for RecordMgr '" << m_name 
             << "' with start = " << start << " and durarion = " << duration);
-        
+
+        if (start > m_initParams.cacheSize)
+        {
+            LOG_WARN("start = " << start << " is greater than cache-size = " 
+                <<  m_initParams.cacheSize << " for RecordMgr '" << m_name 
+                << "' -- recording will be truncated");
+        }
+        if ((start + duration) > m_initParams.defaultDuration)
+        {
+            LOG_WARN("start + duration = " << start + duration 
+                << " is greater than max-size = " <<  m_initParams.defaultDuration 
+                << " for RecordMgr '" << m_name 
+                << "' -- recording will be truncated");
+        }
+               
         // Save the client data to return     
         m_clientData = clientData;
         

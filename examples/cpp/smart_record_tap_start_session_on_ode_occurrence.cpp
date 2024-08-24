@@ -22,40 +22,49 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-// ````````````````````````````````````````````````````````````````````````````````````
-// This example demonstrates the use of a Smart-Record Tap and how to start
-// a recording session on the "occurrence" of an Object Detection Event (ODE).
-// An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
-// on the first detection of a Person object. The Trigger uses an ODE "Start 
-// Recording Session Action" setup with the following parameters:
-//   start-time: the seconds before the current time (i.e.the amount of 
-//               cache/history to include.
-//   duration:   the seconds after the current time (i.e. the amount of 
-//               time to record after session start is called).
-// Therefore, a total of start-time + duration seconds of data will be recorded.
-//
-// Record Tap components tap into RTSP Source components pre-decoder to enable
-// smart-recording of the incomming (original) H.264 or H.265 stream. 
-//
-// Additional ODE Actions are added to the Trigger to 1) print the ODE 
-// data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
-// to the console and 2) to capture the object (bounding-box) to a JPEG file.
-// 
-// A basic inference Pipeline is used with PGIE, Tracker, Tiler, OSD, and Window Sink.
-//
-// DSL Display Types are used to overlay text ("REC") with a red circle to
-// indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
-// ODE "Add Display Meta Action" are used to add the text's and circle's metadata
-// to each frame while the Trigger is enabled. The record_event_listener callback,
-// called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
-// and disables the "Always Trigger" according to the event received. 
-//
-// IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
-// Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
-// session to be started on the next occurrence of a Person. 
-//
-// IMPORTANT: this demonstrates a multi-source Pipeline, each with their own
-// Smart-Recort Tap.
+/* ````````````````````````````````````````````````````````````````````````````````````
+# This example demonstrates the use of a Smart-Record Tap and how to start
+# a recording session on the "occurrence" of an Object Detection Event (ODE).
+# An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
+# on the first detection of a Person object. The Trigger uses an ODE "Start 
+# Recording Session Action" setup with the following parameters:
+#   start:    the seconds before the current time (i.e.the amount of 
+#             cache/history to include.
+#   duration: the seconds after the current time (i.e. the amount of 
+#             time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
+# 
+# **IMPORTANT!** 
+# 1. The default max_size for all Smart Recordings is set to 600 seconds. The 
+#    recording will be truncated if start + duration > max_size.
+#    Use dsl_tap_record_max_size_set to update max_size. 
+# 2. The default cache-size for all recordings is set to 60 seconds. The 
+#    recording will be truncated if start > cache_size. 
+#    Use dsl_tap_record_cache_size_set to update cache_size.
+#
+# Record Tap components tap into RTSP Source components pre-decoder to enable
+# smart-recording of the incomming (original) H.264 or H.265 stream. 
+#
+# Additional ODE Actions are added to the Trigger to 1) print the ODE 
+# data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
+# to the console and 2) to capture the object (bounding-box) to a JPEG file.
+# 
+# A basic inference Pipeline is used with PGIE, Tracker, Tiler, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
+#
+# IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
+# Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
+# session to be started on the next occurrence of a Person. 
+#
+# IMPORTANT: this demonstrates a multi-source Pipeline, each with their own
+# Smart-Recort Tap.
+*/
 
 #include <iostream>
 #include <glib.h>
@@ -65,9 +74,9 @@ THE SOFTWARE.
 // Set Camera RTSP URI's - these must be set to valid rtsp uri's for camera's on your network
 // RTSP Source URI    
 std::wstring src_url_1 = L"rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101";
-std::wstring src_url_2 = L"rtsp://user:pwd@192.168.1.65:554/Streaming/Channels/101";
-std::wstring src_url_3 = L"rtsp://user:pwd@192.168.1.66:554/Streaming/Channels/101";
-std::wstring src_url_4 = L"rtsp://user:pwd@192.168.1.67:554/Streaming/Channels/101";
+std::wstring src_url_2 = L"rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101";
+std::wstring src_url_3 = L"rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101";
+std::wstring src_url_4 = L"rtsp://user:pwd@192.168.1.64:554/Streaming/Channels/101";
 
    
 // Config and model-engine files - Jetson and dGPU
@@ -79,6 +88,9 @@ std::wstring primary_model_engine_file(
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
+// Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+uint RECORDING_START = 10;
+uint RECORDING_DURATION = 20;
 
 int TILER_WIDTH = DSL_1K_HD_WIDTH;
 int TILER_HEIGHT = DSL_1K_HD_HEIGHT;
@@ -141,36 +153,6 @@ void state_change_listener(uint old_state, uint new_state, void* client_data)
 }
 
 //     
-// Function to create all Display Types used in this example    
-//     
-DslReturnType create_display_types()
-{
-    DslReturnType retval;
-
-    // ````````````````````````````````````````````````````````````````````````````````````````````````````````    
-    // Create new RGBA color types    
-    retval = dsl_display_type_rgba_color_custom_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);    
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    retval = dsl_display_type_rgba_color_custom_new(L"full-white", 1.0f, 1.0f, 1.0f, 1.0f);    
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    retval = dsl_display_type_rgba_color_custom_new(L"opaque-black", 0.0f, 0.0f, 0.0f, 0.8f);
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    retval = dsl_display_type_rgba_font_new(L"impact-20-white", L"impact", 20, L"full-white");    
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    // Create a new Text type object that will be used to show the recording in progress    
-    retval = dsl_display_type_rgba_text_new(L"rec-text", L"REC    ", 10, 30, L"impact-20-white", true, L"opaque-black");
-    if (retval != DSL_RESULT_SUCCESS) return retval;
-
-    // A new RGBA Circle to be used to simulate a red LED light for the recording in progress.    
-    return dsl_display_type_rgba_circle_new(L"red-led", 94, 52, 8, L"full-red", true, L"full-red");
-
-}
-
-//     
 // Objects of this class will be used as "client_data" for all callback notifications.    
 // defines a class of all component names associated with a single RTSP Source.     
 // The names are derived from the unique Source name    
@@ -196,6 +178,41 @@ struct ClientData
     std::wstring url;
 };
 
+//     
+// Function to create all Display Types used in this example    
+//     
+DslReturnType create_display_types()
+{
+    DslReturnType retval;
+
+    // ````````````````````````````````````````````````````````````````````````````````````````````````````````    
+    // Create new RGBA color types    
+    retval = dsl_display_type_rgba_color_custom_new(L"full-red", 1.0f, 0.0f, 0.0f, 1.0f);    
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
+    retval = dsl_display_type_rgba_color_custom_new(L"full-white", 
+        1.0f, 1.0f, 1.0f, 1.0f);    
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
+    retval = dsl_display_type_rgba_color_custom_new(L"opaque-black", 
+        0.0f, 0.0f, 0.0f, 0.8f);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
+    retval = dsl_display_type_rgba_font_new(L"digital-20-white", 
+        L"KacstDigital", 20, L"full-white");    
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+    
+    // Create a new Text type object that will be used to show the recording 
+    // in progress    
+    retval = dsl_display_type_rgba_text_new(L"rec-text", L"REC    ", 
+        10, 30, L"digital-20-white", true, L"opaque-black");
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
+    // A new RGBA Circle to be used to simulate a red LED light for the recording in progress.    
+    return dsl_display_type_rgba_circle_new(L"red-led", 94, 52, 8, L"full-red", true, L"full-red");
+
+}
+
 //    
 // Callback function to handle recording session start and stop events
 //    
@@ -208,17 +225,29 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
     DslReturnType retval;
 
     std::cout << "session_id: " << session_info->session_id << std::endl;
+
+    // This callback can be called after the Pipeline has been stopped.
+    // Need to get the current state which we'll use below. 
+    uint current_state;
+    retval = dsl_pipeline_state_get(L"pipeline", &current_state);
     
     // If we're starting a new recording for this source
     if (session_info->recording_event == DSL_RECORDING_EVENT_START)
     {
         std::cout << "event:      " << "DSL_RECORDING_EVENT_START" << std::endl;
 
+        // Need to make sure the Pipleine is still playing before we 
+        // call any of the Trigger and Tiler services below.
+        if (current_state != DSL_STATE_PLAYING)
+        {
+            return NULL;
+        }
+
         // enable the always trigger showing the metadata for "recording in session" 
         uint retval = dsl_ode_trigger_enabled_set(camera->always_trigger.c_str(), true);
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << "Enable always trigger failed with error: " 
+            std::wcout << L"Enable always trigger failed with error: " 
                 << dsl_return_value_to_string(retval) << std::endl;
         }
 
@@ -227,7 +256,7 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
         retval = dsl_tiler_source_show_set(L"tiler", camera->source.c_str(), 0, true);    
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << "Tiler show single source failed with error: "
+            std::wcout << L"Tiler show single source failed with error: "
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
@@ -242,11 +271,18 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
         std::cout << "width:      " << session_info->width << std::endl;
         std::cout << "height:     " << session_info->height << std::endl;
 
+        // Need to make sure the Pipleine is still playing before we 
+        // call any of the Trigger and Tiler services below.
+        if (current_state != DSL_STATE_PLAYING)
+        {
+            return NULL;
+        }
+
         // disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(camera->always_trigger.c_str(), false);
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << "Disable always trigger failed with error: "
+            std::wcout << L"Disable always trigger failed with error: "
                 << dsl_return_value_to_string(retval) << std::endl;
         }
 
@@ -268,7 +304,7 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
         retval = dsl_ode_trigger_reset(camera->instance_trigger.c_str());
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << "Failed to reset instance trigger with error:"
+            std::wcout << L"Failed to reset instance trigger with error:"
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
@@ -303,6 +339,18 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
         DSL_CONTAINER_MP4, record_event_listener);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
+    // IMPORTANT: Best to set the max-size to the maximum value we 
+    // intend to use (see the xwindow_key_event_handler callback above). 
+    retval = dsl_tap_record_max_size_set(clientdata->record_tap.c_str(), 
+        RECORDING_START + RECORDING_DURATION);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
+    // IMPORTANT: Best to set the default cache-size to the maximum value we 
+    // intend to use (see the xwindow_key_event_handler callback above). 
+    retval = dsl_tap_record_cache_size_set(clientdata->record_tap.c_str(), 
+        RECORDING_START);
+    if (retval != DSL_RESULT_SUCCESS) return retval;
+
     // Add the new Tap to the Source directly    
     retval = dsl_source_rtsp_tap_add(clientdata->source.c_str(), 
         clientdata->record_tap.c_str());
@@ -317,7 +365,8 @@ DslReturnType CreatePerSourceComponents(const wchar_t* pipeline,
     // Create a new Action to start the record session for this Source, 
     // with the component names as client data    
     retval = dsl_ode_action_tap_record_start_new(clientdata->start_record.c_str(), 
-        clientdata->record_tap.c_str(), 5, 30, ptrClientData);
+        clientdata->record_tap.c_str(), RECORDING_START, 
+        RECORDING_DURATION, ptrClientData);
     if (retval != DSL_RESULT_SUCCESS) return retval;
 
     // Add the Start Record Action to the trigger for this source.
@@ -391,8 +440,8 @@ int main(int argc, char** argv)
             tracker_config_file.c_str(), 480, 272);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // # New OSD with text, clock, bboxs enabled, mask display disabled
-        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
+        // New Overlay Sink, 0 x/y offsets and dimensions.    
+        retval = dsl_tiler_new(L"tiler", TILER_WIDTH, TILER_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Object Detection Event (ODE) Pad Probe Handler (PPH) 
@@ -401,7 +450,11 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the ODE Pad Probe Handler to the Sink Pad of the OSD    
-        retval = dsl_tiler_pph_add(L"on-screen-display", L"ode-handler", DSL_PAD_SINK);
+        retval = dsl_tiler_pph_add(L"tiler", L"ode-handler", DSL_PAD_SINK);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // # New OSD with text, clock, bboxs enabled, mask display disabled
+        retval = dsl_osd_new(L"on-screen-display", true, false, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Overlay Sink, 0 x/y offsets and dimensions.    
@@ -424,7 +477,7 @@ int main(int argc, char** argv)
     
         // Add all the components to a new pipeline    
         const wchar_t* cmpts[] = {L"primary-gie", L"iou-tracker", 
-            L"on-screen-display", L"egl-sink", nullptr};
+            L"tiler", L"on-screen-display", L"egl-sink", nullptr};
             
         retval = dsl_pipeline_new_component_add_many(L"pipeline", cmpts);    
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -435,17 +488,17 @@ int main(int argc, char** argv)
         retval = CreatePerSourceComponents(L"pipeline", &camera1, L"ode-handler");
         if (retval != DSL_RESULT_SUCCESS) break;
 
-//        ClientData camera2(L"src-2", src_url_2.c_str());
-//        retval = CreatePerSourceComponents(L"pipeline", &camera2, L"ode-handler");
-//        if (retval != DSL_RESULT_SUCCESS) break;
-//
-//        ClientData camera3(L"src-3", src_url_3.c_str());
-//        retval = CreatePerSourceComponents(L"pipeline", &camera3, L"ode-handler");
-//        if (retval != DSL_RESULT_SUCCESS) break;
-//
-//        ClientData camera4(L"src-4", src_url_4.c_str());
-//        retval = CreatePerSourceComponents(L"pipeline", &camera4, L"ode-handler");
-//        if (retval != DSL_RESULT_SUCCESS) break;
+        ClientData camera2(L"src-2", src_url_2.c_str());
+        retval = CreatePerSourceComponents(L"pipeline", &camera2, L"ode-handler");
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        ClientData camera3(L"src-3", src_url_3.c_str());
+        retval = CreatePerSourceComponents(L"pipeline", &camera3, L"ode-handler");
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        ClientData camera4(L"src-4", src_url_4.c_str());
+        retval = CreatePerSourceComponents(L"pipeline", &camera4, L"ode-handler");
+        if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
@@ -466,7 +519,7 @@ int main(int argc, char** argv)
     }
 
     // Print out the final result
-    std::cout << "DSL Return: " <<  dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << L"DSL Return: " <<  dsl_return_value_to_string(retval) << std::endl;
 
     // Cleanup all DSL/GST resources
     dsl_delete_all();
