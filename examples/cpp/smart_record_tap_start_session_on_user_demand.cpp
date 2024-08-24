@@ -22,28 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-// ````````````````````````````````````````````````````````````````````````````````````
-// This example demonstrates the use of a Smart-Record Tap and how
-// to start a recording session on user/viewer demand - in this case
-// by pressing the 'S' key.  The xwindow_key_event_handler calls
-// dsl_tap_record_session_start with:
-//   start-time: the seconds before the current time (i.e.the amount of 
-//               cache/history to include.
-//   duration:   the seconds after the current time (i.e. the amount of 
-//               time to record after session start is called).
-// Therefore, a total of start-time + duration seconds of data will be recorded.
-//
-// Record Tap components tap into RTSP Source components pre-decoder to enable
-// smart-recording of the incomming (original) H.264 or H.265 stream. 
-// 
-// A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
-//
-// DSL Display Types are used to overlay text ("REC") with a red circle to
-// indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
-// ODE "Add Display Meta Action" are used to add the text's and circle's metadata
-// to each frame while the Trigger is enabled. The record_event_listener callback,
-// called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
-// and disables the "Always Trigger" according to the event received. 
+/* ````````````````````````````````````````````````````````````````````````````````````
+# This example demonstrates the use of a Smart-Record Tap and how
+# to start a recording session on user/viewer demand - in this case
+# by pressing the 'S' key.  The xwindow_key_event_handler calls
+# dsl_tap_record_session_start with:
+#   start:    the seconds before the current time (i.e.the amount of 
+#             cache/history to include.
+#   duration: the seconds after the current time (i.e. the amount of 
+#             time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
+# 
+# **IMPORTANT!** 
+# 1. The default max_size for all Smart Recordings is set to 600 seconds. The 
+#    recording will be truncated if start + duration > max_size.
+#    Use dsl_tap_record_max_size_set to update max_size. 
+# 2. The default cache-size for all recordings is set to 60 seconds. The 
+#    recording will be truncated if start > cache_size. 
+#    Use dsl_tap_record_cache_size_set to update cache_size.
+#
+# Record Tap components tap into RTSP Source components pre-decoder to enable
+# smart-recording of the incomming (original) H.264 or H.265 stream. 
+# 
+# A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
+*/
 
 #include <iostream>
 #include <glib.h>
@@ -67,14 +76,12 @@ std::wstring primary_model_engine_file(
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
+// Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+uint RECORDING_START = 10;
+uint RECORDING_DURATION = 20;
 
 int WINDOW_WIDTH = DSL_1K_HD_WIDTH;
 int WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
-
-int PGIE_CLASS_ID_VEHICLE = 0;
-int PGIE_CLASS_ID_BICYCLE = 1;    
-int PGIE_CLASS_ID_PERSON = 2;    
-int PGIE_CLASS_ID_ROADSIGN = 3;
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -87,7 +94,7 @@ void xwindow_key_event_handler(const wchar_t* in_key, void* client_data)
     key = std::toupper(key[0]);
     if(key == "S"){
         dsl_tap_record_session_start(
-            L"record-tap", 20, 20, NULL);
+            L"record-tap", RECORDING_START, RECORDING_DURATION, NULL);
     } else if(key == "P"){
         dsl_pipeline_pause(L"pipeline");
     } else if (key == "R"){
@@ -137,10 +144,22 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
 
     std::cout << "session_id: " << session_info->session_id << std::endl;
     
+    // This callback can be called after the Pipeline has been stopped.
+    // Need to get the current state which we'll use below. 
+    uint current_state;
+    retval = dsl_pipeline_state_get(L"pipeline", &current_state);
+
     // If we're starting a new recording for this source
     if (session_info->recording_event == DSL_RECORDING_EVENT_START)
     {
         std::cout << "event:      " << "DSL_RECORDING_EVENT_START" << std::endl;
+
+        // Need to make sure the Pipleine is still playing before we 
+        // call any of the Trigger and Tiler services below.
+        if (current_state != DSL_STATE_PLAYING)
+        {
+            return NULL;
+        }
 
         // enable the always trigger showing the metadata for "recording in session" 
         uint retval = dsl_ode_trigger_enabled_set(L"rec-on-trigger", true);
@@ -160,6 +179,13 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
         std::cout << "container:  " << session_info->container_type << std::endl;
         std::cout << "width:      " << session_info->width << std::endl;
         std::cout << "height:     " << session_info->height << std::endl;
+
+        // Need to make sure the Pipleine is still playing before we 
+        // call any of the Trigger and Tiler services below.
+        if (current_state != DSL_STATE_PLAYING)
+        {
+            return NULL;
+        }
 
         // disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(L"rec-on-trigger", false);
@@ -195,21 +221,21 @@ int main(int argc, char** argv)
             0.0f, 0.0f, 0.0f, 0.8f);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_display_type_rgba_font_new(L"impact-20-white", 
-            L"impact", 20, L"full-white");    
+        retval = dsl_display_type_rgba_font_new(L"digital-20-white", 
+            L"KacstDigital", 20, L"full-white");    
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // ```````````````````````````````````````````````````````````````````````````
         // Create a new Text type object that will be used to show the recording 
         // in progress    
         retval = dsl_display_type_rgba_text_new(L"rec-text", L"REC    ", 
-            10, 30, L"impact-20-white", true, L"opaque-black");
+            10, 30, L"digital-20-white", true, L"opaque-black");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // A new RGBA Circle to be used to simulate a red LED light for the recording 
         // in progress.    
         retval = dsl_display_type_rgba_circle_new(L"red-led", 
-            94, 52, 8, L"full-red", true, L"full-red");
+            94, 50, 8, L"full-red", true, L"full-red");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         const wchar_t* display_types[] = {L"rec-text", L"red-led", nullptr};
@@ -246,6 +272,17 @@ int main(int argc, char** argv)
         // defined above - will be called on session-start and session-end
         retval = dsl_tap_record_new(L"record-tap",
             L"./", DSL_CONTAINER_MP4,  record_event_listener);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // IMPORTANT: Best to set the max-size to the maximum value we 
+        // intend to use (see the xwindow_key_event_handler callback above). 
+        retval = dsl_tap_record_max_size_set(L"record-tap", 
+            RECORDING_START + RECORDING_DURATION);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // IMPORTANT: Best to set the default cache-size to the maximum value we 
+        // intend to use (see the xwindow_key_event_handler callback above). 
+        retval = dsl_tap_record_cache_size_set(L"record-tap", RECORDING_START);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the new Tap to the Source directly    

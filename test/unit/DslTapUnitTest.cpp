@@ -38,17 +38,22 @@ SCENARIO( "A RecordTapBintr is created correctly",  "[RecordTapBintr]" )
 
         dsl_record_client_listener_cb clientListener;
 
-        WHEN( "The Dewarper is created" )
+        WHEN( "The RecordTapBintr is created" )
         {
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
 
-            THEN( "The Dewarper's config file is found, loaded, and returned correctly")
+            THEN( "The RecordTapBintr's properties and returned correctly")
             {
                 std::string retOutDir(pRecordTapBintr->GetOutdir());
                 
                 REQUIRE( retOutDir == outDir );
-                REQUIRE( pRecordTapBintr->GetCacheSize() == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
+                
+                REQUIRE( pRecordTapBintr->GetMaxSize() == 
+                    DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC );
+                
+                REQUIRE( pRecordTapBintr->GetCacheSize() == 
+                    DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC );
                 
                 uint width(99), height(99);
                 pRecordTapBintr->GetDimensions(&width, &height);
@@ -71,6 +76,17 @@ SCENARIO( "A RecordTapBintr's Init Parameters can be Set/Get ",  "[RecordTapBint
 
         DSL_RECORD_TAP_PTR pRecordTapBintr = 
             DSL_RECORD_TAP_NEW(recordTapName.c_str(), outDir.c_str(), container, clientListener);
+
+        WHEN( "The Video Max Size is set" )
+        {
+            uint newMaxSize(200);
+            REQUIRE( pRecordTapBintr->SetMaxSize(newMaxSize) == true );
+
+            THEN( "The correct max size value is returned" )
+            {
+                REQUIRE( pRecordTapBintr->GetMaxSize() == newMaxSize );
+            }
+        }
 
         WHEN( "The Video Cache Size is set" )
         {

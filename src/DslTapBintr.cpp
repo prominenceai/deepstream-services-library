@@ -108,13 +108,13 @@ namespace DSL
             LOG_ERROR("RecordTapBintr '" << GetName() << "' is not linked");
             return;
         }
+        DestroyContext();
         m_pQueue->UnlinkFromSink();
         
         RemoveChild(m_pRecordBin);
 
         // Destroy the RecordBin GSTNODETR and context.
         m_pRecordBin = nullptr;
-        DestroyContext();
         
         m_isLinked = false;
     }

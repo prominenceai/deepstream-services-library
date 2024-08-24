@@ -1084,8 +1084,69 @@ namespace DSL
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
-        
 
+    DslReturnType Services::SinkRecordMaxSizeGet(const char* name, uint* maxSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            *maxSize = recordSinkBintr->GetMaxSize();
+
+            LOG_INFO("Max size = " << *maxSize << 
+                " returned successfully for Record Sink '" << name << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" 
+                << name << "' threw an exception getting max size");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkRecordMaxSizeSet(const char* name, uint maxSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
+
+            DSL_RECORD_SINK_PTR recordSinkBintr = 
+                std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!recordSinkBintr->SetMaxSize(maxSize))
+            {
+                LOG_ERROR("Record Sink '" << name << "' failed to set max size");
+                return DSL_RESULT_SINK_SET_FAILED;
+            }
+            LOG_INFO("Record Sink '" << name 
+                << "' successfully set max size to " << maxSize << " seconds");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception setting max size");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::SinkRecordCacheSizeGet(const char* name, uint* cacheSize)
     {
         LOG_FUNC();
@@ -1094,7 +1155,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -1109,7 +1171,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception getting cache size");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception getting cache size");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1122,7 +1185,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordSinkBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordSinkBintr);
 
             DSL_RECORD_SINK_PTR recordSinkBintr = 
                 std::dynamic_pointer_cast<RecordSinkBintr>(m_components[name]);
@@ -1139,7 +1203,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Sink '" << name << "' threw an exception setting cache size");
+            LOG_ERROR("Record Sink '" << name 
+                << "' threw an exception setting cache size");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1226,7 +1291,7 @@ namespace DSL
             *isOn = recordSinkBintr->IsOn();
 
             LOG_INFO("Is on = " << *isOn 
-                << "returned successfully for Record Sink '" << name << "'");
+                << " returned successfully for Record Sink '" << name << "'");
 
             return DSL_RESULT_SUCCESS;
         }
