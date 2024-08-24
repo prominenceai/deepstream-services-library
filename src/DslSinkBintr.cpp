@@ -1893,6 +1893,7 @@ namespace DSL
             LOG_ERROR("RecordSinkBintr '" << GetName() << "' is not linked");
             return;
         }
+        DestroyContext();
         m_pParser->UnlinkFromSink();
         m_pEncoder->UnlinkFromSink();
         m_pCapsFilter->UnlinkFromSink();
@@ -1901,9 +1902,8 @@ namespace DSL
         
         RemoveChild(m_pRecordBin);
         
-        // Destroy the RecordBin GSTNODETR and context.
+        // Destroy the RecordBin GSTNODETR
         m_pRecordBin = nullptr;
-        DestroyContext();
         
         m_isLinked = false;
     }

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021-2032, Prominence AI, Inc.
+Copyright (c)   2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -3774,6 +3774,66 @@ namespace DSL
         }
     }
         
+    DslReturnType Services::TapRecordMaxSizeGet(const char* name, uint* maxSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            *maxSize = pRecordTapBintr->GetMaxSize();
+
+            LOG_INFO("Max size = " << *maxSize << 
+                " returned successfully for Record Tap '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception getting Max Size");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::TapRecordMaxSizeSet(const char* name, uint maxSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordTapBintr);
+
+            DSL_RECORD_TAP_PTR pRecordTapBintr = 
+                std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
+
+            // TODO verify args before calling
+            if (!pRecordTapBintr->SetMaxSize(maxSize))
+            {
+                LOG_ERROR("Record Tap '" << name << "' failed to set max size");
+                return DSL_RESULT_TAP_SET_FAILED;
+            }
+            LOG_INFO("Cashe size = " << maxSize << 
+                " set successfully for Record Tap '" << name << "'");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception setting max size");
+            return DSL_RESULT_TAP_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::TapRecordCacheSizeGet(const char* name, uint* cacheSize)
     {
         LOG_FUNC();
@@ -3782,7 +3842,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);
@@ -3795,7 +3856,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Record Tap '" << name << "' threw an exception getting Cache Size");
+            LOG_ERROR("Record Tap '" << name 
+                << "' threw an exception getting Cache Size");
             return DSL_RESULT_TAP_THREW_EXCEPTION;
         }
     }
@@ -3808,7 +3870,8 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, RecordTapBintr);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                RecordTapBintr);
 
             DSL_RECORD_TAP_PTR pRecordTapBintr = 
                 std::dynamic_pointer_cast<RecordTapBintr>(m_components[name]);

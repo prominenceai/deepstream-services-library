@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -83,16 +83,30 @@ namespace DSL
         bool SetContainer(uint container);
         
         /**
-         * @brief Gets the current cache size used by this RecordMgr
-         * @return size of the video cache in seconds 
-         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+         * @brief Gets the current max size used by this RecordMgr.
+         * @return max size of the video recording in seconds. 
+         * default = DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC.
+         */
+        uint GetMaxSize();
+        
+        /**
+         * @brief Sets the current cache size used by this RecordMgr.
+         * @param[in] maxSize size of the video recording seconds.
+         * default = DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC.
+         */
+        bool SetMaxSize(uint maxSize);
+        
+        /**
+         * @brief Gets the current cache size used by this RecordMgr.
+         * @return size of the video cache in seconds .
+         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC.
          */
         uint GetCacheSize();
         
         /**
-         * @brief Sets the current cache size used by this RecordMgr
-         * @param[in] cacheSize size of cache in seconds 
-         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+         * @brief Sets the current cache size used by this RecordMgr.
+         * @param[in] cacheSize size of cache in seconds.
+         * default = DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC.
          */
         bool SetCacheSize(uint cacheSize);
         

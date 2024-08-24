@@ -47,11 +47,17 @@ SCENARIO( "The Components container is updated correctly on new Record Tap", "[t
 
             THEN( "The list size is updated correctly" ) 
             {
+                uint ret_max_size(0);
                 uint ret_cache_size(0);
                 uint ret_width(0), ret_height(0);
-                REQUIRE( dsl_tap_record_cache_size_get(record_tap_name.c_str(), &ret_cache_size) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
-                REQUIRE( dsl_tap_record_dimensions_get(record_tap_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tap_record_max_size_get(record_tap_name.c_str(), 
+                    &ret_max_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC );
+                REQUIRE( dsl_tap_record_cache_size_get(record_tap_name.c_str(), 
+                    &ret_cache_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC );
+                REQUIRE( dsl_tap_record_dimensions_get(record_tap_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == 0 );
                 REQUIRE( ret_height == 0 );
                 REQUIRE( dsl_component_list_size() == 1 );
@@ -89,30 +95,52 @@ SCENARIO( "A Record Tap's Init Parameters can be Set/Get ",  "[tap-api]" )
         REQUIRE( dsl_tap_record_new(record_tap_name.c_str(), outdir.c_str(),
             container, client_listener) == DSL_RESULT_SUCCESS );
 
+        WHEN( "The Video Max Size is set" )
+        {
+            uint new_max_size(200), ret_max_size(0);
+            REQUIRE( dsl_tap_record_max_size_set(record_tap_name.c_str(), 
+                new_max_size) == DSL_RESULT_SUCCESS );
+
+            THEN( "The correct max size value is returned" )
+            {
+                REQUIRE( dsl_tap_record_max_size_get(record_tap_name.c_str(), 
+                    &ret_max_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == new_max_size );
+                REQUIRE( dsl_component_delete(record_tap_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+            }
+        }
+
         WHEN( "The Video Cache Size is set" )
         {
             uint new_cache_size(20), ret_cache_size(0);
-            REQUIRE( dsl_tap_record_cache_size_set(record_tap_name.c_str(), new_cache_size) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tap_record_cache_size_set(record_tap_name.c_str(), 
+                new_cache_size) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct cache size value is returned" )
             {
-                REQUIRE( dsl_tap_record_cache_size_get(record_tap_name.c_str(), &ret_cache_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tap_record_cache_size_get(record_tap_name.c_str(), 
+                    &ret_cache_size) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_cache_size == new_cache_size );
-                REQUIRE( dsl_component_delete(record_tap_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete(record_tap_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
             }
         }
 
         WHEN( "The Video Recording Dimensions are set" )
         {
             uint new_width(1024), new_height(780), ret_width(99), ret_height(99);
-            REQUIRE( dsl_tap_record_dimensions_set(record_tap_name.c_str(), new_width, new_height) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_tap_record_dimensions_set(record_tap_name.c_str(), 
+                new_width, new_height) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct cache size value is returned" )
             {
-                REQUIRE( dsl_tap_record_dimensions_get(record_tap_name.c_str(), &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_tap_record_dimensions_get(record_tap_name.c_str(), 
+                    &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == new_width );
                 REQUIRE( ret_height == ret_height );
-                REQUIRE( dsl_component_delete(record_tap_name.c_str()) == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete(record_tap_name.c_str()) == 
+                    DSL_RESULT_SUCCESS );
             }
         }
     }
@@ -273,7 +301,7 @@ SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
-        uint cache_size(0), width(0), height(0);
+        uint max_size(0), cache_size(0), width(0), height(0);
         boolean is_on(0), reset_done(0);
 
        std::wstring mailerName(L"mailer");        
@@ -284,30 +312,59 @@ SCENARIO( "The Tap API checks for NULL input parameters", "[tap-api]" )
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
                 
-                REQUIRE( dsl_tap_record_new(NULL, NULL,  0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_new(record_tap_name.c_str(), NULL, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_session_start(NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_session_stop(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_cache_size_get(NULL, &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_cache_size_set(NULL, cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_new(NULL, 
+                    NULL,  0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_new(record_tap_name.c_str(), 
+                    NULL, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_session_start(NULL, 
+                    0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_session_stop(NULL, 
+                    false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tap_record_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_max_size_get(NULL, 
+                    &max_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_max_size_get(record_tap_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_max_size_set(NULL, 
+                    max_size) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tap_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_cache_size_get(NULL, 
+                    &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_cache_size_get(record_tap_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_cache_size_set(NULL, 
+                    cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tap_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_dimensions_get(NULL, 
+                    &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_dimensions_set(NULL, 
+                    width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tap_record_video_player_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_video_player_add(record_tap_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_video_player_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_video_player_remove(record_tap_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_is_on_get(NULL, 
+                    &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_tap_record_mailer_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_mailer_add(record_tap_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_mailer_add(record_tap_name.c_str(), mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_mailer_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_tap_record_mailer_remove(record_tap_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_reset_done_get(NULL, 
+                    &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_video_player_add(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_add(record_tap_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_video_player_remove(record_tap_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_tap_record_mailer_add(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_add(record_tap_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_add(record_tap_name.c_str(), 
+                    mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_tap_record_mailer_remove(record_tap_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
