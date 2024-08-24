@@ -1,7 +1,7 @@
 ################################################################################    
 # The MIT License    
 #    
-# Copyright (c) 2023, Prominence AI, Inc.
+# Copyright (c) 2023-2024, Prominence AI, Inc.
 #    
 # Permission is hereby granted, free of charge, to any person obtaining a    
 # copy of this software and associated documentation files (the "Software"),    
@@ -28,11 +28,19 @@
 # An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
 # on the first detection of a Person object. The Trigger uses an ODE "Start 
 # Recording Session Action" setup with the following parameters:
-#   start-time: the seconds before the current time (i.e.the amount of 
-#               cache/history to include.
-#   duration:   the seconds after the current time (i.e. the amount of 
-#               time to record after session start is called).
+#   start:    the seconds before the current time (i.e.the amount of 
+#             cache/history to include.
+#   duration: the seconds after the current time (i.e. the amount of 
+#             time to record after session start is called).
 # Therefore, a total of start-time + duration seconds of data will be recorded.
+# 
+# **IMPORTANT!** 
+# 1. The default max_size for all Smart Recordings is set to 600 seconds. The 
+#    recording will be truncated if start + duration > max_size.
+#    Use dsl_tap_record_max_size_set to update max_size. 
+# 2. The default cache-size for all recordings is set to 60 seconds. The 
+#    recording will be truncated if start > cache_size. 
+#    Use dsl_tap_record_cache_size_set to update cache_size.
 #
 # Record Tap components tap into RTSP Source components pre-decoder to enable
 # smart-recording of the incomming (original) H.264 or H.265 stream. 
@@ -78,6 +86,10 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+RECORDING_START = 10
+RECORDING_DURATION = 20
 
 TILER_WIDTH = DSL_1K_HD_WIDTH    
 TILER_HEIGHT = DSL_1K_HD_HEIGHT    
@@ -145,16 +157,16 @@ def create_display_types():
         red=0.0, blue=0.0, green=0.0, alpha=0.8)    
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
-    retval = dsl_display_type_rgba_font_new('impact-20-white', 
-        font='impact', size=20, color='full-white')    
+    retval = dsl_display_type_rgba_font_new('digital-20-white', 
+        font='KacstDigital', size=20, color='full-white')
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
 
     # Create a new Text type object that will be used to show the 
     # recording in progress    
     retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', 
-        x_offset=10, y_offset=30, font='impact-20-white', 
-        has_bg_color=True, bg_color='opaque-black')    
+        x_offset=10, y_offset=30, font='digital-20-white', 
+        has_bg_color=True, bg_color='opaque-black')
     if retval != DSL_RETURN_SUCCESS:    
         return retval    
     # A new RGBA Circle to be used to simulate a red LED light for 
@@ -190,12 +202,23 @@ def OnRecordingEvent(session_info_ptr, client_data):
 
     session_info = session_info_ptr.contents
 
+    print() 
+    print(' ***  Recording Event  *** ')
     print('session_id: ', session_info.session_id)
+    
+    # This callback can be called after the Pipeline has been stopped.
+    # Need to get the current state which we'll use below. 
+    retval, current_state = dsl_pipeline_state_get('pipeline')
     
     # If we're starting a new recording for this source
     if session_info.recording_event == DSL_RECORDING_EVENT_START:
         print('event:      ', 'DSL_RECORDING_EVENT_START')
 
+        # Need to make sure the Pipleine is still playing before we 
+        # call any of the Trigger and Tiler services below.
+        if current_state != DSL_STATE_PLAYING:
+            return None
+        
         # enable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(components.always_trigger, enabled=True)
         if (retval != DSL_RETURN_SUCCESS):
@@ -220,6 +243,11 @@ def OnRecordingEvent(session_info_ptr, client_data):
         print('width:      ', session_info.width)
         print('height:     ', session_info.height)
 
+        # Need to make sure the Pipleine is still playing before we 
+        # call any of the Trigger and Tiler services below.
+        if current_state != DSL_STATE_PLAYING:
+            return None
+        
         # disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(components.always_trigger, enabled=False)
         if (retval != DSL_RETURN_SUCCESS):
@@ -274,6 +302,19 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
+    # IMPORTANT: Best to set the max-size to the maximum value we 
+    # intend to use (see the xwindow_key_event_handler callback above). 
+    retval = dsl_tap_record_max_size_set(components.record_tap, 
+        RECORDING_START + RECORDING_DURATION)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval    
+
+    # IMPORTANT: Best to set the default cache-size to the maximum value we 
+    # intend to use (see the xwindow_key_event_handler callback above). 
+    retval = dsl_tap_record_cache_size_set(components.record_tap, RECORDING_START)
+    if retval != DSL_RETURN_SUCCESS:
+        return retval    
+
     # Add the new Tap to the Source directly    
     retval = dsl_source_rtsp_tap_add(source, tap=components.record_tap)    
     if (retval != DSL_RETURN_SUCCESS):    
@@ -290,7 +331,8 @@ def CreatePerSourceComponents(pipeline, source, rtsp_uri, ode_handler):
     # Create a new Action to start the record session for this Source, 
     # with the component names as client data    
     retval = dsl_ode_action_tap_record_start_new(components.start_record,     
-        record_tap=components.record_tap, start=5, duration=10, client_data=components)    
+        record_tap=components.record_tap, start=RECORDING_START, 
+        duration=RECORDING_DURATION, client_data=components)    
     if (retval != DSL_RETURN_SUCCESS):    
         return retval    
 
@@ -374,21 +416,21 @@ def main(args):
         if (retval != DSL_RETURN_SUCCESS):    
             break    
 
-        # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, 
-            bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
          # Add our ODE Pad Probe Handler to the Sink pad of the OSD
-        retval = dsl_osd_pph_add('on-screen-display', 
+        retval = dsl_tiler_pph_add('tiler', 
             handler='ode-handler', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=False, 
+            bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Window Sink, 0 x/y offsets and dimensions.
-        retval = dsl_sink_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -420,24 +462,19 @@ def main(args):
             'src-1', src_url_1, 'ode-handler')    
         if (retval != DSL_RETURN_SUCCESS):    
             break    
-#        retval = CreatePerSourceComponents('pipeline', 
-#            'src-2', src_url_2, 'ode-handler')    
-        if (retval != DSL_RETURN_SUCCESS):    
-            break    
-#        retval = CreatePerSourceComponents('pipeline', 
-#            'src-3', src_url_3, 'ode-handler')    
-        if (retval != DSL_RETURN_SUCCESS):    
-            break    
-#        retval = CreatePerSourceComponents('pipeline', 
-#            'src-4', src_url_4, 'ode-handler')    
-        if (retval != DSL_RETURN_SUCCESS):    
-            break    
+        # retval = CreatePerSourceComponents('pipeline', 
+        #    'src-2', src_url_2, 'ode-handler')    
+        # if (retval != DSL_RETURN_SUCCESS):    
+        #     break    
+        # retval = CreatePerSourceComponents('pipeline', 
+        #    'src-3', src_url_3, 'ode-handler')    
+        # if (retval != DSL_RETURN_SUCCESS):    
+        #     break    
+        # retval = CreatePerSourceComponents('pipeline', 
+        #    'src-4', src_url_4, 'ode-handler')    
+        # if (retval != DSL_RETURN_SUCCESS):    
+        #     break    
 
-        # Syncronize all live input sources (buffers) at the Streammux
-        retval = dsl_pipeline_streammux_sync_inputs_enabled_set('pipeline', True)
-        if retval != DSL_RETURN_SUCCESS:    
-            break    
-        
         ## Add the listener callback functions defined above    
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)    

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2023, Prominence AI, Inc.
+Copyright (c) 2023-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-// ````````````````````````````````````````````````````````````````````````````````````
-// This example demonstrates the use of a Smart-Record Sink and how to start
-// a recording session on the "occurrence" of an Object Detection Event (ODE).
-// An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
-// on the first detection of a Person object. The Trigger uses an ODE "Start 
-// Recording Session Action" setup with the following parameters:
-//   start-time: the seconds before the current time (i.e.the amount of 
-//               cache/history to include.
-//   duration:   the seconds after the current time (i.e. the amount of 
-//               time to record after session start is called).
-// Therefore, a total of start-time + duration seconds of data will be recorded.
-//
-// Additional ODE Actions are added to the Trigger to 1) to print the ODE 
-// data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
-// to the console and 2) to capture the object (bounding-box) to a JPEG file.
-// 
-// A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
-//
-// DSL Display Types are used to overlay text ("REC") with a red circle to
-// indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
-// ODE "Add Display Meta Action" are used to add the text's and circle's metadata
-// to each frame while the Trigger is enabled. The record_event_listener callback,
-// called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
-// and disables the "Always Trigger" according to the event received. 
-//
-// IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
-// Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
-// session to be started on the next occurrence of a Person. 
+/* ````````````````````````````````````````````````````````````````````````````````````
+# This example demonstrates the use of a Smart-Record Sink and how to start
+# a recording session on the "occurrence" of an Object Detection Event (ODE).
+# An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
+# on the first detection of a Person object. The Trigger uses an ODE "Start 
+# Recording Session Action" setup with the following parameters:
+#   start:    the seconds before the current time (i.e.the amount of 
+#             cache/history to include.
+#   duration: the seconds after the current time (i.e. the amount of 
+#             time to record after session start is called).
+# Therefore, a total of start-time + duration seconds of data will be recorded.
+# 
+# **IMPORTANT!** 
+# 1. The default max_size for all Smart Recordings is set to 600 seconds. The 
+#    recording will be truncated if start + duration > max_size.
+#    Use dsl_sink_record_max_size_set to update max_size. 
+# 2. The default cache-size for all recordings is set to 60 seconds. The 
+#    recording will be truncated if start > cache_size. 
+#    Use dsl_sink_record_cache_size_set to update cache_size.
+#
+# Additional ODE Actions are added to the Trigger to 1) to print the ODE 
+# data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
+# to the console and 2) to capture the object (bounding-box) to a JPEG file.
+# 
+# A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
+#
+# DSL Display Types are used to overlay text ("REC") with a red circle to
+# indicate when a recording session is in progress. An ODE "Always-Trigger" and an 
+# ODE "Add Display Meta Action" are used to add the text's and circle's metadata
+# to each frame while the Trigger is enabled. The record_event_listener callback,
+# called on both DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_END, enables
+# and disables the "Always Trigger" according to the event received. 
+#
+# IMPORTANT: the record_event_listener is used to reset the one-shot Occurrence-
+# Trigger when called with DSL_RECORDING_EVENT_END. This allows a new recording
+# session to be started on the next occurrence of a Person. 
+*/
 
 #include <iostream>
 #include <glib.h>
@@ -73,6 +82,9 @@ std::wstring primary_model_engine_file(
 std::wstring tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
+// Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+uint RECORDING_START = 10;
+uint RECORDING_DURATION = 20;
 
 int WINDOW_WIDTH = DSL_1K_HD_WIDTH;
 int WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
@@ -140,16 +152,28 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
 
     std::cout << "session_id: " << session_info->session_id << std::endl;
     
+    // This callback can be called after the Pipeline has been stopped.
+    // Need to get the current state which we'll use below. 
+    uint current_state;
+    retval = dsl_pipeline_state_get(L"pipeline", &current_state);
+
     // If we're starting a new recording for this source
     if (session_info->recording_event == DSL_RECORDING_EVENT_START)
     {
         std::cout << "event:      " << "DSL_RECORDING_EVENT_START" << std::endl;
 
+        // Need to make sure the Pipleine is still playing before we 
+        // call any of the Trigger and Tiler services below.
+        if (current_state != DSL_STATE_PLAYING)
+        {
+            return NULL;
+        }
+
         // enable the always trigger showing the metadata for "recording in session" 
         uint retval = dsl_ode_trigger_enabled_set(L"rec-on-trigger", true);
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << "Enable always trigger failed with error: " 
+            std::wcout << L"Enable always trigger failed with error: " 
                 << dsl_return_value_to_string(retval) << std::endl;
         }
     }
@@ -164,19 +188,26 @@ void* record_event_listener(dsl_recording_info* session_info, void* client_data)
         std::cout << "width:      " << session_info->width << std::endl;
         std::cout << "height:     " << session_info->height << std::endl;
 
+        // Need to make sure the Pipleine is still playing before we 
+        // call any of the Trigger and Tiler services below.
+        if (current_state != DSL_STATE_PLAYING)
+        {
+            return NULL;
+        }
+
         // disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set(L"rec-on-trigger", false);
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << "Disable always trigger failed with error: "
+            std::wcout << L"Disable always trigger failed with error: "
                 << dsl_return_value_to_string(retval) << std::endl;
         }
         // re-enable the one-shot trigger for the next "Occurrence" of a person
         retval = dsl_ode_trigger_reset(L"person-occurrence-trigger");
         if (retval != DSL_RESULT_SUCCESS)
         {
-            std::cout << ("Failed to reset instance trigger with error:", 
-                dsl_return_value_to_string(retval)) << std::endl;
+            std::wcout << L"Failed to reset instance trigger with error:"  
+                << dsl_return_value_to_string(retval) << std::endl;
         }
     }
     return NULL;
@@ -205,21 +236,21 @@ int main(int argc, char** argv)
             0.0f, 0.0f, 0.0f, 0.8f);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        retval = dsl_display_type_rgba_font_new(L"impact-20-white", 
-            L"impact", 20, L"full-white");    
+        retval = dsl_display_type_rgba_font_new(L"digital-20-white", 
+            L"KacstDigital", 20, L"full-white");    
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // ```````````````````````````````````````````````````````````````````````````
         // Create a new Text type object that will be used to show the recording 
         // in progress    
         retval = dsl_display_type_rgba_text_new(L"rec-text", L"REC    ", 
-            10, 30, L"impact-20-white", true, L"opaque-black");
+            10, 30, L"digital-20-white", true, L"opaque-black");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // A new RGBA Circle to be used to simulate a red LED light for the recording 
         // in progress.    
         retval = dsl_display_type_rgba_circle_new(L"red-led", 
-            94, 52, 8, L"full-red", true, L"full-red");
+            94, 50, 8, L"full-red", true, L"full-red");
         if (retval != DSL_RESULT_SUCCESS) break;
 
         const wchar_t* display_types[] = {L"rec-text", L"red-led", nullptr};
@@ -264,25 +295,24 @@ int main(int argc, char** argv)
             DSL_CONTAINER_MP4, 0, 0, record_event_listener);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // IMPORTANT: Best to set the default cache-size to the maximum value we 
-        // intend to use (see the xwindow_key_event_handler callback above). 
-        retval = dsl_sink_record_cache_size_set(L"record-sink", 25);
+        // IMPORTANT: Best to set the max-size to the maximum value we 
+        // intend to use (see dsl_ode_action_sink_record_start_new below). 
+        retval = dsl_sink_record_max_size_set(L"record-sink", 
+            RECORDING_START + RECORDING_DURATION);
         if (retval != DSL_RESULT_SUCCESS) break;
 
-        // Since the Record-Sink is derived from the Encode-Sink, we can use the 
-        // dsl_sink_encode_dimensions_set service to change the recording dimensions 
-        // at the input to the encoder. Note: the dimensions can also be controlled
-        // after the video encoder by calling dsl_sink_record_dimensions_set
-        retval = dsl_sink_encode_dimensions_set(L"record-sink", 640, 360);
+        // IMPORTANT: Best to set the default cache-size to the maximum value we 
+        // intend to use (see dsl_ode_action_sink_record_start_new below). 
+        retval = dsl_sink_record_cache_size_set(L"record-sink", RECORDING_START);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // ###########################################################################
 
-        // Create a new Capture Action to start a new record session
+        // Create a new Start Record Action to start a new record session
         // IMPORTANT! The Record Sink (see above) must be created first or
         // this call will fail with DSL_RESULT_COMPONENT_NAME_NOT_FOUND. 
         retval = dsl_ode_action_sink_record_start_new(L"start-record-action", 
-            L"record-sink", 20, 20, nullptr);
+            L"record-sink", RECORDING_START, RECORDING_DURATION, nullptr);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // ```````````````````````````````````````````````````````````````````````````
@@ -337,7 +367,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New OSD with text, clock, bboxs enabled, mask display disabled
-        retval = dsl_osd_new(L"on-screen-display", true, true, true, false);
+        retval = dsl_osd_new(L"on-screen-display", true, false, true, false);
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // Add the ODE Pad Probe Handler to the Sink Pad of the Tiler    
