@@ -4722,6 +4722,27 @@ def dsl_tap_record_container_set(name, container):
     return int(result)
 
 ##
+## dsl_tap_record_max_size_get()
+##
+_dsl.dsl_tap_record_max_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_tap_record_max_size_get.restype = c_uint
+def dsl_tap_record_max_size_get(name):
+    global _dsl
+    max_size = c_uint(0)
+    result = _dsl.dsl_tap_record_max_size_get(name, DSL_UINT_P(max_size))
+    return int(result), max_size.value 
+
+##
+## dsl_tap_record_max_size_set()
+##
+_dsl.dsl_tap_record_max_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_tap_record_max_size_set.restype = c_uint
+def dsl_tap_record_max_size_set(name, max_size):
+    global _dsl
+    result = _dsl.dsl_tap_record_max_size_set(name, max_size)
+    return int(result)
+
+##
 ## dsl_tap_record_cache_size_get()
 ##
 _dsl.dsl_tap_record_cache_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
@@ -6548,6 +6569,27 @@ _dsl.dsl_sink_record_container_set.restype = c_uint
 def dsl_sink_record_container_set(name, container):
     global _dsl
     result = _dsl.dsl_sink_record_container_set(name, container)
+    return int(result)
+
+##
+## dsl_sink_record_max_size_get()
+##
+_dsl.dsl_sink_record_max_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sink_record_max_size_get.restype = c_uint
+def dsl_sink_record_max_size_get(name):
+    global _dsl
+    max_size = c_uint(0)
+    result = _dsl.dsl_sink_record_max_size_get(name, DSL_UINT_P(max_size))
+    return int(result), max_size.value 
+
+##
+## dsl_sink_record_max_size_set()
+##
+_dsl.dsl_sink_record_max_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sink_record_max_size_set.restype = c_uint
+def dsl_sink_record_max_size_set(name, max_size):
+    global _dsl
+    result = _dsl.dsl_sink_record_max_size_set(name, max_size)
     return int(result)
 
 ##

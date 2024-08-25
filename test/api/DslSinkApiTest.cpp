@@ -1747,11 +1747,15 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
 
             THEN( "The list size is updated correctly" ) 
             {
+                uint ret_max_size(0);
                 uint ret_cache_size(0);
                 uint ret_width(0), ret_height(0);
+                REQUIRE( dsl_sink_record_max_size_get(recordSinkName.c_str(), 
+                    &ret_max_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_max_size == DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC );
                 REQUIRE( dsl_sink_record_cache_size_get(recordSinkName.c_str(), 
                     &ret_cache_size) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC );
+                REQUIRE( ret_cache_size == DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC );
                 REQUIRE( dsl_sink_record_dimensions_get(recordSinkName.c_str(), 
                     &ret_width, &ret_height) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_width == 0 );
@@ -2956,7 +2960,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         std::wstring sink_name(L"test-sink");
         std::wstring otherName(L"other");
         
-        uint cache_size(0), width(0), height(0), codec(0), container(0), 
+        uint max_size(0), cache_size(0), width(0), height(0), codec(0), container(0), 
         offset_x(0), offset_y(0),
         bitrate(0), interval(0), udpPort(0), rtspPort(0), fps_n(0), fps_d(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
@@ -3043,36 +3047,69 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_window_egl_force_aspect_ratio_set(NULL, 
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_file_new(NULL, NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_file_new(sink_name.c_str(), NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_file_new(NULL, 
+                    NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_file_new(sink_name.c_str(), 
+                    NULL, 0, 0, 0, 0 ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
-                REQUIRE( dsl_sink_record_new(NULL, NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_new(sink_name.c_str(), NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_session_start(NULL, 0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_session_stop(NULL, false) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_cache_size_get(NULL, &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_cache_size_set(NULL, cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_new(NULL, 
+                    NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_new(sink_name.c_str(), 
+                    NULL, 0, 0, 0, 0, NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_session_start(NULL, 
+                    0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_session_stop(NULL, 
+                    false) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_record_dimensions_get(NULL, &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_dimensions_set(NULL, width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_max_size_get(NULL, 
+                    &max_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_max_size_get(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_max_size_set(NULL, 
+                    max_size) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_record_is_on_get(NULL, &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_get(NULL, 
+                    &cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_get(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_cache_size_set(NULL, 
+                    cache_size) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_record_reset_done_get(NULL, &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_dimensions_get(NULL, 
+                    &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_dimensions_set(NULL, 
+                    width, height) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_record_video_player_add(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_video_player_add(sink_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_video_player_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_video_player_remove(sink_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_is_on_get(NULL, 
+                    &is_on) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_record_mailer_add(NULL, NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_mailer_add(sink_name.c_str(), NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_mailer_add(sink_name.c_str(), mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_mailer_remove(NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_record_mailer_remove(sink_name.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_reset_done_get(NULL, 
+                    &reset_done) == DSL_RESULT_INVALID_INPUT_PARAM );
 
-                REQUIRE( dsl_sink_encode_settings_get(NULL, &codec, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_sink_encode_settings_set(NULL, codec, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_add(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_add(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_video_player_remove(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_record_mailer_add(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_add(sink_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_add(sink_name.c_str(), 
+                    mailerName.c_str(), NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_record_mailer_remove(sink_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sink_encode_settings_get(NULL, 
+                    &codec, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_encode_settings_set(NULL, 
+                    codec, bitrate, interval) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_encode_dimensions_get(NULL, 
                     &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );

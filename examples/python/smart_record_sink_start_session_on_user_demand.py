@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024 Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,20 @@
 # to start a recording session on user/viewer demand - in this case
 # by pressing the 'S' key.  The xwindow_key_event_handler calls
 # dsl_sink_record_session_start with:
-#   start-time: the seconds before the current time (i.e.the amount of 
-#               cache/history to include.
-#   duration:   the seconds after the current time (i.e. the amount of 
-#               time to record after session start is called).
+#   start:    the seconds before the current time (i.e.the amount of 
+#             cache/history to include.
+#   duration: the seconds after the current time (i.e. the amount of 
+#             time to record after session start is called).
 # Therefore, a total of start-time + duration seconds of data will be recorded.
 # 
+# **IMPORTANT!** 
+# 1. The default max_size for all Smart Recordings is set to 600 seconds. The 
+#    recording will be truncated if start + duration > max_size.
+#    Use dsl_sink_record_max_size_set to update max_size. 
+# 2. The default cache-size for all recordings is set to 60 seconds. The 
+#    recording will be truncated if start > cache_size. 
+#    Use dsl_sink_record_cache_size_set to update cache_size.
+#
 # A basic inference Pipeline is used with PGIE, Tracker, OSD, and Window Sink.
 #
 # DSL Display Types are used to overlay text ("REC") with a red circle to
@@ -63,15 +71,12 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-PGIE_CLASS_ID_VEHICLE = 0
-PGIE_CLASS_ID_BICYCLE = 1
-PGIE_CLASS_ID_PERSON = 2
-PGIE_CLASS_ID_ROADSIGN = 3
+# Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+RECORDING_START = 10
+RECORDING_DURATION = 20
 
-TILER_WIDTH = DSL_1K_HD_WIDTH
-TILER_HEIGHT = DSL_1K_HD_HEIGHT
-WINDOW_WIDTH = TILER_WIDTH
-WINDOW_HEIGHT = TILER_HEIGHT
+WINDOW_WIDTH = DSL_1K_HD_WIDTH
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -80,19 +85,12 @@ def xwindow_key_event_handler(key_string, client_data):
     print('key released = ', key_string)
     if key_string.upper() == 'S':
         retval = dsl_sink_record_session_start(
-            'record-sink', 20, 20, None)
+            'record-sink', RECORDING_START, RECORDING_DURATION, None)
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
-
-        # need to check if there's a recording in progress that needs to be stopped
-        retval, is_on = dsl_sink_record_is_on_get('record-sink')
-        if is_on:
-            print('Recording in progress, stoping first.')
-            dsl_sink_record_session_stop('record-sink', True)
-
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
@@ -101,13 +99,6 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
-    
-    # need to check if there's a recording in progress that needs to be stopped
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    if is_on:
-        print('Recording in progress, stoping first.')
-        dsl_sink_record_session_stop('record-sink', True)
-        
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
@@ -131,16 +122,26 @@ def state_change_listener(old_state, new_state, client_data):
 # Callback function to handle recording session start and stop events
 ## 
 def record_event_listener(session_info_ptr, client_data):
-    print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
 
+    print() 
+    print(' ***  Recording Event  *** ')
     print('session_id: ', session_info.session_id)
+    
+    # This callback can be called after the Pipeline has been stopped.
+    # Need to get the current state which we'll use below. 
+    retval, current_state = dsl_pipeline_state_get('pipeline')
     
     # If we're starting a new recording for this source
     if session_info.recording_event == DSL_RECORDING_EVENT_START:
         print('event:      ', 'DSL_RECORDING_EVENT_START')
 
+        # Need to make sure the Pipleine is still playing before we 
+        # call any of the Trigger and Tiler services below.
+        if current_state != DSL_STATE_PLAYING:
+            return None
+        
         # enable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)
         if (retval != DSL_RETURN_SUCCESS):
@@ -157,11 +158,18 @@ def record_event_listener(session_info_ptr, client_data):
         print('width:      ', session_info.width)
         print('height:     ', session_info.height)
 
+        # Need to make sure the Pipleine is still playing before we 
+        # call any of the Trigger and Tiler services below.
+        if current_state != DSL_STATE_PLAYING:
+            return None
+        
         # disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)
         if (retval != DSL_RETURN_SUCCESS):
             print('Enable always trigger failed with error: ', 
                 dsl_return_value_to_string(retval))
+            
+        return None
 
 def main(args):
 
@@ -186,23 +194,23 @@ def main(args):
             red=0.0, blue=0.0, green=0.0, alpha=0.8)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_font_new('impact-20-white', 
-            font='impact', size=20, color='full-white')
+        retval = dsl_display_type_rgba_font_new('digital-20-white', 
+            font='KacstDigital', size=20, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             break
             
         # ````````````````````````````````````````````````````````````````````````````
         # Create a new Text type object that will be used to show the recording
         # in progress
-        retval = dsl_display_type_rgba_text_new('rec-text', 
-            'REC    ', x_offset=10, y_offset=30, font='impact-20-white', 
+        retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', 
+            x_offset=10, y_offset=30, font='digital-20-white', 
             has_bg_color=True, bg_color='opaque-black')
         if retval != DSL_RETURN_SUCCESS:
             break
         # A new RGBA Circle to be used to simulate a red LED light for the recording
         # in progress.
         retval = dsl_display_type_rgba_circle_new('red-led', 
-        x_center=94, y_center=52, radius=8, 
+        x_center=94, y_center=50, radius=8, 
             color='full-red', has_bg_color=True, bg_color='full-red')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -243,9 +251,16 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # IMPORTANT: Best to set the max-size to the maximum value we 
+        # intend to use (see the xwindow_key_event_handler callback above). 
+        retval = dsl_sink_record_max_size_set('record-sink', 
+            RECORDING_START + RECORDING_DURATION)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # IMPORTANT: Best to set the default cache-size to the maximum value we 
         # intend to use (see the xwindow_key_event_handler callback above). 
-        retval = dsl_sink_record_cache_size_set('record-sink', 25)
+        retval = dsl_sink_record_cache_size_set('record-sink', RECORDING_START)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -277,7 +292,7 @@ def main(args):
 
         # New on-screen-display (OSD) with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=False, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,19 @@
 # An ODE Occurrence Trigger, with a limit of 1 event, is used to trigger
 # on the first detection of a Person object. The Trigger uses an ODE "Start 
 # Recording Session Action" setup with the following parameters:
-#   start-time: the seconds before the current time (i.e.the amount of 
-#               cache/history to include.
-#   duration:   the seconds after the current time (i.e. the amount of 
-#               time to record after session start is called).
+#   start:    the seconds before the current time (i.e.the amount of 
+#             cache/history to include.
+#   duration: the seconds after the current time (i.e. the amount of 
+#             time to record after session start is called).
 # Therefore, a total of start-time + duration seconds of data will be recorded.
+# 
+# **IMPORTANT!** 
+# 1. The default max_size for all Smart Recordings is set to 600 seconds. The 
+#    recording will be truncated if start + duration > max_size.
+#    Use dsl_sink_record_max_size_set to update max_size. 
+# 2. The default cache-size for all recordings is set to 60 seconds. The 
+#    recording will be truncated if start > cache_size. 
+#    Use dsl_sink_record_cache_size_set to update cache_size.
 #
 # Additional ODE Actions are added to the Trigger to 1) to print the ODE 
 # data (source-id, batch-id, object-id, frame-number, object-dimensions, etc.)
@@ -72,8 +80,11 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-PGIE_CLASS_ID_VEHICLE = 0
-PGIE_CLASS_ID_BICYCLE = 1
+# Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+RECORDING_START = 10
+RECORDING_DURATION = 20
+
+PGIE_CLASS_ID_VEHICLE = PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
@@ -92,13 +103,6 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'R':
         dsl_pipeline_play('pipeline')
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
-
-        # need to check if there's a recording in progress that needs to be stopped
-        retval, is_on = dsl_sink_record_is_on_get('record-sink')
-        if is_on:
-            print('Recording in progress, stoping first.')
-            dsl_sink_record_session_stop('record-sink', True)
-
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
  
@@ -107,13 +111,6 @@ def xwindow_key_event_handler(key_string, client_data):
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
-    
-    # need to check if there's a recording in progress that needs to be stopped
-    retval, is_on = dsl_sink_record_is_on_get('record-sink')
-    if is_on:
-        print('Recording in progress, stoping first.')
-        dsl_sink_record_session_stop('record-sink', True)
-
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
@@ -142,11 +139,21 @@ def record_complete_listener(session_info_ptr, client_data):
     session_info = session_info_ptr.contents
 
     print('session_id: ', session_info.session_id)
+
+    # This callback can be called after the Pipeline has been stopped.
+    # Need to get the current state which we'll use below. 
+    retval, current_state = dsl_pipeline_state_get('pipeline')
     
     # If we're starting a new recording for this source
     if session_info.recording_event == DSL_RECORDING_EVENT_START:
+        print()
         print('event:      ', 'DSL_RECORDING_EVENT_START')
 
+        # Need to make sure the Pipleine is still playing before we 
+        # call any of the Trigger and Tiler services below.
+        if current_state != DSL_STATE_PLAYING:
+            return None
+        
         # enable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=True)
         if (retval != DSL_RETURN_SUCCESS):
@@ -155,6 +162,7 @@ def record_complete_listener(session_info_ptr, client_data):
 
     # Else, the recording session has ended for this source
     else:
+        print()
         print('event:      ', 'DSL_RECORDING_EVENT_END')
         print('filename:   ', session_info.filename)
         print('dirpath:    ', session_info.dirpath)
@@ -163,6 +171,11 @@ def record_complete_listener(session_info_ptr, client_data):
         print('width:      ', session_info.width)
         print('height:     ', session_info.height)
 
+        # Need to make sure the Pipleine is still playing before we 
+        # call any of the Trigger and Tiler services below.
+        if current_state != DSL_STATE_PLAYING:
+            return None
+        
         # disable the always trigger showing the metadata for "recording in session" 
         retval = dsl_ode_trigger_enabled_set('rec-on-trigger', enabled=False)
         if (retval != DSL_RETURN_SUCCESS):
@@ -174,6 +187,8 @@ def record_complete_listener(session_info_ptr, client_data):
         if (retval != DSL_RETURN_SUCCESS):
             print('Failed to reset instance trigger with error:', 
                 dsl_return_value_to_string(retval))
+            
+        return None
 
 def main(args):
 
@@ -198,8 +213,8 @@ def main(args):
             red=0.0, blue=0.0, green=0.0, alpha=0.8)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_display_type_rgba_font_new('impact-20-white', 
-            font='impact', size=20, color='full-white')
+        retval = dsl_display_type_rgba_font_new('digital-20-white', 
+            font='KacstDigital', size=20, color='full-white')
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -207,15 +222,15 @@ def main(args):
 
         # Create a new Text type object that will be used to show the recording 
         # in progress
-        retval = dsl_display_type_rgba_text_new('rec-text', 'REC', 
-            x_offset=10, y_offset=30, font='impact-20-white', 
-                has_bg_color=True, bg_color='opaque-black')
+        retval = dsl_display_type_rgba_text_new('rec-text', 'REC    ', 
+            x_offset=10, y_offset=30, font='digital-20-white', 
+            has_bg_color=True, bg_color='opaque-black')
         if retval != DSL_RETURN_SUCCESS:
             break
         # A new RGBA Circle to be used to simulate a red LED light for the recording 
         # in progress.
         retval = dsl_display_type_rgba_circle_new('red-led', 
-            x_center=94, y_center=52, radius=8, 
+            x_center=94, y_center=50, radius=8, 
             color='full-red', has_bg_color=True, bg_color='full-red')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -268,27 +283,27 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # IMPORTANT: Best to set the default cache-size to the maximum value we 
-        # intend to use (see the xwindow_key_event_handler callback above). 
-        retval = dsl_sink_record_cache_size_set('record-sink', 25)
+        # IMPORTANT: Best to set the max-size to the maximum value we 
+        # intend to use (see dsl_ode_action_sink_record_start_new below). 
+        retval = dsl_sink_record_max_size_set('record-sink', 
+            RECORDING_START + RECORDING_DURATION)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Since the Record-Sink is derived from the Encode-Sink, we can use the 
-        # dsl_sink_encode_dimensions_set service to change the recording dimensions 
-        # at the input to the encoder. Note: the dimensions can also be controlled
-        # after the video encoder by calling dsl_sink_record_dimensions_set
-        retval = dsl_sink_encode_dimensions_set('record-sink', 640, 360)
+        # IMPORTANT: Best to set the default cache-size to the maximum value we 
+        # intend to use (see dsl_ode_action_sink_record_start_new below). 
+        retval = dsl_sink_record_cache_size_set('record-sink', RECORDING_START)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         ##############################################################################
 
-        # Create a new Start Action to start a new record session.
+        # Create a new Start Record Action to start a new record session.
         # IMPORTANT! The Record Sink (see above) must be created first or
         # this call will fail with DSL_RESULT_COMPONENT_NAME_NOT_FOUND. 
         retval = dsl_ode_action_sink_record_start_new('start-record-action', 
-            record_sink='record-sink', start=20, duration=20, client_data=None)
+            record_sink='record-sink', start=RECORDING_START, 
+            duration=RECORDING_DURATION, client_data=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -355,7 +370,7 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, 
+            text_enabled=True, clock_enabled=False, 
             bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break

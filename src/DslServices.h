@@ -1062,6 +1062,10 @@ namespace DSL {
             
         DslReturnType TapRecordContainerSet(const char* name, uint container);
         
+        DslReturnType TapRecordMaxSizeGet(const char* name, uint* maxSize);
+            
+        DslReturnType TapRecordMaxSizeSet(const char* name, uint maxSize);
+        
         DslReturnType TapRecordCacheSizeGet(const char* name, uint* cacheSize);
             
         DslReturnType TapRecordCacheSizeSet(const char* name, uint cacheSize);
@@ -1463,6 +1467,10 @@ namespace DSL {
             
         DslReturnType SinkRecordContainerSet(const char* name, uint container);
 
+        DslReturnType SinkRecordMaxSizeGet(const char* name, uint* maxSize);
+            
+        DslReturnType SinkRecordMaxSizeSet(const char* name, uint maxSize);
+        
         DslReturnType SinkRecordCacheSizeGet(const char* name, uint* cacheSize);
             
         DslReturnType SinkRecordCacheSizeSet(const char* name, uint cacheSize);

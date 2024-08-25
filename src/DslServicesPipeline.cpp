@@ -1092,7 +1092,7 @@ namespace DSL
             *state = (uint)gstState;
 
             LOG_INFO("Pipeline '" << name 
-                << "' returned a current state of '" << StateValueToString(*state) << "' successfully");
+                << "' returned a current state of '" << *state << "' successfully");
 
             return DSL_RESULT_SUCCESS;
         }

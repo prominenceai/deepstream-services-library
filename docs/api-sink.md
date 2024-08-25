@@ -14,11 +14,11 @@ DSL supports fifteen (15) different types of Sinks:
 * [V4L2 Sink](#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
 * [File Sink](#dsl_sink_file_new) - encodes video to a media container file
 * [Record Sink](#dsl_sink_record_new) - similar to the File sink but with Start/Stop/Duration control and a cache for pre-start buffering.
-* [RTMP Sink](#dsl_sink_record_new) - streams encoded video using the Real-time Messaging Protocol (RTMP) to social media networks, live streaming platforms, and media servers.
+* [RTMP Sink](#dsl_sink_rtmp_new) - streams encoded video using the Real-time Messaging Protocol (RTMP) to social media networks, live streaming platforms, and media servers.
 * [RTSP Client Sink](#dsl_sink_rtsp_client_new) - streams encoded video using the Real-time Streaming Protocol (RTSP) as a client of a media server. 
 * [RTSP Server Sink](#dsl_sink_rtsp_server_new) - streams encoded video via an RTSP (UDP) Server on a specified port.
 * [WebRTC Sink](#dsl_sink_webrtc_new) - streams encoded video to a web browser or mobile application. **(Requires GStreamer 1.18 or later)**
-* [Message Sink](dsl_sink_message_new) - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
+* [Message Sink](#dsl_sink_message_new) - converts Object Detection Event (ODE) metadata into a message payload and sends it to the server using a specified communication protocol.
 * [Application Sink](#dsl_sink_app_new) - allows the application to receive buffers or samples from a DSL Pipeline.
 * [Interpipe Sink](#dsl_sink_interpipe_new) -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Multi-Image Sink](#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
@@ -204,6 +204,8 @@ You can use the following GStreamer launch command to test the loopback device w
 * [`dsl_sink_record_outdir_set`](#dsl_sink_record_outdir_set)
 * [`dsl_sink_record_container_get`](#dsl_sink_record_container_get)
 * [`dsl_sink_record_container_set`](#dsl_sink_record_container_set)
+* [`dsl_sink_record_max_size_get`](#dsl_sink_record_max_size_get)
+* [`dsl_sink_record_max_size_set`](#dsl_sink_record_max_size_set)
 * [`dsl_sink_record_cache_size_get`](#dsl_sink_record_cache_size_get)
 * [`dsl_sink_record_cache_size_set`](#dsl_sink_record_cache_size_set)
 * [`dsl_sink_record_dimensions_get`](#dsl_sink_record_dimensions_get)
@@ -321,6 +323,12 @@ The following video container types are used by the File Sink API
 ```C
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
+```
+
+## Recording Defaults
+```C
+#define DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC                    600
+#define DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC                  60
 ```
 
 ## Smart Recording Events
@@ -2073,12 +2081,22 @@ retval = dsl_sink_encode_dimensions_set('my-rtsp-server-sink', 1280, 720)
 DslReturnType dsl_sink_record_session_start(const wchar_t* name,
     uint start, uint duration, void* client_data);
 ```
-This service starts a new recording session for the named Record Sink
+This service starts a new recording session for the named Record Sink. There are two parameters that control the amount of video recorded
+1. `start`: the number of seconds before the current time -- i.e.the amount of cache/history to include.
+2. `duration`: the number of seconds after the current time -- i.e. the amount of time to record after session start is called.
+
+Therefore, a total of `start` + `duration` seconds of data will be recorded as long as the default values are not exceeded.
+
+**IMPORTANT!** 
+1. The default `max_size` for all Smart Recordings is set to 600 seconds. The recording will be truncated if `start` + `duration` is greater than (>)`max_size` See [dsl_sink_record_max_size_set](#dsl_sink_record_max_size_set) to update `max_size`. 
+2. The default `cache-size` for all recordings is set to 60 seconds. The recording will be truncated if `start` is greater than (>) `cache_size`. See [dsl_sink_record_cache_size_set](#dsl_sink_record_cache_size_set) to update  `cache_size`.
+
+Warning messages will be logged if either of the above conditions are not met. See the [Recording Defaults](#recording-defaults) above.
 
 **Parameters**
  * `name` [in] unique name of the Record Sink to start the session.
  * `start` [in] start time in seconds before the current time should be less than the video cache size.
- * `duration` [in] in seconds from the current time to record.
+ * `duration` [in] duration of time to record in seconds including the `start` time. 
  * `client_data` [in] opaque pointer to client data returned on callback to the client listener function provided on Sink creation.
 
 **Returns**
@@ -2190,11 +2208,58 @@ retval = dsl_sink_record_container_set('my-record-sink', DSL_CONTAINER_MP4)
 
 <br>
 
+### *dsl_sink_record_max_size_get*
+```C++
+DslReturnType dsl_sink_record_max_size_get(const wchar_t* name, uint* max_size);
+```
+This service returns the video recording max size in units of seconds for the named Record Sink. The default max size is set to [`DSL_DEFAULT_VIDEO_RECORD_MAX_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `max_size` must be greater than `start` + `duration` when starting a recording. See [dsl_sink_record_session_start](#dsl_sink_record_session_start).
+
+**Parameters**
+ * `name` [in] name of the Record Sink to query.
+ * `max_size` [out] current cache size setting in units of seconds.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, max_size = dsl_sink_record_cache_size_get('my-record-sink')
+```
+
+<br>
+
+### *dsl_sink_record_max_size_set*
+```C++
+DslReturnType dsl_sink_record_max_size_set(const wchar_t* name, uint cache_size);
+```
+This service sets the video recording max size in units of seconds for the named Record Sink. The default max size is set to [`DSL_DEFAULT_VIDEO_RECORD_MAX_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `max_size` must be greater than `start` + `duration` when starting a recording. See [dsl_sink_record_session_start](#dsl_sink_record_session_start).
+
+**Parameters**
+ * `name` [in] name of the Record Sink to query.
+ * `max_size` [in] new cache size setting in units of seconds.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_record_max_size_set('my-record-sink', 1200)
+```
+
+<br>
+
 ### *dsl_sink_record_cache_size_get*
 ```C++
 DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size);
 ```
-This service returns the video recording cache size in units of seconds. A fixed size cache is created when the Pipeline is linked and played. The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC.
+This service returns the video recording cache size in units of seconds for the named Record Sink. The default cache size is set to [`DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `cache_size` must be greater than `start` when starting a recording. See [dsl_sink_record_session_start](#dsl_sink_record_session_start).
+
 
 **Parameters**
  * `name` [in] name of the Record Sink to query.
@@ -2214,7 +2279,9 @@ retval, cache_size = dsl_sink_record_cache_size_get('my-record-sink')
 ```C++
 DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_size);
 ```
-This service sets the video recording cache size in units of seconds. A fixed size cache is created when the Pipeline is linked and played. The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC.
+This service sets the video recording cache size in units of seconds for the named Record Sink. The default cache size is set to [`DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `cache_size` must be greater than `start` when starting a recording. See [dsl_sink_record_session_start](#dsl_sink_record_session_start).
 
 **Parameters**
  * `name` [in] name of the Record Sink to query.

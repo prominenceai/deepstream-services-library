@@ -5813,7 +5813,8 @@ DslReturnType dsl_tap_record_outdir_set(const wchar_t* name, const wchar_t* outd
     std::wstring wstrOutdir(outdir);
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
-    return DSL::Services::GetServices()->TapRecordOutdirSet(cstrName.c_str(), cstrOutdir.c_str());
+    return DSL::Services::GetServices()->TapRecordOutdirSet(cstrName.c_str(), 
+        cstrOutdir.c_str());
 }
 
 DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container)
@@ -5823,7 +5824,8 @@ DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordContainerGet(cstrName.c_str(), container);
+    return DSL::Services::GetServices()->TapRecordContainerGet(cstrName.c_str(), 
+        container);
 }
 
 DslReturnType dsl_tap_record_container_set(const wchar_t* name, uint container)
@@ -5833,17 +5835,43 @@ DslReturnType dsl_tap_record_container_set(const wchar_t* name, uint container)
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordContainerSet(cstrName.c_str(), container);
+    return DSL::Services::GetServices()->TapRecordContainerSet(cstrName.c_str(), 
+        container);
 }
  
-DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size)
+DslReturnType dsl_tap_record_max_size_get(const wchar_t* name, uint* max_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max_size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordMaxSizeGet(cstrName.c_str(), 
+        max_size);
+}
+
+DslReturnType dsl_tap_record_max_size_set(const wchar_t* name, uint max_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordCacheSizeGet(cstrName.c_str(), cache_size);
+    return DSL::Services::GetServices()->TapRecordMaxSizeSet(cstrName.c_str(), 
+        max_size);
+}
+ 
+DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(cache_size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->TapRecordCacheSizeGet(cstrName.c_str(), 
+        cache_size);
 }
 
 DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size)
@@ -5853,32 +5881,40 @@ DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordCacheSizeSet(cstrName.c_str(), cache_size);
+    return DSL::Services::GetServices()->TapRecordCacheSizeSet(cstrName.c_str(), 
+        cache_size);
 }
  
-DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height)
+DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, 
+    uint* width, uint* height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(width);
+    RETURN_IF_PARAM_IS_NULL(width);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordDimensionsGet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TapRecordDimensionsGet(cstrName.c_str(), 
+        width, height);
 }
 
-DslReturnType dsl_tap_record_dimensions_set(const wchar_t* name, uint width, uint height)
+DslReturnType dsl_tap_record_dimensions_set(const wchar_t* name, 
+uint width, uint height)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordDimensionsSet(cstrName.c_str(), width, height);
+    return DSL::Services::GetServices()->TapRecordDimensionsSet(cstrName.c_str(), 
+        width, height);
 }
 
 DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(is_on);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -5889,11 +5925,13 @@ DslReturnType dsl_tap_record_is_on_get(const wchar_t* name, boolean* is_on)
 DslReturnType dsl_tap_record_reset_done_get(const wchar_t* name, boolean* reset_done)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(reset_done);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->TapRecordResetDoneGet(cstrName.c_str(), reset_done);
+    return DSL::Services::GetServices()->TapRecordResetDoneGet(cstrName.c_str(), 
+        reset_done);
 }
 
 DslReturnType dsl_tap_record_video_player_add(const wchar_t* name, 
@@ -8270,6 +8308,28 @@ DslReturnType dsl_sink_record_container_set(const wchar_t* name, uint container)
     return DSL::Services::GetServices()->SinkRecordContainerSet(cstrName.c_str(), container);
 }
 
+DslReturnType dsl_sink_record_max_size_get(const wchar_t* name, uint* max_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordMaxSizeGet(cstrName.c_str(), 
+        max_size);
+}
+
+DslReturnType dsl_sink_record_max_size_set(const wchar_t* name, uint max_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SinkRecordMaxSizeSet(cstrName.c_str(), 
+        max_size);
+}
+ 
 DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -8277,7 +8337,8 @@ DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_si
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRecordCacheSizeGet(cstrName.c_str(), cache_size);
+    return DSL::Services::GetServices()->SinkRecordCacheSizeGet(cstrName.c_str(), 
+        cache_size);
 }
 
 DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_size)
@@ -8287,7 +8348,8 @@ DslReturnType dsl_sink_record_cache_size_set(const wchar_t* name, uint cache_siz
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
 
-    return DSL::Services::GetServices()->SinkRecordCacheSizeSet(cstrName.c_str(), cache_size);
+    return DSL::Services::GetServices()->SinkRecordCacheSizeSet(cstrName.c_str(), 
+        cache_size);
 }
  
 DslReturnType dsl_sink_record_dimensions_get(const wchar_t* name, uint* width, uint* height)

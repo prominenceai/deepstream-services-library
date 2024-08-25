@@ -27,6 +27,8 @@ Note: Adding a Tap component to a Pipeline or Branch directly will fail.
 * [`dsl_tap_record_outdir_set`](#dsl_tap_record_outdir_set)
 * [`dsl_tap_record_container_get`](#dsl_tap_record_container_get)
 * [`dsl_tap_record_container_set`](#dsl_tap_record_container_set)
+* [`dsl_tap_record_max_size_get`](#dsl_tap_record_max_size_get)
+* [`dsl_tap_record_max_size_set`](#dsl_tap_record_max_size_set)
 * [`dsl_tap_record_cache_size_get`](#dsl_tap_record_cache_size_get)
 * [`dsl_tap_record_cache_size_set`](#dsl_tap_record_cache_size_set)
 * [`dsl_tap_record_dimensions_get`](#dsl_tap_record_dimensions_get)
@@ -59,13 +61,20 @@ The following return codes are used by the Tap API
 
 ## Video Container Types
 The following video container types are used by the Record Tap API
-```C++
+```C
 #define DSL_CONTAINER_MPEG4                                         0
 #define DSL_CONTAINER_MK4                                           1
 ```
+
+## Recording Defaults
+```C
+#define DSL_DEFAULT_VIDEO_RECORD_MAX_SIZE_IN_SEC                    600
+#define DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC                  60
+```
+
 ## Recording Events
 The following Event Type identifiers are used by the Recording Tap API
-```C++
+```C
 #define DSL_RECORDING_EVENT_START                                   0
 #define DSL_RECORDING_EVENT_END                                     1
 ```
@@ -174,7 +183,9 @@ As with all Pipeline components, Taps are deleted by calling [dsl_component_dele
 DslReturnType dsl_tap_record_session_start(const wchar_t* name, uint* session,
     uint start, uint duration, void* client_data);
 ```
-This services starts a new recording session for the named Record Tap
+This services starts a new recording session for the named Record Tap.
+
+**IMPORTANT!** The `max-size` must be greater than `start` + `duration`, and `cache-size` must be greater than `start`. See [dsl_tap_record_max_size_set](#dsl_tap_record_max_size_set) and [dsl_tap_record_cache_size_set](#dsl_tap_record_cache_size_set).
 
 **Parameters**
  * `name` [in] unique of the Record Tap to start the session
@@ -292,15 +303,57 @@ retval = dsl_tap_record_container_set('my-record-tap', DSL_CONTAINER_MP4)
 
 <br>
 
+### *dsl_tap_record_max_size_get*
+```C++
+DslReturnType dsl_tap_record_max_size_get(const wchar_t* name, uint* max_size);
+```
+This service returns the video recording max size in units of seconds for the named Record Tap. The default max size is set to [`DSL_DEFAULT_VIDEO_RECORD_MAX_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `max_size` must be greater than `start` + `duration` when starting a recording. See [dsl_tap_record_session_start](#dsl_tap_record_session_start).
+
+**Parameters**
+ * `name` [in] name of the Record Tap to query.
+ * `max_size` [out] current max size setting in units of seconds.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, max_size = dsl_tap_record_max_size_get('my-record-tap')
+```
+
+<br>
+
+### *dsl_tap_record_max_size_set*
+```C++
+DslReturnType dsl_tap_record_max_size_set(const wchar_t* name, uint max_size);
+```
+This service sets the video recording max size in units of seconds for the named Record Tap. The default max size is set to [`DSL_DEFAULT_VIDEO_RECORD_MAX_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `max-size` must be greater than `start` + `duration` when starting a recording. See [dsl_tap_record_session_start](#dsl_tap_record_session_start).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_tap_record_max_size_set('my-record-tap', 1200)
+```
+
+<br>
+
 ### *dsl_tap_record_cache_size_get*
 ```C++
 DslReturnType dsl_tap_record_cache_size_get(const wchar_t* name, uint* cache_size);
 ```
-This service returns the video recording cache size in units of seconds. A fixed size cache is created when the Pipeline is linked and played. The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC.
+This service returns the video recording cache size in units of seconds for the named Record Tap. The default cache size is set to [`DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `cache_size` must be greater than `start` when starting a recording. See [dsl_tap_record_session_start](#dsl_tap_record_session_start).
 
 **Parameters**
- * `name` [in] name of the Record Tap to query
- * `cache_size` [out] current cache size setting
+ * `name` [in] name of the Record Tap to query.
+ * `cache_size` [out] current cache size setting in units of seconds.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful Query. One of the [Return Values](#return-values) defined above on failure
@@ -316,11 +369,13 @@ retval, cache_size = dsl_tap_record_cache_size_get('my-record-tap')
 ```C++
 DslReturnType dsl_tap_record_cache_size_set(const wchar_t* name, uint cache_size);
 ```
-This service sets the video recording cache size in units of seconds. A fixed size cache is created when the Pipeline is linked and played. The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC
+This service sets the video recording cache size in units of seconds for the named Record Tap. The default cache size is set to [`DSL_DEFAULT_VIDEO_RECORD_CACHE_IN_SEC`](#recording-defaults).
+
+**IMPORTANT!** The `cache-size` must be greater than `start` when starting a recording. See [dsl_tap_record_session_start](#dsl_tap_record_session_start).
 
 **Parameters**
  * `name` [in] name of the Record Tap to query
- * `cache_size` [in] new cache size setting to use on Pipeline play
+ * `cache_size` [in] new cache size setting in units of seconds.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
@@ -336,7 +391,7 @@ retval = dsl_tap_record_cache_size_set('my-record-tap', 15)
 ```C++
 DslReturnType dsl_tap_record_dimensions_get(const wchar_t* name, uint* width, uint* height);
 ```
-This service returns the dimensions, width and height, used for the video recordings
+This service returns the dimensions, width and height, used for the video recordings 
 
 **Parameters**
  * `name`[in] name of the Record Tap to query
