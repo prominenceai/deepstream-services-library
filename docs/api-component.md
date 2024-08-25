@@ -175,6 +175,7 @@ The following return codes are used by the Component API
 #define DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS                         0
 #define DSL_COMPONENT_QUEUE_UNIT_OF_BYTES                           1
 #define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
+<<<<<<< HEAD
 ```
 
 ## Component Queue Leaky Constants
@@ -189,6 +190,8 @@ The following return codes are used by the Component API
 #define DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS                         0
 #define DSL_COMPONENT_QUEUE_UNIT_OF_BYTES                           1
 #define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 ```
 
 ## NVIDIA Buffer Memory Types
@@ -369,7 +372,10 @@ This service adds a single named GST Element to a named Custom Component. The ad
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
+<<<<<<< HEAD
 
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 
 **Python Example**
 ```Python
@@ -943,6 +949,7 @@ This service removes a queue-client-listener callback function from a list of na
 retval = dsl_component_queue_underrun_listener_remove_many(
   ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
   queue_overrun_listener_cb, None)
+<<<<<<< HEAD
 ```
 
 <br>
@@ -1489,6 +1496,8 @@ This service removes a queue-client-listener callback function from a list of na
 retval = dsl_component_queue_underrun_listener_remove_many(
   ['my-primary-gie', 'my-tracker', 'my-tiler', 'my-osd', None],
   queue_overrun_listener_cb, None)
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 ```
 
 <br>
@@ -1560,9 +1569,12 @@ DslReturnType dsl_component_nvbuf_mem_type_get(const wchar_t* name,
 ```
 This service returns the current NVIDIA buffer memory type for the named Component. The default setting for all components that support this property is  = `DSL_NVBUF_MEM_TYPE_DEFAULT`. Refer to the [NVIDIA Reference](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_FAQ.html#what-are-different-memory-types-supported-on-jetson-and-dgpu) for more information on the memory types supported on Jetson and dGPU.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 
 **Note:** Only Sources, Primary GIEs/TIEs, OSDs, and Window Sinks (on x86_64) support the NVIDIA buffer memory type setting.
 
@@ -1639,6 +1651,7 @@ This service returns the current number of Components (all types) in memory. The
 **Python Example**
 ```Python
 number_of_components = dsl_component_list_size()
+<<<<<<< HEAD
 ```
 
 <br>
@@ -1655,6 +1668,8 @@ This service returns the current number of Components (all types) in memory. The
 **Python Example**
 ```Python
 number_of_components = dsl_component_list_size()
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 ```
 
 <br>

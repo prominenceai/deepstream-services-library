@@ -721,36 +721,24 @@ namespace DSL
                 
             switch (changeResult)
             {
-                LOG_ERROR("Failed to get static source pad for GstNodetr '" 
-                    << GetName() << "'");
+            case GST_STATE_CHANGE_FAILURE:
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' failed to set state to NULL");
                 return false;
-            }
-            
-            // Get a reference to the Muxer's sink pad that is connected
-            // to this GstNodetr's source pad
-            GstPad* pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
-            if (!pRequestedSinkPad)
-            {
-                LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
-                    << GetName() << "'");
-                return false;
-            }
 
-            GstState currState, nextState;
-            GstStateChangeReturn result = gst_element_get_state(GetGstElement(), 
-                &currState, &nextState, 1);
-
-            if (currState > GST_STATE_NULL)
-            { 
-                GstStateChangeReturn changeResult = gst_element_set_state(
-                    GetGstElement(), GST_STATE_NULL);
+            case GST_STATE_CHANGE_ASYNC:
+                LOG_INFO("GstNodetr '" << GetName() 
+                    << "' changing state to NULL async");
                     
-                switch (changeResult)
+                // block on get state until change completes. 
+                if (gst_element_get_state(GetGstElement(), 
+                    NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
                 {
-                case GST_STATE_CHANGE_FAILURE:
                     LOG_ERROR("GstNodetr '" << GetName() 
                         << "' failed to set state to NULL");
                     return false;
+                }
+                // drop through on success - DO NOT BREAK
 
             case GST_STATE_CHANGE_SUCCESS:
                 LOG_INFO("GstNodetr '" << GetName() 

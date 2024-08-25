@@ -59,10 +59,6 @@ namespace DSL
         AddChild(m_pQueue);
     }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 4bff5ba (Implement Component Queue get/set services)
     QBintr::~QBintr()
     { 
         LOG_FUNC(); 

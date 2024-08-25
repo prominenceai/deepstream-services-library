@@ -8311,6 +8311,7 @@ DslReturnType dsl_sink_record_container_set(const wchar_t* name, uint container)
 DslReturnType dsl_sink_record_max_size_get(const wchar_t* name, uint* max_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(max_size);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
@@ -8333,6 +8334,7 @@ DslReturnType dsl_sink_record_max_size_set(const wchar_t* name, uint max_size)
 DslReturnType dsl_sink_record_cache_size_get(const wchar_t* name, uint* cache_size)
 {
     RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(cache_size);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());

@@ -616,6 +616,7 @@
 * [`dsl_component_nvbuf_mem_type_set`](/docs/api-component.md#dsl_component_nvbuf_mem_type_set)
 * [`dsl_component_nvbuf_mem_type_set_many`](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many)
 * [`dsl_component_list_size`](/docs/api-component.md#dsl_component_list_size)
+<<<<<<< HEAD
 
 ## Common Component API:
 * [Overview](/docs/api-component.md)
@@ -656,6 +657,8 @@
 * [`dsl_component_nvbuf_mem_type_set`](/docs/api-component.md#dsl_component_nvbuf_mem_type_set)
 * [`dsl_component_nvbuf_mem_type_set_many`](/docs/api-component.md#dsl_component_nvbuf_mem_type_set_many)
 * [`dsl_component_list_size`](/docs/api-component.md#dsl_component_list_size)
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 
 ## Pad Probe Handler:
 * [Overview](/docs/api-pph.md)

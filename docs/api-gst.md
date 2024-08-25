@@ -104,9 +104,12 @@ Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.
 * [`dsl_gst_element_pph_add`](#dsl_gst_element_pph_add)
 * [`dsl_gst_element_pph_remove`](#dsl_gst_element_pph_remove)
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 
 
 ---
@@ -129,11 +132,14 @@ The following return codes are used by the GStreamer Element API
 <<<<<<< HEAD
 <<<<<<< HEAD
 
+<<<<<<< HEAD
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
 =======
 
 >>>>>>> 3b88dca (Document GST Caps Object services)
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 ---
 
 
@@ -186,14 +192,19 @@ retval = dsl_gst_element_new('my-element', 'my-plugin)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> b3b683b (Rename/move dsl_gst_bin_* to dsl_component_custom_*)
 =======
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 
 >>>>>>> 3b88dca (Document GST Caps Object services)
 ---
 
+<<<<<<< HEAD
+=======
 
 ## Destructors
 ### *dsl_gst_caps_delete*
@@ -237,6 +248,95 @@ This destructor deletes a NULL terminated list of GST Caps Objects. This service
 
 
 
+**Python Example**
+```Python
+retval = dsl_gst_caps_delete_many('my-caps-1',
+  'my-caps-2', 'my-caps-3', None)
+```
+
+
+<br>
+
+
+## *dsl_gst_caps_delete_all*
+```C++
+DslReturnType dsl_gst_caps_delete_all();
+```
+This destructor deletes all GST Caps Objects in memory.
+
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+
+
+**Python Example**
+```Python
+retval = dsl_gst_caps_delete_all()
+```
+
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
+
+## Destructors
+### *dsl_gst_caps_delete*
+```C++
+DslReturnType dsl_gst_caps_delete(const wchar_t* name);
+```
+<<<<<<< HEAD
+This destructor deletes a uniquely named GST Caps Object.
+
+
+**Parameters**
+* `name` - [in] unique name of the GST Caps Object to delete.
+=======
+This destructor deletes a uniquely named GST Element. This service will fail if the Element is currently in-use .
+
+
+
+
+**Parameters**
+* `name` - [in] unique name for the GST Element to delete.
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
+
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+
+
+**Python Example**
+```Python
+retval = dsl_gst_caps_delete('my-video-caps')
+```
+
+
+<br>
+
+
+<<<<<<< HEAD
+### *dsl_gst_caps_delete_many*
+=======
+### *dsl_gst_element_delete_many*
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
+```C++
+DslReturnType dsl_gst_caps_delete_many(const wchar_t** names);
+```
+<<<<<<< HEAD
+This destructor deletes a NULL terminated list of GST Caps Objects. This service will return with an error if any of the Caps Objects are currently not found.
+=======
+This destructor deletes a NULL terminated list of GST Elements. This service will return with an error if any of the Elements are currently in-use or not found.
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
+
+
+**Parameters**
+* `names` - [in] NULL terminated list of GST Elements to delete.
+
+
+**Returns**
+`DSL_RESULT_SUCCESS` on successful deletion. One of the [Return Values](#return-values) defined above on failure
+
+
+
+
+<<<<<<< HEAD
 **Python Example**
 ```Python
 retval = dsl_gst_caps_delete_many('my-caps-1',
@@ -316,6 +416,8 @@ This destructor deletes a NULL terminated list of GST Elements. This service wil
 
 
 
+=======
+>>>>>>> 62d313497e4453cf8b7d8bb31e47994a2e414806
 **Python Example**
 ```Python
 retval = dsl_gst_element_delete_many('my-element-1',
