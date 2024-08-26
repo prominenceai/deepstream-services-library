@@ -1821,6 +1821,28 @@ namespace DSL
         AddChild(m_pParser);
     }
 
+    bool EncodeSinkBintr::LinkToCommon(DSL_NODETR_PTR pSinkNodetr)
+    {
+        LOG_FUNC();
+        
+        return (m_pQueue->LinkToSink(m_pTransform) and
+            m_pTransform->LinkToSink(m_pCapsFilter) and
+            m_pCapsFilter->LinkToSink(m_pEncoder) and
+            m_pEncoder->LinkToSink(m_pParser) and
+            m_pParser->LinkToSink(pSinkNodetr));
+    }
+
+    void EncodeSinkBintr::UnlinkFromCommon()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+    }
+    
     void EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
@@ -2031,11 +2053,7 @@ namespace DSL
             LOG_ERROR("FileSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pContainer) or
+        if (!LinkToCommon(m_pContainer) or
             !m_pContainer->LinkToSink(m_pSink))
         {
             return false;
@@ -2053,12 +2071,7 @@ namespace DSL
             LOG_ERROR("FileSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pContainer->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
+        UnlinkFromCommon();
         m_isLinked = false;
     }
 
@@ -2136,11 +2149,7 @@ namespace DSL
             
         AddChild(m_pRecordBin);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pRecordBin))
+        if (!LinkToCommon(m_pRecordBin))
         {
             return false;
         }
@@ -2159,12 +2168,8 @@ namespace DSL
             return;
         }
         DestroyContext();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
         
+        UnlinkFromCommon();
         RemoveChild(m_pRecordBin);
         
         // Destroy the RecordBin GSTNODETR
@@ -2259,11 +2264,7 @@ namespace DSL
             return false;
         }
         
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pFlvmux) or
+        if (!LinkToCommon(m_pFlvmux) or 
             !m_pFlvmux->LinkToSink(m_pSink))
         {
             return false;
@@ -2283,12 +2284,8 @@ namespace DSL
             return;
         }
 
+        UnlinkFromCommon();
         m_pFlvmux->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -2452,11 +2449,7 @@ namespace DSL
         gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
         g_object_unref(pMounts);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pPayloader) or
+        if (!LinkToCommon(m_pPayloader) or 
             !m_pPayloader->LinkToSink(m_pSink))
         {
             return false;
@@ -2521,13 +2514,9 @@ namespace DSL
             g_source_remove(m_pServerSrcId);
             m_pServerSrcId = 0;
         }
-        
+
+        UnlinkFromCommon();
         m_pPayloader->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
     
@@ -2618,11 +2607,7 @@ namespace DSL
             LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pSink))
+        if (!LinkToCommon(m_pSink))
         {
             return false;
         }
@@ -2639,11 +2624,7 @@ namespace DSL
             LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
+        UnlinkFromCommon();
         m_isLinked = false;
     }
 

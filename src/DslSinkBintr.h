@@ -887,6 +887,19 @@ namespace DSL
             uint codec, uint bitrate, uint interval);
 
         /**
+         * @brief Links all common Elementrs and the last element
+         * to pSinkNodetr.
+         * @param[in] pSinkNodetr element to link the last common element to.
+         * @return true is all elements were linked successfully, false otherwise.
+         */
+        bool LinkToCommon(DSL_NODETR_PTR pSinkNodetr);
+
+        /**
+         * @brief Unlinks all common Elementrs 
+         */
+        void UnlinkFromCommon();
+
+        /**
          * @brief Gets the current bit-rate and interval settings in use by the 
          * EncoderSinkBintr
          * @param[out] code the currect codec in used
