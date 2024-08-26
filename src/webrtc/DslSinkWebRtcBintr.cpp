@@ -151,11 +151,7 @@ namespace DSL
 
         AddChild(m_pWebRtcBin);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pPayloader) or
+        if (!LinkToCommon(m_pPayloader) or 
             !m_pPayloader->LinkToSink(m_pWebRtcCapsFilter) or
             !m_pWebRtcCapsFilter->LinkToSink(m_pWebRtcBin))
         {
@@ -174,13 +170,9 @@ namespace DSL
             LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pWebRtcCapsFilter->UnlinkFromSink();
+        UnlinkFromCommon();
         m_pPayloader->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
+        m_pWebRtcCapsFilter->UnlinkFromSink();
 
         // remove and delete the webrtcbin to be recreated on next Linkall
         RemoveChild(m_pWebRtcBin);
