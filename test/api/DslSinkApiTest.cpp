@@ -1468,7 +1468,7 @@ SCENARIO( "Creating a new File Sink with an invalid Codec will fail", "[sink-api
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_MPEG4 + 1);
+        uint codec(DSL_CODEC_SW_MPEG4 + 1);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);

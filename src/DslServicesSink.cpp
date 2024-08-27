@@ -945,7 +945,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_SW_H265)
+            if (codec > DSL_CODEC_SW_MPEG4)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
                     << " for File Sink '" << name << "'");
@@ -996,7 +996,7 @@ namespace DSL
                 return DSL_RESULT_SINK_PATH_NOT_FOUND;
             }
 
-            if (codec > DSL_CODEC_SW_H265)
+            if (codec > DSL_CODEC_SW_MPEG4)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
                     << " for Record Sink '" << name << "'");
@@ -1625,10 +1625,9 @@ namespace DSL
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
             if (m_components[name]->IsType(typeid(RtmpSinkBintr)) and
-                (codec == DSL_CODEC_HW_H265) or (codec == DSL_CODEC_SW_H265))
+                (codec != DSL_CODEC_HW_H264) or (codec == !DSL_CODEC_SW_H264))
             {   
-                LOG_ERROR("Codec value = H265 is invalid for RTMP Sink '"
-                    << name << "'");
+                LOG_ERROR("RTMP Sink '" << name << "' only supports H264 codecs");
                 return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
             }
                     

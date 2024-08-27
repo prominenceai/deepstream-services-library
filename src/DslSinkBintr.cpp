@@ -1769,94 +1769,109 @@ namespace DSL
         m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
         m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvideoconvert");
 
-
+        // Create the codec specific elements and caps
         switch (codec)
         {
         case DSL_CODEC_HW_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h264enc", name);
-            // aarch_64
-            if (m_cudaDeviceProp.integrated)
-            {
-                // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-                if (NVDS_VERSION_MINOR < 3)
-                {
-                    m_pEncoder->SetAttribute("bufapi-version", TRUE);
-                }
-                m_pEncoder->SetAttribute("preset-level", TRUE);
-                m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
-            }
-            {
-                DslCaps ConvertCaps("video/x-raw(memory:NVMM), format=I420");
-                m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
-            }
+            m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             break;
         case DSL_CODEC_HW_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h265enc", name);
-            // aarch_64
-            if (m_cudaDeviceProp.integrated)
-            {
-                // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-                if (NVDS_VERSION_MINOR < 3)
-                {
-                    m_pEncoder->SetAttribute("bufapi-version", TRUE);
-                }
-                m_pEncoder->SetAttribute("preset-level", TRUE);
-                m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
-            }
-            {
-                DslCaps ConvertCaps("video/x-raw(memory:NVMM), format=I420");
-                m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
-            }
+            m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
         case DSL_CODEC_SW_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("x264enc", name);
+            m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             m_pSwEncoderCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "x264enc");
             {
-                DslCaps ConvertCaps("video/x-raw, format=I420");
-                m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
                 DslCaps x264encCaps("video/x-h264, profile=(string)baseline");
                 m_pSwEncoderCapsFilter->SetAttribute("caps", &x264encCaps);
             }
-            AddChild(m_pSwEncoderCapsFilter);
             break;
         case DSL_CODEC_SW_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("x265enc", name);
+            m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             m_pSwEncoderCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "x265enc");
             {
-                DslCaps ConvertCaps("video/x-raw, format=I420");
-                m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
                 DslCaps x265encCaps("video/x-h265, profile=(string)baseline");
                 m_pSwEncoderCapsFilter->SetAttribute("caps", &x265encCaps);
             }
-            AddChild(m_pSwEncoderCapsFilter);
+            break;
+        case DSL_CODEC_SW_MPEG4 :
+            m_pEncoder = DSL_ELEMENT_NEW("avenc_mpeg4", name);
+            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", name);
             break;
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
             throw std::exception();
         }
 
-        switch (codec)
-        {
-        case DSL_CODEC_HW_H264 :
-        case DSL_CODEC_SW_H264 :
-            m_pParser = DSL_ELEMENT_NEW("h264parse", name);
-            break;
-        case DSL_CODEC_HW_H265 :
-        case DSL_CODEC_SW_H265 :
-            m_pParser = DSL_ELEMENT_NEW("h265parse", name);
-            break;
-        }
-        
         // Get the default bitrate
-        m_pEncoder->GetAttribute("bitrate", &m_defaultBitrate);
-        
-        // Update if set
-        if (m_bitrate)
-        {
-            m_pEncoder->SetAttribute("bitrate", m_bitrate);
-        }
-        m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        uint defaultBitrate(0);
+        m_pEncoder->GetAttribute("bitrate", &defaultBitrate);
 
+        // If using hardware encoding
+        if (m_codec == DSL_CODEC_HW_H264 or m_codec == DSL_CODEC_HW_H265)
+        {
+            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+            if (m_cudaDeviceProp.integrated)
+            {
+                if (NVDS_VERSION_MINOR < 3)
+                {
+                    m_pEncoder->SetAttribute("bufapi-version", TRUE);
+                }
+                m_pEncoder->SetAttribute("preset-level", TRUE);
+                m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
+            }
+            // Add (memory:NVMM) for HW encoding
+            DslCaps ConvertCaps("video/x-raw(memory:NVMM), format=I420");
+            m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
+
+            // bitrate is bit/s
+            m_defaultBitrate = defaultBitrate;
+
+            // Update if set
+            if (m_bitrate)
+            {
+                m_pEncoder->SetAttribute("bitrate", m_bitrate);
+            }
+        }
+        // If using H264/H265 software encoding
+        else if (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
+        {
+            // Remove (memory:NVMM) for SW encoding
+            DslCaps ConvertCaps("video/x-raw, format=I420");
+            m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
+
+            // bitrate is Kbit/s - need to convert
+            m_defaultBitrate = defaultBitrate*1000;
+
+            // Update if set
+            if (m_bitrate)
+            {
+                m_pEncoder->SetAttribute("bitrate", m_bitrate/1000);
+            }
+            AddChild(m_pSwEncoderCapsFilter);
+        }
+        // If using MPEG software encoding
+        else 
+        {
+            // Remove (memory:NVMM) for SW encoding
+            DslCaps ConvertCaps("video/x-raw, format=I420");
+            m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
+
+            // bitrate is bit/s
+            m_defaultBitrate = defaultBitrate;
+
+            // Update if set
+            if (m_bitrate)
+            {
+                m_pEncoder->SetAttribute("bitrate", m_bitrate);
+            }
+            // NOTE! the MPEG encoder does not support an interval property 
+        }
+        
         AddChild(m_pTransform);
         AddChild(m_pCapsFilter);
         AddChild(m_pEncoder);
@@ -1867,18 +1882,23 @@ namespace DSL
     {
         LOG_FUNC();
         
-
-        return (m_codec == DSL_CODEC_HW_H264 or m_codec == DSL_CODEC_HW_H265)
-            ? (m_pQueue->LinkToSink(m_pTransform) and
+        // Linke all elements based on Encoder
+        // return (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
+        //     ? (m_pQueue->LinkToSink(m_pTransform) and
+        //         m_pTransform->LinkToSink(m_pCapsFilter) and
+        //         m_pCapsFilter->LinkToSink(m_pEncoder) and
+        //         m_pEncoder->LinkToSink(m_pSwEncoderCapsFilter) and
+        //         m_pSwEncoderCapsFilter->LinkToSink(m_pParser) and
+        //         m_pParser->LinkToSink(pSinkNodetr))
+        //     : (m_pQueue->LinkToSink(m_pTransform) and
+        //         m_pTransform->LinkToSink(m_pCapsFilter) and
+        //         m_pCapsFilter->LinkToSink(m_pEncoder) and
+        //         m_pEncoder->LinkToSink(m_pParser) and
+        //         m_pParser->LinkToSink(pSinkNodetr));
+        return (m_pQueue->LinkToSink(m_pTransform) and
                 m_pTransform->LinkToSink(m_pCapsFilter) and
                 m_pCapsFilter->LinkToSink(m_pEncoder) and
                 m_pEncoder->LinkToSink(m_pParser) and
-                m_pParser->LinkToSink(pSinkNodetr))
-            : (m_pQueue->LinkToSink(m_pTransform) and
-                m_pTransform->LinkToSink(m_pCapsFilter) and
-                m_pCapsFilter->LinkToSink(m_pEncoder) and
-                m_pEncoder->LinkToSink(m_pSwEncoderCapsFilter) and
-                m_pSwEncoderCapsFilter->LinkToSink(m_pParser) and
                 m_pParser->LinkToSink(pSinkNodetr));
     }
 
@@ -1892,10 +1912,10 @@ namespace DSL
         m_pEncoder->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
 
-        if (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
-        {
-            m_pSwEncoderCapsFilter->UnlinkFromSink();
-        }
+        // if (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
+        // {
+        //     m_pSwEncoderCapsFilter->UnlinkFromSink();
+        // }
     }
     
     void EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)

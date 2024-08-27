@@ -623,14 +623,13 @@ THE SOFTWARE.
 #define DSL_CODEC_HW_H265                                           1
 #define DSL_CODEC_SW_H264                                           2
 #define DSL_CODEC_SW_H265                                           3
+#define DSL_CODEC_SW_MPEG4                                          4
 
 /**
  * @brief DEPRICATED Codec Types - use DSL_CODEC_HW_H264 and DSL_CODEC_HW_H265.
 */
 #define DSL_CODEC_H264                                              DSL_CODEC_HW_H264
 #define DSL_CODEC_H265                                              DSL_CODEC_HW_H265
-
-#define DSL_CODEC_MPEG4                                             2
 
 #define DSL_CONTAINER_MP4                                           0
 #define DSL_CONTAINER_MKV                                           1
