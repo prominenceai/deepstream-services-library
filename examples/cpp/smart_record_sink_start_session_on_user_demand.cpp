@@ -279,7 +279,7 @@ int main(int argc, char** argv)
         // ODE trigger/action, defined below, to start a new session on first 
         // occurrence of a bicycle. The default 'cache-size' and 'duration' are 
         // defined in DslApi.h Setting the bit rate to 0 to not change from the default.
-        retval = dsl_sink_record_new(L"record-sink", L"./", DSL_CODEC_H264, 
+        retval = dsl_sink_record_new(L"record-sink", L"./", DSL_CODEC_HW_H264, 
             DSL_CONTAINER_MP4, 0, 0, record_event_listener);
         if (retval != DSL_RESULT_SUCCESS) break;
 

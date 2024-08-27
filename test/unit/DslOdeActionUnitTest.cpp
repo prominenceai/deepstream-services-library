@@ -2636,7 +2636,7 @@ SCENARIO( "A new RecordSinkStartOdeAction is created correctly", "[OdeAction]" )
         
         std::string recordSinkName("record-sink");
         std::string outdir("./");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
@@ -2673,7 +2673,7 @@ SCENARIO( "A RecordSinkStartOdeAction handles an ODE Occurence correctly", "[Ode
         
         std::string recordSinkName("record-sink");
         std::string outdir("./");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
@@ -2714,7 +2714,7 @@ SCENARIO( "A new RecordSinkStopOdeAction is created correctly", "[OdeAction]" )
 
         std::string recordSinkName("record-sink");
         std::string outdir("./");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);
@@ -2751,7 +2751,7 @@ SCENARIO( "A RecordSinkStopOdeAction handles an ODE Occurence correctly", "[OdeA
         
         std::string recordSinkName("record-sink");
         std::string outdir("./");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
         uint container(DSL_CONTAINER_MP4);

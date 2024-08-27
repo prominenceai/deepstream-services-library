@@ -28,7 +28,7 @@ import sys
 import time
 
 from dsl import *
-from waiting import wait
+from os import wait
 
 #-------------------------------------------------------------------------------------------
 #

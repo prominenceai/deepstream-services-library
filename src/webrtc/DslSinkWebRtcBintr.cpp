@@ -45,10 +45,10 @@ namespace DSL
 
         switch (codec)
         {
-        case DSL_CODEC_H264 :
+        case DSL_CODEC_HW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             break;
-        case DSL_CODEC_H265 :
+        case DSL_CODEC_HW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             break;
         default:

@@ -1035,7 +1035,7 @@ SCENARIO( "Multiple new components can Set and Get their GPU ID", "[component-ap
         uint width(480);
         uint height(272);
 
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);

@@ -118,7 +118,7 @@ static const std::wstring rtsp_sink_name(L"rtsp-sink");
 static const std::wstring host(L"rjhowell-desktop.local");
 static const uint udp_port(5400);
 static const uint rtsp_port(8554);
-static const uint codec(DSL_CODEC_H264);
+static const uint codec(DSL_CODEC_HW_H264);
 static const uint bitrate(4000000);
 static const uint interval(0);
 
@@ -643,14 +643,14 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
     }
 }
 
-//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H264 FileSink can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_HW_H264 FileSink can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, File Sink, and Tiled Display" ) 
 //    {
 //
 //        std::wstring fileSinkName(L"file-sink");
 //        std::wstring filePath(L"./output.mp4");
-//        uint codec(DSL_CODEC_H264);
+//        uint codec(DSL_CODEC_HW_H264);
 //        uint muxer(DSL_CONTAINER_MP4);
 //        uint bitrate(2000000);
 //        uint interval(0);
@@ -791,9 +791,9 @@ static void* main_loop_thread_func_1(void *data)
     return NULL;
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and Tiled Display can play", "[tmp]" )
+SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_HW_H264 RTSP Sink, and Tiled Display can play", "[tmp]" )
 {
-    GIVEN( "A Pipeline, URI source, DSL_CODEC_H264 RTSP Sink, and Tiled Display" ) 
+    GIVEN( "A Pipeline, URI source, DSL_CODEC_HW_H264 RTSP Sink, and Tiled Display" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -1511,7 +1511,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 }
 
 
-//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H264 FileSink can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_HW_H264 FileSink can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, File Sink, and Tiled Display" ) 
 //    {
@@ -1527,7 +1527,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 //
 //        std::wstring fileSinkName(L"file-sink");
 //        std::wstring filePath(L"./output.mp4");
-//        uint codec(DSL_CODEC_H264);
+//        uint codec(DSL_CODEC_HW_H264);
 //        uint muxer(DSL_CONTAINER_MP4);
 //        uint bitrate(2000000);
 //        uint interval(0);

@@ -994,6 +994,11 @@ namespace DSL
         DSL_ELEMENT_PTR m_pEncoder;
 
         /**
+         * @brief Caps Filter element for the m_pEncoder
+         */
+        DSL_ELEMENT_PTR m_pSwEncoderCapsFilter;
+
+        /**
          * @brief Parser element for the EncodeSinkBintr
          */
         DSL_ELEMENT_PTR m_pParser;

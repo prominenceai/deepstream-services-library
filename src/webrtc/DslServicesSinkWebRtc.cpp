@@ -44,7 +44,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec != DSL_CODEC_H264 and codec != DSL_CODEC_H265)
+            if (codec != DSL_CODEC_HW_H264 and codec != DSL_CODEC_HW_H264)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
                     << " for WebRTC Sink '" << name << "'");

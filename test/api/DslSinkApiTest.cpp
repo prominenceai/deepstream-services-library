@@ -1398,7 +1398,7 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[si
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
@@ -1440,7 +1440,7 @@ SCENARIO( "The Components container is updated correctly on File Sink delete", "
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
         uint interval(0);
@@ -1494,7 +1494,7 @@ SCENARIO( "Creating a new File Sink with an invalid Container will fail", "[sink
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MKV + 1);
         uint bitrate(0);
         uint interval(0);
@@ -1522,7 +1522,7 @@ SCENARIO( "A File Sink can update it's common properties correctly",
         
         std::wstring sink_name(L"file-sink");
         std::wstring file_path(L"./output.mp4");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MKV);
         uint bitrate(0);
         uint interval(0);
@@ -1608,7 +1608,7 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[sink-api]" )
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint initBitrate(2000000);
         uint initInterval(0);
@@ -1628,7 +1628,7 @@ SCENARIO( "A File Sink's Encoder settings can be updated", "[sink-api]" )
 
         WHEN( "The FileSinkBintr's Encoder settings are Set" )
         {
-            uint newCodec(DSL_CODEC_H264);
+            uint newCodec(DSL_CODEC_HW_H264);
             uint newBitrate(2500000);
             uint newInterval(10);
             
@@ -1656,7 +1656,7 @@ SCENARIO( "A File Sink's dimensions can be updated", "[sink-api]" )
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint initBitrate(4000000);
         uint initInterval(0);
@@ -1732,7 +1732,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -1776,7 +1776,7 @@ SCENARIO( "The Components container is updated correctly on Record Sink delete",
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -1806,7 +1806,7 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -1855,7 +1855,7 @@ SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -2069,7 +2069,7 @@ SCENARIO( "An RTMP Sink returns failure when encoder is set to H265",
         WHEN( "The RTMP Sink is called to update its codec type to H265" ) 
         {
             REQUIRE( dsl_sink_encode_settings_set(sink_name.c_str(), 
-                DSL_CODEC_H265, 0, 0) == DSL_RESULT_SINK_CODEC_VALUE_INVALID );
+                DSL_CODEC_HW_H265, 0, 0) == DSL_RESULT_SINK_CODEC_VALUE_INVALID );
 
             THEN( "The current codec type is unchanged" ) 
             {
@@ -2078,7 +2078,7 @@ SCENARIO( "An RTMP Sink returns failure when encoder is set to H265",
                 uint ret_codec(99), ret_bitrate(99), ret_interval(99);
                 REQUIRE( dsl_sink_encode_settings_get(sink_name.c_str(),
                     &ret_codec, &ret_bitrate, &ret_interval) == DSL_RESULT_SUCCESS );
-                REQUIRE( ret_codec ==  DSL_CODEC_H264 );
+                REQUIRE( ret_codec ==  DSL_CODEC_HW_H264 );
                 REQUIRE( ret_bitrate ==  4000000 );
                 REQUIRE( ret_interval ==  0 );
 
@@ -2089,7 +2089,7 @@ SCENARIO( "An RTMP Sink returns failure when encoder is set to H265",
     }
 }
 
-SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 RTSP Sink", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on new DSL_CODEC_HW_H264 RTSP Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -2097,7 +2097,7 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
         std::wstring host(L"224.224.255.255");
         uint udpPort(5400);
         uint rtspPort(8554);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -2123,7 +2123,7 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H264 R
     }
 }    
 
-SCENARIO( "The Components container is updated correctly on DSL_CODEC_H264 RTSP Sink delete", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on DSL_CODEC_HW_H264 RTSP Sink delete", "[sink-api]" )
 {
     GIVEN( "An RTSP Sink Component" ) 
     {
@@ -2131,7 +2131,7 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H264 RTSP 
         std::wstring host(L"224.224.255.255");
         uint udpPort(5400);
         uint rtspPort(8554);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -2151,7 +2151,7 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H264 RTSP 
     }
 }
 
-SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 RTSP Sink", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on new DSL_CODEC_HW_H265 RTSP Sink", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
     {
@@ -2159,7 +2159,7 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
         std::wstring host(L"224.224.255.255");
         uint udpPort(5400);
         uint rtspPort(8554);
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -2185,7 +2185,7 @@ SCENARIO( "The Components container is updated correctly on new DSL_CODEC_H265 R
     }
 }    
 
-SCENARIO( "The Components container is updated correctly on DSL_CODEC_H265 RTSP Sink delete", "[sink-api]" )
+SCENARIO( "The Components container is updated correctly on DSL_CODEC_HW_H265 RTSP Sink delete", "[sink-api]" )
 {
     GIVEN( "An RTSP Sink Component" ) 
     {
@@ -2193,7 +2193,7 @@ SCENARIO( "The Components container is updated correctly on DSL_CODEC_H265 RTSP 
         std::wstring host(L"224.224.255.255");
         uint udpPort(5400);
         uint rtspPort(8554);
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint bitrate(4000000);
         uint interval(0);
 
@@ -2220,7 +2220,7 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[sink-api]" )
         std::wstring host(L"224.224.255.255");
         uint udpPort(5400);
         uint rtspPort(8554);
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint initBitrate(4000000);
         uint initInterval(0);
 
@@ -2239,7 +2239,7 @@ SCENARIO( "An RTSP Sink's Encoder settings can be updated", "[sink-api]" )
 
         WHEN( "The RTSP Sink's Encoder settings are Set" )
         {
-            uint newCodec(DSL_CODEC_H265);
+            uint newCodec(DSL_CODEC_HW_H265);
             uint newBitrate(2500000);
             uint newInterval(10);
             
@@ -2270,7 +2270,7 @@ SCENARIO( "A RTSP Sink can update it's common properties correctly",
         std::wstring host(L"224.224.255.255");
         uint udpPort(5400);
         uint rtspPort(8554);
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_CODEC_HW_H265);
         uint initBitrate(4000000);
         uint initInterval(0);
 
@@ -2355,11 +2355,11 @@ SCENARIO( "An invalid RTSP Sink is caught on Encoder settings Get and Set", "[si
     {
         std::wstring fakeSinkName(L"fake-sink");
             
-        uint currCodec(DSL_CODEC_H264);
+        uint currCodec(DSL_CODEC_HW_H264);
         uint currBitrate(0);
         uint currInterval(0);
     
-        uint newCodec(DSL_CODEC_H265);
+        uint newCodec(DSL_CODEC_HW_H265);
         uint newBitrate(2500000);
         uint newInterval(10);
 
@@ -2387,7 +2387,7 @@ SCENARIO( "The Components container is updated correctly on new RTSP-Client Sink
     {
         std::wstring rtspClientSinkName(L"rtsp-client-sink");
         std::wstring uri(L"rtsp://server_endpoint/stream");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -2428,7 +2428,7 @@ SCENARIO( "A new RTSP-Client Sink can set its credentials", "[sink-api]" )
     {
         std::wstring rtspClientSinkName(L"rtsp-client-sink");
         std::wstring uri(L"rtsp://server_endpoint/stream");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(0);
         uint interval(0);
         
@@ -2460,7 +2460,7 @@ SCENARIO( "A new RTSP-Client Sink can update its properties correctly", "[sink-a
     {
         std::wstring rtspClientSinkName(L"rtsp-client-sink");
         std::wstring uri(L"rtsp://server_endpoint/stream");
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_CODEC_HW_H264);
         uint bitrate(0);
         uint interval(0);
         
