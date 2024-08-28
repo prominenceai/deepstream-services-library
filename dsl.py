@@ -103,15 +103,11 @@ DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT  = 7
 DSL_SOURCE_CODEC_PARSER_H264 = 0
 DSL_SOURCE_CODEC_PARSER_H265 = 1
 
-DSL_CODEC_HW_H264 = 0
-DSL_CODEC_HW_H265 = 1
-DSL_CODEC_SW_H264 = 2
-DSL_CODEC_SW_H265 = 3
-DSL_CODEC_SW_MP4  = 4
-
-# depricated
-DSL_CODEC_H264 = DSL_CODEC_HW_H264
-DSL_CODEC_H265 = DSL_CODEC_HW_H265
+DSL_ENCODER_HW_H264 = 0
+DSL_ENCODER_HW_H265 = 1
+DSL_ENCODER_SW_H264 = 2
+DSL_ENCODER_SW_H265 = 3
+DSL_ENCODER_SW_MP4  = 4
 
 DSL_CONTAINER_MP4 = 0
 DSL_CONTAINER_MKV = 1
@@ -6491,11 +6487,13 @@ def dsl_sink_v4l2_picture_settings_set(name,
 ##
 ## dsl_sink_file_new()
 ##
-_dsl.dsl_sink_file_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_file_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_file_new.restype = c_uint
-def dsl_sink_file_new(name, filepath, codec, container, bitrate, interval):
+def dsl_sink_file_new(name, filepath, encoder, container, bitrate, interval):
     global _dsl
-    result =_dsl.dsl_sink_file_new(name, filepath, codec, container, bitrate, interval)
+    result =_dsl.dsl_sink_file_new(name, 
+        filepath, encoder, container, bitrate, interval)
     return int(result)
 
 ##
@@ -6505,12 +6503,12 @@ _dsl.dsl_sink_record_new.argtypes = [c_wchar_p, c_wchar_p,
     c_uint, c_uint, c_uint, c_uint, DSL_RECORD_CLIENT_LISTNER]
 _dsl.dsl_sink_record_new.restype = c_uint
 def dsl_sink_record_new(name, outdir, 
-    codec, container, bitrate, interval, client_listener):
+    encoder, container, bitrate, interval, client_listener):
     global _dsl
     c_client_listener = DSL_RECORD_CLIENT_LISTNER(client_listener)
     callbacks.append(c_client_listener)
     result =_dsl.dsl_sink_record_new(name, outdir, 
-        codec, container, bitrate, interval, c_client_listener)
+        encoder, container, bitrate, interval, c_client_listener)
     return int(result)
     
 ##
@@ -6706,25 +6704,17 @@ def dsl_sink_record_mailer_remove(name, mailer):
 ##
 ## dsl_sink_encode_settings_get()
 ##
-_dsl.dsl_sink_encode_settings_get.argtypes = [c_wchar_p, POINTER(c_uint),  POINTER(c_uint), POINTER(c_uint)]
+_dsl.dsl_sink_encode_settings_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint),  POINTER(c_uint), POINTER(c_uint)]
 _dsl.dsl_sink_encode_settings_get.restype = c_uint
 def dsl_sink_encode_settings_get(name):
     global _dsl
-    codec = c_uint(0)
+    encoder = c_uint(0)
     bitrate = c_uint(0)
     interval = c_uint(0)
-    result = _dsl.dsl_sink_encode_settings_get(name, DSL_UINT_P(codec), DSL_UINT_P(bitrate), DSL_UINT_P(interval))
-    return int(result), codec.value, bitrate.value, interval.value 
-
-##
-## dsl_sink_encode_settings_set()
-##
-_dsl.dsl_sink_encode_settings_set.argtypes = [c_wchar_p, c_uint, c_uint, c_uint]
-_dsl.dsl_sink_encode_settings_set.restype = c_uint
-def dsl_sink_encode_settings_set(name, codec, bitrate, interval):
-    global _dsl
-    result = _dsl.dsl_sink_encode_settings_set(name, codec, bitrate, interval)
-    return int(result)
+    result = _dsl.dsl_sink_encode_settings_get(name, 
+        DSL_UINT_P(encoder), DSL_UINT_P(bitrate), DSL_UINT_P(interval))
+    return int(result), encoder.value, bitrate.value, interval.value 
 
 ##
 ## dsl_sink_encode_dimensions_get()
@@ -6789,10 +6779,10 @@ _dsl.dsl_sink_rtsp_server_new.argtypes = [c_wchar_p,
     c_wchar_p, c_uint, c_uint, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_rtsp_server_new.restype = c_uint
 def dsl_sink_rtsp_server_new(name, 
-    host, udp_port, rtsp_port, codec, bitrate, interval):
+    host, udp_port, rtsp_port, encoder, bitrate, interval):
     global _dsl
     result =_dsl.dsl_sink_rtsp_server_new(name, 
-        host, udp_port, rtsp_port, codec, bitrate, interval)
+        host, udp_port, rtsp_port, encoder, bitrate, interval)
     return int(result)
 
 ##
@@ -6816,10 +6806,10 @@ _dsl.dsl_sink_rtsp_client_new.argtypes = [c_wchar_p,
     c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_rtsp_client_new.restype = c_uint
 def dsl_sink_rtsp_client_new(name, 
-    uri, codec, bitrate, interval):
+    uri, encoder, bitrate, interval):
     global _dsl
     result =_dsl.dsl_sink_rtsp_client_new(name, 
-        uri, codec, bitrate, interval)
+        uri, encoder, bitrate, interval)
     return int(result)
 
 ##
@@ -6926,11 +6916,14 @@ def dsl_sink_rtsp_client_tls_validation_flags_set(name, flags):
 ##
 ## dsl_sink_webrtc_new()
 ##
-_dsl.dsl_sink_webrtc_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
+_dsl.dsl_sink_webrtc_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_uint, c_uint, c_uint]
 _dsl.dsl_sink_webrtc_new.restype = c_uint
-def dsl_sink_webrtc_new(name, stun_server, turn_server, codec, bitrate, interval):
+def dsl_sink_webrtc_new(name, 
+    stun_server, turn_server, encoder, bitrate, interval):
     global _dsl
-    result =_dsl.dsl_sink_webrtc_new(name, stun_server, turn_server, codec, bitrate, interval)
+    result =_dsl.dsl_sink_webrtc_new(name, 
+        stun_server, turn_server, encoder, bitrate, interval)
     return int(result)
 
 ##

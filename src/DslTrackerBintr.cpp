@@ -47,6 +47,11 @@ namespace DSL
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("ll-lib-file", m_llLibFile.c_str());
 
+        // IMPORTANT! increasing the pool-size from 32 to 64 is required to
+        // avoid warning messages when using downstream software encoding sinks.
+        // See: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_troubleshooting.html#warning-message-gstnvtracker-unable-to-acquire-a-user-meta-buffer
+        m_pTracker->SetAttribute("user-meta-pool-size", 64);
+
         // set the low-level configuration file property if provided.
         if (m_llConfigFile.size())
         {

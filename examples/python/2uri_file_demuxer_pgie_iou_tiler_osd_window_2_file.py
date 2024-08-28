@@ -81,17 +81,17 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, 
+        ## Two new File Sinks with H264 Encoder type and MKV conatiner muxer, 
         ## set bit-rate=0 to use default and drop-frame-interval=0
         retval = dsl_sink_file_new('file-sink-1', 
-            "./1-source.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 0, 0)
+            "./1-source.mkv", DSL_ENCODER_HW_H264, DSL_CONTAINER_MKV, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Two new File Sinks with H264 Codec type and MKV conatiner muxer, 
+        ## Two new File Sinks with H264 Encoder type and MKV conatiner muxer, 
         ## set bit-rate=0 to use default and drop-frame-interval=0
         retval = dsl_sink_file_new('file-sink-2', 
-            "./2-source.mkv", DSL_CODEC_H264, DSL_CONTAINER_MKV, 0, 0)
+            "./2-source.mkv", DSL_ENCODER_HW_H264, DSL_CONTAINER_MKV, 0, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 

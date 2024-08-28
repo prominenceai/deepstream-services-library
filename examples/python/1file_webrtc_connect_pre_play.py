@@ -133,7 +133,7 @@ def main(args):
         retval = dsl_sink_webrtc_new('webrtc-sink',
             stun_server = stun_server, 
             turn_server = None,
-            codec = DSL_CODEC_H264,
+            encoder = DSL_ENCODER_HW_H264,
             bitrate = 4000000,
             interval = 0)
         if retval != DSL_RETURN_SUCCESS:

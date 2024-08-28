@@ -57,14 +57,14 @@ from dsl import *
 
 ################################################################################
 #
-# The Smart Record Sink is an Encode Sink that supports five (5) codec types. 
+# The Smart Record Sink is an Encode Sink that supports five (5) encoder types. 
 # Two (2) hardware and three (3) software. Use one of the following constants  
-# to select the codec type:
-#   - DSL_CODEC_HW_H264
-#   - DSL_CODEC_HW_H265
-#   - DSL_CODEC_SW_H264
-#   - DSL_CODEC_SW_H265
-#   - DSL_CODEC_SW_MP4
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H265
+#   - DSL_ENCODER_SW_MP4
 #
 #  Two container types are supported:
 #   - DSL_CONTAINER_MP4
@@ -76,16 +76,16 @@ from dsl import *
 #   - SW-MPEG      = 200000
 
 # Record Sink configuration 
-RECORD_SINK_CODEC     = DSL_CODEC_HW_H265
+RECORD_SINK_ENCODER   = DSL_ENCODER_HW_H265
 RECORD_SINK_CONTAINER = DSL_CONTAINER_MP4
 RECORD_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-RECORD_SINK_INTERVAL  = 0   # Only HW codecs support interval > 0
+RECORD_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
 
 # RTSP Source URI for AMCREST Camera    
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
 # RTSP Source URI for HIKVISION Camera    
-hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
+hikvision_rtsp_uri = 'rtsp://admin:Segvisual44@192.168.1.64:554/Streaming/Channels/101'    
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -272,7 +272,7 @@ def main(args):
         # occurrence of a bicycle. The default 'cache-size' and 'duration' are 
         # defined in DslApi.h Setting the bit rate to 0 to not change from the default.
         retval = dsl_sink_record_new('record-sink', outdir="./", 
-            codec=RECORD_SINK_CODEC, container=RECORD_SINK_CONTAINER, 
+            encoder=RECORD_SINK_ENCODER, container=RECORD_SINK_CONTAINER, 
             bitrate=RECORD_SINK_BITRATE, interval=RECORD_SINK_INTERVAL, 
             client_listener=record_event_listener)
         if retval != DSL_RETURN_SUCCESS:

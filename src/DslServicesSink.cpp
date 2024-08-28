@@ -932,7 +932,7 @@ namespace DSL
     }
         
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint container, uint bitrate, uint interval)
+            uint encoder, uint container, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -945,11 +945,11 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_SW_MP4)
+            if (encoder > DSL_ENCODER_SW_MP4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for File Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
@@ -958,7 +958,7 @@ namespace DSL
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
             m_components[name] = DSL_FILE_SINK_NEW(name, 
-                filepath, codec, container, bitrate, interval);
+                filepath, encoder, container, bitrate, interval);
             
             LOG_INFO("New File Sink '" << name << "' created successfully");
 
@@ -972,7 +972,7 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRecordNew(const char* name, 
-        const char* outdir, uint codec, uint container, 
+        const char* outdir, uint encoder, uint container, 
         uint bitrate, uint interval, dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
@@ -996,11 +996,11 @@ namespace DSL
                 return DSL_RESULT_SINK_PATH_NOT_FOUND;
             }
 
-            if (codec > DSL_CODEC_SW_MP4)
+            if (encoder > DSL_ENCODER_SW_MP4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for Record Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
@@ -1010,7 +1010,7 @@ namespace DSL
             }
 
             m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, 
-                codec, container, bitrate, interval, clientListener);
+                encoder, container, bitrate, interval, clientListener);
             
             LOG_INFO("New Record Sink '" << name << "' created successfully");
 
@@ -1580,7 +1580,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkEncodeSettingsGet(const char* name, 
-        uint* codec, uint* bitrate, uint* interval)
+        uint* encoder, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1593,10 +1593,10 @@ namespace DSL
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            encodeSinkBintr->GetEncoderSettings(codec, bitrate, interval);
+            encodeSinkBintr->GetEncoderSettings(encoder, bitrate, interval);
             
             LOG_INFO("Encode Sink '" << name 
-                << "' returned codec = " << *codec 
+                << "' returned encoder = " << *encoder 
                 << " bitrate = " << *bitrate 
                 << " and interval = " << *interval << " successfully");
             
@@ -1606,53 +1606,6 @@ namespace DSL
         {
             LOG_ERROR("File Sink '" << name 
                 << "' threw an exception getting Encoder settings");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkEncodeSettingsSet(const char* name, 
-        uint codec, uint bitrate, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
-
-            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
-                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
-
-            if (m_components[name]->IsType(typeid(RtmpSinkBintr)) and
-                (codec != DSL_CODEC_HW_H264) or (codec == !DSL_CODEC_SW_H264))
-            {   
-                LOG_ERROR("RTMP Sink '" << name << "' only supports H264 codecs");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-            }
-                    
-            if (codec > DSL_CODEC_SW_H265)
-            {   
-                LOG_ERROR("Invalid Codec value = " << codec 
-                    << " for Encode Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-            }
-
-            if (!encodeSinkBintr->SetEncoderSettings(codec, bitrate, interval))
-            {
-                LOG_ERROR("Encode Sink '" << name 
-                    << "' failed to set Encoder settings");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Encode Sink '" << name << "' set Bitrate = " 
-                << bitrate << " and Interval = " << interval << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Sink'" << name 
-                << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1810,7 +1763,7 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
-        uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
+        uint udpPort, uint rtspPort, uint encoder, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1823,14 +1776,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_SW_MP4)
+            if (encoder > DSL_ENCODER_SW_MP4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for RTSP Server Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_RTSP_SERVER_SINK_NEW(name, 
-                host, udpPort, rtspPort, codec, bitrate, interval);
+                host, udpPort, rtspPort, encoder, bitrate, interval);
 
             LOG_INFO("New RTSP Server Sink '" << name 
                 << "' created successfully");
@@ -1876,7 +1829,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtspClientNew(const char* name, const char* uri, 
-            uint codec, uint bitrate, uint interval)
+            uint encoder, uint bitrate, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1889,14 +1842,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_SW_H265)
+            if (encoder > DSL_ENCODER_SW_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for RTSP-CLient Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_RTSP_CLIENT_SINK_NEW(name, 
-                uri, codec, bitrate, interval);
+                uri, encoder, bitrate, interval);
             
             LOG_INFO("New RTSP-Client Sink '" << name 
                 << "' created successfully");

@@ -8146,7 +8146,7 @@ DslReturnType dsl_sink_window_delete_event_handler_remove(const wchar_t* name,
 }
 
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
-     uint codec, uint container, uint bitrate, uint interval)
+     uint encoder, uint container, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(file_path);
@@ -8157,14 +8157,14 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path,
     std::string cstrPath(wstrPath.begin(), wstrPath.end());
 
     return DSL::Services::GetServices()->SinkFileNew(cstrName.c_str(), 
-        cstrPath.c_str(), codec, container, bitrate, interval);
+        cstrPath.c_str(), encoder, container, bitrate, interval);
 }     
 
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* codec, uint* bitrate, uint* interval)
+    uint* encoder, uint* bitrate, uint* interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(codec);
+    RETURN_IF_PARAM_IS_NULL(encoder);
     RETURN_IF_PARAM_IS_NULL(bitrate);
     RETURN_IF_PARAM_IS_NULL(interval);
 
@@ -8172,20 +8172,8 @@ DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
     
     return DSL::Services::GetServices()->SinkEncodeSettingsGet(cstrName.c_str(), 
-        codec, bitrate, interval);
+        encoder, bitrate, interval);
 }    
-
-DslReturnType dsl_sink_encode_settings_set(const wchar_t* name,
-    uint codec, uint bitrate, uint interval)
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SinkEncodeSettingsSet(cstrName.c_str(), 
-        codec, bitrate, interval);
-}
 
 DslReturnType dsl_sink_encode_dimensions_get(const wchar_t* name, 
     uint* width, uint* height)
@@ -8214,7 +8202,8 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
 }
 
 DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir, 
-     uint codec, uint container, uint bitrate, uint interval, dsl_record_client_listener_cb client_listener)
+     uint encoder, uint container, uint bitrate, uint interval, 
+     dsl_record_client_listener_cb client_listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(outdir);
@@ -8227,7 +8216,7 @@ DslReturnType dsl_sink_record_new(const wchar_t* name, const wchar_t* outdir,
     std::string cstrOutdir(wstrOutdir.begin(), wstrOutdir.end());
 
     return DSL::Services::GetServices()->SinkRecordNew(cstrName.c_str(), 
-        cstrOutdir.c_str(), codec, container, bitrate, interval, client_listener);
+        cstrOutdir.c_str(), encoder, container, bitrate, interval, client_listener);
 }     
 
 DslReturnType dsl_sink_record_session_start(const wchar_t* name, 
@@ -8510,7 +8499,7 @@ DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri)
 }
 
 DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
-     uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
+     uint udpPort, uint rtspPort, uint encoder, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(host);
@@ -8521,7 +8510,7 @@ DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host,
     std::string cstrHost(wstrHost.begin(), wstrHost.end());
 
     return DSL::Services::GetServices()->SinkRtspServerNew(cstrName.c_str(), 
-        cstrHost.c_str(), udpPort, rtspPort, codec, bitrate, interval);
+        cstrHost.c_str(), udpPort, rtspPort, encoder, bitrate, interval);
 }     
 
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
@@ -8537,7 +8526,7 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
 }    
 
 DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
-    uint codec, uint bitrate, uint interval)
+    uint encoder, uint bitrate, uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -8548,7 +8537,7 @@ DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SinkRtspClientNew(cstrName.c_str(), 
-        cstrUri.c_str(), codec, bitrate, interval);
+        cstrUri.c_str(), encoder, bitrate, interval);
 }     
 
 DslReturnType dsl_sink_rtsp_client_credentials_set(const wchar_t* name, 
@@ -8945,7 +8934,7 @@ DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
     
 // NOTE: the WebRTC Sink implementation requires DS 1.18.0 or later
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server,
-    const wchar_t* turn_server, uint codec, uint bitrate, uint interval)
+    const wchar_t* turn_server, uint encoder, uint bitrate, uint interval)
 {
 #if !defined(BUILD_WEBRTC)
     #error "BUILD_WEBRTC must be defined"
@@ -8973,7 +8962,7 @@ DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_serve
     }
 
     return DSL::Services::GetServices()->SinkWebRtcNew(cstrName.c_str(),
-        cstrStunServer.c_str(), cstrTurnServer.c_str(), codec, bitrate, interval);
+        cstrStunServer.c_str(), cstrTurnServer.c_str(), encoder, bitrate, interval);
 #endif    
 }
 

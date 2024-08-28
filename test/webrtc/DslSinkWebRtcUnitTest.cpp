@@ -30,7 +30,7 @@ using namespace DSL;
 static std::string sinkName("webrtc-sink");
 static std::string stunServer("stun.1.google.com:19302");
 static std::string turnServer;
-static uint codec(DSL_CODEC_HW_H264);
+static uint codec(DSL_ENCODER_HW_H264);
 static uint bitrate(4000000);
 static uint interval(0);
 
@@ -97,7 +97,7 @@ SCENARIO( "A new WebRtcSinkBintr can LinkAll and UnlinkAll Child Elementrs succe
     {
         DSL_WEBRTC_SINK_PTR pSinkBintr = 
             DSL_WEBRTC_SINK_NEW(sinkName.c_str(), stunServer.c_str(), turnServer.c_str(),
-                DSL_CODEC_HW_H264, 4000000, 0);
+                DSL_ENCODER_HW_H264, 4000000, 0);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -123,7 +123,7 @@ SCENARIO( "A new WebRtcSinkBintr can be added to and removed from a parent Pipel
     {
         DSL_WEBRTC_SINK_PTR pSinkBintr = 
             DSL_WEBRTC_SINK_NEW(sinkName.c_str(), stunServer.c_str(), turnServer.c_str(),
-                DSL_CODEC_HW_H264, 4000000, 0);
+                DSL_ENCODER_HW_H264, 4000000, 0);
 
         DSL_PIPELINE_PTR pPipeline = DSL_PIPELINE_NEW(pipelineName.c_str());
 

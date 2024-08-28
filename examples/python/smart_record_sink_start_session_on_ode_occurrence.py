@@ -66,14 +66,14 @@ from dsl import *
 
 ################################################################################
 #
-# The Smart Record Sink is an Encode Sink that supports five (5) codec types. 
+# The Smart Record Sink is an Encode Sink that supports five (5) encoder types. 
 # Two (2) hardware and three (3) software. Use one of the following constants  
-# to select the codec type:
-#   - DSL_CODEC_HW_H264
-#   - DSL_CODEC_HW_H265
-#   - DSL_CODEC_SW_H264
-#   - DSL_CODEC_SW_H265
-#   - DSL_CODEC_SW_MP4
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H265
+#   - DSL_ENCODER_SW_MP4
 #
 #  Two container types are supported:
 #   - DSL_CONTAINER_MP4
@@ -85,10 +85,10 @@ from dsl import *
 #   - SW-MPEG      = 200000
 
 # Record Sink configuration 
-RECORD_SINK_CODEC     = DSL_CODEC_HW_H265
+RECORD_SINK_ENCODER   = DSL_ENCODER_HW_H265
 RECORD_SINK_CONTAINER = DSL_CONTAINER_MP4
 RECORD_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-RECORD_SINK_INTERVAL  = 0   # Only HW codecs support interval > 0
+RECORD_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
 
 # Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
 RECORDING_START = 10
@@ -303,7 +303,7 @@ def main(args):
         # occurrence of a person. The default 'cache-size' and 'duration' are defined in
         # DslApi.h Setting the bit rate to 0 to not change from the default.  
         retval = dsl_sink_record_new('record-sink', outdir="./", 
-            codec=RECORD_SINK_CODEC, container=RECORD_SINK_CONTAINER, 
+            encoder=RECORD_SINK_ENCODER, container=RECORD_SINK_CONTAINER, 
             bitrate=RECORD_SINK_BITRATE, interval=RECORD_SINK_INTERVAL, 
             client_listener=record_complete_listener)
         if retval != DSL_RETURN_SUCCESS:

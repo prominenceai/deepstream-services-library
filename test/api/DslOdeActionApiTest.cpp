@@ -1978,7 +1978,7 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted",
 
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_HW_H264);
+        uint codec(DSL_ENCODER_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -2031,7 +2031,7 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted",
 
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_HW_H264);
+        uint codec(DSL_ENCODER_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
 

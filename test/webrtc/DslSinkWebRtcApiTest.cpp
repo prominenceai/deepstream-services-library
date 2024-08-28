@@ -35,7 +35,7 @@ THE SOFTWARE.
 static const std::wstring webrtc_sink_name(L"webrtc-sink");
 static const std::wstring stun_server(L"stun.l.google.com:19302");
 static const std::wstring turn_server;
-static uint codec(DSL_CODEC_HW_H264);
+static uint codec(DSL_ENCODER_HW_H264);
 static uint bitrate(4000000);
 static uint interval(0);
 

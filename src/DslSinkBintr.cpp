@@ -1756,9 +1756,9 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
-        uint codec, uint bitrate, uint interval)
+        uint encoder, uint bitrate, uint interval)
         : SinkBintr(name)
-        , m_codec(codec)
+        , m_encoder(encoder)
         , m_bitrate(bitrate)
         , m_interval(interval)
         , m_width(0)
@@ -1769,31 +1769,31 @@ namespace DSL
         m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
         m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvideoconvert");
 
-        // Create the codec specific elements and caps
-        switch (codec)
+        // Create the encoder specific elements and caps
+        switch (encoder)
         {
-        case DSL_CODEC_HW_H264 :
+        case DSL_ENCODER_HW_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h264enc", name);
             m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             break;
-        case DSL_CODEC_HW_H265 :
+        case DSL_ENCODER_HW_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h265enc", name);
             m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
-        case DSL_CODEC_SW_H264 :
+        case DSL_ENCODER_SW_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("x264enc", name);
             m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             break;
-        case DSL_CODEC_SW_H265 :
+        case DSL_ENCODER_SW_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("x265enc", name);
             m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
-        case DSL_CODEC_SW_MP4 :
+        case DSL_ENCODER_SW_MP4 :
             m_pEncoder = DSL_ELEMENT_NEW("avenc_mpeg4", name);
             m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", name);
             break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new Sink '" << name << "'");
             throw std::exception();
         }
 
@@ -1802,7 +1802,7 @@ namespace DSL
         m_pEncoder->GetAttribute("bitrate", &defaultBitrate);
 
         // If using hardware encoding
-        if (m_codec == DSL_CODEC_HW_H264 or m_codec == DSL_CODEC_HW_H265)
+        if (m_encoder == DSL_ENCODER_HW_H264 or m_encoder == DSL_ENCODER_HW_H265)
         {
             m_pEncoder->SetAttribute("iframeinterval", m_interval);
             if (m_cudaDeviceProp.integrated)
@@ -1828,7 +1828,7 @@ namespace DSL
             }
         }
         // If using H264/H265 software encoding
-        else if (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
+        else if (m_encoder == DSL_ENCODER_SW_H264 or m_encoder == DSL_ENCODER_SW_H265)
         {
             // Remove (memory:NVMM) for SW encoding
             DslCaps ConvertCaps("video/x-raw, format=I420");
@@ -1889,11 +1889,11 @@ namespace DSL
         m_pParser->UnlinkFromSink();
     }
     
-    void EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
+    void EncodeSinkBintr::GetEncoderSettings(uint* encoder, uint* bitrate, uint* interval)
     {
         LOG_FUNC();
         
-        *codec = m_codec;
+        *encoder = m_encoder;
         
         if (m_bitrate)
         {
@@ -1904,34 +1904,6 @@ namespace DSL
             *bitrate = m_defaultBitrate;
         }    
         *interval = m_interval;
-    }
-    
-    bool EncodeSinkBintr::SetEncoderSettings(uint codec, uint bitrate, uint interval)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Encoder Settings for EncodeSinkBintr '" 
-                << GetName() << "' as it's currently in use");
-            return false;
-        }
-
-        m_codec = codec;
-        m_bitrate = bitrate;
-        m_interval = interval;
-
-        if (m_bitrate)
-        {
-            m_pEncoder->SetAttribute("bitrate", m_bitrate);
-        }
-        else
-        {
-            m_pEncoder->SetAttribute("bitrate", m_defaultBitrate);
-        }
-        m_pEncoder->SetAttribute("iframeinterval", m_interval);
-
-        return true;
     }
     
     void EncodeSinkBintr::GetConverterDimensions(uint* width, uint* height)
@@ -2007,8 +1979,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
-        uint codec, uint container, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        uint encoder, uint container, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, encoder, bitrate, interval)
         , m_container(container)
     {
         LOG_FUNC();
@@ -2047,7 +2019,7 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for FileSinkBintr '" << name << "'");
         LOG_INFO("  file-path          : " << filepath);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         LOG_INFO("  container          : " << m_container);
         if (m_bitrate)
         {
@@ -2124,9 +2096,9 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
-        uint codec, uint container, uint bitrate, uint interval, 
+        uint encoder, uint container, uint bitrate, uint interval, 
         dsl_record_client_listener_cb clientListener)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        : EncodeSinkBintr(name, encoder, bitrate, interval)
         , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
@@ -2134,7 +2106,7 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
         LOG_INFO("  outdir             : " << outdir);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         LOG_INFO("  container          : " << container);
         if (m_bitrate)
         {
@@ -2228,7 +2200,7 @@ namespace DSL
     
     RtmpSinkBintr::RtmpSinkBintr(const char* name, 
         const char* uri, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, DSL_CODEC_H264, bitrate, interval)
+        : EncodeSinkBintr(name, DSL_ENCODER_HW_H264, bitrate, interval)
         , m_uri(uri)
     {
         LOG_FUNC();
@@ -2258,7 +2230,7 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RtmpSinkBintr '" << name << "'");
         LOG_INFO("  uri                : " << m_uri);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate            : " << m_bitrate);
@@ -2364,8 +2336,8 @@ namespace DSL
     
     RtspServerSinkBintr::RtspServerSinkBintr(const char* name, 
         const char* host, uint udpPort, uint rtspPort,
-        uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        uint encoder, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, encoder, bitrate, interval)
         , m_host(host)
         , m_udpPort(udpPort)
         , m_rtspPort(rtspPort)
@@ -2375,26 +2347,33 @@ namespace DSL
     {
         LOG_FUNC();
 
-        switch (codec)
+        switch (encoder)
         {
-        case DSL_CODEC_HW_H264 :
-        case DSL_CODEC_SW_H264 :
+        case DSL_ENCODER_HW_H264 :
+        case DSL_ENCODER_SW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
-            m_codecString.assign("H264");
+            m_encoderString.assign("H264");
             break;
             
-        case DSL_CODEC_HW_H265 :
-        case DSL_CODEC_SW_H265 :
+        case DSL_ENCODER_HW_H265 :
+        case DSL_ENCODER_SW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
-            m_codecString.assign("H265");
+            m_encoderString.assign("H265");
             
             // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
             // why RTSP Encode Sink only ????
             m_pParser->SetAttribute("config-interval", -1);
             break;
+        case DSL_ENCODER_SW_MP4 :
+            m_pPayloader = DSL_ELEMENT_NEW("rtpmp4vpay", name);
+            m_encoderString.assign("MP4V-ES");
             
+            // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
+            // why RTSP Encode Sink only ????
+            m_pParser->SetAttribute("config-interval", -1);
+            break;    
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new Sink '" << name << "'");
             throw std::exception();
         }
 
@@ -2421,7 +2400,7 @@ namespace DSL
         LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
         LOG_INFO("  host               : " << m_host);
         LOG_INFO("  port               : " << m_udpPort);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate            : " << m_bitrate);
@@ -2480,7 +2459,7 @@ namespace DSL
         std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) +
             " buffer-size=" + std::to_string(m_udpBufferSize) +
             " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
-            m_codecString + ", payload=96 \")";
+            m_encoderString + ", payload=96 \")";
         
         // Create a nw RTSP Media Factory and set the launch settings
         // to the UDP source defined above
@@ -2579,8 +2558,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RtspClientSinkBintr::RtspClientSinkBintr(const char* name, const char* uri, 
-        uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        uint encoder, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, encoder, bitrate, interval)
     {
         LOG_FUNC();
         
@@ -2606,7 +2585,7 @@ namespace DSL
         LOG_INFO("  profiles             : " << int_to_hex(m_profiles));
         LOG_INFO("  protocols            : " << int_to_hex(m_protocols));
         LOG_INFO("  tls-validation-flags : " << int_to_hex(m_tlsValidationFlags));
-        LOG_INFO("  codec                : " << m_codec);
+        LOG_INFO("  encoder              : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate              : " << m_bitrate);

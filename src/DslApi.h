@@ -137,7 +137,7 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
 #define DSL_RESULT_SINK_GET_FAILED                                  0x00040008
 #define DSL_RESULT_SINK_SET_FAILED                                  0x00040009
-#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x0004000A
+#define DSL_RESULT_SINK_ENCODER_VALUE_INVALID                         0x0004000A
 #define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000B
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000C
 #define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000D
@@ -619,17 +619,11 @@ THE SOFTWARE.
 /**
  * @brief HW and SW, H264 and H265 Codec Types supported.
 */
-#define DSL_CODEC_HW_H264                                           0
-#define DSL_CODEC_HW_H265                                           1
-#define DSL_CODEC_SW_H264                                           2
-#define DSL_CODEC_SW_H265                                           3
-#define DSL_CODEC_SW_MP4                                            4
-
-/**
- * @brief DEPRICATED Codec Types - use DSL_CODEC_HW_H264 and DSL_CODEC_HW_H265.
-*/
-#define DSL_CODEC_H264                                              DSL_CODEC_HW_H264
-#define DSL_CODEC_H265                                              DSL_CODEC_HW_H265
+#define DSL_ENCODER_HW_H264                                         0
+#define DSL_ENCODER_HW_H265                                         1
+#define DSL_ENCODER_SW_H264                                         2
+#define DSL_ENCODER_SW_H265                                         3
+#define DSL_ENCODER_SW_MP4                                          4
 
 #define DSL_CONTAINER_MP4                                           0
 #define DSL_CONTAINER_MKV                                           1
@@ -7587,7 +7581,7 @@ DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name,
  * @brief creates a new, uniquely named File Sink component
  * @param[in] name unique component name for the new File Sink
  * @param[in] file_path absolute or relative file path including extension
- * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @param[in] bitrate in bits per second - H264 and H265 only
  * Set to 0 to use the Encoder default bitrate (4Mbps)
@@ -7595,13 +7589,13 @@ DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
-     uint codec, uint container, uint bitrate, uint interval);
+     uint encoder, uint container, uint bitrate, uint interval);
 
 /**
  * @brief creates a new, uniquely named File Record component
  * @param[in] name unique component name for the new Record Sink
  * @param[in] outdir absolute or relative path to the recording output dir.
- * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants
  * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
  * @param[in] bitrate in bits per second 
  * Set to 0 to use the Encoder default bitrate (4Mbps)
@@ -7611,7 +7605,7 @@ DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path,
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, 
-    const wchar_t* outdir, uint codec, 
+    const wchar_t* outdir, uint encoder, 
     uint container, uint bitrate, uint interval, 
     dsl_record_client_listener_cb client_listener);
      
@@ -7792,27 +7786,15 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
     const wchar_t* mailer);
     
 /**
- * @brief gets the current codec, bitrate, and interval settings for the named Encode Sink
+ * @brief gets the current encoder, bitrate, and interval settings for the named Encode Sink
  * @param[in] name unique name of the Encode Sink to query
- * @param[out] codec current Codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[out] encoder current encoder - one of the DSL_ENCODER symbolic constants
  * @param[out] bitrate current encoder bitrate in bits/sec for the named Encode Sink
  * @param[out] interval current encoder frame interval value
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* codec, uint* bitrate, uint* interval);
-
-/**
- * @brief sets new codec, bitrate, and interval settings for the named Encode Sink
- * @param[in] name unique name of the Encode Sink to update
- * @param[in] codec new codec either DSL_CODEC_H264 DSL_CODEC_H265
- * @param[in] bitrate new encoder bitrate in bits/sec for the named Encode Sink
- * Set to 0 to use the Encoder default bitrate (4Mbps)
- * @param[in] interval new encoder frame interval value to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_encode_settings_set(const wchar_t* name, 
-    uint codec, uint bitrate, uint interval);
+    uint* encoder, uint* bitrate, uint* interval);
 
 /**
  * @brief Gets the dimensions, width and height, in use by the Encode Sink's
@@ -7838,7 +7820,7 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named RTMP Sink component. 
- * IMPORT! Although derived from the Encode Sink, only the H264 codec 
+ * IMPORT! Although derived from the Encode Sink, only the H264 encoder 
  * is supported.
  * @param[in] name unique component name for the new RTMP Sink.
  * @param[in] uri RTMP URI to stream to.
@@ -7872,20 +7854,20 @@ DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri);
  * @param[in] host address for the RTSP Server
  * @param[in] port UDP port number for the RTSP Server
  * @param[in] port RTSP port number for the RTSP Server
- * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
  * @param[in] bitrate in bits per second.
  * Set to 0 to use the Encoder default bitrate (4Mbps)
  * @param[in] interval iframe interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
-     uint udpPort, uint rtmpPort, uint codec, uint bitrate, uint interval);
+     uint udpPort, uint rtmpPort, uint encoder, uint bitrate, uint interval);
 
 /**
- * @brief gets the current codec and video media container formats for the
- * named RTSP Server Sink.
+ * @brief gets the current server port settings in us by the named RTSP Server Sink.
  * @param[in] name unique name of the Sink to query
- * @param[out] port UDP Port number to use
+ * @param[out] udpPort UDP Port number in use
+ * @param[out] rtspPort RTSP Port number in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
@@ -7895,14 +7877,14 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
  * @brief creates a new, uniquely named RTSP Client Sink component.
  * @param[in] name unique component name for the new RTSP Client Sink.
  * @param[in] uri RTSP uri to stream to.
- * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265.
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
  * @param[in] bitrate in bits per second - H264 and H265 only.
  * Set to 0 to use the Encoder default bitrate (4Mbps).
  * @param[in] interval frame interval to encode at.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
-     uint codec, uint bitrate, uint interval);
+     uint encoder, uint bitrate, uint interval);
 
 /**
  * @brief Sets the user credentials for the named RTSP Client Sink to use.
@@ -8178,14 +8160,14 @@ DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
  * Set to NULL to omit if using TURN server(s)
  * @param[in] turn_server TURN server(s) to use of the form 
  * turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server
- * @param[in] codec either DSL_CODEC_H264 DSL_CODEC_H265
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
  * @param[in] bitrate in bits per second
  * @param[in] interval frame interval to encode at
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
  */
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server, 
-    const wchar_t* turn_server, uint codec, uint bitrate, uint interval);
+    const wchar_t* turn_server, uint encoder, uint bitrate, uint interval);
 
 /**
  * @brief Closes a uniquely named WebRTC Sink component's Websocket connection

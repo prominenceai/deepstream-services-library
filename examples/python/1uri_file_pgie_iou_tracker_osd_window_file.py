@@ -51,16 +51,18 @@ from dsl import *
 
 ################################################################################
 #
-# The File Sink is an Encode Sink that supports five (5) codec types. Two (2) 
+# The File Sink is an Encode Sink that supports five (5) encoder types. Two (2) 
 # hardware and three (3) software. Use one of the following constants to select 
-# the codec type:
-#   - DSL_CODEC_HW_H264
-#   - DSL_CODEC_HW_H265
-#   - DSL_CODEC_SW_H264
-#   - DSL_CODEC_SW_H265
-#   - DSL_CODEC_SW_MP4
+# the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H265
+#   - DSL_ENCODER_SW_MP4
 #
-#  Two container types are supported:
+# IMPORTANT! The Jetson Orin Nano only supports software encoding.
+#
+#  Two (2) container types are supported:
 #   - DSL_CONTAINER_MP4
 #   - DSL_CONTAINER_MKV
 #
@@ -70,10 +72,10 @@ from dsl import *
 #   - SW-MPEG      = 200000
 
 # File Sink configuration 
-FILE_SINK_CODEC     = DSL_CODEC_HW_H265
+FILE_SINK_ENCODER   = DSL_ENCODER_HW_H265
 FILE_SINK_CONTAINER = DSL_CONTAINER_MP4
 FILE_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-FILE_SINK_INTERVAL  = 0   # Only HW codecs support interval > 0
+FILE_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
 
 uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
@@ -154,10 +156,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New File Sink with H264 Codec type and MKV conatiner muxer, 
+        # New File Sink with H264 Encoder type and MKV conatiner muxer, 
         # and bit-rate=0 (use plugin default) and interval=0=everyframe.
         retval = dsl_sink_file_new('file-sink', "./output.mp4", 
-            FILE_SINK_CODEC, FILE_SINK_CONTAINER, 
+            FILE_SINK_ENCODER, FILE_SINK_CONTAINER, 
             FILE_SINK_BITRATE, FILE_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:
             break

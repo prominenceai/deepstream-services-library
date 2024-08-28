@@ -50,14 +50,16 @@ from dsl import *
 
 ################################################################################
 #
-# The RTSP Sink is an Encode Sink that supports five (5) codec types. 
+# The RTSP Sink is an Encode Sink that supports five (5) encoder types. 
 # Two (2) hardware and three (3) software. Use one of the following constants  
-# to select the codec type:
-#   - DSL_CODEC_HW_H264
-#   - DSL_CODEC_HW_H265
-#   - DSL_CODEC_SW_H264
-#   - DSL_CODEC_SW_H265
-#   - DSL_CODEC_SW_MP4
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   -  
+#   - DSL_ENCODER_SW_MP4
+#
+# IMPORTANT! The Jetson Orin Nano only supports software encoding.
 #
 #  Set the bitrate to 0 to use the specific Encoder's default rate as follows
 #   - HW-H264/H265 = 4000000 
@@ -65,9 +67,9 @@ from dsl import *
 #   - SW-MPEG      = 200000
 
 # Record Sink configuration 
-RTSP_SINK_CODEC     = DSL_CODEC_SW_H265
+RTSP_SINK_ENCODER   = DSL_ENCODER_SW_MP4
 RTSP_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-RTSP_SINK_INTERVAL  = 0   # Only HW codecs support interval > 0
+RTSP_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
 
 # update host URL to IP address if clients are off device.
 host_uri = '0.0.0.0'
@@ -168,7 +170,7 @@ def main(args):
             host = "0.0.0.0",       # 0.0.0.0 = "this host, this network."
             udp_port = 5400,        # UDP port 5400 uses the Datagram Protocol.             
             rtsp_port = 8554,        
-            codec = RTSP_SINK_CODEC,  
+            encoder = RTSP_SINK_ENCODER,  
             bitrate = RTSP_SINK_BITRATE,
             interval = RTSP_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:

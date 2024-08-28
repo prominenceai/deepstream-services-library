@@ -906,18 +906,18 @@ namespace DSL
          * @param[out] bitrate the current bit-rate setting in use by the encoder
          * @param[out] interval the current encode-interval in use by the encoder
          */ 
-        void GetEncoderSettings(uint* codec, uint* bitrate, uint* interval);
+        void GetEncoderSettings(uint* encoder, uint* bitrate, uint* interval);
 
         /**
          * @brief Sets the bit-rate and interval settings for the EncoderSinkBintr 
          * to use.
-         * @param[in] codec the new code to use, either DSL_CODEC_H264 or 
+         * @param[in] encoder the new code to use, either DSL_CODEC_H264 or 
          * DSL_CODE_H265
          * @param[in] bitrate the new bit-rate setting in uints of bits/sec
          * @param[in] interval the new encode-interval setting to use
          * @return true if the settings were set successfully, false otherwise
          */ 
-        bool SetEncoderSettings(uint codec, uint bitrate, uint interval);
+        bool SetEncoderSettings(uint encoder, uint bitrate, uint interval);
 
         /**
          * @brief Gets the current width and height settings for 
@@ -949,9 +949,9 @@ namespace DSL
     protected:
 
         /**
-         * @brief Current codec id for the EncodeSinkBintr
+         * @brief Current encoder id for the EncodeSinkBintr
          */
-        uint m_codec;
+        uint m_encoder;
 
         /**
          * @brief Current bitrate for the EncodeSinkBintr. 0 = use default
@@ -1006,7 +1006,7 @@ namespace DSL
     public: 
     
         FileSinkBintr(const char* name, const char* filepath, 
-            uint codec, uint container, uint bitrate, uint interval);
+            uint encoder, uint container, uint bitrate, uint interval);
 
         ~FileSinkBintr();
   
@@ -1035,7 +1035,7 @@ namespace DSL
     {
     public: 
     
-        RecordSinkBintr(const char* name, const char* outdir, uint codec, uint container, 
+        RecordSinkBintr(const char* name, const char* outdir, uint encoder, uint container, 
             uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
 
         ~RecordSinkBintr();
@@ -1130,7 +1130,7 @@ namespace DSL
     
         RtspServerSinkBintr(const char* name, 
             const char* host, uint udpPort, uint rtspPort,
-            uint codec, uint bitrate, uint interval);
+            uint encoder, uint bitrate, uint interval);
 
         ~RtspServerSinkBintr();
   
@@ -1147,7 +1147,7 @@ namespace DSL
         void UnlinkAll();
 
         /**
-         * @brief Gets the current codec and media container formats for the 
+         * @brief Gets the current server settings for the 
          * RtspServerSinkBintr.
          * @param[out] port the current UDP port number for the RTSP Server.
          * @param[out] port the current RTSP port number for the RTSP Server.
@@ -1166,9 +1166,9 @@ namespace DSL
         uint m_udpBufferSize;
 
         /**
-         * @brief string representing current codec; "H264" or "H265"
+         * @brief string representing "encoding name"; "H264", "H265", MP4V-ES
          */
-        std::string m_codecString;
+        std::string m_encoderString;
 
         GstRTSPServer* m_pServer;
         uint m_pServerSrcId;

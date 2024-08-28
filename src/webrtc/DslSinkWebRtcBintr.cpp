@@ -30,8 +30,8 @@ THE SOFTWARE.
 namespace DSL
 {
     WebRtcSinkBintr::WebRtcSinkBintr(const char* name, const char* stunServer, 
-        const char* turnServer, uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        const char* turnServer, uint encoder, uint bitrate, uint interval)
+        : EncodeSinkBintr(name, encoder, bitrate, interval)
         , SignalingTransceiver()
         , m_pDataChannel(NULL)
         , m_stunServer(stunServer)
@@ -43,16 +43,16 @@ namespace DSL
         std::string fakeSinkName = GetName() + "-fake-sink";
         m_pFakeSinkBintr = DSL_FAKE_SINK_NEW(fakeSinkName.c_str());
 
-        switch (codec)
+        switch (encoder)
         {
-        case DSL_CODEC_HW_H264 :
+        case DSL_ENCODER_HW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             break;
-        case DSL_CODEC_HW_H265 :
+        case DSL_ENCODER_HW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" 
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new WebRtcSinkBintr '" 
                 << name << "'");
             throw;
         }
@@ -67,7 +67,7 @@ namespace DSL
         LOG_INFO("Initial property values for WebRtcSinkBintr '" << name << "'");
         LOG_INFO("  stun-server        : " << m_stunServer);
         LOG_INFO("  turn-server        : " << m_turnServer); 
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate            : " << m_bitrate);
