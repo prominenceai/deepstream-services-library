@@ -919,13 +919,13 @@ SCENARIO( "An EglSinkBintr's force-aspect-ration setting can be updated", "[Sink
     }
 }
 
-SCENARIO( "A new DSL_CODEC_SW_MPEG4 FileSinkBintr is created correctly",  "[SinkBintr]" )
+SCENARIO( "A new DSL_CODEC_SW_MP4 FileSinkBintr is created correctly",  "[SinkBintr]" )
 {
-   GIVEN( "Attributes for a new DSL_CODEC_SW_MPEG4 File Sink" ) 
+   GIVEN( "Attributes for a new DSL_CODEC_SW_MP4 File Sink" ) 
    {
        std::string sinkName("file-sink");
        std::string filePath("./output.mp4");
-       uint codec(DSL_CODEC_SW_MPEG4);
+       uint codec(DSL_CODEC_SW_MP4);
        uint container(DSL_CONTAINER_MP4);
        uint bitrate(0);
        uint interval(0);
@@ -970,7 +970,7 @@ SCENARIO( "A new DSL_CODEC_MPEG4 FileSinkBintr can LinkAll Child Elementrs", "[S
     {
         std::string sinkName("file-sink");
         std::string filePath("./output.mp4");
-        uint codec(DSL_CODEC_SW_MPEG4);
+        uint codec(DSL_CODEC_SW_MP4);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(0);
         uint interval(0);

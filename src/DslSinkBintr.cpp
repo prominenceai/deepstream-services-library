@@ -1361,7 +1361,7 @@ namespace DSL
         if (!m_cudaDeviceProp.integrated)
         {
             LOG_ERROR("3D Sink is only supported on the Jetson Platform'");
-            throw;
+            throw std::exception();
         }
         
         m_pSink = DSL_ELEMENT_NEW("nv3dsink", GetCStrName());
@@ -1504,7 +1504,7 @@ namespace DSL
             if (!pCaps)
             {
                 LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-                throw;  
+                throw std::exception();  
             }
 
             GstCapsFeatures *feature = NULL;
@@ -1783,22 +1783,12 @@ namespace DSL
         case DSL_CODEC_SW_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("x264enc", name);
             m_pParser = DSL_ELEMENT_NEW("h264parse", name);
-            m_pSwEncoderCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "x264enc");
-            {
-                DslCaps x264encCaps("video/x-h264, profile=(string)baseline");
-                m_pSwEncoderCapsFilter->SetAttribute("caps", &x264encCaps);
-            }
             break;
         case DSL_CODEC_SW_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("x265enc", name);
             m_pParser = DSL_ELEMENT_NEW("h265parse", name);
-            m_pSwEncoderCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "x265enc");
-            {
-                DslCaps x265encCaps("video/x-h265, profile=(string)baseline");
-                m_pSwEncoderCapsFilter->SetAttribute("caps", &x265encCaps);
-            }
             break;
-        case DSL_CODEC_SW_MPEG4 :
+        case DSL_CODEC_SW_MP4 :
             m_pEncoder = DSL_ELEMENT_NEW("avenc_mpeg4", name);
             m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", name);
             break;
@@ -1852,7 +1842,6 @@ namespace DSL
             {
                 m_pEncoder->SetAttribute("bitrate", m_bitrate/1000);
             }
-            AddChild(m_pSwEncoderCapsFilter);
         }
         // If using MPEG software encoding
         else 
@@ -1882,19 +1871,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // Linke all elements based on Encoder
-        // return (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
-        //     ? (m_pQueue->LinkToSink(m_pTransform) and
-        //         m_pTransform->LinkToSink(m_pCapsFilter) and
-        //         m_pCapsFilter->LinkToSink(m_pEncoder) and
-        //         m_pEncoder->LinkToSink(m_pSwEncoderCapsFilter) and
-        //         m_pSwEncoderCapsFilter->LinkToSink(m_pParser) and
-        //         m_pParser->LinkToSink(pSinkNodetr))
-        //     : (m_pQueue->LinkToSink(m_pTransform) and
-        //         m_pTransform->LinkToSink(m_pCapsFilter) and
-        //         m_pCapsFilter->LinkToSink(m_pEncoder) and
-        //         m_pEncoder->LinkToSink(m_pParser) and
-        //         m_pParser->LinkToSink(pSinkNodetr));
         return (m_pQueue->LinkToSink(m_pTransform) and
                 m_pTransform->LinkToSink(m_pCapsFilter) and
                 m_pCapsFilter->LinkToSink(m_pEncoder) and
@@ -1911,11 +1887,6 @@ namespace DSL
         m_pCapsFilter->UnlinkFromSink();
         m_pEncoder->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-
-        // if (m_codec == DSL_CODEC_SW_H264 or m_codec == DSL_CODEC_SW_H265)
-        // {
-        //     m_pSwEncoderCapsFilter->UnlinkFromSink();
-        // }
     }
     
     void EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
@@ -2070,7 +2041,7 @@ namespace DSL
             break;
         default:
             LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << name << "'");
-            throw;
+            throw std::exception();
         }
 
         LOG_INFO("");
@@ -2406,12 +2377,14 @@ namespace DSL
 
         switch (codec)
         {
-        case DSL_CODEC_H264 :
+        case DSL_CODEC_HW_H264 :
+        case DSL_CODEC_SW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             m_codecString.assign("H264");
             break;
             
-        case DSL_CODEC_H265 :
+        case DSL_CODEC_HW_H265 :
+        case DSL_CODEC_SW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             m_codecString.assign("H265");
             
@@ -2422,7 +2395,7 @@ namespace DSL
             
         default:
             LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
-            throw;
+            throw std::exception();
         }
 
         m_pSink = DSL_ELEMENT_NEW("udpsink", name);
@@ -3754,7 +3727,7 @@ namespace DSL
         {
             LOG_ERROR("Failed to create caps for V4l2SinkBintr '"
                 << GetName() << "'");
-            throw;
+            throw std::exception();
         }
         m_pCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);

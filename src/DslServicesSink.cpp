@@ -945,7 +945,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_SW_MPEG4)
+            if (codec > DSL_CODEC_SW_MP4)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
                     << " for File Sink '" << name << "'");
@@ -996,7 +996,7 @@ namespace DSL
                 return DSL_RESULT_SINK_PATH_NOT_FOUND;
             }
 
-            if (codec > DSL_CODEC_SW_MPEG4)
+            if (codec > DSL_CODEC_SW_MP4)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
                     << " for Record Sink '" << name << "'");
@@ -1823,7 +1823,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_SW_H265)
+            if (codec > DSL_CODEC_SW_MP4)
             {   
                 LOG_ERROR("Invalid Codec value = " << codec 
                     << " for RTSP Server Sink '" << name << "'");
