@@ -75,9 +75,9 @@ from dsl import *
 FILE_SINK_ENCODER   = DSL_ENCODER_HW_H265
 FILE_SINK_CONTAINER = DSL_CONTAINER_MP4
 FILE_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-FILE_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
+FILE_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -129,8 +129,8 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # First new URI File Source
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        # New File Source using the file path specified above, repeat disabled.
+        retval = dsl_source_file_new('file-source', uri_h265, False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -156,8 +156,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New File Sink with H264 Encoder type and MKV conatiner muxer, 
-        # and bit-rate=0 (use plugin default) and interval=0=everyframe.
+        # New File Sink using the Encoder and conatiner types defined above
         retval = dsl_sink_file_new('file-sink', "./output.mp4", 
             FILE_SINK_ENCODER, FILE_SINK_CONTAINER, 
             FILE_SINK_BITRATE, FILE_SINK_INTERVAL)
@@ -176,7 +175,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            ['file-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
             'egl-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

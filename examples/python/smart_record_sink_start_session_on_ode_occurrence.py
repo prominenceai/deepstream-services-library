@@ -88,7 +88,7 @@ from dsl import *
 RECORD_SINK_ENCODER   = DSL_ENCODER_HW_H265
 RECORD_SINK_CONTAINER = DSL_CONTAINER_MP4
 RECORD_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-RECORD_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
+RECORD_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
 
 # Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
 RECORDING_START = 10
@@ -300,8 +300,7 @@ def main(args):
         
         # New Record-Sink that will buffer encoded video while waiting for the 
         # ODE trigger/action, defined below, to start a new session on first 
-        # occurrence of a person. The default 'cache-size' and 'duration' are defined in
-        # DslApi.h Setting the bit rate to 0 to not change from the default.  
+        # occurrence of a person. 
         retval = dsl_sink_record_new('record-sink', outdir="./", 
             encoder=RECORD_SINK_ENCODER, container=RECORD_SINK_CONTAINER, 
             bitrate=RECORD_SINK_BITRATE, interval=RECORD_SINK_INTERVAL, 

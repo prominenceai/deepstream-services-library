@@ -65,6 +65,31 @@ THE SOFTWARE.
 
 #include "DslApi.h"
 
+/* ````````````````````````````````````````````````````````````````````````````````````#
+# The Smart Record Sink is an Encode Sink that supports five (5) encoder types. 
+# Two (2) hardware and three (3) software. Use one of the following constants  
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H265
+#   - DSL_ENCODER_SW_MP4
+#
+#  Two container types are supported:
+#   - DSL_CONTAINER_MP4
+#   - DSL_CONTAINER_MKV
+#
+#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
+#   - HW-H264/H265 = 4000000 
+#   - SW-H264/H265 = 2048000 
+#   - SW-MPEG      = 200000
+*/
+// Record Sink configuration 
+uint RECORD_SINK_ENCODER   = DSL_ENCODER_HW_H265;
+uint RECORD_SINK_CONTAINER = DSL_CONTAINER_MP4;
+uint RECORD_SINK_BITRATE   = 0;  // 0 = use the encoders default bitrate.
+uint RECORD_SINK_INTERVAL  = 0;  // Only HW encoders support interval > 0
+
 // RTSP Source URI for AMCREST Camera    
 std::wstring amcrest_rtsp_uri = 
     L"rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0";
@@ -291,8 +316,10 @@ int main(int argc, char** argv)
         // ODE trigger/action, defined below, to start a new session on first 
         // occurrence of a bicycle. The default 'cache-size' and 'duration' are 
         // defined in DslApi.h. Setting the bit rate to 0 to not change from the default.
-        retval = dsl_sink_record_new(L"record-sink", L"./", DSL_ENCODER_HW_H264, 
-            DSL_CONTAINER_MP4, 0, 0, record_event_listener);
+        retval = dsl_sink_record_new(L"record-sink", L"./", 
+            RECORD_SINK_ENCODER, RECORD_SINK_CONTAINER,
+            RECORD_SINK_BITRATE, RECORD_SINK_INTERVAL, 
+            record_event_listener);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // IMPORTANT: Best to set the max-size to the maximum value we 

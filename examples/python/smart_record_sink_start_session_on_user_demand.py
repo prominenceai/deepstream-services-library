@@ -79,13 +79,13 @@ from dsl import *
 RECORD_SINK_ENCODER   = DSL_ENCODER_HW_H265
 RECORD_SINK_CONTAINER = DSL_CONTAINER_MP4
 RECORD_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-RECORD_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
+RECORD_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
 
 # RTSP Source URI for AMCREST Camera    
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
 # RTSP Source URI for HIKVISION Camera    
-hikvision_rtsp_uri = 'rtsp://admin:Segvisual44@192.168.1.64:554/Streaming/Channels/101'    
+hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \

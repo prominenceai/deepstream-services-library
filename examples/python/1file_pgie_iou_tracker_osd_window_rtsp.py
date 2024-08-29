@@ -31,7 +31,7 @@
 #   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
-#   - H265 RTSP Sink
+#   - RTSP Sink
 # ...and how to add them to a new Pipeline and play.
 #
 # The example registers handler callback functions for:
@@ -67,14 +67,12 @@ from dsl import *
 #   - SW-MPEG      = 200000
 
 # Record Sink configuration 
-RTSP_SINK_ENCODER   = DSL_ENCODER_SW_MP4
+RTSP_SINK_ENCODER   = DSL_ENCODER_HW_H264
 RTSP_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-RTSP_SINK_INTERVAL  = 0   # Only HW encoders support interval > 0
+RTSP_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
 
-# update host URL to IP address if clients are off device.
-host_uri = '0.0.0.0'
-
-file_path = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+# URI for the File Source
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -85,6 +83,10 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# EGL Window Sink Dimensions 
+WINDOW_WIDTH = DSL_1K_HD_WIDTH // 2
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT // 2
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -129,7 +131,7 @@ def main(args):
     while True:
 
         # New File Source using the file path specified above, repeat enabled.
-        retval = dsl_source_file_new('file-source', file_path, True)
+        retval = dsl_source_file_new('file-source', uri_h265, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -152,7 +154,8 @@ def main(args):
             break
 
         # New EGL Window Sink with offests and dimensions
-        retval = dsl_sink_window_egl_new('window-sink', 100, 100, 1280, 720)
+        retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+            WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
         # Add the XWindow event handler functions defined above
