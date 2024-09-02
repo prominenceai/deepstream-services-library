@@ -91,7 +91,7 @@ def main(args):
             rtsp_port = 8554,              # 
             encoder = DSL_ENCODER_HW_H265, # High Efficiency Video Coding (HEVC)
             bitrate = 0,                   # Set to 0 to use plugin default (4000000)
-            interval = 0)                  # 0 = encode everyframe           
+            iframe_interval = 0)           # 0 = encode everyframe           
         if retVal != DSL_RETURN_SUCCESS:
             print(dsl_return_value_to_string(retVal)) 
 
