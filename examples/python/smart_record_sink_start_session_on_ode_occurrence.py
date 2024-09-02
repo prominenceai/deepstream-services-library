@@ -303,7 +303,7 @@ def main(args):
         # occurrence of a person. 
         retval = dsl_sink_record_new('record-sink', outdir="./", 
             encoder=RECORD_SINK_ENCODER, container=RECORD_SINK_CONTAINER, 
-            bitrate=RECORD_SINK_BITRATE, interval=RECORD_SINK_INTERVAL, 
+            bitrate=RECORD_SINK_BITRATE, iframe_interval=RECORD_SINK_INTERVAL, 
             client_listener=record_complete_listener)
         if retval != DSL_RETURN_SUCCESS:
             break

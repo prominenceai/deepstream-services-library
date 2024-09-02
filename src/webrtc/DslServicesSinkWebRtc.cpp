@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::SinkWebRtcNew(const char* name, const char* stunServer, 
-        const char* turnServer, uint encoder, uint bitrate, uint interval)
+        const char* turnServer, uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -51,7 +51,7 @@ namespace DSL
                 return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_WEBRTC_SINK_NEW(name,
-                stunServer, turnServer, encoder, bitrate, interval);
+                stunServer, turnServer, encoder, bitrate, iframeInterval);
 
             LOG_INFO("New WebRTC Sink '" << name << "' created successfully");
 

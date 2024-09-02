@@ -70,29 +70,35 @@ namespace DSL
     #define DSL_ENCODE_SINK_PTR std::shared_ptr<EncodeSinkBintr>
         
     #define DSL_FILE_SINK_PTR std::shared_ptr<FileSinkBintr>
-    #define DSL_FILE_SINK_NEW(name, filepath, codec, container, bitrate, interval) \
+    #define DSL_FILE_SINK_NEW(name, \
+        filepath, codec, container, bitrate, iframeInterval) \
         std::shared_ptr<FileSinkBintr>( \
-        new FileSinkBintr(name, filepath, codec, container, bitrate, interval))
+        new FileSinkBintr(name, \
+            filepath, codec, container, bitrate, iframeInterval))
         
     #define DSL_RECORD_SINK_PTR std::shared_ptr<RecordSinkBintr>
-    #define DSL_RECORD_SINK_NEW(name, outdir, codec, container, bitrate, interval, clientListener) \
+    #define DSL_RECORD_SINK_NEW(name, \
+        outdir, codec, container, bitrate, iframeInterval, clientListener) \
         std::shared_ptr<RecordSinkBintr>( \
-        new RecordSinkBintr(name, outdir, codec, container, bitrate, interval, clientListener))
+        new RecordSinkBintr(name, \
+            outdir, codec, container, bitrate, iframeInterval, clientListener))
         
     #define DSL_RTMP_SINK_PTR std::shared_ptr<RtmpSinkBintr>
-    #define DSL_RTMP_SINK_NEW(name, uri, bitrate, interval) \
+    #define DSL_RTMP_SINK_NEW(name, uri, bitrate, iframeInterval) \
         std::shared_ptr<RtmpSinkBintr>( \
-        new RtmpSinkBintr(name, uri, bitrate, interval))
+        new RtmpSinkBintr(name, uri, bitrate, iframeInterval))
 
     #define DSL_RTSP_SERVER_SINK_PTR std::shared_ptr<RtspServerSinkBintr>
-    #define DSL_RTSP_SERVER_SINK_NEW(name, host, udpPort, rtspPort, codec, bitrate, interval) \
+    #define DSL_RTSP_SERVER_SINK_NEW(name, \
+        host, udpPort, rtspPort, codec, bitrate, iframeInterval) \
         std::shared_ptr<RtspServerSinkBintr>( \
-        new RtspServerSinkBintr(name, host, udpPort, rtspPort, codec, bitrate, interval))
+        new RtspServerSinkBintr(name, \
+            host, udpPort, rtspPort, codec, bitrate, iframeInterval))
 
     #define DSL_RTSP_CLIENT_SINK_PTR std::shared_ptr<RtspClientSinkBintr>
-    #define DSL_RTSP_CLIENT_SINK_NEW(name, uri, codec, bitrate, interval) \
+    #define DSL_RTSP_CLIENT_SINK_NEW(name, uri, codec, bitrate, iframeInterval) \
         std::shared_ptr<RtspClientSinkBintr>( \
-        new RtspClientSinkBintr(name, uri, codec, bitrate, interval))
+        new RtspClientSinkBintr(name, uri, codec, bitrate, iframeInterval))
                 
     #define DSL_MESSAGE_SINK_PTR std::shared_ptr<MessageSinkBintr>
     #define DSL_MESSAGE_SINK_NEW(name, \
@@ -884,7 +890,7 @@ namespace DSL
     public: 
     
         EncodeSinkBintr(const char* name,
-            uint codec, uint bitrate, uint interval);
+            uint codec, uint bitrate, uint iframeInterval);
 
         /**
          * @brief Links all common Elementrs and the last element
@@ -900,24 +906,24 @@ namespace DSL
         void UnlinkFromCommon();
 
         /**
-         * @brief Gets the current bit-rate and interval settings in use by the 
+         * @brief Gets the current bit-rate and iframeInterval settings in use by the 
          * EncoderSinkBintr
          * @param[out] code the currect codec in used
          * @param[out] bitrate the current bit-rate setting in use by the encoder
-         * @param[out] interval the current encode-interval in use by the encoder
+         * @param[out] iframeInterval intra frame (key-frame) occurrence interval.
          */ 
-        void GetEncoderSettings(uint* encoder, uint* bitrate, uint* interval);
+        void GetEncoderSettings(uint* encoder, uint* bitrate, uint* iframeInterval);
 
         /**
-         * @brief Sets the bit-rate and interval settings for the EncoderSinkBintr 
+         * @brief Sets the bit-rate and iframeInterval settings for the EncoderSinkBintr 
          * to use.
          * @param[in] encoder the new code to use, either DSL_CODEC_H264 or 
          * DSL_CODE_H265
          * @param[in] bitrate the new bit-rate setting in uints of bits/sec
-         * @param[in] interval the new encode-interval setting to use
+         * @param[in] iframeInterval the new encode-iframeInterval setting to use
          * @return true if the settings were set successfully, false otherwise
          */ 
-        bool SetEncoderSettings(uint encoder, uint bitrate, uint interval);
+        bool SetEncoderSettings(uint encoder, uint bitrate, uint iframeInterval);
 
         /**
          * @brief Gets the current width and height settings for 
@@ -964,9 +970,9 @@ namespace DSL
         uint m_defaultBitrate;
         
         /**
-         * @brief Decode interval - other frames are dropped
+         * @brief intra frame (key-frame) occurrence interval.
          */
-        uint m_interval;
+        uint m_iframeInterval;
  
         /**
          * @brief Width property for the Video Converter element in uints of pixels.
@@ -1006,7 +1012,7 @@ namespace DSL
     public: 
     
         FileSinkBintr(const char* name, const char* filepath, 
-            uint encoder, uint container, uint bitrate, uint interval);
+            uint encoder, uint container, uint bitrate, uint iframeInterval);
 
         ~FileSinkBintr();
   
@@ -1036,7 +1042,7 @@ namespace DSL
     public: 
     
         RecordSinkBintr(const char* name, const char* outdir, uint encoder, uint container, 
-            uint bitrate, uint interval, dsl_record_client_listener_cb clientListener);
+            uint bitrate, uint iframeInterval, dsl_record_client_listener_cb clientListener);
 
         ~RecordSinkBintr();
   
@@ -1074,7 +1080,7 @@ namespace DSL
     public: 
     
         RtmpSinkBintr(const char* name, 
-            const char* uri, uint bitrate, uint interval);
+            const char* uri, uint bitrate, uint iframeInterval);
 
         ~RtmpSinkBintr();
   
@@ -1130,7 +1136,7 @@ namespace DSL
     
         RtspServerSinkBintr(const char* name, 
             const char* host, uint udpPort, uint rtspPort,
-            uint encoder, uint bitrate, uint interval);
+            uint encoder, uint bitrate, uint iframeInterval);
 
         ~RtspServerSinkBintr();
   
@@ -1184,7 +1190,7 @@ namespace DSL
     public: 
     
         RtspClientSinkBintr(const char* name, const char* uri, 
-            uint codec, uint bitrate, uint interval);
+            uint codec, uint bitrate, uint iframeInterval);
 
         ~RtspClientSinkBintr();
   

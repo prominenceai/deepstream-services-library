@@ -30,8 +30,8 @@ THE SOFTWARE.
 namespace DSL
 {
     WebRtcSinkBintr::WebRtcSinkBintr(const char* name, const char* stunServer, 
-        const char* turnServer, uint encoder, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, encoder, bitrate, interval)
+        const char* turnServer, uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , SignalingTransceiver()
         , m_pDataChannel(NULL)
         , m_stunServer(stunServer)
@@ -76,7 +76,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);

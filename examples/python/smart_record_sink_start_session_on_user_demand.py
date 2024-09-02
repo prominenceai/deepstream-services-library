@@ -273,7 +273,7 @@ def main(args):
         # defined in DslApi.h Setting the bit rate to 0 to not change from the default.
         retval = dsl_sink_record_new('record-sink', outdir="./", 
             encoder=RECORD_SINK_ENCODER, container=RECORD_SINK_CONTAINER, 
-            bitrate=RECORD_SINK_BITRATE, interval=RECORD_SINK_INTERVAL, 
+            bitrate=RECORD_SINK_BITRATE, iframe_interval=RECORD_SINK_INTERVAL, 
             client_listener=record_event_listener)
         if retval != DSL_RETURN_SUCCESS:
             break

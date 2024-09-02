@@ -932,7 +932,7 @@ namespace DSL
     }
         
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
-            uint encoder, uint container, uint bitrate, uint interval)
+            uint encoder, uint container, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -945,7 +945,7 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (encoder > DSL_ENCODER_SW_MP4)
+            if (encoder > DSL_ENCODER_SW_MPEG4)
             {   
                 LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for File Sink '" << name << "'");
@@ -958,7 +958,7 @@ namespace DSL
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
             m_components[name] = DSL_FILE_SINK_NEW(name, 
-                filepath, encoder, container, bitrate, interval);
+                filepath, encoder, container, bitrate, iframeInterval);
             
             LOG_INFO("New File Sink '" << name << "' created successfully");
 
@@ -973,7 +973,7 @@ namespace DSL
     
     DslReturnType Services::SinkRecordNew(const char* name, 
         const char* outdir, uint encoder, uint container, 
-        uint bitrate, uint interval, dsl_record_client_listener_cb clientListener)
+        uint bitrate, uint iframeInterval, dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -996,7 +996,7 @@ namespace DSL
                 return DSL_RESULT_SINK_PATH_NOT_FOUND;
             }
 
-            if (encoder > DSL_ENCODER_SW_MP4)
+            if (encoder > DSL_ENCODER_SW_MPEG4)
             {   
                 LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for Record Sink '" << name << "'");
@@ -1010,7 +1010,7 @@ namespace DSL
             }
 
             m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, 
-                encoder, container, bitrate, interval, clientListener);
+                encoder, container, bitrate, iframeInterval, clientListener);
             
             LOG_INFO("New Record Sink '" << name << "' created successfully");
 
@@ -1580,7 +1580,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkEncodeSettingsGet(const char* name, 
-        uint* encoder, uint* bitrate, uint* interval)
+        uint* encoder, uint* bitrate, uint* iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1593,12 +1593,12 @@ namespace DSL
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            encodeSinkBintr->GetEncoderSettings(encoder, bitrate, interval);
+            encodeSinkBintr->GetEncoderSettings(encoder, bitrate, iframeInterval);
             
             LOG_INFO("Encode Sink '" << name 
                 << "' returned encoder = " << *encoder 
                 << " bitrate = " << *bitrate 
-                << " and interval = " << *interval << " successfully");
+                << " and iframeInterval = " << *iframeInterval << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -1672,7 +1672,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtmpNew(const char* name, const char* uri, 
-        uint bitrate, uint interval)
+        uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1686,7 +1686,7 @@ namespace DSL
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
             m_components[name] = DSL_RTMP_SINK_NEW(name, 
-                uri, bitrate, interval);
+                uri, bitrate, iframeInterval);
 
             LOG_INFO("New RTMP Sink '" << name 
                 << "' created successfully");
@@ -1763,7 +1763,7 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
-        uint udpPort, uint rtspPort, uint encoder, uint bitrate, uint interval)
+        uint udpPort, uint rtspPort, uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1776,14 +1776,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (encoder > DSL_ENCODER_SW_MP4)
+            if (encoder > DSL_ENCODER_SW_MPEG4)
             {   
                 LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for RTSP Server Sink '" << name << "'");
                 return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_RTSP_SERVER_SINK_NEW(name, 
-                host, udpPort, rtspPort, encoder, bitrate, interval);
+                host, udpPort, rtspPort, encoder, bitrate, iframeInterval);
 
             LOG_INFO("New RTSP Server Sink '" << name 
                 << "' created successfully");
@@ -1829,7 +1829,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtspClientNew(const char* name, const char* uri, 
-            uint encoder, uint bitrate, uint interval)
+            uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1849,7 +1849,7 @@ namespace DSL
                 return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_RTSP_CLIENT_SINK_NEW(name, 
-                uri, encoder, bitrate, interval);
+                uri, encoder, bitrate, iframeInterval);
             
             LOG_INFO("New RTSP-Client Sink '" << name 
                 << "' created successfully");

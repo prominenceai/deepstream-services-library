@@ -1756,11 +1756,11 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
-        uint encoder, uint bitrate, uint interval)
+        uint encoder, uint bitrate, uint iframeInterval)
         : SinkBintr(name)
         , m_encoder(encoder)
         , m_bitrate(bitrate)
-        , m_interval(interval)
+        , m_iframeInterval(iframeInterval)
         , m_width(0)
         , m_height(0)
     {
@@ -1788,7 +1788,7 @@ namespace DSL
             m_pEncoder = DSL_ELEMENT_NEW("x265enc", name);
             m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
-        case DSL_ENCODER_SW_MP4 :
+        case DSL_ENCODER_SW_MPEG4 :
             m_pEncoder = DSL_ELEMENT_NEW("avenc_mpeg4", name);
             m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", name);
             break;
@@ -1804,7 +1804,10 @@ namespace DSL
         // If using hardware encoding
         if (m_encoder == DSL_ENCODER_HW_H264 or m_encoder == DSL_ENCODER_HW_H265)
         {
-            m_pEncoder->SetAttribute("iframeinterval", m_interval);
+            uint iframeInterval;
+            // Set the i-frame interval
+            m_pEncoder->SetAttribute("iframeinterval", m_iframeInterval);
+            
             if (m_cudaDeviceProp.integrated)
             {
                 if (NVDS_VERSION_MINOR < 3)
@@ -1858,7 +1861,7 @@ namespace DSL
             {
                 m_pEncoder->SetAttribute("bitrate", m_bitrate);
             }
-            // NOTE! the MPEG encoder does not support an interval property 
+            // NOTE! the MPEG encoder does not support an iframeInterval property 
         }
         
         AddChild(m_pTransform);
@@ -1889,7 +1892,7 @@ namespace DSL
         m_pParser->UnlinkFromSink();
     }
     
-    void EncodeSinkBintr::GetEncoderSettings(uint* encoder, uint* bitrate, uint* interval)
+    void EncodeSinkBintr::GetEncoderSettings(uint* encoder, uint* bitrate, uint* iframeInterval)
     {
         LOG_FUNC();
         
@@ -1903,7 +1906,7 @@ namespace DSL
         {
             *bitrate = m_defaultBitrate;
         }    
-        *interval = m_interval;
+        *iframeInterval = m_iframeInterval;
     }
     
     void EncodeSinkBintr::GetConverterDimensions(uint* width, uint* height)
@@ -1979,8 +1982,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
-        uint encoder, uint container, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, encoder, bitrate, interval)
+        uint encoder, uint container, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , m_container(container)
     {
         LOG_FUNC();
@@ -2029,7 +2032,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -2096,9 +2099,9 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
-        uint encoder, uint container, uint bitrate, uint interval, 
+        uint encoder, uint container, uint bitrate, uint iframeInterval, 
         dsl_record_client_listener_cb clientListener)
-        : EncodeSinkBintr(name, encoder, bitrate, interval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
@@ -2116,7 +2119,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  enable-last-sample : " << "n/a");
@@ -2199,8 +2202,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RtmpSinkBintr::RtmpSinkBintr(const char* name, 
-        const char* uri, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, DSL_ENCODER_HW_H264, bitrate, interval)
+        const char* uri, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, DSL_ENCODER_HW_H264, bitrate, iframeInterval)
         , m_uri(uri)
     {
         LOG_FUNC();
@@ -2239,7 +2242,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -2336,8 +2339,8 @@ namespace DSL
     
     RtspServerSinkBintr::RtspServerSinkBintr(const char* name, 
         const char* host, uint udpPort, uint rtspPort,
-        uint encoder, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, encoder, bitrate, interval)
+        uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , m_host(host)
         , m_udpPort(udpPort)
         , m_rtspPort(rtspPort)
@@ -2364,7 +2367,7 @@ namespace DSL
             // why RTSP Encode Sink only ????
             m_pParser->SetAttribute("config-interval", -1);
             break;
-        case DSL_ENCODER_SW_MP4 :
+        case DSL_ENCODER_SW_MPEG4 :
             m_pPayloader = DSL_ELEMENT_NEW("rtpmp4vpay", name);
             m_encoderString.assign("MP4V-ES");
             
@@ -2409,7 +2412,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -2558,8 +2561,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RtspClientSinkBintr::RtspClientSinkBintr(const char* name, const char* uri, 
-        uint encoder, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, encoder, bitrate, interval)
+        uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
     {
         LOG_FUNC();
         
@@ -2594,7 +2597,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate              : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  interval             : " << m_iframeInterval);
         LOG_INFO("  converter-width      : " << m_width);
         LOG_INFO("  converter-height     : " << m_height);
         LOG_INFO("  sync                 : " << "na");

@@ -56,8 +56,8 @@ from dsl import *
 #   - DSL_ENCODER_HW_H264
 #   - DSL_ENCODER_HW_H265
 #   - DSL_ENCODER_SW_H264
-#   -  
-#   - DSL_ENCODER_SW_MP4
+#   - DSL_ENCODER_SW_H256
+#   - DSL_ENCODER_SW_MPEG4
 #
 # IMPORTANT! The Jetson Orin Nano only supports software encoding.
 #
@@ -175,7 +175,7 @@ def main(args):
             rtsp_port = 8554,        
             encoder = RTSP_SINK_ENCODER,  
             bitrate = RTSP_SINK_BITRATE,
-            interval = RTSP_SINK_INTERVAL)
+            iframe_interval = RTSP_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:
             break
 

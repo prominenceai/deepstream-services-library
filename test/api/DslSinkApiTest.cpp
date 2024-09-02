@@ -1401,14 +1401,14 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[si
         uint encoder(DSL_ENCODER_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new File Sink is created" ) 
         {
             REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-                encoder, container, bitrate, interval) == DSL_RESULT_SUCCESS );
+                encoder, container, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -1417,7 +1417,7 @@ SCENARIO( "The Components container is updated correctly on new File Sink", "[si
                     &retBitrate, &retInterval) == DSL_RESULT_SUCCESS );
                 REQUIRE( retEncoder == encoder );
                 REQUIRE( retBitrate == bitrate );
-                REQUIRE( retInterval == interval );
+                REQUIRE( retInterval == iframe_interval );
                 
                 uint retHeight(99), retWidth(99);
                 REQUIRE( dsl_sink_encode_dimensions_get(fileSinkName.c_str(), 
@@ -1443,11 +1443,11 @@ SCENARIO( "The Components container is updated correctly on File Sink delete", "
         uint encoder(DSL_ENCODER_HW_H265);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-            encoder, container, bitrate, interval) == DSL_RESULT_SUCCESS );
+            encoder, container, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "A new File Sink is deleted" ) 
@@ -1468,17 +1468,17 @@ SCENARIO( "Creating a new File Sink with an invalid Encoder will fail", "[sink-a
     {
         std::wstring fileSinkName(L"file-sink");
         std::wstring filePath(L"./output.mp4");
-        uint encoder(DSL_ENCODER_SW_MP4 + 1);
+        uint encoder(DSL_ENCODER_SW_MPEG4 + 1);
         uint container(DSL_CONTAINER_MP4);
         uint bitrate(2000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When creating a new File Sink with an invalid Encoder" ) 
         {
             REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-                encoder, container, bitrate, interval) == DSL_RESULT_SINK_ENCODER_VALUE_INVALID );
+                encoder, container, bitrate, iframe_interval) == DSL_RESULT_SINK_ENCODER_VALUE_INVALID );
 
             THEN( "The list size is left unchanged" ) 
             {
@@ -1497,14 +1497,14 @@ SCENARIO( "Creating a new File Sink with an invalid Container will fail", "[sink
         uint encoder(DSL_ENCODER_HW_H265);
         uint container(DSL_CONTAINER_MKV + 1);
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "When creating a new File Sink with an invalid Container" ) 
         {
             REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-                encoder, container, bitrate, interval) == DSL_RESULT_SINK_CONTAINER_VALUE_INVALID );
+                encoder, container, bitrate, iframe_interval) == DSL_RESULT_SINK_CONTAINER_VALUE_INVALID );
 
             THEN( "The list size is left unchanged" ) 
             {
@@ -1525,11 +1525,11 @@ SCENARIO( "A File Sink can update it's common properties correctly",
         uint encoder(DSL_ENCODER_HW_H265);
         uint container(DSL_CONTAINER_MKV);
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_file_new(sink_name.c_str(), file_path.c_str(),
-            encoder, container, bitrate, interval) == DSL_RESULT_SUCCESS );
+            encoder, container, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "The File Sink's sync property is updated from its default" ) 
         {
@@ -1653,7 +1653,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         uint container(DSL_CONTAINER_MP4);
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         dsl_record_client_listener_cb client_listener;
 
@@ -1662,7 +1662,7 @@ SCENARIO( "The Components container is updated correctly on new Record Sink", "[
         WHEN( "A new Record Sink is created" ) 
         {
             REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-                encoder, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+                encoder, container, bitrate, iframe_interval, client_listener) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -1697,13 +1697,13 @@ SCENARIO( "The Components container is updated correctly on Record Sink delete",
         uint container(DSL_CONTAINER_MP4);
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            encoder, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+            encoder, container, bitrate, iframe_interval, client_listener) == DSL_RESULT_SUCCESS );
         REQUIRE( dsl_component_list_size() == 1 );
 
         WHEN( "A new Record Sink is deleted" ) 
@@ -1727,12 +1727,12 @@ SCENARIO( "A Player can be added to and removed from a Record Sink", "[sink-api]
         uint container(DSL_CONTAINER_MP4);
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            encoder, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+            encoder, container, bitrate, iframe_interval, client_listener) == DSL_RESULT_SUCCESS );
 
         std::wstring player_name(L"player");
         std::wstring file_path = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
@@ -1776,12 +1776,12 @@ SCENARIO( "A Mailer can be added to and removed from a Record Sink", "[sink-api]
         uint container(DSL_CONTAINER_MP4);
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         dsl_record_client_listener_cb client_listener;
 
         REQUIRE( dsl_sink_record_new(recordSinkName.c_str(), outdir.c_str(),
-            encoder, container, bitrate, interval, client_listener) == DSL_RESULT_SUCCESS );
+            encoder, container, bitrate, iframe_interval, client_listener) == DSL_RESULT_SUCCESS );
 
         std::wstring mailer_name(L"mailer");
         std::wstring subject(L"Subject line");
@@ -1823,14 +1823,14 @@ SCENARIO( "The Components container is updated correctly on new RTMP Sink",
         std::wstring sink_name(L"rtmp-sink");
         std::wstring uri(L"rtmp://localhost/path/to/stream");
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new RTMP Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
-                bitrate, interval) == DSL_RESULT_SUCCESS );
+                bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -1857,11 +1857,11 @@ SCENARIO( "An RTMP Sink can update it's common properties correctly",
         std::wstring sink_name(L"rtmp-sink");
         std::wstring uri(L"rtmp://localhost/path/to/stream");
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
-            bitrate, interval) == DSL_RESULT_SUCCESS );
+            bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
         
         WHEN( "The RTMP Sink's sync property is updated from its default" ) 
         {
@@ -1942,11 +1942,11 @@ SCENARIO( "An RTMP Sink can update it's URI correctly",
         std::wstring sink_name(L"rtmp-sink");
         std::wstring uri(L"rtmp://localhost/path/to/stream");
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
-            bitrate, interval) == DSL_RESULT_SUCCESS );
+            bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
         
         WHEN( "The RTMP URI is updated" ) 
         {
@@ -1981,14 +1981,14 @@ SCENARIO( "The Components container is updated correctly on new DSL_ENCODER_HW_H
         uint rtspPort(8554);
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new RTSP Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
-                udpPort, rtspPort, encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+                udpPort, rtspPort, encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -2015,11 +2015,11 @@ SCENARIO( "The Components container is updated correctly on DSL_ENCODER_HW_H264 
         uint rtspPort(8554);
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
-            udpPort, rtspPort, encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+            udpPort, rtspPort, encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RTSP Sink is deleted" ) 
         {
@@ -2043,14 +2043,14 @@ SCENARIO( "The Components container is updated correctly on new DSL_ENCODER_HW_H
         uint rtspPort(8554);
         uint encoder(DSL_ENCODER_HW_H265);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new RTSP Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
-                udpPort, rtspPort, encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+                udpPort, rtspPort, encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -2077,11 +2077,11 @@ SCENARIO( "The Components container is updated correctly on DSL_ENCODER_HW_H265 
         uint rtspPort(8554);
         uint encoder(DSL_ENCODER_HW_H265);
         uint bitrate(4000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtsp_server_new(rtspSinkName.c_str(), host.c_str(),
-            udpPort, rtspPort, encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+            udpPort, rtspPort, encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A new RTSP Sink is deleted" ) 
         {
@@ -2192,14 +2192,14 @@ SCENARIO( "The Components container is updated correctly on new RTSP-Client Sink
         std::wstring uri(L"rtsp://server_endpoint/stream");
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(2000000);
-        uint interval(0);
+        uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
 
         WHEN( "A new File Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
-                uri.c_str(), encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+                uri.c_str(), encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -2208,7 +2208,7 @@ SCENARIO( "The Components container is updated correctly on new RTSP-Client Sink
                     &retEncoder, &retBitrate, &retInterval) == DSL_RESULT_SUCCESS );
                 REQUIRE( retEncoder == encoder );
                 REQUIRE( retBitrate == bitrate );
-                REQUIRE( retInterval == interval );
+                REQUIRE( retInterval == iframe_interval );
                 
                 uint retHeight(99), retWidth(99);
                 REQUIRE( dsl_sink_encode_dimensions_get(rtspClientSinkName.c_str(), 
@@ -2233,13 +2233,13 @@ SCENARIO( "A new RTSP-Client Sink can set its credentials", "[sink-api]" )
         std::wstring uri(L"rtsp://server_endpoint/stream");
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
         
         std::wstring user_id(L"admin");
         std::wstring user_pw(L"123456");
 
         REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
-            uri.c_str(), encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+            uri.c_str(), encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
         WHEN( "A the RTSP-Client Sink's credentials are upaded" ) 
         {
@@ -2265,7 +2265,7 @@ SCENARIO( "A new RTSP-Client Sink can update its properties correctly", "[sink-a
         std::wstring uri(L"rtsp://server_endpoint/stream");
         uint encoder(DSL_ENCODER_HW_H264);
         uint bitrate(0);
-        uint interval(0);
+        uint iframe_interval(30);
         
         uint def_latency(2000);
         uint def_profiles(DSL_RTSP_PROFILE_AVP);
@@ -2274,7 +2274,7 @@ SCENARIO( "A new RTSP-Client Sink can update its properties correctly", "[sink-a
         uint def_flags(DSL_TLS_CERTIFICATE_VALIDATE_ALL);
         
         REQUIRE( dsl_sink_rtsp_client_new(rtspClientSinkName.c_str(), 
-            uri.c_str(), encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
+            uri.c_str(), encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
         uint ret_latency(123);
         REQUIRE( dsl_sink_rtsp_client_latency_get(rtspClientSinkName.c_str(), 
@@ -2765,7 +2765,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
         
         uint max_size(0), cache_size(0), width(0), height(0), encoder(0), container(0), 
         offset_x(0), offset_y(0),
-        bitrate(0), interval(0), udpPort(0), rtspPort(0), fps_n(0), fps_d(0);
+        bitrate(0), iframe_interval(30), udpPort(0), rtspPort(0), fps_n(0), fps_d(0);
         boolean is_on(0), reset_done(0), sync(0), async(0);
         
         std::wstring mailerName(L"mailer");
@@ -2910,7 +2910,7 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_encode_settings_get(NULL, 
-                    &encoder, &bitrate, &interval) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    &encoder, &bitrate, &iframe_interval) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_encode_dimensions_get(NULL, 
                     &width, &height) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -73,7 +73,7 @@ THE SOFTWARE.
 #   - DSL_ENCODER_HW_H265
 #   - DSL_ENCODER_SW_H264
 #   - DSL_ENCODER_SW_H265
-#   - DSL_ENCODER_SW_MP4
+#   - DSL_ENCODER_SW_MPEG4
 #
 #  Two container types are supported:
 #   - DSL_CONTAINER_MP4

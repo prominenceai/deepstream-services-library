@@ -41,9 +41,9 @@ namespace DSL
 
     #define DSL_WEBRTC_SINK_PTR std::shared_ptr<WebRtcSinkBintr>
     #define DSL_WEBRTC_SINK_NEW(name, stunServer, turnServer, \
-        codec, bitrate, interval) \
+        codec, bitrate, iframeInterval) \
         std::shared_ptr<WebRtcSinkBintr>(new WebRtcSinkBintr(name, \
-            stunServer, turnServer, codec, bitrate, interval))
+            stunServer, turnServer, codec, bitrate, iframeInterval))
 
     /**
      * @class WebRtcSinkBintr 
@@ -58,7 +58,7 @@ namespace DSL
          * @brief Ctor for the WebRtcSinkBintr class
          */
         WebRtcSinkBintr(const char* name, const char* stunServer, 
-            const char* turnServer, uint container, uint bitRate, uint interval);
+            const char* turnServer, uint container, uint bitRate, uint iframeInterval);
 
         /**
          * @brief Dtor for the WebRtcSinkBintr class
