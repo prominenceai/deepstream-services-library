@@ -78,7 +78,7 @@ static const uint windowW(1280);
 static const uint windowH(720);
 
 static const std::wstring output_file_path(L"./output.mp4");
-static const uint codec(DSL_CODEC_H265);
+static const uint codec(DSL_CODEC_HW_H265);
 static const uint container(DSL_CONTAINER_MP4);
 static const uint bitrate(2000000);
 static const uint interval(0);

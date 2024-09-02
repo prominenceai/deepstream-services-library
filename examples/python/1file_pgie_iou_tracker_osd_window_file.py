@@ -31,7 +31,7 @@
 #   - IOU Tracker
 #   - On-Screen Display (OSD)
 #   - Window Sink
-#   - File Sink to encode (H264) and save the stream to MKV file.
+#   - File Sink to encode and save the stream to file.
 # ...and how to add them to a new Pipeline and play
 # 
 # The example registers handler callback functions with the Pipeline for:
@@ -49,7 +49,35 @@ import time
 
 from dsl import *
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+################################################################################
+#
+# The File Sink is an Encode Sink that supports five (5) encoder types. Two (2) 
+# hardware and three (3) software. Use one of the following constants to select 
+# the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H265
+#   - DSL_ENCODER_SW_MPEG4
+#
+# IMPORTANT! The Jetson Orin Nano only supports software encoding.
+#
+#  Two (2) container types are supported:
+#   - DSL_CONTAINER_MP4
+#   - DSL_CONTAINER_MKV
+#
+#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
+#   - HW-H264/H265 = 4000000 
+#   - SW-H264/H265 = 2048000 
+#   - SW-MPEG      = 200000
+
+# File Sink configuration 
+FILE_SINK_ENCODER   = DSL_ENCODER_HW_H265
+FILE_SINK_CONTAINER = DSL_CONTAINER_MP4
+FILE_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
+FILE_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
+
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -101,8 +129,8 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # First new URI File Source
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        # New File Source using the file path specified above, repeat disabled.
+        retval = dsl_source_file_new('file-source', uri_h265, False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -128,10 +156,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New File Sink with H264 Codec type and MKV conatiner muxer, 
-        # and bit-rate=0 (use plugin default) and interval=0=everyframe.
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", 
-            DSL_CODEC_H264, DSL_CONTAINER_MKV, 0, 0)
+        # New File Sink using the Encoder and conatiner types defined above
+        retval = dsl_sink_file_new('file-sink', "./output.mp4", 
+            FILE_SINK_ENCODER, FILE_SINK_CONTAINER, 
+            FILE_SINK_BITRATE, FILE_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -147,7 +175,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            ['file-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
             'egl-sink', 'file-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

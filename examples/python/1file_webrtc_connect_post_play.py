@@ -108,9 +108,9 @@ def websocket_server_client_listener_cb(path, client_data):
     retval = dsl_sink_webrtc_new(sink_name,
         stun_server = stun_server,
         turn_server = None,
-        codec = DSL_CODEC_H264,
-        bitrate = 4000000,
-        interval = 0)
+        encoder = DSL_ENCODER_HW_H264,
+        bitrate = 0,
+        iframe_interval = 30)
     if retval != DSL_RETURN_SUCCESS:
         print('failed to create new WebRTC Sink')
         return

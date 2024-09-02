@@ -893,7 +893,7 @@ SCENARIO( "A new Pipeline with an ODE Handler, Occurrence ODE Trigger, Start Rec
     {
         std::wstring recordSinkName(L"record-sink");
         std::wstring outdir(L"./");
-        uint codec(DSL_CODEC_H265);
+        uint codec(DSL_ENCODER_HW_H265);
         uint bitrate(2000000);
         uint interval(0);
 

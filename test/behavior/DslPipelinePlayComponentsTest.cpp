@@ -118,7 +118,7 @@ static const std::wstring rtsp_sink_name(L"rtsp-sink");
 static const std::wstring host(L"rjhowell-desktop.local");
 static const uint udp_port(5400);
 static const uint rtsp_port(8554);
-static const uint codec(DSL_CODEC_H264);
+static const uint encoder(DSL_ENCODER_HW_H264);
 static const uint bitrate(4000000);
 static const uint interval(0);
 
@@ -643,14 +643,14 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
     }
 }
 
-//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H264 FileSink can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_ENCODER_HW_H264 FileSink can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, File Sink, and Tiled Display" ) 
 //    {
 //
 //        std::wstring fileSinkName(L"file-sink");
 //        std::wstring filePath(L"./output.mp4");
-//        uint codec(DSL_CODEC_H264);
+//        uint encoder(DSL_ENCODER_HW_H264);
 //        uint muxer(DSL_CONTAINER_MP4);
 //        uint bitrate(2000000);
 //        uint interval(0);
@@ -663,7 +663,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
 //        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-//            codec, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
+//            encoder, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
 //
 //        const wchar_t* components[] = {L"uri-source-1", L"tiler-1", L"file-sink", NULL};
 //        
@@ -690,13 +690,13 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
 //    }
 //}
 //
-//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H265 FileSink can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_ENCODER_H265 FileSink can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, File Sink, and Tiled Display" ) 
 //    {
 //        std::wstring fileSinkName(L"file-sink");
 //        std::wstring filePath(L"./output.mp4");
-//        uint codec(DSL_CODEC_H265);
+//        uint encoder(DSL_ENCODER_H265);
 //        uint muxer(DSL_CONTAINER_MP4);
 //        uint bitrate(2000000);
 //        uint interval(0);
@@ -709,7 +709,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
 //        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-//            codec, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
+//            encoder, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
 //
 //        const wchar_t* components[] = {L"uri-source-1", L"tiler-1", L"file-sink", NULL};
 //        
@@ -736,13 +736,13 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
 //    }
 //}
 
-//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_MPEG4 FileSink can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_ENCODER_MPEG4 FileSink can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, File Sink, and Tiled Display" ) 
 //    {
 //        std::wstring fileSinkName(L"file-sink");
 //        std::wstring filePath(L"./output.mp4");
-//        uint codec(DSL_CODEC_MPEG4);
+//        uint encoder(DSL_ENCODER_MPEG4);
 //        uint muxer(DSL_CONTAINER_MP4);
 //        uint bitrate(2000000);
 //        uint interval(0);
@@ -755,7 +755,7 @@ SCENARIO( "A new Pipeline with a URI Source, Primary GIE, IOU Tracker, Window Si
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
 //        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-//            codec, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
+//            encoder, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
 //
 //        const wchar_t* components[] = {L"uri-source-1", L"tiler-1", L"file-sink", NULL};
 //        
@@ -791,9 +791,9 @@ static void* main_loop_thread_func_1(void *data)
     return NULL;
 }
 
-SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and Tiled Display can play", "[tmp]" )
+SCENARIO( "A new Pipeline with a URI File Source, DSL_ENCODER_HW_H264 RTSP Sink, and Tiled Display can play", "[tmp]" )
 {
-    GIVEN( "A Pipeline, URI source, DSL_CODEC_H264 RTSP Sink, and Tiled Display" ) 
+    GIVEN( "A Pipeline, URI source, DSL_ENCODER_HW_H264 RTSP Sink, and Tiled Display" ) 
     {
         REQUIRE( dsl_component_list_size() == 0 );
 
@@ -801,7 +801,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
             false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_sink_rtsp_server_new(rtsp_sink_name.c_str(), host.c_str(),
-            udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+            udp_port, rtsp_port, encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
 
         REQUIRE( dsl_tiler_new(tiler_name1.c_str(), tiler_width, tiler_height) == DSL_RESULT_SUCCESS );
         
@@ -864,15 +864,15 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
     }
 }
 
-//SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H265 RTSP Sink, and Tiled Display can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, DSL_ENCODER_H265 RTSP Sink, and Tiled Display can play", "[pipeline-play]" )
 //{
-//    GIVEN( "A Pipeline, URI source, DSL_CODEC_H265 RTSP Sink, and Tiled Display" ) 
+//    GIVEN( "A Pipeline, URI source, DSL_ENCODER_H265 RTSP Sink, and Tiled Display" ) 
 //    {
 //        std::wstring rtsp_sink_name(L"rtsp-sink");
 //        std::wstring host(L"prominence-desktop1.local");
 //        uint udp_port(5400);
 //        uint rtsp_port(8554);
-//        uint codec(DSL_CODEC_H265);
+//        uint encoder(DSL_ENCODER_H265);
 //        uint bitrate(4000000);
 //        uint interval(0);
 //
@@ -884,7 +884,7 @@ SCENARIO( "A new Pipeline with a URI File Source, DSL_CODEC_H264 RTSP Sink, and 
 //            false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_sink_rtsp_server_new(rtsp_sink_name.c_str(), host.c_str(),
-//            udp_port, rtsp_port, codec, bitrate, interval) == DSL_RESULT_SUCCESS );
+//            udp_port, rtsp_port, encoder, bitrate, interval) == DSL_RESULT_SUCCESS );
 //
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
@@ -1511,7 +1511,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 }
 
 
-//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_CODEC_H264 FileSink can play", "[pipeline-play]" )
+//SCENARIO( "A new Pipeline with a URI File Source, Tiled Display, and DSL_ENCODER_HW_H264 FileSink can play", "[pipeline-play]" )
 //{
 //    GIVEN( "A Pipeline, URI source, File Sink, and Tiled Display" ) 
 //    {
@@ -1527,7 +1527,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 //
 //        std::wstring fileSinkName(L"file-sink");
 //        std::wstring filePath(L"./output.mp4");
-//        uint codec(DSL_CODEC_H264);
+//        uint encoder(DSL_ENCODER_HW_H264);
 //        uint muxer(DSL_CONTAINER_MP4);
 //        uint bitrate(2000000);
 //        uint interval(0);
@@ -1542,7 +1542,7 @@ SCENARIO( "A new Pipeline with a URI File Source, Splitter, OSD, and two 3D Sink
 //        REQUIRE( dsl_tiler_new(tiler_name1.c_str(), width, height) == DSL_RESULT_SUCCESS );
 //        
 //        REQUIRE( dsl_sink_file_new(fileSinkName.c_str(), filePath.c_str(),
-//            codec, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
+//            encoder, muxer, bitrate, interval) == DSL_RESULT_SUCCESS );
 //
 //        const wchar_t* components[] = {L"uri-source-1", L"tiler-1", L"file-sink", NULL};
 //        

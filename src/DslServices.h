@@ -1448,10 +1448,10 @@ namespace DSL {
             boolean force);
             
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint container, uint bit_rate, uint interval);
+            uint encoder, uint container, uint bit_rate, uint iframeInterval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint codec, uint container, uint bitrate, uint interval, 
+            uint encoder, uint container, uint bitrate, uint iframeInterval, 
             dsl_record_client_listener_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
@@ -1502,26 +1502,23 @@ namespace DSL {
             uint width, uint height);
 
         DslReturnType SinkEncodeSettingsGet(const char* name, 
-            uint* codec, uint* bitrate, uint* interval);
-
-        DslReturnType SinkEncodeSettingsSet(const char* name, 
-            uint codec, uint bitrate, uint interval);
+            uint* encoder, uint* bitrate, uint* iframeInterval);
 
         DslReturnType SinkRtmpNew(const char* name, const char* uri, 
-            uint bitrate, uint interval);
+            uint encoder, uint bitrate, uint iframeInterval);
 
         DslReturnType SinkRtmpUriGet(const char* name, const char** uri);
 
         DslReturnType SinkRtmpUriSet(const char* name, const char* uri);
             
         DslReturnType SinkRtspServerNew(const char* name, const char* host, 
-            uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);
+            uint updPort, uint rtspPort, uint encoder, uint bitrate, uint iframeInterval);
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
             
         DslReturnType SinkRtspClientNew(const char* name, const char* uri, 
-            uint codec, uint bit_rate, uint interval);
+            uint encoder, uint bit_rate, uint iframeInterval);
 
         DslReturnType SinkRtspClientCredentialsSet(const char* name, 
             const char* userId, const char* userPw);
@@ -1598,7 +1595,7 @@ namespace DSL {
             uint64_t frameNumber);
             
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
-            const char* turnServer, uint codec, uint bitrate, uint interval);
+            const char* turnServer, uint encoder, uint bitrate, uint iframeInterval);
 
         DslReturnType SinkWebRtcConnectionClose(const char* name);
 

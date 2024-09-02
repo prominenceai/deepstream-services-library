@@ -485,7 +485,6 @@
 * [`dsl_sink_v4l2_picture_settings_get`](/docs/api-sink.md#dsl_sink_v4l2_picture_settings_get)
 * [`dsl_sink_v4l2_picture_settings_set`](/docs/api-sink.md#dsl_sink_v4l2_picture_settings_set)
 * [`dsl_sink_encode_settings_get`](/docs/api-sink.md#dsl_sink_encode_settings_get)
-* [`dsl_sink_encode_settings_set`](/docs/api-sink.md#dsl_sink_encode_settings_set)
 * [`dsl_sink_encode_dimensions_get`](/docs/api-sink.md#dsl_sink_encode_dimensions_get)
 * [`dsl_sink_encode_dimensions_set`](/docs/api-sink.md#dsl_sink_encode_dimensions_set)
 * [`dsl_sink_record_session_start`](/docs/api-sink.md#dsl_sink_record_session_start)

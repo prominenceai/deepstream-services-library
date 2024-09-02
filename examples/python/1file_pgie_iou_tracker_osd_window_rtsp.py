@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2021, Prominence AI, Inc.
+# Copyright (c) 2023-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,17 +24,17 @@
 
 ################################################################################
 #
-# The simple example demonstrates how to create a set of Pipeline components, 
+# This simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - URI Source
+#   - A File Source
 #   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
-#   - On-Screen Display (OSD)
+#   - On-Screen Display
 #   - Window Sink
-#   - File Sink to encode (H265) and save the stream to MP4 file.
-# ...and how to add them to a new Pipeline and play
-# 
-# The example registers handler callback functions with the Pipeline for:
+#   - RTSP Sink
+# ...and how to add them to a new Pipeline and play.
+#
+# The example registers handler callback functions for:
 #   - key-release events
 #   - delete-window events
 #   - end-of-stream EOS events
@@ -46,10 +46,33 @@
 
 import sys
 import time
-
 from dsl import *
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+################################################################################
+#
+# The RTSP Sink is an Encode Sink that supports five (5) encoder types. 
+# Two (2) hardware and three (3) software. Use one of the following constants  
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H256
+#   - DSL_ENCODER_SW_MPEG4
+#
+# IMPORTANT! The Jetson Orin Nano only supports software encoding.
+#
+#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
+#   - HW-H264/H265 = 4000000 
+#   - SW-H264/H265 = 2048000 
+#   - SW-MPEG      = 200000
+
+# Record Sink configuration 
+RTSP_SINK_ENCODER   = DSL_ENCODER_HW_H264
+RTSP_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
+RTSP_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
+
+# URI for the File Source
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -60,6 +83,10 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# EGL Window Sink Dimensions 
+WINDOW_WIDTH = DSL_1K_HD_WIDTH // 2
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT // 2
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -82,7 +109,9 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
@@ -101,18 +130,18 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # First new URI File Source
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        # New File Source using the file path specified above, repeat enabled.
+        retval = dsl_source_file_new('file-source', uri_h265, True)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New IOU Tracker, setting operational width and hieght
+        # New IOU Tracker, setting operational width and height.
         retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -124,42 +153,46 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and 1280 x 720 dimensions
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
+        # New EGL Window Sink with offests and dimensions
+        retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+            WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
-
         # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_key_event_handler_add('window-sink', 
             xwindow_key_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_sink_window_delete_event_handler_add('egl-sink', 
+        retval = dsl_sink_window_delete_event_handler_add('window-sink', 
             xwindow_delete_event_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New File Sink with H265 Codec type and MPEG4 conatiner muxer, 
-        # and bit-rate=0 (use plugin default) and interval=0=everyframe.
-        retval = dsl_sink_file_new('file-sink', 
-            "./output.mp4", DSL_CODEC_H265, DSL_CONTAINER_MP4, 0, 0)
+        # New RTSP Server Sink 
+        retval = dsl_sink_rtsp_server_new('rtsp-sink', 
+            host = "0.0.0.0",       # 0.0.0.0 = "this host, this network."
+            udp_port = 5400,        # UDP port 5400 uses the Datagram Protocol.             
+            rtsp_port = 8554,        
+            encoder = RTSP_SINK_ENCODER,  
+            bitrate = RTSP_SINK_BITRATE,
+            iframe_interval = RTSP_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display',
-            'egl-sink', 'file-sink', None])
+            ['file-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            'window-sink', 'rtsp-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the listener callback functions defined above
+        ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', 
-        eos_event_listener, None)
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -168,7 +201,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
@@ -176,8 +208,8 @@ def main(args):
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
+

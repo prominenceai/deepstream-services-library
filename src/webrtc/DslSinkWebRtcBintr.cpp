@@ -30,8 +30,8 @@ THE SOFTWARE.
 namespace DSL
 {
     WebRtcSinkBintr::WebRtcSinkBintr(const char* name, const char* stunServer, 
-        const char* turnServer, uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        const char* turnServer, uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , SignalingTransceiver()
         , m_pDataChannel(NULL)
         , m_stunServer(stunServer)
@@ -43,16 +43,16 @@ namespace DSL
         std::string fakeSinkName = GetName() + "-fake-sink";
         m_pFakeSinkBintr = DSL_FAKE_SINK_NEW(fakeSinkName.c_str());
 
-        switch (codec)
+        switch (encoder)
         {
-        case DSL_CODEC_H264 :
+        case DSL_ENCODER_HW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
             break;
-        case DSL_CODEC_H265 :
+        case DSL_ENCODER_HW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
             break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" 
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new WebRtcSinkBintr '" 
                 << name << "'");
             throw;
         }
@@ -67,7 +67,7 @@ namespace DSL
         LOG_INFO("Initial property values for WebRtcSinkBintr '" << name << "'");
         LOG_INFO("  stun-server        : " << m_stunServer);
         LOG_INFO("  turn-server        : " << m_turnServer); 
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate            : " << m_bitrate);
@@ -76,7 +76,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -151,11 +151,7 @@ namespace DSL
 
         AddChild(m_pWebRtcBin);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pPayloader) or
+        if (!LinkToCommon(m_pPayloader) or 
             !m_pPayloader->LinkToSink(m_pWebRtcCapsFilter) or
             !m_pWebRtcCapsFilter->LinkToSink(m_pWebRtcBin))
         {
@@ -174,13 +170,9 @@ namespace DSL
             LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pWebRtcCapsFilter->UnlinkFromSink();
+        UnlinkFromCommon();
         m_pPayloader->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
+        m_pWebRtcCapsFilter->UnlinkFromSink();
 
         // remove and delete the webrtcbin to be recreated on next Linkall
         RemoveChild(m_pWebRtcBin);

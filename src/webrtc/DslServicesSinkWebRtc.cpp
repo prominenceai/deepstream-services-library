@@ -31,7 +31,7 @@ THE SOFTWARE.
 namespace DSL
 {
     DslReturnType Services::SinkWebRtcNew(const char* name, const char* stunServer, 
-        const char* turnServer, uint codec, uint bitrate, uint interval)
+        const char* turnServer, uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -44,14 +44,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec != DSL_CODEC_H264 and codec != DSL_CODEC_H265)
+            if (encoder != DSL_ENCODER_HW_H264 and encoder != DSL_ENCODER_HW_H264)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for WebRTC Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_WEBRTC_SINK_NEW(name,
-                stunServer, turnServer, codec, bitrate, interval);
+                stunServer, turnServer, encoder, bitrate, iframeInterval);
 
             LOG_INFO("New WebRTC Sink '" << name << "' created successfully");
 
