@@ -2202,8 +2202,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RtmpSinkBintr::RtmpSinkBintr(const char* name, 
-        const char* uri, uint bitrate, uint iframeInterval)
-        : EncodeSinkBintr(name, DSL_ENCODER_HW_H264, bitrate, iframeInterval)
+        const char* uri, uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , m_uri(uri)
     {
         LOG_FUNC();

@@ -1672,7 +1672,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtmpNew(const char* name, const char* uri, 
-        uint bitrate, uint iframeInterval)
+        uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1685,8 +1685,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
+            if (encoder != DSL_ENCODER_HW_H264 and encoder != DSL_ENCODER_SW_H264)
+            {   
+                LOG_ERROR("Invalid Encoder value = " << encoder 
+                    << " for RTSP Server Sink '" << name << "'");
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
+            }
             m_components[name] = DSL_RTMP_SINK_NEW(name, 
-                uri, bitrate, iframeInterval);
+                uri, encoder, bitrate, iframeInterval);
 
             LOG_INFO("New RTMP Sink '" << name 
                 << "' created successfully");

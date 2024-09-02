@@ -1725,6 +1725,7 @@ SCENARIO( "A new RtmpSinkBintr is created correctly",  "[SinkBintr]" )
     {
         std::string sinkName("rtmp-sink");
         std::string uri("rtmp://localhost/path-to-stream");
+        uint encoder(DSL_ENCODER_SW_H264);
         uint bitrate(0);
         uint iframeInterval(30);
 
@@ -1732,7 +1733,7 @@ SCENARIO( "A new RtmpSinkBintr is created correctly",  "[SinkBintr]" )
         {
             DSL_RTMP_SINK_PTR pSinkBintr = 
                 DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
-                    bitrate, iframeInterval);
+                    encoder, bitrate, iframeInterval);
             
             THEN( "The correct attribute values are returned" )
             {
@@ -1760,12 +1761,13 @@ SCENARIO( "A new RtmpSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
     {
         std::string sinkName("rtmp-sink");
         std::string uri("rtmp://localhost/path-to-stream");
+        uint encoder(DSL_ENCODER_SW_H264);
         uint bitrate(0);
         uint iframeInterval(30);
 
         DSL_RTMP_SINK_PTR pSinkBintr = 
             DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
-                bitrate, iframeInterval);
+                encoder, bitrate, iframeInterval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
 
@@ -1787,12 +1789,13 @@ SCENARIO( "A Linked RtmpSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" 
     {
         std::string sinkName("rtmp-sink");
         std::string uri("rtmp://localhost/path-to-stream");
+        uint encoder(DSL_ENCODER_SW_H264);
         uint bitrate(0);
         uint iframeInterval(30);
 
         DSL_RTMP_SINK_PTR pSinkBintr = 
             DSL_RTMP_SINK_NEW(sinkName.c_str(), uri.c_str(), 
-                bitrate, iframeInterval);
+                encoder, bitrate, iframeInterval);
 
         REQUIRE( pSinkBintr->IsLinked() == false );
         REQUIRE( pSinkBintr->LinkAll() == true );

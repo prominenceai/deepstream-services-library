@@ -8449,7 +8449,7 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
 }
 
 DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
-    uint bitrate, uint iframe_interval)
+    uint encoder, uint bitrate, uint iframe_interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(uri);
@@ -8460,7 +8460,7 @@ DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
     std::string cstrUri(wstrUri.begin(), wstrUri.end());
 
     return DSL::Services::GetServices()->SinkRtmpNew(cstrName.c_str(), 
-        cstrUri.c_str(), bitrate, iframe_interval);
+        cstrUri.c_str(), encoder, bitrate, iframe_interval);
 }     
 
 DslReturnType dsl_sink_rtmp_uri_get(const wchar_t* name, const wchar_t** uri)

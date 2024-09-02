@@ -6745,10 +6745,10 @@ _dsl.dsl_sink_rtmp_new.argtypes = [c_wchar_p,
     c_wchar_p, c_uint, c_uint]
 _dsl.dsl_sink_rtmp_new.restype = c_uint
 def dsl_sink_rtmp_new(name, 
-    uri, bitrate, iframe_interval):
+    uri, encoder, bitrate, iframe_interval):
     global _dsl
     result =_dsl.dsl_sink_rtmp_new(name, 
-        uri, bitrate, iframe_interval)
+        uri, encoder, bitrate, iframe_interval)
     return int(result)
 
 ##

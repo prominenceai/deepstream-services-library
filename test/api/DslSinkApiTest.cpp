@@ -1822,6 +1822,7 @@ SCENARIO( "The Components container is updated correctly on new RTMP Sink",
     {
         std::wstring sink_name(L"rtmp-sink");
         std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint encoder(DSL_ENCODER_SW_H264);
         uint bitrate(0);
         uint iframe_interval(30);
 
@@ -1830,7 +1831,7 @@ SCENARIO( "The Components container is updated correctly on new RTMP Sink",
         WHEN( "A new RTMP Sink is created" ) 
         {
             REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
-                bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
+                encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
 
             THEN( "The list size is updated correctly" ) 
             {
@@ -1856,12 +1857,13 @@ SCENARIO( "An RTMP Sink can update it's common properties correctly",
     {
         std::wstring sink_name(L"rtmp-sink");
         std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint encoder(DSL_ENCODER_SW_H264);
         uint bitrate(0);
         uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
-            bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
+            encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
         
         WHEN( "The RTMP Sink's sync property is updated from its default" ) 
         {
@@ -1941,12 +1943,13 @@ SCENARIO( "An RTMP Sink can update it's URI correctly",
     {
         std::wstring sink_name(L"rtmp-sink");
         std::wstring uri(L"rtmp://localhost/path/to/stream");
+        uint encoder(DSL_ENCODER_SW_H264);
         uint bitrate(0);
         uint iframe_interval(30);
 
         REQUIRE( dsl_component_list_size() == 0 );
         REQUIRE( dsl_sink_rtmp_new(sink_name.c_str(),uri.c_str(),
-            bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
+            encoder, bitrate, iframe_interval) == DSL_RESULT_SUCCESS );
         
         WHEN( "The RTMP URI is updated" ) 
         {
@@ -2922,9 +2925,9 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                     0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sink_rtmp_new(NULL, NULL,
-                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtmp_new(NULL, sink_name.c_str(),
-                    0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    0, 0, 0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtmp_uri_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_rtmp_uri_get(sink_name.c_str(), 

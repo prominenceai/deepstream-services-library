@@ -1505,7 +1505,7 @@ namespace DSL {
             uint* encoder, uint* bitrate, uint* iframeInterval);
 
         DslReturnType SinkRtmpNew(const char* name, const char* uri, 
-            uint bitrate, uint iframeInterval);
+            uint encoder, uint bitrate, uint iframeInterval);
 
         DslReturnType SinkRtmpUriGet(const char* name, const char** uri);
 

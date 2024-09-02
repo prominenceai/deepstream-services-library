@@ -7830,13 +7830,14 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
  * is supported.
  * @param[in] name unique component name for the new RTMP Sink.
  * @param[in] uri RTMP URI to stream to.
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
  * @param[in] bitrate bitrate for video encoding in units of bit/s. 
  * Set to 0 to use the encoder's default.
  * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
  DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
-    uint bitrate, uint iframe_interval);
+    uint encoder, uint bitrate, uint iframe_interval);
 
 /**
  * @brief Gets the current URI in use by the named RTMP Sink.
