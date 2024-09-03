@@ -902,11 +902,11 @@ rtsp://0.0.0.0:8554/my-rtsp-server-sink
 
 **When the client is running remotely from the DSL application:**
 ```
-rtsp://<user-name>:<password>@<ip-address>:<rtmp-port-number>/<rtsp-server-sink-name>
+rtsp://<device-name>:<password>@<ip-address>:<rtmp-port-number>/<rtsp-server-sink-name>
 ```
 for example:
 ```
-rtsp://admin:12345@192.168.1.64:8554/my-rtsp-server-sink
+rtsp://my-jetson-device:12345@192.168.1.64:8554/my-rtsp-server-sink
 ```
 **IMPORTANT!** See the [Encode Sink Overview](#encode-sinks) for information on setting the `encoder`, `bitrate`, and `iframe_interval` parameters.
 
