@@ -1631,7 +1631,7 @@ namespace DSL
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         
         // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-        if (NVDS_VERSION_MINOR < 3)
+        if ((NVDS_VERSION_MAJOR < 7) and (NVDS_VERSION_MINOR < 3))
         {
             m_pSourceElement->SetAttribute("bufapi-version", TRUE);
         }
