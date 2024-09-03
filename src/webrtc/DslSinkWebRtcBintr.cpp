@@ -41,8 +41,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        std::string fakeSinkName = GetName() + "-fake-sink";
-        m_pFakeSinkBintr = DSL_FAKE_SINK_NEW(fakeSinkName.c_str());
+        // std::string fakeSinkName = GetName() + "-fake-sink";
+        // m_pFakeSinkBintr = DSL_FAKE_SINK_NEW(fakeSinkName.c_str());
 
         switch (encoder)
         {
@@ -242,13 +242,13 @@ namespace DSL
         DSL_BRANCH_PTR pParentBranchBintr = 
             std::dynamic_pointer_cast<BranchBintr>(pParentBintr);
 
-        if (!m_pFakeSinkBintr->IsParent(pParentBintr))
-        {
-            LOG_ERROR("Fake Sink owned by WebRtcSinkBintr '" << GetName() 
-                << "' is not a child of the parent branch '" 
-                << pParentBranchBintr->GetName() << "'");
-            return false;
-        }
+        // if (!m_pFakeSinkBintr->IsParent(pParentBintr))
+        // {
+        //     LOG_ERROR("Fake Sink owned by WebRtcSinkBintr '" << GetName() 
+        //         << "' is not a child of the parent branch '" 
+        //         << pParentBranchBintr->GetName() << "'");
+        //     return false;
+        // }
 
         // Clear the current Parent Pipeline/Branch pointer now.
         m_pParentBintr = nullptr;
