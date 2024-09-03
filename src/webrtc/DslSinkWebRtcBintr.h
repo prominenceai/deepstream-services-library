@@ -251,6 +251,11 @@ namespace DSL
         gulong m_dataChannelOnMessageSignalHandlerId;
 
         /**
+         * @brief string representing "encoding name"; "H264", "H265", MP4V-ES
+         */
+        std::string m_encoderString;
+
+        /**
          * @brief Client provided STUN server for this WebRtcSinkBintr 
          * of the form stun://hostname:port
          */
