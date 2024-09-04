@@ -6,7 +6,7 @@
 
 ![DeepStream Services Library](/Images/dsl-github-banner.png)
 
-## Intelligent Audio and Video Analytics (IAVA)
+# Intelligent Audio and Video Analytics (IAVA)
 A library of on-demand DeepStream Pipeline services. Written in C++ 17 with an `extern "C"` API, The DeepStream Services Library (DSL) can be called from both C/C++ and Python applications.
 
 ## Examples
@@ -35,24 +35,31 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 
 ---
 
-## Important Bulletins
-The latest release [v0.30.a.alpha](/Release%20Notes/v0.30.a.alpha.md) is a patch for the v0.30.alpha release that fixes a [critical bug](https://github.com/prominenceai/deepstream-services-library/issues/1238) in the V4L2 Sink. 
+# Important Bulletins
+The latest release [v0.31.alpha](/Release%20Notes/v0.31.alpha.md) 
 
-The [v0.30.alpha](/Release%20Notes/v0.30.alpha.md) release was developed to support DeepSteam 6.4 and 7.0 on Ubuntu 22.04. 
+## -- Release Highlights --
 
-> WARNING! There is a cricical error in the DeepStream 7.0 Installation Instructions.
+### New Component Queue management and monitoring services
+All DSL Pipeline Components use a GStream [queue plugin](https://gstreamer.freedesktop.org/documentation/coreelements/queue.html?gi-language=c) to create a new thread boundry for processing. [New services](/docs/api-component.md#component-queue-management) have been added to monitor and control the queue's leaky, current-level, max-size, and min-threshold properties. Callbacks have been added for notification of queue underrun and overrun conditions. 
 
-Under the section [Install librdkafka](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html#install-librdkafka-to-enable-kafka-protocol-adaptor-for-message-broker), the following instructions
-```bash
-$ sudo mkdir -p /opt/nvidia/deepstream/deepstream/lib
-$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream/lib
-```
-Must be replaced with.
-```bash
-$ sudo mkdir -p /opt/nvidia/deepstream/deepstream-7.0/lib
-$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream-7.0/lib
-```
-See [Error in DeepStream 7.0 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-0-installation-instructions-symlink-fails-to-create/296026) for more information.
+### New Custom Sources and Sinks
+New services have been added to create [Custom Video Sources](/docs/api-source.md#custom-video-sources) and [Custom Video Sinks](/docs/api-sink.md#custom-video-sinks) Components using publicly released or proprietary GStreamer plugins.
+
+### New DSL GST Caps Objects
+GStreamer caps objects can be created to filter caps for [Custom GST Elements]() used by the [Custom Video Sources](/docs/api-source.md#custom-video-sources), [Custom Components](/docs/api-component.md#custom-components), and [Custom Video Sinks](/docs/api-sink.md#custom-video-sinks)
+
+### All Encode Sinks now support software encoding
+**IMPORTANT** this is a breaking change.
+
+The [File Sink](/docs/api-sink.md#dsl_sink_file_new), [Record Sink](/docs/api-sink.md#dsl_sink_record_new), [RTSP Server Sink](/docs/api-sink.md#dsl_sink_rtsp_server_new), and [WebRTC Sink](/docs/api-sink.md#dsl_sink_webrtc_new) now support five types of encoders:
+* two hardware; H.264, H.265.
+* and now three software; H.264, H.265, and MP4.
+
+The [RTMP Sink](/docs/api-sink.md#dsl_sink_rtmp_new) now supports software and hardware H.264 encoding.
+
+### Extensive memory leak testing has been done.
+All (minor) issues found have been resolved.
 
 ---
 
