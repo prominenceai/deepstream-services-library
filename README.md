@@ -36,9 +36,23 @@ The DeepStream SDK and DSL use the open source [GStreamer](https://gstreamer.fre
 ---
 
 # Important Bulletins
-The latest release [v0.31.alpha](/Release%20Notes/v0.31.alpha.md) 
+**WARNING!** There is a cricical error in the DeepStream 7.0 Installation Instructions.
+
+Under the section [Install librdkafka](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html#install-librdkafka-to-enable-kafka-protocol-adaptor-for-message-broker), the following instructions
+```bash
+$ sudo mkdir -p /opt/nvidia/deepstream/deepstream/lib
+$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream/lib
+```
+Must be replaced with.
+```bash
+$ sudo mkdir -p /opt/nvidia/deepstream/deepstream-7.0/lib
+$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream-7.0/lib
+```
+See [Error in DeepStream 7.0 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-0-installation-instructions-symlink-fails-to-create/296026) for more information.
 
 ## -- Release Highlights --
+
+The latest release is [v0.31.alpha](/Release%20Notes/v0.31.alpha.md) 
 
 ### New Component Queue management and monitoring services
 All DSL Pipeline Components use a GStream [queue plugin](https://gstreamer.freedesktop.org/documentation/coreelements/queue.html?gi-language=c) to create a new thread boundry for processing. [New services](/docs/api-component.md#component-queue-management) have been added to monitor and control the queue's leaky, current-level, max-size, and min-threshold properties. Callbacks have been added for notification of queue underrun and overrun conditions. 
@@ -60,24 +74,6 @@ The [RTMP Sink](/docs/api-sink.md#dsl_sink_rtmp_new) now supports software and h
 
 ### Extensive memory leak testing has been done.
 All (minor) issues found have been resolved.
-
----
-
-> WARNING! There is a cricical error in the DeepStream 7.0 Installation Instructions.
-
-Under the section [Install librdkafka](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html#install-librdkafka-to-enable-kafka-protocol-adaptor-for-message-broker), the following instructions
-```bash
-$ sudo mkdir -p /opt/nvidia/deepstream/deepstream/lib
-$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream/lib
-```
-Must be replaced with.
-```bash
-$ sudo mkdir -p /opt/nvidia/deepstream/deepstream-7.0/lib
-$ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream-7.0/lib
-```
-See [Error in DeepStream 7.0 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-0-installation-instructions-symlink-fails-to-create/296026) for more information.
-
----
 
 ## Contributing
 
