@@ -1765,10 +1765,18 @@ namespace DSL
         , m_height(0)
     {
         LOG_FUNC();
-        
-        m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvideoconvert");
 
+        // work arroud for NVIDIA bug see https://forums.developer.nvidia.com/t/deepstream-6-4-green-screen-with-rtsp/288979/18    
+        if (m_cudaDeviceProp.integrated)
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvvidconv", name);
+            m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvidconv");
+        }
+        else
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+            m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvideoconvert");
+        }
         // Create the encoder specific elements and caps
         switch (encoder)
         {
