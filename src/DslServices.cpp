@@ -159,7 +159,7 @@ namespace DSL
             if (result != CURLE_OK)
             {
                 LOG_ERROR("curl_global_init failed: " << curl_easy_strerror(result));
-                throw;
+                throw std::exception();
             }
             curl_version_info_data* info = curl_version_info(CURLVERSION_NOW);
             
@@ -185,7 +185,7 @@ namespace DSL
         if (InfoInitDebugSettings() != DSL_RESULT_SUCCESS)
         {
             LOG_ERROR("DSL threw exception intializing Debug Settings");
-            throw;
+            throw std::exception();
         }
         const char* value = getenv("USE_NEW_NVSTREAMMUX");
         if (value and std::string(value) == "yes")
@@ -198,8 +198,7 @@ namespace DSL
 
     Services::~Services()
     {
-        LOG_FUNC();
-        
+        // Do not LOG_FUNC - this dtor de-initializes GStreamer
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
 
@@ -211,15 +210,15 @@ namespace DSL
             
             InfoDeinitDebugSettings();
             
+            if (m_pMainLoop)
+            {
+                g_main_loop_unref(m_pMainLoop);
+            }
+            
             // If this Services object called gst_init(), and not the client.
             if (m_doGstDeinit)
             {
                 gst_deinit();
-            }
-            
-            if (m_pMainLoop)
-            {
-                g_main_loop_unref(m_pMainLoop);
             }
         }
     }
@@ -233,9 +232,11 @@ namespace DSL
         PlayerDeleteAll(false);
         ComponentDeleteAll();
         GstElementDeleteAll();
+        GstCapsDeleteAll();
         PphDeleteAll();
         OdeTriggerDeleteAll();
         OdeAccumulatorDeleteAll();
+        OdeHeatMapperDeleteAll();
         OdeAreaDeleteAll();
         OdeActionDeleteAll();
         DisplayTypeDeleteAll();
@@ -306,6 +307,13 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE] = L"DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE";
         m_returnValueToString[DSL_RESULT_COMPONENT_SET_GPUID_FAILED] = L"DSL_RESULT_COMPONENT_SET_GPUID_FAILED";
         m_returnValueToString[DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED] = L"DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_GET_QUEUE_PROPERTY_FAILED] = L"DSL_RESULT_COMPONENT_GET_QUEUE_PROPERTY_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED] = L"DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED] = L"DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED] = L"DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED] = L"DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED] = L"DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE] = L"DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE";
 
         m_returnValueToString[DSL_RESULT_SOURCE_NAME_NOT_UNIQUE] = L"DSL_RESULT_SOURCE_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_SOURCE_NAME_NOT_FOUND] = L"DSL_RESULT_SOURCE_NAME_NOT_FOUND";
@@ -330,6 +338,9 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED] = L"DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED";
         m_returnValueToString[DSL_RESULT_SOURCE_HANDLER_ADD_FAILED] = L"DSL_RESULT_SOURCE_HANDLER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED] = L"DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED] = L"DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE] = L"DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE";
 
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE] = L"DSL_RESULT_DEWARPER_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_DEWARPER_NAME_NOT_FOUND] = L"DSL_RESULT_DEWARPER_NAME_NOT_FOUND";
@@ -440,8 +451,9 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_THREW_EXCEPTION] = L"DSL_RESULT_SINK_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_SINK_PATH_NOT_FOUND] = L"DSL_RESULT_SINK_PATH_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_SINK_IS_IN_USE] = L"DSL_RESULT_SINK_IS_IN_USE";
+        m_returnValueToString[DSL_RESULT_SINK_GET_FAILED] = L"DSL_RESULT_SINK_GET_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_SET_FAILED] = L"DSL_RESULT_SINK_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_SINK_CODEC_VALUE_INVALID] = L"DSL_RESULT_SINK_CODEC_VALUE_INVALID";
+        m_returnValueToString[DSL_RESULT_SINK_ENCODER_VALUE_INVALID] = L"DSL_RESULT_SINK_ENCODER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_CONTAINER_VALUE_INVALID] = L"DSL_RESULT_SINK_CONTAINER_VALUE_INVALID";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK";
         m_returnValueToString[DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK] = L"DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK";
@@ -460,6 +472,9 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_SINK_3D_NOT_SUPPORTED] = L"DSL_RESULT_SINK_3D_NOT_SUPPORTED";
         m_returnValueToString[DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED] = L"DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED";
         m_returnValueToString[DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND] = L"DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_SINK_ELEMENT_ADD_FAILED] = L"DSL_RESULT_SINK_ELEMENT_ADD_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED] = L"DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED";
+        m_returnValueToString[DSL_RESULT_SINK_ELEMENT_NOT_IN_USE] = L"DSL_RESULT_SINK_ELEMENT_NOT_IN_USE";
 
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_UNIQUE] = L"DSL_RESULT_OSD_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_OSD_NAME_NOT_FOUND] = L"DSL_RESULT_OSD_NAME_NOT_FOUND";
@@ -631,6 +646,10 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_REMUXER_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER] = L"DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER";
         
+        m_returnValueToString[DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE] = L"DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE";
+        m_returnValueToString[DSL_RESULT_GST_CAPS_NAME_NOT_FOUND] = L"DSL_RESULT_GST_CAPS_NAME_NOT_FOUND";
+        m_returnValueToString[DSL_RESULT_GST_CAPS_THREW_EXCEPTION] = L"DSL_RESULT_GST_CAPS_THREW_EXCEPTION";
+        
         m_returnValueToString[DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE] = L"DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE";
         m_returnValueToString[DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND] = L"DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND";
         m_returnValueToString[DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION] = L"DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION";
@@ -639,15 +658,6 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED] = L"DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED";
         m_returnValueToString[DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED] = L"DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED";
         m_returnValueToString[DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID] = L"DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID";
-
-        m_returnValueToString[DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE] = L"DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE";
-        m_returnValueToString[DSL_RESULT_GST_BIN_NAME_NOT_FOUND] = L"DSL_RESULT_GST_BIN_NAME_NOT_FOUND";
-        m_returnValueToString[DSL_RESULT_GST_BIN_NAME_BAD_FORMAT] = L"DSL_RESULT_GST_BIN_NAME_BAD_FORMAT";
-        m_returnValueToString[DSL_RESULT_GST_BIN_IS_IN_USE] = L"DSL_RESULT_GST_BIN_IS_IN_USE";
-        m_returnValueToString[DSL_RESULT_GST_BIN_SET_FAILED] = L"DSL_RESULT_GST_BIN_SET_FAILED";
-        m_returnValueToString[DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED] = L"DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED";
-        m_returnValueToString[DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED] = L"DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED";
-        m_returnValueToString[DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE] = L"DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE";
 
         m_returnValueToString[DSL_RESULT_INVALID_RESULT_CODE] = L"Invalid DSL Result CODE";
    }

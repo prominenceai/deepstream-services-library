@@ -1978,7 +1978,7 @@ SCENARIO( "A new Start Record Sink ODE Action can be created and deleted",
 
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_ENCODER_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -2031,7 +2031,7 @@ SCENARIO( "A new Stop Record Sink ODE Action can be created and deleted",
 
         std::wstring outdir(L"./");
         uint container(DSL_CONTAINER_MP4);
-        uint codec(DSL_CODEC_H264);
+        uint codec(DSL_ENCODER_HW_H264);
         uint bitrate(2000000);
         uint interval(0);
 
@@ -2365,7 +2365,8 @@ SCENARIO( "An ODE Action can add/remove an enabled-state-change-listener", "[ode
                 REQUIRE( dsl_ode_action_enabled_state_change_listener_remove(action_name.c_str(),
                     enabled_state_change_listener) == DSL_RESULT_ODE_ACTION_CALLBACK_REMOVE_FAILED );
                     
-                REQUIRE( dsl_ode_trigger_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_ode_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
             }
         }
     }

@@ -41,9 +41,9 @@ namespace DSL
 
     #define DSL_WEBRTC_SINK_PTR std::shared_ptr<WebRtcSinkBintr>
     #define DSL_WEBRTC_SINK_NEW(name, stunServer, turnServer, \
-        codec, bitrate, interval) \
+        codec, bitrate, iframeInterval) \
         std::shared_ptr<WebRtcSinkBintr>(new WebRtcSinkBintr(name, \
-            stunServer, turnServer, codec, bitrate, interval))
+            stunServer, turnServer, codec, bitrate, iframeInterval))
 
     /**
      * @class WebRtcSinkBintr 
@@ -58,7 +58,7 @@ namespace DSL
          * @brief Ctor for the WebRtcSinkBintr class
          */
         WebRtcSinkBintr(const char* name, const char* stunServer, 
-            const char* turnServer, uint container, uint bitRate, uint interval);
+            const char* turnServer, uint container, uint bitRate, uint iframeInterval);
 
         /**
          * @brief Dtor for the WebRtcSinkBintr class
@@ -91,86 +91,6 @@ namespace DSL
          */
         bool RemoveFromParent(DSL_BASE_PTR pParentBintr);
         
-        /**
-         * @brief returns the current sync enabled property for the SinkBintr.
-         * @return true if the sync property is enabled, false othewise.
-         */
-        gboolean GetSyncEnabled()
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->GetSyncEnabled();  
-        };
-        
-        /**
-         * @brief sets the sync enabled property for the SinkBintr.
-         * @param[in] enabled new sync enabled property value.
-         */
-        bool SetSyncEnabled(bool enabled)
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->SetSyncEnabled(enabled);  
-        };
-        
-        /**
-         * @brief returns the current async enabled property value for the SinkBintr.
-         * @return true if the async property is enabled, false othewise.
-         */
-        gboolean GetAsyncEnabled()
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->GetAsyncEnabled();  
-        };
-        
-        /**
-         * @brief sets the async enabled property for the SinkBintr.
-         * @param[in] enabled new async property value.
-         */
-        bool SetAsyncEnabled(gboolean enabled)
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->SetAsyncEnabled(enabled);  
-        };
-        
-        /**
-         * @brief returns the current max-lateness property value for the SinkBintr.
-         * @return current max-lateness (default = -1 unlimited).
-         */
-        gint64 GetMaxLateness()        
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->GetMaxLateness();  
-        };
-        
-        /**
-         * @brief sets the max-lateness property for the SinkBintr.
-         * @param[in] maxLateness new max-lateness proprty value.
-         */
-        bool SetMaxLateness(gint64 maxLateness)        
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->SetMaxLateness(maxLateness);  
-        };
-
-        /**
-         * @brief returns the current qos enabled property value for the SinkBintr.
-         * @return true if the qos property is enabled, false othewise.
-         */
-        gboolean GetQosEnabled()        
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->GetQosEnabled();  
-        };
-        
-        /**
-         * @brief sets the qos enabled property for the SinkBintr.
-         * @param[in] enabled new qos enabled property value.
-         */
-        bool SetQosEnabled(gboolean enabled)        
-        {
-            LOG_FUNC();
-            return m_pFakeSinkBintr->SetQosEnabled(enabled);  
-        };
-
         bool CloseConnection();
 
         /**
@@ -329,6 +249,11 @@ namespace DSL
          * 0 when not set
          */
         gulong m_dataChannelOnMessageSignalHandlerId;
+
+        /**
+         * @brief string representing "encoding name"; "H264", "H265", MP4V-ES
+         */
+        std::string m_encoderString;
 
         /**
          * @brief Client provided STUN server for this WebRtcSinkBintr 

@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslBase.h"
+#include "DslCaps.h"
 #include "DslOdeAction.h"
 #include "DslOdeArea.h"
 #include "DslOdeAccumulator.h"
@@ -657,23 +658,6 @@ namespace DSL {
 
         DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
-        DslReturnType PphNmpNew(const char* name, const char* labelFile,
-            uint processMethod, uint matchMethod, float matchThreshold);
-            
-        DslReturnType PphNmpLabelFileGet(const char* name, const char** labelFile);
-        
-        DslReturnType PphNmpLabelFileSet(const char* name, const char* labelFile);
-
-        DslReturnType PphNmpProcessMethodGet(const char* name, uint* processMethod);
-        
-        DslReturnType PphNmpProcessMethodSet(const char* name, uint processMethod);
-        
-        DslReturnType PphNmpMatchSettingsGet(const char* name, 
-            uint* matchMethod, float* matchThreshold);
-        
-        DslReturnType PphNmpMatchSettingsSet(const char* name, 
-            uint matchMethod, float matchThreshold);
-        
         DslReturnType PphBufferTimeoutNew(const char* name,
             uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
     
@@ -692,6 +676,16 @@ namespace DSL {
         DslReturnType PphDeleteAll();
         
         uint PphListSize();
+        
+        DslReturnType GstCapsNew(const char* name, const char* caps);
+        
+        DslReturnType GstCapsStringGet(const char* name, const char** caps);
+
+        DslReturnType GstCapsDelete(const char* name);
+        
+        DslReturnType GstCapsDeleteAll();
+        
+        uint GstCapsListSize();
         
         DslReturnType GstElementNew(const char* name, const char* factoryName);
         
@@ -745,18 +739,18 @@ namespace DSL {
         DslReturnType GstElementPropertyStringSet(const char* name, 
             const char* property, const char* value);
    
+        DslReturnType GstElementPropertyCapsGet(const char* name, 
+            const char* property, const char* caps);
+
+        DslReturnType GstElementPropertyCapsSet(const char* name, 
+            const char* property, const char* caps);
+
         DslReturnType GstElementPphAdd(const char* name, 
             const char* handler, uint pad);
 
         DslReturnType GstElementPphRemove(const char* name, 
             const char* handler, uint pad);
             
-        DslReturnType GstBinNew(const char* name);
-        
-        DslReturnType GstBinElementAdd(const char* name, const char* element);
-
-        DslReturnType GstBinElementRemove(const char* name, const char* element);
-        
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
             const char* bufferInFormat, uint width, uint height, 
             uint fpsN, uint fpsD);
@@ -805,6 +799,12 @@ namespace DSL {
 //        DslReturnType SourceAppLeakyTypeSet(const char* name,
 //            uint leakyType);
 
+        DslReturnType SourceCustomNew(const char* name, boolean is_live);
+        
+        DslReturnType SourceCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType SourceCustomElementRemove(const char* name, const char* element);
+        
         DslReturnType SourceCsiNew(const char* name, 
             uint width, uint height, uint fpsN, uint fpsD);
             
@@ -996,6 +996,12 @@ namespace DSL {
 
         DslReturnType SourceRtspTlsValidationFlagsSet(const char* name, 
             uint flags);
+
+        DslReturnType SourceRtspUdpBufferSizeGet(const char* name, 
+            uint* size);
+
+        DslReturnType SourceRtspUdpBufferSizeSet(const char* name, 
+            uint size);
 
         DslReturnType SourceRtspStateChangeListenerAdd(const char* name, 
             dsl_state_change_listener_cb listener, void* clientData);
@@ -1371,6 +1377,12 @@ namespace DSL {
 
         DslReturnType SinkFakeNew(const char* name);
 
+        DslReturnType SinkCustomNew(const char* name);
+        
+        DslReturnType SinkCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType SinkCustomElementRemove(const char* name, const char* element);
+        
         // ---------------------------------------------------------------------------
         // The following three internal services provide access to the
         // database of active Window Sinks
@@ -1436,10 +1448,10 @@ namespace DSL {
             boolean force);
             
         DslReturnType SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint container, uint bit_rate, uint interval);
+            uint encoder, uint container, uint bit_rate, uint iframeInterval);
             
         DslReturnType SinkRecordNew(const char* name, const char* outdir, 
-            uint codec, uint container, uint bitrate, uint interval, 
+            uint encoder, uint container, uint bitrate, uint iframeInterval, 
             dsl_record_client_listener_cb clientListener);
             
         DslReturnType SinkRecordSessionStart(const char* name, 
@@ -1490,26 +1502,23 @@ namespace DSL {
             uint width, uint height);
 
         DslReturnType SinkEncodeSettingsGet(const char* name, 
-            uint* codec, uint* bitrate, uint* interval);
-
-        DslReturnType SinkEncodeSettingsSet(const char* name, 
-            uint codec, uint bitrate, uint interval);
+            uint* encoder, uint* bitrate, uint* iframeInterval);
 
         DslReturnType SinkRtmpNew(const char* name, const char* uri, 
-            uint bitrate, uint interval);
+            uint encoder, uint bitrate, uint iframeInterval);
 
         DslReturnType SinkRtmpUriGet(const char* name, const char** uri);
 
         DslReturnType SinkRtmpUriSet(const char* name, const char* uri);
             
         DslReturnType SinkRtspServerNew(const char* name, const char* host, 
-            uint updPort, uint rtspPort, uint codec, uint bitrate, uint interval);
+            uint updPort, uint rtspPort, uint encoder, uint bitrate, uint iframeInterval);
             
         DslReturnType SinkRtspServerSettingsGet(const char* name, 
             uint* updPort, uint* rtspPort);
             
         DslReturnType SinkRtspClientNew(const char* name, const char* uri, 
-            uint codec, uint bit_rate, uint interval);
+            uint encoder, uint bit_rate, uint iframeInterval);
 
         DslReturnType SinkRtspClientCredentialsSet(const char* name, 
             const char* userId, const char* userPw);
@@ -1586,7 +1595,7 @@ namespace DSL {
             uint64_t frameNumber);
             
         DslReturnType SinkWebRtcNew(const char* name, const char* stunServer, 
-            const char* turnServer, uint codec, uint bitrate, uint interval);
+            const char* turnServer, uint encoder, uint bitrate, uint iframeInterval);
 
         DslReturnType SinkWebRtcConnectionClose(const char* name);
 
@@ -1700,6 +1709,12 @@ namespace DSL {
             const char* url, const char*  apiKey, const char* secretKey, 
             const char* room, const char* identity, const char* participant);
             
+        DslReturnType ComponentCustomNew(const char* name);
+        
+        DslReturnType ComponentCustomElementAdd(const char* name, const char* element);
+
+        DslReturnType ComponentCustomElementRemove(const char* name, const char* element);
+        
         // TODO        
         // boolean ComponentIsInUse(const char* name);
         
@@ -1708,6 +1723,43 @@ namespace DSL {
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
+
+        DslReturnType ComponentQueueCurrentLevelGet(const char* name, 
+            uint unit, uint64_t* currentLevel);
+
+        DslReturnType ComponentQueueCurrentLevelPrint(const char* name, 
+            uint unit);
+
+        DslReturnType ComponentQueueCurrentLevelLog(const char* name, 
+            uint unit);
+
+        DslReturnType ComponentQueueLeakyGet(const char* name, uint* leaky);
+
+        DslReturnType ComponentQueueLeakySet(const char* name, uint leaky);
+
+        DslReturnType ComponentQueueMaxSizeGet(const char* name, 
+            uint unit, uint64_t* maxSize);
+
+        DslReturnType ComponentQueueMaxSizeSet(const char* name, 
+            uint unit, uint64_t maxSize);
+
+        DslReturnType ComponentQueueMinThresholdGet(const char* name, 
+            uint unit, uint64_t* minThreshold);
+
+        DslReturnType ComponentQueueMinThresholdSet(const char* name, 
+            uint unit, uint64_t minThreshold);
+
+        DslReturnType ComponentQueueOverrunListenerAdd(const char* name, 
+            dsl_component_queue_overrun_listener_cb listener, void* clientData);
+
+        DslReturnType ComponentQueueOverrunListenerRemove(const char* name, 
+            dsl_component_queue_overrun_listener_cb listener);
+
+        DslReturnType ComponentQueueUnderrunListenerAdd(const char* name, 
+            dsl_component_queue_underrun_listener_cb listener, void* clientData);
+
+        DslReturnType ComponentQueueUnderrunListenerRemove(const char* name, 
+            dsl_component_queue_underrun_listener_cb listener);
 
         DslReturnType ComponentGpuIdGet(const char* name, uint* gpuid);
         
@@ -1862,6 +1914,12 @@ namespace DSL {
         DslReturnType PipelineErrorMessageLastGet(const char* name,
             std::wstring& source, std::wstring& message);
                         
+        DslReturnType PipelineBufferingMessageHandlerAdd(const char* name, 
+            dsl_buffering_message_handler_cb handler, void* clientData);
+
+        DslReturnType PipelineBufferingMessageHandlerRemove(const char* name, 
+            dsl_buffering_message_handler_cb handler);
+            
         DslReturnType PipelineMainLoopNew(const char* name);
 
         DslReturnType PipelineMainLoopRun(const char* name);
@@ -2171,6 +2229,11 @@ namespace DSL {
          */
         std::map <std::string, DSL_PPH_PTR> m_padProbeHandlers;
         
+        /**
+         * @brief map of all GST Caps Objects created by the client, key=name
+         */
+        std::map <std::string, DSL_CAPS_PTR> m_gstCapsObjects;
+
         /**
          * @brief map of all GST Elements created by the client, key=name
          */

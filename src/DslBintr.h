@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -127,18 +127,6 @@ namespace DSL
         }
         
         /**
-         * @brief Allows a client to determined derived type from base pointer
-         * @param[in] typeInfo to compare against
-         * @return true if this Bintr is of typeInfo, false otherwise
-         */
-        bool IsType(const std::type_info& typeInfo)
-        {
-            LOG_FUNC();
-            
-            return (typeInfo.hash_code() == typeid(*this).hash_code());
-        }
-
-        /**
          * @brief Adds this Bintr as a child to a ParentBinter
          * @param[in] pParentBintr to add to
          */
@@ -174,7 +162,7 @@ namespace DSL
         
         /**
          * @brief Returns the current link method for this bintr
-         * @return one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
+         * @return one of DSL_PIPELINE_LINK_METHOD_BY_POSITION or
          * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER
          */
         uint GetLinkMethod()
@@ -186,7 +174,7 @@ namespace DSL
         
         /**
          * @brief Sets the link method for this bintr to use
-         * @return one of DSL_PIPELINE_LINK_COMPONENTS_BY_POSITION or
+         * @return one of DSL_PIPELINE_LINK_METHOD_BY_POSITION or
          * DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER
          */
         void SetLinkMethod(uint linkMethod)

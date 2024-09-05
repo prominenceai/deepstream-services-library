@@ -1,8 +1,7 @@
-
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +28,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 #include "DslElementr.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 
 namespace DSL
 {
@@ -46,7 +45,7 @@ namespace DSL
      * @class OsdBintr
      * @brief Implements an On-Screen-Display bin container
      */
-    class OsdBintr : public Bintr
+    class OsdBintr : public QBintr
     {
     public: 
     
@@ -272,19 +271,9 @@ namespace DSL
         boolean m_maskEnabled;
 
         /**
-         * @brief Input/vidconverter queue plugin for the OsdBintr.
-         */
-        DSL_ELEMENT_PTR m_pVidConvQueue;
-
-        /**
          * @brief Vidconverter plugin for the OsdBintr.
          */
         DSL_ELEMENT_PTR m_pVidConv;
-
-        /**
-         * @brief OSD queue plugin for the OsdBintr.
-         */
-        DSL_ELEMENT_PTR m_pOsdQueue;
 
         /**
          * @brief NVIDIA OSD plugin for the OsdBintr.

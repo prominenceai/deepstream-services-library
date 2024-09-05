@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ namespace DSL
                 throw std::exception();  
             }
         };
-        
+              
         /**
          * @brief ctor for the container class
          * @brief[in] factoryname unique GST factory name to create from
@@ -218,6 +218,21 @@ namespace DSL
                 << "' returned uint64_t '" << *value << "'");
         }
 
+        /**
+         * @brief Gets a GST Element's attributeof type GstCaps.
+         * @param[in] name name of the attribute to set
+         * @param[in] value c
+         */
+        void GetAttribute(const char* name, GstCaps ** value)
+        {
+            LOG_FUNC();
+            
+            g_object_get(GetGObject(), name, value, NULL);
+
+            LOG_DEBUG("Attribute  '" << name 
+                << "' returned GstCaps* value '");
+        }
+        
         /**
          * @brief Sets a GST Element's attribute, owned by this Elementr to a 
          * value of int

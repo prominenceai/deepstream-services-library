@@ -64,6 +64,36 @@
 import sys
 from dsl import *
 
+################################################################################
+#
+# The Smart Record Sink is an Encode Sink that supports five (5) encoder types. 
+# Two (2) hardware and three (3) software. Use one of the following constants  
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H265
+#   - DSL_ENCODER_SW_MP4
+#
+#  Two container types are supported:
+#   - DSL_CONTAINER_MP4
+#   - DSL_CONTAINER_MKV
+#
+#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
+#   - HW-H264/H265 = 4000000 
+#   - SW-H264/H265 = 2048000 
+#   - SW-MPEG      = 200000
+
+# Record Sink configuration 
+RECORD_SINK_ENCODER   = DSL_ENCODER_HW_H265
+RECORD_SINK_CONTAINER = DSL_CONTAINER_MP4
+RECORD_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
+RECORD_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
+
+# Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
+RECORDING_START = 10
+RECORDING_DURATION = 20
+
 # RTSP Source URI for AMCREST Camera    
 amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
@@ -79,10 +109,6 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
-
-# Recording parameters - Total recording time = RECORDING_START + RECORDING_DURATION
-RECORDING_START = 10
-RECORDING_DURATION = 20
 
 PGIE_CLASS_ID_VEHICLE = PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
@@ -134,6 +160,7 @@ def state_change_listener(old_state, new_state, client_data):
 # Callback function to handle recording session start and stop events
 ## 
 def record_complete_listener(session_info_ptr, client_data):
+    print()    
     print(' ***  Recording Event  *** ')
     
     session_info = session_info_ptr.contents
@@ -146,7 +173,6 @@ def record_complete_listener(session_info_ptr, client_data):
     
     # If we're starting a new recording for this source
     if session_info.recording_event == DSL_RECORDING_EVENT_START:
-        print()
         print('event:      ', 'DSL_RECORDING_EVENT_START')
 
         # Need to make sure the Pipleine is still playing before we 
@@ -162,7 +188,6 @@ def record_complete_listener(session_info_ptr, client_data):
 
     # Else, the recording session has ended for this source
     else:
-        print()
         print('event:      ', 'DSL_RECORDING_EVENT_END')
         print('filename:   ', session_info.filename)
         print('dirpath:    ', session_info.dirpath)
@@ -275,10 +300,10 @@ def main(args):
         
         # New Record-Sink that will buffer encoded video while waiting for the 
         # ODE trigger/action, defined below, to start a new session on first 
-        # occurrence of a person. The default 'cache-size' and 'duration' are defined in
-        # DslApi.h Setting the bit rate to 0 to not change from the default.  
-        retval = dsl_sink_record_new('record-sink', outdir="./", codec=DSL_CODEC_H265, 
-            container=DSL_CONTAINER_MKV, bitrate=0, interval=0, 
+        # occurrence of a person. 
+        retval = dsl_sink_record_new('record-sink', outdir="./", 
+            encoder=RECORD_SINK_ENCODER, container=RECORD_SINK_CONTAINER, 
+            bitrate=RECORD_SINK_BITRATE, iframe_interval=RECORD_SINK_INTERVAL, 
             client_listener=record_complete_listener)
         if retval != DSL_RETURN_SUCCESS:
             break

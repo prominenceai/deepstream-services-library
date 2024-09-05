@@ -1289,7 +1289,7 @@ namespace DSL
                 return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
             }
             LOG_INFO("Pipeline '" << name 
-                << "' added End of Stream Listener successfully");
+                << "' added Error Message Handler successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1318,7 +1318,7 @@ namespace DSL
                 return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
             }
             LOG_INFO("Pipeline '" << name 
-                << "' added End of Stream Listener successfully");
+                << "' added a Error Message Handler successfully");
 
             return DSL_RESULT_SUCCESS;
         }
@@ -1352,6 +1352,64 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::PipelineBufferingMessageHandlerAdd(const char* name, 
+        dsl_buffering_message_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->AddBufferingMessageHandler(handler, clientData))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to add a Buffering Message Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' added Buffering Message Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception adding an Buffering Message Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineBufferingMessageHandlerRemove(const char* name, 
+        dsl_buffering_message_handler_cb handler)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+    
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+
+            if (!m_pipelines[name]->RemoveBufferingMessageHandler(handler))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to remove a Buffering Message Handler");
+                return DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' added a Buffering Message Handler successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception removing an Buffering Message Handler");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PipelineMainLoopNew(const char* name)
     {
         LOG_FUNC();

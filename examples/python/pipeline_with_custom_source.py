@@ -2,7 +2,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2024, Prominence AI, Inc.
+# Copyright (c) 2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,35 +25,32 @@
 
 ################################################################################
 #
-# The example demonstrates how to create a custom DSL Pipeline Component using
-# the DSL GStreamer (GST) API. NOTE! All DSL Pipeline Components are derived 
-# from the GST Bin container class. Bins allow you to combine a group of linked 
-# elements into one logical element. 
-#
+# This example demonstrates how to create a custom DSL Source Component  
+# using two GStreamer (GST) Elements created from two GST Plugins:
+#   1. 'videotestsrc' as the source element.
+#   2. 'capsfilter' to limit the video from the videotestsrc to  
+#      'video/x-raw, framerate=15/1, width=1280, height=720'
+#   
 # Elements are constructed from plugins installed with GStreamer or 
-# using your own proprietary -- with a call to
+# using your own proprietary plugin with a call to
 #
 #     dsl_gst_element_new('my-element', 'my-plugin-factory-name' )
 #
-# This example creates a simple GST Bin with two elements derived from
-#  1. A 'queue' plugin - to create a new thread boundary for our Bin
-#  2. An 'identity' plugin - a GST debug plugin to mimic our proprietary element
+# Multiple elements can be added to a Custom Source on creation be calling
 #
-# Elements can be added to a bin on creation be calling
-#
-#    dsl_gst_bin_new_element_add_many('my-bin',
+#    dsl_source_custom_new_element_add_many('my-custom-source',
 #        ['my-element-1', 'my-element-2', None])
 #
-# IMPORTANT! When adding your own Custom Components, it is important to
-# set the Pipeline's link methods to DSL_PIPELINE_LINK_METHOD_BY_ORDER
-# by calling
+# As with all DSL Video Sources, the Custom Souce will also include the 
+# standard buffer-out-elements (queue, nvvideconvert, and capsfilter). 
+# The Source in this example will be linked as follows:
 #
-#   dsl_pipeline_link_method_set('pipeline', DSL_PIPELINE_LINK_METHOD_BY_ORDER)
+#   videotestscr->capsfilter->queue->nvvideconvert->capsfilter
 #
-# otherwise, all components will be linked in a fixed position (default).
-# See the GST API Reference section at
+# See the GST and Source API reference sections for more information
 #
 # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
+# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-source.md
 #
 ################################################################################
 
@@ -63,23 +60,9 @@ import sys
 
 from dsl import *
 
-# Import NVIDIA's pyds Pad Probe Handler example
-from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
 
 uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4"
 
-# Filespecs (Jetson and dGPU) for the Primary GIE
-primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
-primary_model_engine_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
-
-# Filespec for the IOU Tracker config file
-iou_tracker_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
-
-TILER_WIDTH = 1280
-TILER_HEIGHT = 720
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 ## 
@@ -119,85 +102,99 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
         
+##
+# To be used as client_data with our Source Meter PPH, and passed to our 
+# client_calback
+##
+class ReportData:
+  def __init__(self):
+    self.m_report_count = 0
+    
+## 
+# Meter Sink client callback funtion
+## 
+def meter_pph_handler(session_avgs, interval_avgs, source_count, client_data):
+
+    # cast the C void* client_data back to a py_object pointer and deref
+    report_data = cast(client_data, POINTER(py_object)).contents.value
+
+    # Print header
+    header = ""
+    for source in range(source_count):
+        subheader = f"FPS {source} (AVG)"
+        header += "{:<15}".format(subheader)
+    print()
+    print(header)
+
+    # Print FPS counters
+    counters = ""
+    for source in range(source_count):
+        counter = "{:.2f} ({:.2f})".format(interval_avgs[source], session_avgs[source])
+        counters += "{:<15}".format(counter)
+    print(counters)
+    print()
+
+    # Increment reporting count
+    report_data.m_report_count += 1
+
+    # Print out the current Component Queue levels
+    dsl_component_queue_current_level_print_many(['custom-source', 'egl-sink', None],
+        DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS)
+    dsl_component_queue_current_level_print_many(['custom-source', 'egl-sink', None],
+        DSL_COMPONENT_QUEUE_UNIT_OF_BYTES)
+    
+    return True        
 def main(args):
 
     while True:
 
         # ---------------------------------------------------------------------------
-        # Custom DSL Pipeline Component, using the GStreamer "identify" plugin
-        # as an example. Any GStreamer or proprietary plugin (with limitations)
-        # can be used to create a custom component. See the GST API reference for 
+        # Custom DSL Source Component, using the GStreamer "videotestsrc" plugin and
+        # "capsfilter as a simple example. See the GST and Source API reference for 
         # more details.
         # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
+        # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-source.md
 
-        # IMPORTANT! We create a queue element to be our first element of our bin.
-        # The queue will create a new thread on the source pad (output) to decouple 
-        # the processing on sink and source pad, effectively creating a new thread for 
-        # our custom component.
-        retval = dsl_gst_element_new('identity-queue', factory_name='queue')
+        # Create a new element from the videotestsrc plugin
+        retval = dsl_gst_element_new('videotestsrc-element', factory_name='videotestsrc')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new element from the identity plugin
-        retval = dsl_gst_element_new('identity-element', factory_name='identity')
+        # Set the pattern to 19 – SMPTE 100%% color bars 
+        retval = dsl_gst_element_property_uint_set('videotestsrc-element',
+            'pattern', 19)
+
+        # Create a new element using the capsfilter plugin
+        retval = dsl_gst_element_new('capsfilter-element', factory_name='capsfilter')
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Create a new bin and add the elements to it. The elements will be linked 
-        # in the order they're added.
-        ret_val = dsl_gst_bin_new_element_add_many('identity-bin', 
-            elements = ['identity-queue', 'identity-element', None])
+
+        # Create a new caps object to set the caps for the capsfilter
+        retval = dsl_gst_caps_new('caps-object', 
+            'video/x-raw, framerate=15/1, width=1280,height=720')
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Once created, the Element's properties can be queryied or updated.
-        # For example, we can read the 'flush-on-eos' from our queue
-        retval, flush_on_eos = dsl_gst_element_property_boolean_get('identity-queue',
-            property='flush-on-eos')
+
+        # Set the caps property for the capsfilter using the caps object created above 
+        retval = dsl_gst_element_property_caps_set('capsfilter-element', 
+            'caps', 'caps-object')
         if retval != DSL_RETURN_SUCCESS:
             break
-        
-        print('flush-on-eos =', flush_on_eos)
-            
-        # IMPORTANT! Pad Probe handlers can be added to any sink or src pad of 
-        # any GST Element.
-            
-        # New Custom Pad Probe Handler to call Nvidia's example callback 
-        # for handling the Batched Meta Data
-        retval = dsl_pph_custom_new('custom-pph', 
-            client_handler=custom_pad_probe_handler, client_data=None)
-        
-        # Add the custom PPH to the Src pad (output) of the identity-element
-        retval = dsl_gst_element_pph_add('identity-element', 
-            handler='custom-pph', pad=DSL_PAD_SRC)
+
+        # Done with the caps object so let's delete it.
+        retval = dsl_gst_caps_delete('caps-object')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Create a new Custom Source and add the elements to it. The elements will 
+        # be linked in the order they're added.
+        retval = dsl_source_custom_new_element_add_many('custom-source', 
+            is_live=False, elements=['videotestsrc-element', 'capsfilter-element', None])
         if retval != DSL_RETURN_SUCCESS:
             break
         
         # ---------------------------------------------------------------------------
         # Create the remaining pipeline components
-
-        # New URI File Source using the filespec defined above
-        retval = dsl_source_file_new('uri-source', uri_file, False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Primary GIE using the filespecs above with interval = 0
-        retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New IOU Tracker, setting operational width and hieght
-        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=False, 
-            bbox_enabled=True, mask_enabled=False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
 
         # New Window Sink, 0 x/y offsets and dimensions defined above.
         retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
@@ -217,8 +214,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'identity-bin',
-            'on-screen-display', 'egl-sink', None])
+            ['custom-source', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -231,10 +227,15 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # IMPORTANT! set the link method for the Pipeline to link by 
-        # add order (and not by fixed position - default)
-        retval = dsl_pipeline_link_method_set('pipeline',
-            DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER)
+        report_data = ReportData()
+        
+        retval = dsl_pph_meter_new('meter-pph', interval=1, 
+            client_handler=meter_pph_handler, client_data=report_data)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the Meter to the Source pad of the Pipeline's Streammuxer.
+        retval = dsl_pipeline_streammux_pph_add('pipeline', 'meter-pph')
         if retval != DSL_RETURN_SUCCESS:
             break
             

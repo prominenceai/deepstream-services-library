@@ -1,7 +1,8 @@
+
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,32 +25,47 @@
 
 ################################################################################
 #
-# The simple example demonstrates how to create a set of Pipeline components, 
-# specifically:
-#   - URI Source
-#   - Primary GST Inference Engine (PGIE)
-#   - IOU Tracker
-#   - On-Screen Display (OSD)
-#   - Window Sink
-#   - File Sink to encode (H264) and save the stream to MKV file.
-# ...and how to add them to a new Pipeline and play
-# 
-# The example registers handler callback functions with the Pipeline for:
-#   - key-release events
-#   - delete-window events
-#   - end-of-stream EOS events
-#   - Pipeline change-of-state events
-#  
+# The example demonstrates how to create a custom DSL Pipeline Component with
+# a custom GStreamer (GST) Element.  
+#
+# Elements are constructed from plugins installed with GStreamer or 
+# using your own proprietary -- with a call to
+#
+#     dsl_gst_element_new('my-element', 'my-plugin-factory-name' )
+#
+# IMPORTANT! All DSL Pipeline Components, intrinsic and custom, include
+# a queue element to create a new thread boundary for the component's element(s)
+# to process in. 
+#
+# This example creates a simple Custom Component with two elements
+#  1. The built-in 'queue' plugin - to create a new thread boundary.
+#  2. An 'identity' plugin - a GST debug plugin to mimic our proprietary element.
+#
+# A single GST Element can be added to the Component on creation by calling
+#
+#    dsl_component_custom_new_element_add('my-custom-component',
+#        'my-element')
+#
+# Multiple elements can be added to a Component on creation be calling
+#
+#    dsl_component_custom_new_element_add_many('my-bin',
+#        ['my-element-1', 'my-element-2', None])
+#
+# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
+# https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-component.md
+#
 ################################################################################
 
 #!/usr/bin/env python
 
 import sys
-import time
 
 from dsl import *
 
-uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+# Import NVIDIA's pyds Pad Probe Handler example
+from nvidia_pyds_pad_probe_handler import custom_pad_probe_handler
+
+uri_file = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h264.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -61,6 +77,10 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
+TILER_WIDTH = 1280
+TILER_HEIGHT = 720
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
@@ -82,7 +102,9 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+## 
 # Function to be called on End-of-Stream (EOS) event
+## 
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
@@ -95,17 +117,52 @@ def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
-
+        
 def main(args):
 
-    # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # First new URI File Source
-        retval = dsl_source_uri_new('uri-source', uri_file, False, False, 0)
+        # ---------------------------------------------------------------------------
+        # Custom DSL Pipeline Component, using the GStreamer "identify" plugin
+        # as an example. Any GStreamer or proprietary plugin (with limitations)
+        # can be used to create a custom component. See the GST API reference for 
+        # more details.
+        # https://github.com/prominenceai/deepstream-services-library/tree/master/docs/api-gst.md
+
+        # Create a new element from the identity plugin
+        retval = dsl_gst_element_new('identity-element', factory_name='identity')
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        # Create a new Custom Component and adds the elements to it. If multple 
+        # elements they will be linked in the order they're added.
+        retval = dsl_component_custom_new_element_add('identity-bin', 
+            'identity-element')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+            
+        # IMPORTANT! Pad Probe handlers can be added to any sink or src pad of 
+        # any GST Element.
+            
+        # New Custom Pad Probe Handler to call Nvidia's example callback 
+        # for handling the Batched Meta Data
+        retval = dsl_pph_custom_new('custom-pph', 
+            client_handler=custom_pad_probe_handler, client_data=None)
+        
+        # Add the custom PPH to the Src pad (output) of the identity-element
+        retval = dsl_gst_element_pph_add('identity-element', 
+            handler='custom-pph', pad=DSL_PAD_SRC)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        
+        # ---------------------------------------------------------------------------
+        # Create the remaining pipeline components
+
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_file_new('uri-source', uri_file, False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
         # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
@@ -118,20 +175,15 @@ def main(args):
             break
 
         # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', text_enabled=True, 
-            clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display', 
+            text_enabled=True, clock_enabled=False, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets with reduced dimensions
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New File Sink with H264 Codec type and MKV conatiner muxer, 
-        # and bit-rate=0 (use plugin default) and interval=0=everyframe.
-        retval = dsl_sink_file_new('file-sink', "./output.mkv", 
-            DSL_CODEC_H264, DSL_CONTAINER_MKV, 0, 0)
+        # New Window Sink, 0 x/y offsets and dimensions defined above.
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
+            WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -145,14 +197,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to a new pipeline
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
-            'egl-sink', 'file-sink', None])
+            ['uri-source', 'primary-gie', 'iou-tracker', 'identity-bin',
+            'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the listener callback functions defined above
+        ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
@@ -166,11 +218,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
-
+        
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 

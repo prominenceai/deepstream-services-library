@@ -31,7 +31,7 @@ namespace DSL
 {
     TrackerBintr::TrackerBintr(const char* name,
         const char* configFile, guint width, guint height)
-        : Bintr(name)
+        : QBintr(name)
         , m_llLibFile(NVDS_MOT_LIB)
         , m_llConfigFile(configFile)
         , m_width(width)
@@ -40,13 +40,17 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // New Queue and Tracker element for this TrackerBintr
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
+        // New Tracker element for this TrackerBintr
         m_pTracker = DSL_ELEMENT_NEW("nvtracker", name);
 
         m_pTracker->SetAttribute("tracker-width", m_width);
         m_pTracker->SetAttribute("tracker-height", m_height);
         m_pTracker->SetAttribute("ll-lib-file", m_llLibFile.c_str());
+
+        // IMPORTANT! increasing the pool-size from 32 to 64 is required to
+        // avoid warning messages when using downstream software encoding sinks.
+        // See: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_troubleshooting.html#warning-message-gstnvtracker-unable-to-acquire-a-user-meta-buffer
+        m_pTracker->SetAttribute("user-meta-pool-size", 64);
 
         // set the low-level configuration file property if provided.
         if (m_llConfigFile.size())
@@ -68,11 +72,21 @@ namespace DSL
         LOG_INFO("  display-tracking-id  : " << m_idDisplayEnabled);
         LOG_INFO("  input-tensor-meta    : " << m_tensorInputEnabled);
         LOG_INFO("  gpu-id               : " << m_gpuId);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
-        AddChild(m_pQueue);
         AddChild(m_pTracker);
 
-        // Float the queue element as a sink-ghost-pad for this Bintr.
+        // Float the queue element (from parent QBintr) as a sink-ghost-pad 
+        // for this Bintr.
         m_pQueue->AddGhostPadToParent("sink");
 
         // Float the tracker element as a src-ghost-pad for this Bintr.

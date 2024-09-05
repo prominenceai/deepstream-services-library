@@ -1,11 +1,10 @@
 # Pad Probe Handler API Reference
-Data and downstream events flowing over a [Component’s](/docs/api-component.md) Pads –- link points between components –- can be monitored and updated using a Pad Probe Handler. There are six types of Handlers supported in the current release:
+Data and downstream events flowing over a [Component’s](/docs/api-component.md) Pads –- link points between components –- can be monitored and updated using a Pad Probe Handler. There are five types of Handlers supported in the current release:
 * [Custom PPH](#dsl_pph_custom_new)
 * [Stream Event PPH](#dsl_pph_stream_event_new)
 * [New Buffer Timeout PPH](#dsl_pph_meter_new)
 * [Source Meter PPH](#dsl_pph_meter_new)
 * [Object Detection Event PPH](#dsl_pph_ode_new)
-* [Non-Maximum Processor PPH](#dsl_pph_nmp_new)
 
 ### Custom Pad Probe Handler
 The Custom PPH allows the client to add a custom callback function to a Pipeline Component's sink or source pad. The custom callback will be called with each buffer that crosses over the Component's pad.
@@ -28,43 +27,6 @@ The Pipeline Meter PPH measures a Pipeline's throughput in frames-per-second. Ad
 
 ### Object-Detection-Event (ODE) Pad Probe Handler
 The ODE PPH manages an ordered collection of [ODE Triggers](/docs/api-ode-trigger.md), each with their own ordered collections of [ODE Actions](/docs/api-ode-action.md) and (optional) [ODE Areas](/docs/api-ode-area.md). The Handler installs a pad-probe callback to handle each GST Buffer flowing over either the Sink (Input) Pad or the Source (output) pad of the named component; a 2D Tiler or On-Screen-Display as examples. The handler extracts the Frame and Object metadata iterating through its collection of ODE Triggers. Triggers, created with specific purpose and criteria, check for the occurrence of specific Object Detection Events (ODEs). On ODE occurrence, the Trigger iterates through its ordered collection of ODE Actions invoking their `handle-ode-occurrence` service. ODE Areas can be added to Triggers as additional criteria for ODE occurrence. Both Actions and Areas can be shared, or co-owned, by multiple Triggers. All options/settings can be updated at runtime while the Pipeline is playing.
-
-### Non-Maximum Processor (NMP) Pad Probe Handler
-The NMP PPH implements an inference cluster algorithm providing a more flexible alternative to the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin. 
-
-**Important:** The Primary GIE's `cluster-mode` configuration property must be set to `4` to disable the default processing.
-
-See the [NVIDIA Gst-nvinfer plugin documentation](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#gst-nvinfer) for details on the configuration property and more [cluster mode information](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#cluster-mode-info).
-
-With the default post-processing disabled, the [Primary GIE](/docs/api-infer.md) will add object metadata for every prediction above a specified confidence level producing clusters of overlapping bounding boxes for each individual object. The image below illustrates the differences in PGIE output between the default and disabled settings.
-
-![gst-infer cluster mode comparison](/Images/gie_cluster_mode_comparison.png)
-
-The PGIE output is post-processed by adding the NMP PPH to either the source pad of the [PGIE](/docs/api-infer.md) or sink pad of the [Multi-object Tracker (MOT)](/docs/api-tracker.md). Once added, the Handler installs a pad-probe callback to process each GST Buffer flowing over the parent component's pad. When processing the metadata from each buffer, the callback's cluster algorithm detects which of the predictions match the same object and which of the matching predictions has the maximum confidence. All non-maximum predictions are either suppressed or merged with the maximum depending on the process method selected.
-
-The NMP PPH supports:
-* two methods of non-maximum processing - non-maximum suppression (NMS) and non-maximum merge (NMM).
-* two methods of sorting object predictions - class specific and class agnostic
-* two methods of matching object predictions - intersection over union (IOU) and intersection over smallest (IOS).
-* a definable matching threshold for the IOU/IOS results.
-
-All options/settings can be updated at runtime while the Pipeline is playing.
-
-#### Class Agnostic Non-Maximum Processing
-TODO...
-
-#### Input Source Slicing and Non-Maximum Merge.
-TODO...
-
-Credit and thanks to [@youngjae-avikus](https://github.com/youngjae-avikus) for developing the cluster algorithm.
-
-**Important:** The Non-Maximum Processor PPH is dependent on third-party source code - [NumCpp: A Templatized Header Only C++ Implementation of the Python NumPy Library](https://github.com/dpilger26/NumCpp). For this reason the NMP PPH is released as an optional build component - disabled/excluded by default. 
-
-Steps to include in DSL:
-
-1. clone the NumCpp repository git clone https://github.com/dpilger26/NumCpp.git
-2. set the [makefile](/Makefile) include variable to true - `BUILD_NMP_PPH:=true`
-3. set the makefile path variable to the NumCpp `/include` folder - `NUM_CPP_PATH:=<path-to-numcpp-include-folder>`
 
 ### Pad Probe Handler Construction and Destruction
 Pad Probe Handlers are created by calling their type specific constructor.  Handlers are deleted by calling [`dsl_pph_delete`](#dsl_pph_delete), [`dsl_pph_delete_many`](#dsl_pph_delete_many), or [`dsl_pph_delete_all`](#dsl_pph_delete_all).
@@ -996,7 +958,7 @@ pph_count = dsl_pph_list_size()
 * [Sink](/docs/api-sink.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * **Pad Probe Handler**
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)

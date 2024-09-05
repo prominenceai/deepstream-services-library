@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslElementr.h"
 #include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslPadProbeHandler.h"
 
 namespace DSL
@@ -40,7 +41,7 @@ namespace DSL
     #define DSL_TRACKER_NEW(name, configFile, width, height) \
         std::shared_ptr<TrackerBintr>(new TrackerBintr(name, configFile, width, height))
 
-    class TrackerBintr : public Bintr
+    class TrackerBintr : public QBintr
     {
     public: 
     
@@ -173,11 +174,6 @@ namespace DSL
          */
         uint m_height;
 
-        /**
-         * @brief Queue Elementr as Sink for this SegVisualBintr
-         */
-        DSL_ELEMENT_PTR  m_pQueue;
-        
         /**
          * @brief Tracker Elementr for this TrackerBintr
          */

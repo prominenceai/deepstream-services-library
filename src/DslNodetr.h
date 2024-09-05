@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -429,7 +429,7 @@ namespace DSL
             DSL_NODETR_PTR pChildNodetr = std::dynamic_pointer_cast<Nodetr>(pChild);
             
             // Increase the reference count so the child is not destroyed.
-            gst_object_ref(pChildNodetr->GetGstElement());
+            gst_object_ref_sink(pChildNodetr->GetGstObject());
             
             if (!gst_bin_remove(GST_BIN(m_pGstObj), pChildNodetr->GetGstElement()))
             {
@@ -458,7 +458,7 @@ namespace DSL
                     std::dynamic_pointer_cast<Nodetr>(imap.second);
 
                 // Increase the reference count so the child is not destroyed.
-                gst_object_ref(pChildNodetr->GetGstElement());
+                gst_object_ref_sink(pChildNodetr->GetGstObject());
 
                 if (!gst_bin_remove(GST_BIN(m_pGstObj), 
                     pChildNodetr->GetGstElement()))
@@ -483,14 +483,17 @@ namespace DSL
             // create a new ghost pad with the static Sink pad retrieved from 
             // this Elementr's pGstObj and adds it to the the Elementr's Parent 
             // Bintr's pGstObj.
+            GstPad* pStaticPad = gst_element_get_static_pad(
+                GetGstElement(), padname);   
+            
             if (!gst_element_add_pad(GST_ELEMENT(GetParentGstObject()), 
-                gst_ghost_pad_new(padname, 
-                    gst_element_get_static_pad(GetGstElement(), padname))))
+                gst_ghost_pad_new(padname, pStaticPad)))
             {
                 LOG_ERROR("Failed to add Pad '" << padname 
                     << "' to parent of element'" << GetName() << "'");
                 throw std::exception();
             }
+            gst_object_unref(pStaticPad);
         }
 
         void RemoveGhostPadFromParent(const char* padname)
@@ -514,6 +517,7 @@ namespace DSL
                     << "' for element'" << GetName() << "'");
                 throw std::exception();
             }
+            gst_object_unref(pStaticPad);
         }
 
         /**
@@ -667,25 +671,51 @@ namespace DSL
             // call the parent class to complete the link-to-sink
             return Nodetr::LinkToSink(pMuxer);
         }
-        
+
         /**
-         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
-         * @return true if able to successfully unlink from Muxer Sink Pad
+         * @brief Sets the state of the Src to NULL and then sends flush-start, 
+         * flush-stop, EOS events to the muxers Sink Pad connected to this GstNoder.
+         * @return true if able to successfully EOS the Sink Pad
          */
-        virtual bool UnlinkFromSinkMuxer()
+        virtual bool NullSrcEosSinkMuxer()
         {
             LOG_FUNC();
-            
-            // need to initialize outside of case statement
-            GstPad* pStaticSrcPad(NULL);
-            GstPad* pRequestedSinkPad(NULL);
             
             if (!IsLinkedToSink())
             {
                 return false;
             }
 
+            GstState currState, nextState;
+            GstStateChangeReturn result = gst_element_get_state(GetGstElement(), 
+                &currState, &nextState, 1);
+
+            if (currState < GST_STATE_PLAYING)
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' is not in a PLAYING state");
+                return false;
+            }
+
+            // Get a reference to this GstNodetr's source pad
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Failed to get static source pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
             
+            // Get a reference to the Muxer's sink pad that is connected
+            // to this GstNodetr's source pad
+            GstPad* pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
+            if (!pRequestedSinkPad)
+            {
+                LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+
             GstStateChangeReturn changeResult = gst_element_set_state(
                 GetGstElement(), GST_STATE_NULL);
                 
@@ -714,61 +744,131 @@ namespace DSL
                 LOG_INFO("GstNodetr '" << GetName() 
                     << "' changed state to NULL successfully");
                     
-                // Get a reference to this GstNodetr's source pad
-                pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
-                if (!pStaticSrcPad)
-                {
-                    LOG_ERROR("Failed to get static source pad for GstNodetr '" 
-                        << GetName() << "'");
-                    return false;
-                }
-                
-                // Get a reference to the Muxer's sink pad that is connected
-                // to this GstNodetr's source pad
-                pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
-                if (!pRequestedSinkPad)
-                {
-                    LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
-                        << GetName() << "'");
-                    return false;
-                }
-
-                // Send a flush-stop event upstream to all elements and
-                // downstream to the muxer for this GstNodetr's stream
-                gst_pad_send_event(pStaticSrcPad, 
-                    gst_event_new_flush_stop(FALSE));
+                // Send flush-start and flush-stop events downstream to the muxer 
+                // followed by an end-of-stream for this GstNodetr's stream
                 gst_pad_send_event(pRequestedSinkPad, 
-                    gst_event_new_flush_stop(FALSE));
+                    gst_event_new_flush_start());
+                gst_pad_send_event(pRequestedSinkPad, 
+                    gst_event_new_flush_stop(TRUE));
                 gst_pad_send_event(pRequestedSinkPad, 
                     gst_event_new_eos());
 
-                LOG_INFO("Unlinking and releasing requested sink pad '" 
-                    << pRequestedSinkPad << "' for GstNodetr '" << GetName() << "'");
+                break;
+            default:
+                LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
+                return false;
+            }
 
-                // It should now be safe to unlink this GstNodetr from the Muxer
-                if (!gst_pad_unlink(pStaticSrcPad, pRequestedSinkPad))
+            // unreference both the static source pad and requested sink
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pRequestedSinkPad);
+            
+            // Call the parent class to complete the unlink from sink
+            return true;
+        }
+        
+        /**
+         * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @return true if able to successfully unlink from Muxer Sink Pad
+         */
+        virtual bool UnlinkFromSinkMuxer()
+        {
+            LOG_FUNC();
+            
+            if (!IsLinkedToSink())
+            {
+                return false;
+            }
+            
+            // Get a reference to this GstNodetr's source pad
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Failed to get static source pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            
+            // Get a reference to the Muxer's sink pad that is connected
+            // to this GstNodetr's source pad
+            GstPad* pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
+            if (!pRequestedSinkPad)
+            {
+                LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+
+            GstState currState, nextState;
+            GstStateChangeReturn result = gst_element_get_state(GetGstElement(), 
+                &currState, &nextState, 1);
+
+            if (currState > GST_STATE_NULL)
+            { 
+                GstStateChangeReturn changeResult = gst_element_set_state(
+                    GetGstElement(), GST_STATE_NULL);
+                    
+                switch (changeResult)
                 {
+                case GST_STATE_CHANGE_FAILURE:
                     LOG_ERROR("GstNodetr '" << GetName() 
-                        << "' failed to unlink from Muxer");
-                    Nodetr::UnlinkFromSink();
+                        << "' failed to set state to NULL");
+                    return false;
+
+                case GST_STATE_CHANGE_ASYNC:
+                    LOG_INFO("GstNodetr '" << GetName() 
+                        << "' changing state to NULL async");
+                        
+                    // block on get state until change completes. 
+                    if (gst_element_get_state(GetGstElement(), 
+                        NULL, NULL, GST_CLOCK_TIME_NONE) == GST_STATE_CHANGE_FAILURE)
+                    {
+                        LOG_ERROR("GstNodetr '" << GetName() 
+                            << "' failed to set state to NULL");
+                        return false;
+                    }
+                    // drop through on success - DO NOT BREAK
+
+                case GST_STATE_CHANGE_SUCCESS:
+                    LOG_INFO("GstNodetr '" << GetName() 
+                        << "' changed state to NULL successfully");
+                        
+                    // Send flush-start and flush-stop events downstream to the muxer 
+                    // followed by an end-of-stream for this GstNodetr's stream
+                    gst_pad_send_event(pRequestedSinkPad, 
+                        gst_event_new_flush_start());
+                    gst_pad_send_event(pRequestedSinkPad, 
+                        gst_event_new_flush_stop(TRUE));
+                    gst_pad_send_event(pRequestedSinkPad, 
+                        gst_event_new_eos());
+
+                    break;
+                default:
+                    LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
                     return false;
                 }
-                // Need to release the previously requested sink pad
-                gst_element_release_request_pad(GetSink()->GetGstElement(), 
-                    pRequestedSinkPad);
-
-                // unreference both the static source pad and requested sink
-                gst_object_unref(pStaticSrcPad);
-                gst_object_unref(pRequestedSinkPad);
-                
-                // Call the parent class to complete the unlink from sink
-                return Nodetr::UnlinkFromSink();
-            default:
-                break;
             }
-            LOG_ERROR("Unknown state change for Bintr '" << GetName() << "'");
-            return false;
+            LOG_INFO("Unlinking and releasing requested sink pad '" 
+                << pRequestedSinkPad << "' for GstNodetr '" << GetName() << "'");
 
+            // It should now be safe to unlink this GstNodetr from the Muxer
+            if (!gst_pad_unlink(pStaticSrcPad, pRequestedSinkPad))
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' failed to unlink from Muxer");
+                Nodetr::UnlinkFromSink();
+                return false;
+            }
+            // Need to release the previously requested sink pad
+            gst_element_release_request_pad(GetSink()->GetGstElement(), 
+                pRequestedSinkPad);
+
+            // unreference both the static source pad and requested sink
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pRequestedSinkPad);
+            
+            // Call the parent class to complete the unlink from sink
+            return Nodetr::UnlinkFromSink();
         }
         
         /**
@@ -942,7 +1042,7 @@ namespace DSL
         bool SendEos()
         {
             LOG_FUNC();
-            
+
             return gst_element_send_event(GetGstElement(), gst_event_new_eos());
         }
 

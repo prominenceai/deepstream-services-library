@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ namespace DSL
     OsdBintr::OsdBintr(const char* name, 
         boolean textEnabled, boolean clockEnabled,
         boolean bboxEnabled, boolean maskEnabled)
-        : Bintr(name)
+        : QBintr(name)
         , m_textEnabled(textEnabled)
         , m_clockEnabled(clockEnabled)
         , m_bboxEnabled(bboxEnabled)
@@ -48,9 +48,7 @@ namespace DSL
         LOG_FUNC();
         
         // Create all elements
-        m_pVidConvQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvvideoconvert");
         m_pVidConv = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pOsdQueue = DSL_ELEMENT_EXT_NEW("queue", name, "nvdsosd");
         m_pOsd = DSL_ELEMENT_NEW("nvdsosd", name);
 
         // Get property defaults that aren't specifically set
@@ -91,15 +89,23 @@ namespace DSL
         LOG_INFO("  process-mode      : " << m_processMode);
         LOG_INFO("  gpu-id            : " << m_gpuId);
         LOG_INFO("  nvbuf-memory-type : " << m_nvbufMemType);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
         
         // Add each of the elements as children to this Binter. 
-        AddChild(m_pVidConvQueue);
         AddChild(m_pVidConv);
-        AddChild(m_pOsdQueue);
         AddChild(m_pOsd);
 
         // Float the queue element as a sink-ghost-pad for this Bintr.
-        m_pVidConvQueue->AddGhostPadToParent("sink");
+        m_pQueue->AddGhostPadToParent("sink");
         
         // Float the osd as a src-ghost-pad for this Bintr.
         m_pOsd->AddGhostPadToParent("src");
@@ -129,9 +135,8 @@ namespace DSL
             return false;
         }
         
-        if (!m_pVidConvQueue->LinkToSink(m_pVidConv) or
-            !m_pVidConv->LinkToSink(m_pOsdQueue) or
-            !m_pOsdQueue->LinkToSink(m_pOsd))
+        if (!m_pQueue->LinkToSink(m_pVidConv) or
+            !m_pVidConv->LinkToSink(m_pOsd))
         {
             return false;
         }
@@ -148,9 +153,8 @@ namespace DSL
             LOG_ERROR("OsdBintr '" << m_name << "' is not linked");
             return;
         }
-        m_pVidConvQueue->UnlinkFromSink();
+        m_pQueue->UnlinkFromSink();
         m_pVidConv->UnlinkFromSink();
-        m_pOsdQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -294,13 +298,13 @@ namespace DSL
         m_clockColor.blue = blue;
         m_clockColor.alpha = alpha;
 
-        uint clkRgbaColor =
+        m_clkRgbaColor =
             ((((uint) (m_clockColor.red * 255)) & 0xFF) << 24) |
             ((((uint) (m_clockColor.green * 255)) & 0xFF) << 16) |
             ((((uint) (m_clockColor.blue * 255)) & 0xFF) << 8) | 
             ((((uint) (m_clockColor.alpha * 255)) & 0xFF));
 
-        m_pOsd->SetAttribute("clock-color", clkRgbaColor);
+        m_pOsd->SetAttribute("clock-color", m_clkRgbaColor);
 
         return true;
     }

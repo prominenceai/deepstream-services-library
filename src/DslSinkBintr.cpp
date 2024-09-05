@@ -34,7 +34,7 @@ THE SOFTWARE.
 namespace DSL
 {
     SinkBintr::SinkBintr(const char* name) 
-        : Bintr(name)
+        : QBintr(name)
         , m_sync(false)         // Note: each derived bintr will update the 2 of th 4
         , m_maxLateness(-1)     // common propery settings (sync,  max-latness)
         , m_qos(false)          // with get-property calls on bintr construction.
@@ -46,14 +46,6 @@ namespace DSL
 
         // Get the Device properties
         cudaGetDeviceProperties(&m_cudaDeviceProp, m_gpuId);
-        
-        // SinkBintrs well be connected to either the MultiSinksBintr
-        // or as a Branch to a Demuxer, Remuxer, or Splitter Tee.
-        // In all cases a Tee - therefore we need a downstream queue as first element.
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
-        
-        // Add the Queue as a child of the SinkBintr
-        AddChild(m_pQueue);
         
         // Float the Queue as sink (input) ghost pad for this SinkBintr
         m_pQueue->AddGhostPadToParent("sink");
@@ -100,19 +92,31 @@ namespace DSL
             RemoveSinkBintr(std::dynamic_pointer_cast<SinkBintr>(shared_from_this()));
     }
 
-    gboolean SinkBintr::GetSyncEnabled()
+    bool SinkBintr::GetSyncEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("sync", &m_sync);
-
-        return m_sync;
+        *enabled = m_sync;
+        return true;
     }
     
-    bool SinkBintr::SetSyncEnabled(gboolean enabled)
+    bool SinkBintr::SetSyncEnabled(boolean enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set sync enabled property for SinkBintr '" 
@@ -120,25 +124,35 @@ namespace DSL
             return false;
         }
         m_sync = enabled;
-        
         m_pSink->SetAttribute("sync", m_sync);
-        
         return true;
     }
     
-    gboolean SinkBintr::GetAsyncEnabled()
+    bool SinkBintr::GetAsyncEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("async", &m_async);
-        
-        return m_async;
+        *enabled = m_async;
+        return true;
     }
 
-    bool SinkBintr::SetAsyncEnabled(gboolean enabled)
+    bool SinkBintr::SetAsyncEnabled(boolean enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set async enabled property for SinkBintr '" 
@@ -146,24 +160,35 @@ namespace DSL
             return false;
         }
         m_async = enabled;
-        
         m_pSink->SetAttribute("async", m_async);
-        
         return true;
     }
 
-    gint64 SinkBintr::GetMaxLateness()
+    bool SinkBintr::GetMaxLateness(int64_t* maxLateness)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("max-lateness", &m_maxLateness);
-        return m_maxLateness;
+        *maxLateness = m_maxLateness;
+        return true;
     }
 
-    bool SinkBintr::SetMaxLateness(gint64 maxLateness)
+    bool SinkBintr::SetMaxLateness(int64_t maxLateness)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set the max-lateness property for SinkBintr '" 
@@ -171,25 +196,35 @@ namespace DSL
             return false;
         }
         m_maxLateness = maxLateness;
-        
         m_pSink->SetAttribute("max-lateness", m_maxLateness);
-        
         return true;
     }
 
-    gboolean SinkBintr::GetQosEnabled()
+    bool SinkBintr::GetQosEnabled(boolean* enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         m_pSink->GetAttribute("qos", &m_qos);
-        
-        return m_qos;
+        *enabled = m_qos;
+        return true;
     }
 
-    bool SinkBintr::SetQosEnabled(gboolean enabled)
+    bool SinkBintr::SetQosEnabled(boolean enabled)
     {
         LOG_FUNC();
         
+        if (m_pSink == nullptr)
+        {
+            LOG_ERROR("SinkBintr '" << GetName() 
+                << "' is not derived from GstBaseSink - does not support this property");
+            return false;
+        }
         if (IsLinked())
         {
             LOG_ERROR("Unable to set the qos enabled setting for SinkBintr '" 
@@ -197,9 +232,7 @@ namespace DSL
             return false;
         }
         m_qos = enabled;
-        
         m_pSink->SetAttribute("qos", m_qos);
-        
         return true;
     }
 
@@ -246,6 +279,16 @@ namespace DSL
             LOG_INFO("  max-lateness       : " << m_maxLateness);
             LOG_INFO("  qos                : " << m_qos);
             LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+            LOG_INFO("  queue              : " );
+            LOG_INFO("    leaky            : " << m_leaky);
+            LOG_INFO("    max-size         : ");
+            LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+            LOG_INFO("      bytes          : " << m_maxSizeBytes);
+            LOG_INFO("      time           : " << m_maxSizeTime);
+            LOG_INFO("    min-threshold    : ");
+            LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+            LOG_INFO("      bytes          : " << m_minThresholdBytes);
+            LOG_INFO("      time           : " << m_minThresholdTime);
         }
         AddChild(m_pSink);
     }
@@ -386,6 +429,168 @@ namespace DSL
             HandleNewSample();
     }
 
+    //*********************************************************************************
+    CustomSinkBintr::CustomSinkBintr(const char* name)
+        : SinkBintr(name) 
+        , m_nextElementIndex(0)
+    {
+        LOG_FUNC();
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for CustomSinkBintr '" << name << "'");
+        LOG_INFO("  sync               : unknown");
+        LOG_INFO("  async              : unknown");
+        LOG_INFO("  max-lateness       : unknown");
+        LOG_INFO("  qos                : unknown");
+        LOG_INFO("  enable-last-sample : unknown");
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
+
+    }
+
+    CustomSinkBintr::~CustomSinkBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool CustomSinkBintr::AddChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't add child '" << pChild->GetName() 
+                << "' to CustomSinkBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is already a child of CustomSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+ 
+        // increment next index, assign to the Element.
+        pChild->SetIndex(++m_nextElementIndex);
+
+        // Add the shared pointer to the CustomSinkBintr to the indexed map 
+        // and as a child.
+        m_elementrsIndexed[m_nextElementIndex] = pChild;
+        return GstNodetr::AddChild(pChild);
+    }
+    
+    bool CustomSinkBintr::RemoveChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't remove child '" << pChild->GetName() 
+                << "' from CustomSinkBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (!IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is not a child of CustomSinkBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        
+        // Remove the shared pointer to the CustomSinkBintr from the indexed map  
+        // and as a child.
+        m_elementrsIndexed.erase(pChild->GetIndex());
+        return GstNodetr::RemoveChild(pChild);
+    }
+    
+    bool CustomSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' is already linked");
+            return false;
+        }
+        if (!m_elementrsIndexed.size()) 
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' has no Elements to link");
+            return false;
+        }
+        for (auto const &imap: m_elementrsIndexed)
+        {
+            // Link the Elementr to the last/previous Elementr in the vector 
+            // of linked Elementrs 
+            if (m_elementrsLinked.size() and 
+                !m_elementrsLinked.back()->LinkToSink(imap.second))
+            {
+                return false;
+            }
+            // Add Elementr to the end of the linked Elementrs vector.
+            m_elementrsLinked.push_back(imap.second);
+
+            LOG_INFO("CustomSinkBintr '" << GetName() 
+                << "' Linked up child Elementr '" << 
+                imap.second->GetName() << "' successfully");                    
+        }
+
+        // Link the input queue to the first element in the list.
+        if (!m_pQueue->LinkToSink(m_elementrsLinked.front()))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+    
+    void CustomSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' is not linked");
+            return;
+        }
+        if (!m_elementrsLinked.size()) 
+        {
+            LOG_ERROR("CustomSinkBintr '" << m_name 
+                << "' has no Elements to unlink");
+            return;
+        }
+        
+        // unlink the input queue from the front element.
+        m_pQueue->UnlinkFromSink();
+
+        // iterate through the list of Linked Components, unlinking each
+        for (auto const& ivector: m_elementrsLinked)
+        {
+            // all but the tail element will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
+        }
+        m_elementrsLinked.clear();
+
+        m_isLinked = false;
+    }
+
     //-------------------------------------------------------------------------
 
     FrameCaptureSinkBintr::FrameCaptureSinkBintr(const char* name, 
@@ -405,6 +610,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         // override the client data (set to NULL above) to this pointer.
         m_clientData = this;
@@ -545,6 +760,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
     }
@@ -1136,7 +1361,7 @@ namespace DSL
         if (!m_cudaDeviceProp.integrated)
         {
             LOG_ERROR("3D Sink is only supported on the Jetson Platform'");
-            throw;
+            throw std::exception();
         }
         
         m_pSink = DSL_ELEMENT_NEW("nv3dsink", GetCStrName());
@@ -1173,6 +1398,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
     }
@@ -1269,7 +1504,7 @@ namespace DSL
             if (!pCaps)
             {
                 LOG_ERROR("Failed to create new Simple Capabilities for '" << name << "'");
-                throw;  
+                throw std::exception();  
             }
 
             GstCapsFeatures *feature = NULL;
@@ -1304,6 +1539,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pTransform);
         AddChild(m_pSink);
@@ -1511,76 +1756,155 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     EncodeSinkBintr::EncodeSinkBintr(const char* name,
-        uint codec, uint bitrate, uint interval)
+        uint encoder, uint bitrate, uint iframeInterval)
         : SinkBintr(name)
-        , m_codec(codec)
+        , m_encoder(encoder)
         , m_bitrate(bitrate)
-        , m_interval(interval)
+        , m_iframeInterval(iframeInterval)
         , m_width(0)
         , m_height(0)
     {
         LOG_FUNC();
-        
-        m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
-        m_pCapsFilter = DSL_ELEMENT_NEW("capsfilter", name);
 
-        switch (codec)
+        // work arroud for NVIDIA bug see https://forums.developer.nvidia.com/t/deepstream-6-4-green-screen-with-rtsp/288979/18    
+        if (m_cudaDeviceProp.integrated)
         {
-        case DSL_CODEC_H264 :
+            m_pTransform = DSL_ELEMENT_NEW("nvvidconv", name);
+            m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvidconv");
+        }
+        else
+        {
+            m_pTransform = DSL_ELEMENT_NEW("nvvideoconvert", name);
+            m_pCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "nvvideoconvert");
+        }
+        // Create the encoder specific elements and caps
+        switch (encoder)
+        {
+        case DSL_ENCODER_HW_H264 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h264enc", name);
             m_pParser = DSL_ELEMENT_NEW("h264parse", name);
             break;
-        case DSL_CODEC_H265 :
+        case DSL_ENCODER_HW_H265 :
             m_pEncoder = DSL_ELEMENT_NEW("nvv4l2h265enc", name);
             m_pParser = DSL_ELEMENT_NEW("h265parse", name);
             break;
+        case DSL_ENCODER_SW_H264 :
+            m_pEncoder = DSL_ELEMENT_NEW("x264enc", name);
+            m_pParser = DSL_ELEMENT_NEW("h264parse", name);
+            break;
+        case DSL_ENCODER_SW_H265 :
+            m_pEncoder = DSL_ELEMENT_NEW("x265enc", name);
+            m_pParser = DSL_ELEMENT_NEW("h265parse", name);
+            break;
+        case DSL_ENCODER_SW_MPEG4 :
+            m_pEncoder = DSL_ELEMENT_NEW("avenc_mpeg4", name);
+            m_pParser = DSL_ELEMENT_NEW("mpeg4videoparse", name);
+            break;
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
-            throw;
-        }
-        // aarch_64
-        if (m_cudaDeviceProp.integrated)
-        {
-            // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-            if (NVDS_VERSION_MINOR < 3)
-            {
-                m_pEncoder->SetAttribute("bufapi-version", TRUE);
-            }
-            m_pEncoder->SetAttribute("preset-level", TRUE);
-            m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
-        }
-        else // x86_64
-        {
-            m_pTransform->SetAttribute("gpu-id", m_gpuId);
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new Sink '" << name << "'");
+            throw std::exception();
         }
 
-        
         // Get the default bitrate
-        m_pEncoder->GetAttribute("bitrate", &m_defaultBitrate);
-        
-        // Update if set
-        if (m_bitrate)
+        uint defaultBitrate(0);
+        m_pEncoder->GetAttribute("bitrate", &defaultBitrate);
+
+        // If using hardware encoding
+        if (m_encoder == DSL_ENCODER_HW_H264 or m_encoder == DSL_ENCODER_HW_H265)
         {
-            m_pEncoder->SetAttribute("bitrate", m_bitrate);
+            uint iframeInterval;
+            // Set the i-frame interval
+            m_pEncoder->SetAttribute("iframeinterval", m_iframeInterval);
+            
+            if (m_cudaDeviceProp.integrated)
+            {
+                if (NVDS_VERSION_MINOR < 3)
+                {
+                    m_pEncoder->SetAttribute("bufapi-version", TRUE);
+                }
+                m_pEncoder->SetAttribute("preset-level", TRUE);
+                m_pEncoder->SetAttribute("insert-sps-pps", TRUE);
+            }
+            // Add (memory:NVMM) for HW encoding
+            DslCaps ConvertCaps("video/x-raw(memory:NVMM), format=I420");
+            m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
+
+            // bitrate is bit/s
+            m_defaultBitrate = defaultBitrate;
+
+            // Update if set
+            if (m_bitrate)
+            {
+                m_pEncoder->SetAttribute("bitrate", m_bitrate);
+            }
         }
-        m_pEncoder->SetAttribute("iframeinterval", m_interval);
+        // If using H264/H265 software encoding
+        else if (m_encoder == DSL_ENCODER_SW_H264 or m_encoder == DSL_ENCODER_SW_H265)
+        {
+            // Remove (memory:NVMM) for SW encoding
+            DslCaps ConvertCaps("video/x-raw, format=I420");
+            m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
 
-        GstCaps* pCaps(NULL);
-        pCaps = gst_caps_from_string("video/x-raw(memory:NVMM), format=I420");
-        m_pCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
+            // bitrate is Kbit/s - need to convert
+            m_defaultBitrate = defaultBitrate*1000;
 
+            // Update if set
+            if (m_bitrate)
+            {
+                m_pEncoder->SetAttribute("bitrate", m_bitrate/1000);
+            }
+        }
+        // If using MPEG software encoding
+        else 
+        {
+            // Remove (memory:NVMM) for SW encoding
+            DslCaps ConvertCaps("video/x-raw, format=I420");
+            m_pCapsFilter->SetAttribute("caps", &ConvertCaps);
+
+            // bitrate is bit/s
+            m_defaultBitrate = defaultBitrate;
+
+            // Update if set
+            if (m_bitrate)
+            {
+                m_pEncoder->SetAttribute("bitrate", m_bitrate);
+            }
+            // NOTE! the MPEG encoder does not support an iframeInterval property 
+        }
+        
         AddChild(m_pTransform);
         AddChild(m_pCapsFilter);
         AddChild(m_pEncoder);
         AddChild(m_pParser);
     }
 
-    void EncodeSinkBintr::GetEncoderSettings(uint* codec, uint* bitrate, uint* interval)
+    bool EncodeSinkBintr::LinkToCommon(DSL_NODETR_PTR pSinkNodetr)
     {
         LOG_FUNC();
         
-        *codec = m_codec;
+        return (m_pQueue->LinkToSink(m_pTransform) and
+                m_pTransform->LinkToSink(m_pCapsFilter) and
+                m_pCapsFilter->LinkToSink(m_pEncoder) and
+                m_pEncoder->LinkToSink(m_pParser) and
+                m_pParser->LinkToSink(pSinkNodetr));
+    }
+
+    void EncodeSinkBintr::UnlinkFromCommon()
+    {
+        LOG_FUNC();
+        
+        m_pQueue->UnlinkFromSink();
+        m_pTransform->UnlinkFromSink();
+        m_pCapsFilter->UnlinkFromSink();
+        m_pEncoder->UnlinkFromSink();
+        m_pParser->UnlinkFromSink();
+    }
+    
+    void EncodeSinkBintr::GetEncoderSettings(uint* encoder, uint* bitrate, uint* iframeInterval)
+    {
+        LOG_FUNC();
+        
+        *encoder = m_encoder;
         
         if (m_bitrate)
         {
@@ -1590,35 +1914,7 @@ namespace DSL
         {
             *bitrate = m_defaultBitrate;
         }    
-        *interval = m_interval;
-    }
-    
-    bool EncodeSinkBintr::SetEncoderSettings(uint codec, uint bitrate, uint interval)
-    {
-        LOG_FUNC();
-        
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Encoder Settings for EncodeSinkBintr '" 
-                << GetName() << "' as it's currently in use");
-            return false;
-        }
-
-        m_codec = codec;
-        m_bitrate = bitrate;
-        m_interval = interval;
-
-        if (m_bitrate)
-        {
-            m_pEncoder->SetAttribute("bitrate", m_bitrate);
-        }
-        else
-        {
-            m_pEncoder->SetAttribute("bitrate", m_defaultBitrate);
-        }
-        m_pEncoder->SetAttribute("iframeinterval", m_interval);
-
-        return true;
+        *iframeInterval = m_iframeInterval;
     }
     
     void EncodeSinkBintr::GetConverterDimensions(uint* width, uint* height)
@@ -1694,8 +1990,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     FileSinkBintr::FileSinkBintr(const char* name, const char* filepath, 
-        uint codec, uint container, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        uint encoder, uint container, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , m_container(container)
     {
         LOG_FUNC();
@@ -1728,13 +2024,13 @@ namespace DSL
             break;
         default:
             LOG_ERROR("Invalid container = '" << container << "' for new Sink '" << name << "'");
-            throw;
+            throw std::exception();
         }
 
         LOG_INFO("");
         LOG_INFO("Initial property values for FileSinkBintr '" << name << "'");
         LOG_INFO("  file-path          : " << filepath);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         LOG_INFO("  container          : " << m_container);
         if (m_bitrate)
         {
@@ -1744,7 +2040,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -1752,6 +2048,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
 
         AddChild(m_pContainer);
         AddChild(m_pSink);
@@ -1776,11 +2082,7 @@ namespace DSL
             LOG_ERROR("FileSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pContainer) or
+        if (!LinkToCommon(m_pContainer) or
             !m_pContainer->LinkToSink(m_pSink))
         {
             return false;
@@ -1798,21 +2100,16 @@ namespace DSL
             LOG_ERROR("FileSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pContainer->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
+        UnlinkFromCommon();
         m_isLinked = false;
     }
 
     //-------------------------------------------------------------------------
     
     RecordSinkBintr::RecordSinkBintr(const char* name, const char* outdir, 
-        uint codec, uint container, uint bitrate, uint interval, 
+        uint encoder, uint container, uint bitrate, uint iframeInterval, 
         dsl_record_client_listener_cb clientListener)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , RecordMgr(name, outdir, m_gpuId, container, clientListener)
     {
         LOG_FUNC();
@@ -1820,7 +2117,7 @@ namespace DSL
         LOG_INFO("");
         LOG_INFO("Initial property values for RecordSinkBintr '" << name << "'");
         LOG_INFO("  outdir             : " << outdir);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         LOG_INFO("  container          : " << container);
         if (m_bitrate)
         {
@@ -1830,7 +2127,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  enable-last-sample : " << "n/a");
@@ -1838,6 +2135,16 @@ namespace DSL
         LOG_INFO("  sync               : " << "n/a");
         LOG_INFO("  async              : " << "n/a");
         LOG_INFO("  qos                : " << "n/a");
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
     }
     
     RecordSinkBintr::~RecordSinkBintr()
@@ -1871,11 +2178,7 @@ namespace DSL
             
         AddChild(m_pRecordBin);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pRecordBin))
+        if (!LinkToCommon(m_pRecordBin))
         {
             return false;
         }
@@ -1894,12 +2197,8 @@ namespace DSL
             return;
         }
         DestroyContext();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
         
+        UnlinkFromCommon();
         RemoveChild(m_pRecordBin);
         
         // Destroy the RecordBin GSTNODETR
@@ -1911,8 +2210,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RtmpSinkBintr::RtmpSinkBintr(const char* name, 
-        const char* uri, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, DSL_CODEC_H264, bitrate, interval)
+        const char* uri, uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , m_uri(uri)
     {
         LOG_FUNC();
@@ -1940,9 +2239,9 @@ namespace DSL
         m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
+        LOG_INFO("Initial property values for RtmpSinkBintr '" << name << "'");
         LOG_INFO("  uri                : " << m_uri);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate            : " << m_bitrate);
@@ -1951,7 +2250,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -1959,6 +2258,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
 
         AddChild(m_pFlvmux);
         AddChild(m_pSink);
@@ -1984,11 +2293,7 @@ namespace DSL
             return false;
         }
         
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pFlvmux) or
+        if (!LinkToCommon(m_pFlvmux) or 
             !m_pFlvmux->LinkToSink(m_pSink))
         {
             return false;
@@ -2008,12 +2313,8 @@ namespace DSL
             return;
         }
 
+        UnlinkFromCommon();
         m_pFlvmux->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
 
@@ -2046,8 +2347,8 @@ namespace DSL
     
     RtspServerSinkBintr::RtspServerSinkBintr(const char* name, 
         const char* host, uint udpPort, uint rtspPort,
-        uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , m_host(host)
         , m_udpPort(udpPort)
         , m_rtspPort(rtspPort)
@@ -2057,25 +2358,34 @@ namespace DSL
     {
         LOG_FUNC();
 
-        switch (codec)
+        switch (encoder)
         {
-        case DSL_CODEC_H264 :
+        case DSL_ENCODER_HW_H264 :
+        case DSL_ENCODER_SW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
-            m_codecString.assign("H264");
+            m_encoderString.assign("H264");
             break;
             
-        case DSL_CODEC_H265 :
+        case DSL_ENCODER_HW_H265 :
+        case DSL_ENCODER_SW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
-            m_codecString.assign("H265");
+            m_encoderString.assign("H265");
             
             // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
             // why RTSP Encode Sink only ????
             m_pParser->SetAttribute("config-interval", -1);
             break;
+        case DSL_ENCODER_SW_MPEG4 :
+            m_pPayloader = DSL_ELEMENT_NEW("rtpmp4vpay", name);
+            m_encoderString.assign("MP4V-ES");
             
+            // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
+            // why RTSP Encode Sink only ????
+            m_pParser->SetAttribute("config-interval", -1);
+            break;    
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new Sink '" << name << "'");
-            throw;
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new Sink '" << name << "'");
+            throw std::exception();
         }
 
         m_pSink = DSL_ELEMENT_NEW("udpsink", name);
@@ -2101,7 +2411,7 @@ namespace DSL
         LOG_INFO("Initial property values for RtspServerSinkBintr '" << name << "'");
         LOG_INFO("  host               : " << m_host);
         LOG_INFO("  port               : " << m_udpPort);
-        LOG_INFO("  codec              : " << m_codec);
+        LOG_INFO("  encoder            : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate            : " << m_bitrate);
@@ -2110,7 +2420,7 @@ namespace DSL
         {
             LOG_INFO("  bitrate            : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval           : " << m_interval);
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
         LOG_INFO("  converter-width    : " << m_width);
         LOG_INFO("  converter-height   : " << m_height);
         LOG_INFO("  sync               : " << m_sync);
@@ -2118,6 +2428,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
 
         AddChild(m_pPayloader);
         AddChild(m_pSink);
@@ -2150,7 +2470,7 @@ namespace DSL
         std::string udpSrc = "(udpsrc name=pay0 port=" + std::to_string(m_udpPort) +
             " buffer-size=" + std::to_string(m_udpBufferSize) +
             " caps=\"application/x-rtp, media=video, clock-rate=90000, encoding-name=" +
-            m_codecString + ", payload=96 \")";
+            m_encoderString + ", payload=96 \")";
         
         // Create a nw RTSP Media Factory and set the launch settings
         // to the UDP source defined above
@@ -2167,11 +2487,7 @@ namespace DSL
         gst_rtsp_mount_points_add_factory(pMounts, uniquePath.c_str(), m_pFactory);
         g_object_unref(pMounts);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pPayloader) or
+        if (!LinkToCommon(m_pPayloader) or 
             !m_pPayloader->LinkToSink(m_pSink))
         {
             return false;
@@ -2236,13 +2552,9 @@ namespace DSL
             g_source_remove(m_pServerSrcId);
             m_pServerSrcId = 0;
         }
-        
+
+        UnlinkFromCommon();
         m_pPayloader->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
     
@@ -2257,8 +2569,8 @@ namespace DSL
     //-------------------------------------------------------------------------
     
     RtspClientSinkBintr::RtspClientSinkBintr(const char* name, const char* uri, 
-        uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
     {
         LOG_FUNC();
         
@@ -2284,7 +2596,7 @@ namespace DSL
         LOG_INFO("  profiles             : " << int_to_hex(m_profiles));
         LOG_INFO("  protocols            : " << int_to_hex(m_protocols));
         LOG_INFO("  tls-validation-flags : " << int_to_hex(m_tlsValidationFlags));
-        LOG_INFO("  codec                : " << m_codec);
+        LOG_INFO("  encoder              : " << m_encoder);
         if (m_bitrate)
         {
             LOG_INFO("  bitrate              : " << m_bitrate);
@@ -2293,13 +2605,23 @@ namespace DSL
         {
             LOG_INFO("  bitrate              : " << m_defaultBitrate);
         }
-        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  interval             : " << m_iframeInterval);
         LOG_INFO("  converter-width      : " << m_width);
         LOG_INFO("  converter-height     : " << m_height);
         LOG_INFO("  sync                 : " << "na");
         LOG_INFO("  async                : " << "na");
         LOG_INFO("  max-lateness         : " << "na");
         LOG_INFO("  qos                  : " << "na");
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
         AddChild(m_pSink);
     }
@@ -2323,11 +2645,7 @@ namespace DSL
             LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is already linked");
             return false;
         }
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pSink))
+        if (!LinkToCommon(m_pSink))
         {
             return false;
         }
@@ -2344,11 +2662,7 @@ namespace DSL
             LOG_ERROR("RtspClientSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
+        UnlinkFromCommon();
         m_isLinked = false;
     }
 
@@ -2529,6 +2843,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pMsgConverter);
         AddChild(m_pSink);
@@ -2730,6 +3054,16 @@ namespace DSL
         LOG_INFO("    identity         : " << m_identity);
         LOG_INFO("    participant      : " << m_participant);
         LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
     }
@@ -2811,6 +3145,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         LOG_INFO("interpipesink full name = " << m_pSink->GetName());
 
@@ -2954,6 +3298,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pVideoConv);
         AddChild(m_pVideoRate);
@@ -3211,6 +3565,16 @@ namespace DSL
         LOG_INFO("  max-lateness       : " << m_maxLateness);
         LOG_INFO("  qos                : " << m_qos);
         LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
         
         AddChild(m_pSink);
         AddChild(m_pTransform);
@@ -3353,7 +3717,7 @@ namespace DSL
         {
             LOG_ERROR("Failed to create caps for V4l2SinkBintr '"
                 << GetName() << "'");
-            throw;
+            throw std::exception();
         }
         m_pCapsFilter->SetAttribute("caps", pCaps);
         gst_caps_unref(pCaps);

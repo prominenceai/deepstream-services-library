@@ -2,7 +2,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -80,7 +80,7 @@ namespace DSL
     }
     
     SourceBintr::SourceBintr(const char* name)
-        : Bintr(name)
+        : QBintr(name)
         , m_cudaDeviceProp{0}
         , m_isLive(true)
         , m_fpsN(0)
@@ -183,20 +183,16 @@ namespace DSL
             throw;
         }
 
-        // ---- Queue as ghost pad to connect to Streammuxer
-        
-        m_pSourceQueue = DSL_ELEMENT_EXT_NEW("queue", name, "src-pad");
-        
         // add both elementrs as children to this Bintr
         AddChild(m_pBufferOutVidConv);
         AddChild(m_pBufferOutCapsFilter);
-        AddChild(m_pSourceQueue);
 
-        // Source (output) queue is "src" ghost-pad for all SourceBintrs
-        m_pSourceQueue->AddGhostPadToParent("src");
+        // IMPORTANT! Caps Filter is ghost-pad by default - will be changed if 
+        // duplicate Source is added.
+        m_pBufferOutCapsFilter->AddGhostPadToParent("src");
 
-        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
-        AddSrcPadProbes(m_pSourceQueue->GetGstElement());
+        // Add the Buffer and DS Event Probes to the caps-filter - src-pad only.
+        AddSrcPadProbes(m_pBufferOutCapsFilter->GetGstElement());
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -207,151 +203,153 @@ namespace DSL
     bool VideoSourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
     {
         LOG_FUNC();
-        
-        // If we're duplicating this source stream.
-        if (m_pDuplicateSourceTee)
-        {
-            // We link the upstream source element (input parameter) to the
-            // DuplicateSourceTee
-            if (!pSrcNodetr->LinkToSink(m_pDuplicateSourceTee) or
-                !m_pDuplicateSourceTeeQueue->LinkToSourceTee(
-                    m_pDuplicateSourceTee, "src_%u") or
-                !m_pDuplicateSourceTeeQueue->LinkToSink(m_pBufferOutVidConv))
-            {
-                return false;
-            }
-            // Add the queue as first element to the vector of linked elements
-            m_linkedCommonElements.push_back(m_pDuplicateSourceTeeQueue);
 
-            // Link all Duplicate Sources to the Duplicate Source Tee.
-            if (!linkAllDuplicates())
-            {
-                return false;
-            }
-        }
-        else
+        // If linking as a Nodetr (element), get the static sink-pad for 
+        // and then call the LinkToCommon(GstPad*) function below.
+        // IMPORTANT! This Nodetr must be unlinked in the UnlinkCommon()
+        GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                pSrcNodetr->GetGstElement(), "src");
+        if (!pStaticSrcPad)
         {
-            // We link the upstream source element (input parameter) to the
-            // videoconvert
-            if (!pSrcNodetr->LinkToSink(m_pBufferOutVidConv))
-            {
-                return false;
-            }
+            LOG_ERROR("Failed to get static src pad for VideoSourceBintr '" 
+                << GetName() << "'");
+            return false;
         }
-        return CompleteLinkToCommon();
+        bool retval = LinkToCommon(pStaticSrcPad);
+
+        gst_object_unref(pStaticSrcPad);
+
+        return retval;
     }
 
     bool VideoSourceBintr::LinkToCommon(GstPad* pSrcPad)
     {
         LOG_FUNC();
 
-        // If we're duplicating this source stream.
-        if (m_pDuplicateSourceTee)
-        {
-            // Static SinkPad for duplicating tee
-            GstPad* pStaticSinkPad = gst_element_get_static_pad(
-                    m_pDuplicateSourceTee->GetGstElement(), "sink");
-            if (!pStaticSinkPad)
-            {
-                LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
-                    << GetName() << "'");
-                return false;
-            }
-            if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
-            {
-                LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
-                    << GetName() << "'");
-                return false;
-            }
-            // We link the upstream source element (input parameter) to the
-            // DuplicateSourceTee
-            if (!m_pDuplicateSourceTeeQueue->LinkToSourceTee(
-                    m_pDuplicateSourceTee, "src_%u") or
-                !m_pDuplicateSourceTeeQueue->LinkToSink(m_pBufferOutVidConv))
-            {
-                return false;
-            }
-            // Add the queue as first element to the vector of linked elements
-            m_linkedCommonElements.push_back(m_pDuplicateSourceTeeQueue);
-            
-            // Link all Duplicate Sources to the Duplicate Source Tee.
-            if (!linkAllDuplicates())
-            {
-                return false;
-            }
-        }
-        else
-        {
-            // Static SinkPad for videoconverter
-            GstPad* pStaticSinkPad = gst_element_get_static_pad(
-                m_pBufferOutVidConv->GetGstElement(), "sink");
-            if (!pStaticSinkPad)
-            {
-                LOG_ERROR("Failed to get static sink pad for VideoSourceBintr '" 
-                    << GetName() << "'");
-                return false;
-            }
-            if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
-            {
-                LOG_ERROR("Failed to link src to sink pad for VideoSourceBintr '"
-                    << GetName() << "'");
-                return false;
-            }
-            gst_object_unref(pStaticSinkPad);
-        }
-        return CompleteLinkToCommon();
-    }
-    
-    bool VideoSourceBintr::CompleteLinkToCommon()
-    {
-        
-        // Add the videoconvert as first element to the vector of common elements
-        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
-        
-        if (m_pBufferOutVidRate)
-        {
-            // If viderate was created we link the videoconvert to it now
-            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
-            {
-                return false;
-            }
-            // Add the videorate to the vector of common elements
-            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
-
-        }            
-        // next we can link the last element in the vector to the capsfilter
-        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
-        {
-            return false;
-        }
-        m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
-         
-        // If the VideoSource has a dewarper, link it in next 
+        // If the VideoSource has a dewarper, add it as the first common element
+        // and link it to the Source's pre video converter queue.  
         if (HasDewarperBintr())
         {
-            if (!m_pDewarperBintr->LinkAll() or
-                !m_linkedCommonElements.back()->LinkToSink(m_pDewarperBintr))
+            if (!m_pDewarperBintr->LinkAll())
             {
                 LOG_ERROR("Failed to Link Dewarper for VideoSourceBintr '" 
                     << GetName() << "'");
                 return false;
             }
             m_linkedCommonElements.push_back(m_pDewarperBintr);
+            m_pDewarperBintr->LinkToSink(m_pQueue);
         }
-        
-        // Link to the final queue element - the source-ghost-pad for the bintr.
-        // IMPORTANT we don't add the queue to vector of linked elements.
-        // as we'll call UnlinkFromSink on each element.
-        if(!m_linkedCommonElements.back()->LinkToSink(m_pSourceQueue))
+
+        // Add the queue as first or next element to the vector of common elements.
+        m_linkedCommonElements.push_back(m_pQueue);
+
+        // We now have the first element (dewarper or queue) so we can link it
+        // with the Source specific pSrcPad passed into this function.
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_linkedCommonElements.front()->GetGstElement(), "sink"); 
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad from first common element '"
+                << m_linkedCommonElements.front()->GetName() 
+                << "' for VideoSourceBintr '" << GetName() << "'");
+            return false;
+        }
+        if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+        {
+            LOG_ERROR("Failed to link src pad to sink pad from first common element '"
+                << m_linkedCommonElements.front()->GetName() 
+                << "' for VideoSourceBintr '" << GetName() << "'");
+            return false;
+        }
+
+        // Link and add the Video Converter next
+        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidConv))
         {
             return false;
         }
+        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
+        
+        // If the viderate was created, add it as the next common element
+        // and link it to the Source's Video Converter.
+        if (m_pBufferOutVidRate)
+        {
+            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
+            {
+                return false;
+            }
+            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
+        }            
+
+        // Link to the caps-filter element.
+        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
+        {
+            return false;
+        }
+
+        if (m_pDuplicateSourceTee)
+        {
+            // Only add the Caps Filter to the list of linked components
+            // if it's not the last component... i.e. there's duplicates.
+            m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
+            
+            if (!m_linkedCommonElements.back()->LinkToSink(m_pDuplicateSourceTee))
+            {
+                return false;
+            }
+            // Link all Duplicate Sources to the Duplicate Source Tee.
+            if (!linkAllDuplicates())
+            {
+                return false;
+            }
+            // Link the extra Queue back to the Duplicate Source Tee.
+            if (!m_pDuplicateSourceTeeQueue->LinkToSourceTee(
+                    m_pDuplicateSourceTee, "src_%u"))
+            {
+                return false;
+            }
+        }
+            
         return true;
     }
-
+    
     void VideoSourceBintr::UnlinkCommon()
     {
         LOG_FUNC();
+
+        // Get a reference to the sink pad of the first common element
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_linkedCommonElements.front()->GetGstElement(), "sink");
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad for Elementr '" 
+                << m_linkedCommonElements.front()->GetName() << "'");
+            return;
+        }
+        // Check to see if it is currently linked.  This will be true for all
+        // sources that call LinkToCommon(DSL_NODETR_PTR) and false for all 
+        // sources that call LinkToCommon(GstPad*) from pad_added callbacks.
+        if (gst_pad_is_linked(pStaticSinkPad))
+        {                
+            GstPad* pSrcPad = gst_pad_get_peer(pStaticSinkPad);
+            if (!pSrcPad)
+            {
+                LOG_ERROR("Failed to get peer src pad for Elementr '" 
+                    << m_linkedCommonElements.front()->GetName() << "'");
+                return;
+            }
+            LOG_INFO("Unlinking common front Elementr '" 
+                << m_linkedCommonElements.front()->GetName() 
+                << "' from its peer src pad");
+
+            if (!gst_pad_unlink(pSrcPad, pStaticSinkPad))
+            {
+                LOG_ERROR("Failed to unlink src pad for Elementr '" 
+                    << m_linkedCommonElements.front()->GetName() << "'");
+                return;
+            }
+            gst_object_unref(pSrcPad);
+        }
+        gst_object_unref(pStaticSinkPad);
 
         // iterate through the list of linked Elements, unlinking each
         for (auto const& ivec: m_linkedCommonElements)
@@ -360,7 +358,7 @@ namespace DSL
         }
         m_linkedCommonElements.clear();
 
-        // If we're duplicating this source stream.
+        // If we're duplicating this source's stream.
         if (m_pDuplicateSourceTee)
         {
             m_pDuplicateSourceTeeQueue->UnlinkFromSourceTee();
@@ -810,7 +808,7 @@ namespace DSL
     }
     
     bool VideoSourceBintr::AddDuplicateSource(
-        DSL_VIDEO_SOURCE_PTR pDuplicateSource)
+        DSL_SOURCE_PTR pDuplicateSource)
     {
         LOG_FUNC();
         
@@ -842,6 +840,9 @@ namespace DSL
                 
             AddChild(m_pDuplicateSourceTee);
             AddChild(m_pDuplicateSourceTeeQueue);
+
+            m_pBufferOutCapsFilter->RemoveGhostPadFromParent("src");
+            m_pDuplicateSourceTeeQueue->AddGhostPadToParent("src");
         }
         // add the duplicate to the map of duplicates for this VideoSourceBintr
         m_duplicateSources[pDuplicateSource->GetName()] = pDuplicateSource;
@@ -849,7 +850,7 @@ namespace DSL
     }
     
     bool VideoSourceBintr::RemoveDuplicateSource(
-        DSL_VIDEO_SOURCE_PTR pDuplicateSource)
+        DSL_SOURCE_PTR pDuplicateSource)
     {
         LOG_FUNC();
         
@@ -874,10 +875,13 @@ namespace DSL
         // remove the duplicate from the map of duplicates for this VideoSourceBintr
         m_duplicateSources.erase(pDuplicateSource->GetName());
         
-        // if this was the last DuplicateSourceBintr to be remove, then we need
-        // to delete the Tee and Queue elements used to support duplicates.
+        // if this was the last DuplicateSourceBintr to be removed, then we need
+        // to delete the Tee and Queue elements used to support duplicates, and
+        // set the Caps Filter back as source ghost pad.
         if (!m_duplicateSources.size())
         {
+            m_pDuplicateSourceTeeQueue->RemoveGhostPadFromParent("src");
+            m_pBufferOutCapsFilter->AddGhostPadToParent("src");
             RemoveChild(m_pDuplicateSourceTee);
             RemoveChild(m_pDuplicateSourceTeeQueue);
             m_pDuplicateSourceTee = nullptr;
@@ -890,35 +894,20 @@ namespace DSL
     //*********************************************************************************
     DuplicateSourceBintr::DuplicateSourceBintr(const char* name, 
             const char* original, bool isLive)
-        : VideoSourceBintr(name) 
+        : SourceBintr(name) 
         , m_original(original)
     {
         LOG_FUNC();
         
         m_isLive = isLive;
         
-        m_pSinkQueue = DSL_ELEMENT_EXT_NEW("queue", name, "sink-pad");
-
         LOG_INFO("");
         LOG_INFO("Initial property values for DuplicateSourceBintr '" << name << "'");
         LOG_INFO("  original-source   : " << m_original);
-        LOG_INFO("  is-live           : " << m_isLive);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
 
-        // add all elementrs as childer to this Bintr
-        AddChild(m_pSinkQueue);
-
-        // Sink (input) queue is "sink" ghost-pad for the DuplicateSourceBintr
-        m_pSinkQueue->AddGhostPadToParent("sink");
+        // Source queue is both "sink" and "src" ghost-pad for the DuplicateSourceBintr
+        m_pQueue->AddGhostPadToParent("src");
+        m_pQueue->AddGhostPadToParent("sink");
     }
 
     DuplicateSourceBintr::~DuplicateSourceBintr()
@@ -936,12 +925,7 @@ namespace DSL
                 << "' is already in a linked state");
             return false;
         }
-        
-        if (!LinkToCommon(m_pSinkQueue))
-        {
-            return false;
-        }
-        
+        // Single queue element, nothing to link
         m_isLinked = true;
         
         return true;
@@ -957,8 +941,7 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        m_pSinkQueue->UnlinkFromSink();
-        UnlinkCommon();
+        // Single queue element, nothing to unlink
         m_isLinked = false;
     }
 
@@ -1059,6 +1042,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // TODO support GST 1.20 properties
         // LOG_INFO("max-buffers = " << m_maxBuffers);
@@ -1105,7 +1098,6 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        m_pSourceElement->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -1430,7 +1422,176 @@ namespace DSL
         static_cast<AppSourceBintr*>(pAppSrcBintr)->
             HandleEnoughData();
     }
+
+    //*********************************************************************************
+    CustomSourceBintr::CustomSourceBintr(const char* name, bool isLive)
+        : VideoSourceBintr(name) 
+        , m_nextElementIndex(0)
+    {
+        LOG_FUNC();
         
+        m_isLive = isLive;
+        
+        LOG_INFO("");
+        LOG_INFO("Initial property values for CustomSourceBintr '" << name << "'");
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  width             : " << m_width);
+        LOG_INFO("  height            : " << m_height);
+        LOG_INFO("  fps-n             : " << m_fpsN);
+        LOG_INFO("  fps-d             : " << m_fpsD);
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
+
+    }
+
+    CustomSourceBintr::~CustomSourceBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    bool CustomSourceBintr::AddChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't add child '" << pChild->GetName() 
+                << "' to CustomSourceBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is already a child of CustomSourceBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+ 
+        // increment next index, assign to the Element.
+        pChild->SetIndex(++m_nextElementIndex);
+
+        // Add the shared pointer to the CustomSourceBintr to the indexed map 
+        // and as a child.
+        m_elementrsIndexed[m_nextElementIndex] = pChild;
+        return GstNodetr::AddChild(pChild);
+    }
+    
+    bool CustomSourceBintr::RemoveChild(DSL_ELEMENT_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't remove child '" << pChild->GetName() 
+                << "' from CustomSourceBintr '" << m_name 
+                << "' as it is currently linked");
+            return false;
+        }
+        if (!IsChild(pChild))
+        {
+            LOG_ERROR("GstElementr '" << pChild->GetName() 
+                << "' is not a child of CustomSourceBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        
+        // Remove the shared pointer to the CustomSourceBintr from the indexed map  
+        // and as a child.
+        m_elementrsIndexed.erase(pChild->GetIndex());
+        return GstNodetr::RemoveChild(pChild);
+    }
+    
+    bool CustomSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' is already linked");
+            return false;
+        }
+        if (!m_elementrsIndexed.size()) 
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' has no Elements to link");
+            return false;
+        }
+        for (auto const &imap: m_elementrsIndexed)
+        {
+            // Link the Elementr to the last/previous Elementr in the vector 
+            // of linked Elementrs 
+            if (m_elementrsLinked.size() and 
+                !m_elementrsLinked.back()->LinkToSink(imap.second))
+            {
+                return false;
+            }
+            // Add Elementr to the end of the linked Elementrs vector.
+            m_elementrsLinked.push_back(imap.second);
+
+            LOG_INFO("CustomSourceBintr '" << GetName() 
+                << "' Linked up child Elementr '" << 
+                imap.second->GetName() << "' successfully");                    
+        }
+        // Link the back element to the common VideoSource buffer out elements
+        LinkToCommon(m_elementrsLinked.back());
+
+        m_isLinked = true;
+        
+        return true;
+    }
+    
+    void CustomSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' is not linked");
+            return;
+        }
+        if (!m_elementrsLinked.size()) 
+        {
+            LOG_ERROR("CustomSourceBintr '" << m_name 
+                << "' has no Elements to unlink");
+            return;
+        }
+        // Unlink the common elements
+        UnlinkCommon();
+        
+        // iterate through the list of Linked Components, unlinking each
+        for (auto const& ivector: m_elementrsLinked)
+        {
+            // all but the tail element will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
+        }
+        m_elementrsLinked.clear();
+
+        m_isLinked = false;
+    }
+
     //*********************************************************************************
     // Initilize the unique id list for all CsiSourceBintrs 
     std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
@@ -1470,7 +1631,7 @@ namespace DSL
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         
         // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-        if (NVDS_VERSION_MINOR < 3)
+        if ((NVDS_VERSION_MAJOR < 7) and (NVDS_VERSION_MINOR < 3))
         {
             m_pSourceElement->SetAttribute("bufapi-version", TRUE);
         }
@@ -1506,6 +1667,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1547,7 +1718,6 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
-        m_pSourceCapsFilter->UnlinkFromSink();
         UnlinkCommon();
         
         m_isLinked = false;
@@ -1665,6 +1835,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1718,13 +1898,11 @@ namespace DSL
             return;
         }
         
-        // x86_64
         m_pSourceElement->UnlinkFromSink();
-        m_pSourceCapsFilter->UnlinkFromSink();
 
         if (!m_cudaDeviceProp.integrated)
         {
-            m_pdGpuVidConv->UnlinkFromSink();
+            m_pSourceCapsFilter->UnlinkFromSink();
         }
         UnlinkCommon();
         m_isLinked = false;
@@ -1935,6 +2113,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2407,6 +2595,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
     }
@@ -2457,7 +2655,6 @@ namespace DSL
         }
         m_pSourceElement->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-        m_pDecoder->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -2571,6 +2768,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
         
         AddChild(m_pSourceElement);
 
@@ -2627,7 +2834,6 @@ namespace DSL
         
         m_pSourceElement->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-        m_pDecoder->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -2760,6 +2966,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
         LOG_INFO("    crop-post-conv  : 0:0:0:0" );
         LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2878,7 +3094,6 @@ namespace DSL
         
         m_pSourceElement->UnlinkFromSink();
         m_pSourceCapsFilter->UnlinkFromSink();
-        m_pImageOverlay->UnlinkFromSink();
         UnlinkCommon();
         m_isLinked = false;
     }
@@ -2966,6 +3181,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
         LOG_INFO("    crop-post-conv    : 0:0:0:0" );
         LOG_INFO("    orientation       : " << m_bufferOutOrientation);
+        LOG_INFO("  queue               : " );
+        LOG_INFO("    leaky             : " << m_leaky);
+        LOG_INFO("    max-size          : ");
+        LOG_INFO("      buffers         : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes           : " << m_maxSizeBytes);
+        LOG_INFO("      time            : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold     : ");
+        LOG_INFO("      buffers         : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes           : " << m_minThresholdBytes);
+        LOG_INFO("      time            : " << m_minThresholdTime);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -3021,7 +3246,6 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        m_pSourceElement->UnlinkFromSink();
         UnlinkCommon();
         
         m_isLinked = false;
@@ -3116,6 +3340,7 @@ namespace DSL
         // Get the default properties
         m_pSourceElement->GetAttribute("tls-validation-flags", 
             &m_tlsValidationFlags);
+        m_pSourceElement->GetAttribute("udp-buffer-size", &m_udpBufferSize);
         m_pSourceElement->GetAttribute("drop-on-latency", &m_dropOnLatency);
         
         // Configure the source to generate NTP sync values
@@ -3125,10 +3350,10 @@ namespace DSL
         m_pSourceElement->SetAttribute("latency", m_latency);
         m_pSourceElement->SetAttribute("protocols", m_rtpProtocols);
 
-        g_signal_connect (m_pSourceElement->GetGObject(), "select-stream",
+        // Connect RTSP Source Setup Callbacks
+        g_signal_connect(m_pSourceElement->GetGObject(), "select-stream",
             G_CALLBACK(RtspSourceSelectStreamCB), this);
 
-        // Connect RTSP Source Setup Callbacks
         g_signal_connect(m_pSourceElement->GetGObject(), "pad-added", 
             G_CALLBACK(RtspSourceElementOnPadAddedCB), this);
 
@@ -3161,6 +3386,7 @@ namespace DSL
         LOG_INFO("  drop-on-latency      : " << m_dropOnLatency);
         LOG_INFO("  drop-frame-interval  : " << m_dropFrameInterval);
         LOG_INFO("  tls-validation-flags : " << std::hex << m_tlsValidationFlags);
+        LOG_INFO("  udp-buffer-size      : " << m_udpBufferSize);
         LOG_INFO("  width                : " << m_width);
         LOG_INFO("  height               : " << m_height);
         LOG_INFO("  fps-n                : " << m_fpsN);
@@ -3175,6 +3401,16 @@ namespace DSL
         LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
         LOG_INFO("    crop-post-conv     : 0:0:0:0" );
         LOG_INFO("    orientation        : " << m_bufferOutOrientation);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pDepayCapsfilter);
@@ -3286,7 +3522,6 @@ namespace DSL
             }
             m_pDepay->UnlinkFromSink();
             m_pParser->UnlinkFromSink();
-            m_pDecoder->UnlinkFromSink();
             UnlinkCommon();
         }
         m_isLinked = false;
@@ -3435,7 +3670,7 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
-                << GetName() << "' as it's currently in use");
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_latency = latency;
@@ -3457,8 +3692,8 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_ERROR("Unable to set latency for RtspSourceBintr '" 
-                << GetName() << "' as it's currently in use");
+            LOG_ERROR("Unable to set drop-on-latency for RtspSourceBintr '" 
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_dropOnLatency = dropOnLatency;
@@ -3481,12 +3716,36 @@ namespace DSL
         if (IsLinked())
         {
             LOG_ERROR("Unable to set tls-validation-flags for RtspSourceBintr '" 
-                << GetName() << "' as it's currently in use");
+                << GetName() << "' as it's currently linked");
             return false;
         }
         m_tlsValidationFlags = flags;
         m_pSourceElement->SetAttribute("tls-validation-flags", 
             m_tlsValidationFlags);
+    
+        return true;
+    }
+
+    guint RtspSourceBintr::GetUdpBufferSize()
+    {
+        LOG_FUNC();
+
+        return m_udpBufferSize;
+    }
+    
+    bool RtspSourceBintr::SetUdpBufferSize(uint size)
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set udp-buffer-size for RtspSourceBintr '" 
+                << GetName() << "' as it's currently linked");
+            return false;
+        }
+        m_udpBufferSize = size;
+        m_pSourceElement->SetAttribute("udp-buffer-size", 
+            m_udpBufferSize);
     
         return true;
     }

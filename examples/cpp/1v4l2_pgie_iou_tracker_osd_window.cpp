@@ -269,7 +269,7 @@ int main(int argc, char** argv)
     }
     
     // Print out the final result
-    std::cout << dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << dsl_return_value_to_string(retval) << std::endl;
 
     dsl_delete_all();
 

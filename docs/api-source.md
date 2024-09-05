@@ -54,7 +54,7 @@ A Source's production of new buffers can be monitored for timeout by adding a [N
 ... currently under design.
 
 ## Video Sources
-There are eleven Video Source components supported, three of which are [Image Video Sources](image-video-sources):
+There are twelve (12) Video Source components supported, three of which are [Image Video Sources](image-video-sources):
 
 * [App Source](#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
@@ -67,6 +67,7 @@ There are eleven Video Source components supported, three of which are [Image Vi
 * [Multi Image Source](#dsl_source_image_multi_new) - Streamed at one image file per frame.
 * [Streaming Image Source](#dsl_source_image_stream_new)  - Single image streamed at a given frame rate. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Duplicate Source](#dsl_source_duplicate_new) - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
+* [Custom Source](#dsl_source_custom_new) - Used to create a Custom Video Source using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or released GStreamer plugins.
 
 All Video Sources are derived from the base "Source" class (as show in the hierarchy below), therefore all [source methods](#source-methods) can be called with any Video Source.
 
@@ -118,6 +119,9 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 &emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `image source`
 
+### Custom Video Sources
+The Custom Source API is used to create custom DSL Video Source Components using [GStreamer (GST) Elements](/docs/api-gst.md) created from installed or proprietary GStreamer plugins. See also [Custom Components](/docs/api-component.md#custom-components)[Custom Sink](/docs/api-source.md#custom-sinks).
+
 ## Source API
 **Typedefs**
 * [`dsl_rtsp_connection_data`](#dsl_rtsp_connection_data)
@@ -139,6 +143,9 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [`dsl_source_image_multi_new`](#dsl_source_image_multi_new)
 * [`dsl_source_image_stream_new`](#dsl_source_image_stream_new)
 * [`dsl_source_duplicate_new`](#dsl_source_duplicate_new)
+* [`dsl_source_custom_new`](#dsl_source_custom_new)
+* [`dsl_source_custom_new_element_add`](#dsl_source_custom_new_element_add)
+* [`dsl_source_custom_new_element_add_many`](#dsl_source_custom_new_element_add_many)
 
 **Source Methods:**
 * [`dsl_source_unique_id_get`](#dsl_source_unique_id_get)
@@ -223,6 +230,8 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 * [`dsl_source_rtsp_drop_on_latency_enabled_set`](#dsl_source_rtsp_drop_on_latency_enabled_set)
 * [`dsl_source_rtsp_tls_validation_flags_get`](#dsl_source_rtsp_tls_validation_flags_get)
 * [`dsl_source_rtsp_tls_validation_flags_set`](#dsl_source_rtsp_tls_validation_flags_set)
+* [`dsl_source_rtsp_udp_buffer_size_get`](#dsl_source_rtsp_udp_buffer_size_get)
+* [`dsl_source_rtsp_udp_buffer_size_set`](#dsl_source_rtsp_udp_buffer_size_set)
 * [`dsl_source_rtsp_state_change_listener_add`](#dsl_source_rtsp_state_change_listener_add)
 * [`dsl_source_rtsp_state_change_listener_remove`](#dsl_source_rtsp_state_change_listener_remove)
 * [`dsl_source_rtsp_tap_add`](#dsl_source_rtsp_tap_add)
@@ -251,6 +260,12 @@ Image Video Sources are used to decode JPEG image files into `video/x-raw' buffe
 **Duplicate Source Methods**
 * [`dsl_source_duplicate_original_get`](#dsl_source_duplicate_original_get)
 * [`dsl_source_duplicate_original_set`](#dsl_source_duplicate_original_set)
+
+**Custom Source Methods**
+* [`dsl_source_custom_element_add`](#dsl_source_custom_element_add)
+* [`dsl_source_custom_element_add_many`](#dsl_source_custom_element_add_many)
+* [`dsl_source_custom_element_remove`](#dsl_source_custom_element_remove)
+* [`dsl_source_custom_element_remove_many`](#dsl_source_custom_element_remove_many)
 
 ## Return Values
 Streaming Source Methods use the following return codes, in addition to the general [Component API Return Values](/docs/api-component.md).
@@ -794,16 +809,15 @@ retval = dsl_source_image_stream_new('my-image-stream-source', './streams/image4
 ```C
 DslReturnType dsl_source_duplicate_new(const wchar_t* name, const wchar_t* original);
 ```
-This service creates a new, uniquely named Duplicate Source used to duplicate the stream of another named Video Source. Both the Duplicate Source and the Original Source must be added to the same Pipeline. The Duplicate Source will be Tee'd into the Original Source prior to the Original Source's output-buffer video-converter, video-rate-controller,  and caps-filter (output buffer control plugins built into every Video Source). The Duplicate Source, as a Video Source, will have its own output buffer control plugins meaning both sources will have independent control over their buffer-out formatting, dimensions, frame-rate, cropping, and orientation.
+This service creates a new, uniquely named Duplicate Source used to duplicate the stream of another named Video Source. Both the Duplicate Source and the Original Source must be added to the same Pipeline. The Duplicate Source will be tee'd into the Original Source **after** the Original Source's video-converter, video-rate-controller (optional), and caps-filter; output buffer control plugins built into every Video Source. The Duplicate Source does not have its own output buffer control.
 
-The relationship between Duplicate Sources and Original Sources is many to one, i.e. multiple Duplicates Sources can duplicate the same Original Source and a Duplicate Source can be an Original Source for one or more other Duplicate Sources.
+The relationship between Duplicate Sources and Original Sources is many to one, i.e. multiple Duplicates Sources can duplicate the same Original Source.
 
 **IMPORTANT!** The Original Source must exist prior to calling the Duplicate Source constructor. 
 
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `duplicate source`
 
 **Parameters**
@@ -817,6 +831,94 @@ The relationship between Duplicate Sources and Original Sources is many to one, 
 ```Python
 retval = dsl_source_duplicate_new('my-duplicate-source', 'my-rtsp-source')
 ```
+<br>
+
+### *dsl_source_custom_new*
+```C
+DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
+```
+This service creates a new, uniquely named Custom Source component. 
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`custom source`](#custom-source-methods)<br>
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `is_live` [in] true if the Source is to act as a live source, false otherwise.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_custom_new('my-custom-source', False)
+```
+
+<br>
+
+### *dsl_source_custom_new_element_add*
+```C
+DslReturnType dsl_source_custom_new_element_add(const wchar_t* name, 
+    boolean is_live, const wchar_t* element);
+```
+This service creates a new, uniquely named Custom Source component and adds a GST Element to it. 
+
+**IMPORTAT!** Elements added to Custom Source will be linked in the order they are added.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`custom source`](#custom-source-methods)<br>
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `is_live` [in] true if the Source is to act as a live source, false otherwise.
+* `element` [in] name of the GST Element to add..
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_custom_new_element_add('my-custom-source', 
+    False, 'my-element')
+```
+
+<br>
+
+### *dsl_source_custom_new_element_add_many*
+```C
+DslReturnType dsl_source_custom_new_element_add_many(const wchar_t* name, 
+    boolean is_live, const wchar_t** elements);
+```
+This service creates a new, uniquely named Custom Source component and adds a NULL terminated list of named GST Elements to it. 
+
+**IMPORTAT!** Elements added to Custom Source will be linked in the order they are added.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`custom source`](#custom-source-methods)<br>
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `is_live` [in] true if the Source is to act as a live source, false otherwise.
+* `elements` [in] NULL terminated array of GST Element names to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_custom_new_element_add_many('my-custom-source', 
+    False, ['my-element-1', 'my-element-2', 'my-element-3', None)
+```
+
 <br>
 
 ---
@@ -2276,6 +2378,46 @@ retval = dsl_source_rtsp_tls_validation_flags_set('my-rtsp-source',
 ```
 <br>
 
+### *dsl_source_rtsp_udp_buffer_size_get*
+```C
+DslReturnType dsl_source_rtsp_udp_buffer_size_get(const wchar_t* name,
+    uint* size);
+```
+This service gets the current size of the kernel UDP receive buffer for the named RTSP Source.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to query
+ * `size` - [out] current size of the kernel UDP receive buffer in bytes. Default = 524288.
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, size = dsl_source_rtsp_udp_buffer_size_get('my-rtsp-source')
+```
+<br>
+
+### *dsl_source_rtsp_udp_buffer_size_set*
+```C
+DslReturnType dsl_source_rtsp_udp_buffer_size_set(const wchar_t* name,
+    uint size);
+```
+This service sets the size of the kernel UDP receive buffer for the named RTSP Source to use.
+
+**Parameters**
+ * `name` - [in] unique name of the Source to update
+ * `size ` - [in] new size for the kernel UDP receive buffer in bytes. 
+ 
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_rtsp_udp_buffer_size_set('my-rtsp-source', new_buffer_size)
+```
+<br>
+
 ### *dsl_source_rtsp_state_change_listener_add*
 ```C
 DslReturnType dsl_source_rtsp_state_change_listener_add(const wchar_t* pipeline,
@@ -2639,6 +2781,7 @@ retval = dsl_source_image_stream_timeout_set('my-image-source', 30)
 
 <br>
 
+## Duplicate Source Methods
 ### *dsl_source_duplicate_original_get*
 ```C
 DslReturnType dsl_source_duplicate_original_get(const wchar_t* name, 
@@ -2680,6 +2823,95 @@ retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-usb-source
 
 <br>
 
+## Custom Source Methods
+### *dsl_source_custom_element_add*
+```C++
+DslReturnType dsl_source_custom_element_add(const wchar_t* name,
+   const wchar_t* element);
+```
+This service adds a single named GST Element to a named Custom Source. The add service will fail if the Element is currently `in-use` by any other Component. The Element's `in-use` state will be set to `true` on successful add.
+
+**IMPORTAT!** Elements added to Custom Source will be linked in the order they are added.
+
+**Parameters**
+* `name` - [in] unique name of the Custom Source to update.
+* `element` - [in] unique name of the GST Element to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful addition. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_custom_element_add('my-custom-source', 'my-element')
+```
+
+<br>
+
+### *dsl_source_custom_element_add_many*
+```C++
+DslReturnType dsl_source_custom_element_add_many(const wchar_t* name, const wchar_t** elements);
+```
+Adds a list of named GST Elements to a named Custom Source. The add service will fail if any of the Elements are currently `in-use` by any other Component. All of the Element's `in-use` state will be set to true on successful add.
+
+**IMPORTAT!** Elements added to Custom Source will be linked in the order they are added.
+
+* `name` - [in] unique name of the Custom Source to update.
+* `elements` - [in] a NULL terminated array of uniquely named GST Elements to add.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful  addition. One of the [Return Values](#return-values) defined above on failure.
+
+
+**Python Example**
+```Python
+retval = dsl_source_custom_element_add_many('my-custom-source',
+  ['my-element-1', 'my-element-2', None])
+```
+
+<br>
+
+---
+### *dsl_source_custom_element_remove*
+```C++
+DslReturnType dsl_source_custom_element_remove(const wchar_t* name, const wchar_t* element);
+```
+This service removes a single named GST Element from a named Custom Source.
+
+**Parameters**
+* `name` - [in] unique name of the Custom Source to update.
+* `element` - [in] unique name of the GST Element to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_custom_element_remove('my-custom-source', 'my-element')
+```
+
+<br>
+
+
+### *dsl_source_custom_element_remove_many*
+```C++
+DslReturnType dsl_source_custom_element_remove_many(const wchar_t* name, const wchar_t** elements);
+```
+This services removes a list of named Elements from a named Custom Source.
+
+* `name` - [in] unique name for the Custom Source to update.
+* `elements` - [in] a NULL terminated array of uniquely named GST Elements to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful removal. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_custom_element_remove_many('my-custom-source',
+  ['my-element-1', 'my-element-2', None])
+```
+
+<br>
+
 ---
 
 ## API Reference
@@ -2700,7 +2932,7 @@ retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-usb-source
 * [Sink](/docs/api-sink.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)

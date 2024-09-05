@@ -129,6 +129,121 @@ namespace DSL
         }
     }
         
+    DslReturnType Services::SinkCustomNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            if (m_components[name])
+            {   
+                LOG_ERROR("Custom Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            
+            m_components[name] = DSL_CUSTOM_SINK_NEW(name);
+            LOG_INFO("New Custom Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Custom Sink '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkCustomElementAdd(const char* name, 
+        const char* element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, CustomSinkBintr);
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
+            
+            // Can't add elements if they're In use by another GstBin
+            if (m_gstElements[element]->IsInUse())
+            {
+                LOG_ERROR("Unable to add element '" << element 
+                    << "' as it's currently in use");
+                return DSL_RESULT_GST_ELEMENT_IN_USE;
+            }
+
+            // Cast the Component to a CustomSinkBintr to call the correct 
+            // AddChild method.
+            DSL_CUSTOM_SINK_PTR pCustomSinkBintr = 
+                std::dynamic_pointer_cast<CustomSinkBintr>(m_components[name]);
+                
+            if (!pCustomSinkBintr->AddChild(m_gstElements[element]))
+            {
+                LOG_ERROR("Custom Sink '" << name
+                    << "' failed to add element '" << element << "'");
+                return DSL_RESULT_SINK_ELEMENT_ADD_FAILED;
+            }
+            LOG_INFO("Element '" << element 
+                << "' was added to Custom Sink '" << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custom Sink '" << name
+                << "' threw exception adding element '" << element << "'");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }    
+    
+    DslReturnType Services::SinkCustomElementRemove(const char* name, 
+        const char* element)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, CustomSinkBintr);
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
+            
+            if (!m_gstElements[element]->IsParent(m_components[name]))
+            {
+                LOG_ERROR("Element '" << element << 
+                    "' is not in use by Custom Sink '" << name << "'");
+                return DSL_RESULT_SINK_ELEMENT_NOT_IN_USE;
+            }
+            // Cast the Component to a CustomSinkBintr to call the correct 
+            // AddChild method.
+            DSL_CUSTOM_SINK_PTR pCustomSinkBintr = 
+                std::dynamic_pointer_cast<CustomSinkBintr>(m_components[name]);
+                
+            if (!pCustomSinkBintr->RemoveChild(m_gstElements[element]))
+            {
+                LOG_ERROR("Custom Sink '" << name
+                    << "' failed to remove element '" << element << "'");
+                return DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED;
+            }
+            LOG_INFO("Element '" << element 
+                << "' was removed from Custom Sink '" << name 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Custom Sink '" << name 
+                << "' threw an exception removing Element");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SinkFakeNew(const char* name)
     {
         LOG_FUNC();
@@ -817,7 +932,7 @@ namespace DSL
     }
         
     DslReturnType Services::SinkFileNew(const char* name, const char* filepath, 
-            uint codec, uint container, uint bitrate, uint interval)
+            uint encoder, uint container, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -830,11 +945,11 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_H265)
+            if (encoder > DSL_ENCODER_SW_MPEG4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for File Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
@@ -843,7 +958,7 @@ namespace DSL
                 return DSL_RESULT_SINK_CONTAINER_VALUE_INVALID;
             }
             m_components[name] = DSL_FILE_SINK_NEW(name, 
-                filepath, codec, container, bitrate, interval);
+                filepath, encoder, container, bitrate, iframeInterval);
             
             LOG_INFO("New File Sink '" << name << "' created successfully");
 
@@ -857,8 +972,8 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRecordNew(const char* name, 
-        const char* outdir, uint codec, uint container, 
-        uint bitrate, uint interval, dsl_record_client_listener_cb clientListener)
+        const char* outdir, uint encoder, uint container, 
+        uint bitrate, uint iframeInterval, dsl_record_client_listener_cb clientListener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -881,11 +996,11 @@ namespace DSL
                 return DSL_RESULT_SINK_PATH_NOT_FOUND;
             }
 
-            if (codec > DSL_CODEC_H265)
+            if (encoder > DSL_ENCODER_SW_MPEG4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for Record Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             if (container > DSL_CONTAINER_MKV)
             {   
@@ -895,7 +1010,7 @@ namespace DSL
             }
 
             m_components[name] = DSL_RECORD_SINK_NEW(name, outdir, 
-                codec, container, bitrate, interval, clientListener);
+                encoder, container, bitrate, iframeInterval, clientListener);
             
             LOG_INFO("New Record Sink '" << name << "' created successfully");
 
@@ -1465,7 +1580,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkEncodeSettingsGet(const char* name, 
-        uint* codec, uint* bitrate, uint* interval)
+        uint* encoder, uint* bitrate, uint* iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1478,12 +1593,12 @@ namespace DSL
             DSL_ENCODE_SINK_PTR encodeSinkBintr = 
                 std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
 
-            encodeSinkBintr->GetEncoderSettings(codec, bitrate, interval);
+            encodeSinkBintr->GetEncoderSettings(encoder, bitrate, iframeInterval);
             
             LOG_INFO("Encode Sink '" << name 
-                << "' returned codec = " << *codec 
+                << "' returned encoder = " << *encoder 
                 << " bitrate = " << *bitrate 
-                << " and interval = " << *interval << " successfully");
+                << " and iframeInterval = " << *iframeInterval << " successfully");
             
             return DSL_RESULT_SUCCESS;
         }
@@ -1491,54 +1606,6 @@ namespace DSL
         {
             LOG_ERROR("File Sink '" << name 
                 << "' threw an exception getting Encoder settings");
-            return DSL_RESULT_SINK_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::SinkEncodeSettingsSet(const char* name, 
-        uint codec, uint bitrate, uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_ENCODE_SINK(m_components, name);
-
-            DSL_ENCODE_SINK_PTR encodeSinkBintr = 
-                std::dynamic_pointer_cast<EncodeSinkBintr>(m_components[name]);
-
-            if (m_components[name]->IsType(typeid(RtmpSinkBintr)) and
-                codec == DSL_CODEC_H265)
-            {   
-                LOG_ERROR("Codec value = DSL_CODEC_H265 is invalid for RTMP Sink '"
-                    << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-            }
-                    
-            if (codec > DSL_CODEC_H265)
-            {   
-                LOG_ERROR("Invalid Codec value = " << codec 
-                    << " for Encode Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
-            }
-
-            if (!encodeSinkBintr->SetEncoderSettings(codec, bitrate, interval))
-            {
-                LOG_ERROR("Encode Sink '" << name 
-                    << "' failed to set Encoder settings");
-                return DSL_RESULT_SINK_SET_FAILED;
-            }
-            LOG_INFO("Encode Sink '" << name << "' set Bitrate = " 
-                << bitrate << " and Interval = " << interval << " successfully");
-            
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("File Sink'" << name 
-                << "' threw an exception setting Encoder settings");
             return DSL_RESULT_SINK_THREW_EXCEPTION;
         }
     }
@@ -1605,7 +1672,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtmpNew(const char* name, const char* uri, 
-        uint bitrate, uint interval)
+        uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1618,8 +1685,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
+            if (encoder != DSL_ENCODER_HW_H264 and encoder != DSL_ENCODER_SW_H264)
+            {   
+                LOG_ERROR("Invalid Encoder value = " << encoder 
+                    << " for RTSP Server Sink '" << name << "'");
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
+            }
             m_components[name] = DSL_RTMP_SINK_NEW(name, 
-                uri, bitrate, interval);
+                uri, encoder, bitrate, iframeInterval);
 
             LOG_INFO("New RTMP Sink '" << name 
                 << "' created successfully");
@@ -1696,7 +1769,7 @@ namespace DSL
     }
     
     DslReturnType Services::SinkRtspServerNew(const char* name, const char* host, 
-        uint udpPort, uint rtspPort, uint codec, uint bitrate, uint interval)
+        uint udpPort, uint rtspPort, uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1709,14 +1782,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_H265)
+            if (encoder > DSL_ENCODER_SW_MPEG4)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for RTSP Server Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_RTSP_SERVER_SINK_NEW(name, 
-                host, udpPort, rtspPort, codec, bitrate, interval);
+                host, udpPort, rtspPort, encoder, bitrate, iframeInterval);
 
             LOG_INFO("New RTSP Server Sink '" << name 
                 << "' created successfully");
@@ -1762,7 +1835,7 @@ namespace DSL
     }
 
     DslReturnType Services::SinkRtspClientNew(const char* name, const char* uri, 
-            uint codec, uint bitrate, uint interval)
+            uint encoder, uint bitrate, uint iframeInterval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1775,14 +1848,14 @@ namespace DSL
                 LOG_ERROR("Sink name '" << name << "' is not unique");
                 return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
             }
-            if (codec > DSL_CODEC_H265)
+            if (encoder > DSL_ENCODER_SW_H265)
             {   
-                LOG_ERROR("Invalid Codec value = " << codec 
+                LOG_ERROR("Invalid Encoder value = " << encoder 
                     << " for RTSP-CLient Sink '" << name << "'");
-                return DSL_RESULT_SINK_CODEC_VALUE_INVALID;
+                return DSL_RESULT_SINK_ENCODER_VALUE_INVALID;
             }
             m_components[name] = DSL_RTSP_CLIENT_SINK_NEW(name, 
-                uri, codec, bitrate, interval);
+                uri, encoder, bitrate, iframeInterval);
             
             LOG_INFO("New RTSP-Client Sink '" << name 
                 << "' created successfully");
@@ -3331,6 +3404,7 @@ namespace DSL
         }
     }
             
+
     DslReturnType Services::SinkSyncEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();
@@ -3345,7 +3419,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *enabled = (boolean)pSinkBintr->GetSyncEnabled();
+            if (!pSinkBintr->GetSyncEnabled(enabled))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned sync enabled = " 
                 << *enabled  << " successfully");
@@ -3406,7 +3483,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *enabled = (boolean)pSinkBintr->GetAsyncEnabled();
+            if (!pSinkBintr->GetAsyncEnabled(enabled))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned async enabled = " 
                 << *enabled  << " successfully");
@@ -3468,7 +3548,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *maxLateness = pSinkBintr->GetMaxLateness();
+            if (!pSinkBintr->GetMaxLateness(maxLateness))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned max-lateness = " 
                 << *maxLateness  << " successfully");
@@ -3530,7 +3613,10 @@ namespace DSL
             DSL_SINK_PTR pSinkBintr = 
                 std::dynamic_pointer_cast<SinkBintr>(m_components[name]);
 
-            *enabled = (boolean)pSinkBintr->GetQosEnabled();
+            if (!pSinkBintr->GetQosEnabled(enabled))
+            {
+                return DSL_RESULT_SINK_GET_FAILED;
+            }
 
             LOG_INFO("Sink '" << name << "' returned qos enabled = " 
                 << *enabled  << " successfully");

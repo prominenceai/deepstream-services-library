@@ -36,10 +36,8 @@ namespace DSL
         LOG_FUNC();
         
         // Single Queue and Tee element for all Components
-        m_pQueue = DSL_ELEMENT_NEW("queue", name);
         m_pTee = DSL_ELEMENT_NEW(teeType, name);
 
-        AddChild(m_pQueue);
         AddChild(m_pTee);
 
         // Float the Queue sink pad as a Ghost Pad for this MultiBranchesBintr
@@ -382,7 +380,17 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for MultiSinksBintr '" << name << "'");
-        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
+        LOG_INFO("  blocking-timeout  : " << m_blockingTimeout);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
     }
     
     //--------------------------------------------------------------------------------
@@ -394,7 +402,17 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for SplitterBintr '" << name << "'");
-        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
+        LOG_INFO("  blocking-timeout  : " << m_blockingTimeout);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
     }
 
     bool SplitterBintr::AddToParent(DSL_BASE_PTR pParentBintr)
@@ -416,8 +434,18 @@ namespace DSL
         
         LOG_INFO("");
         LOG_INFO("Initial property values for DemuxerBintr '" << name << "'");
-        LOG_INFO("  max-branches     : " << m_maxBranches);
-        LOG_INFO("  blocking-timeout : " << m_blockingTimeout);
+        LOG_INFO("  max-branches      : " << m_maxBranches);
+        LOG_INFO("  blocking-timeout  : " << m_blockingTimeout);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
     }
     
     bool DemuxerBintr::AddToParent(DSL_BASE_PTR pParentBintr)

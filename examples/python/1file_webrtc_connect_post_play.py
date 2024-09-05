@@ -37,6 +37,17 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
 stun_server = "stun://stun.l.google.com:19302"
 
+# Filespecs (Jetson and dGPU) for the Primary GIE
+primary_infer_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
+
+# Filespec for the IOU Tracker config file
+iou_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+
 # Window Sink Dimensions
 sink_width = 640
 sink_height = 360
@@ -108,9 +119,9 @@ def websocket_server_client_listener_cb(path, client_data):
     retval = dsl_sink_webrtc_new(sink_name,
         stun_server = stun_server,
         turn_server = None,
-        codec = DSL_CODEC_H264,
-        bitrate = 4000000,
-        interval = 0)
+        encoder = DSL_ENCODER_HW_H264,
+        bitrate = 0,
+        iframe_interval = 30)
     if retval != DSL_RETURN_SUCCESS:
         print('failed to create new WebRTC Sink')
         return
@@ -132,11 +143,10 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
-        # New RTSP Source
+        # # New RTSP Source
         # retval = dsl_source_rtsp_new('source',     
-        #     uri = rtsp_uri,     
+        #     uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101',     
         #     protocol = DSL_RTP_ALL,     
-        #     cudadec_mem_type = DSL_NVBUF_MEM_TYPE_DEFAULT,     
         #     skip_frames = 0,     
         #     drop_frame_interval = 0,     
         #     latency = 100,
@@ -146,6 +156,23 @@ def main(args):
 
         # New File Source using the file path specified above, repeat enabled.
         retval = dsl_source_file_new('source', file_path, True)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 0)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New IOU Tracker, setting operational width and hieght
+        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New OSD with text, clock and bbox display all enabled. 
+        retval = dsl_osd_new('on-screen-display', text_enabled=True, 
+            clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -166,7 +193,7 @@ def main(args):
 
         # Add the window sink to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline',
-            ['source', 'egl-sink', None])
+            ['source', 'primary-gie', 'iou-tracker', 'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

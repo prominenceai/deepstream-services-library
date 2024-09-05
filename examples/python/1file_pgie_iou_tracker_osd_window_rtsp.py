@@ -31,7 +31,7 @@
 #   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
-#   - H265 RTSP Sink
+#   - RTSP Sink
 # ...and how to add them to a new Pipeline and play.
 #
 # The example registers handler callback functions for:
@@ -48,10 +48,31 @@ import sys
 import time
 from dsl import *
 
-# update host URL to IP address if clients are off device.
-host_uri = '0.0.0.0'
+################################################################################
+#
+# The RTSP Sink is an Encode Sink that supports five (5) encoder types. 
+# Two (2) hardware and three (3) software. Use one of the following constants  
+# to select the encoder type:
+#   - DSL_ENCODER_HW_H264
+#   - DSL_ENCODER_HW_H265
+#   - DSL_ENCODER_SW_H264
+#   - DSL_ENCODER_SW_H256
+#   - DSL_ENCODER_SW_MPEG4
+#
+# IMPORTANT! The Jetson Orin Nano only supports software encoding.
+#
+#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
+#   - HW-H264/H265 = 4000000 
+#   - SW-H264/H265 = 2048000 
+#   - SW-MPEG      = 200000
 
-file_path = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+# Record Sink configuration 
+RTSP_SINK_ENCODER   = DSL_ENCODER_HW_H264
+RTSP_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
+RTSP_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
+
+# URI for the File Source
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -62,6 +83,10 @@ primary_model_engine_file = \
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+
+# EGL Window Sink Dimensions 
+WINDOW_WIDTH = DSL_1K_HD_WIDTH // 2
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT // 2
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -106,7 +131,7 @@ def main(args):
     while True:
 
         # New File Source using the file path specified above, repeat enabled.
-        retval = dsl_source_file_new('file-source', file_path, True)
+        retval = dsl_source_file_new('file-source', uri_h265, True)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -129,7 +154,8 @@ def main(args):
             break
 
         # New EGL Window Sink with offests and dimensions
-        retval = dsl_sink_window_egl_new('window-sink', 100, 100, 1280, 720)
+        retval = dsl_sink_window_egl_new('window-sink', 0, 0, 
+            WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
         # Add the XWindow event handler functions defined above
@@ -146,10 +172,10 @@ def main(args):
         retval = dsl_sink_rtsp_server_new('rtsp-sink', 
             host = "0.0.0.0",       # 0.0.0.0 = "this host, this network."
             udp_port = 5400,        # UDP port 5400 uses the Datagram Protocol.             
-            rtsp_port = 8554,       # 
-            codec = DSL_CODEC_H265, # High Efficiency Video Coding (HEVC)
-            bitrate = 0,            # Set to 0 to use plugin default (4000000)
-            interval = 0)           # 0 = encode everyframe           
+            rtsp_port = 8554,        
+            encoder = RTSP_SINK_ENCODER,  
+            bitrate = RTSP_SINK_BITRATE,
+            iframe_interval = RTSP_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:
             break
 

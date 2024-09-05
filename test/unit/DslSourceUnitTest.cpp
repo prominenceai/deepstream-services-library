@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -145,6 +145,126 @@ SCENARIO( "A AppSourceBintr can UnlinkAll all child Elementrs correctly",  "[Sou
             THEN( "The AppSourceBintr IsLinked state is updated correctly" )
             {
                 REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A attributes for a new CustomSourceBintr" ) 
+    {
+        bool isLive(true);
+
+        WHEN( "The CustomSourceBintr is created " )
+        {
+            DSL_CUSTOM_SOURCE_PTR pSourceBintr = DSL_CUSTOM_SOURCE_NEW(
+                sourceName.c_str(), isLive);
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->GetGpuId() == 0 );
+                REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                REQUIRE( pSourceBintr->IsLive() == isLive );
+                
+                uint retWidth(99), retHeight(99), retFpsN(99), retFpsD(99);
+                pSourceBintr->GetDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetFrameRate(&retFpsN, &retFpsD);
+
+                // should all be 0 unknown. 
+                REQUIRE( retWidth == 0 );
+                REQUIRE( retHeight == 0 );
+                REQUIRE( retFpsN == 0 );
+                REQUIRE( retFpsD == 0 );
+
+                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+            }
+        }
+    }
+}
+
+SCENARIO( "A CustomSourceBintr can add and remove a child element",  
+    "[SourceBintr]" )
+{
+    GIVEN( "A new CustomBintr and Elementr" ) 
+    {
+        bool isLive(true);
+        static const std::string elementName("element");
+
+        DSL_CUSTOM_SOURCE_PTR pSourceBintr = DSL_CUSTOM_SOURCE_NEW(
+            sourceName.c_str(), isLive);
+        DSL_ELEMENT_PTR pGstElementr = DSL_ELEMENT_NEW("videotestsrc", 
+            elementName.c_str());
+        
+        WHEN( "The an Element is added to the CustomBintr" )
+        {
+            REQUIRE( pSourceBintr->AddChild(pGstElementr) == true );
+            
+            // The second call must fail
+            REQUIRE( pSourceBintr->AddChild(pGstElementr) == false );
+            THEN( "The same Element can be removed correctly")
+            {
+                REQUIRE( pSourceBintr->RemoveChild(pGstElementr) == true );
+            
+                // The second call must fail
+                REQUIRE( pSourceBintr->RemoveChild(pGstElementr) == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A CustomSourceBintr can can link and unlink correctly",  
+    "[SourceBintr]" )
+{
+    GIVEN( "A new CustomSourceBintr with an Elementr" ) 
+    {
+        bool isLive(true);
+        static const std::string elementName1("element-1");
+        static const std::string elementName2("element-2");
+        static const std::string elementName3("element-3");
+
+        DSL_CUSTOM_SOURCE_PTR pSourceBintr = DSL_CUSTOM_SOURCE_NEW(
+            sourceName.c_str(), isLive);
+        DSL_ELEMENT_PTR pGstElementr1 = DSL_ELEMENT_NEW("videotestsrc", 
+            elementName1.c_str());
+        DSL_ELEMENT_PTR pGstElementr2 = DSL_ELEMENT_NEW("capsfilter", 
+            elementName2.c_str());
+        
+        DSL_ELEMENT_PTR pGstElementr3 = DSL_ELEMENT_NEW("identity", 
+            elementName3.c_str());
+        
+        WHEN( "The CustomSourceBintr has no child element" )
+        {
+             
+            THEN( "The CustomSourceBintr will fail to link")
+            {
+               REQUIRE( pSourceBintr->LinkAll() == false );
+            }
+        }
+        WHEN( "The CustomSourceBintr has a single element" )
+        {
+            REQUIRE( pSourceBintr->AddChild(pGstElementr1) == true );
+            
+            THEN( "The CustomSourceBintr can be successfully Linked and unlinked")
+            {
+                REQUIRE( pSourceBintr->LinkAll() == true );
+                pSourceBintr->UnlinkAll();
+            }
+        }
+        WHEN( "The CustomSourceBintr has a multiple elements" )
+        {
+            REQUIRE( pSourceBintr->AddChild(pGstElementr1) == true );
+            REQUIRE( pSourceBintr->AddChild(pGstElementr2) == true );
+            REQUIRE( pSourceBintr->AddChild(pGstElementr3) == true );
+            
+            THEN( "The CustomSourceBintr can be successfully Linked and unlinked")
+            {
+                REQUIRE( pSourceBintr->LinkAll() == true );
+                pSourceBintr->UnlinkAll();
             }
         }
     }
@@ -694,6 +814,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetDropOnLatencyEnabled() == false );
                 REQUIRE( pSourceBintr->GetTlsValidationFlags() == 
                     DSL_TLS_CERTIFICATE_VALIDATE_ALL );
+                REQUIRE( pSourceBintr->GetUdpBufferSize() == 524288);
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
                 
                 dsl_rtsp_connection_data data{0};
@@ -783,6 +904,17 @@ SCENARIO( "A new RtspSourceBintr's attributes can be set/get ",  "[SourceBintr]"
             THEN( "The correct value is returned on get" )
             {
                 REQUIRE( pSourceBintr->GetTlsValidationFlags() == newTlsValidationFlags );
+            }
+        }
+        WHEN( "The RtspSourceBintr's udp-buffer-size is set " )
+        {
+            uint newUdpBufferSize(600000);
+            
+            pSourceBintr->SetUdpBufferSize(newUdpBufferSize);
+
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( pSourceBintr->GetUdpBufferSize() == newUdpBufferSize );
             }
         }
     }
@@ -1314,9 +1446,6 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == isLive );
-
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
     }
@@ -1403,7 +1532,8 @@ SCENARIO( "A DuplicateSourceBintr added and removed correctly",  "[SourceBintr]"
     }
 }
 
-SCENARIO( "Multiple DuplicateSourceBintrs can be added and linked with a VideoSourceBintr",  "[SourceBintr]" )
+SCENARIO( "Multiple DuplicateSourceBintrs can be added and linked with a VideoSourceBintr",  
+    "[SourceBintr]" )
 {
     GIVEN( "A new DuplicateSourceBintr and VideoSourceBintr" ) 
     {

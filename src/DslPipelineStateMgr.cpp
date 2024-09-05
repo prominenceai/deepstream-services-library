@@ -40,6 +40,11 @@ namespace DSL
 
         _initMaps();
 
+        // Get and persist and free the Pipeline name.
+        gchar* pipelineName = gst_object_get_name(m_pGstPipeline);
+        m_pipelineName = pipelineName;
+        g_free(pipelineName);
+
         m_pGstBus = gst_pipeline_get_bus(GST_PIPELINE(m_pGstPipeline));
 
         // Add the bus-watch and callback function to the default main context
@@ -66,7 +71,7 @@ namespace DSL
         if (m_pMainLoop)
         {
             LOG_ERROR("A main-loop has already been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
 
@@ -78,7 +83,7 @@ namespace DSL
         m_pMainContext = g_main_context_new();
         if (!m_pMainContext)
         {
-            LOG_ERROR("Pipeline '" << gst_object_get_name(m_pGstPipeline) 
+            LOG_ERROR("Pipeline '" << m_pipelineName
                 << "' failed to create own main-context");
             return false;
         }
@@ -87,7 +92,7 @@ namespace DSL
         m_pMainLoop = g_main_loop_new(m_pMainContext, FALSE);
         if (!m_pMainLoop)
         {
-            LOG_ERROR("Pipeline '" << gst_object_get_name(m_pGstPipeline)
+            LOG_ERROR("Pipeline '" << m_pipelineName
                 << "' failed to create main-loop");
             return false;
         }
@@ -110,13 +115,13 @@ namespace DSL
         if (!m_pMainLoop)
         {
             LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         if (g_main_loop_is_running(m_pMainLoop))
         {
             LOG_ERROR("A Main-Loop is already running for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         // Acquire context and set it as the thread-default context for the current thread.
@@ -143,13 +148,13 @@ namespace DSL
         if (!m_pMainLoop)
         {
             LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         if (!g_main_loop_is_running(m_pMainLoop))
         {
             LOG_ERROR("Main-loop for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "' is not running");
+                << m_pipelineName << "'");
             return false;
         }
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_mainLoopMutex);
@@ -166,7 +171,7 @@ namespace DSL
         if (!m_pMainLoop)
         {
             LOG_ERROR("A Main-Loop has NOT been created for Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
             return false;
         }
         // destroy the bus-watch - which unattaches the bus-watch from the main-context
@@ -248,7 +253,8 @@ namespace DSL
         return true;
     }
 
-    bool PipelineStateMgr::AddErrorMessageHandler(dsl_error_message_handler_cb handler, void* clientData)
+    bool PipelineStateMgr::AddErrorMessageHandler(
+        dsl_error_message_handler_cb handler, void* clientData)
     {
         LOG_FUNC();
         
@@ -262,7 +268,8 @@ namespace DSL
         return true;
     }
 
-    bool PipelineStateMgr::RemoveErrorMessageHandler(dsl_error_message_handler_cb handler)
+    bool PipelineStateMgr::RemoveErrorMessageHandler(
+        dsl_error_message_handler_cb handler)
     {
         LOG_FUNC();
         
@@ -272,6 +279,38 @@ namespace DSL
             return false;
         }
         m_errorMessageHandlers.erase(handler);
+        
+        return true;
+    }
+    
+    bool PipelineStateMgr::AddBufferingMessageHandler(
+        dsl_buffering_message_handler_cb handler, void* clientData)
+    {
+        LOG_FUNC();
+        
+        if (m_bufferingMessageHandlers.find(handler) 
+            != m_bufferingMessageHandlers.end())
+        {   
+            LOG_ERROR("Pipeline handler is not unique");
+            return false;
+        }
+        m_bufferingMessageHandlers[handler] = clientData;
+        
+        return true;
+    }
+
+    bool PipelineStateMgr::RemoveBufferingMessageHandler(
+        dsl_buffering_message_handler_cb handler)
+    {
+        LOG_FUNC();
+        
+        if (m_bufferingMessageHandlers.find(handler) 
+            == m_bufferingMessageHandlers.end())
+        {   
+            LOG_ERROR("Pipeline handler was not found");
+            return false;
+        }
+        m_bufferingMessageHandlers.erase(handler);
         
         return true;
     }
@@ -288,7 +327,6 @@ namespace DSL
         guint64 dropped(0);
         GError* error(NULL);
         gchar* debugInfo(NULL);
-        gint percent(0);
         gchar* propertyName(NULL);
         GstProgressType progressType(GST_PROGRESS_TYPE_ERROR);
         gchar* code;
@@ -323,10 +361,8 @@ namespace DSL
             break;
             
         case GST_MESSAGE_BUFFERING:
-            gst_message_parse_buffering(pMessage, &percent);
             LOG_INFO("Message type : " << name);
-            LOG_INFO("   source    : " << GST_OBJECT_NAME(pMessage->src));
-            LOG_INFO("   percent   : " << percent);
+                        HandleBufferingMessage(pMessage);            
             break;
             
         case GST_MESSAGE_LATENCY:
@@ -418,7 +454,7 @@ namespace DSL
     void PipelineStateMgr::HandleEosMessage(GstMessage* pMessage)
     {
         LOG_INFO("EOS message recieved for Pipeline '" 
-            << gst_object_get_name(m_pGstPipeline) << "'");
+            << m_pipelineName << "'");
         
         // If the EOS event was sent from HandleStop
         if (m_eosFlag)
@@ -449,15 +485,19 @@ namespace DSL
         
         const GstStructure* msgPayload = gst_message_get_structure(pMessage);
 
+
+
         // only one application message at this time. 
         if(gst_structure_has_name(msgPayload, "stop-pipline"))
         {
+            LOG_INFO("Stop-pipeline message recieved by Pipeline '"
+                << m_pipelineName << "'");
             HandleStop();
         }
         else
         {
             LOG_ERROR("Unknown Application message received by Pipeline '"
-                << gst_object_get_name(m_pGstPipeline) << "'");
+                << m_pipelineName << "'");
         }
     }
     
@@ -536,6 +576,33 @@ namespace DSL
         return false;
     }
 
+    void PipelineStateMgr::HandleBufferingMessage(GstMessage* pMessage)
+    {
+        gint percent(0);
+        gst_message_parse_buffering(pMessage, &percent);
+        std::string source(GST_OBJECT_NAME(GST_OBJECT_PARENT(pMessage->src)));
+        std::wstring wsource(source.begin(), source.end());
+
+        LOG_INFO("Message type : " << 
+            gst_message_type_get_name(GST_MESSAGE_TYPE(pMessage)));
+        LOG_INFO("   source    : " << source);
+        LOG_INFO("   percent   : " << percent);
+
+        
+        // iterate through the map of EOS-listeners calling each
+        for(auto const& imap: m_bufferingMessageHandlers)
+        {
+            try
+            {
+                imap.first(wsource.c_str(), percent, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Buffering Message Handler");
+            }
+        }
+    }
+    
     void PipelineStateMgr::_initMaps()
     {
         m_mapPipelineStates[GST_STATE_READY] = "GST_STATE_READY";

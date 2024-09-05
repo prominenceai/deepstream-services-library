@@ -1,4 +1,4 @@
-################################################################################
+##############################################################################
 # The MIT License
 #
 # Copyright (c) 2019-2023, Prominence AI, Inc.
@@ -29,22 +29,45 @@ import time
 
 from dsl import *
 
+source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+
 # Filespecs for the Primary GIE and IOU Trcaker
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
-source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 
 MAX_3D_SINK_COUNT = 2 # hardware limited
 cur_3d_sink_count = 0
+
+buffering = False
+
+## 
+# Function to be called on when a buffering-message is recieved on the Pipeline bus.
+## 
+def buffering_message_handler(source, percent, client_data):
+
+    global buffering
+
+    if percent == 100:
+        print('playing pipeline - buffering complete at 100 %')
+        dsl_pipeline_play('pipeline')
+        buffering = False
+
+    else:
+        if not buffering:
+            print('pausing pipeline - buffering starting at ', percent, '%')
+            dsl_pipeline_pause('pipeline')
+        buffering = True
 
 ## 
 # Function to be called on XWindow KeyRelease event
 ## 
 def xwindow_key_event_handler(key_string, client_data):
+
     global MAX_3D_SINK_COUNT, cur_3d_sink_count
+
     print('key released = ', key_string)
     if key_string.upper() == 'P':
         dsl_pipeline_pause('pipeline')
@@ -133,7 +156,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Add the listener callback functions defined above
+        ## Add the Pipeline callback functions defined above
+        retval = dsl_pipeline_buffering_message_handler_add('pipeline',
+            buffering_message_handler, None)
+        if retval != DSL_RETURN_SUCCESS:
+            break
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:

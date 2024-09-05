@@ -28,23 +28,127 @@ THE SOFTWARE.
 #include "DslServices.h"
 #include "DslServicesValidate.h"
 #include "DslElementr.h"
-#include "DslGstBintr.h"
+
 
 namespace DSL
 {
+    DslReturnType Services::GstCapsNew(const char* name, 
+        const char* caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        try
+        {
+            if (m_gstCapsObjects[name])
+            {   
+                LOG_ERROR("Caps name '" << name << "' is not unique");
+                return DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE;
+            }
+            m_gstCapsObjects[name] = DSL_CAPS_NEW(caps);
+        }
+        catch(...)
+        {
+            LOG_ERROR("New GST Caps '" << name << "' threw exception on create");
+            m_gstCapsObjects.erase(name);
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+        LOG_INFO("New GST Caps '" << name << "' created successfully");
+
+        return DSL_RESULT_SUCCESS;
+    }
+    
+    DslReturnType Services::GstCapsStringGet(const char* name, const char** caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+
+            *caps = m_gstCapsObjects[name]->c_str();
+
+            LOG_INFO("GST Caps '" << name << "' returned string = '"
+                << *caps << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Caps '" << name 
+                << "' threw exception getting string representation");
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::GstCapsDelete(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, name);
+            
+            m_gstCapsObjects.erase(name);
+
+            LOG_INFO("GST Caps '" << name << "' deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Caps '" << name << "' threw exception on deletion");
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::GstCapsDeleteAll()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            if (m_gstCapsObjects.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
+            m_gstCapsObjects.clear();
+
+            LOG_INFO("All GST Caps deleted successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Caps threw exception on delete all");
+            return DSL_RESULT_GST_CAPS_THREW_EXCEPTION;
+        }
+    }
+
+    uint Services::GstCapsListSize()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        
+        return m_gstCapsObjects.size();
+    }
+    
     DslReturnType Services::GstElementNew(const char* name, 
         const char* factoryName)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        if (m_gstElements[name])
-        {   
-            LOG_ERROR("Element name '" << name << "' is not unique");
-            return DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE;
-        }
         try
         {
+            if (m_gstElements[name])
+            {   
+                LOG_ERROR("Element name '" << name << "' is not unique");
+                return DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE;
+            }
             m_gstElements[name] = DSL_ELEMENT_NEW(factoryName, name);
             m_gstElements[name]->AddPadProbes();
         }
@@ -509,6 +613,66 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::GstElementPropertyCapsGet(const char* name, 
+        const char* property, const char* caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            if (m_gstCapsObjects[caps])
+            {   
+                LOG_ERROR("Caps name '" << caps << "' is not unique");
+                return DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE;
+            }
+
+            GstCaps* pCaps;
+            m_gstElements[name]->GetAttribute(property, &pCaps);
+
+            m_gstCapsObjects[caps] = std::shared_ptr<DslCaps>(new DslCaps(pCaps));
+
+            LOG_INFO("GST Caps '" << caps << "' created successfully");
+
+            LOG_INFO("GST Element '" << name 
+                << "' returned caps = '" << m_gstCapsObjects[caps]->c_str() 
+                << "' for property '" << property << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name 
+                << "' threw an exception setting caps property");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::GstElementPropertyCapsSet(const char* name, 
+        const char* property, const char* caps)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+        try
+        {
+            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, name);
+            DSL_RETURN_IF_CAPS_NAME_NOT_FOUND(m_gstCapsObjects, caps);
+
+            m_gstElements[name]->SetAttribute(property, &(*m_gstCapsObjects[caps]));
+
+            LOG_INFO("GST Element '" << name 
+                << "' set Caps value = '" << m_gstCapsObjects[caps]->c_str() 
+                << "' for property '" << property << "' successfully");
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("GST Element '" << name 
+                << "' threw an exception Setting caps property");
+            return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::GstElementPphAdd(const char* name, 
         const char* handler, uint pad)
     {
@@ -586,112 +750,5 @@ namespace DSL
             return DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION;
         }
     }
-    
-    DslReturnType Services::GstBinNew(const char* name)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
         
-        try
-        {
-            if (m_components[name])
-            {   
-                LOG_ERROR("GST Bin name '" << name << "' is not unique");
-                return DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE;
-            }
-            
-            m_components[name] = std::shared_ptr<GstBintr>(new GstBintr(name));
-            LOG_INFO("New GST Bin '" << name << "' created successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("New GST Bin '" << name << "' threw exception on create");
-            return DSL_RESULT_GST_BIN_THREW_EXCEPTION;
-        }
-    }
-
-    DslReturnType Services::GstBinElementAdd(const char* name, 
-        const char* element)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-        
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
-                name, GstBintr);
-            DSL_RETURN_IF_ELEMENT_NAME_NOT_FOUND(m_gstElements, element);
-            
-            // Can't add elements if they're In use by another GstBin
-            if (m_gstElements[element]->IsInUse())
-            {
-                LOG_ERROR("Unable to add element '" << element 
-                    << "' as it's currently in use");
-                return DSL_RESULT_GST_ELEMENT_IN_USE;
-            }
-
-            // Cast the Bin Component to a GST Bintr to call the correct AddChild method.
-            DSL_GST_BINTR_PTR pBranchBintr = 
-                std::dynamic_pointer_cast<GstBintr>(m_components[name]);
-                
-            if (!pBranchBintr->AddChild(m_gstElements[element]))
-            {
-                LOG_ERROR("GST Bin '" << name
-                    << "' failed to add element '" << element << "'");
-                return DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED;
-            }
-            LOG_INFO("Element '" << element 
-                << "' was added to GST Bin '" << name << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("GST Bin '" << name
-                << "' threw exception adding element '" << element << "'");
-            return DSL_RESULT_GST_BIN_THREW_EXCEPTION;
-        }
-    }    
-    
-    DslReturnType Services::GstBinElementRemove(const char* name, 
-        const char* element)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-
-            if (!m_gstElements[element]->IsParent(m_components[name]))
-            {
-                LOG_ERROR("Element '" << element << 
-                    "' is not in use by GST Bin '" << name << "'");
-                return DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE;
-            }
-            // Cast the Bin Component to a GST Bintr to call the correct AddChild method.
-            DSL_GST_BINTR_PTR pBranchBintr = 
-                std::dynamic_pointer_cast<GstBintr>(m_components[name]);
-                
-            if (!pBranchBintr->RemoveChild(m_gstElements[element]))
-            {
-                LOG_ERROR("GST Bin '" << name
-                    << "' failed to remove element '" << element << "'");
-                return DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED;
-            }
-            LOG_INFO("Element '" << element 
-                << "' was removed from GST Bin '" << name << "' successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("GST Bin '" << name 
-                << "' threw an exception removing component");
-            return DSL_RESULT_GST_BIN_THREW_EXCEPTION;
-        }
-    }
-    
 }

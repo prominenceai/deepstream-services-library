@@ -49,7 +49,7 @@ SCENARIO( "A PreprocBintr is created correctly", "[PreprocBintr]" )
                 std::string retConfigFile = pPreprocBintr->GetConfigFile();
                 REQUIRE( retConfigFile == configFile1 );
                 REQUIRE( pPreprocBintr->GetEnabled() == true );
-                REQUIRE( pPreprocBintr->GetUniqueId() == 0 );
+                REQUIRE( pPreprocBintr->GetUniqueId() == 1 );
             }
         }
     }

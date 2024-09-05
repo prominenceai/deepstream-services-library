@@ -43,9 +43,21 @@ SCENARIO( "A DslCaps helper is constructed correctly", "[Caps]" )
             
             THEN( "Its member variables are initialized correctly" )
             {
-                std::string expected("video/x-raw(memory:NVMM),format=(string)I420");
-                std::string actual(Caps.c_str());
-                REQUIRE( expected == actual );
+                std::string expected_str("video/x-raw(memory:NVMM),format=(string)I420");
+                std::string actual_str(Caps.c_str());
+                REQUIRE( expected_str == actual_str );
+            }
+        }
+        WHEN( "A CapsFiler is created from string representation" )
+        {
+            std::string initial_str("video/x-raw(memory:NVMM),format=(string)I420");
+
+            DSL_CAPS_PTR pCaps = DSL_CAPS_NEW(initial_str.c_str());
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                std::string actual_str(pCaps->c_str());
+                REQUIRE( initial_str == actual_str );
             }
         }
     }

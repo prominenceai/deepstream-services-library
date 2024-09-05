@@ -24,14 +24,15 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
+#include "DslCaps.h"
 #include "DslSinkWebRtcBintr.h"
 #include "DslBranchBintr.h"
 
 namespace DSL
 {
     WebRtcSinkBintr::WebRtcSinkBintr(const char* name, const char* stunServer, 
-        const char* turnServer, uint codec, uint bitrate, uint interval)
-        : EncodeSinkBintr(name, codec, bitrate, interval)
+        const char* turnServer, uint encoder, uint bitrate, uint iframeInterval)
+        : EncodeSinkBintr(name, encoder, bitrate, iframeInterval)
         , SignalingTransceiver()
         , m_pDataChannel(NULL)
         , m_stunServer(stunServer)
@@ -40,55 +41,44 @@ namespace DSL
     {
         LOG_FUNC();
 
-        std::string fakeSinkName = GetName() + "-fake-sink";
-        m_pFakeSinkBintr = DSL_FAKE_SINK_NEW(fakeSinkName.c_str());
+        // std::string fakeSinkName = GetName() + "-fake-sink";
+        // m_pFakeSinkBintr = DSL_FAKE_SINK_NEW(fakeSinkName.c_str());
 
-        switch (codec)
+        switch (encoder)
         {
-        case DSL_CODEC_H264 :
+        case DSL_ENCODER_HW_H264 :
+        case DSL_ENCODER_SW_H264 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph264pay", name);
+            m_encoderString.assign("H264");
             break;
-        case DSL_CODEC_H265 :
+            
+        case DSL_ENCODER_HW_H265 :
+        case DSL_ENCODER_SW_H265 :
             m_pPayloader = DSL_ELEMENT_NEW("rtph265pay", name);
+            m_encoderString.assign("H265");
+            
+            // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
+            // why RTSP Encode Sink only ????
+            m_pParser->SetAttribute("config-interval", -1);
             break;
+        case DSL_ENCODER_SW_MPEG4 :
+            m_pPayloader = DSL_ELEMENT_NEW("rtpmp4vpay", name);
+            m_encoderString.assign("MP4V-ES");
+            
+            // Send VPS, SPS and PPS Insertion Interval in seconds with every IDR frame 
+            // why RTSP Encode Sink only ????
+            m_pParser->SetAttribute("config-interval", -1);
+            break;    
         default:
-            LOG_ERROR("Invalid codec = '" << codec << "' for new WebRtcSinkBintr '" 
-                << name << "'");
-            throw;
+            LOG_ERROR("Invalid encoder = '" << encoder << "' for new Sink '" << name << "'");
+            throw std::exception();
         }
         m_pWebRtcCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", name, "payloader");
         
-        GstCaps* pCaps = gst_caps_from_string(
-            "application/x-rtp,media=video,encoding-name=H264,payload=96");
-        m_pWebRtcCapsFilter->SetAttribute("caps", pCaps);
-        gst_caps_unref(pCaps);
-
-        AddChild(m_pPayloader);
-        AddChild(m_pWebRtcCapsFilter);
-
-        SoupServerMgr::GetMgr()->AddSignalingTransceiver(this);
-    }
-
-    WebRtcSinkBintr::~WebRtcSinkBintr()
-    {
-        LOG_FUNC();
-    
-        SoupServerMgr::GetMgr()->RemoveSignalingTransceiver(this);
-
-        if (IsLinked())
-        {    
-            UnlinkAll();
-        }
-    }
-
-    bool WebRtcSinkBintr::LinkAll()
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
-        }
+        std::string capsString = "application/x-rtp,media=video,encoding-name=" 
+            + m_encoderString + ",payload=96";
+        DslCaps Caps(capsString.c_str());
+        m_pWebRtcCapsFilter->SetAttribute("caps", &Caps);
 
         m_pWebRtcBin = DSL_ELEMENT_NEW("webrtcbin", GetCStrName());
 
@@ -117,13 +107,67 @@ namespace DSL
         g_signal_connect(m_pWebRtcBin->GetGstObject(), "on-data-channel",
             G_CALLBACK(on_data_channel_cb), (gpointer)this);
 
+        LOG_INFO("");
+        LOG_INFO("Initial property values for WebRtcSinkBintr '" << name << "'");
+        LOG_INFO("  stun-server        : " << m_stunServer);
+        LOG_INFO("  turn-server        : " << m_turnServer); 
+        LOG_INFO("  encoder            : " << m_encoder);
+        if (m_bitrate)
+        {
+            LOG_INFO("  bitrate            : " << m_bitrate);
+        }
+        else
+        {
+            LOG_INFO("  bitrate            : " << m_defaultBitrate);
+        }
+        LOG_INFO("  iframe-interval    : " << m_iframeInterval);
+        LOG_INFO("  converter-width    : " << m_width);
+        LOG_INFO("  converter-height   : " << m_height);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
+        
+        AddChild(m_pPayloader);
+        AddChild(m_pWebRtcCapsFilter);
         AddChild(m_pWebRtcBin);
 
-        if (!m_pQueue->LinkToSink(m_pTransform) or
-            !m_pTransform->LinkToSink(m_pCapsFilter) or
-            !m_pCapsFilter->LinkToSink(m_pEncoder) or
-            !m_pEncoder->LinkToSink(m_pParser) or
-            !m_pParser->LinkToSink(m_pPayloader) or
+        SoupServerMgr::GetMgr()->AddSignalingTransceiver(this);
+    }
+
+    WebRtcSinkBintr::~WebRtcSinkBintr()
+    {
+        LOG_FUNC();
+    
+        SoupServerMgr::GetMgr()->RemoveSignalingTransceiver(this);
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool WebRtcSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is already linked");
+        }
+
+        if (!LinkToCommon(m_pPayloader) or 
             !m_pPayloader->LinkToSink(m_pWebRtcCapsFilter) or
             !m_pWebRtcCapsFilter->LinkToSink(m_pWebRtcBin))
         {
@@ -142,17 +186,9 @@ namespace DSL
             LOG_ERROR("WebRtcSinkBintr '" << GetName() << "' is not linked");
             return;
         }
-        m_pWebRtcCapsFilter->UnlinkFromSink();
+        UnlinkFromCommon();
         m_pPayloader->UnlinkFromSink();
-        m_pParser->UnlinkFromSink();
-        m_pEncoder->UnlinkFromSink();
-        m_pCapsFilter->UnlinkFromSink();
-        m_pTransform->UnlinkFromSink();
-        m_pQueue->UnlinkFromSink();
-
-        // remove and delete the webrtcbin to be recreated on next Linkall
-        RemoveChild(m_pWebRtcBin);
-        m_pWebRtcBin = nullptr;
+        m_pWebRtcCapsFilter->UnlinkFromSink();
 
         m_isLinked = false;
     }
@@ -166,17 +202,17 @@ namespace DSL
             std::dynamic_pointer_cast<BranchBintr>(pParentBintr);
 
         // add the Fake Sink to the Parent branch regardless of state
-        if (!pParentBranchBintr->AddSinkBintr(
-                std::dynamic_pointer_cast<SinkBintr>(m_pFakeSinkBintr)))
-        {
-            LOG_ERROR("WebRtcSinkBintr '" << GetName() 
-                << "' failed to add its FakeSinkBintr to the parent branch '" 
-                << pParentBranchBintr->GetName() << "'");
-            return false;
-        }
-        LOG_INFO("Fake Sink FOR WebRtcSinkBintr '" << GetName() 
-            << "' was added to the parent branch '" 
-            << pParentBranchBintr->GetName() << "' successfully");
+        // if (!pParentBranchBintr->AddSinkBintr(
+        //         std::dynamic_pointer_cast<SinkBintr>(m_pFakeSinkBintr)))
+        // {
+        //     LOG_ERROR("WebRtcSinkBintr '" << GetName() 
+        //         << "' failed to add its FakeSinkBintr to the parent branch '" 
+        //         << pParentBranchBintr->GetName() << "'");
+        //     return false;
+        // }
+        // LOG_INFO("Fake Sink FOR WebRtcSinkBintr '" << GetName() 
+        //     << "' was added to the parent branch '" 
+        //     << pParentBranchBintr->GetName() << "' successfully");
 
         // get the current state of the branch and add the WebRTC Sink if playing or paused
         // GstState state;
@@ -188,7 +224,7 @@ namespace DSL
                     std::dynamic_pointer_cast<SinkBintr>(shared_from_this())))
             {
                 LOG_ERROR("WebRtcSinkBintr '" << GetName() 
-                    << "' failed to add its FakeSinkBintr to the parent branch");
+                    << "' failed to add its WebRtcSinkBintr to the parent branch");
                 return false;
             }
         // }
@@ -206,13 +242,13 @@ namespace DSL
         DSL_BRANCH_PTR pParentBranchBintr = 
             std::dynamic_pointer_cast<BranchBintr>(pParentBintr);
 
-        if (!m_pFakeSinkBintr->IsParent(pParentBintr))
-        {
-            LOG_ERROR("Fake Sink owned by WebRtcSinkBintr '" << GetName() 
-                << "' is not a child of the parent branch '" 
-                << pParentBranchBintr->GetName() << "'");
-            return false;
-        }
+        // if (!m_pFakeSinkBintr->IsParent(pParentBintr))
+        // {
+        //     LOG_ERROR("Fake Sink owned by WebRtcSinkBintr '" << GetName() 
+        //         << "' is not a child of the parent branch '" 
+        //         << pParentBranchBintr->GetName() << "'");
+        //     return false;
+        // }
 
         // Clear the current Parent Pipeline/Branch pointer now.
         m_pParentBintr = nullptr;

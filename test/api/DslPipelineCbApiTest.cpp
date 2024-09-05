@@ -39,6 +39,11 @@ static void error_message_handler(const wchar_t* source,
 {
 }
 
+static void buffering_message_handler(const wchar_t* source, 
+    uint percentage, void* client_data)
+{
+}
+
 SCENARIO( "A state-change-listener must be unique", "[pipeline-cb-api]" )
 {
     std::wstring pipelineName = L"test-pipeline";
@@ -176,3 +181,78 @@ SCENARIO( "An error-message-handler can be added and removed", "[pipeline-cb-api
     }
 }    
 
+SCENARIO( "An buffering-message-handler can be added and removed", "[pipeline-cb-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+    
+    GIVEN( "A Pipeline in memory" ) 
+    {
+        REQUIRE( dsl_pipeline_new(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "An buffering message handler is added" )
+        {
+            REQUIRE( dsl_pipeline_buffering_message_handler_add(pipelineName.c_str(),
+                buffering_message_handler, NULL) == DSL_RESULT_SUCCESS );
+
+            // calling a second time must fail
+            REQUIRE( dsl_pipeline_buffering_message_handler_add(pipelineName.c_str(),
+                buffering_message_handler, NULL) == DSL_RESULT_PIPELINE_CALLBACK_ADD_FAILED );
+
+            THEN( "The same handler can be removed" ) 
+            {
+                REQUIRE( dsl_pipeline_buffering_message_handler_remove(pipelineName.c_str(),
+                    buffering_message_handler) == DSL_RESULT_SUCCESS );
+                
+                // second call must fail
+                REQUIRE( dsl_pipeline_buffering_message_handler_remove(pipelineName.c_str(),
+                    buffering_message_handler) == DSL_RESULT_PIPELINE_CALLBACK_REMOVE_FAILED );
+                    
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Pipeline Callback API checks for NULL input parameters", "[pipeline-cb-api]" )
+{
+    GIVEN( "An empty list of Pipelines" ) 
+    {
+        std::wstring pipeline_name  = L"test-pipeline";
+        
+        WHEN( "When NULL pointers are used as input" ) 
+        {
+            THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
+            {
+                REQUIRE( dsl_pipeline_state_change_listener_add(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_state_change_listener_add(pipeline_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_state_change_listener_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_pipeline_eos_listener_add(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_eos_listener_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_pipeline_error_message_handler_add(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_error_message_handler_add(pipeline_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_error_message_handler_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_pipeline_buffering_message_handler_add(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_buffering_message_handler_add(pipeline_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_buffering_message_handler_remove(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+            }
+        }
+    }
+}

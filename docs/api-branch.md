@@ -233,7 +233,7 @@ retval = dsl_branch_component_remove_all('my-branch')
 * [Sink](/docs/api-sink.md)
 * **Branch**
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)

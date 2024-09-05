@@ -415,6 +415,10 @@ namespace DSL
 
         try
         {
+            if (m_messageBrokers.empty())
+            {
+                return DSL_RESULT_SUCCESS;
+            }
             m_messageBrokers.clear();
 
             LOG_INFO("All Message Brokers deleted successfully");

@@ -59,6 +59,13 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_NOT_THE_CORRECT_TYPE                   0x00010008
 #define DSL_RESULT_COMPONENT_SET_GPUID_FAILED                       0x00010009
 #define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
+#define DSL_RESULT_COMPONENT_GET_QUEUE_PROPERTY_FAILED              0x0001000B
+#define DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED              0x0001000C
+#define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000D
+#define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000E
+#define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x0001000F
+#define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010010
+#define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010011
 
 /**
  * Source API Return Values
@@ -89,6 +96,9 @@ THE SOFTWARE.
 #define DSL_RESULT_SOURCE_CSI_NOT_SUPPORTED                         0x00020016
 #define DSL_RESULT_SOURCE_HANDLER_ADD_FAILED                        0x00020017
 #define DSL_RESULT_SOURCE_HANDLER_REMOVE_FAILED                     0x00020018
+#define DSL_RESULT_SOURCE_ELEMENT_ADD_FAILED                        0x00020019
+#define DSL_RESULT_SOURCE_ELEMENT_REMOVE_FAILED                     0x0002001A
+#define DSL_RESULT_SOURCE_ELEMENT_NOT_IN_USE                        0x0002001B
 
 /**
  * Dewarper API Return Values
@@ -125,26 +135,30 @@ THE SOFTWARE.
 #define DSL_RESULT_SINK_THREW_EXCEPTION                             0x00040004
 #define DSL_RESULT_SINK_PATH_NOT_FOUND                              0x00040005
 #define DSL_RESULT_SINK_IS_IN_USE                                   0x00040007
-#define DSL_RESULT_SINK_SET_FAILED                                  0x00040008
-#define DSL_RESULT_SINK_CODEC_VALUE_INVALID                         0x00040009
-#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000A
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000B
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000C
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000D
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000E
-#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x0004000F
-#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040010
-#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040011
-#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040012
-#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040013
-#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040014
-#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040015
-#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040016
-#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040017
-#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040018
-#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x00040019
-#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x00040020
-#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x00040021
+#define DSL_RESULT_SINK_GET_FAILED                                  0x00040008
+#define DSL_RESULT_SINK_SET_FAILED                                  0x00040009
+#define DSL_RESULT_SINK_ENCODER_VALUE_INVALID                       0x0004000A
+#define DSL_RESULT_SINK_CONTAINER_VALUE_INVALID                     0x0004000B
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_SINK                       0x0004000C
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_ENCODE_SINK                0x0004000D
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_WINDOW_SINK                0x0004000E
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_ADD_FAILED             0x0004000F
+#define DSL_RESULT_SINK_OBJECT_CAPTURE_CLASS_REMOVE_FAILED          0x00040010
+#define DSL_RESULT_SINK_HANDLER_ADD_FAILED                          0x00040011
+#define DSL_RESULT_SINK_HANDLER_REMOVE_FAILED                       0x00040012
+#define DSL_RESULT_SINK_PLAYER_ADD_FAILED                           0x00040013
+#define DSL_RESULT_SINK_PLAYER_REMOVE_FAILED                        0x00040014
+#define DSL_RESULT_SINK_MAILER_ADD_FAILED                           0x00040015
+#define DSL_RESULT_SINK_MAILER_REMOVE_FAILED                        0x00040016
+#define DSL_RESULT_SINK_3D_NOT_SUPPORTED                            0x00040017
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_ADD_FAILED           0x00040018
+#define DSL_RESULT_SINK_WEBRTC_CLIENT_LISTENER_REMOVE_FAILED        0x00040019
+#define DSL_RESULT_SINK_WEBRTC_CONNECTION_CLOSED_FAILED             0x0004001A
+#define DSL_RESULT_SINK_MESSAGE_CONFIG_FILE_NOT_FOUND               0x0004001B
+#define DSL_RESULT_SINK_COMPONENT_IS_NOT_MESSAGE_SINK               0x0004001C
+#define DSL_RESULT_SINK_ELEMENT_ADD_FAILED                          0x0004001D
+#define DSL_RESULT_SINK_ELEMENT_REMOVE_FAILED                       0x0004001E
+#define DSL_RESULT_SINK_ELEMENT_NOT_IN_USE                          0x0004001F
     
 /**
  * OSD API Return Values
@@ -501,31 +515,25 @@ THE SOFTWARE.
 #define DSL_RESULT_REMUXER_COMPONENT_IS_NOT_REMUXER                 0x00C0000D
 
 /**
- * GStreamer Element API Return Values
+ * GStreamer Caps API Return Values
  */
-#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00D00000
-#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00D00001
-#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00D00002
-#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00D00003
-#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00D00004
-#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00D00005
-#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00D00006
-#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00D00007
-#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00D00008
+#define DSL_RESULT_GST_CAPS_RESULT                                  0x00D00000
+#define DSL_RESULT_GST_CAPS_NAME_NOT_UNIQUE                         0x00D00001
+#define DSL_RESULT_GST_CAPS_NAME_NOT_FOUND                          0x00D00002
+#define DSL_RESULT_GST_CAPS_THREW_EXCEPTION                         0x00D00003
 
 /**
- * GStreamer Bin API Return Values
+ * GStreamer Element API Return Values
  */
-#define DSL_RESULT_GST_BIN_RESULT                                   0x00E00000
-#define DSL_RESULT_GST_BIN_NAME_NOT_UNIQUE                          0x00E00001
-#define DSL_RESULT_GST_BIN_NAME_NOT_FOUND                           0x00E00002
-#define DSL_RESULT_GST_BIN_NAME_BAD_FORMAT                          0x00E00003
-#define DSL_RESULT_GST_BIN_THREW_EXCEPTION                          0x00E00004
-#define DSL_RESULT_GST_BIN_IS_IN_USE                                0x00E00005
-#define DSL_RESULT_GST_BIN_SET_FAILED                               0x00E00006
-#define DSL_RESULT_GST_BIN_ELEMENT_ADD_FAILED                       0x00E00007
-#define DSL_RESULT_GST_BIN_ELEMENT_REMOVE_FAILED                    0x00E00008
-#define DSL_RESULT_GST_BIN_ELEMENT_NOT_IN_USE                       0x00E00009
+#define DSL_RESULT_GST_ELEMENT_RESULT                               0x00E00000
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_UNIQUE                      0x00E00001
+#define DSL_RESULT_GST_ELEMENT_NAME_NOT_FOUND                       0x00E00002
+#define DSL_RESULT_GST_ELEMENT_THREW_EXCEPTION                      0x00E00003
+#define DSL_RESULT_GST_ELEMENT_IN_USE                               0x00E00004
+#define DSL_RESULT_GST_ELEMENT_SET_FAILED                           0x00E00005
+#define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00E00006
+#define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00E00007
+#define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00E00008
 
 /**
  * GPU Types
@@ -608,9 +616,14 @@ THE SOFTWARE.
 
 #define DSL_TILER_SHOW_ALL_SOURCES                                  NULL
 
-#define DSL_CODEC_H264                                              0
-#define DSL_CODEC_H265                                              1
-#define DSL_CODEC_MPEG4                                             2
+/**
+ * @brief HW and SW, H264 and H265 Codec Types supported.
+*/
+#define DSL_ENCODER_HW_H264                                         0
+#define DSL_ENCODER_HW_H265                                         1
+#define DSL_ENCODER_SW_H264                                         2
+#define DSL_ENCODER_SW_H265                                         3
+#define DSL_ENCODER_SW_MPEG4                                        4
 
 #define DSL_CONTAINER_MP4                                           0
 #define DSL_CONTAINER_MKV                                           1
@@ -743,6 +756,21 @@ THE SOFTWARE.
 #define DSL_V4L2_DEVICE_TYPE_VBI_OUTPUT                             0x00000020
 #define DSL_V4L2_DEVICE_TYPE_TUNER                                  0x00010000
 #define DSL_V4L2_DEVICE_TYPE_AUDIO                                  0x00020000
+
+/**
+ * @brief Component Queue Leaky Constants - must match queue-leaky members
+ * see https://gstreamer.freedesktop.org/documentation/coreelements/queue.html#named-constants
+*/
+#define DSL_COMPONENT_QUEUE_LEAKY_NO                                0
+#define DSL_COMPONENT_QUEUE_LEAKY_UPSTREAM                          1
+#define DSL_COMPONENT_QUEUE_LEAKY_DOWNSTREAM                        2
+
+/**
+ * @brief Component Queue measurement units 
+*/
+#define DSL_COMPONENT_QUEUE_UNIT_OF_BUFFERS                         0
+#define DSL_COMPONENT_QUEUE_UNIT_OF_BYTES                           1
+#define DSL_COMPONENT_QUEUE_UNIT_OF_TIME                            2
 
 /**
  * @brief Predefined Color Constants - rows 1 and 2.
@@ -1718,6 +1746,16 @@ typedef void (*dsl_error_message_handler_cb)(const wchar_t* source,
     const wchar_t* message, void* client_data);
 
 /**
+ * @brief callback typedef for a client listener function. Once added to a Pipeline, 
+ * the function will be called on receipt of a buffering message on the Pipeline bus.
+ * @param[in] source name of the element or component that is the source of the message
+ * @param[in] percent buffering. 100% means buffering is done. 
+ * @param[in] client_data opaque pointer to client's data
+ */
+typedef void (*dsl_buffering_message_handler_cb)(const wchar_t* source, 
+    uint percent, void* client_data);
+
+/**
  * @brief callback typedef for a client XWindow KeyRelease event handler function. 
  * Once added to a Window Sink, the function will be called when the Sink receives 
  * XWindow KeyRelease events.
@@ -1867,6 +1905,32 @@ typedef void (*dsl_source_app_enough_data_handler_cb)(void* client_data);
  */
 typedef uint (*dsl_sink_app_new_data_handler_cb)(uint data_type, 
     void* data, void* client_data);
+
+/**
+ * @brief Callback typedef for all components with a Queue element. The callback
+ * is registered with a call to dsl_component_queue_overrun_listener_add(). Once
+ * added, the callback will be called if the Component's queue buffer becomes full
+ * (overrun). A buffer is full if the total amount of data inside it (buffers, bytes, 
+ * or time) is higher than the max-size values set for each unit. Max-size values
+ * can be set by calling dsl_component_queue_max_size_set.
+ * @param[in] name name of the Component that owns the Queue that has overrun.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_component_queue_overrun_listener_cb)(const wchar_t* name, 
+    void* client_data);
+
+/**
+ * @brief Callback typedef for all components with a Queue element. The callback
+ * is registered with a call to dsl_component_queue_underrun_listener_add(). Once
+ * added, the callback will be called if the Component's queue buffer becomes empty
+ * (underrun) A buffer is empty if the total amount of data inside it (buffers, bytes, 
+ * or time) is less than the min-threshold values set for each unit. Min-threshold values
+ * can be set by calling dsl_component_queue_min_threshold_set.
+ * @param[in] name name of the Component that owns the Queue that has underrun.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_component_queue_underrun_listener_cb)(const wchar_t* name, 
+    void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -4328,91 +4392,6 @@ DslReturnType dsl_pph_meter_interval_get(const wchar_t* name, uint* interval);
 DslReturnType dsl_pph_meter_interval_set(const wchar_t* name, uint interval);
 
 /**
- * @brief Creates a new, uniquely named Non-Maximum Processor (NMP) Pad 
- * Probe Handler (PPH) component.
- * @param[in] name unique name for the new Pad Probe Handler.
- * @param[in] label_file absolute or relative path to inference model label file.
- * Set "label_file" to NULL to perform class agnostic NMP.
- * @param[in] process_method method of processing non-maximum predictions. One
- * of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
- * @param[in] match_method method for object match determination, either 
- * DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
- * @param[in] match_threshold threshold for object match determination.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_new(const wchar_t* name, const wchar_t* label_file,
-    uint process_method, uint match_method, float match_threshold);
-
-/**
- * @brief Gets the current inference model label file in use by the Non-Maximum 
- * Processor (NMP) Pad Probe Handler component.  
- * @param[in] name unique name of the Pad Probe Handler to query.
- * @param[out] label_file path to the inference model label file in use. NULL
- * indicates class agnostic NMP. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_label_file_get(const wchar_t* name, 
-     const wchar_t** label_file);
-
-/**
- * @brief Sets the inference model label file for the Non-Maximum 
- * Processor (NMP) Pad Probe Handler component to use.  
- * @param[in] name unique name of the Pad Probe Handler to update.
- * @param[in] label_file absolute or relative path to the inference model 
- * label file to use. Set "label_file" to NULL to perform class agnostic NMP.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_label_file_set(const wchar_t* name, 
-     const wchar_t* label_file);
-
-/**
- * @brief Gets the current process mode in use by the Non-Maximum 
- * Processor (NMP) Pad Probe Handler component.  
- * @param[in] name unique name of the Pad Probe Handler to query.
- * @param[out] process_method current method of processing non-maximum predictions. 
- * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_process_method_get(const wchar_t* name, 
-     uint* process_method);
-
-/**
- * @brief Sets the process mode for the Non-Maximum Processor (NMP) 
- * Pad Probe Handler component to use.  
- * @param[in] name unique name of the Pad Probe Handler to update.
- * @param[in] process_method new method of processing non-maximum predictions. 
- * One of DSL_NMP_PROCESS_METHOD_SUPRESS or DSL_NMP_PROCESS_METHOD_MERGE. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_process_method_set(const wchar_t* name, 
-     uint process_method);
-
-/**
- * @brief Gets the current match settings in use by the named Non-Maximum 
- * Processor (NMP) Pad Probe Handler component.
- * @param[in] name unique name of the Pad Probe Handler to query.
- * @param[out] match_method current method of object match determination, 
- * either DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
- * @param[out] match_threshold current threshold for object match determination
- * currently in use.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_match_settings_get(const wchar_t* name,
-    uint* match_method, float* match_threshold);
-
-/**
- * @brief Sets the match settings for the named Non-Maximum Processor (NMP)
- * Pad Probe Handler component to use.
- * @param[in] name unique name of the Pad Probe Handler to update.
- * @param[in] match_method new method for object match determination, either 
- * DSL_NMP_MATCH_METHOD_IOU or DSL_NMP_MATCH_METHOD_IOS.
- * @param[in] match_threshold new threshold for object match determination.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise.
- */
-DslReturnType dsl_pph_nmp_match_settings_set(const wchar_t* name,
-    uint match_method, float match_threshold);
-
-/**
  * @brief Creates a new, uniquely named Buffer Timeout Pad Probe Handler (PPH). 
  * Once the PPH is added to a Component's Pad, the client callback will be called 
  * if a new buffer is not received within configurable amount of time.
@@ -4501,9 +4480,52 @@ DslReturnType dsl_pph_delete_all();
 uint dsl_pph_list_size();
 
 /** 
+ * @brief Creates a uniquely named GSTCaps Object from a string representation.
+ * @param[in] name unique name for the GST Caps Object to create.
+ * @param[in] caps a string defining the caps to create.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_caps_new(const wchar_t* name, const wchar_t* caps);
+
+/** 
+ * @brief Queries a uniquely named GST Caps Object for its current caps string representation.
+ * @param[in] name unique name for the GST Caps Object to query.
+ * @param[out] caps a string representation of the Caps Object's current caps.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */ 
+DslReturnType dsl_gst_caps_string_get(const wchar_t* name, const wchar_t** caps);
+
+/**
+ * @brief Deletes a GST Caps Object by name.
+ * @param[in] name unique name of the GST Caps Object to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */
+DslReturnType dsl_gst_caps_delete(const wchar_t* name);
+
+/**
+ * @brief deletes a NULL terminated list of GST Caps Objects.
+ * @param[in] names NULL terminated list of names of Caps Objects to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+ */
+DslReturnType dsl_gst_caps_delete_many(const wchar_t** names);
+
+/**
+ * @brief deletes all GST Caps Objects in memory.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_CAPS_RESULT otherwise.
+
+ */
+DslReturnType dsl_gst_caps_delete_all();
+
+/**
+ * @brief returns the current number of GST Caps Objects.
+ * @return size of the list of GST Caps Objects.
+ */
+uint dsl_gst_caps_list_size();
+
+/** 
  * @brief Creates a uniquely named GStreamer Element from a plugin factory name.
- * @param[in] name unique name for the Element to create
- * @param[in] factory_name factory (plugin) name for the Element to create
+ * @param[in] name unique name for the Element to create.
+ * @param[in] factory_name factory (plugin) name for the Element to create.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */ 
 DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_name);
@@ -4511,20 +4533,20 @@ DslReturnType dsl_gst_element_new(const wchar_t* name, const wchar_t* factory_na
 /**
  * @brief Deletes a GStreamer Element by name.
  * @param[in] name unique name of the Element to delete.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_delete(const wchar_t* name);
 
 /**
- * @brief deletes a NULL terminated list of GStreamer Elements
- * @param[in] names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT
+ * @brief deletes a NULL terminated list of GStreamer Elements.
+ * @param[in] names NULL terminated list of names to delete.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_delete_many(const wchar_t** names);
 
 /**
- * @brief deletes all GStreamer Elements in memory
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @brief deletes all GStreamer Elements in memory.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT.
 
  */
 DslReturnType dsl_gst_element_delete_all();
@@ -4545,7 +4567,7 @@ DslReturnType dsl_gst_element_get(const wchar_t* name, void** element);
 
 /** 
  * @brief Gets a named boolean property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4555,7 +4577,7 @@ DslReturnType dsl_gst_element_property_boolean_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named boolean property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4565,7 +4587,7 @@ DslReturnType dsl_gst_element_property_boolean_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named float property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4575,7 +4597,7 @@ DslReturnType dsl_gst_element_property_float_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named float property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4585,7 +4607,7 @@ DslReturnType dsl_gst_element_property_float_set(const wchar_t* name,
    
 /** 
  * @brief Gets a named unsigned int property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4595,7 +4617,7 @@ DslReturnType dsl_gst_element_property_uint_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named unsigned int property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4605,7 +4627,7 @@ DslReturnType dsl_gst_element_property_uint_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named signed int property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4615,7 +4637,7 @@ DslReturnType dsl_gst_element_property_int_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named signed int property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4625,7 +4647,7 @@ DslReturnType dsl_gst_element_property_int_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named uint64_t property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4635,7 +4657,7 @@ DslReturnType dsl_gst_element_property_uint64_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named uint64_t property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4644,7 +4666,7 @@ DslReturnType dsl_gst_element_property_uint64_set(const wchar_t* name,
     const wchar_t* property, uint64_t value);
     /** 
  * @brief Gets a named signed int64_t property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4654,7 +4676,7 @@ DslReturnType dsl_gst_element_property_int64_get(const wchar_t* name,
 
 /** 
  * @brief Sets a named signed int64_t property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4664,7 +4686,7 @@ DslReturnType dsl_gst_element_property_int64_set(const wchar_t* name,
     
 /** 
  * @brief Gets a named string property from a named Element.
- * @param[in] name unique name for the Element to query.
+ * @param[in] name unique name of the Element to query.
  * @param[in] property unique name of the property to query. 
  * @param[out] value current value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4674,7 +4696,7 @@ DslReturnType dsl_gst_element_property_string_get(const wchar_t* name,
     
 /** 
  * @brief Sets a named string property for a named Element.
- * @param[in] name unique name for the Element to update.
+ * @param[in] name unique name of the Element to update.
  * @param[in] property unique name of the property to update. 
  * @param[in] value new value for the named property. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
@@ -4682,13 +4704,36 @@ DslReturnType dsl_gst_element_property_string_get(const wchar_t* name,
 DslReturnType dsl_gst_element_property_string_set(const wchar_t* name, 
     const wchar_t* property, const wchar_t* value);
     
+/** 
+ * @brief Creates a named GST Caps Object from a named Element's property of 
+ * type caps. After the call, the new Caps Object can be queried for its
+ * string representation by calling dsl_gst_caps_string_get
+ * @param[in] name unique name for the Element to query.
+ * @param[in] property unique name of the property to query, typically "caps". 
+ * @param[in] caps unique name for the Caps Object to create. The Obejects caps 
+ * string can be queried by calling dsl_gst_caps_string_get.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_caps_get(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* caps);
+    
+/** 
+ * @brief Sets a named caps property for a named Element using a GST Caps Object.
+ * @param[in] name unique name of the Element to update.
+ * @param[in] property unique name of the property to update, typically "caps". 
+ * @param[in] caps unique name of the Caps Object to use. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
+ */
+DslReturnType dsl_gst_element_property_caps_set(const wchar_t* name, 
+    const wchar_t* property, const wchar_t* caps);
+    
 /**
  * @brief Adds a pad-probe-handler to a named GStreamer Element.
  * A GStreamer Element can have multiple Sink and Source pad-probe-handlers
  * @param[in] name unique name of the GStreamer Element to update
  * @param[in] handler callback function to process pad probe data
  * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_pph_add(const wchar_t* name, 
     const wchar_t* handler, uint pad);
@@ -4698,64 +4743,11 @@ DslReturnType dsl_gst_element_pph_add(const wchar_t* name,
  * @param[in] name unique name of the GStreamer Element to update
  * @param[in] handler pad-probe-handler to remove
  * @param[in] pad pad to remove the handler from; DSL_PAD_SINK | DSL_PAD SRC
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_ELEMENT_RESULT otherwise.
  */
 DslReturnType dsl_gst_element_pph_remove(const wchar_t* name, 
     const wchar_t* handler, uint pad);
-    
 
-/**
- * @brief creates a new, uniquely named GStreamer Bin
- * @param[in] name unique name for the new GStreamer Bin
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_new(const wchar_t* name);
-
-/**
- * @brief creates a new GStreamer Bin and adds a list of Elements to it.
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] elements NULL terminated array of Element names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_new_element_add_many(const wchar_t* name, 
-    const wchar_t** components);
-
-/**
- * @brief adds a single Element to a GStreamer Bin 
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] element Element names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_add(const wchar_t* name, 
-    const wchar_t* component);
-
-/**
- * @brief adds a list of Elements to a GStreamer Bin 
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] components NULL terminated array of element names to add
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_add_many(const wchar_t* name, 
-    const wchar_t** components);
-
-/**
- * @brief removes an Element from a GStreamer Bin
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] element name of the Element to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_remove(const wchar_t* name, 
-    const wchar_t* component);
-
-/**
- * @brief removes a list of Elements from a GStreamer Bin
- * @param[in] name name of the GStreamer Bin to update
- * @param[in] components NULL terminated array of Element names to remove
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_GST_BIN_RESULT otherwise.
- */
-DslReturnType dsl_gst_bin_element_remove_many(const wchar_t* name, 
-    const wchar_t** components);
-    
 /**
  * @brief Creates a new, uniquely named App Source component to insert data 
  * into a DSL pipeline.
@@ -4936,6 +4928,70 @@ DslReturnType dsl_source_app_max_level_bytes_set(const wchar_t* name,
  */
 //DslReturnType dsl_source_app_leaky_type_set(const wchar_t* name,
 //    uint leaky_type);
+    
+/**
+ * @brief creates a new, uniquely named Custom Source Component.
+ * @param[in] name unique name for the new Custom Source.
+ * @param[in] is_live true if the source is live, false if not.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new(const wchar_t* name, boolean is_live);
+
+/**
+ * @brief creates a new Custom Source Component and adds a GST Element to it.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] is_live true if the source is live, false if not.
+ * @param[in] element name of the GST Element to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new_element_add(const wchar_t* name, 
+    boolean is_live, const wchar_t* element);
+
+/**
+ * @brief creates a new Custom Source Component and adds a list of GST Elements to it.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] is_live true if the source is live, false if not.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_new_element_add_many(const wchar_t* name, 
+    boolean is_live, const wchar_t** elements);
+
+/**
+ * @brief adds a single GST Element to a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] element Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief adds a list of GST Elements to a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief removes an GST Element from a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements name of the GST Element to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief removes a list of GST Elements from a Custom Source Component.
+ * @param[in] name name of the Custom Source to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
     
 /**
  * @brief creates a new, uniquely named CSI Camera Source component. A unique 
@@ -5319,24 +5375,6 @@ DslReturnType dsl_source_interpipe_accept_settings_set(const wchar_t* name,
     boolean accept_eos, boolean accept_events);
     
 /**
- * @brief creates a new, uniquely named RTSP Source component
- * @param[in] name Unique for the new RTSP Source.
- * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
- * @param[in] skip_frames Type of frames to skip during decoding.
- *   (0): decode_all       - Decode all frames
- *   (1): decode_non_ref   - Decode non-ref frame
- *   (2): decode_key       - decode key frames
- * @param[in] drop_frame_interval, set to 0 to decode every frame.
- * @param[in] latency the amount of data to buffer in milliseconds.
- * @param[in] timeout time to wait between successive frames before determining the 
- * connection is lost. Set to 0 to disable timeout.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
-    const wchar_t* uri, uint protocol, uint skip_frames, uint drop_frame_interval, 
-    uint latency, uint timeout);
-
-/**
  * @brief Creates a new, uniquely name Duplicate Source used to duplicate the stream 
  * of another named Video Source. Both the Duplicate Source and the Original Source
  * must be added to the same Pipeline. The Duplicate Source will be Tee'd into the
@@ -5578,6 +5616,24 @@ DslReturnType dsl_source_uri_uri_set(const wchar_t* name, const wchar_t* uri);
 DslReturnType dsl_source_rtsp_uri_get(const wchar_t* name, const wchar_t** uri);
 
 /**
+ * @brief creates a new, uniquely named RTSP Source component
+ * @param[in] name Unique for the new RTSP Source.
+ * @param[in] protocol one of the constant protocol values [ DSL_RTP_TCP | DSL_RTP_ALL ]
+ * @param[in] skip_frames Type of frames to skip during decoding.
+ *   (0): decode_all       - Decode all frames
+ *   (1): decode_non_ref   - Decode non-ref frame
+ *   (2): decode_key       - decode key frames
+ * @param[in] drop_frame_interval, set to 0 to decode every frame.
+ * @param[in] latency the amount of data to buffer in milliseconds.
+ * @param[in] timeout time to wait between successive frames before determining the 
+ * connection is lost. Set to 0 to disable timeout.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_new(const wchar_t* name, 
+    const wchar_t* uri, uint protocol, uint skip_frames, uint drop_frame_interval, 
+    uint latency, uint timeout);
+
+/**
  * @brief Sets the current URI for the named RTSP Source to use.
  * @param[in] name name of the Source to update.
  * @param[in] uri new URI for the RTSP Source to use.
@@ -5701,6 +5757,24 @@ DslReturnType dsl_source_rtsp_tls_validation_flags_get(const wchar_t* name,
  */
 DslReturnType dsl_source_rtsp_tls_validation_flags_set(const wchar_t* name,
     uint flags);
+
+/**
+ * @brief Gets the current upd-buffer-size for the named RTSP Source.
+ * @param[in] name name of the source object to query
+ * @param[out] size current size of the kernel UDP receive buffer in bytes. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_udp_buffer_size_get(const wchar_t* name,
+    uint* size);
+
+/**
+ * @brief Sets the upd-buffer-size for the named RTSP Source to use.
+ * @param[in] name name of the source object to update
+ * @param[in] size new size of the kernel UDP receive buffer in bytes. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_rtsp_udp_buffer_size_set(const wchar_t* name,
+    uint size);
 
 /**
  * @brief adds a callback to be notified on change of RTSP Source state
@@ -5874,7 +5948,7 @@ DslReturnType dsl_dewarper_num_batch_buffers_set(const wchar_t* name, uint num);
  * @brief creates a new, uniquely named Record Tap component
  * @param[in] name unique component name for the new Record Tap
  * @param[in] outdir absolute or relative path to the recording output dir.
- * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] container either DSL_CONTAINER_MP4 or DSL_CONTAINER_MKV
  * @param[in] client_listener client callback for notifications of recording
  * events, DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_STOP.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
@@ -5923,7 +5997,8 @@ DslReturnType dsl_tap_record_outdir_set(const wchar_t* name, const wchar_t* outd
 /**
  * @brief returns the video recording container type for the named Record Tap
  * @param[in] name name of the Record Tap to query
- * @param[out] container current setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[out] container current container type in use, either DSL_CONTAINER_MP4 or 
+ * DSL_CONTAINER_MKV
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
   */
 DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container);
@@ -5931,7 +6006,8 @@ DslReturnType dsl_tap_record_container_get(const wchar_t* name, uint* container)
 /**
  * @brief returns the video recording container type for the named Record Tap
  * @param[in] name name of the Record Tap to query.
- * @param[in] container new setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] container new container type to use, either DSL_CONTAINER_MP4 or 
+ * DSL_CONTAINER_MKV
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_tap_record_container_set(const wchar_t* name,  uint container);
@@ -7242,6 +7318,67 @@ DslReturnType dsl_sink_app_data_type_get(const wchar_t* name, uint* data_type);
 DslReturnType dsl_sink_app_data_type_set(const wchar_t* name, uint data_type);
     
 /**
+ * @brief Creates a new, uniquely named Custom Sink Component.
+ * @param[in] name unique name for the new Custom Sink.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_new(const wchar_t* name);
+
+/**
+ * @brief Creates a new Custom Sink Component and adds a GST Element to it.
+ * @param[in] name unique name for the new Custom Sink.
+ * @param[in] element name of the GST Element to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_new_element_add(const wchar_t* name, 
+    const wchar_t* element);
+
+/**
+ * @brief Creates a new Custom Sink Component and adds a list of GST Elements to it.
+ * @param[in] name unique name for the new Custom Sink.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_new_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief Adds a single GST Element to a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] element Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief Adds a list of GST Elements to a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief Removes a GST Element from a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] elements name of the GST Element to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief Removes a list of GST Elements from a Custom Sink Component.
+ * @param[in] name name of the Custom Sink to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
+ 
+/**
  * @brief Creates a new, uniquely named Fake Sink component.
  * @param[in] name unique component name for the new Fake Sink.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
@@ -7443,35 +7580,35 @@ DslReturnType dsl_sink_window_egl_force_aspect_ratio_set(const wchar_t* name,
     boolean force);
 
 /**
- * @brief creates a new, uniquely named File Sink component
- * @param[in] name unique component name for the new File Sink
- * @param[in] file_path absolute or relative file path including extension
- * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265
- * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @param[in] bitrate in bits per second - H264 and H265 only
- * Set to 0 to use the Encoder default bitrate (4Mbps)
- * @param[in] interval iframe interval to encode at
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @brief creates a new, uniquely named File Sink component.
+ * @param[in] name unique component name for the new File Sink.
+ * @param[in] file_path absolute or relative file path including extension.
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
+ * @param[in] container either DSL_CONTAINER_MP4 or DSL_CONTAINER_MKV.
+ * @param[in] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default. 
+ * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
  */
 DslReturnType dsl_sink_file_new(const wchar_t* name, const wchar_t* file_path, 
-     uint codec, uint container, uint bitrate, uint interval);
+     uint encoder, uint container, uint bitrate, uint iframe_interval);
 
 /**
- * @brief creates a new, uniquely named File Record component
- * @param[in] name unique component name for the new Record Sink
+ * @brief creates a new, uniquely named File Record component.
+ * @param[in] name unique component name for the new Record Sink.
  * @param[in] outdir absolute or relative path to the recording output dir.
- * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265
- * @param[in] container one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
- * @param[in] bitrate in bits per second 
- * Set to 0 to use the Encoder default bitrate (4Mbps)
- * @param[in] interval iframe interval to encode at
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
+ * @param[in] container either DSL_CONTAINER_MP4 or DSL_CONTAINER_MKV.
+ * @param[in] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default.
+ * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
  * @param[in] client_listener client callback for notifications of recording
  * events, DSL_RECORDING_EVENT_START and DSL_RECORDING_EVENT_STOP.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure.
  */
 DslReturnType dsl_sink_record_new(const wchar_t* name, 
-    const wchar_t* outdir, uint codec, 
-    uint container, uint bitrate, uint interval, 
+    const wchar_t* outdir, uint encoder, 
+    uint container, uint bitrate, uint iframe_interval, 
     dsl_record_client_listener_cb client_listener);
      
 /**
@@ -7518,7 +7655,8 @@ DslReturnType dsl_sink_record_outdir_set(const wchar_t* name, const wchar_t* out
  * A fixed size cache is created when the Pipeline is linked and played. 
  * The default cache size is set to DSL_DEFAULT_VIDEO_RECORD_CACHE_SIZE_IN_SEC
  * @param[in] name name of the Record Tap to query
- * @param[out] container current setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[out] container current container type in use, either DSL_CONTAINER_MP4 or 
+ * DSL_CONTAINER_MKV
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
   */
 DslReturnType dsl_sink_record_container_get(const wchar_t* name, uint* container);
@@ -7526,7 +7664,8 @@ DslReturnType dsl_sink_record_container_get(const wchar_t* name, uint* container
 /**
  * @brief Sets the video recording container type for the named Sink
  * @param[in] name name of the Record Sink to update
- * @param[in] container new setting, one of DSL_MUXER_MPEG4 or DSL_MUXER_MK4
+ * @param[in] container new container type to use, either DSL_CONTAINER_MP4 or 
+ * DSL_CONTAINER_MKV
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_TAP_RESULT on failure
  */
 DslReturnType dsl_sink_record_container_set(const wchar_t* name,  uint container);
@@ -7651,27 +7790,17 @@ DslReturnType dsl_sink_record_mailer_remove(const wchar_t* name,
     const wchar_t* mailer);
     
 /**
- * @brief gets the current codec, bitrate, and interval settings for the named Encode Sink
+ * @brief gets the current encoder, bitrate, and interval settings for the 
+ * named Encode Sink
  * @param[in] name unique name of the Encode Sink to query
- * @param[out] codec current Codec either DSL_CODEC_H264 DSL_CODEC_H265
- * @param[out] bitrate current encoder bitrate in bits/sec for the named Encode Sink
- * @param[out] interval current encoder frame interval value
+ * @param[out] encoder current encoder - one of the DSL_ENCODER symbolic constants
+ * @param[out] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default.
+ * @param[out] iframe_interval intra frame (key-frame) occurrence interval.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_encode_settings_get(const wchar_t* name,
-    uint* codec, uint* bitrate, uint* interval);
-
-/**
- * @brief sets new codec, bitrate, and interval settings for the named Encode Sink
- * @param[in] name unique name of the Encode Sink to update
- * @param[in] codec new codec either DSL_CODEC_H264 DSL_CODEC_H265
- * @param[in] bitrate new encoder bitrate in bits/sec for the named Encode Sink
- * Set to 0 to use the Encoder default bitrate (4Mbps)
- * @param[in] interval new encoder frame interval value to use
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
- */
-DslReturnType dsl_sink_encode_settings_set(const wchar_t* name, 
-    uint codec, uint bitrate, uint interval);
+    uint* encoder, uint* bitrate, uint* iframe_interval);
 
 /**
  * @brief Gets the dimensions, width and height, in use by the Encode Sink's
@@ -7697,17 +7826,18 @@ DslReturnType dsl_sink_encode_dimensions_set(const wchar_t* name,
 
 /**
  * @brief creates a new, uniquely named RTMP Sink component. 
- * IMPORT! Although derived from the Encode Sink, only the H264 codec 
+ * IMPORT! Although derived from the Encode Sink, only the H264 encoder 
  * is supported.
  * @param[in] name unique component name for the new RTMP Sink.
  * @param[in] uri RTMP URI to stream to.
- * @param[in] bitrate in bits per second. Set to 0 to use the Encoder default 
- * bitrate (4Mbps).
- * @param[in] interval frame interval to encode at.
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
+ * @param[in] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default.
+ * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
  DslReturnType dsl_sink_rtmp_new(const wchar_t* name, const wchar_t* uri,
-    uint bitrate, uint interval);
+    uint encoder, uint bitrate, uint iframe_interval);
 
 /**
  * @brief Gets the current URI in use by the named RTMP Sink.
@@ -7731,20 +7861,20 @@ DslReturnType dsl_sink_rtmp_uri_set(const wchar_t* name, const wchar_t* uri);
  * @param[in] host address for the RTSP Server
  * @param[in] port UDP port number for the RTSP Server
  * @param[in] port RTSP port number for the RTSP Server
- * @param[in] codec one of DSL_CODEC_H264, DSL_CODEC_H265
- * @param[in] bitrate in bits per second.
- * Set to 0 to use the Encoder default bitrate (4Mbps)
- * @param[in] interval iframe interval to encode at
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
+ * @param[in] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default.
+ * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_new(const wchar_t* name, const wchar_t* host, 
-     uint udpPort, uint rtmpPort, uint codec, uint bitrate, uint interval);
+     uint udpPort, uint rtmpPort, uint encoder, uint bitrate, uint iframe_interval);
 
 /**
- * @brief gets the current codec and video media container formats for the
- * named RTSP Server Sink.
+ * @brief gets the current server port settings in us by the named RTSP Server Sink.
  * @param[in] name unique name of the Sink to query
- * @param[out] port UDP Port number to use
+ * @param[out] udpPort UDP Port number in use
+ * @param[out] rtspPort RTSP Port number in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
@@ -7754,14 +7884,14 @@ DslReturnType dsl_sink_rtsp_server_settings_get(const wchar_t* name,
  * @brief creates a new, uniquely named RTSP Client Sink component.
  * @param[in] name unique component name for the new RTSP Client Sink.
  * @param[in] uri RTSP uri to stream to.
- * @param[in] codec DSL_CODEC_H264 or DSL_CODEC_H265.
- * @param[in] bitrate in bits per second - H264 and H265 only.
- * Set to 0 to use the Encoder default bitrate (4Mbps).
- * @param[in] interval frame interval to encode at.
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
+ * @param[in] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default.
+ * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  */
 DslReturnType dsl_sink_rtsp_client_new(const wchar_t* name, const wchar_t* uri, 
-     uint codec, uint bitrate, uint interval);
+     uint encoder, uint bitrate, uint iframe_interval);
 
 /**
  * @brief Sets the user credentials for the named RTSP Client Sink to use.
@@ -8037,14 +8167,15 @@ DslReturnType dsl_sink_frame_capture_schedule(const wchar_t* name,
  * Set to NULL to omit if using TURN server(s)
  * @param[in] turn_server TURN server(s) to use of the form 
  * turn(s)://username:password@host:port. Set to NULL to omit if using a STUN server
- * @param[in] codec either DSL_CODEC_H264 DSL_CODEC_H265
- * @param[in] bitrate in bits per second
- * @param[in] interval frame interval to encode at
+ * @param[in] encoder one of the DSL_ENCODER symbolic constants.
+ * @param[in] bitrate bitrate for video encoding in units of bit/s. 
+ * Set to 0 to use the encoder's default.
+ * @param[in] iframe_interval intra frame (key-frame) occurrence interval.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT on failure
  * ** IMPORTANT: the WebRTC Sink implementation requires DS 1.18.0 or later
  */
 DslReturnType dsl_sink_webrtc_new(const wchar_t* name, const wchar_t* stun_server, 
-    const wchar_t* turn_server, uint codec, uint bitrate, uint interval);
+    const wchar_t* turn_server, uint encoder, uint bitrate, uint iframe_interval);
 
 /**
  * @brief Closes a uniquely named WebRTC Sink component's Websocket connection
@@ -8387,7 +8518,7 @@ DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
  */
 DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
     int brightness, int contrast, int saturation);
-
+   
 /**
  * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
  * the Sink will synchronize on the clock.
@@ -8484,9 +8615,70 @@ DslReturnType dsl_sink_pph_add(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_sink_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
+ * @brief creates a new, uniquely named Custom Component
+ * @param[in] name unique name for the new Custom Component
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_new(const wchar_t* name);
+
+/**
+ * @brief creates a new Custom Component and adds a new Element to it.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] element name of the GST Element to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_new_element_add(const wchar_t* name, 
+    const wchar_t* element);
+
+/**
+ * @brief creates a new Custom Component and adds a list of GST Elements to it.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_new_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief adds a single GST Element to a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] element Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_add(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief adds a list of GST Elements to a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements NULL terminated array of GST Element names to add.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_add_many(const wchar_t* name, 
+    const wchar_t** elements);
+
+/**
+ * @brief removes an GST Element from a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements name of the GST Element to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_remove(const wchar_t* name, 
+    const wchar_t* elements);
+
+/**
+ * @brief removes a list of GST Elements from a Custom Component.
+ * @param[in] name name of the Custom Component to update.
+ * @param[in] elements NULL terminated array of GST Element names to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
+ */
+DslReturnType dsl_component_custom_element_remove_many(const wchar_t* name, 
+    const wchar_t** elements);
+    
+/**
  * @brief deletes a Component object by name
  * @param[in] name name of the Component object to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  * @info the function checks that the name is not 
  * owned by a pipeline before deleting, and returns
  * DSL_RESULT_COMPONENT_IN_USE as failure
@@ -8496,7 +8688,7 @@ DslReturnType dsl_component_delete(const wchar_t* name);
 /**
  * @brief deletes a NULL terminated list of components
  * @param[in] names NULL terminated list of names to delete
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_COMPONENT_RESULT otherwise.
  */
 DslReturnType dsl_component_delete_many(const wchar_t** names);
 
@@ -8511,6 +8703,241 @@ DslReturnType dsl_component_delete_all();
  * @return size of the list of components
  */
 uint dsl_component_list_size();
+
+/**
+ * @brief Gets the queue-current-level by unit (buffers, bytes, or time) for the 
+ * named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
+    uint unit, uint64_t* current_level);
+
+/**
+ * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_print(const wchar_t* name, 
+    uint unit);
+
+/**
+ * @brief Prints the queue-current-level by unit (buffers, bytes, or time) to stdout 
+ * for a null terminated list of named Components.
+ * @param[in] names null terminated list of names of components to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_print_many(const wchar_t** names, 
+    uint unit);
+
+/**
+ * @brief Logs the queue-current-level by unit (buffers, bytes, or time) at the 
+ * level of LOG_INFO.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] current_level the current queue level for the specified unit.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_log(const wchar_t* name, 
+    uint unit);
+
+/**
+ * @brief Logs the queue-current-level by unit (buffers, bytes, or time) at the 
+ * level of LOG_INFO.
+ * @param[in] names null terminated list of names of components to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_current_level_log_many(const wchar_t** names, 
+    uint unit);
+
+/**
+ * @brief Gets the current queue-leaky setting for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[out] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_leaky_get(const wchar_t* name, uint* leaky);
+
+/**
+ * @brief Sets the queue-leaky setting for the named Component.
+ * @param[in] name name of the component to update.
+ * @param[in] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_queue_leaky_set(const wchar_t* name, uint leaky);
+
+/**
+ * @brief Sets the queue-leaky setting for a null terminated list of named Components.
+ * @param[in] names null terminated list of names of components to update.
+ * @param[in] leaky one of the DSL_COMPONENT_QUEUE_LEAKY constant values.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure
+ */
+DslReturnType dsl_component_queue_leaky_set_many(const wchar_t** names, uint leaky);
+
+/**
+ * @brief Gets the current queue-max-size setting by unit (buffers, bytes, or time)  
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] max_size the current max-size setting for the specified unit.
+ * Default values: buffers=200, bytes=10485760, time=1000000000ns
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_max_size_get(const wchar_t* name, 
+    uint unit, uint64_t* max_size);
+
+/**
+ * @brief Sets the queue-max-size setting by unit (buffers, bytes, or time) for the 
+ * named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] max_size the new max-size setting for the specified unit.
+ * Default values: buffers=200, bytes=10485760, time=1000000000ns
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_max_size_set(const wchar_t* name, 
+    uint unit, uint64_t max_size);
+
+/**
+ * @brief Sets the queue-max-size setting by unit (buffers, bytes, or time) for a null  
+ * terminated list of named Components.
+ * @param[in] names null terminated list of names of Components to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] max_size the new max-size setting for the specified unit.
+ * Default values: buffers=200, bytes=10485760, time=1000000000ns
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_max_size_set_many(const wchar_t** names, 
+    uint unit, uint64_t max_size);
+
+/**
+ * @brief Gets the current queue-min-threshold setting by unit (buffers, bytes, or time) 
+ * for the named Component.
+ * @param[in] name name of the Component to query.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[out] min_threshold the current min-threshold setting for the specified unit.
+ * Default value = 0  for all units. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_min_threshold_get(const wchar_t* name, 
+    uint unit, uint64_t* min_threshold);
+
+/**
+ * @brief Sets the queue-min-threshold setting by unit (buffers, bytes, or time) for the 
+ * named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] min_threshold the new min-threshold setting for the specified unit. 
+ * Default value = 0  for all units. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+DslReturnType dsl_component_queue_min_threshold_set(const wchar_t* name, 
+    uint unit, uint64_t min_threshold);
+
+/**
+ * @brief Sets the queue-min-threshold setting by unit (buffers, bytes, or time) for a 
+ * null terminated list of named Components.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] unit one of the DSL_COMPONENT_QUEUE_UNIT_OF constants.
+ * @param[in] min_threshold the new min-threshold setting for the specified unit. 
+ * Default value = 0  for all units. 
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_COMPONENT_RESULT on failure.
+ */
+    DslReturnType dsl_component_queue_min_threshold_set_many(const wchar_t** names, 
+        uint unit, uint64_t min_threshold);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a named Component to 
+ * be called when the queue's buffer becomes full (overrun). A buffer is full if  
+ * the total amount of data inside it (buffers, byte or time) is higher than the  
+ * max-size values set for each unit. Max-size values can be set by calling 
+ * dsl_component_queue_max_size_set.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_overrun_listener_add(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a list of named Components 
+ * to be called when any of the Component queue buffers becomes full (overrun). A   
+ * buffer is full if the total amount of data inside it (buffers, byte or time) is   
+ * higher than the max-size values set for each unit. Max-size values can be set by  
+ * calling dsl_component_queue_max_size_set.
+ * @param[in] names null terminated list of names of Components to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_overrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_overrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_overrun_listener_cb listener);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a list of named 
+ * Components.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_overrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_overrun_listener_cb listener);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a named Component to  
+ * be called when the queue's buffer becomes empty (underrun). A buffer is empty if 
+ * the total amount of data inside it (buffers, byte or time) is lower than the 
+ * min-threshold values set for each unit. Min-threshold values can be set by calling 
+ * dsl_component_queue_min_threshold_set.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_underrun_listener_add(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Adds a queue-client-listener callback function to a list of named   
+ * Components to be called when any of the Component queue buffers becomes
+ * empty (underrun). A buffer is empty if the total amount of data inside it 
+ * (buffers, byte or time) is lower than the min-threshold values set for each unit.
+ * Min-threshold values can be set by calling dsl_component_queue_min_threshold_set.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to call on Queue overrun.
+ * @param[in] client_data opaque pointer to client data passed into the listener function.
+ */
+DslReturnType dsl_component_queue_underrun_listener_add_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a named Component.
+ * @param[in] name name of the Component to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_underrun_listener_remove(const wchar_t* name, 
+    dsl_component_queue_underrun_listener_cb listener);
+
+/**
+ * @brief Removes a queue-client-listener callback function from a list of 
+ * named Component as.
+ * @param[in] names null terminated list names of Components to update.
+ * @param[in] listener pointer to the client's function to remove.
+ */
+DslReturnType dsl_component_queue_underrun_listener_remove_many(const wchar_t** names, 
+    dsl_component_queue_underrun_listener_cb listener);
 
 /**
  * @brief Gets the named component's current GPU ID
@@ -9155,6 +9582,30 @@ DslReturnType dsl_pipeline_state_change_listener_add(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_state_change_listener_remove(const wchar_t* name, 
     dsl_state_change_listener_cb listener);
+
+/**
+ * @brief Adds a callback to be notified when a buffering message is received by
+ * the Pipeline's bus-watcher. The callback is called from the mainloop context 
+ * allowing clients to Pause non-live Pipelines while buffering. 
+ * @param[in] name name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to add
+ * @param[in] client_data opaque pointer to client data passed back to the 
+ * handler function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_buffering_message_handler_add(const wchar_t* name, 
+    dsl_buffering_message_handler_cb handler, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with 
+ * dsl_pipeline_buffering_message_handler_add
+ * @param[in] name name of the pipeline to update
+ * @param[in] handler pointer to the client's callback function to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PIPELINE_RESULT on failure.
+ */
+DslReturnType dsl_pipeline_buffering_message_handler_remove(const wchar_t* name, 
+    dsl_buffering_message_handler_cb handler);
+
 
 /**
  * @brief Creates a new main-context and main-loop for a named Pipeline. This service

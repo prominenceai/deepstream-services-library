@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslBintr.h"
+#include "DslQBintr.h"
 #include "DslElementr.h"
 #include "DslDewarperBintr.h"
 #include "DslTapBintr.h"
@@ -46,6 +46,10 @@ namespace DSL
     #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
             bufferInFormat, width, height, fpsN, fpsD))
+        
+    #define DSL_CUSTOM_SOURCE_PTR std::shared_ptr<CustomSourceBintr>
+    #define DSL_CUSTOM_SOURCE_NEW(name, isLive) \
+        std::shared_ptr<CustomSourceBintr>(new CustomSourceBintr(name, isLive))
         
     #define DSL_CSI_SOURCE_PTR std::shared_ptr<CsiSourceBintr>
     #define DSL_CSI_SOURCE_NEW(name, width, height, fpsN, fpsD) \
@@ -130,7 +134,7 @@ namespace DSL
      * @class SourceBintr
      * @brief Implements a base Source Bintr for all derived Source types.
      */
-    class SourceBintr : public Bintr
+    class SourceBintr : public QBintr
     {
     public: 
     
@@ -416,14 +420,14 @@ namespace DSL
          * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
          * @return true if the DuplicateSourceBintr could be added, false otherwise.
          */
-        bool AddDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
+        bool AddDuplicateSource(DSL_SOURCE_PTR pDuplicateSource);
 
         /**
          * @brief Removes a DuplicateSourceBintr from this VideoSourceBintr.
          * @param pDuplicateSource shared pointer to the DuplicateSourceBintr to add.
          * @return true if the DuplicateSourceBintr could be added, false otherwise.
          */
-        bool RemoveDuplicateSource(DSL_VIDEO_SOURCE_PTR pDuplicateSource);
+        bool RemoveDuplicateSource(DSL_SOURCE_PTR pDuplicateSource);
 
     private:
 
@@ -465,12 +469,6 @@ namespace DSL
          */
         bool LinkToCommon(GstPad* pSrcPad);
 
-        /**
-         * @brief Common shared code for the two LinkToCommon methods.
-         * @return True on success, false otherwise
-         */
-        bool CompleteLinkToCommon();
-        
         /**
          * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
          */
@@ -546,11 +544,6 @@ namespace DSL
         DSL_DEWARPER_PTR m_pDewarperBintr;
         
         /**
-         * @brief Source Queue for SourceBintr - set as ghost-pad for each source
-         */
-        DSL_ELEMENT_PTR  m_pSourceQueue;
-
-        /**
          * @brief Conditional Tee used if this VideoSourceBintr has 1 or more
          * DuplicateSourceBintrs.
          */
@@ -565,7 +558,7 @@ namespace DSL
         /**
          * @brief map of DuplicateSourceBintrs to duplicate this VideSourceBintr
          */
-        std::map <std::string, DSL_VIDEO_SOURCE_PTR> m_duplicateSources;
+        std::map <std::string, DSL_SOURCE_PTR> m_duplicateSources;
         
         /**
          * @brief vecotr of requested source pads from m_pDuplicateSourceTee
@@ -579,7 +572,7 @@ namespace DSL
      * @brief Implements a Source that can be added to any other Video Source
      * to duplicate the original stream.
      */
-    class DuplicateSourceBintr : public VideoSourceBintr
+    class DuplicateSourceBintr : public SourceBintr
     {
     public: 
     
@@ -626,11 +619,6 @@ namespace DSL
          * @brief name of the Original Source -- currently added to -- to duplicate.
          */
         std::string m_original;
-        
-        /**
-         * @brief Sink (input) queue for this DuplicateSourceBintr.
-         */
-        DSL_ELEMENT_PTR m_pSinkQueue;
         
     };
 
@@ -897,10 +885,77 @@ namespace DSL
         gpointer pAppSrcBintr);
         
     //*********************************************************************************
+
     /**
-     * @class CsiSourceBintr
-     * @brief 
-     */
+     * @class CustomSourceBintr
+     * @brief Implements a Custom Source Bintr with Custom GST Elements 
+     */    
+    class CustomSourceBintr : public VideoSourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief Ctor for the CustomSourceBintr class
+         * @param[in] name unique name to give to the CustomsSourceBintr.
+         * @param[in] isLive set to true if Source Element is a live-source.
+        */
+        CustomSourceBintr(const char* name, bool isLive);
+
+        /**
+         * @brief dtor for the CustomSourceBintr class.
+         */
+        ~CustomSourceBintr();
+
+        /**
+         * @brief Adds a Child Element to this Bintr.
+         * @param pChild Child Element to add this Bintr to.
+        */
+        bool AddChild(DSL_ELEMENT_PTR pChild);
+    
+        /**
+         * @brief Removes a Child Element from this Bintr.
+         * @param pChild Child Element to add this Bintr to.
+        */
+        bool RemoveChild(DSL_ELEMENT_PTR pChild);
+ 
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr.
+         * @return true if all links were succesful, false otherwise.
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Bintr.
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+    
+    private:
+
+        /**
+         * @brief Index variable to incremment/assign on Element add.
+         */
+        uint m_nextElementIndex;
+        
+        /**
+         * @brief Map of child Elementrs for this CustomSourceBintr.
+         * indexed by thier add-order for execution.
+         */
+        std::map <uint, DSL_ELEMENT_PTR> m_elementrsIndexed;
+        
+        /**
+         * @brief Map of child Elementrs for this CustomSourceBintr.
+         * indexed by thier add-order, added when linked.
+         */
+        std::vector <DSL_ELEMENT_PTR> m_elementrsLinked;
+    };
+ 
+    //*********************************************************************************
+
+    /**
+     * @class CSI Source Bintr
+     * @brief Implements a CSI Camera Source 
+     */    
     class CsiSourceBintr : public VideoSourceBintr
     {
     public: 
@@ -1890,6 +1945,19 @@ namespace DSL
         bool SetTlsValidationFlags(uint flags);
         
         /**
+         * @brief Gets the current udp-buffer-size for the RtspSourceBintr.
+         * @return Current size of the kernel UDP receive buffer in bytes
+         */
+        uint GetUdpBufferSize();
+        
+        /**
+         * @brief Sets the udp-buffer-size for the RtspSourceBintr to use.
+         * @param[in] size new size for the kernel UDP receive buffer in bytes. 
+         * @return true on successful set, false otherwise.
+         */
+        bool SetUdpBufferSize(uint size);
+        
+        /**
          * @brief adds a TapBintr to the RTSP Source - one at most
          * @return true if the Source was able to add the Child TapBintr
          */
@@ -1963,6 +2031,11 @@ namespace DSL
          * RTSP server certificate.
          */
         uint m_tlsValidationFlags;
+
+        /**
+         * @brief Size of the kernel UDP receive buffer in bytes
+         */
+        uint m_udpBufferSize;
 
         /**
          * @brief optional child TapBintr, tapped in pre-decode

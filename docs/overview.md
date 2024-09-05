@@ -126,7 +126,7 @@ There are nine primary classes of [Components](/docs/api-component.md) that can 
 ## Sources
 [Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source (and one [Sink](/docs/api-sink.md)) to transition to a state of `PLAYING`. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream Muxer -- as long as all Sources are of the same play-type; live vs. non-live. 
 
-There are eleven (11) types of Source components supported, all are currently Video only. Audio-Video and Audio only Sources are currently in development.
+There are eleven (12) types of Source components supported, all are currently Video only. Audio-Video and Audio only Sources are currently in development.
 * [App Source](/docs/api-source.md#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](/docs/api-source.md#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
 * [V4L2 Source](/docs/api-source.md#dsl_source_v4l2_new) - Stream from any V4L2 compatable device - a USB Webcam for example.
@@ -138,6 +138,7 @@ There are eleven (11) types of Source components supported, all are currently Vi
 * [Multi Image Source](/docs/api-source.md#dsl_source_image_multi_new) - Streamed at one image file per frame.
 * [Streaming Image Source](/docs/api-source.md#dsl_source_image_stream_new)  - Single image streamed at a given frame rate. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Duplicate Source](/docs/api-source.md#dsl_source_duplicate_new) - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
+* [Custom Source](/docs/api-source.md#dsl_source_custom_new) - Used to create a Custom Video Source using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or released GStreamer plugins.
 
 All Sources have dimensions, width and height in pixels, and frame-rates expressed as a fractional numerator and denominator.  The URI and RTSP Source components support multiple codec formats, including H.264, H.265, and JPEG. 
 
@@ -264,9 +265,26 @@ See the [Remuxer API Reference](/docs/api-remuxer.md) for more information.
 ---
 
 ## Custom Components
-Custom Components, built with installed or proprietary GStreamer (GST) plugins, are created using the [DSL GST API](/docs/api-gst.md). Once created, they can be added to a Pipeline along with other DSL Components. 
+Custom Components are built with [Custom GST Elements](/docs/api-gst.md) derived from installed or proprietary GStreamer (GST) plugins. Once created, they can be added to a Pipeline along with other DSL Components. 
 
-See the [GST API Reference](/docs/api-gst.md) for more information.
+There are three types of Custom Components supported.
+1. Custom Componets that are not Sources or Sinks - linked after the Pipeline's Streammuxer along with other DSL non Source and Sink components.
+2. Custom Source Components - linked to the Pipeline's built-in Streammuxer along with other DSL Sources.
+3. Custom Sink components - linked to the Pipeline or Branch's multi-sink Tee along with other DSL Sinks.
+
+See the following reference sections for more information:
+* [GST API Reference](/docs/api-gst.md)
+* [Custom Component API Reference](/docs/api-component.md#custom-components)
+* [Custom Source API Reference](/docs/api-source.md#custom-video-sources)
+* [Custom Sink API Reference](/docs/api-sink.md#custom-video-sinks)
+
+See the following examples for more detail:
+* [pipeline_with_custom_component.py](/examples/python/pipeline_with_custom_component.py)
+* [pipeline_with_custom_component.cpp](/examples/cpp/pipeline_with_custom_component.cpp)
+* [pipeline_with_custom_source.py](/examples/python/pipeline_with_custom_source.py)
+* [pipeline_with_custom_source.cpp](/examples/cpp/pipeline_with_custom_source.cpp)
+* [pipeline_with_custom_sink.py](/examples/python/pipeline_with_custom_sink.py)
+* [pipeline_with_custom_sink.cpp](/examples/cpp/pipeline_with_custom_sink.cpp)
 
 ---
 
@@ -280,7 +298,7 @@ The default link method is `DSL_PIPELINE_LINK_METHOD_BY_ADD_ORDER`.
 
 ### Linking by Add-Order
 When linking by add order (default):
-* All Components, except for Source, Branches, and Sinks, must be added to the Pipeline at the same time in the order they are to be linked.
+* All Components, except for Sources, Branches, and Sinks, must be added to the Pipeline at the same time in the order they are to be linked.
 * Sources are still always linked to the Streammuxer first, regardless of the order added.
 * Demuxers, Tees, and Sinks must always be added last. 
 * Sources and Sinks can be added/removed at runtime.
@@ -355,35 +373,17 @@ Components, when added to a Branch, are linked in the order as shown in the diag
 ## Pad Probe Handlers
 Pipeline components are linked together using directional ["pads"](https://gstreamer.freedesktop.org/documentation/gstreamer/gstpad.html?gi-language=c) with a Source Pad from one component as the producer of data connected to the Sink Pad of the next component as the consumer. Data flowing over the component’s pads can be monitored, inspected and updated using a Pad-Probe with a specific Handler function.
 
-There are six Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Recording Taps and Secondary GIE's.
+There are five Pad Probe Handlers that can be created and added to either a Sink or Source Pad of most Pipeline components excluding Recording Taps and Secondary GIE's.
 1. [Custom PPH](/docs/api-pph.md#dsl_pph_custom_new) - allows the client to install a callback with custom behavior. 
 2. [Stream Event PPH](/docs/api-pph.md#dsl_pph_stream_event_new) - allows the client to listen for and handle Stream Added, Deleted, and Ended (EOS) events.
 3. [New Buffer Timeout PPH](/docs/api-pph.md#dsl_pph_buffer_timeout_new) - informs the client that a new buffer has not been received within a specified time limit.
 4. [Source Meter PPH](/docs/api-pph.md#dsl_pph_meter_new) - measures the throughput for each source in the Pipeline.
 5. [Object Detection Event PPH](/docs/api-pph.md#dsl_pph_ode_new) - manages a collection of [Triggers](/docs/api-ode-trigger.md) that invoke [Actions](/docs/api-ode-action.md) on the occurrence of specific frame and object metadata. 
-6. [Non-Maximum Processor PPH](/docs/api-pph.md#dsl_pph_nmp_new) - implements an inference cluster algorithm providing a more flexible alternative to the default non-maximum suppression (NMS) cluster algorithm performed by the NVIDIA Inference plugin.
  
 See the [Pad Probe Handler API](/docs/api-pph.md) reference section for additional information.
 
 ### Custom Pad Probe Handler
 Client applications can create one or more [Custom Pad Probe Handlers](/docs/api-pph.md#custom-pad-probe-handler) with callback functions to be called with every buffer that flows over a component's pad.
-
-### Stream Muxer Stream Event Pad Probe Handler
-The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
-* The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
-   * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
-   * and when a new Source is added at runtime.
-* A `DSL_PPH_EVENT_STREAM_DELETED` event is sent if a Source is removed at runtime. 
-* A `DSL_PPH_EVENT_STREAM_ENDED` event is sent when the Stream ends (EOS) including when a Source is removed at runtime.
-
-### New Buffer Timeout Pad Probe Handler
-It can be important for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applications, in the event of new-buffer-timeout, can take informative and/or corrective action.
-
-### Pipeline Meter Pad Probe Handler
-The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with a new session started at any time. 
-
-### Object Detection Event Pad Probe Handler
-The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
 
 Using Python and [NVIDIA's python bindings](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps) for example:
 
@@ -411,6 +411,24 @@ retval = dsl_pph_custom_new('custom-handler',
 ```
 
 See the [complete example](/examples/python/1uri_file_pgie_iou_tracker_osd_custom_pph_window.py).
+
+### Stream Muxer Stream Event Pad Probe Handler
+The Pipeline's built-in Streammuxer sends a downstream event under the following cases: 
+* The Streamux sends a `DSL_PPH_EVENT_STREAM_ADDED` event:
+   * for each [Source component](/docs/api-source.md) owned by the Pipeline when it transitions to a state of PLAYING
+   * and when a new Source is added at runtime.
+* A `DSL_PPH_EVENT_STREAM_DELETED` event is sent if a Source is removed at runtime. 
+* A `DSL_PPH_EVENT_STREAM_ENDED` event is sent when the Stream ends (EOS) including when a Source is removed at runtime.
+
+### New Buffer Timeout Pad Probe Handler
+It can be important for applications to know if a Source component -- for any reason -- has stopped receiving/producing buffers. By installing a [New Buffer Timeout Pad Probe Handler](/docs/api-pph.md#/docs/api-pph.md#new-buffer-timeout-pad-probe-handler), applications, in the event of new-buffer-timeout, can take informative and/or corrective action.
+
+### Pipeline Meter Pad Probe Handler
+The [Meter Pad Probe Handler](/docs/api-pph.md#pipeline-meter-pad-probe-handler) measures a Pipeline's throughput for each Source detected in the batched stream. When creating a Meter PPH, the client provides a callback function to be notified with new measurements at a specified interval. The notification includes the average frames-per-second over the last interval and over the current session, which can be stopped with a new session started at any time. 
+
+### Object Detection Event Pad Probe Handler
+The [Object Detection Event (ODE) Pad Probe Handler](/docs/api-pph.md#object-detection-event-ode-pad-probe-handler) manages an ordered collection of **Triggers**, each with an ordered collection of **Actions** and an optional collection of **Areas**. Together, the Triggers, Areas and Actions provide a full set of [Object Detection Event Services](#object-detection-event-ode-services). 
+
 
 Refer to the [ODE Pad Probe Handler API Reference](/docs/api-pph.md) for more information.
 
@@ -1737,7 +1755,7 @@ if dsl_return_value_to_string(retval) eq 'DSL_RESULT_SINK_NAME_NOT_UNIQUE':
 * [Sink](docs/api-sink.md)
 * [Branch](/docs/api-branch.md)
 * [Component](/docs/api-component.md)
-* [Custom Component](/docs/api-gst.md)
+* [GST Element](/docs/api-gst.md)
 * [Pad Probe Handler](/docs/api-pph.md)
 * [ODE Trigger](/docs/api-ode-trigger.md)
 * [ODE Accumulator](/docs/api-ode-accumulator.md)
