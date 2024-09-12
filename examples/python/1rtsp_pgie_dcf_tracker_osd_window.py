@@ -1,3 +1,4 @@
+
 ################################################################################
 # The MIT License
 #
@@ -26,20 +27,26 @@
 #
 # The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - File Source
+#   - RTSP Source
 #   - Primary GST Inference Engine (PGIE)
-#   - IOU Tracker
+#   - DCF Tracker
 #   - On-Screen Display (OSD)
 #   - Window Sink
-#   - File Sink to encode and save the stream to file.
 # ...and how to add them to a new Pipeline and play
 # 
 # The example registers handler callback functions with the Pipeline for:
 #   - key-release events
 #   - delete-window events
 #   - end-of-stream EOS events
+#   - error-message events
 #   - Pipeline change-of-state events
+#   - RTSP Source change-of-state events.
 #  
+# IMPORTANT! The error-message-handler callback fucntion will stop the Pipeline 
+# and main-loop, and then exit. If the error condition is due to a camera
+# connection failure, the application could choose to let the RTSP Source's
+# connection manager periodically reattempt connection for some length of time.
+#
 ################################################################################
 
 #!/usr/bin/env python
@@ -49,35 +56,11 @@ import time
 
 from dsl import *
 
-################################################################################
-#
-# The File Sink is an Encode Sink that supports five (5) encoder types. Two (2) 
-# hardware and three (3) software. Use one of the following constants to select 
-# the encoder type:
-#   - DSL_ENCODER_HW_H264
-#   - DSL_ENCODER_HW_H265
-#   - DSL_ENCODER_SW_H264
-#   - DSL_ENCODER_SW_H265
-#   - DSL_ENCODER_SW_MPEG4
-#
-# IMPORTANT! The Jetson Orin Nano only supports software encoding.
-#
-#  Two (2) container types are supported:
-#   - DSL_CONTAINER_MP4
-#   - DSL_CONTAINER_MKV
-#
-#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
-#   - HW-H264/H265 = 4000000 
-#   - SW-H264/H265 = 2048000 
-#   - SW-MPEG      = 200000
+# RTSP Source URI for AMCREST Camera    
+amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
 
-# File Sink configuration 
-FILE_SINK_ENCODER   = DSL_ENCODER_HW_H265
-FILE_SINK_CONTAINER = DSL_CONTAINER_MP4
-FILE_SINK_BITRATE   = 0   # 0 = use the encoders default bitrate.
-FILE_SINK_INTERVAL  = 30  # Set the i-frame interval equal to the framerate
-
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+# RTSP Source URI for HIKVISION Camera    
+hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
@@ -85,9 +68,13 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
-# Filespec for the IOU Tracker config file
-iou_tracker_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
+# Filespec for the NvDCF Tracker config file
+dcf_tracker_config_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_max_perf.yml'
+
+# IMPORTANT! "DCF Tracker width and height paramaters must be multiples of 32
+tracker_width = 640 
+tracker_height = 384
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -110,28 +97,59 @@ def xwindow_delete_event_handler(client_data):
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+##
 # Function to be called on End-of-Stream (EOS) event
+##
 def eos_event_listener(client_data):
     print('Pipeline EOS event')
     dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
+##
+# Function to be called with every error message received
+# by the Pipeline bus manager
+##
+def error_message_handler(source, message, client_data):
+    print('Error: source = ', source, ' message = ', message)
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
+    
 ## 
 # Function to be called on every change of Pipeline state
 ## 
-def state_change_listener(old_state, new_state, client_data):
+def pipeline_state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
+
+## 
+# Function to be called on every change of RTSP Source state
+## 
+def rtsp_state_change_listener(old_state, new_state, client_data):
+    print('RTSP Source previous state = ', 
+        old_state, ', new state = ', new_state)
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
+            
+        # New RTSP Source for the specific RTSP URI with a timeout of 10s
+        # IMPORTANT! a timeout > 0 enables the source's connection management.   
+        retval = dsl_source_rtsp_new('rtsp-source',     
+            uri = hikvision_rtsp_uri,  # using hikvision URI defined above   
+            protocol = DSL_RTP_ALL,    # use RTP ALL protocol
+            skip_frames = 0,           # decode every frame
+            drop_frame_interval = 0,   # decode every frame  
+            latency=1000,              # 1000 ms of jitter buffer
+            timeout=10)                # 10 second new buffer timeout   
+        if (retval != DSL_RETURN_SUCCESS):    
+            return retval    
 
-        # New File Source using the file path specified above, repeat disabled.
-        retval = dsl_source_file_new('file-source', uri_h265, False)
-        if retval != DSL_RETURN_SUCCESS:
+        # Add the RTSP state-change listener calback to our RTSP Source
+        retval = dsl_source_rtsp_state_change_listener_add('rtsp-source',
+            rtsp_state_change_listener, None)
+        if retval != DSL_RETURN_SUCCESS:    
             break
             
         # New Primary GIE using the filespecs above with interval = 0
@@ -140,8 +158,11 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New IOU Tracker, setting operational width and hieght
-        retval = dsl_tracker_new('iou-tracker', iou_tracker_config_file, 480, 272)
+        # New NvDCF Tracker, setting operation width and height
+        retval = dsl_tracker_new('dcf-tracker', 
+            config_file = dcf_tracker_config_file,
+            width = tracker_width, 
+            height = tracker_height) 
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -153,13 +174,6 @@ def main(args):
 
         # New Window Sink, 0 x/y offsets with reduced dimensions
         retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New File Sink using the Encoder and conatiner types defined above
-        retval = dsl_sink_file_new('file-sink', "./output.mp4", 
-            FILE_SINK_ENCODER, FILE_SINK_CONTAINER, 
-            FILE_SINK_BITRATE, FILE_SINK_INTERVAL)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -175,14 +189,20 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['file-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
-            'egl-sink', 'file-sink', None])
+            ['rtsp-source', 'primary-gie', 'dcf-tracker', 'on-screen-display', 
+            'egl-sink', None])
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add the error-message handler defined above
+        retval = dsl_pipeline_error_message_handler_add('pipeline', 
+            error_message_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
-            state_change_listener, None)
+            pipeline_state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)

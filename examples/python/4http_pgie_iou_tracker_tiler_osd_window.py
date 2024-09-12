@@ -26,7 +26,7 @@
 #
 # The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - Four HTTP URI Sources
+#   - 4 HTTP URI Sources
 #   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
 #   - 2D Tiler

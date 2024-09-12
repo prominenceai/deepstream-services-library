@@ -22,6 +22,28 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source to read a jpeg image file
+#   - Primary GST Inference Engine (PGIE)
+#   - Segmentation Visualizer
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#
+# NOTE: The Primary GST Inference engine is configured for Industrial Segmentation.
+#   The NVIDIA provided PGIE configuration file can be found at
+#     /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/
+#
+# The URI Source will push a single frame followed by an End of File (EOF) event.
+# 
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -37,7 +59,7 @@ primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_industrial.txt'
     
 # Segmentation Visualizer output dimensions should (typically) match the
-# inference dimensions defined in segvisual_config_industrial.txt (512x512)
+# inference dimensions defined in dstest_segmentation_config_industrial.txt (512x512)
 width = 512
 height = 512
 

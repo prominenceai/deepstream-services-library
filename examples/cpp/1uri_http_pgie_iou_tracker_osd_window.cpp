@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2022-2023, Prominence AI, Inc.
+Copyright (c) 2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,29 @@ THE SOFTWARE.
 #
 # The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - URI Source
-#   - Preprocessor
-#   - Primary GIE
+#   - HTTP URI Source
+#   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
-#   - On-Screen Display
+#   - On-Screen Display (OSD)
 #   - Window Sink
 # ...and how to add them to a new Pipeline and play
-#
-# Specific services must be called for the PGIE to be able to receive tensor-meta
-# buffers from the Preprocessor component.
 # 
 # The example registers handler callback functions with the Pipeline for:
+#   - component-buffering messages
 #   - key-release events
 #   - delete-window events
 #   - end-of-stream EOS events
 #   - Pipeline change-of-state events
 #  
+# IMPORTANT! The URI Source will send messages on the Pipeline bus when
+# buffering is in progress.  The buffering_message_handler callback is 
+# added to the Pipeline to be called with every buffer message received.
+# The handler callback is required to pause the Pipeline while buffering
+# is in progress. 
+#
+# The callback is called with the percentage of buffering done, with 
+# 100% indicating that buffering is complete.
+#
 ##############################################################################*/
 
 #include <iostream>
@@ -50,15 +56,11 @@ THE SOFTWARE.
 #include <gst/gst.h>
 #include <gstnvdsmeta.h>
 #include <nvdspreprocess_meta.h>
-
 #include "DslApi.h"
 
-std::wstring uri_h265(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
-
-// Config file used with the Preprocessor
-std::wstring preproc_config(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
+// URI for the Source Component
+std::wstring source_uri(
+    L"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4");
 
 // Config and model-engine files 
 std::wstring primary_infer_config_file(
@@ -70,14 +72,36 @@ std::wstring primary_model_engine_file(
 std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
+// EGL Window Sink Dimensions 
+uint WINDOW_WIDTH = DSL_1K_HD_WIDTH / 2;
+uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT / 2;
 
-uint PGIE_CLASS_ID_VEHICLE = 0;
-uint PGIE_CLASS_ID_BICYCLE = 1;
-uint PGIE_CLASS_ID_PERSON = 2;
-uint PGIE_CLASS_ID_ROADSIGN = 3;
+boolean buffering = false;
 
-uint WINDOW_WIDTH = DSL_1K_HD_WIDTH;
-uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
+// 
+// Function to be called when a buffering-message is recieved on the Pipeline bus.
+// 
+void buffering_message_handler(const wchar_t* source, uint percent, void* client_data)
+{
+
+    if (percent == 100)
+    {
+        std::cout << "playing pipeline - buffering complete at 100 %"
+            << std::endl;
+        dsl_pipeline_play(L"pipeline");
+        buffering = false;
+    }
+    else
+    {
+        if (!buffering)
+        {
+            std::cout << "pausing pipeline - buffering starting at "
+                << percent << "%" << std::endl;
+            dsl_pipeline_pause(L"pipeline");
+        }
+        buffering = true;
+    }
+}        
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -137,12 +161,9 @@ int main(int argc, char** argv)
     while(true) 
     {    
 
-        // New File Source
-        retval = dsl_source_file_new(L"uri-source-1", uri_h265.c_str(), true);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
-        // New Preprocessor component using the config filespec defined above.
-        retval = dsl_preproc_new(L"preprocessor", preproc_config.c_str());
+        // New URI Source with HTTP URI
+        retval = dsl_source_uri_new(L"uri-source", 
+            source_uri.c_str(), false, false, 0);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -150,17 +171,6 @@ int main(int argc, char** argv)
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
-        // to the number of ROI's defined in the Preprocessor configuraton file.
-        retval = dsl_infer_batch_size_set(L"primary-gie", 2);
-        if (retval != DSL_RESULT_SUCCESS) break;
-        
-        // **** IMPORTANT! we must set the input-meta-tensor setting to true when
-        // using the preprocessor, otherwise the GIE will use its own preprocessor.
-        retval = dsl_infer_gie_tensor_meta_settings_set(L"primary-gie",
-            true, false);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // New IOU Tracker, setting operational width and height of input frame
         retval = dsl_tracker_new(L"iou-tracker", 
             iou_tracker_config_file.c_str(), 480, 272);
@@ -171,7 +181,8 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, 
+            WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
@@ -184,15 +195,25 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
     
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"uri-source-1",  L"preprocessor", L"primary-gie", 
+        const wchar_t* components[] = {L"uri-source",  L"primary-gie", 
             L"iou-tracker", L"on-screen-display", L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);
         if (retval != DSL_RESULT_SUCCESS) break;
             
+        // Add the buffering-handler defined above to the pipeline
+        retval = dsl_pipeline_buffering_message_handler_add(L"pipeline",
+            buffering_message_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Add the EOS listener function defined above
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // Add the State Change listener function defined above
+        retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
+            state_change_listener, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Play the pipeline
@@ -206,7 +227,7 @@ int main(int argc, char** argv)
     }
     
     // Print out the final result
-    std::cout << dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << dsl_return_value_to_string(retval) << std::endl;
 
     dsl_delete_all();
 

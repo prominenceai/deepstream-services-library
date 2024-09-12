@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2019-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,13 +29,9 @@
 #   - CSI Source
 #   - Primary GST Inference Engine (PGIE)
 #   - On-Screen Display
-#   - Window Sink
-# ...and how to add them to a new Pipeline and play
-# 
-# The example registers handler callback functions with the Pipeline for:
-#   - key-release events
-#   - delete-window events
-#  
+#   - 3D Sink
+# ...and how to add them to a new Pipeline and play.
+#
 # IMPORTANT! this examples uses a CSI Camera Source and 3D Sink - Jetson only!
 #
 ################################################################################
@@ -46,6 +42,9 @@ import sys
 import time
 from dsl import *
 
+#  RTSP Server Sink: host uri of 0.0.0.0 means "use any available network interface"
+host_uri = '0.0.0.0'
+
 SOURCE_WIDTH = 1920
 SOURCE_HEIGHT = 1080
 
@@ -55,39 +54,17 @@ primary_infer_config_file = \
 primary_model_engine_file = \
     '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
 
-## 
-# Function to be called on XWindow KeyRelease event
-## 
-def xwindow_key_event_handler(key_string, client_data):
-    print('key released = ', key_string)
-    if key_string.upper() == 'P':
-        dsl_pipeline_pause('pipeline')
-    elif key_string.upper() == 'R':
-        dsl_pipeline_play('pipeline')
-    elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
-        dsl_pipeline_stop('pipeline')
-        dsl_main_loop_quit()
-
-## 
-# Function to be called on XWindow Delete event
-## 
-def xwindow_delete_event_handler(client_data):
-    print('delete window event')
-    dsl_pipeline_stop('pipeline')
-    dsl_main_loop_quit()
-
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
 
         # New CSI Live Camera Source
-        retval = dsl_source_csi_new('csi-source', 
-            SOURCE_WIDTH, SOURCE_HEIGHT, 30, 1)
+        retval = dsl_source_csi_new('csi-source', 1280, 720, 30, 1)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above, with inference interval=0
+        # New Primary GIE using the filespecs above, with interval and Id
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
@@ -106,19 +83,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add the XWindow event handler functions defined above
-        retval = dsl_sink_window_key_event_handler_add("window-sink", 
-            xwindow_key_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_sink_window_delete_event_handler_add("window-sink", 
-            xwindow_delete_event_handler, None)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['csi-source', 'primary-gie', 'on-screen-display', 'window-sink', None])
+            ['csi-source', 'primary-gie', 'on-screen-display', 
+            'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -131,11 +99,10 @@ def main(args):
         retval = DSL_RETURN_SUCCESS
         break
 
-        # Print out the final result
-        print(dsl_return_value_to_string(retval))
+    # Print out the final result
+    print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

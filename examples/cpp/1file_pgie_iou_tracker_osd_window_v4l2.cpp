@@ -199,6 +199,11 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Add the State Change listener function defined above
+        retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
+            state_change_listener, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Play the pipeline
         retval = dsl_pipeline_play(L"pipeline");
         if (retval != DSL_RESULT_SUCCESS) break;
