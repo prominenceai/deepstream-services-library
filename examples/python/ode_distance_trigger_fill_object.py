@@ -22,6 +22,33 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the use of an ODE Distance Trigger to trigger on the
+# occurrence of two objects of different class id that are closer that a 
+# minimum distance - specifically testing the distance between People and Vehicles.
+# The bounding boxes for the two objects that are witin the minimim distance will. 
+# be filled (using a Format BBox Action) with a color for visual indication of 
+# the events.
+        
+# The Distance trigger is created with minimim distance critera as a percentage
+# of the width of Class A in the A/B distance measurement. In this example,
+# Class A will be the Person class and Class B the Vehicle class. ODE Occurrence 
+# will be triggered if the distance between any Person and Vehicle is measured to 
+# be less 250% of the width of the Person's BBox. Maximum is set to 0 == no maximum.
+# Note: Class A and Class B can be set to the same Class Id or DSL_ODE_ANY_CLASS.
+# test_point is DSL_BBOX_POINT_SOUTH == measuring from center points of bottom edges.
+# test_method is DSL_DISTANCE_METHOD_PERCENT_WIDTH_A == % of Person's BBox width.
+#  
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -96,12 +123,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example demonstrates the use of an ODE Distance Trigger to trigger on
-        # occurrence of two objects of different class id that are closer that a 
-        # minimum distance - specifically testing the distance between People and Vehicles.
-        # The bounding boxes for the two objects that are witin the minimim distance will. 
-        # be filled with a color for visual indication of the events.
-        
         #```````````````````````````````````````````````````````````````````````````````````
 
         # Create a Format Label Action to remove the Object Label from view
@@ -161,7 +182,7 @@ def main(args):
         # Create the new Distance trigger with minimim distance critera as a percentage
         # of the width of Class A in the A/B distance measurement. ODE Occurrence will be 
         # triggered if the distance between any Person and Vehicle is measured to be less 
-        # that the 300% of the width of the Person's BBox. Maximum is set to 0 == no maximum
+        # that the 250% of the width of the Person's BBox. Maximum is set to 0 == no maximum
         # Note: Class A and Class B can be set to the same Class Id or DSL_ODE_ANY_CLASS.
         # test_point is DSL_BBOX_POINT_SOUTH == measuring from center points of bottom edges
         # test_method is DSL_DISTANCE_METHOD_PERCENT_WIDTH_A == % of Person's BBox width
@@ -170,7 +191,7 @@ def main(args):
             class_id_a = PGIE_CLASS_ID_PERSON, 
             class_id_b = PGIE_CLASS_ID_VEHICLE, 
             limit=DSL_ODE_TRIGGER_LIMIT_NONE,
-            minimum = 300,
+            minimum = 250,
             maximum = 0,
             test_point = DSL_BBOX_POINT_SOUTH,
             test_method = DSL_DISTANCE_METHOD_PERCENT_WIDTH_A)
@@ -235,19 +256,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiled Display, setting width and height, use default cols/rows set by source count
-        retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
-        if retval != DSL_RETURN_SUCCESS:
-            break
- 
-         # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_tiler_pph_add('tiler', handler='ode-handler', pad=DSL_PAD_SINK)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
             text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Add our ODE Pad Probe Handler to the Sink pad of the OSD
+        retval = dsl_osd_pph_add('on-screen-display', handler='ode-handler', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -268,7 +284,7 @@ def main(args):
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source-1', 'primary-gie', 'iou-tracker', 'tiler', 
+            ['uri-source-1', 'primary-gie', 'iou-tracker', 
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

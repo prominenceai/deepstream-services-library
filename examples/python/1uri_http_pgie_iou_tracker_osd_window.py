@@ -1,3 +1,4 @@
+
 ################################################################################
 # The MIT License
 #
@@ -22,6 +23,35 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - HTTP URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display (OSD)
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - component-buffering messages
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+# IMPORTANT! The URI Source will send messages on the Pipeline bus when
+# buffering is in progress.  The buffering_message_handler callback is 
+# added to the Pipeline to be called with every buffer message received.
+# The handler callback is required to pause the Pipeline while buffering
+# is in progress. 
+#
+# The callback is called with the percentage of buffering done, with 
+# 100% indicating that buffering is complete.
+#
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -29,7 +59,9 @@ import time
 
 from dsl import *
 
-# Filespecs for the Primary GIE
+source_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+
+# Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
 primary_model_engine_file = \
@@ -39,7 +71,25 @@ primary_model_engine_file = \
 iou_tracker_config_file = \
     '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml'
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+buffering = False
+
+## 
+# Function to be called when a buffering-message is recieved on the Pipeline bus.
+## 
+def buffering_message_handler(source, percent, client_data):
+
+    global buffering
+
+    if percent == 100:
+        print('playing pipeline - buffering complete at 100 %')
+        dsl_pipeline_play('pipeline')
+        buffering = False
+
+    else:
+        if not buffering:
+            print('pausing pipeline - buffering starting at ', percent, '%')
+            dsl_pipeline_pause('pipeline')
+        buffering = True
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -53,51 +103,42 @@ def xwindow_key_event_handler(key_string, client_data):
     elif key_string.upper() == 'Q' or key_string == '' or key_string == '':
         dsl_pipeline_stop('pipeline')
         dsl_main_loop_quit()
-
+ 
 ## 
 # Function to be called on XWindow Delete event
 ## 
 def xwindow_delete_event_handler(client_data):
     print('delete window event')
+    dsl_pipeline_stop('pipeline')
+    dsl_main_loop_quit()
+
+# Function to be called on End-of-Stream (EOS) event
+def eos_event_listener(client_data):
+    print('Pipeline EOS event')
+    dsl_pipeline_stop('pipeline')
     dsl_main_loop_quit()
 
 ## 
-# Function to be called on End-of-Stream (EOS) event
+# Function to be called on every change of Pipeline state
 ## 
-def eos_event_listener(client_data):
-    print('Pipeline EOS event')
-    dsl_main_loop_quit()
+def state_change_listener(old_state, new_state, client_data):
+    print('previous state = ', old_state, ', new state = ', new_state)
+    if new_state == DSL_STATE_PLAYING:
+        dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
-        # Two URI File Sources - using the same file.
-        retval = dsl_source_uri_new('source-1', uri_h265, False, 0, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        retval = dsl_source_uri_new('source-2', uri_h265, False, 0, 0)
+            
+        ## New URI Source with HTTP URI
+        retval = dsl_source_uri_new('uri-source', source_uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        ## Two new File Sinks with H264 Encoder type and MKV conatiner muxer, 
-        ## set bit-rate=0 to use default and drop-frame-interval=0
-        retval = dsl_sink_file_new('file-sink-1', 
-            "./1-source.mkv", DSL_ENCODER_HW_H264, DSL_CONTAINER_MKV, 0, 30)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        ## Two new File Sinks with H264 Encoder type and MKV conatiner muxer, 
-        ## set bit-rate=0 to use default and drop-frame-interval=0
-        retval = dsl_sink_file_new('file-sink-2', 
-            "./2-source.mkv", DSL_ENCODER_HW_H264, DSL_CONTAINER_MKV, 0, 30)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Primary GIE using the filespecs above, with infer interval
+        # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
-            primary_infer_config_file, primary_model_engine_file, 5)
+            primary_infer_config_file, primary_model_engine_file, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -106,19 +147,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Tiler with dimensions for two tiles - for the two sources
-        retval = dsl_tiler_new('tiler1', 1440, 360)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
         # New OSD with text, clock and bbox display all enabled. 
-        retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+        retval = dsl_osd_new('on-screen-display', text_enabled=True, 
+            clock_enabled=True, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, with matching dimensions as the Tiler
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1440, 360)
+        # New Window Sink, 0 x/y offsets with reduced dimensions
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -132,66 +168,42 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Branch for the PGIE, OSD and Window Sink
-        retval = dsl_branch_new('branch1')
+        # Add all the components to a new pipeline
+        retval = dsl_pipeline_new_component_add_many('pipeline', 
+            ['uri-source', 'primary-gie', 'iou-tracker', 'on-screen-display', 
+            'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_branch_component_add_many('branch1', ['primary-gie', 'iou-tracker', 'tiler1', 
-            'on-screen-display', 'egl-sink', None])
+        ## Add the buffering-handler defined above to the pipeline
+        retval = dsl_pipeline_buffering_message_handler_add('pipeline',
+            buffering_message_handler, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Demuxer Tee- 
-        retval = dsl_tee_demuxer_new('demuxer', 2)
+        # Add the listener callback functions defined above
+        retval = dsl_pipeline_state_change_listener_add('pipeline', 
+            state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # Add the two file sinks as branches to the demuxer
-        retval = dsl_tee_branch_add_many('demuxer', ['file-sink-1', 'file-sink-2', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Splitter Tee- 
-        retval = dsl_tee_splitter_new('splitter')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add Branch1 and the demuxer (as branch2) to the splitter
-        retval = dsl_tee_branch_add_many('splitter', ['branch1', 'demuxer', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # New Pipeline to use with the above components
-        retval = dsl_pipeline_new('pipeline')
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Add the window delete handler and EOS listener callbacks to the Pipeline
         retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
-        # Add the sources the components to our pipeline
-        retval = dsl_pipeline_component_add_many('pipeline', 
-            ['source-1', 'source-2', 'splitter', None])
-        if retval != DSL_RETURN_SUCCESS:
-            break
-        
+
         # Play the pipeline
         retval = dsl_pipeline_play('pipeline')
         if retval != DSL_RETURN_SUCCESS:
             break
 
+        # Join with main loop until released - blocking call
         dsl_main_loop_run()
         retval = DSL_RETURN_SUCCESS
         break
-        
+
     # Print out the final result
     print(dsl_return_value_to_string(retval))
 
-    dsl_pipeline_delete_all()
-    dsl_component_delete_all()
+    dsl_delete_all()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

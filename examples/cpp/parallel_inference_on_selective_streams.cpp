@@ -43,7 +43,7 @@ THE SOFTWARE.
 #
 #    dsl_remuxer_branch_add(L"remuxer", 'my-branch-0')
 # 
-# In this example, 4 sources are added to the Pipeline:
+# In this example, 4 RTSP Sources are added to the Pipeline:
 #   - branch-1 will process streams [0,1]
 #   - branch-2 will process streams [1,2]
 #   - branch-3 will process streams [0,2,3]
@@ -67,15 +67,14 @@ THE SOFTWARE.
 #include <vector>
 #include "DslApi.h"
 
-// File path for the single File Source
-std::wstring file_path1(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
-std::wstring file_path2(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4");
-std::wstring file_path3(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov");
-std::wstring file_path4(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov");
+
+// RTSP Source URI for AMCREST Camera    
+std::wstring amcrest_rtsp_uri = 
+    L"rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0";
+
+// RTSP Source URI for HIKVISION Camera    
+std::wstring hikvision_rtsp_uri = 
+    L"rtsp://admin:Segvisual44@192.168.1.64:554/Streaming/Channels/101";
 
 // All branches are currently using the same config and model engine files
 // which is pointless... The example will be updated to use multiple
@@ -164,14 +163,18 @@ int main(int argc, char** argv)
     // # Since we're not using args, we can Let DSL initialize GST on first call
     while(true)
     {
-        // 4new File Sources to produce streams 0 through 3
-        retval = dsl_source_file_new(L"source-1", file_path1.c_str(), true);
+        // 4 new RTSP Sources to produce streams 0 through 3
+        retval = dsl_source_rtsp_new(L"rtsp-source-0",     
+            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 10); 
         if (retval != DSL_RESULT_SUCCESS) break;
-        retval = dsl_source_file_new(L"source-2", file_path2.c_str(), true);
+        retval = dsl_source_rtsp_new(L"rtsp-source-1",     
+            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 10); 
         if (retval != DSL_RESULT_SUCCESS) break;
-        retval = dsl_source_file_new(L"source-3", file_path3.c_str(), true);
+        retval = dsl_source_rtsp_new(L"rtsp-source-2",     
+            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 10); 
         if (retval != DSL_RESULT_SUCCESS) break;
-        retval = dsl_source_file_new(L"source-4", file_path4.c_str(), true);
+        retval = dsl_source_rtsp_new(L"rtsp-source-3",     
+            hikvision_rtsp_uri.c_str(), DSL_RTP_ALL, 0, 0, 1000, 10); 
         if (retval != DSL_RESULT_SUCCESS) break;
         
         // ----------------------------------------------------------------------------
@@ -343,7 +346,8 @@ int main(int argc, char** argv)
 
         // ----------------------------------------------------------------------------
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"source-1", L"source-2", L"source-3", L"source-4",
+        const wchar_t* components[] = {
+            L"rtsp-source-0", L"rtsp-source-1", L"rtsp-source-2", L"rtsp-source-3", 
             L"remuxer", L"tiler", L"osd", L"window-sink", NULL};            
             
         // Add all the components to our pipeline

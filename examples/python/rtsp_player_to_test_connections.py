@@ -22,6 +22,23 @@
 # DEALINGS IN THE SOFTWARE.    
 ################################################################################    
 
+################################################################################
+#
+# This example can be used to test your RTSP Source connection. It uses a simple 
+# DSL Player with a single RTSP Source and Window Sink:
+# 
+# There two example camera URI's below. One for AMCREST and one for HIKVISION.
+# update one of the URI's with your username and password, or add your own
+# URI format as needed.
+# 
+# Ensure that the RTSP Source constructor is using the correct URI.  
+# 
+# The example registers handler callback functions to be notified of:
+#   - key-release events
+#   - delete-window events
+#   - RTSP Source change-of-state events
+#  
+################################################################################
 #!/usr/bin/env python    
 
 import sys    
@@ -70,14 +87,14 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call    
     while True:    
 
-        # For each camera, create a new RTSP Source for the specific RTSP URI    
+        # New RTSP Source for the specific RTSP URI    
         retval = dsl_source_rtsp_new('rtsp-source',     
-            uri = hikvision_rtsp_uri,     
-            protocol = DSL_RTP_ALL,     
-            skip_frames = 0,     
-            drop_frame_interval = 0,     
-            latency=1000,
-            timeout=2)    
+            uri = hikvision_rtsp_uri,  # using hikvision URI defined above   
+            protocol = DSL_RTP_ALL,    # use RTP ALL protocl
+            skip_frames = 0,           # decode every frame
+            drop_frame_interval = 0,   # decode every frame  
+            latency=1000,              # 1000 ms of jitter buffer
+            timeout=10)                # 10 second new buffer timeout   
         if (retval != DSL_RETURN_SUCCESS):    
             return retval    
 

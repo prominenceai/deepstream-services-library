@@ -22,20 +22,30 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-# ------------------------------------------------------------------------------------
+################################################################################
+#
 # This example demonstrates the use of an ODE Cross Trigger with an ODE Line Area 
 # and ODE Accumulator to accumulate occurrences of an object (person) crossing 
 # the line. The Accumulator uses an ODE Display Action to add the current counts 
 # of the IN and OUT crossings as display-metadata to each frame.
 #
-# The bounding box and historical trace of each object - tracked by the Cross Trigger
-# - is assing a new random RGBA color and added as display-metadata to each frame.
+# The bounding box and historical trace of each object (tracked by the "Cross 
+# Trigger") is assigned a new random RGBA color and added as display-metadata 
+# to each frame.
 #
 # An ODE Capture Object Action with an Image Render Player is added to the Cross
 # Trigger to capture and render an image of each object (person) that crosses the 
-# line. Each image is display for 3 seconds. All files are written to the current
+# line. Each image is displayed for 3 seconds. All files are written to the current
 # directory (configurable).
-
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A File Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
 
 #!/usr/bin/env python
 
@@ -334,7 +344,7 @@ def main(args):
             render_type = render_type,
             offset_x = 700,
             offset_y = 300,
-            zoom = 200,
+            zoom = 100,
             timeout = 3) # show indefinetely, until new image is captured
 
         # Add the Termination listener callback to the Player

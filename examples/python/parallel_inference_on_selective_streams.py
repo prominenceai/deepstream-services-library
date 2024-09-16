@@ -42,7 +42,7 @@
 #
 #    dsl_remuxer_branch_add('my-remuxer', 'my-branch-0')
 # 
-# In this example, 4 sources are added to the Pipeline:
+# In this example, 4 RTSP Sources are added to the Pipeline:
 #   - branch-1 will process streams [0,1]
 #   - branch-2 will process streams [1,2]
 #   - branch-3 will process streams [0,2,3]
@@ -67,13 +67,17 @@ sys.path.insert(0, "../../")
 
 from dsl import *
 
-file_path1 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4"
-file_path2 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_ride_bike.mov"
-file_path3 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_walk.mov"
-file_path4 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mp4"
+
+# RTSP Source URI for AMCREST Camera    
+amcrest_rtsp_uri = 'rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0'    
+
+# RTSP Source URI for HIKVISION Camera    
+hikvision_rtsp_uri = 'rtsp://username:password@192.168.1.64:554/Streaming/Channels/101'    
+
 
 # All branches are currently using the same config and model engine files
-# which is pointless... The example will be updated to use multiple
+# which is pointless... The example will be updated to use multiple models
+# in a future release.
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file_1 = \
@@ -141,22 +145,28 @@ def xwindow_key_event_handler(key_string, client_data):
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
+    # All are using the same URI and need to be updated with your own
+    # unique camera URIs
     while True:
     
-        # 4new File Sources to produce streams 0 through 3
-        retval = dsl_source_file_new('source-1', file_path1, True)
+        # 4 new RTSP Sources to produce streams 0 through 3
+        retval = dsl_source_rtsp_new('rtsp-source-0',     
+            hikvision_rtsp_uri, DSL_RTP_ALL, 0, 0, 1000, 10)  
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_file_new('source-2', file_path2, True)
+        retval = dsl_source_rtsp_new('rtsp-source-1',     
+            hikvision_rtsp_uri, DSL_RTP_ALL, 0, 0, 1000, 10)  
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_file_new('source-3', file_path3, True)
+        retval = dsl_source_rtsp_new('rtsp-source-2',     
+            hikvision_rtsp_uri, DSL_RTP_ALL, 0, 0, 1000, 10)  
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_source_file_new('source-4', file_path4, True)
+        retval = dsl_source_rtsp_new('rtsp-source-3',     
+            hikvision_rtsp_uri, DSL_RTP_ALL, 0, 0, 1000, 10)  
         if retval != DSL_RETURN_SUCCESS:
             break
-
+ 
         # ----------------------------------------------------------------------------
         # Inference Branch #1 (b1) - single Primary GIE.  Branch component
         # is NOT required if using single component.
@@ -348,7 +358,7 @@ def main(args):
         # ----------------------------------------------------------------------------
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['source-1', 'source-2', 'source-3', 'source-4',
+            ['rtsp-source-0', 'rtsp-source-1', 'rtsp-source-2', 'rtsp-source-3', 
             'remuxer', 'tiler', 'osd', 'window-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

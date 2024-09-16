@@ -24,22 +24,28 @@ THE SOFTWARE.
 
 /*################################################################################
 #
-# This simple example demonstrates how to create a set of Pipeline components, 
+# The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - A File Source
+#   - RTSP Source
 #   - Primary GST Inference Engine (PGIE)
-#   - IOU Tracker
-#   - On-Screen Display
+#   - DCF Tracker
+#   - On-Screen Display (OSD)
 #   - Window Sink
-#   - RTSP Sink
-# ...and how to add them to a new Pipeline and play.
-#
-# The example registers handler callback functions for:
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
 #   - key-release events
 #   - delete-window events
 #   - end-of-stream EOS events
+#   - error-message events
 #   - Pipeline change-of-state events
+#   - RTSP Source change-of-state events.
 #  
+# IMPORTANT! The error-message-handler callback fucntion will stop the Pipeline 
+# and main-loop, and then exit. If the error condition is due to a camera
+# connection failure, the application could choose to let the RTSP Source's
+# connection manager periodically reattempt connection for some length of time.
+#
 ##############################################################################*/
 
 #include <iostream>
@@ -49,33 +55,14 @@ THE SOFTWARE.
 #include <nvdspreprocess_meta.h>
 #include "DslApi.h"
 
-/*################################################################################
-#
-# The RTSP Sink is an Encode Sink that supports five (5) encoder types. 
-# Two (2) hardware and three (3) software. Use one of the following constants  
-# to select the encoder type:
-#   - DSL_ENCODER_HW_H264
-#   - DSL_ENCODER_HW_H265
-#   - DSL_ENCODER_SW_H264
-#   - DSL_ENCODER_SW_H265 
-#   - DSL_ENCODER_SW_MPEG4
-#
-# IMPORTANT! The Jetson Orin Nano only supports software encoding.
-#
-#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
-#   - HW-H264/H265 = 4000000 
-#   - SW-H264/H265 = 2048000 
-#   - SW-MPEG      = 200000
-##############################################################################*/
 
-// Record Sink configuration 
-uint RTSP_SINK_ENCODER   = DSL_ENCODER_HW_H264;
-uint RTSP_SINK_BITRATE   = 0;   // 0 = use the encoders default bitrate.
-uint RTSP_SINK_INTERVAL  = 30;  // Set the i-frame interval equal to the framerate
+// RTSP Source URI for AMCREST Camera    
+std::wstring amcrest_rtsp_uri = 
+    L"rtsp://username:password@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0";
 
-// URI for the File Source
-std::wstring uri_h265(
-    L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+// RTSP Source URI for HIKVISION Camera    
+std::wstring hikvision_rtsp_uri = 
+    L"rtsp://username:password@192.168.1.64:554/Streaming/Channels/101";
 
 // Config and model-engine files 
 std::wstring primary_infer_config_file(
@@ -84,8 +71,12 @@ std::wstring primary_model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine");
 
 // Config file used by the IOU Tracker    
-std::wstring iou_tracker_config_file(
-    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
+std::wstring dcf_tracker_config_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_NvDCF_max_perf.yml");
+
+// IMPORTANT! "DCF Tracker width and height paramaters must be multiples of 32
+uint tracker_width = 640;
+uint tracker_height = 384;
 
 // EGL Window Sink Dimensions 
 uint WINDOW_WIDTH = DSL_1K_HD_WIDTH / 2;
@@ -127,18 +118,42 @@ void xwindow_delete_event_handler(void* client_data)
 // 
 void eos_event_listener(void* client_data)
 {
-    std::cout<<"Pipeline EOS event"<<std::endl;
+    std::cout << "Pipeline EOS event" << std::endl;
     dsl_pipeline_stop(L"pipeline");
     dsl_main_loop_quit();
 }    
 
+//
+// Function to be called with every error message received
+// by the Pipeline bus manager
+//
+void error_message_handler(const wchar_t* source, 
+    const wchar_t* message, void* client_data)
+{    
+    std::wcout << L"Error: source = " << source
+        << L" message = " << message << std::endl;
+    dsl_pipeline_stop(L"pipeline");
+    dsl_main_loop_quit();
+}
+
 // 
 // Function to be called on every change of Pipeline state
 // 
-void state_change_listener(uint old_state, uint new_state, void* client_data)
+void pipeline_state_change_listener(uint old_state, 
+    uint new_state, void* client_data)
 {
-    std::cout<<"previous state = " << dsl_state_value_to_string(old_state) 
-        << ", new state = " << dsl_state_value_to_string(new_state) << std::endl;
+    std::wcout << L"previous state = " << dsl_state_value_to_string(old_state) 
+        << L", new state = " << dsl_state_value_to_string(new_state) << std::endl;
+}
+
+// 
+// Function to be called on every change of RTSP Source state
+// 
+void rtsp_state_change_listener(uint old_state, 
+    uint new_state, void* client_data)
+{
+    std::wcout << L"previous state = " << dsl_state_value_to_string(old_state) 
+        << L", new state = " << dsl_state_value_to_string(new_state) << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -149,8 +164,15 @@ int main(int argc, char** argv)
     while(true) 
     {    
 
-        // New File Source
-        retval = dsl_source_file_new(L"file-source-1", uri_h265.c_str(), true);
+        // New RTSP Source for the specific RTSP URI with a timeout of 10s
+        // IMPORTANT! a timeout > 0 enables the source's connection management.   
+        retval = dsl_source_rtsp_new(L"rtsp-source",     
+            hikvision_rtsp_uri.c_str(), // using hikvision URI defined above   
+            DSL_RTP_ALL,                // use RTP ALL protocol
+            0,                          // skip-frames = 0, decode every frame
+            0,                          // drop-frame-interval = 0, decode every frame  
+            1000,                       // 1000 ms of jitter buffer
+            10);                        // 10 second new buffer timeout   
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -158,9 +180,10 @@ int main(int argc, char** argv)
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
-        // New IOU Tracker, setting operational width and height of input frame
-        retval = dsl_tracker_new(L"iou-tracker", 
-            iou_tracker_config_file.c_str(), 480, 272);
+        // New NvDCF Tracker, setting operation width and height
+        retval = dsl_tracker_new(L"dcf-tracker", 
+            dcf_tracker_config_file.c_str(),
+            tracker_width, tracker_height);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New OSD with text, clock and bbox display all enabled. 
@@ -181,31 +204,26 @@ int main(int argc, char** argv)
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
-        // New RTSP Server Sink 
-        retval = dsl_sink_rtsp_server_new(L"rtsp-sink", 
-            L"0.0.0.0",     // 0.0.0.0 = "this host, this network."
-            5400,           // UDP port 5400 uses the Datagram Protocol.             
-            8554,        
-            RTSP_SINK_ENCODER,  
-            RTSP_SINK_BITRATE,
-            RTSP_SINK_INTERVAL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"file-source-1",  L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"egl-sink", L"rtsp-sink", NULL};
+        const wchar_t* components[] = {L"rtsp-source",  L"primary-gie", 
+            L"dcf-tracker", L"on-screen-display", L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);
         if (retval != DSL_RESULT_SUCCESS) break;
             
+        // Add the error-message handler defined above
+        retval = dsl_pipeline_error_message_handler_add(L"pipeline", 
+            error_message_handler, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Add the EOS listener function defined above
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the State Change listener function defined above
         retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
-            state_change_listener, NULL);
+            pipeline_state_change_listener, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Play the pipeline
@@ -219,7 +237,7 @@ int main(int argc, char** argv)
     }
     
     // Print out the final result
-    std::cout << dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << dsl_return_value_to_string(retval) << std::endl;
 
     dsl_delete_all();
 

@@ -22,6 +22,17 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates how to run multple Pipelines, each in their own 
+# thread, and each with their own main-context and main-loop.
+#
+# After creating and starting each Pipelines, the script joins each of the 
+# threads waiting for them to complete - either by EOS message, 'Q' key, or 
+# Delete Window.
+#
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -32,14 +43,6 @@ from dsl import *
 from time import sleep
 import threading
 
-
-#-------------------------------------------------------------------------------------------
-#
-# This script demonstrates the running multple Pipelines, each in their own thread, 
-# and each with their own main-context and main-loop.
-#
-# After creating and starting each Pipelines, the script joins each of the threads
-# waiting for them to complete - either by EOS message, 'Q' key, or Delete Window
 
 # File path used for all File Sources
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'

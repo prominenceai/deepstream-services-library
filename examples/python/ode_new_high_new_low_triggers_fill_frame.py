@@ -22,6 +22,22 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the use of the New-High and New-Low Count Triggers
+# that trigger on new high and low object counts respectively. The frame is 
+# filled with a full color for a (brief) visual indication on each new occurrence.
+# A print Action is used to print the event data to the console as well.
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -91,10 +107,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example demonstrates the use of the New-High and New-Low Count Triggers
-        # new Object Instances as identified by an IOU Tracker. The frame filled with a 
-        # color for a (brief) visual indication on New-High and New-Low object counts,
-        # with event data printed to the console for each
         #```````````````````````````````````````````````````````````````````````````````````
 
         # Create a Format Label Action to remove the Object Label from view

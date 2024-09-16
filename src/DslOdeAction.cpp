@@ -1247,7 +1247,7 @@ namespace DSL
                 +  std::to_string(pFrameMeta->frame_num) + "<br>"));
             body.push_back(std::string("    Width           : " 
                 +  std::to_string(pFrameMeta->source_frame_width) + "<br>"));
-            body.push_back(std::string("    Heigh           : " 
+            body.push_back(std::string("    Height          : " 
                 +  std::to_string(pFrameMeta->source_frame_height) + "<br>"));
             body.push_back(std::string("  Object Data       : ------------------------<br>"));
             body.push_back(std::string("    Occurrences     : " 
@@ -1504,7 +1504,7 @@ namespace DSL
         m_ostream << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         m_ostream << "    Frame           : " << pFrameMeta->frame_num << "\n";
         m_ostream << "    Width           : " << pFrameMeta->source_frame_width << "\n";
-        m_ostream << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
+        m_ostream << "    Height          : " << pFrameMeta->source_frame_height << "\n";
         m_ostream << "  Object Data       : ------------------------" << "\n";
 
         if (pObjectMeta)
@@ -1973,7 +1973,7 @@ namespace DSL
             LOG_INFO("    Pad Index       : " << pFrameMeta->pad_index);
             LOG_INFO("    Frame           : " << pFrameMeta->frame_num);
             LOG_INFO("    Width           : " << pFrameMeta->source_frame_width);
-            LOG_INFO("    Heigh           : " << pFrameMeta->source_frame_height );
+            LOG_INFO("    Height          : " << pFrameMeta->source_frame_height );
             LOG_INFO("  Object Data       : ------------------------");
             
             if (pObjectMeta)
@@ -2888,7 +2888,7 @@ namespace DSL
         std::cout << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         std::cout << "    Frame           : " << pFrameMeta->frame_num << "\n";
         std::cout << "    Width           : " << pFrameMeta->source_frame_width << "\n";
-        std::cout << "    Heigh           : " << pFrameMeta->source_frame_height << "\n";
+        std::cout << "    Height          : " << pFrameMeta->source_frame_height << "\n";
         std::cout << "  Object Data       : ------------------------" << "\n";
 
         if (pObjectMeta)

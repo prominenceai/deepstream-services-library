@@ -26,7 +26,7 @@ THE SOFTWARE.
 #
 # This simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - A File Source
+#   - File Source
 #   - Primary GST Inference Engine (PGIE)
 #   - IOU Tracker
 #   - On-Screen Display
@@ -204,6 +204,11 @@ int main(int argc, char** argv)
         retval = dsl_pipeline_eos_listener_add(L"pipeline", eos_event_listener, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
 
+        // Add the State Change listener function defined above
+        retval = dsl_pipeline_state_change_listener_add(L"pipeline", 
+            state_change_listener, NULL);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // Play the pipeline
         retval = dsl_pipeline_play(L"pipeline");
         if (retval != DSL_RESULT_SUCCESS) break;
@@ -215,7 +220,7 @@ int main(int argc, char** argv)
     }
     
     // Print out the final result
-    std::cout << dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << dsl_return_value_to_string(retval) << std::endl;
 
     dsl_delete_all();
 

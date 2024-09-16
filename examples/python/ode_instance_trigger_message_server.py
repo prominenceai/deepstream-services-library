@@ -111,11 +111,13 @@ def main(args):
         
         #```````````````````````````````````````````````````````````````````````````````````
         # Create two new RGBA fill colors to fill the bounding boxes of new objects
-        retval = dsl_display_type_rgba_color_custom_new('solid-red', red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('solid-red', 
+            red=1.0, green=0.0, blue=0.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_display_type_rgba_color_custom_new('solid-white', red=1.0, green=1.0, blue=1.0, alpha=1.0)
+        retval = dsl_display_type_rgba_color_custom_new('solid-white', 
+            red=1.0, green=1.0, blue=1.0, alpha=1.0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -137,34 +139,39 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a single action to print the event data to the console, which will be used
-        # by both our PERSON and VEHICLE Instance Trigers - created next
+        # Create a single action to print the event data to the console, which will 
+        # be used by both our PERSON and VEHICLE Instance Trigers - created next
         retval = dsl_ode_action_print_new('print-data', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a single action to add message meta to the frame meta, which will be used
-        # by both our PERSON and VEHICLE Instance Trigers - created next. The message meta
-        # will be converted to an IoT message payload and sent to Azure server by the 
-        # downstream message sink.
+        # Create a single action to add message meta to the frame meta, which will 
+        # be used by both our PERSON and VEHICLE Instance Trigers - created next. 
+        # The message meta will be converted to an IoT message payload and sent to 
+        # Azure server by the spacedownstream message sink.
         retval = dsl_ode_action_message_meta_add_new('add-message-meta')
         if retval != DSL_RETURN_SUCCESS:
             break
                 
 
-        #```````````````````````````````````````````````````````````````````````````````````
-        # Create two new Instance triggers, one for the PERSON class, the other for the VEHICLE class.
-        retval = dsl_ode_trigger_instance_new('person-instance-trigger', source='uri-source-1',
-            class_id=PGIE_CLASS_ID_PERSON, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        #````````````````````````````````````````````````````````````````````````````
+        # Create two new Instance triggers, one for the PERSON class, the other 
+        # for the VEHICLE class.
+        retval = dsl_ode_trigger_instance_new('person-instance-trigger', 
+            source='uri-source-1',
+            class_id=PGIE_CLASS_ID_PERSON, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', source='uri-source-1',
-            class_id=PGIE_CLASS_ID_VEHICLE, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', 
+            source='uri-source-1',
+            class_id=PGIE_CLASS_ID_VEHICLE, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````
+        #````````````````````````````````````````````````````````````````````````````
         # Next, we add our Actions to our Triggers
         retval = dsl_ode_trigger_action_add_many('person-instance-trigger',
             actions=['fill-person-action', 'print-data', 'add-message-meta', None])
@@ -175,7 +182,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````
+        #````````````````````````````````````````````````````````````````````````````
         # New ODE Handler to handle all ODE Triggers    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
@@ -185,7 +192,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        ####################################################################################
+        #############################################################################
         #
         # Create the remaining Pipeline components
         
@@ -213,12 +220,14 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # New Window Sink, 0 x/y offsets and same dimensions as Tiled Display
-        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 
+        WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -233,20 +242,20 @@ def main(args):
             break
         
         # New Message Sink Creation using the filespec defined at the top of the file
-        retval = dsl_sink_message_new('message-sink', 
-            converter_config_file = converter_config_file, 
-            payload_type = DSL_MSG_PAYLOAD_DEEPSTREAM, 
-            broker_config_file = broker_config_file, 
-            protocol_lib = protocol_lib, 
-            connection_string = connection_string, 
-            topic = '/instances/')
+        # retval = dsl_sink_message_new('message-sink', 
+        #     converter_config_file = converter_config_file, 
+        #     payload_type = DSL_MSG_PAYLOAD_DEEPSTREAM, 
+        #     broker_config_file = broker_config_file, 
+        #     protocol_lib = protocol_lib, 
+        #     connection_string = connection_string, 
+        #     topic = '/instances/')
         if retval != DSL_RETURN_SUCCESS:
             break
 
         # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
             ['uri-source-1', 'primary-gie', 'iou-tracker', 
-            'on-screen-display', 'egl-sink', 'message-sink', None])
+            'on-screen-display', 'egl-sink',  None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -255,7 +264,8 @@ def main(args):
             state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 

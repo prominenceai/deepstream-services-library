@@ -50,30 +50,6 @@ $ sudo cp /usr/local/lib/librdkafka* /opt/nvidia/deepstream/deepstream-7.0/lib
 ```
 See [Error in DeepStream 7.0 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-0-installation-instructions-symlink-fails-to-create/296026) for more information.
 
-## -- Release Highlights --
-
-The latest release is [v0.31.alpha](/Release%20Notes/v0.31.alpha.md) 
-
-### New Component Queue management and monitoring services
-All DSL Pipeline Components use a GStream [queue plugin](https://gstreamer.freedesktop.org/documentation/coreelements/queue.html?gi-language=c) to create a new thread boundry for processing. [New services](/docs/api-component.md#component-queue-management) have been added to monitor and control the queue's leaky, current-level, max-size, and min-threshold properties. Callbacks have been added for notification of queue underrun and overrun conditions. 
-
-### New Custom Sources and Sinks
-New services have been added to create [Custom Video Sources](/docs/api-source.md#custom-video-sources) and [Custom Video Sinks](/docs/api-sink.md#custom-video-sinks) Components using publicly released or proprietary GStreamer plugins.
-
-### New DSL GST Caps Objects
-GStreamer caps objects can be created to filter caps for [Custom GST Elements]() used by the [Custom Video Sources](/docs/api-source.md#custom-video-sources), [Custom Components](/docs/api-component.md#custom-components), and [Custom Video Sinks](/docs/api-sink.md#custom-video-sinks)
-
-### All Encode Sinks now support software encoding
-**IMPORTANT** this is a breaking change.
-
-The [File Sink](/docs/api-sink.md#dsl_sink_file_new), [Record Sink](/docs/api-sink.md#dsl_sink_record_new), [RTSP Server Sink](/docs/api-sink.md#dsl_sink_rtsp_server_new), and [WebRTC Sink](/docs/api-sink.md#dsl_sink_webrtc_new) now support five types of encoders:
-* two hardware; H.264, H.265.
-* and now three software; H.264, H.265, and MP4.
-
-The [RTMP Sink](/docs/api-sink.md#dsl_sink_rtmp_new) now supports software and hardware H.264 encoding.
-
-### Extensive memory leak testing has been done.
-All (minor) issues found have been resolved.
 
 ## Contributing
 
@@ -130,8 +106,17 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Message Broker](/docs/api-msg-broker.md)
   * [Info API](/docs/api-info.md)
 * [Examples](/docs/examples.md)
-  * [C/C++](/docs/examples-cpp.md)
-  * [Python](/docs/examples-python.md)
+  * [Basic Inference Pipelies](/docs/examples-basic-pipelines.md)
+  * [Multiple Sources, Tilers, and Demuxers](/docs/examples-sources-tiler-demuxer.md)
+  * [Advanced Inference Pipelies](/docs/examples-advanced-pipelines.md)
+  * [Smart Recording](/docs/examples-smart-recording.md)
+  * [Object Detection Event (ODE) Services](/docs/examples-ode-services.md)
+  * [Encoding Frames to JPEG](/docs/examples-encode-and-save-frame.md)
+  * [Dewarping and Segmentation](/docs/examples-dewarping-and-segmentation.md)
+  * [Dynamic Pipelines](/docs/examples-dynamic-pipelines.md)
+  * [Custom Components](/docs/examples-custom-components.md)
+  * [Working with OpenCV](/docs/examples-opencv.md)
+  * [Diagnostics and Utilites](/docs/examples-diagnaostics-and-utilities.md)
   * [Tkinter Reference App](/docs/examples-tkinter.md)
   * [HTML WebRTC Client](/docs/examples-webrtc-html.md)
 * [Using VS Code](/docs/vscode.md)

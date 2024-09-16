@@ -25,7 +25,7 @@ THE SOFTWARE.
 /*
 #
 # This example demonstrates the use of a Frame-Capture Sink to encode and
-# save video frames to JPEG files on client/viewer demand.
+# save video frames to JPEG files scheduled from a Custom Pad Probe Handler (PPH).
 #
 # An ODE Frame-Capture Action is provided to The Frame-Capture Sink on creation.
 # A client "capture_complete_listener" is added to the the Action to be notified
