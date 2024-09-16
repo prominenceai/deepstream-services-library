@@ -1,8 +1,15 @@
-Video Dewarping and Segmentation Viewing
+# Video Dewarping and Segmentation Viewing
+This page documents the following Segmentation examples:
+* [360 Degree Video Dewarping](#360-degree-video-dewarping)
+* [Perspective Video Dewarping](#perspective-video-dewarping)
+* [Industrial Segmentation and Viewing](#industrial-segmentation-and-viewing)
+* [Semantic Segmentation and Viewing](#semantic-segmentation-and-viewing)
 
 <br>
 
 ---
+
+### 360 Degree Video Dewarping
 
 * [`video_dewarper_360.py`](/examples/python/video_dewarper_360.py)
 * cpp example is still to be done
@@ -26,7 +33,9 @@ Video Dewarping and Segmentation Viewing
 
 ---
 
-* [`video_dewarper_360.py`](/examples/python/video_dewarper_360.py)
+### Perspective Video Dewarping
+
+* [`video_dewarper_perspective.py`](/examples/python/video_dewarper_perspective.py)
 * cpp example is still to be done
 
 ```python
@@ -45,6 +54,8 @@ Video Dewarping and Segmentation Viewing
 <br>
 
 ---
+
+### Industrial Segmentation and Viewing
 
 * [`segmentation_industrial.py`](/examples/python/segmentation_industrial.py)
 * cpp example is still to be done
@@ -74,6 +85,8 @@ Video Dewarping and Segmentation Viewing
 <br>
 
 ---
+
+### Semantic Segmentation and Viewing
 
 * [`segmentation_semantic.py`](/examples/python/segmentation_semantic.py)
 * cpp example is still to be done

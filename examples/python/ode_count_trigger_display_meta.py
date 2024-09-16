@@ -22,6 +22,31 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates how to use Minimum, Maximum, and Range Triggers.
+#
+# The triggers, upon meeting all criteria, will color a small rectangle (using 
+# a display type) on the Frame with the following colors indicating: 
+#    Yellow = object count below Minimum
+#    Red = object count above Maximum 
+#    Green = object count in range of Minimim to Maximum.
+#
+# An additional "Summation Trigger" with a "Display Action" will display the 
+# total number of objects next to the colored/filled indicator (rectangle)
+#  
+# The ODE Triggers are added to an ODE Pad Probe Handler which is added to
+# source (output) pad of the Tracker. 
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -96,19 +121,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example is used to demonstrate the Use of Minimum, Maximum, and 
-        # Range Triggers. The triggers, upon meeting all criteria, will fill a 
-        # rectangle Area on the Frame with color indicating: 
-        #    Yellow = object count below Minimum
-        #    Red = object count above Maximum 
-        #    Green = object count in range of Minimim to Maximum.
-        
-        # A secondary indicatory of filling the full Frame with a shade of red 
-        # will be used to stress that the object count within the frame has 
-        # exceeded the Maximum
-        
-        # An additional Summation Trigger with Display Action will display the 
-        # total number of objects next to the colored/filled area-indicator
         
         #`````````````````````````````````````````````````````````````````````````````
         
@@ -260,7 +272,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New ODE occurrence Trigger to hide the Display Text for all detected objects
+        # New ODE occurrence Trigger to hide the Label Text for all detected objects
         retval = dsl_ode_trigger_occurrence_new('every-object', source=DSL_ODE_ANY_SOURCE, 
             class_id=DSL_ODE_ANY_CLASS, limit=0)
         if retval != DSL_RETURN_SUCCESS:

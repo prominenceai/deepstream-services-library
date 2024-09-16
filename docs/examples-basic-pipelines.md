@@ -1,6 +1,23 @@
-# Basic Inference Pipelies with different Sources and Sinks
+# Basic Inference Pipelines with different Sources and Sinks
+This page documents the following "Basic Inference Pipelines" consiting of
+* [CSI Source, Primary GIE, OSD, and 3D Window Sink](#csi-source-primary-gie-osd-and-3d-window-sink)
+* [File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and File Sink](#file-source-primary-gie-iou-tracker-osd-egl-window-sink-and-file-sink)
+* [File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and RTSP Sink](#file-source-primary-gie-iou-tracker-osd-egl-window-sink-and-rtsp-sink)
+* [File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and V4L2 Sink](#file-source-primary-gie-iou-tracker-osd-egl-window-sink-and-v4l2-sink)
+* [RTSP Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink](#rtsp-source-primary-gie-iou-tracker-osd-egl-window-sink)
+* [HTTP Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink](#http-source-primary-gie-iou-tracker-osd-egl-window-sink)
+* [File Source, Preprocessor, Primary GIE, IOU Tracker, OSD, EGL Window Sink](#file-source-preprocessor-primary-gie-iou-tracker-osd-egl-window-sink)
+* [File Source, Primary TIS, DSF Tracker, OSD, EGL Window Sink](#file-source-primary-tis-dsf-tracker-osd-egl-window-sink)
+* [File Source, Primary TIS, IOU Tracker, OSD, EGL Window Sink](#file-source-primary-tis-iou-tracker-osd-egl-window-sink)
+* [File Source, Primary TIS, IOU Tracker, 2 Secondary TIS, OSD, EGL Window Sink](#file-source-primary-tis-iou-tracker-2-secondary-tis-osd-egl-window-sink)
+* [Image Source, Primary GIE, OSD, and EGL Window Sink](#image-source-primary-gie-osd-and-egl-window-sink)
+* [URI Source, Primary GIE, IOU Tracker, and App Sink](#uri-source-primary-gie-iou-tracker-and-app-sink)
+* [V4L2 Source, Primary GIE, IOU Tracker, OSD, and EGL Window Sink](#v4l2-source-primary-gie-iou-tracker-osd-and-egl-window-sink)
+* [App Source, Primary TIE, IOU Tracker, OSD, and EGL Window Sink](#app-source-primary-tie-iou-tracker-osd-and-egl-window-sink)
 
 ---
+
+### CSI Source, Primary GIE, OSD, and 3D Window Sink
 
 * [`1csi_pgie_osd_3dsink.py`](/examples/python/1csi_pgie_osd_3dsink.py)
 * cpp example is still to be done
@@ -21,6 +38,8 @@
 <br>
 
 ---
+
+### File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and File Sink
 
 * [`1file_pgie_iou_tracker_osd_window_file.py`](/examples/python/1file_pgie_iou_tracker_osd_window_file.py)
 * [`1file_pgie_iou_tracker_osd_window_file.cpp`](/examples/cpp/1file_pgie_iou_tracker_osd_window_file.cpp)
@@ -48,6 +67,8 @@
 
 ---
 
+### File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and RTSP Sink
+
 * [`1file_pgie_iou_tracker_osd_window_rtsp.py`](/examples/python/1file_pgie_iou_tracker_osd_window_rtsp.py)
 * [`1file_pgie_iou_tracker_osd_window_rtsp.cpp`](/examples/cpp/1file_pgie_iou_tracker_osd_window_rtsp.cpp)
 
@@ -73,6 +94,8 @@
 <br>
 
 ---
+
+### File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and V4L2 Sink
 
 * [`1file_pgie_iou_tracker_osd_window_v4l2.py`](/examples/python/1file_pgie_iou_tracker_osd_window_v4l2.py)
 * [`1file_pgie_iou_tracker_osd_window_v4l2.cpp`](/examples/cpp/1file_pgie_iou_tracker_osd_window_v4l2.cpp)
@@ -116,6 +139,8 @@
 
 ---
 
+### RTSP Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink
+
 * [`1rtsp_pgie_dcf_tracker_osd_window.py`](/examples/python/1rtsp_pgie_dcf_tracker_osd_window.py)
 * [`1rtsp_pgie_dcf_tracker_osd_window.cpp`](/examples/cpp/1rtsp_pgie_dcf_tracker_osd_window.cpp)
 
@@ -147,6 +172,8 @@
 <br>
 
 ---
+
+### HTTP Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink
 
 * [`1uri_http_pgie_iou_tracker_osd_window.py`](/examples/python/1uri_http_pgie_iou_tracker_osd_window.py)
 * [`1uri_http_pgie_iou_tracker_osd_window.cpp`](/examples/cpp/1uri_http_pgie_iou_tracker_osd_window.cpp)
@@ -186,6 +213,8 @@
 
 ---
 
+### File Source, Preprocessor, Primary GIE, IOU Tracker, OSD, EGL Window Sink
+
 * [`1file_preproc_pgie_iou_tracker_osd_window.py`](/examples/python/1file_preproc_pgie_iou_tracker_osd_window.py)
 * [`1file_preproc_pgie_iou_tracker_osd_window.cpp`](/examples/cpp/1file_preproc_pgie_iou_tracker_osd_window.cpp)
 
@@ -215,6 +244,8 @@
 
 ---
 
+### File Source, Primary TIS, DSF Tracker, OSD, EGL Window Sink
+
 * [`1file_ptis_dcf_tracker_osd_window.py`](/examples/python/1file_ptis_dcf_tracker_osd_window.py)
 * cpp example is still to be done
 
@@ -240,6 +271,8 @@
 
 ---
 
+### File Source, Primary TIS, IOU Tracker, OSD, EGL Window Sink
+
 * [`1file_ptis_iou_tracker_osd_window.py`](/examples/python/1file_ptis_iou_tracker_osd_window.py)
 * [`1file_ptis_iou_tracker_osd_window.cpp`](/examples/cpp/1file_ptis_iou_tracker_osd_window.cpp)
 
@@ -264,6 +297,8 @@
 <br>
 
 ---
+
+### File Source, Primary TIS, IOU Tracker, 2 Secondary TIS, OSD, EGL Window Sink
 
 * [`1file_ptis_iou_tracker_2stis_osd_window.py`](/examples/python/1file_ptis_iou_tracker_2stis_osd_window.py)
 * cpp example is still to be done
@@ -291,6 +326,8 @@
 
 ---
 
+### Image Source, Primary GIE, OSD, and EGL Window Sink
+
 * [`1image_jpeg_pgie_osd_window.py`](/examples/python/1image_jpeg_pgie_osd_window.py)
 * cpp example is still to be done
 
@@ -315,6 +352,8 @@
 
 ---
 
+### URI Source, Primary GIE, IOU Tracker, and App Sink
+
 * [`1uri_file_pgie_iou_tracker_app_sink.py`](/examples/python/1uri_file_pgie_iou_tracker_app_sink.py)
 * cpp example is still to be done
 
@@ -335,6 +374,8 @@
 <br>
 
 ---
+
+### V4L2 Source, Primary GIE, IOU Tracker, OSD, and EGL Window Sink
 
 * [`1v4l2_pgie_iou_tracker_osd_window.py`](/examples/python/1v4l2_pgie_iou_tracker_osd_window.py)
 * [`1v4l2_pgie_iou_tracker_osd_window.cpp`](/examples/cpp/1v4l2_pgie_iou_tracker_osd_window.cpp)
@@ -366,7 +407,30 @@
 # The Picture Settings are all integer values, range 
 ```
 
+---
+
+### App Source, Primary TIE, IOU Tracker, OSD, and EGL Window Sink
+
+* Python example is still to be done
+* [`raw_i420_app_src_ptis_tracker_osd_window.cpp`](/examples/cpp/raw_i420_app_src_ptis_tracker_osd_window.cpp)
+
 ```python
-
+# 
+# This example illustrates how to push raw video buffers to a DSL Pipeline
+# using an App Source component. The example application adds the following
+# client handlers to control the input of raw buffers to the App Source
+#   * need_data_handler   - called when the App Source needs data to process
+#   * enough_data_handler - called when the App Source has enough data to process
+# 
+# The client handlers add/remove a callback function to read, map, and push data
+# to the App Source called "read_and_push_data". 
+# 
+# The raw video file used with this example is created by executing the following 
+# gst-launch-1.0 command.
+# 
+# gst-launch-1.0 uridecodebin \
+#       uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mp4 \
+#       ! nvvideoconvert ! 'video/x-raw, format=I420, width=1280, height=720' \
+#       ! filesink location=./sample_720p.i420
+# 
 ```
-

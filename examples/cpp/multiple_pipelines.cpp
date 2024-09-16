@@ -22,6 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/*##############################################################################
+#
+# This example demonstrates how to run multple Pipelines, each in their own 
+# thread, and each with their own main-context and main-loop.
+#
+# After creating and starting each Pipelines, the script joins each of the 
+# threads waiting for them to complete - either by EOS message, 'Q' key, or 
+# Delete Window.
+#
+##############################################################################*/
+
 #include <iostream> 
 #include <glib.h>
 
@@ -291,7 +302,7 @@ int main(int argc, char** argv)
     }
 
     // Print out the final result
-    std::cout << dsl_return_value_to_string(retval) << std::endl;
+    std::wcout << dsl_return_value_to_string(retval) << std::endl;
 
     dsl_delete_all();
 

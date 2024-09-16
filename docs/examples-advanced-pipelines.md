@@ -1,7 +1,15 @@
 # Advanced Inference Pipelies
+This page documents the following "Advance Inference Pipelines" consiting of
+* [Parallel Inference on Selective Streams](#parallel-inference-on-selective-streams)
+* [Multiple Pipelines Running in Their Own Thread](#multiple-pipelines-running-in-their-own-thread)
+* [Multiple Pipelines with Interpipe Source listening to Pipeline with InterpipeSink](#multiple-pipelines-with-interpipe-source-listening-to-pipeline-with-interpipe-sink)
+* [Single Pipeline with Interpipe Source switching between Multiple Pipelines/Sinks](#single-pipeline-with-interpipe-source-switching-between-multiple-pipelinessinks)
+
 <br>
 
 ---
+
+### Parallel Inference on Selective Streams
 
 * [`parallel_inference_on_selective_streams.py`](/examples/python/parallel_inference_on_selective_streams.py)
 * [`parallel_inference_on_selective_streams.cpp`](/examples/cpp/parallel_inference_on_selective_streams.cpp)
@@ -43,10 +51,34 @@
 # stdout buffer -- will result in the printed data appearing interlaced. A single 
 # Action with an internal mutex will protect from stdout buffer reentrancy. 
 # 
+
 ```
+
 <br>
 
 ---
+
+### Multiple Pipelines Running in Their Own Thread
+
+* [`multiple_pipelines.py`](/examples/python/multiple_pipelines.py)
+* [`multiple_pipelines.cpp`](/examples/cpp/multiple_pipelines.cpp)
+
+```python
+#
+# This example demonstrates how to run multple Pipelines, each in their own 
+# thread, and each with their own main-context and main-loop.
+#
+# After creating and starting each Pipelines, the script joins each of the 
+# threads waiting for them to complete - either by EOS message, 'Q' key, or 
+# Delete Window.
+#
+```
+
+<br>
+
+---
+
+### Multiple Pipelines with Interpipe Source listening to Pipeline with Interpipe Sink
 
 * [`interpipe_multiple_pipelines_listening_to_single_sink.py`](/examples/python/interpipe_multiple_pipelines_listening_to_single_sink.py)
 * [`interpipe_multiple_pipelines_listening_to_single_sink.cpp`](/examples/cpp/interpipe_multiple_pipelines_listening_to_single_sink.cpp)
@@ -66,6 +98,8 @@
 <br>
 
 ---
+
+### Single Pipeline with Interpipe Source switching between Multiple Pipelines/Sinks
 
 * [`interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py`](/examples/python/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.py)
 * [`interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp`](/examples/cpp/interpipe_single_pipeline_dynamic_switching_between_multiple_sinks.cpp)

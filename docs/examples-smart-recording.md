@@ -1,7 +1,15 @@
 # Smart Recording Taps and Sinks
+This page documents the following "Smart Recording" examples:
+* [Start Smart Recording Tap on Object Detection Event Occurrence](#start-smart-recording-tap-on-object-detection-event-occurrence)
+* [Start Smart Recording Tap on User or Application Demand](#start-smart-recording-tap-on-user-or-application-demand)
+* [Start Smart Recording Sink on Object Detection Event Occurrence](#start-smart-recording-sink-on-object-detection-event-occurrence)
+* [Start Smart Recording Sink On User or Application Demand](#start-smart-recording-sink-on-user-or-application-demand)
+
 <br>
 
 ---
+
+### Start Smart Recording Tap on Object Detection Event Occurrence 
 
 * [`smart_record_tap_start_session_on_ode_occurrence.py`](/examples/python/smart_record_tap_start_session_on_ode_occurrence.py)
 * [`smart_record_tap_start_session_on_ode_occurrence.cpp`](/examples/cpp/smart_record_tap_start_session_on_ode_occurrence.cpp)
@@ -56,6 +64,8 @@
 
 ---
 
+### Start Smart Recording Tap on User or Application Demand
+
 * [`smart_record_tap_start_session_on_user_demand.py`](/examples/python/smart_record_tap_start_session_on_user_demand.py)
 * [`smart_record_tap_start_session_on_user_demand.cpp`](/examples/cpp/smart_record_tap_start_session_on_user_demand.cpp)
 
@@ -94,6 +104,8 @@
 <br>
 
 ---
+
+# Start Smart Recording Sink on Object Detection Event Occurrence
 
 * [`smart_record_sink_start_session_on_ode_occurrence.py`](/examples/python/smart_record_sink_start_session_on_ode_occurrence.py)
 * [`smart_record_sink_start_session_on_ode_occurrence.cpp`](/examples/cpp/smart_record_sink_start_session_on_ode_occurrence.cpp)
@@ -139,6 +151,8 @@
 <br>
 
 ---
+
+### Start Smart Recording Sink On User or Application Demand
 
 * [`smart_record_sink_start_session_on_user_demand.py`](/examples/python/smart_record_sink_start_session_on_user_demand.py)
 * [`smart_record_sink_start_session_on_user_demand.cpp`](/examples/cpp/smart_record_sink_start_session_on_user_demand.cpp)

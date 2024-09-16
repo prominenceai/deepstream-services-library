@@ -1,8 +1,14 @@
 # Pipelines with Custom Sources, Components, and Sinks
+This page documents the following examples:
+* [Pipeline with Custom Source Component](#pipeline-with-custom-source-component)
+* [Pipeline with Custom Component - non Source or Sink](#pipeline-with-custom-component---non-source-or-sink)
+* [Pipeline with Custom Sink Component](#pipeline-with-custom-sink-component)
 
 <br>
 
 ---
+
+### Pipeline with Custom Source Component
 
 * [`pipeline_with_custom_source.py`](/examples/python/pipeline_with_custom_source.py)
 * [`pipeline_with_custom_source.cpp`](/examples/cpp/pipeline_with_custom_source.cpp)
@@ -40,6 +46,8 @@
 <br>
 
 ---
+
+### Pipeline with Custom Component - non Source or Sink
 
 * [`pipeline_with_custom_component.py`](/examples/python/pipeline_with_custom_component.py)
 * [`pipeline_with_custom_component.cpp`](/examples/cpp/pipeline_with_custom_component.cpp)
@@ -79,6 +87,8 @@
 <br>
 
 ---
+
+### Pipeline with Custom Sink Component
 
 * [`pipeline_with_custom_sink.py`](/examples/python/pipeline_with_custom_source.py)
 * [`pipeline_with_custom_sink.cpp`](/examples/cpp/pipeline_with_custom_sink.cpp)

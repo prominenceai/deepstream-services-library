@@ -22,6 +22,21 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the used of a "Largest Object Trigger" and "Fill 
+# Surroundings Action" to continuosly highlight the largest object in the Frame 
+# as measured by bounding box area.
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -46,9 +61,10 @@ PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
 # NOTE: filling the full frame with a blended alpha is a CPU intensive operation
-# Using a 30 fps file source requires us to reduce the size at the streammux output 
-STREAMMUX_WIDTH = 1280
-STREAMMUX_HEIGHT = 720
+# You may need to reduce the size of the frames at the Streammuxer on cpu 
+# constrained devices. 
+STREAMMUX_WIDTH = DSL_1K_HD_WIDTH
+STREAMMUX_HEIGHT = DSL_1K_HD_HEIGHT
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
@@ -96,12 +112,11 @@ def main(args):
     while True:
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # The example demonstrates the used of a Larget Object Trigger and Fill Object Surroundings Action.
-        # To continuosly hightly the larget object in the Frame as measured by bounding box area.
 
         # ````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_custom_new('opaque-black', red=0.0, blue=0.0, green=0.0, alpha=0.5)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-black', 
+            red=0.0, blue=0.0, green=0.0, alpha=0.5)
         if retval != DSL_RETURN_SUCCESS:
             break
             

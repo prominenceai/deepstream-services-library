@@ -22,6 +22,13 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates how to create an Inference Pipeline with two
+# Sources, built-in Streammuxer, and Demuxer with two branches; one per demuxed
+# Stream. Eaxh branch has an On-Screen-Display and EGL Window Sink.   
+#
+################################################################################
 #!/usr/bin/env python
 
 import sys

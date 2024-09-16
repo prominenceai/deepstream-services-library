@@ -134,7 +134,7 @@ Come join us on [Discord](https://discord.gg/MJvY9jjpAK), an informal place to c
   * [Multiple Sources, Tilers, and Demuxers](/docs/examples-sources-tiler-demuxer.md)
   * [Advanced Inference Pipelies](/docs/examples-advanced-pipelines.md)
   * [Smart Recording](/docs/examples-smart-recording.md)
-  * [Object Detection Event (ODE) Services]()
+  * [Object Detection Event (ODE) Services](/docs/examples-ode-services.md)
   * [Encoding Frames to JPEG](/docs/examples-encode-and-save-frame.md)
   * [Dewarping and Segmentation](/docs/examples-dewarping-and-segmentation.md)
   * [Dynamic Pipelines](/docs/examples-dynamic-pipelines.md)

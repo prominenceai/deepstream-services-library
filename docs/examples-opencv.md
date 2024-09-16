@@ -1,7 +1,11 @@
 # Dynamic Pipelines
 <br>
 
+* [Working with OpenCV in a Custom Pad Probe Handler - Python](#working-with-opencv-in-a-custom-pad-probe-handler---python)
+* [Working with OpenCV in a Custom Pad Probe Handler - C/C++](#working-with-opencv-in-a-custom-pad-probe-handler---cc)
 ---
+
+# Working with OpenCV in a Custom Pad Probe Handler - Python
 
 * [`4file_custom_pph_using_opencv.py`](/examples/python/4file_custom_pph_using_opencv.py)
 
@@ -46,6 +50,10 @@
 <br>
 
 ---
+
+# Working with OpenCV in a Custom Pad Probe Handler - C/C++
+
+C/C++
 
 * [`4file_custom_pph_using_opencv.cpp`](/examples/cpp/4file_custom_pph_using_opencv.cpp)
 

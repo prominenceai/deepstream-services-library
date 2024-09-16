@@ -25,6 +25,7 @@
 #!/usr/bin/env python
 
 ################################################################################
+#
 # This example demonstrates how to manually control -- using key release and 
 # button press events -- the 2D Tiler's output stream to: 
 #   - show a specific source on key input (source No.) or mouse click on tile.
@@ -32,6 +33,15 @@
 #   - to cycle through all sources on 'C' input showing each for timeout.
 # 
 # Note: timeout is controled with the global variable SHOW_SOURCE_TIMEOUT 
+# 
+# The example uses a basic inference Pipeline consisting of:
+#   - 4 URI Sources
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - 2D Tiler
+#   - On-Screen Display
+#   - Window Sink
+#  
 ################################################################################
 
 import sys

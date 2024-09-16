@@ -28,27 +28,38 @@ import sys
 import time
 
 from dsl import *
-
-#-------------------------------------------------------------------------------------------
+ 
+################################################################################
 #
 # This script demonstrates the use of a Persistence Trigger to trigger on each Vehicle
-# that is tracked for more than one frame, to calculate the time of Object persistence
-# from the first frame the object was detected. 
+# that is tracked for more than one frame -- to calculate the time of Object persistence
+# from the first frame the object was detected.
 #
-# The Tracked Object's label is then "customed" to show the tracking Id and time of 
+# The Tracked Object's label is then "customized" to show the tracking Id and time of
 # persistence for each tracked Vehicle.
 #
-# The script also creats an Earliest Trigger to trigger on the Vehicle that appeared 
+# The script also creates an Earliest Trigger to trigger on the Vehicle that appeared
 # the earliest -- i.e. the object with greatest persistence value -- and displays that
-# Object's persistence using a ODE Display Action.
-# 
+# Object's persistence using an ODE Display Action.
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#
+################################################################################
 
 # File path for the single File Source
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4'
 
-# Filespecs for the Primary Triton Inference Server (PTIS)
+# Filespecs for the Primary GIE
 primary_infer_config_file = \
-    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app-triton/config_infer_plan_engine_primary.txt'
+    '/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt'
+primary_model_engine_file = \
+    '/opt/nvidia/deepstream/deepstream/samples/models/Primary_Detector/resnet18_trafficcamnet.etlt_b8_gpu0_int8.engine'
+
 
 # Filespec for the IOU Tracker config file
 iou_tracker_config_file = \
@@ -331,8 +342,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # New Primary TIS using the filespec specified above, with interval = 0
-        retval = dsl_infer_tis_primary_new('primary-tis', primary_infer_config_file, 1)
+        # New Primary GIE using the filespecs above with interval = 0
+        retval = dsl_infer_gie_primary_new('primary-gie', 
+            primary_infer_config_file, primary_model_engine_file, 3)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -369,7 +381,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-tis', 'iou-tracker', 
+            ['uri-source', 'primary-gie', 'iou-tracker', 
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break

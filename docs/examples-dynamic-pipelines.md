@@ -1,7 +1,13 @@
 # Dynamic Pipelines
+This page documents the following examples:
+* [Dynamically Add/Remove Sources to/from a Pipeline with a Tiler and Window Sink](#dynamically-addremove-sources-tofrom-a-pipeline-with-a-tiler-and-window-sink)
+* [Dynamically Move a Branch from One Demuxer Stream to Another](#dynamically-move-a-branch-from-one-demuxer-stream-to-another)
+
 <br>
 
 ---
+
+### Dynamically Add/Remove Sources to/from a Pipeline with a Tiler and Window Sink
 
 * [`dynamically_add_remove_sources_with_tiler_window_sink.py`](/examples/python/dynamically_add_remove_sources_with_tiler_window_sink.py)
 * [`dynamically_add_remove_sources_with_tiler_window_sink.cpp`](/examples/cpp/dynamically_add_remove_sources_with_tiler_window_sink.cpp)
@@ -37,6 +43,8 @@
 <br>
 
 ---
+
+### Dynamically Move a Branch from One Demuxer Stream to Another
 
 * [`dynamically_move_branch_from_demuxer_stream_to_stream.py`](/examples/python/dynamically_move_branch_from_demuxer_stream_to_stream.py)
 * [`dynamically_move_branch_from_demuxer_stream_to_stream.cpp`](/examples/cpp/dynamically_move_branch_from_demuxer_stream_to_stream.cpp)
