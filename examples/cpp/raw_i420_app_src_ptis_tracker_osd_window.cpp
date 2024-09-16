@@ -24,22 +24,24 @@ THE SOFTWARE.
 */
 
 /*
-This example illustrates how to push raw video buffers to a DSL Pipeline
-using an App Source component. The example application adds the following
-client handlers to control the input of raw buffers to the App Source
-  * need_data_handler   - called when the App Source needs data to process
-  * enough_data_handler - called when the App Source has enough data to process
-
-The client handlers add/remove a callback function to read, map, and push data
-to the App Source called "read_and_push_data". 
-
-The raw video file used with this example is created by executing the following 
-gst-launch-1.0 command.
-
-gst-launch-1.0 uridecodebin \
-      uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mp4 \
-      ! nvvideoconvert ! 'video/x-raw, format=I420, width=1280, height=720' \
-      ! filesink location=./sample_720p.i420
+# 
+# This example illustrates how to push raw video buffers to a DSL Pipeline
+# using an App Source component. The example application adds the following
+# client handlers to control the input of raw buffers to the App Source
+#   * need_data_handler   - called when the App Source needs data to process
+#   * enough_data_handler - called when the App Source has enough data to process
+# 
+# The client handlers add/remove a callback function to read, map, and push data
+# to the App Source called "read_and_push_data". 
+# 
+# The raw video file used with this example is created by executing the following 
+# gst-launch-1.0 command.
+# 
+# gst-launch-1.0 uridecodebin \
+#       uri=file:///opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.mp4 \
+#       ! nvvideoconvert ! 'video/x-raw, format=I420, width=1280, height=720' \
+#       ! filesink location=./sample_720p.i420
+# 
 */
 
 #include <iostream>

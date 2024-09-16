@@ -22,6 +22,26 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the use of three ODE Persistence Triggers to trigger on
+# all tracked Objects - as identified by an IOU Tracker - that persist accross consecutive
+# frames for a specifid period of time. Each trigger specifies a range of minimum and
+# maximum times of persistence. 
+#   Trigger 1: 0 - 3 seconds - action = fill object with opaque green color
+#   Trigger 2: 3 - 6 seconds - action = fill object with opaque yellow color
+#   Trigger 3: 6 - 0 seconds - action = fill object with opaque red color
+# This will have the effect of coloring an object by its time in view
+#  
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# 
+################################################################################
+        
 #!/usr/bin/env python
 
 import sys
@@ -44,8 +64,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WINDOW_WIDTH = DSL_1K_HD_WIDTH
-WINDOW_HEIGHT = DSL_1K_HD_HEIGHT
+WINDOW_WIDTH = DSL_1K_HD_WIDTH // 2
+WINDOW_HEIGHT = DSL_1K_HD_HEIGHT // 2
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -89,15 +109,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example demonstrates the use of three ODE Persistence Triggers to trigger on
-        # all tracked Objects - as identified by an IOU Tracker - that persist accross consecutive
-        # frames for a specifid period of time. Each trigger specifies a range of minimum and
-        # maximum times of persistence. 
-        #   Trigger 1: 0 - 3 seconds - action = fill object with opaque green color
-        #   Trigger 2: 3 - 6 seconds - action = fill object with opaque yellow color
-        #   Trigger 3: 6 - 0 seconds - action = fill object with opaque red color
-        # This will have the effect of coloring an object by its time in view
-        
         #```````````````````````````````````````````````````````````````````````````````````
         # Create a Format Label Action to remove the Object Label from view
         # Note: the label can be disabled with the OSD API as well. 

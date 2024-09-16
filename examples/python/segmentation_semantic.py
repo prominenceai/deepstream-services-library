@@ -22,16 +22,33 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - URI Source to read a jpeg image file
+#   - Primary GST Inference Engine (PGIE)
+#   - Segmentation Visualizer
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
+#   - key-release events
+#   - delete-window events
+#
+# NOTE: The Primary GST Inference engine is configured for Semantic Segmentation.
+#   The NVIDIA provided PGIE configuration file can be found at
+#     /opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/
+#
+# The URI Source will push a single frame followed by an End of File (EOF) event.
+# 
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
 import time
 from dsl import *
-
-# NOTE: the below example video runs at 15/1 frame-rate which seems to be beyond 
-# the limit of the PGIE to perform segmentation. This becomes apparent half-way
-# through the video when the Pipeline starts experiencing QOS issues. A slower
-# camera rate may be required.
 
 # File path for the single File Source
 file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
@@ -40,7 +57,7 @@ file_path = '/opt/nvidia/deepstream/deepstream/samples/streams/sample_720p.jpg'
 primary_infer_config_file = \
     '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-segmentation-test/dstest_segmentation_config_semantic.txt'
 # Segmentation Visualizer output dimensions should (typically) match the
-# inference dimensions defined in segvisual_config_semantic.txt (512x512)
+# inference dimensions defined in dstest_segmentation_config_semantic.txt (512x512)
 width = 512
 height = 512
 

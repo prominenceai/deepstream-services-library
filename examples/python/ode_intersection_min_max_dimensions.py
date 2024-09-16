@@ -22,6 +22,25 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example is used to demonstrate the Use of Two Intersection Triggers, 
+# one for the Vehicle class the other for the Person class. A "Format BBox" 
+# action will be used to shade the background of the Objects intersecting.  
+# Person intersecting with Person and Vehicle intersecting with Vehicle.
+# 
+# Min and Max Dimensions will set as addional criteria for the Preson and 
+# Vehicle Triggers respecively
+#  
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+        
 #!/usr/bin/env python
 
 import sys
@@ -29,7 +48,7 @@ sys.path.insert(0, "../../")
 from dsl import *
 import time
 
-uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
+uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_qHD.mp4"
 
 # Filespecs for the Primary GIE
 primary_infer_config_file = \
@@ -91,22 +110,18 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example is used to demonstrate the Use of Two Intersection Triggers, one for the Vehicle class
-        # the other for the Person class. A "fill-object" action will be used to shade the background of 
-        # the Objects intersecting.  Person intersecting with Person and Vehicle intersecting with Vehicle.
-        # 
-        # Min and Max Dimensions will set as addional criteria for the Preson and Vehicle Triggers respecively
-        
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
             
         # Create a new RGBA color type
-        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, blue=0.0, green=0.0, alpha=0.2)
+        retval = dsl_display_type_rgba_color_custom_new('opaque-red', 
+            red=1.0, blue=0.0, green=0.0, alpha=0.2)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Format BBox Action that will fill the Object's rectangle with a shade of red to indicate 
-        # intersection with one or more other Objects, i.e. ODE occurrence. The action will be used with both
-        # the Person and Car class Ids.
+        # Create a new Format BBox Action that will fill the Object's rectangle with
+        # a shade of red to indicate intersection with one or more other Objects, 
+        # i.e. ODE occurrence. The action will be used with both the Person and Car 
+        # class Ids.
         retval = dsl_ode_action_bbox_format_new('red-fill-action',
             border_width = 0,
             border_color = None,
@@ -134,8 +149,9 @@ def main(args):
             break
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Person Intersection Trigger, and set a Minumum height as criteria, add the Actions to Fill 
-        # the Object and Print the ODE occurrence info to the console. Using a single class for testing.
+        # Next, create the Person Intersection Trigger, and set a Minumum height 
+        # as criteria, add the Actions to Fill the Object and Print the ODE 
+        # occurrence info to the console. Using a single class for testing.
         retval = dsl_ode_trigger_intersection_new('person-intersection', 
             source = DSL_ODE_ANY_SOURCE,
             class_id_a = PGIE_CLASS_ID_PERSON, 
@@ -143,7 +159,8 @@ def main(args):
             limit=DSL_ODE_TRIGGER_LIMIT_NONE )
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_dimensions_min_set('person-intersection', min_width=0, min_height=70)
+        retval = dsl_ode_trigger_dimensions_min_set('person-intersection', 
+            min_width=0, min_height=70)
         if retval != DSL_RETURN_SUCCESS:
             break
         retval = dsl_ode_trigger_action_add_many('person-intersection', actions=
@@ -151,8 +168,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Next, create the Vehicle Intersection Trigger, and set a Maximum height as criteria, add the Actions to Fill 
-        # the Object on ODE occurrence and Print the ODE occurrence info to the console.
+        # Next, create the Vehicle Intersection Trigger, and set a Maximum height 
+        # as criteria, add the Actions to Fill the Object on ODE occurrence and 
+        # Print the ODE occurrence info to the console.
         retval = dsl_ode_trigger_intersection_new('vehicle-intersection', 
             source = DSL_ODE_ANY_SOURCE,
             class_id_a = PGIE_CLASS_ID_VEHICLE,
@@ -160,19 +178,22 @@ def main(args):
             limit = DSL_ODE_TRIGGER_LIMIT_NONE )
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_dimensions_max_set('vehicle-intersection', max_width=0, max_height=80)
+        retval = dsl_ode_trigger_dimensions_max_set('vehicle-intersection', 
+            max_width=0, max_height=80)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_ode_trigger_action_add_many('vehicle-intersection', actions=
-            ['red-fill-action', 'print-action', None])
+        retval = dsl_ode_trigger_action_add_many('vehicle-intersection', 
+            actions= ['red-fill-action', 'print-action', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
         #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
         # Next, create the Occurrence Trigger to Hide each Object's Display Text
 
-        # New ODE occurrence Trigger to remove the Display Text and Border for all vehicles
-        retval = dsl_ode_trigger_occurrence_new('every-object', source=DSL_ODE_ANY_SOURCE,
+        # New ODE occurrence Trigger to remove the Display Text and Border for 
+        # all vehicles
+        retval = dsl_ode_trigger_occurrence_new('every-object', 
+            source=DSL_ODE_ANY_SOURCE,
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -196,7 +217,7 @@ def main(args):
             break
         
         
-        ############################################################################################
+        #############################################################################
         #
         # Create the remaining Pipeline components
         

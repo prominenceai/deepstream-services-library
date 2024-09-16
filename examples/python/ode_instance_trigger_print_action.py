@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2023, Prominence AI, Inc.
+# Copyright (c) 2021-2023, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,34 +22,27 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-##########################################################################33####
-# IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
-# that is seperate/unlinked from all your other email accounts -- strictly for 
-# the purpose of sending ODE Event data uploaded from DSL.  Then, add your 
-# Personal email address as a "To" address to receive the emails.
+################################################################################
 #
-# Gmail considers regular email programs (i.e Outlook, etc.) and non-registered 
-# third-party apps to be "less secure". The email account used for sending email 
-# must have the "Allow less secure apps" option turned on. Once you've created 
-# this new account, you can go to the account settings and enable Less secure 
-# app access. see https://myaccount.google.com/lesssecureapps
-#
-# CAUTION - Do not check sripts into your repo with valid credentials
-#
-#######################################################################
+# This example demonstrates the use of two ODE Instance Triggers -- one for 
+# the Person class and the other for the Vehicle class -- to trigger on new 
+# Object instances as identified by an IOU Tracker. A Print Action is added 
+# to the Instance Triggers to print out the event data for each new object. 
+#  
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
+sys.path.insert(0, "../../")
 from dsl import *
-
-user_name = 'my.smtps.server'
-password = 'my-server-pw'
-server_url = 'smtps://smtp.gmail.com:465'
-
-from_name = ''
-from_address = 'my.smtps.server'
-to_name = 'Joe Bloe'
-to_address = 'joe.blow@gmail.com'
 
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
@@ -68,8 +61,10 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WINDOW_WIDTH = DSL_STREAMMUX_DEFAULT_WIDTH
-WINDOW_HEIGHT = DSL_STREAMMUX_DEFAULT_HEIGHT
+TILER_WIDTH = DSL_1K_HD_WIDTH
+TILER_HEIGHT = DSL_1K_HD_HEIGHT
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -108,107 +103,97 @@ def state_change_listener(old_state, new_state, client_data):
     if new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
-    
-def setup_smpt_mail():
-
-    global server_url, user_name, password, from_name, from_address, \
-        to_name, to_address
-        
-    retval = dsl_mailer_new('mailer')
-    if retval != DSL_RETURN_SUCCESS:
-        return retval
-    
-    retval = dsl_mailer_server_url_set('mailer', server_url)
-    if retval != DSL_RETURN_SUCCESS:
-        return retval
-    retval = dsl_mailer_credentials_set('mailer' , user_name, password)
-    if retval != DSL_RETURN_SUCCESS:
-        return retval
-    retval = dsl_mailer_address_from_set('mailer', from_name, from_address)
-    if retval != DSL_RETURN_SUCCESS:
-        return retval
-    retval = dsl_mailer_address_to_add('mailer', to_name, to_address)
-    if retval != DSL_RETURN_SUCCESS:
-        return retval
-        
-    # (optional) queue a test message to be sent out when main_loop starts
-    return dsl_mailer_test_message_send('mailer')
-
 def main(args):
 
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # This example is used to demonstrate the use of a First Occurrence Trigger and an Email Action
-        # to send an emal using SMTP service. Addional actions are added to "Capture" the frame to an 
-        # image-file and "Fill" (flash) the frame red as a visual marker.
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Setup the SMTP Server URL, Credentials, and From/To addresss
-        retval = setup_smpt_mail()
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Create new RGBA color types
-        retval = dsl_display_type_rgba_color_custom_new('opaque-red', red=1.0, blue=0.5, green=0.5, alpha=0.7)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a new Action to Queue an email
-        retval = dsl_ode_action_email_new('email-action', 
-            mailer = 'mailer',
-            subject = "Bicycle Occurrence!")
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # Create a Fill-Area Action as a visual indicator to identify the frame that triggered the recording
-        retval = dsl_ode_action_fill_frame_new('red-flash-action', 'opaque-red')
+            
+        #`````````````````````````````````````````````````````````````````````````````
+        # Create a Format Label Action to remove the Object Label from view
+        # Note: the label can be disabled with the OSD API as well. 
+        retval = dsl_ode_action_label_format_new('remove-label', 
+            font=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        # Create a new Capture Action to capture the full-frame to jpeg image, and save to file. 
-        # The action will be triggered on firt occurrence of a bicycle and will be saved to the current dir.
-        retval = dsl_ode_action_capture_frame_new('bicycle-capture-action', outdir="./")
+        # Create a Format Bounding Box Action to remove the box border from view
+        retval = dsl_ode_action_bbox_format_new('remove-border', border_width=0,
+            border_color=None, has_bg_color=False, bg_color=None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Next, create the Bicycle Occurrence Trigger. We will reset the trigger in the recording complete callback
-        retval = dsl_ode_trigger_occurrence_new('bicycle-occurrence-trigger', 
-            source=DSL_ODE_ANY_SOURCE, class_id=PGIE_CLASS_ID_BICYCLE, limit=1)
+        # Create an Any-Class Occurrence Trigger for our Hide Action
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
+            source='uri-source-1', class_id=DSL_ODE_ANY_CLASS, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add_many('every-occurrence-trigger', 
+            actions=['remove-label', 'remove-border', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # Add the actions to our Bicycle Occurence Trigger.
-        retval = dsl_ode_trigger_action_add_many('bicycle-occurrence-trigger', actions=[
-            'email-action',
-            'red-flash-action', 
-            'bicycle-capture-action',
-            None])
+            
+        # And a single action to print the event data to the console, which will be used
+        # by both our PERSON and VEHICLE Instance Trigers - created next
+        retval = dsl_ode_action_print_new('print-data', force_flush=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # ````````````````````````````````````````````````````````````````````````````````````````````````````````
-        # New ODE Handler for our Trigger
+        #`````````````````````````````````````````````````````````````````````````````
+        # Create two new Instance triggers, one for the PERSON class, the other 
+        # for the VEHICLE class.
+        retval = dsl_ode_trigger_instance_new('person-instance-trigger', 
+            source='uri-source-1', class_id=PGIE_CLASS_ID_PERSON, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_ode_trigger_instance_new('vehicle-instance-trigger', 
+            source='uri-source-1', class_id=PGIE_CLASS_ID_VEHICLE, 
+            limit=DSL_ODE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # Override the default behavior of the instance triggers to trigger for 
+        # 10 consecutive ODE occurrences... suppression-count=0 (defualt) means 
+        # suppress indefinitely once the instance-count has been reached. 
+        retval = dsl_ode_trigger_instance_count_settings_set('person-instance-trigger', 
+            instance_count=10, suppression_count=0)
+
+        retval = dsl_ode_trigger_instance_count_settings_set('person-instance-trigger', 
+            instance_count=10, suppression_count=0)
+
+        #`````````````````````````````````````````````````````````````````````````````
+        # Next, we add our Actions to our Triggers
+        retval = dsl_ode_trigger_action_add('person-instance-trigger', 'print-data')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+        retval = dsl_ode_trigger_action_add('vehicle-instance-trigger', 'print-data')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        #`````````````````````````````````````````````````````````````````````````````
+        # New ODE Handler to handle all ODE Triggers    
         retval = dsl_pph_ode_new('ode-handler')
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pph_ode_trigger_add('ode-handler', trigger='bicycle-occurrence-trigger')
+        retval = dsl_pph_ode_trigger_add_many('ode-handler', 
+            triggers=['every-occurrence-trigger', 'person-instance-trigger', 
+            'vehicle-instance-trigger', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            ############################################################################################
+        
+        ##############################################################################
         #
         # Create the remaining Pipeline components
         
-        retval = dsl_source_uri_new('uri-source', uri_h265, is_live=False, 
-            skip_frames=0, drop_frame_interval=0)
+        # New URI File Source using the filespec defined above
+        retval = dsl_source_uri_new('uri-source-1', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Primary GIE using the filespecs above with interval = 1
+        # New Primary GIE using the filespecs above with interval = 0
         retval = dsl_infer_gie_primary_new('primary-gie', 
             primary_infer_config_file, primary_model_engine_file, 1)
         if retval != DSL_RETURN_SUCCESS:
@@ -221,17 +206,18 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-         # Add our ODE Pad Probe Handler to the Sink pad of the OSD
+        # Add our ODE Pad Probe Handler to the source pad of the Tracker
         retval = dsl_osd_pph_add('on-screen-display', 
-            handler='ode-handler', pad=DSL_PAD_SINK)
+            handler='ode-handler', pad=DSL_PAD_SRC)
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New Window Sink, 0 x/y offsets and dimensions
+        # New Window Sink, 0 x/y offsets and dimensions definded
         retval = dsl_sink_window_egl_new('egl-sink', 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -246,19 +232,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Add all the components to our pipeline - except for our second source and overlay sink 
+        # Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many('pipeline', 
-            ['uri-source', 'primary-gie', 'iou-tracker',
+            ['uri-source-1', 'primary-gie', 'iou-tracker', 
             'on-screen-display', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
         ## Add the listener callback functions defined above
         retval = dsl_pipeline_state_change_listener_add('pipeline', 
             state_change_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
-        retval = dsl_pipeline_eos_listener_add('pipeline', eos_event_listener, None)
+        retval = dsl_pipeline_eos_listener_add('pipeline', 
+            eos_event_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -279,4 +266,3 @@ def main(args):
     
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
-    

@@ -22,6 +22,35 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demostrates how to use a  Source Meter Pad Probe Handler (PPH) 
+# that will measure the Pipeline's throughput for each Source - while monitoring
+# the depth of every component's Queue.
+#   
+# The Meter PPH is added to the sink (input) pad of the Tiler before tha batched
+# stream is converted into a single stream as a 2D composite of all Sources.
+#
+# The "meter_pph_handler" callback added to the Meter PPH will handle writing 
+# the Avg Session FPS and the Avg Interval FPS measurements to the console.
+# # 
+# The Key-released-handler callback (below) will disable the meter when pausing 
+# the Pipeline, and # re-enable measurements when the Pipeline is resumed.
+#  
+# Note: Session averages are reset each time the Meter is disabled and 
+# then re-enabled.
+#
+# The callback, called once per second as defined during Meter construction,
+# is also responsible for polling the components for their queue depths - i.e
+# using the "dsl_component_queue_current_level_print_many" service.
+#  
+# Additionally, a Queue Overrun Listener is added to each of the components to
+# be notified on the event of a queue-overrun.
+# 
+# https://github.com/prominenceai/deepstream-services-library/blob/master/docs/api-component.md#component-queue-management
+#
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -167,17 +196,10 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        #
-        # New Meter Pad Probe Handler that will measure the Pipeline's throughput. 
-        # Our client callback will handle writing the Avg Session FPS and the 
-        # Avg Interval FPS measurements to the console. The Key-released-handler 
-        # callback (above) will disable the meter when pausing the Pipeline, and 
-        # re-enable measurements when the Pipeline is resumed 
-        # Note: Session averages are reset each time the Meter is disabled and 
-        # then re-enabled.
-
         report_data = ReportData()
         
+        # New Source Meter Pad Probe handler to call the meter_pph_handler with an
+        # interval of 1 second.
         retval = dsl_pph_meter_new('meter-pph', interval=1, 
             client_handler=meter_pph_handler, client_data=report_data)
         if retval != DSL_RETURN_SUCCESS:

@@ -27,7 +27,20 @@
 import sys
 from dsl import *
 
-##########################################################################33####
+################################################################################
+#
+# This example demostrates the use of an "ODE Occurrence Trigger" to trigger
+# on every occurrence of every Person within a Polygon ODE Inclusion Area.
+# The Trigger uses a "Format BBox Action" to fill each occurrence with
+# an opaque red color for visual confirmation while the Person is in the Area.
+#
+# An Instance Trigger is then used to Trigger on every new Instance detected in
+# the same ODE Area.. i.e. when the Person is first detected in the Area and only
+# once.
+# This Trigger uses a "Frame Capture Action" to capture and encode the frame
+# and save it to file. The Action then uses a Mailer component to mail the
+# image as an attachment using DSL's SMTP services.
+#
 # IMPORTANT! it is STRONGLY advised that you create a new, free Gmail account -- 
 # that is seperate/unlinked from all your other email accounts -- strictly for 
 # the purpose of sending ODE Event data uploaded from DSL.  Then, add your 
@@ -39,9 +52,15 @@ from dsl import *
 # this new account, you can go to the account settings and enable Less secure 
 # app access. see https://myaccount.google.com/lesssecureapps
 #
-# CAUTION - Do not check sripts into your repo with valid credentials
-#
-#######################################################################
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 user_name = 'my.smtps.server'
 password = 'my-server-pw'
 server_url = 'smtps://smtp.gmail.com:465'
@@ -159,17 +178,15 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example demonstrates the use of a Polygon Area for Inclusion 
-        # or Exlucion critera for ODE occurrence. Change the variable below to try each.
-        
-        #```````````````````````````````````````````````````````````````````````````````````
+       
+        #````````````````````````````````````````````````````````````````````````````
 
         # Setup the SMTP Server URL, Credentials, and From/To addresss
         retval = setup_smpt_mail()
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        #```````````````````````````````````````````````````````````````````````````````````
+        #````````````````````````````````````````````````````````````````````````````
 
         # Create a Format Label Action to remove the Object Label from view
         # Note: the label can be disabled with the OSD API as well. 
@@ -184,8 +201,10 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create an Any-Class Occurrence Trigger for our remove label and bbox border actions
-        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', source='uri-source',
+        # Create an Any-Class Occurrence Trigger for our remove label and bbox border
+        # actions
+        retval = dsl_ode_trigger_occurrence_new('every-occurrence-trigger', 
+            source='uri-source',
             class_id=DSL_ODE_ANY_CLASS, limit=DSL_ODE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -215,7 +234,8 @@ def main(args):
             
         # Create the Polygon display type 
         retval = dsl_display_type_rgba_polygon_new('polygon1', 
-            coordinates=coordinates, num_coordinates=len(coordinates), border_width=4, color='opaque-red')
+            coordinates=coordinates, num_coordinates=len(coordinates), 
+            border_width=4, color='opaque-red')
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -234,17 +254,20 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
-        retval = dsl_ode_trigger_area_add('person-in-area-trigger', area='polygon-area')
+        retval = dsl_ode_trigger_area_add('person-in-area-trigger', 
+            area='polygon-area')
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        retval = dsl_ode_trigger_action_add('person-in-area-trigger', action='fill-action')
+        retval = dsl_ode_trigger_action_add('person-in-area-trigger', 
+            action='fill-action')
         if retval != DSL_RETURN_SUCCESS:
             break
 
 
-        # New Occurrence Trigger, filtering on PERSON class_id, for our capture object action
-        # with a limit of one which will be reset in the capture-complete callback
+        # New Occurrence Trigger, filtering on PERSON class_id, for our capture 
+        # object action with a limit of one which will be reset in the 
+        # capture-complete callback
         retval = dsl_ode_trigger_instance_new('person-enter-area-trigger', 
             source = DSL_ODE_ANY_SOURCE,
             class_id = PGIE_CLASS_ID_PERSON, 
@@ -253,11 +276,13 @@ def main(args):
             break
 
         # Using the same Inclusion area as the New Occurrence Trigger
-        retval = dsl_ode_trigger_area_add('person-enter-area-trigger', area='polygon-area')
+        retval = dsl_ode_trigger_area_add('person-enter-area-trigger', 
+            area='polygon-area')
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # Create a new Capture Action to capture the Frame to jpeg image, and save to file. 
+        # Create a new Capture Action to capture the Frame to jpeg image, and save 
+        # to file. 
         retval = dsl_ode_action_capture_frame_new('person-capture-action',
             outdir = "./")
         if retval != DSL_RETURN_SUCCESS:
@@ -266,7 +291,8 @@ def main(args):
         ### ADD THE MAILER OBJECT TO THE CAPTURE FRAME ACTION ###
         
         # The mailer will be used to email information on the Captured Frame
-        # -- file location, size, etc. -- with the image file included as an attachment.
+        # -- file location, size, etc. -- with the image file included as an 
+        # attachment.
         retval = dsl_ode_action_capture_mailer_add('person-capture-action', 
             mailer = 'mailer',
             subject = 'ATTENTION: Person in Area!',
@@ -282,7 +308,7 @@ def main(args):
             break
 
 
-        #```````````````````````````````````````````````````````````````````````````````````````````````````````````````
+        #````````````````````````````````````````````````````````````````````````````
         
         # New ODE Handler to handle all ODE Triggers with their Areas and Actions    
         retval = dsl_pph_ode_new('ode-handler')
@@ -296,7 +322,7 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
         
-        ############################################################################################
+        #############################################################################
         #
         # Create the remaining Pipeline components
         
@@ -323,12 +349,14 @@ def main(args):
 
         # New OSD with text, clock and bbox display all enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=True, 
+            bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 
          # Add our ODE Pad Probe Handler to the Sink pad of the Tiler
-        retval = dsl_osd_pph_add('on-screen-display', handler='ode-handler', pad=DSL_PAD_SINK)
+        retval = dsl_osd_pph_add('on-screen-display', 
+        handler='ode-handler', pad=DSL_PAD_SINK)
         if retval != DSL_RETURN_SUCCESS:
             break
 

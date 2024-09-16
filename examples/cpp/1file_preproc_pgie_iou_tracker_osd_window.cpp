@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2024, Prominence AI, Inc.
+Copyright (c) 2022-2023, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,20 @@ THE SOFTWARE.
 
 /*################################################################################
 #
-# This simple example demonstrates how to create a set of Pipeline components, 
+# The simple example demonstrates how to create a set of Pipeline components, 
 # specifically:
-#   - A File Source
-#   - Primary GST Inference Engine (PGIE)
+#   - URI Source
+#   - Preprocessor
+#   - Primary GIE
 #   - IOU Tracker
 #   - On-Screen Display
 #   - Window Sink
-#   - RTSP Sink
-# ...and how to add them to a new Pipeline and play.
+# ...and how to add them to a new Pipeline and play
 #
-# The example registers handler callback functions for:
+# Specific services must be called for the PGIE to be able to receive tensor-meta
+# buffers from the Preprocessor component.
+# 
+# The example registers handler callback functions with the Pipeline for:
 #   - key-release events
 #   - delete-window events
 #   - end-of-stream EOS events
@@ -47,35 +50,15 @@ THE SOFTWARE.
 #include <gst/gst.h>
 #include <gstnvdsmeta.h>
 #include <nvdspreprocess_meta.h>
+
 #include "DslApi.h"
 
-/*################################################################################
-#
-# The RTSP Sink is an Encode Sink that supports five (5) encoder types. 
-# Two (2) hardware and three (3) software. Use one of the following constants  
-# to select the encoder type:
-#   - DSL_ENCODER_HW_H264
-#   - DSL_ENCODER_HW_H265
-#   - DSL_ENCODER_SW_H264
-#   - DSL_ENCODER_SW_H265 
-#   - DSL_ENCODER_SW_MPEG4
-#
-# IMPORTANT! The Jetson Orin Nano only supports software encoding.
-#
-#  Set the bitrate to 0 to use the specific Encoder's default rate as follows
-#   - HW-H264/H265 = 4000000 
-#   - SW-H264/H265 = 2048000 
-#   - SW-MPEG      = 200000
-##############################################################################*/
-
-// Record Sink configuration 
-uint RTSP_SINK_ENCODER   = DSL_ENCODER_HW_H264;
-uint RTSP_SINK_BITRATE   = 0;   // 0 = use the encoders default bitrate.
-uint RTSP_SINK_INTERVAL  = 30;  // Set the i-frame interval equal to the framerate
-
-// URI for the File Source
 std::wstring uri_h265(
     L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
+
+// Config file used with the Preprocessor
+std::wstring preproc_config(
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-preprocess-test/config_preprocess.txt");
 
 // Config and model-engine files 
 std::wstring primary_infer_config_file(
@@ -87,9 +70,14 @@ std::wstring primary_model_engine_file(
 std::wstring iou_tracker_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_tracker_IOU.yml");
 
-// EGL Window Sink Dimensions 
-uint WINDOW_WIDTH = DSL_1K_HD_WIDTH / 2;
-uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT / 2;
+
+uint PGIE_CLASS_ID_VEHICLE = 0;
+uint PGIE_CLASS_ID_BICYCLE = 1;
+uint PGIE_CLASS_ID_PERSON = 2;
+uint PGIE_CLASS_ID_ROADSIGN = 3;
+
+uint WINDOW_WIDTH = DSL_1K_HD_WIDTH;
+uint WINDOW_HEIGHT = DSL_1K_HD_HEIGHT;
 
 // 
 // Function to be called on XWindow KeyRelease event
@@ -150,7 +138,11 @@ int main(int argc, char** argv)
     {    
 
         // New File Source
-        retval = dsl_source_file_new(L"file-source-1", uri_h265.c_str(), true);
+        retval = dsl_source_file_new(L"uri-source-1", uri_h265.c_str(), true);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
+        // New Preprocessor component using the config filespec defined above.
+        retval = dsl_preproc_new(L"preprocessor", preproc_config.c_str());
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Primary GIE using the filespecs defined above, with interval and Id
@@ -158,6 +150,17 @@ int main(int argc, char** argv)
             primary_infer_config_file.c_str(), primary_model_engine_file.c_str(), 0);
         if (retval != DSL_RESULT_SUCCESS) break;
         
+        // **** IMPORTANT! for best performace we explicity set the GIE's batch-size 
+        // to the number of ROI's defined in the Preprocessor configuraton file.
+        retval = dsl_infer_batch_size_set(L"primary-gie", 2);
+        if (retval != DSL_RESULT_SUCCESS) break;
+        
+        // **** IMPORTANT! we must set the input-meta-tensor setting to true when
+        // using the preprocessor, otherwise the GIE will use its own preprocessor.
+        retval = dsl_infer_gie_tensor_meta_settings_set(L"primary-gie",
+            true, false);
+        if (retval != DSL_RESULT_SUCCESS) break;
+
         // New IOU Tracker, setting operational width and height of input frame
         retval = dsl_tracker_new(L"iou-tracker", 
             iou_tracker_config_file.c_str(), 480, 272);
@@ -168,8 +171,7 @@ int main(int argc, char** argv)
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // New Window Sink, 0 x/y offsets.
-        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, 
-            WINDOW_WIDTH, WINDOW_HEIGHT);
+        retval = dsl_sink_window_egl_new(L"egl-sink", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         if (retval != DSL_RESULT_SUCCESS) break;
 
         // Add the XWindow event handler functions defined above
@@ -181,19 +183,9 @@ int main(int argc, char** argv)
             xwindow_delete_event_handler, NULL);
         if (retval != DSL_RESULT_SUCCESS) break;
     
-        // New RTSP Server Sink 
-        retval = dsl_sink_rtsp_server_new(L"rtsp-sink", 
-            L"0.0.0.0",     // 0.0.0.0 = "this host, this network."
-            5400,           // UDP port 5400 uses the Datagram Protocol.             
-            8554,        
-            RTSP_SINK_ENCODER,  
-            RTSP_SINK_BITRATE,
-            RTSP_SINK_INTERVAL);
-        if (retval != DSL_RESULT_SUCCESS) break;
-
         // Create a list of Pipeline Components to add to the new Pipeline.
-        const wchar_t* components[] = {L"file-source-1",  L"primary-gie", 
-            L"iou-tracker", L"on-screen-display", L"egl-sink", L"rtsp-sink", NULL};
+        const wchar_t* components[] = {L"uri-source-1",  L"preprocessor", L"primary-gie", 
+            L"iou-tracker", L"on-screen-display", L"egl-sink", NULL};
         
         // Add all the components to our pipeline
         retval = dsl_pipeline_new_component_add_many(L"pipeline", components);

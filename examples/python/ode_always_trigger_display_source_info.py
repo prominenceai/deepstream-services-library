@@ -22,6 +22,38 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This Example demonstrates how to use an ODE Always Trigger to update the 
+# metadata of every frame to display specific information for each Source.
+#
+# 4 Sources are used, each with unique camara names.
+#  
+# 3 Display Types are used to create the metadata to be added to each frame:
+#   * Source Stream Id
+#   * Source Name
+#   * Source Dimensions
+#
+# The 3 Display Types are added to an "Add Display Meta Action" which
+# adds the metadata to a given frame.
+#
+# The ODE Action is added to an "Always Trigger" that always triggers once
+# per frame in every batched frame (requires source=DSL_ODE_ANY_SOURCE).
+#
+# The ODE Trigger is added to a "ODE Pad Probe Handler" that is added
+# to the sink (input) pad of the 2D Tiler. The ODE Handler is called with
+# every batched frame that crosses over the Tilers sink pad.
+# 
+# The example uses a basic inference Pipeline consisting of:
+#   - 4 URI Sources
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - 2D Tiler
+#   - On-Screen Display
+#   - Window Sink
+#  
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -189,9 +221,9 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # New OSD with text, clock and bbox display all enabled. 
+        # New OSD with text and bbox display enabled. 
         retval = dsl_osd_new('on-screen-display', 
-            text_enabled=True, clock_enabled=True, bbox_enabled=True, mask_enabled=False)
+            text_enabled=True, clock_enabled=False, bbox_enabled=True, mask_enabled=False)
         if retval != DSL_RETURN_SUCCESS:
             break
 

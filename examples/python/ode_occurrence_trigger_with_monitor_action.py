@@ -22,8 +22,9 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-# ------------------------------------------------------------------------------------
-# This example demonstrates the use of an ODE Monitor Action -- added to an 
+################################################################################
+# 
+# This example demonstrates the use of an "ODE Monitor Action" -- added to an 
 # ODE Occurrence Trigger with the below criteria -- to monitor all 
 # ODE Occurrences
 #   - class id            = PGIE_CLASS_ID_VEHICLE
@@ -31,7 +32,23 @@
 #   - minimum confidience = VEHICLE_MIN_CONFIDENCE
 #   - minimum width       = VEHICLE_MIN_WIDTH
 #   - minimum height      = VEHICLE_MIN_HEIGHT
-
+#
+# The ode_occurrence_monitor callback function (defined below) is added to the 
+# "Monitor Action" to be called with the ODE Occurrence event data for
+# each detected object that meets the above criteria.
+#  
+# The application can process the event data as needed. This examples simply
+# prints all of the event data to console.
+#  
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - Two Secondary GST Inference Engines (SGIEs)
+#   - On-Screen Display
+#   - Window Sink
+# 
+################################################################################
 
 #!/usr/bin/env python
 

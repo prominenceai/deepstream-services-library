@@ -22,10 +22,39 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the use of a Polygon Area for Inclusion
+# or Exclusion criteria for ODE occurrence.
+#
+# A "Polygon Display Type" is used to create either an ODE Area of Inclusion or
+# Exclusion based on the AREA_TYPE variable defined below.
+#
+# The ODE Area is then added to an ODE Occurrence Trigger to be used as criteria
+# for ODE occurrence.
+#
+# A "Format BBox Action" is used to fill each detected object that triggers
+# occurrence with an opaque red color for visual confirmation.
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# 
+################################################################################
+        
+INCLUSION_AREA = 0
+EXCLUSION_AREA = 1
+
+AREA_TYPE = INCLUSION_AREA
+
 #!/usr/bin/env python
 
 import sys
 from dsl import *
+
 
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
@@ -49,9 +78,6 @@ MAX_OBJECTS = 8
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
-
-INCLUSION_AREA = 0
-EXCLUSION_AREA = 1
 
 ## 
 # Function to be called on XWindow KeyRelease event
@@ -95,10 +121,6 @@ def main(args):
     # Since we're not using args, we can Let DSL initialize GST on first call
     while True:
     
-        # This example demonstrates the use of a Polygon Area for Inclusion 
-        # or Exlucion critera for ODE occurrence. Change the variable below to try each.
-        
-        area_type = INCLUSION_AREA
         
         #```````````````````````````````````````````````````````````````````````````````````
 
@@ -150,7 +172,7 @@ def main(args):
             break
             
         # create the ODE inclusion area to use as criteria for ODE occurrence
-        if area_type == INCLUSION_AREA:
+        if AREA_TYPE == INCLUSION_AREA:
             retval = dsl_ode_area_inclusion_new('polygon-area', polygon='polygon1', 
                 show=True, bbox_test_point=DSL_BBOX_POINT_SOUTH)    
             if retval != DSL_RETURN_SUCCESS:

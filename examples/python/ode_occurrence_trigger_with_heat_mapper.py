@@ -22,6 +22,31 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+################################################################################
+#
+# This example demonstrates the use of an ODE Heat-Mapper added to an 
+# ODE Occurrence trigger that triggers on every Person occurrence.
+# The occurrence data is mapped/ovelaid on everyframe. The example creates 
+# all 5 predefined RGBA Color Palettes - Spectral, Red, Green, Blue, and Grey.
+# The ODE Heat-Mapper is created with the Spectral palette, but can be updated
+# at runtime by pressing the 'N' key.
+#
+# Several keys, bound to the Window Sink, are mapped to the ODE Heat Mapper services  
+#    - 'N' key maps to 'next' color palette with - dsl_ode_heat_mapper_color_palette_set
+#    - 'C' key maps to 'clear' heat-map metrics  - dsl_ode_heat_mapper_metrics_clear
+#    - 'P' key maps to 'print' heat-map metrics  - dsl_ode_heat_mapper_metrics_print
+#    - 'L' key maps to 'log' heat-map metrics    - dsl_ode_heat_mapper_metrics_log
+#    - 'G' key maps to 'get' heat-map metrics    - dsl_ode_heat_mapper_metrics_get
+#
+# The example uses a basic inference Pipeline consisting of:
+#   - A URI Source
+#   - Primary GST Inference Engine (PGIE)
+#   - IOU Tracker
+#   - On-Screen Display
+#   - Window Sink
+# 
+################################################################################
+
 #!/usr/bin/env python
 
 import sys
@@ -58,21 +83,6 @@ GREY_PALETTE = 'grey-palette'
 
 COLOR_PALETTES = [SPECTRAL_PALETTE, RED_PALETTE, GREEN_PALETTE, BLUE_PALETTE, GREY_PALETTE]
 color_palette_index  = DSL_COLOR_PREDEFINED_PALETTE_SPECTRAL
-
-# ------------------------------------------------------------------------------------
-# This example demonstrates the use of an ODE Heat-Mapper added to an 
-# ODE Occurrence trigger that triggers on every Person occurrence.
-# The occurrence data is mapped/ovelaid on everyframe. The example creates 
-# all 5 predefined RGBA Color Palettes - Spectral, Red, Green, Blue, and Grey.
-# The ODE Heat-Mapper is created with the Spectral palette, but can be updated
-# at runtime by pressing the 'N' key.
-#
-# Several keys, bound to the Window Sink, are mapped to the ODE Heat Mapper services  
-#    - 'N' key maps to 'next' color palette with - dsl_ode_heat_mapper_color_palette_set
-#    - 'C' key maps to 'clear' heat-map metrics  - dsl_ode_heat_mapper_metrics_clear
-#    - 'P' key maps to 'print' heat-map metrics  - dsl_ode_heat_mapper_metrics_print
-#    - 'L' key maps to 'log' heat-map metrics    - dsl_ode_heat_mapper_metrics_log
-#    - 'G' key maps to 'get' heat-map metrics    - dsl_ode_heat_mapper_metrics_get
 
 ## 
 # Function to be called on XWindow KeyRelease event
