@@ -126,7 +126,7 @@ There are nine primary classes of [Components](/docs/api-component.md) that can 
 ## Sources
 [Sources](/docs.api-source.md) are the head components for all DSL [Pipelines](/docs/api-pipeline.md) and [Players](docs/api-player.md). Pipelines must have at least one Source (and one [Sink](/docs/api-sink.md)) to transition to a state of `PLAYING`. All Pipelines have the ability to multiplex multiple source streams -- using their own built-in Stream Muxer -- as long as all Sources are of the same play-type; live vs. non-live. 
 
-There are eleven (12) types of Source components supported, all are currently Video only. Audio-Video and Audio only Sources are currently in development.
+There are twelve (12) types of Source components supported, all are currently Video only. Audio-Video and Audio only Sources are currently in development.
 * [App Source](/docs/api-source.md#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](/docs/api-source.md#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
 * [V4L2 Source](/docs/api-source.md#dsl_source_v4l2_new) - Stream from any V4L2 compatable device - a USB Webcam for example.
