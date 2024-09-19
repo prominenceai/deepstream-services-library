@@ -447,7 +447,7 @@ namespace DSL
             // calling on a client handler function for Key release or xWindow delete. 
             // Safe to stop the Pipeline in this context.
             LOG_INFO("dsl_pipeline_stop called from client-callback context");
-            HandleStop();
+            HandleStop(false);
             return true;
         }
         // Try the bus-watch mutex next
@@ -457,7 +457,7 @@ namespace DSL
             // calling on a client listener or handler function. Safe to stop 
             // the Pipeline in this context. 
             LOG_INFO("dsl_pipeline_stop called from bus-watch-function thread context");
-            HandleStop();
+            HandleStop(false);
             g_mutex_unlock(&*m_pSharedClientCbMutex);
             return true;
         }
@@ -495,14 +495,14 @@ namespace DSL
         // without the mainloop running - can't send a message so handle stop now.
         else
         {
-            HandleStop();
+            HandleStop(false);
         }
         g_mutex_unlock(&*m_pSharedClientCbMutex);
         g_mutex_unlock(&m_busWatchMutex);
         return true;
     }
 
-    void PipelineBintr::HandleStop()
+    void PipelineBintr::HandleStop(bool quitLoop)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
@@ -552,10 +552,26 @@ namespace DSL
         {
             LOG_ERROR("Failed to Stop Pipeline '" << GetName() << "'");
         }
-        
+        // If we need to quit the main-loop after stopping
+        if (quitLoop)
+        {
+            // If the Pipeline has its own main-loop and it's running..
+            if (m_pMainLoop and g_main_loop_is_running(m_pMainLoop))
+            {
+                QuitMainLoop();
+            }
+            // Else, if the Pipeline down not have its own main-loop
+            // and the global main-loop is running.
+            else if (!m_pMainLoop and g_main_loop_is_running(
+                DSL::Services::GetServices()->GetMainLoopHandle()))
+            {
+                dsl_main_loop_quit();
+            }
+        }
         m_eosFlag = false;
         UnlinkAll();
         
+        // Signal to any thread waiting for Stop to be completed.
         g_cond_signal(&m_asyncCommsCond);
     }
 
@@ -590,7 +606,7 @@ namespace DSL
 
     static int PipelineStop(gpointer pPipeline)
     {
-        static_cast<PipelineBintr*>(pPipeline)->HandleStop();
+        static_cast<PipelineBintr*>(pPipeline)->HandleStop(false);
         
         // Return false to self destroy timer - one shot.
         return false;

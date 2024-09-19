@@ -465,16 +465,25 @@ namespace DSL
         // Action EOS so set the flag
         m_eosFlag = true;
         
-        // iterate through the map of EOS-listeners calling each
-        for(auto const& imap: m_eosListeners)
+        // If there are no listeners
+        if (m_eosListeners.empty())
         {
-            try
+            LOG_INFO("There are no EOS Listeners - stoping Pipeline");
+            HandleStop(true);
+        }
+        else
+        {
+            // iterate through the map of EOS-listeners calling each
+            for(auto const& imap: m_eosListeners)
             {
-                imap.first(imap.second);
-            }
-            catch(...)
-            {
-                LOG_ERROR("Exception calling Client EOS-Lister");
+                try
+                {
+                    imap.first(imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client EOS-Lister");
+                }
             }
         }
     }
@@ -485,14 +494,18 @@ namespace DSL
         
         const GstStructure* msgPayload = gst_message_get_structure(pMessage);
 
-
-
         // only one application message at this time. 
         if(gst_structure_has_name(msgPayload, "stop-pipline"))
         {
             LOG_INFO("Stop-pipeline message recieved by Pipeline '"
                 << m_pipelineName << "'");
-            HandleStop();
+            HandleStop(false);
+        }
+        else if(gst_structure_has_name(msgPayload, "quit-loop"))
+        {
+            LOG_INFO("quit-loop message recieved by Pipeline '"
+                << m_pipelineName << "'");
+            HandleStop(true);
         }
         else
         {

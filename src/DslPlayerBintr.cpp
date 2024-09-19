@@ -355,7 +355,7 @@ namespace DSL
             // calling on a client handler function for Key release or xWindow delete. 
             // Safe to stop the Player in this context.
             LOG_INFO("dsl_player_stop called from XWindow display thread context");
-            HandleStop();
+            HandleStop(false);
             return true;
         }
         // Try the bus-watch mutex next
@@ -365,7 +365,7 @@ namespace DSL
             // calling on a client listener or handler function. Safe to stop 
             // the Player in this context. 
             LOG_INFO("dsl_player_stop called from bus-watch-function thread context");
-            HandleStop();
+            HandleStop(false);
             g_mutex_unlock(&*m_pSharedClientCbMutex);
             return true;
         }
@@ -401,7 +401,7 @@ namespace DSL
         // without the mainloop running - can't send a message so handle stop now.
         else
         {
-            HandleStop();
+            HandleStop(false);
         }
         g_mutex_unlock(&*m_pSharedClientCbMutex);
         g_mutex_unlock(&m_busWatchMutex);
@@ -420,7 +420,7 @@ namespace DSL
 
     }
     
-    void PlayerBintr::HandleStop()
+    void PlayerBintr::HandleStop(bool quitLoop)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_asyncCommsMutex);
@@ -465,6 +465,7 @@ namespace DSL
         
         g_cond_signal(&m_asyncCommsCond);
         
+        // TODO how does the quit-loop logic fit into termination listener scheme???
         if (m_inTermination)
         {
             // iterate through the map of Termination event listeners calling each
@@ -488,7 +489,7 @@ namespace DSL
         LOG_FUNC();
 
         // Do not lock mutext!
-        HandleStop();
+        HandleStop(false);
     }
 
     void PlayerBintr::HandleTermination()
@@ -754,7 +755,7 @@ namespace DSL
 
         // Start by invoking the HandleStop routine to set the Player back to
         // the Ready state and unlink all so that the file path can be updated
-        HandleStop();
+        HandleStop(false);
 
         if (m_filePathQueue.empty())
         {
@@ -949,7 +950,7 @@ namespace DSL
     
     static int PlayerStop(gpointer pPlayer)
     {
-        static_cast<PlayerBintr*>(pPlayer)->HandleStop();
+        static_cast<PlayerBintr*>(pPlayer)->HandleStop(false);
         
         // Return false to self destroy timer - one shot.
         return false;
