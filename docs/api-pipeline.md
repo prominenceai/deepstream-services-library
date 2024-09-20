@@ -99,6 +99,10 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * _Error Message Received_ - with [`dsl_pipeline_error_message_handler_add`](#dsl_pipeline_error_message_handler_add) / [`dsl_pipeline_error_message_handler_remove`](#dsl_pipeline_error_message_handler_remove).
 * _Buffering Message Received_ - with [`dsl_pipeline_buffering_message_handler_add`](#dsl_pipeline_buffering_message_handler_add) / [`dsl_pipeline_buffering_message_handler_remove`](#dsl_pipeline_buffering_message_handler_remove)
 
+**IMPORTANT!** The Pipelines's _End of Stream (EOS)_ behavior changes if a client listener is added.
+* if no listener - the Sink will stop the Pipeline and quit the main-loop.
+* if listener(s) added - the Pipeline will only call the listeners(s). It is up to the application to handle the event by stopping the Pipeline and quitting the main-loop. 
+
 ---
 ## Pipeline API
 **Client Callback Typedefs**

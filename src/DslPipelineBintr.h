@@ -91,9 +91,10 @@ namespace DSL
         
         /**
          * @brief Stops the Pipeline by setting its state to GST_STATE_NULL
-         * Import: must be called in the mainloop's context, i.e. timer callback
+         * @brief quitLoop set to true to quit the mainloop after stopping the Pipeline.
+         * Import: must be called in the mainloop's context, if the main-loop is running.
          */
-        void HandleStop();
+        void HandleStop(bool quitLoop);
         
         /**
          * @brief returns whether the Pipeline has all live sources or not.

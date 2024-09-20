@@ -1266,12 +1266,25 @@ namespace DSL
                         if (XInternAtom(m_pXDisplay, "WM_DELETE_WINDOW", True) != None)
                         {
                             LOG_INFO("WM_DELETE_WINDOW message received");
-                            // iterate through the map of XWindow Delete Event handlers 
-                            // calling each one
-                            for(auto const& imap: m_xWindowDeleteEventHandlers)
+
+                            // If there are no Delete Event Handlers
+                            if (m_xWindowDeleteEventHandlers.empty())
                             {
-                                LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
-                                imap.first(imap.second);
+                                // Send an application to the Pipeline State Manager
+                                // to stop the Pipeline and quit the main-loop
+                                gst_element_post_message(GetGstElement(),
+                                    gst_message_new_application(GetGstObject(),
+                                        gst_structure_new_empty("quit-loop")));
+                            }
+                            else
+                            {
+                                // iterate through the map of XWindow Delete Event handlers 
+                                // calling each one
+                                for(auto const& imap: m_xWindowDeleteEventHandlers)
+                                {
+                                    LOCK_MUTEX_FOR_CURRENT_SCOPE(&*m_pSharedClientCbMutex);
+                                    imap.first(imap.second);
+                                }
                             }
                         }
                         break;

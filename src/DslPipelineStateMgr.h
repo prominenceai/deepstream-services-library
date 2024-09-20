@@ -63,11 +63,17 @@ namespace DSL
         
         /**
          * @brief Deletes the Pipeline's own g_main_loop and g_main_context.
+         * @brief quitLoop set to true to quit the mainloop after stopping the Pipeline.
          * @return true on successful delete, false otherwise.
          */
         bool DeleteMainLoop();
         
-        virtual void HandleStop() = 0;
+        /**
+         * @brief Stops the Pipeline by setting its state to GST_STATE_NULL
+         * @brief quitLoop set to true to quit the mainloop after stopping the Pipeline.
+         * Import: must be called in the mainloop's context, if the main-loop is running.
+         */
+        virtual void HandleStop(bool quitLoop) = 0;
 
         /**
          * @brief Adds a callback to be notified on change of Pipeline state

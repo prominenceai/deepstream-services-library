@@ -206,7 +206,7 @@ static void buffer_timeout_handler_cb(uint timeout, void* client_data)
 {
     static uint count(0);
     
-    std::cout << "Buffer Timeout Handeler called with timeout = " 
+    std::cout << "Buffer Timeout Handler called with timeout = " 
         << timeout << std::endl;
         
     if (++count >3)
@@ -214,6 +214,10 @@ static void buffer_timeout_handler_cb(uint timeout, void* client_data)
         dsl_main_loop_quit();
     }
 }
+static void eos_event_listener(void* client_data)
+{
+    std::cout << "EOS Event Handlercall " << std::endl;
+}    
 
 SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[pph-behavior]" )
 {
@@ -263,7 +267,11 @@ SCENARIO( "A Buffer Timeout PPH calls its handler function correctly ", "[pph-be
         {
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
         
-            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), components) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                components) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pipeline_eos_listener_add(pipeline_name.c_str(), 
+                eos_event_listener, NULL) == DSL_RESULT_SUCCESS );
 
             THEN( "Pipeline is Able to LinkAll and Play" )
             {

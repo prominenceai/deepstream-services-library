@@ -118,9 +118,10 @@ namespace DSL
     
         /**
          * @brief Stops the Player by setting its state to GST_STATE_NULL
+         * @brief quitLoop set to true to quit the mainloop after stopping the Pipeline.
          * Import: must be called in the mainloop's context, i.e. timer callback
          */
-        void HandleStop();
+        void HandleStop(bool quitLoop);
         
         /**
          * @brief Terminates the player on event of XWindow Delete
