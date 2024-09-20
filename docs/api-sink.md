@@ -84,6 +84,33 @@ As a general rule
 * <b id="f2">2</b> _The rtspclientsink plugin is not derived from the GStreamer basesink which implements the common sink properties._ [↩](#a2)
 * <b id="f3">3</b> _The sink plugin is selected by the user and is transparent to DSL._ [↩](#a3)
 
+## Window Sinks
+Window Sinks are used to render video onto an XWindow Display. You can let the Sink create the XWindow or you can provide a window handle for the Sink to use by calling [`dsl_sink_window_handle_set`](#dsl_sink_window_handle_set). 
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`window sink`](#3d--egl-window-sink-methods)
+
+There are two Window Sinks:
+* [3D Window Sink](#dsl_sink_window_3d_new) - Using the NVIDIA 3D Video Sink plugin `nv3dsink` **(Jetson Platform Only)** 
+* [EGL Window Sink](#dsl_sink_window_egl_new) - Using the NVIDIA EGL/GLES Video Sink plugin `nveglglessink`.
+
+The NVIDIA plugins implement the [GStreamer Video Overlay interface](https://gstreamer.freedesktop.org/documentation/video/gstvideooverlay.html#GstVideoOverlay).
+
+Window Sinks are created with offsets and dimensions which are updated when the XWindow is moved or resized. The values can be read by calling [`dsl_sink_window_offsets_get`](#dsl_sink_window_offsets_get) and [`dsl_sink_window_dimensions_get`](#dsl_sink_window_dimensions_get). The client application can update the offsets and dimensions at runtime by calling [`dsl_sink_window_offsets_set`](#dsl_sink_window_offsets_set) and [`dsl_sink_window_dimensions_set`](#dsl_sink_window_dimensions_set) respectively.
+
+
+Window event callback handler functions can be added to a Window Sink to be called on:
+* [`key-release-event`](#dsl_sink_window_key_event_handler_cb) - for every key released while the Window is in focus.
+* [`button-click-event`](#dsl_sink_window_button_event_handler_cb) - for every mouse button click within the Window when in focus.
+* [`window-delete-event`](#dsl_sink_window_delete_event_handler_cb) - for when the Window's close button is pressed.
+
+
+**IMPORTANT!** The Sink's `window-delete-event` behavior changes if a client handler is added.
+* if no handler - the Sink will stop the Pipeline and quit the main-loop.
+* if handler(s) added - the Sink will only call the handler(s). It is up to the application to handle the event by stopping the Pipeline and quitting the main-loop. 
+
 ## Encode Sinks
 There are currently five Encode Sinks; [File Sink](#dsl_sink_file_new), [Record Sink](#dsl_sink_record_new), [RTMP Sink](#dsl_sink_rtmp_new), [RTSP Server Sink](#dsl_sink_rtsp_server_new), and [WebRTC Sink](#dsl_sink_webrtc_new).
 
