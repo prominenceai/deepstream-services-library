@@ -187,7 +187,7 @@ namespace DSL
     //----------------------------------------------------------------------------
     
     DslReturnType Services::PipelineStreammuxConfigFileGet(const char* name, 
-        const char** configFile)
+        streammux_type streammux, const char** configFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -196,7 +196,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
 
-            *configFile = m_pipelines[name]->GetStreammuxConfigFile();
+            *configFile = m_pipelines[name]->GetStreammuxConfigFile(streammux);
 
             LOG_INFO("Pipeline '" << name << "' returned Streammux config-file = '"
                 << *configFile << "' successfully");
@@ -212,7 +212,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreammuxConfigFileSet(const char* name, 
-        const char* configFile)
+        streammux_type streammux, const char* configFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -228,7 +228,7 @@ namespace DSL
                 return DSL_RESULT_PIPELINE_STREAMMUX_CONFIG_FILE_NOT_FOUND;
             }
             
-            if (!m_pipelines[name]->SetStreammuxConfigFile(configFile))
+            if (!m_pipelines[name]->SetStreammuxConfigFile(streammux, configFile))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to set the Streammux config-file");
@@ -248,7 +248,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreammuxBatchSizeGet(const char* name,
-        uint* batchSize)    
+        streammux_type streammux, uint* batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -257,7 +257,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *batchSize = m_pipelines[name]->GetStreammuxBatchSize();
+            *batchSize = m_pipelines[name]->GetStreammuxBatchSize(streammux);
             
             LOG_INFO("Pipeline '" << name 
                 << "' returned Streammuxe batch-size = " 
@@ -274,7 +274,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreammuxBatchSizeSet(const char* name,
-        uint batchSize)    
+        streammux_type streammux, uint batchSize)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -283,7 +283,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreammuxBatchSize(batchSize))
+            if (!m_pipelines[name]->SetStreammuxBatchSize(streammux, batchSize))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to set Streammux batch-size = "
@@ -304,11 +304,11 @@ namespace DSL
     }
 
     //----------------------------------------------------------------------------
-    // NEW STREAMMUX SERVICES - End
+    // COMMON STREAMMUX SERVICES - End
     //----------------------------------------------------------------------------
 
     DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameGet(const char* name,
-        uint* num)    
+        streammux_type streammux, uint* num)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -317,7 +317,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *num = m_pipelines[name]->GetStreammuxNumSurfacesPerFrame();
+            *num = m_pipelines[name]->GetStreammuxNumSurfacesPerFrame(streammux);
 
             LOG_INFO("Pipeline '" << name 
                 << "' returned Streammux num-surfaces-per-frame = " << *num 
@@ -334,7 +334,7 @@ namespace DSL
     }
         
     DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameSet(const char* name,
-        uint num)    
+        streammux_type streammux, uint num)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -350,7 +350,7 @@ namespace DSL
                 return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
             }
             
-            if (!m_pipelines[name]->SetStreammuxNumSurfacesPerFrame(num))
+            if (!m_pipelines[name]->SetStreammuxNumSurfacesPerFrame(streammux, num))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to set the Streammux num-surfaces-per-frame setting = "
@@ -371,7 +371,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreammuxAttachSysTsEnabledGet(const char* name,
-        boolean* enabled)    
+        streammux_type streammux, boolean* enabled)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -380,7 +380,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *enabled = m_pipelines[name]->GetStreammuxAttachSysTsEnabled();
+            *enabled = m_pipelines[name]->GetStreammuxAttachSysTsEnabled(streammux);
             
             LOG_INFO("Pipeline '" << name 
                 << "' returned Streammuxer attach-sys-inputs enabled = " 
@@ -397,7 +397,7 @@ namespace DSL
     }
         
     DslReturnType Services::PipelineStreammuxAttachSysTsEnabledSet(const char* name,
-        boolean enabled)    
+        streammux_type streammux, boolean enabled)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -406,7 +406,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreammuxAttachSysTsEnabled(enabled))
+            if (!m_pipelines[name]->SetStreammuxAttachSysTsEnabled(streammux, enabled))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to Set the Streammux attach-sys-inputs enabled setting");
@@ -427,7 +427,7 @@ namespace DSL
     }
         
     DslReturnType Services::PipelineStreammuxSyncInputsEnabledGet(const char* name,
-        boolean* enabled)    
+        streammux_type streammux, boolean* enabled)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -436,7 +436,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *enabled = m_pipelines[name]->GetStreammuxSyncInputsEnabled();
+            *enabled = m_pipelines[name]->GetStreammuxSyncInputsEnabled(streammux);
             
             LOG_INFO("Pipeline '" << name 
                 << "' returned Streammuxer sync-inputs enabled = " 
@@ -453,7 +453,7 @@ namespace DSL
     }
         
     DslReturnType Services::PipelineStreammuxSyncInputsEnabledSet(const char* name,
-        boolean enabled)    
+        streammux_type streammux, boolean enabled)    
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -462,7 +462,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreammuxSyncInputsEnabled(enabled))
+            if (!m_pipelines[name]->SetStreammuxSyncInputsEnabled(streammux, enabled))
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to Set the Streammux sync-inputs enabled setting");
@@ -483,7 +483,7 @@ namespace DSL
     }
         
     DslReturnType Services::PipelineStreammuxMaxLatencyGet(const char* name, 
-        uint* maxLatency)
+        streammux_type streammux, uint* maxLatency)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -492,7 +492,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            *maxLatency = m_pipelines[name]->GetStreammuxMaxLatency();
+            *maxLatency = m_pipelines[name]->GetStreammuxMaxLatency(streammux);
 
             LOG_INFO("Pipeline '" << name 
                 << "' returned Streammuxer max-latency = " 
@@ -509,7 +509,7 @@ namespace DSL
     }
     
     DslReturnType Services::PipelineStreammuxMaxLatencySet(const char* name, 
-        uint maxLatency)
+        streammux_type streammux, uint maxLatency)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -518,7 +518,7 @@ namespace DSL
         {
             DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
             
-            if (!m_pipelines[name]->SetStreammuxMaxLatency(maxLatency))
+            if (!m_pipelines[name]->SetStreammuxMaxLatency(streammux, maxLatency))
             {
                 LOG_INFO("Pipeline '" << name 
                     << "' faild to set Streammuxer max-latency = " 
@@ -539,6 +539,10 @@ namespace DSL
             return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
         }
     }
+
+    //----------------------------------------------------------------------------
+    // OLD STREAMMUX SERVICES - Start
+    //----------------------------------------------------------------------------
 
     DslReturnType Services::PipelineStreammuxBatchPropertiesGet(const char* name,
         uint* batchSize, int* batchTimeout)    
@@ -566,10 +570,6 @@ namespace DSL
             return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
         }
     }
-
-    //----------------------------------------------------------------------------
-    // OLD STREAMMUX SERVICES - Start
-    //----------------------------------------------------------------------------
 
     DslReturnType Services::PipelineStreammuxBatchPropertiesSet(const char* name,
         uint batchSize, int batchTimeout)    
@@ -889,7 +889,7 @@ namespace DSL
     }
 
     DslReturnType Services::PipelineStreammuxPphAdd(const char* name, 
-        const char* handler)
+        streammux_type streammux, const char* handler)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -900,8 +900,8 @@ namespace DSL
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to add itself to the Tee as a PadProbeHandler
-            if (!m_padProbeHandlers[handler]->AddToParent(
-                m_pipelines[name]->GetPipelineSourcesBintr(), DSL_PAD_SRC))
+            if (!m_pipelines[name]->AddStreammuxPph(m_padProbeHandlers[handler],
+                streammux))   
             {
                 LOG_ERROR("Pipeline '" << name 
                     << "' failed to add Pad Probe Handler");
@@ -921,7 +921,7 @@ namespace DSL
     }
    
     DslReturnType Services::PipelineStreammuxPphRemove(const char* name, 
-        const char* handler) 
+        streammux_type streammux, const char* handler) 
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -932,8 +932,8 @@ namespace DSL
             DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, handler);
 
             // call on the Handler to remove itself from the Tee
-            if (!m_padProbeHandlers[handler]->RemoveFromParent(
-                m_pipelines[name]->GetPipelineSourcesBintr(), DSL_PAD_SRC))
+            if (!m_pipelines[name]->RemoveStreammuxPph(m_padProbeHandlers[handler],
+                streammux))
             {
                 LOG_ERROR("Pad Probe Handler '" << handler 
                     << "' is not a child of Pipeline '" << name << "'");

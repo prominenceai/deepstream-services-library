@@ -496,6 +496,31 @@ namespace DSL
             gst_object_unref(pStaticPad);
         }
 
+        /**
+         * @brief Creates a new Ghost Sink pad for this Gst Element
+         * @param[in] padname which pad to add to, either "sink" or "src"
+         * @throws a general exception on failure
+         */
+        void AddGhostPadToParent(const char* padname, const char* ghostPadname)
+        {
+            LOG_FUNC();
+
+            // create a new ghost pad with the static Sink pad retrieved from 
+            // this Elementr's pGstObj and adds it to the the Elementr's Parent 
+            // Bintr's pGstObj.
+            GstPad* pStaticPad = gst_element_get_static_pad(
+                GetGstElement(), padname);   
+            
+            if (!gst_element_add_pad(GST_ELEMENT(GetParentGstObject()), 
+                gst_ghost_pad_new(ghostPadname, pStaticPad)))
+            {
+                LOG_ERROR("Failed to add Pad '" << padname 
+                    << "' to parent of element'" << GetName() << "'");
+                throw std::exception();
+            }
+            gst_object_unref(pStaticPad);
+        }
+
         void RemoveGhostPadFromParent(const char* padname)
         {
             LOG_FUNC();

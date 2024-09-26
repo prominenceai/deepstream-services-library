@@ -44,6 +44,12 @@ namespace DSL
     #define DSL_PIPELINE_NEW(name) \
         std::shared_ptr<PipelineBintr>(new PipelineBintr(name))
 
+    typedef enum
+    {
+        DSL_VIDEOMUX = 0,
+        DSL_AUDIOMUX = 1
+    } streammux_type;
+
     /**
      * @class PipelineBintr
      * @brief 
@@ -130,20 +136,12 @@ namespace DSL
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
         
         /**
-         * @brief Returns the Pipeline's MultiSourcesBintr.
-         * @return Shared pointer to the Pipelines MultiSourcesBintr.
-         */
-        DSL_PIPELINE_SOURCES_PTR GetPipelineSourcesBintr()
-        {
-            return m_pPipelineSourcesBintr;
-        }
-
-        /**
          * @brief Gets the current config-file in use by the Pipeline's Streammuxer.
          * Default = NULL. Streammuxer will use all default vaules.
+         * @param[in] uint streammux one of 
          * @return Current config file in use.
          */
-        const char* GetStreammuxConfigFile();
+        const char* GetStreammuxConfigFile(streammux_type streammux);
         
         /**
          * @brief Sets the config-file for the Pipeline's Streammuxer to use.
@@ -151,27 +149,28 @@ namespace DSL
          * @param[in] configFile absolute or relative pathspec to new Config file.
          * @return True if the config-file property could be set, false otherwise,
          */
-        bool SetStreammuxConfigFile(const char* configFile);
+        bool SetStreammuxConfigFile(streammux_type streammux,
+            const char* configFile);
         
         /**
          * @brief Gets the current batch size for the Pipeline's Streammuxer
          * @return current batchSize, default == the number of sources, once playing
          */
-        uint GetStreammuxBatchSize();
+        uint GetStreammuxBatchSize(streammux_type streammux);
 
         /**
          * @brief Sets the current batch size for the Pipeline's Streammuxer
          * @param[in] batchSize new batchSize to set, default == the number of sources
          * @return true if the batch properties could be set, false otherwise
          */
-        bool SetStreammuxBatchSize(uint batchSize);
+        bool SetStreammuxBatchSize(streammux_type streammux, uint batchSize);
 
         /**
          * @brief Gets the current setting for the Pipeline's Streammuxer
          * num-surfaces-per-frame seting
          * @return current setting for the number of surfaces [1..4].
          */
-        uint GetStreammuxNumSurfacesPerFrame();
+        uint GetStreammuxNumSurfacesPerFrame(streammux_type streammux);
 
         /**
          * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
@@ -179,13 +178,13 @@ namespace DSL
          * @param[in] num new value for the number of surfaces [1..4].
          * @return true if the number setting could be set, false otherwisee
          */
-        bool SetStreammuxNumSurfacesPerFrame(uint num);
+        bool SetStreammuxNumSurfacesPerFrame(streammux_type streammux, uint num);
         
         /**
          * @brief Gets the current setting for the Pipeline's Muxer attach-sys-ts.
          * @return true if attach-sys-ts is enabled, false otherwisee
          */
-        bool GetStreammuxAttachSysTsEnabled();
+        bool GetStreammuxAttachSysTsEnabled(streammux_type streammux);
 
         /**
          * @brief Sets the Pipeline's Streammuxer attach-sys-ts property.
@@ -193,13 +192,14 @@ namespace DSL
          * @return true if the attach-sys-ts enabled setting could be set, 
          * false otherwise.
          */
-        bool SetStreammuxAttachSysTsEnabled(boolean enabled);
+        bool SetStreammuxAttachSysTsEnabled(streammux_type streammux, 
+            boolean enabled);
         
         /**
          * @brief Gets the current setting for the Pipeline's Muxer padding
          * @return true if padding is enabled, false otherwisee
          */
-        bool GetStreammuxSyncInputsEnabled();
+        bool GetStreammuxSyncInputsEnabled(streammux_type streammux);
 
         /**
          * @brief Sets the Pipeline's Streammuxer sync-inputs.
@@ -207,14 +207,15 @@ namespace DSL
          * @return true if the sync-inputs enabled setting could be set, 
          *  false otherwise.
          */
-        bool SetStreammuxSyncInputsEnabled(boolean enabled);
+        bool SetStreammuxSyncInputsEnabled(streammux_type streammux, 
+            boolean enabled);
         
         /**
          * @brief Gets the current setting for the Pipeline's Streammuxer
          * max-latency setting.
          * @return current setting for the max-latency property.
          */
-        uint GetStreammuxMaxLatency();
+        uint GetStreammuxMaxLatency(streammux_type streammux);
 
         /**
          * @brief Sets the current setting for the PipelineSourcesBintr's Streammuxer
@@ -222,7 +223,7 @@ namespace DSL
          * @param[in] maxLatency new max-latency setting the Pipeline's Streammxuer.
          * @return true if the max-latency setting could be set, false otherwisee
          */
-        bool SetStreammuxMaxLatency(uint maxLatency);
+        bool SetStreammuxMaxLatency(streammux_type streammux, uint maxLatency);
 
         //----------------------------------------------------------------------------
         // OLD STREAMMUX SERVICES - Start
@@ -313,7 +314,11 @@ namespace DSL
          * @return true if the TileBintr was successfully removed, false otherwise.
          */
         bool RemoveStreammuxTiler();
-        
+
+        bool AddStreammuxPph(DSL_PPH_PTR pHandler, streammux_type streammux);
+
+        bool RemoveStreammuxPph(DSL_PPH_PTR pHandler, streammux_type streammux);
+
         /**
          * @brief dumps a Pipeline's graph to dot file.
          * @param[in] filename name of the file without extention.
