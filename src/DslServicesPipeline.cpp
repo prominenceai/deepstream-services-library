@@ -307,6 +307,62 @@ namespace DSL
     // COMMON STREAMMUX SERVICES - End
     //----------------------------------------------------------------------------
 
+    DslReturnType Services::PipelineStreammuxEnabledGet(const char* name,
+        streammux_type streammux, boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *enabled = m_pipelines[name]->GetStreammuxEnabled(streammux);
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Streammuxer enabled = " 
+                << *enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Streammux enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineStreammuxEnabledSet(const char* name,
+        streammux_type streammux, boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetStreammuxEnabled(streammux, enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Streammux enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' set the Streammuxer enabled setting = " 
+                << enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting Streammux enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::PipelineStreammuxNumSurfacesPerFrameGet(const char* name,
         streammux_type streammux, uint* num)    
     {

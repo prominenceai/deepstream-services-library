@@ -190,7 +190,6 @@ SCENARIO( "Linking a single Source to a Pipeline Streammux is managed correctly"
     }
 }
 
-
 SCENARIO( "Linking multiple Sources to a Streammux is managed correctly",
     "[PipelineSourcesBintr]" )
 {

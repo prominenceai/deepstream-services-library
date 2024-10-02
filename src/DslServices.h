@@ -916,7 +916,7 @@ namespace DSL {
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
         DslReturnType SourceMediaTypeGet(const char* name, 
-            const char** mediaType);
+            uint* mediaType);
 
         DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
             const char** format);
@@ -1806,6 +1806,12 @@ namespace DSL {
         //----------------------------------------------------------------------------
         // COMMON STREAMMUX SERVICES - End
         //----------------------------------------------------------------------------
+
+        DslReturnType PipelineStreammuxEnabledGet(const char* name, 
+            streammux_type streammux, boolean* enabled);
+
+        DslReturnType PipelineStreammuxEnabledSet(const char* name, 
+            streammux_type streammux, boolean enabled);
 
         DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
             streammux_type streammux, uint* num);

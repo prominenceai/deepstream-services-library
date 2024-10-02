@@ -201,13 +201,13 @@ namespace DSL
 
         /**
          * @brief Gets the current media-type for the SourceBintr.
-         * @return Current media type string. 
+         * @return Current media type constant. 
          */
-        const char* GetMediaType()
+        uint GetMediaType()
         {
             LOG_FUNC();
             
-            return m_mediaType.c_str();
+            return m_mediaType;
         }
 
         /**
@@ -234,10 +234,10 @@ namespace DSL
         cudaDeviceProp m_cudaDeviceProp;
 
         /**
-         * @brief media-type for the SourceBintr. String version of one of the
+         * @brief video-media-string for the SourceBintr. String version of one of the
          * DSL_MEDIA_TYPE constant values.
          */
-        std::string m_mediaType;
+        uint m_mediaType;
 
         /**
          * @brief True if the source is live and cannot be paused without losing data, 
@@ -473,6 +473,11 @@ namespace DSL
          * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
          */
         void UnlinkCommon();
+
+        /**
+         * @brief video-media-string for the SourceBintr. fixed at L"video/x-raw".
+         */
+        std::string m_videoMediaString;
 
         /**
          * @brief vector to link/unlink all common elements

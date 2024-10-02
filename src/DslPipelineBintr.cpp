@@ -31,7 +31,8 @@ namespace DSL
 {
     // Initialize the global/static vector of used pipeline-ids.
     std::vector<bool> PipelineBintr::m_usedPipelineIds;
-    
+
+   
     PipelineBintr::PipelineBintr(const char* name)
         : BranchBintr(name, true)      // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
@@ -107,6 +108,22 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
+    boolean PipelineBintr::GetStreammuxEnabled(streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetStreammuxEnabled(streammux);
+    }
+    
+    bool PipelineBintr::SetStreammuxEnabled(streammux_type streammux, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetStreammuxEnabled(streammux,
+            enabled);
+    }
+    
     const char* PipelineBintr::GetStreammuxConfigFile(streammux_type streammux)
     {
         LOG_FUNC();
@@ -359,31 +376,45 @@ namespace DSL
         {
             return false;
         }
-        m_linkedComponents.push_back(m_pPipelineSourcesBintr);
         
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
         m_batchSize = m_pPipelineSourcesBintr->GetBatchSize();
 
-        if (m_pStreammuxTilerBintr)
-        {
-            m_pStreammuxTilerBintr->SetLinkMethod(m_linkMethod);
-            m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
-            // Link All Tiler Elementrs and add as the next component in the Branch
-            if (!m_pStreammuxTilerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pStreammuxTilerBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
-                m_pStreammuxTilerBintr->GetName() 
-                << "' to the Streammuxer output successfully");
-        }
+        // if (m_pStreammuxTilerBintr)
+        // {
+        //     m_pStreammuxTilerBintr->SetLinkMethod(m_linkMethod);
+        //     m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
+        //     // Link All Tiler Elementrs and add as the next component in the Branch
+        //     if (!m_pStreammuxTilerBintr->LinkAll() or
+        //         !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
+        //     {
+        //         return false;
+        //     }
+        //     m_linkedComponents.push_back(m_pStreammuxTilerBintr);
+        //     LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
+        //         m_pStreammuxTilerBintr->GetName() 
+        //         << "' to the Streammuxer output successfully");
+        // }
 
         // call the base class to Link all remaining components.
-        return BranchBintr::LinkAll(); 
+        return (BranchBintr::LinkAll() and 
+            m_pPipelineSourcesBintr->LinkVideoToSink(m_linkedComponents.front()));
+    }
+
+    void PipelineBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("PipelineBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        BranchBintr::UnlinkAll();
+        m_pPipelineSourcesBintr->UnlinkVideoFromSink();
+        m_pPipelineSourcesBintr->UnlinkAll();
     }
 
     bool PipelineBintr::Play()

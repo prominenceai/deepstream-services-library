@@ -2092,7 +2092,7 @@ namespace DSL
     }
 
     DslReturnType Services::SourceMediaTypeGet(const char* name, 
-        const char** mediaType)
+        uint* mediaType)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

@@ -38,6 +38,13 @@ namespace DSL
         std::shared_ptr<PipelineSourcesBintr> \
            (new PipelineSourcesBintr(name, uniquePipelineId))
 
+    typedef enum
+    {
+        DSL_VIDEOMUX = 0,
+        DSL_AUDIOMUX = 1
+    } streammux_type;
+
+
     class PipelineSourcesBintr : public Bintr
     {
     public: 
@@ -90,6 +97,22 @@ namespace DSL
          */
         void UnlinkAll();
 
+        /**
+         * @brief Gets the current Streammuxer enabled setting for either the Audio
+         * or Video Streammuxer.
+         * @return true if enabled, false otherwise.
+         */
+        boolean GetStreammuxEnabled(streammux_type streammux);
+
+        /**
+         * @brief Gets the current Streammuxer enabled setting for either the Audio
+         * or Video Streammuxer.
+         * @param[in] streammux either DSL_VIDEOMUX or DSL_AUDIOMUX.
+         * @param[in] set to true to enabled, false otherwise.
+         * @return true if set successfully, false otherwise.
+         */
+        bool SetStreammuxEnabled(streammux_type streammux, boolean enabled);
+        
         /**
          * @brief Gets the current Streammuxer "play-type-is-live" setting
          * @return true if play-type is live, false otherwise

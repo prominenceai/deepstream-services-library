@@ -566,10 +566,14 @@ THE SOFTWARE.
 #define DSL_STREAM_FORMAT_TIME                                      3
 
 /**
- * @brief DSL Media Types - Used by all Source Components
+ * @brief DSL Media Strings - Used by all Source Components
  */
-#define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
-#define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw"
+#define DSL_MEDIA_STRING_AUDIO_XRAW                                 L"audio/x-raw"
+#define DSL_MEDIA_STRING_VIDEO_XRAW                                 L"video/x-raw"
+
+#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0
+#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   1
+#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  2
 
 /**
  * @brief DSL Video Format Types - Used by all Video Source Components
@@ -5429,12 +5433,11 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
 /**
  * @brief Gets the media type for the named Source component.
  * @param name unique name of the Source Component to query.
- * @param[out] media_type fixed media-type. One of the DSL_MEDIA_TYPE
- * constant string values. 
+ * @param[out] media_type one of the DSL_MEDIA_TYPE constant values. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    const wchar_t** media_type);
+    uint* media_type);
 
 /**
  * @brief Gets the current buffer-out-format for the named Video Source.
@@ -9300,6 +9303,50 @@ DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid);
 //------------------------------------------------------------------------------------
 // COMMON NVSTREAMMUX SERVICES - Start
 //------------------------------------------------------------------------------------
+
+/**
+ * @brief Returns the current setting - enabled/disabled - for named Pipeline's
+ * Video Streammux.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the Video Streammux is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_videomux_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current setting - enabled/disabled - for named Pipeline's
+ * Video Streammuxer. 
+ * @param[in] name name of the Pipeline to update
+ * @param[in] enable set to true to enable the Video Streammuxer, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_videomux_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Returns the current setting - enabled/disabled - for named Pipeline's
+ * Audio Streammuxer.
+ * @param[in] name name of the Pipeline to query
+ * @param[out] enable true if the Audio Streammuxer is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomux_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @param[in] name name of the Pipeline to update
+ * @brief Updates the current setting - enabled/disabled - for named Pipeline's
+ * Audio Streammux. 
+ * @param[in] enable set to true to enable the Audio Streammuxer, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomux_enabled_set(const wchar_t* name, 
+    boolean enabled);
 
 /**
  * @brief returns the current num-surfaces-per-frame setting 

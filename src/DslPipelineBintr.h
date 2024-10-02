@@ -44,12 +44,6 @@ namespace DSL
     #define DSL_PIPELINE_NEW(name) \
         std::shared_ptr<PipelineBintr>(new PipelineBintr(name))
 
-    typedef enum
-    {
-        DSL_VIDEOMUX = 0,
-        DSL_AUDIOMUX = 1
-    } streammux_type;
-
     /**
      * @class PipelineBintr
      * @brief 
@@ -66,10 +60,15 @@ namespace DSL
         ~PipelineBintr();
         
         /**
-         * @brief Links all Child Bintrs owned by this Pipeline Bintr
+         * @brief Links all Child Bintrs owned by this PipelineBintr.
          * @return True success, false otherwise
          */
         bool LinkAll();
+
+        /**
+         * @brief Unlinks all Child Bintrs owned by this PipelineBintr.
+         */
+        void UnlinkAll();
 
         /**
          * @brief Attempts to link all and play the Pipeline
@@ -134,6 +133,22 @@ namespace DSL
          * @param[in] pSourceBintr shared pointer to Source Bintr to add
          */
         bool RemoveSourceBintr(DSL_BASE_PTR pSourceBintr);
+        
+        /**
+         * @brief Gets the current enabled setting for the Pipeline's Audio or
+         * Video Streammuxer.
+         * @return true if Streammuxer enabled, false otherwisee
+         */
+        boolean GetStreammuxEnabled(streammux_type streammux);
+
+        /**
+         * @brief Sets the enabled setting for the Pipeline's Audio or Video 
+         * Streammuxer.
+         * @param enabled set to true to enable the Streammuxer, false otherwise.
+         * @return true if enabled setting could be set, false otherwise.
+         */
+        bool SetStreammuxEnabled(streammux_type streammux, 
+            boolean enabled);
         
         /**
          * @brief Gets the current config-file in use by the Pipeline's Streammuxer.

@@ -38,12 +38,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        pVideomux = DSL_STREAMMUX_NEW("video-streammux-", 
-           GetGstObject(), uniquePipelineId, "src");
-
-        // pVideomux = DSL_STREAMMUX_NEW("audio-streammux-", 
-        //    GetGstObject(), uniquePipelineId, "audio_src");
-
+        if (!SetStreammuxEnabled(DSL_VIDEOMUX, true))
+        {
+            throw std::exception();
+        }
     }
     
     PipelineSourcesBintr::~PipelineSourcesBintr()
@@ -317,6 +315,55 @@ namespace DSL
             m_batchSize = 0;
         }
         m_isLinked = false;
+    }
+
+    boolean PipelineSourcesBintr::GetStreammuxEnabled(streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        DSL_STREAMMUX_PTR pStreammux = (streammux == DSL_VIDEOMUX)
+            ? pVideomux
+            : pAudiomux;
+    
+        return (boolean)(pStreammux != nullptr);
+    }
+
+    bool PipelineSourcesBintr::SetStreammuxEnabled(streammux_type streammux, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+
+        if (m_pChildSources.size())
+        {
+            LOG_ERROR("Can't update enabled property for StreammuxBintr '" 
+                << GetName() << "' after Sources have been added");
+            return false;
+        }
+        DSL_STREAMMUX_PTR pStreammux = (streammux == DSL_VIDEOMUX)
+            ? pVideomux
+            : pAudiomux;
+
+        if (enabled == (boolean)(pStreammux != nullptr))
+        {
+            LOG_ERROR("Can't set enabled property for StreammuxBintr '" 
+                << GetName() << "' to its current state of " << enabled);
+            return false;
+        }
+        if (streammux == DSL_VIDEOMUX)
+        {
+            pVideomux = (enabled)
+                ? DSL_STREAMMUX_NEW("video-streammux-", 
+                    GetGstObject(), m_uniquePipelineId, "video_src")
+                : nullptr;
+        }
+        else
+        {
+            pAudiomux = (enabled)
+                ? DSL_STREAMMUX_NEW("audio-streammux-", 
+                    GetGstObject(), m_uniquePipelineId, "audio_src")
+                : nullptr;
+        }
+        return true;
     }
 
     bool PipelineSourcesBintr::StreammuxPlayTypeIsLiveGet()

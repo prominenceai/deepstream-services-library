@@ -5030,7 +5030,7 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
 }
 
 DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    const wchar_t** media_type)   
+    uint* media_type)   
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(media_type);
@@ -5038,19 +5038,8 @@ DslReturnType dsl_source_media_type_get(const wchar_t* name,
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    const char* cMediaType;
-    static std::string cstrMediaType;
-    static std::wstring wcstrMediaType;
-    
-    uint retval = DSL::Services::GetServices()->SourceMediaTypeGet(
-        cstrName.c_str(), &cMediaType);
-    if (retval ==  DSL_RESULT_SUCCESS)
-    {
-        cstrMediaType.assign(cMediaType);
-        wcstrMediaType.assign(cstrMediaType.begin(), cstrMediaType.end());
-        *media_type = wcstrMediaType.c_str();
-    }
-    return retval;
+    return DSL::Services::GetServices()->SourceMediaTypeGet(
+        cstrName.c_str(), media_type);
 }
     
 DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
@@ -10862,6 +10851,56 @@ DslReturnType dsl_pipeline_streammux_gpuid_set(const wchar_t* name, uint gpuid)
 //------------------------------------------------------------------------------------
 // OLD NVSTREAMMUX SERVICES - End
 //------------------------------------------------------------------------------------
+
+DslReturnType dsl_pipeline_videomux_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxEnabledGet(
+        cstrName.c_str(), DSL::DSL_VIDEOMUX, enabled);
+}
+
+DslReturnType dsl_pipeline_videomux_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxEnabledSet(
+        cstrName.c_str(), DSL::DSL_VIDEOMUX, enabled);
+}
+
+DslReturnType dsl_pipeline_audiomux_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxEnabledGet(
+        cstrName.c_str(), DSL::DSL_AUDIOMUX, enabled);
+}
+
+DslReturnType dsl_pipeline_audiomux_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineStreammuxEnabledSet(
+        cstrName.c_str(), DSL::DSL_AUDIOMUX, enabled);
+}
 
 DslReturnType dsl_pipeline_streammux_num_surfaces_per_frame_get(
     const wchar_t* name, uint* num)

@@ -120,7 +120,7 @@ namespace DSL
 
             return true;
         }
-        
+
         /**
          * @brief Links this Noder, becoming a source, to a sink Nodre
          * @param[in] pSrc Nodre to link this Sink Nodre back to
@@ -194,7 +194,7 @@ namespace DSL
             
             return bool(m_pSrc);
         }
-        
+              
         /**
          * @brief returns the Sink Nodetr that this Nodetr is.urrently linked to
          * @return shared pointer to Sink Nodetr, nullptr if Unlinked from Sink
@@ -305,9 +305,37 @@ namespace DSL
 
         /**
          * @brief defines the relationship this Nodetr linked to
-         * a Sink Nodetr making this Nodetr a Source
+         * a Sink Nodetr making this Nodetr a Source. 
          */
         DSL_NODETR_PTR m_pSink;
+
+        /**
+         * @brief defines the relationship between a Source Nodetr
+         * linked to this Nodetr (audio stream specifcally) making 
+         * this Nodetr a Audio Sink.
+         */
+        DSL_NODETR_PTR m_pAudioSrc;
+
+        /**
+         * @brief defines the relationship this Nodetr (audio stream 
+         * specifcally) linked to a Sink Nodetr making this Nodetr a 
+         * Audio Source.
+         */
+        DSL_NODETR_PTR m_pAudioSink;
+
+        /**
+         * @brief defines the relationship between a Source Nodetr
+         * linked to this Nodetr (video stream specifcally) making 
+         * this Nodetr a Video Sink.
+         */
+        DSL_NODETR_PTR m_pVideoSrc;
+
+        /**
+         * @brief defines the relationship this Nodetr (audio stream 
+         * specifcally) linked to a Sink Nodetr making this Nodetr a 
+         * Audio Source.
+         */
+        DSL_NODETR_PTR m_pVideoSink;
     };
 
     static GstPadProbeReturn complete_unlink_from_source_tee_cb(GstPad* pad, 
@@ -587,6 +615,163 @@ namespace DSL
             }
             gst_element_unlink(GetGstElement(), m_pSink->GetGstElement());
             return Nodetr::UnlinkFromSink();
+        }
+
+        /**
+         * @brief links this Elementr as Source to a given Sink Elementr
+         * @param[in] pSink to link to
+         */
+        bool LinkAudioToSink(DSL_NODETR_PTR pSink)
+        { 
+            LOG_FUNC();
+            
+            if (m_pAudioSink)
+            {
+                LOG_ERROR("Can't link GstNodetr" << GetName() 
+                    << " as it's currently linked");
+                return false;
+            }
+
+            // Get a reference to this GstNodetr's source pad
+            GstPad* pStaticAudioSrcPad = gst_element_get_static_pad(GetGstElement(), 
+                "audio_src");
+            if (!pStaticAudioSrcPad)
+            {
+                LOG_ERROR("Failed to get Static Audio Src Pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+
+            // Get a reference to the sink element's static sink pad
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                    pSink->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get Static sink Pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            if (gst_pad_link(pStaticAudioSrcPad, 
+                pStaticSinkPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' failed to link to Muxer");
+                return false;
+            }
+            
+            // unreference both static pads
+            gst_object_unref(pStaticAudioSrcPad);
+            gst_object_unref(pStaticSinkPad);
+
+            // persist the relationship.
+            m_pAudioSink = pSink;
+            return true;
+        }
+
+        /**
+         * @brief unlinks this Nodetr from a previously linked-to Sink Notetr
+         */
+        bool UnlinkAudioFromSink()
+        { 
+            LOG_FUNC();
+
+            if (!m_pAudioSink)
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' is not in a linked state");
+                return false;
+            }
+
+            if (!GetGstElement() or !m_pAudioSink->GetGstElement())
+            {
+                LOG_ERROR("Invalid GstElements for  '" << GetName());
+                return false;
+            }
+            gst_element_unlink(GetGstElement(), m_pAudioSink->GetGstElement());
+
+            // clear the relationship
+            m_pAudioSink = nullptr;
+            
+            return true;
+        }
+
+        /**
+         * @brief links this Elementr as Source to a given Sink Elementr
+         * @param[in] pSink to link to
+         */
+        bool LinkVideoToSink(DSL_NODETR_PTR pSink)
+        { 
+            LOG_FUNC();
+            
+            // Call the base class to setup the relationship
+            if (m_pVideoSink)
+            {
+                LOG_ERROR("Can't link GstNodetr" << GetName() 
+                    << " as it's currently linked");
+                return false;
+            }
+
+            // Get a reference to this GstNodetr's source pad
+            GstPad* pStaticVideoSrcPad = gst_element_get_static_pad(GetGstElement(), 
+                "video_src");
+            if (!pStaticVideoSrcPad)
+            {
+                LOG_ERROR("Failed to get Static Audio Src Pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+
+            // Get a reference to this static sink pad
+            GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                    pSink->GetGstElement(), "sink");
+            if (!pStaticSinkPad)
+            {
+                LOG_ERROR("Failed to get Static sink Pad for GstNodetr '" 
+                    << GetName() << "'");
+                return false;
+            }
+            if (gst_pad_link(pStaticVideoSrcPad, 
+                pStaticSinkPad) != GST_PAD_LINK_OK)
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' failed to link to Muxer");
+                return false;
+            }
+            
+            // unreference both static pads
+            gst_object_unref(pStaticVideoSrcPad);
+            gst_object_unref(pStaticSinkPad);
+
+            // persist the relationship.
+            m_pVideoSink = pSink;
+            
+            return true;
+        }
+
+        /**
+         * @brief unlinks this Nodetr from a previously linked-to Sink Notetr
+         */
+        bool UnlinkVideoFromSink()
+        { 
+            LOG_FUNC();
+
+            if (!m_pVideoSink)
+            {
+                LOG_ERROR("GstNodetr '" << GetName() 
+                    << "' is not in a linked state");
+                return false;
+            }
+            if (!GetGstElement() or !m_pVideoSink->GetGstElement())
+            {
+                LOG_ERROR("Invalid GstElements for  '" << GetName());
+                return false;
+            }
+            gst_element_unlink(GetGstElement(), m_pVideoSink->GetGstElement());
+
+            // clear the relationship
+            m_pVideoSink = nullptr;
+
+            return true;
         }
 
         /**
