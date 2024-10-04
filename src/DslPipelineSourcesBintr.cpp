@@ -64,7 +64,30 @@ namespace DSL
     bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
-        
+
+        // Ensure that the correct Streammux is enabled for this type of Source        
+        if (!GetStreammuxEnabled(DSL_VIDEOMUX) and 
+            !GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            LOG_ERROR("Can't add Source '" << pChildSource->GetName() 
+                << "'. The Pipeline's Audiomux and Videomux are currently disabled'");
+            return false;
+        }
+        if ((pChildSource->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            !GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            LOG_ERROR("Can't add audio-only Source '" << pChildSource->GetName() 
+                << "' The Pipeline's Audiomux is currently disabled'");
+            return false;
+        }
+        if ((pChildSource->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            !GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            LOG_ERROR("Can't add video-only Source '" << pChildSource->GetName() 
+                << "' The Pipeline's Videomux is currently disabled'");
+            return false;
+        }
+
         // Ensure source uniqueness
         if (IsChild(pChildSource))
         {
@@ -72,7 +95,7 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
-        
+
         // Set the play type based on the first source added
         if (m_pChildSources.size() == 0)
         {
@@ -84,30 +107,6 @@ namespace DSL
                 << "' with IsLive=" << pChildSource->IsLive()  << " to streamuxer '" 
                 << GetName() << "' with IsLive=" << StreammuxPlayTypeIsLiveGet());
             return false;
-        }
-        // If we're adding an RTSP Source, determine if EOS consumer 
-        // should be added to Streammuxer
-        if (pChildSource->IsType(typeid(RtspSourceBintr)) 
-            and m_pEosConsumer == nullptr)
-        {
-            DSL_RTSP_SOURCE_PTR pRtspSource = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(pChildSource);
-            
-            // If stream management is enabled for at least one RTSP source, 
-            // add the EOS Consumer
-            if (pRtspSource->GetBufferTimeout())
-            {
-                LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
-                
-                // Create the Pad Probe and EOS Consumer to drop the EOS event that 
-                // occurs on loss of RTSP stream, allowing the Pipeline to continue 
-                // to play. Each RTSP source will then manage their own restart 
-                // attempts and time management.
-
-                std::string eventHandlerName = GetName() + "-eos-consumer";
-                m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
-                m_pSrcPadDsEventProbe->AddPadProbeHandler(m_pEosConsumer);
-            }
         }
         
         uint padId(0);
@@ -129,7 +128,7 @@ namespace DSL
             pVideomux->m_usedRequestPadIds.push_back(true);
         }            
         // Set the source's request sink pad-id
-        pChildSource->SetRequestPadId(padId);
+        pChildSource->SetVideoRequestPadId(padId);
 
         // Set the sources unique id by shifting/or-ing the unique pipeline-id
         // with the source's pad-id -- combined, they are gauranteed to be unique.
@@ -237,11 +236,11 @@ namespace DSL
         
         // unreference and remove from the child source collections
         m_pChildSources.erase(pChildSource->GetName()); 
-        m_pChildSourcesIndexed.erase(pChildSource->GetRequestPadId());
+        m_pChildSourcesIndexed.erase(pChildSource->GetVideoRequestPadId());
 
         // set the used-stream id as available for reuse
-        pVideomux->m_usedRequestPadIds[pChildSource->GetRequestPadId()] = false;
-        pChildSource->SetRequestPadId(-1);
+        pVideomux->m_usedRequestPadIds[pChildSource->GetVideoRequestPadId()] = false;
+        pChildSource->SetVideoRequestPadId(-1);
         pChildSource->SetUniqueId(-1);
         
         // call the base function to complete the remove
@@ -262,7 +261,7 @@ namespace DSL
         for (auto const& imap: m_pChildSourcesIndexed)
         {
             std::string sinkPadName = 
-                "sink_" + std::to_string(imap.second->GetRequestPadId());
+                "sink_" + std::to_string(imap.second->GetVideoRequestPadId());
             
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSinkMuxer(pVideomux->Get(),
@@ -273,6 +272,29 @@ namespace DSL
                     << imap.second->GetName() << "'");
                 return false;
             }
+            // If we're linking an RTSP Source, determine if EOS consumer 
+            // should be added to Streammuxer
+            if (imap.second->IsType(typeid(RtspSourceBintr)) 
+                and !pVideomux->HasEosConsumer())
+            {
+                DSL_RTSP_SOURCE_PTR pRtspSource = 
+                    std::dynamic_pointer_cast<RtspSourceBintr>(imap.second);
+                
+                // If stream management is enabled for at least one RTSP source, 
+                // add the EOS Consumer
+                if (pRtspSource->GetBufferTimeout())
+                {
+                    LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
+                    
+                    // Create the Pad Probe and EOS Consumer to drop the EOS event that 
+                    // occurs on loss of RTSP stream, allowing the Pipeline to continue 
+                    // to play. Each RTSP source will then manage their own restart 
+                    // attempts and time management.
+
+                    pVideomux->AddEosConsumer();
+                }
+            }
+
         }
         // Set the Batch size to the nuber of sources owned if not already set
         if (!pVideomux->m_batchSizeSetByClient)
@@ -385,8 +407,15 @@ namespace DSL
         }
 
         m_areSourcesLive = isLive;
-        pVideomux->PlayTypeIsLiveSet(isLive);
-        
+
+        if (GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            pAudiomux->PlayTypeIsLiveSet(isLive);    
+        }
+        if (GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            pVideomux->PlayTypeIsLiveSet(isLive);
+        }
         return true;
     }
 
@@ -406,16 +435,15 @@ namespace DSL
 
     void PipelineSourcesBintr::DisableEosConsumers()
     {
+        // Call on all Sources to disable their EOS consumer if one
+        // has been added.
         for (auto const& imap: m_pChildSources)
         {
             imap.second->DisableEosConsumer();
         }
-        // If at lease one RTSP Source was added and the EOS Consumer
-        // needs to be removed. 
-        if (m_pEosConsumer)
-        {
-            m_pSrcPadDsEventProbe->RemovePadProbeHandler(m_pEosConsumer);
-        }
+        // Call on the Streammuxer to do the same.
+
+        pVideomux->RemoveEosConsumer();
     }
 
 

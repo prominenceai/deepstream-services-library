@@ -34,7 +34,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/dsl-test-app.exe",
       "args": [
-        /*"[OdeAction]"*/
+        "[error]"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -50,8 +50,8 @@
           "text": "-enable-pretty-printing",
           "ignoreFailures": true
         }
-      ],
-      "preLaunchTask": "build:test-app:debug"
+      ]/*,
+      "preLaunchTask": "build:test-app:debug" */
     },
     {
       "name": "CPP: Current Python File",

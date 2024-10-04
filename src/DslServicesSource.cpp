@@ -3331,7 +3331,7 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
 
             // streammux source pad-id == stream-id for all sources
-            *streamId = pSourceBintr->GetRequestPadId();
+            *streamId = pSourceBintr->GetVideoRequestPadId();
             
             LOG_INFO("Source '" << name 
                 << "' returned stream-id = " << *streamId);

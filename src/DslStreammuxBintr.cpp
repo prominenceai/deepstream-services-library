@@ -463,4 +463,25 @@ namespace DSL
         return true;
     }
 
+    void StreammuxBintr::AddEosConsumer()
+    {
+        LOG_FUNC();
+
+        std::string eventHandlerName = GetName() + "-eos-consumer";
+        m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
+        m_pSrcPadDsEventProbe->AddPadProbeHandler(m_pEosConsumer);
+    }
+
+    void StreammuxBintr::RemoveEosConsumer()
+    {
+        LOG_FUNC();
+
+        if (m_pEosConsumer)
+        {
+            m_pSrcPadDsEventProbe->RemovePadProbeHandler(m_pEosConsumer);
+
+            // Destroy the EOS Consumer PPH
+            m_pEosConsumer = nullptr;
+        }
+    }
 }

@@ -264,6 +264,27 @@ namespace DSL
          */
         std::vector<bool> m_usedRequestPadIds;
         
+        /**
+         * @brief Adds the End Of Stream (EOS) Consumer PPH to the src pad of
+         * this StreammuxBintr.
+         */
+        void AddEosConsumer();
+
+        /**
+         * @brief Call to check if an End Of Stream (EOS) Consumer PPH has been
+         * added to the src pad of this StreammuxBintr.
+         */
+        bool HasEosConsumer()
+        {
+            return (m_pEosConsumer != nullptr);
+        }
+
+        /**
+         * @brief Removes the End Of Stream (EOS) Consumer PPH to the src pad of
+         * this StreammuxBintr.
+         */
+        void RemoveEosConsumer();
+
     private:
     
         /**
@@ -382,6 +403,13 @@ namespace DSL
          */
         uint m_bufferPoolSize;
 
+        /**
+         * @brief Pad Probe Event Handler to consume all dowstream EOS events
+         * Will be created if and when an RTSP source is added to the parent 
+         * PipelineSourcesBintr.
+         */
+        DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
+                
     };
 
 }

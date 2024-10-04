@@ -120,8 +120,10 @@ namespace DSL
         bool StreammuxPlayTypeIsLiveGet();
 
         /**
-         * @brief Sets the current Streammuxer play type based on the first source added
-         * @param isLive set to true if all sources are to be Live, and therefore live only.
+         * @brief Sets the current Streammuxer play type based on the first source 
+         * added
+         * @param isLive set to true if all sources are to be Live, and therefore 
+         * live only.
          * @return true if live-source is succesfully set, false otherwise
          */
         bool StreammuxPlayTypeIsLiveSet(bool isLive);
@@ -133,8 +135,16 @@ namespace DSL
          */
         void DisableEosConsumers();
 
+        /**
+         * @brief Video Streammuxer for this PipelineSourcesBintr, 
+         * enabled by default.
+         */
         DSL_STREAMMUX_PTR pVideomux;
 
+        /**
+         * @brief Audio Streammuxer for this PipelineSourcesBintr, 
+         * disabled by default.
+         */
         DSL_STREAMMUX_PTR pAudiomux;
 
     private:
@@ -174,13 +184,6 @@ namespace DSL
          */
         bool m_areSourcesLive;
         
-        /**
-         * @brief Pad Probe Event Handler to consume all dowstream EOS events
-         * Will be created if and when a RTSP source is added to this 
-         * StreammuxBintr.
-         */
-        DSL_PPEH_EOS_CONSUMER_PTR m_pEosConsumer;
-                
     };
 
     
