@@ -86,6 +86,12 @@ namespace DSL
             return m_name;
         }
         
+        std::wstring GetWStrName()
+        {
+            std::wstring wStrName(m_name.begin(), m_name.end());
+            return wStrName;
+        }
+
         /**
          * @brief updates the current name by appending a suffix
          * @return const std::string name given to this Event

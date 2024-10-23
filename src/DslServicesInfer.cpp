@@ -402,6 +402,72 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::InferModelUpdateListenerAdd(const char* name,
+            dsl_infer_model_update_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            if (!pInferBintr->AddModelUpdateListener(listener, clientData))
+            {
+                LOG_ERROR("Inference Component '" << name 
+                    << "' failed to add a Model Update Listener");
+                return DSL_RESULT_INFER_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("Inference Component '" << name 
+                << "' added a Model Update Listener successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inference Component '" << name 
+                << "' threw an exception adding a Model Update Listener");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::InferModelUpdateListenerRemove(const char* name,
+            dsl_infer_model_update_listener_cb listener)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+                DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+
+            DSL_INFER_PTR pInferBintr = 
+                std::dynamic_pointer_cast<InferBintr>(m_components[name]);
+
+            if (!pInferBintr->RemoveModelUpdateListener(listener))
+            {
+                LOG_ERROR("Inference Component '" << name 
+                    << "' failed to remove a Model Update Listener");
+                return DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("Inference Component '" << name 
+                << "' removed Model Update Listener successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Inference Component '" << name 
+                << "' threw an exception removeing a Model Udate Lister");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+
     DslReturnType Services::InferConfigFileGet(const char* name, 
         const char** inferConfigFile)
     {

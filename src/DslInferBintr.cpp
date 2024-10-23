@@ -117,7 +117,11 @@ namespace DSL
 
         // update the InferEngine interval setting
         SetInterval(m_interval);
-        
+
+        // connect the callback to the inference element's model-updated signal
+        g_signal_connect(m_pInferEngine->GetGObject(), "model-updated", 
+            G_CALLBACK(OnModelUpdatedCB), this);
+
 //        g_object_set (m_pInferEngine->GetGstObject(),
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
 //            "raw-output-generated-userdata", this,
@@ -160,13 +164,7 @@ namespace DSL
             LOG_ERROR("Infer Config File '" << inferConfigFile << "' Not found");
             return false;
         }        
-                
-        if (IsInUse())
-        {
-            LOG_ERROR("Unable to set Infer Config File for InferBintr '" << GetName() 
-                << "' as it's currently in use");
-            return false;
-        }
+        // can be updated in any state        
         m_inferConfigFile.assign(inferConfigFile);
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
         
@@ -388,11 +386,83 @@ namespace DSL
         m_rawOutputFrameNumber++;
     }
 
+    bool InferBintr::AddModelUpdateListener(
+            dsl_infer_model_update_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+
+        if (m_modelUpdateListeners.find(listener) != m_modelUpdateListeners.end())
+        {   
+            LOG_ERROR("Model Update listener is not unique");
+            return false;
+        }
+        m_modelUpdateListeners[listener] = clientData;
+        
+        return true;
+    }
+
+    bool InferBintr::RemoveModelUpdateListener(
+            dsl_infer_model_update_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        if (m_modelUpdateListeners.find(listener) == m_modelUpdateListeners.end())
+        {   
+            LOG_ERROR("Pipeline listener was not found");
+            return false;
+        }
+        m_modelUpdateListeners.erase(listener);
+        
+        return true;
+    }
+
+
+    void InferBintr::HandleOnModelUpdatedCB(gchararray modelEngineFile)
+    {
+        LOG_FUNC();
+
+        LOG_INFO("Model update complete for InferBintr '" 
+            << GetName() << "'");
+        LOG_INFO("New model = '" << modelEngineFile);
+
+        if (m_modelUpdateListeners.size())
+        {
+            // Need the wstring version of the file path to send to the client.
+            std::string cModelEngineFile(modelEngineFile);
+            std::wstring wModeEngineFile(cModelEngineFile.begin(), 
+                cModelEngineFile.end());
+
+            // iterate through the map of listeners calling each
+            for(auto const& imap: m_modelUpdateListeners)
+            {
+                try
+                {
+                    imap.first(GetWStrName().c_str(), 
+                        wModeEngineFile.c_str(), imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client Model-Update-Lister");
+                }
+            }
+
+        }
+
+    }
+
     static void OnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
         NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize, gpointer pGie)
     {
         static_cast<InferBintr*>(pGie)->HandleOnRawOutputGeneratedCB(pBuffer, pNetworkInfo, 
             pLayersInfo, layersCount, batchSize);
+    }
+
+
+    static void OnModelUpdatedCB(GstElement* object, gint arg0, gchararray arg1,
+        gpointer pInferBintr)
+    {
+        static_cast<InferBintr*>(pInferBintr)->HandleOnModelUpdatedCB(
+            arg1);
     }
 
     // ***********************************************************************
@@ -776,6 +846,6 @@ namespace DSL
     {
         LOG_FUNC();
     }
-    
+
 }    
 
