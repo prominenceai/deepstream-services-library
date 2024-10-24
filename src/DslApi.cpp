@@ -6465,8 +6465,8 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name,
         enabled, cstrPath.c_str());
 }
 
-DslReturnType dsl_infer_model_update_listener_add(const wchar_t* name,
-    dsl_infer_model_update_listener_cb listener, void* client_data)
+DslReturnType dsl_infer_gie_model_update_listener_add(const wchar_t* name,
+    dsl_infer_gie_model_update_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -6475,11 +6475,11 @@ DslReturnType dsl_infer_model_update_listener_add(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        InferModelUpdateListenerAdd(cstrName.c_str(), listener, client_data);
+        InferGieModelUpdateListenerAdd(cstrName.c_str(), listener, client_data);
 }
 
-DslReturnType dsl_infer_model_update_listener_remove(const wchar_t* name,
-    dsl_infer_model_update_listener_cb listener)
+DslReturnType dsl_infer_gie_model_update_listener_remove(const wchar_t* name,
+    dsl_infer_gie_model_update_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -6488,7 +6488,7 @@ DslReturnType dsl_infer_model_update_listener_remove(const wchar_t* name,
     std::string cstrName(wstrName.begin(), wstrName.end());
 
     return DSL::Services::GetServices()->
-        InferModelUpdateListenerRemove(cstrName.c_str(), listener);
+        InferGieModelUpdateListenerRemove(cstrName.c_str(), listener);
 }
 
 DslReturnType dsl_tracker_new(const wchar_t* name, 

@@ -90,6 +90,9 @@ namespace DSL
             {
                 m_pInferEngine->SetAttribute("model-engine-file", modelEngineFile);
             }
+            // connect the callback to the GIE element's model-updated signal
+            g_signal_connect(m_pInferEngine->GetGObject(), "model-updated", 
+                G_CALLBACK(OnModelUpdatedCB), this);
         }
         
         m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
@@ -117,10 +120,6 @@ namespace DSL
 
         // update the InferEngine interval setting
         SetInterval(m_interval);
-
-        // connect the callback to the inference element's model-updated signal
-        g_signal_connect(m_pInferEngine->GetGObject(), "model-updated", 
-            G_CALLBACK(OnModelUpdatedCB), this);
 
 //        g_object_set (m_pInferEngine->GetGstObject(),
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
@@ -387,7 +386,7 @@ namespace DSL
     }
 
     bool InferBintr::AddModelUpdateListener(
-            dsl_infer_model_update_listener_cb listener, void* clientData)
+            dsl_infer_gie_model_update_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
 
@@ -402,7 +401,7 @@ namespace DSL
     }
 
     bool InferBintr::RemoveModelUpdateListener(
-            dsl_infer_model_update_listener_cb listener)
+            dsl_infer_gie_model_update_listener_cb listener)
     {
         LOG_FUNC();
         

@@ -402,8 +402,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferModelUpdateListenerAdd(const char* name,
-            dsl_infer_model_update_listener_cb listener, void* clientData)
+    DslReturnType Services::InferGieModelUpdateListenerAdd(const char* name,
+        dsl_infer_gie_model_update_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -411,7 +411,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
 
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -435,15 +435,15 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::InferModelUpdateListenerRemove(const char* name,
-            dsl_infer_model_update_listener_cb listener)
+    DslReturnType Services::InferGieModelUpdateListenerRemove(const char* name,
+        dsl_infer_gie_model_update_listener_cb listener)
     {
         LOG_FUNC();
     
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-                DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
 
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);

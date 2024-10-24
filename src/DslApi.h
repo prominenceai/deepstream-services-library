@@ -1935,13 +1935,13 @@ typedef void (*dsl_component_queue_underrun_listener_cb)(const wchar_t* name,
     void* client_data);
 
 /**
- * @brief Callback typedef for all Inference Components (PGIE, SGIE, PTIS, STIS) to
- * notify clients when a model engine has been successfully updated.
- * @param name name of the Inference Component.
+ * @brief Callback typedef for Primary or Secondary GIE to notify clients when a 
+ * model engine has been successfully updated.
+ * @param name name of the Primary or Secondary GIE calling this function.
  * @param model_engine_file path to the new model engine file in use.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_infer_model_update_listener_cb)(const wchar_t* name,
+typedef void (*dsl_infer_gie_model_update_listener_cb)(const wchar_t* name,
     const wchar_t* model_engine_file, void* client_data);
 
 // -----------------------------------------------------------------------------------
@@ -6463,24 +6463,24 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name,
     boolean enabled, const wchar_t* path);
 
 /**
- * @brief Adds a model update listener callback to a named Inference Component.
- * @param name name of the Inference Component to update.
+ * @brief Adds a model update listener callback to a named Primary or Secondary GIE.
+ * @param name name of the Primary or Secondary GIE to update.
  * @param listener callback function to add.
  * @param client_data opaque pointer to client data passed to the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_model_update_listener_add(const wchar_t* name,
-    dsl_infer_model_update_listener_cb listener, void* client_data);
+DslReturnType dsl_infer_gie_model_update_listener_add(const wchar_t* name,
+    dsl_infer_gie_model_update_listener_cb listener, void* client_data);
 
 /**
- * @brief Removes a model update listener callback to a named Inference Component.
- * @param name name of the Inference Component to update.
+ * @brief Removes a model update listener callback to a named Primary or Secondary GIE.
+ * @param name name of the Primary or Secondary GIE to update.
  * @param listener callback function to add.
  * @param client_data opaque pointer to client data passed to the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_model_update_listener_remove(const wchar_t* name,
-    dsl_infer_model_update_listener_cb listener);
+DslReturnType dsl_infer_gie_model_update_listener_remove(const wchar_t* name,
+    dsl_infer_gie_model_update_listener_cb listener);
 
 /**
  * @brief creates a new, uniquely named Multi-Object Tracker (MOT) object. The

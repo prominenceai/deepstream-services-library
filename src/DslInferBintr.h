@@ -215,7 +215,7 @@ namespace DSL
          * @param clientData opaque pointer to client data to return on callback
          * @return true on successful addition, false otherwise.
          */ 
-        bool AddModelUpdateListener(dsl_infer_model_update_listener_cb listener, 
+        bool AddModelUpdateListener(dsl_infer_gie_model_update_listener_cb listener, 
             void* clientData);
 
         /**
@@ -223,7 +223,7 @@ namespace DSL
          * @param listener client listener function to remove.
          * @return true on successful removal, false otherwise.
          */ 
-        bool RemoveModelUpdateListener(dsl_infer_model_update_listener_cb listener);
+        bool RemoveModelUpdateListener(dsl_infer_gie_model_update_listener_cb listener);
 
         /**
          * @brief Handles the model-updated signal.
@@ -287,7 +287,7 @@ namespace DSL
         /**
          * @brief map of all client model update listeners.
          */
-        std::map<dsl_infer_model_update_listener_cb, void*> m_modelUpdateListeners;
+        std::map<dsl_infer_gie_model_update_listener_cb, void*> m_modelUpdateListeners;
         
         /**
          * @brief current input-temsor-meta enabled setting for this InferBintr.
