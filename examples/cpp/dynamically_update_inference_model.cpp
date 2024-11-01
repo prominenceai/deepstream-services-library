@@ -60,6 +60,7 @@ THE SOFTWARE.
 #   - delete-window events
 #   - end-of-stream EOS events
 #   - Pipeline change-of-state events#   
+#
 ##############################################################################*/
 
 #include <iostream>
