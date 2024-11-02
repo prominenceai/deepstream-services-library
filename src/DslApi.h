@@ -211,6 +211,8 @@ THE SOFTWARE.
 #define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
 #define DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST                  0x0006000D
 #define DSL_RESULT_INFER_ID_NOT_FOUND                               0x0006000E
+#define DSL_RESULT_INFER_CALLBACK_ADD_FAILED                        0x0006000F
+#define DSL_RESULT_INFER_CALLBACK_REMOVE_FAILED                     0x00060010
 
 /**
  * Demuxer API Return Values
@@ -1931,6 +1933,16 @@ typedef void (*dsl_component_queue_overrun_listener_cb)(const wchar_t* name,
  */
 typedef void (*dsl_component_queue_underrun_listener_cb)(const wchar_t* name, 
     void* client_data);
+
+/**
+ * @brief Callback typedef for Primary or Secondary GIE to notify clients when a 
+ * model engine has been successfully updated.
+ * @param name name of the Primary or Secondary GIE calling this function.
+ * @param model_engine_file path to the new model engine file in use.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_infer_gie_model_update_listener_cb)(const wchar_t* name,
+    const wchar_t* model_engine_file, void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -6363,8 +6375,8 @@ DslReturnType dsl_infer_pph_remove(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
- * @brief Gets the current Infer Config File in use by the named Primary or Secondary GIE
- * @param[in] name unique name of Primary or Secondary GIE to query
+ * @brief Gets the current Infer Config File in use by the named Inference Component
+ * @param[in] name unique name of Inference Component to query
  * @param[out] infer_config_file Infer Config file currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
@@ -6372,8 +6384,8 @@ DslReturnType dsl_infer_config_file_get(const wchar_t* name,
     const wchar_t** infer_config_file);
 
 /**
- * @brief Sets the Infer Config File to use by the named Primary or Secondary GIE
- * @param[in] name unique name of Primary or Secondary GIE to update
+ * @brief Sets the Infer Config File to use by the named Inference Component
+ * @param[in] name unique name of Inference Component to update
  * @param[in] infer_config_file new Infer Config file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
@@ -6425,16 +6437,16 @@ DslReturnType dsl_infer_gie_tensor_meta_settings_set(const wchar_t* name,
     boolean input_enabled, boolean output_enabled);
 
 /**
- * @brief Gets the current Infer Interval in use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to query
+ * @brief Gets the current Infer Interval in use by the named Inference Component
+ * @param[in] name of Inference Component to query
  * @param[out] interval Infer interval value currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
 DslReturnType dsl_infer_interval_get(const wchar_t* name, uint* interval);
 
 /**
- * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
- * @param[in] name of Primary or Secondary GIE to update
+ * @brief Sets the Model Engine File to use by the named Inference Component
+ * @param[in] name of Inference Component to update
  * @param[in] interval new Infer Interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
@@ -6442,13 +6454,33 @@ DslReturnType dsl_infer_interval_set(const wchar_t* name, uint interval);
 
 /**
  * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
- * @param[in] name name of the Primary or Secondary GIE to update
+ * @param[in] name name of the Inference Component to update
  * @param[in] enabled set to true to enable frame-to-file output for each GIE layer
  * @param[in] path absolute or relative direcory path to write to. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
 DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name, 
     boolean enabled, const wchar_t* path);
+
+/**
+ * @brief Adds a model update listener callback to a named Primary or Secondary GIE.
+ * @param name name of the Primary or Secondary GIE to update.
+ * @param listener callback function to add.
+ * @param client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_gie_model_update_listener_add(const wchar_t* name,
+    dsl_infer_gie_model_update_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a model update listener callback to a named Primary or Secondary GIE.
+ * @param name name of the Primary or Secondary GIE to update.
+ * @param listener callback function to add.
+ * @param client_data opaque pointer to client data passed to the listener function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_gie_model_update_listener_remove(const wchar_t* name,
+    dsl_infer_gie_model_update_listener_cb listener);
 
 /**
  * @brief creates a new, uniquely named Multi-Object Tracker (MOT) object. The
