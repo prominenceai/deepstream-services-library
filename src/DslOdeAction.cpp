@@ -2074,6 +2074,7 @@ namespace DSL
 
         pDstMeta = (NvDsEventMsgMeta*)g_memdup(pSrcMeta, sizeof(NvDsEventMsgMeta));
 
+        pDstMeta->extMsg = g_strdup((const gchar*)pSrcMeta->extMsg); 
         pDstMeta->ts = g_strdup(pSrcMeta->ts);
         pDstMeta->sensorStr = g_strdup(pSrcMeta->sensorStr);
         pDstMeta->objectId = g_strdup(pSrcMeta->objectId);
@@ -2087,6 +2088,7 @@ namespace DSL
         NvDsUserMeta *pUserMeta = (NvDsUserMeta *) data;
         NvDsEventMsgMeta *pSrcMeta = (NvDsEventMsgMeta *) pUserMeta->user_meta_data;
 
+        g_free(pSrcMeta->extMsg);
         g_free(pSrcMeta->ts);
         g_free(pSrcMeta->sensorStr);
         g_free(pSrcMeta->objectId);
@@ -2118,7 +2120,12 @@ namespace DSL
         {
             NvDsEventMsgMeta* pMsgMeta = 
                 (NvDsEventMsgMeta*)g_malloc0(sizeof(NvDsEventMsgMeta));
-         
+                  
+            DSL_ODE_TRIGGER_PTR pTrigger = 
+                std::dynamic_pointer_cast<OdeTrigger>(pOdeTrigger);
+            pMsgMeta->extMsg = g_strdup(pTrigger->GetName().c_str());
+            pMsgMeta->extMsgSize = strlen((char*)pMsgMeta->extMsg) + 1;
+
             pMsgMeta->sensorId = pFrameMeta->source_id;
             const char* sourceName;
             Services::GetServices()->SourceNameGet(pFrameMeta->source_id, 
