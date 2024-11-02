@@ -556,6 +556,48 @@ SCENARIO( "A Primary GIE returns its unique id correctly",  "[infer-api]" )
     }
 }
 
+static void model_update_listener_cb(const wchar_t* name,
+    const wchar_t* model_engine_file, void* client_data)
+{
+}
+
+SCENARIO( "A model-update-listener can be added and removed", "[infer-api]" )
+{
+    std::wstring pipelineName = L"test-pipeline";
+
+    GIVEN( "A PGIE in memory" ) 
+    {
+        REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
+            infer_config_file.c_str(), NULL, interval) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A model-update-listener is added" )
+        {
+            REQUIRE( dsl_infer_gie_model_update_listener_add(primary_gie_name.c_str(),
+                model_update_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            // second call must fail
+            REQUIRE( dsl_infer_gie_model_update_listener_add(primary_gie_name.c_str(),
+                model_update_listener_cb, (void*)0x12345678) == 
+                    DSL_RESULT_INFER_CALLBACK_ADD_FAILED );
+
+            THEN( "The same listener can be removed again" ) 
+            {
+                REQUIRE( dsl_infer_gie_model_update_listener_remove(
+                    primary_gie_name.c_str(), model_update_listener_cb) == 
+                        DSL_RESULT_SUCCESS );
+
+                // second call must fail
+                REQUIRE( dsl_infer_gie_model_update_listener_remove(
+                    primary_gie_name.c_str(),model_update_listener_cb) == 
+                        DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -634,6 +676,16 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
 
                 REQUIRE( dsl_infer_unique_id_get(NULL, &retId) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
+
+                REQUIRE( dsl_infer_gie_model_update_listener_add(NULL, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_model_update_listener_add(primary_gie_name.c_str(), 
+                    NULL, NULL) ==  DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_model_update_listener_remove(NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_gie_model_update_listener_remove(primary_gie_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
+
 
                 REQUIRE( dsl_component_list_size() == 0 );
             }
