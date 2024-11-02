@@ -2,6 +2,7 @@
 
 | Release                                                     | Date        |
 | ----------------------------------------------------------- | ----------- |
+| [v0.31.b.alpha (patch)](/Release%20Notes/v0.31.b.alpha.md)  | 11/02/2024  |
 | [v0.31.a.alpha (patch)](/Release%20Notes/v0.31.a.alpha.md)  | 09/16/2024  |
 | [v0.31.alpha](/Release%20Notes/v0.3`.alpha.md)              | 09/04/2024  |
 | [v0.30.b.alpha (patch)](/Release%20Notes/v0.30.b.alpha.md)  | 08/28/2024  |
