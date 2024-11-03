@@ -1599,7 +1599,7 @@ namespace DSL
     std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
-        guint width, guint height, guint fpsN, guint fpsD)
+        uint width, uint height, uint fpsN, uint fpsD)
         : VideoSourceBintr(name)
         , m_sensorId(0)
     {
