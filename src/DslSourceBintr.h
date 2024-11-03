@@ -119,18 +119,6 @@ namespace DSL
         uint fpsN, uint fpsD, bool isNvidia);
 
     /**
-     * @brief Utility function to define/set the media and 
-     * format for a given element.
-     * @param[in] pElement element to update.
-     * @param[in] media ascii version of one of the DSL_MEDIA_TYPE constants.
-     * @param[in] format ascii version of one of the DSL_VIDEO_FORMAT constants.
-     * @param[in] isNvidia set to true to add memory:NVMM feature.
-     * @return on successful set, false otherwise.
-     */
-    static bool set_format_caps(DSL_ELEMENT_PTR pElement, 
-        const char* media, const char* format, bool isNvidia);
-
-    /**
      * @class SourceBintr
      * @brief Implements a base Source Bintr for all derived Source types.
      */
