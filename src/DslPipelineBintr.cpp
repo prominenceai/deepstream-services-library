@@ -31,7 +31,8 @@ namespace DSL
 {
     // Initialize the global/static vector of used pipeline-ids.
     std::vector<bool> PipelineBintr::m_usedPipelineIds;
-    
+
+   
     PipelineBintr::PipelineBintr(const char* name)
         : BranchBintr(name, true)      // Pipeline = true
         , PipelineStateMgr(m_pGstObj)
@@ -107,92 +108,114 @@ namespace DSL
             RemoveChild(std::dynamic_pointer_cast<SourceBintr>(pSourceBintr));
     }
 
-    const char* PipelineBintr::GetStreammuxConfigFile()
+    boolean PipelineBintr::GetStreammuxEnabled(streammux_type streammux)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->
-            GetStreammuxConfigFile();
-    }
-
-    bool PipelineBintr::SetStreammuxConfigFile(const char* configFile)
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->
-            SetStreammuxConfigFile(configFile);
-    }
-
-    uint PipelineBintr::GetStreammuxBatchSize()
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->
-            GetStreammuxBatchSize();
-    }
-
-    bool PipelineBintr::SetStreammuxBatchSize(uint batchSize)
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->
-            SetStreammuxBatchSize(batchSize);
-    }
-
-    uint PipelineBintr::GetStreammuxNumSurfacesPerFrame()
-    {
-        LOG_FUNC();
-
-        return m_pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame();
+        return m_pPipelineSourcesBintr->GetStreammuxEnabled(streammux);
     }
     
-    bool PipelineBintr::SetStreammuxNumSurfacesPerFrame(uint num)
+    bool PipelineBintr::SetStreammuxEnabled(streammux_type streammux, 
+        boolean enabled)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxNumSurfacesPerFrame(num);
+        return m_pPipelineSourcesBintr->SetStreammuxEnabled(streammux,
+            enabled);
     }
     
-    bool PipelineBintr::GetStreammuxAttachSysTsEnabled()
+    const char* PipelineBintr::GetStreammuxConfigFile(streammux_type streammux)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreammuxAttachSysTsEnabled();
+        return m_pPipelineSourcesBintr->pVideomux->
+            GetConfigFile();
+    }
+
+    bool PipelineBintr::SetStreammuxConfigFile(streammux_type streammux,
+        const char* configFile)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->pVideomux->
+            SetConfigFile(configFile);
+    }
+
+    uint PipelineBintr::GetStreammuxBatchSize(streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->pVideomux->
+            GetBatchSize();
+    }
+
+    bool PipelineBintr::SetStreammuxBatchSize(streammux_type streammux, 
+        uint batchSize)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->pVideomux->
+            SetBatchSize(batchSize);
+    }
+
+    uint PipelineBintr::GetStreammuxNumSurfacesPerFrame(streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->pVideomux->GetNumSurfacesPerFrame();
     }
     
-    bool PipelineBintr::SetStreammuxAttachSysTsEnabled(boolean enabled)
+    bool PipelineBintr::SetStreammuxNumSurfacesPerFrame(streammux_type streammux,
+        uint num)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxAttachSysTsEnabled(enabled);
+        return m_pPipelineSourcesBintr->pVideomux->SetNumSurfacesPerFrame(num);
     }
     
-    bool PipelineBintr::GetStreammuxSyncInputsEnabled()
+    bool PipelineBintr::GetStreammuxAttachSysTsEnabled(streammux_type streammux)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled();
+        return m_pPipelineSourcesBintr->pVideomux->GetAttachSysTsEnabled();
     }
     
-    bool PipelineBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
+    bool PipelineBintr::SetStreammuxAttachSysTsEnabled(streammux_type streammux,
+        boolean enabled)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxSyncInputsEnabled(enabled);
+        return m_pPipelineSourcesBintr->pVideomux->SetAttachSysTsEnabled(enabled);
     }
     
-    uint PipelineBintr::GetStreammuxMaxLatency()
+    bool PipelineBintr::GetStreammuxSyncInputsEnabled(streammux_type streammux)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreammuxMaxLatency();
+        return m_pPipelineSourcesBintr->pVideomux->GetSyncInputsEnabled();
     }
     
-    bool PipelineBintr::SetStreammuxMaxLatency(uint maxLatency)
+    bool PipelineBintr::SetStreammuxSyncInputsEnabled(streammux_type streammux,
+        boolean enabled)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxMaxLatency(maxLatency);
+        return m_pPipelineSourcesBintr->pVideomux->SetSyncInputsEnabled(enabled);
+    }
+    
+    uint PipelineBintr::GetStreammuxMaxLatency(streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->pVideomux->GetMaxLatency();
+    }
+    
+    bool PipelineBintr::SetStreammuxMaxLatency(streammux_type streammux,
+        uint maxLatency)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->pVideomux->SetMaxLatency(maxLatency);
     }
 
     void PipelineBintr::GetStreammuxBatchProperties(uint* batchSize, 
@@ -200,8 +223,8 @@ namespace DSL
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->
-            GetStreammuxBatchProperties(batchSize, batchTimeout);
+        m_pPipelineSourcesBintr->pVideomux->
+            GetBatchProperties(batchSize, batchTimeout);
     }
 
     bool PipelineBintr::SetStreammuxBatchProperties(uint batchSize, 
@@ -209,64 +232,64 @@ namespace DSL
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->
-            SetStreammuxBatchProperties(batchSize, batchTimeout);
+        return m_pPipelineSourcesBintr->pVideomux->
+            SetBatchProperties(batchSize, batchTimeout);
     }
 
     uint PipelineBintr::GetStreammuxNvbufMemType()
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreammuxNvbufMemType();
+        return m_pPipelineSourcesBintr->pVideomux->GetNvbufMemType();
     }
 
     bool PipelineBintr::SetStreammuxNvbufMemType(uint type)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxNvbufMemType(type);
+        return m_pPipelineSourcesBintr->pVideomux->SetNvbufMemType(type);
     }
 
     uint PipelineBintr::GetGpuId()
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetGpuId();
+        return m_pPipelineSourcesBintr->pVideomux->GetGpuId();
     }
 
     bool PipelineBintr::SetGpuId(uint gpuId)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetGpuId(gpuId);
+        return m_pPipelineSourcesBintr->pVideomux->SetGpuId(gpuId);
     }
 
     void PipelineBintr::GetStreammuxDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
 
-        m_pPipelineSourcesBintr->GetStreammuxDimensions(width, height);
+        m_pPipelineSourcesBintr->pVideomux->GetDimensions(width, height);
     }
 
     bool PipelineBintr::SetStreammuxDimensions(uint width, uint height)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxDimensions(width, height);
+        return m_pPipelineSourcesBintr->pVideomux->SetDimensions(width, height);
     }
     
     bool PipelineBintr::GetStreammuxPadding()
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->GetStreammuxPaddingEnabled();
+        return m_pPipelineSourcesBintr->pVideomux->GetPaddingEnabled();
     }
     
     bool PipelineBintr::SetStreammuxPadding(boolean enabled)
     {
         LOG_FUNC();
 
-        return m_pPipelineSourcesBintr->SetStreammuxPaddingEnabled(enabled);
+        return m_pPipelineSourcesBintr->pVideomux->SetPaddingEnabled(enabled);
     }
 
     // ---------------------------------------------------------------------------
@@ -309,7 +332,25 @@ namespace DSL
         m_pStreammuxTilerBintr = nullptr;
         return true;
     }
-    
+
+    bool PipelineBintr::AddStreammuxPph(DSL_PPH_PTR pHandler, 
+        streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        return (pHandler->AddToParent(
+            m_pPipelineSourcesBintr->pVideomux, DSL_PAD_SRC));
+    }
+
+    bool PipelineBintr::RemoveStreammuxPph(DSL_PPH_PTR pHandler, 
+        streammux_type streammux)
+    {
+        LOG_FUNC();
+
+        return (pHandler->RemoveFromParent(
+            m_pPipelineSourcesBintr->pVideomux, DSL_PAD_SRC));
+    }
+
     bool PipelineBintr::LinkAll()
     {
         LOG_FUNC();
@@ -335,31 +376,45 @@ namespace DSL
         {
             return false;
         }
-        m_linkedComponents.push_back(m_pPipelineSourcesBintr);
         
         LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
             m_pPipelineSourcesBintr->GetName() << "' successfully");
 
-        m_batchSize = GetStreammuxBatchSize();
+        m_batchSize = m_pPipelineSourcesBintr->GetBatchSize();
 
-        if (m_pStreammuxTilerBintr)
-        {
-            m_pStreammuxTilerBintr->SetLinkMethod(m_linkMethod);
-            m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
-            // Link All Tiler Elementrs and add as the next component in the Branch
-            if (!m_pStreammuxTilerBintr->LinkAll() or
-                !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
-            {
-                return false;
-            }
-            m_linkedComponents.push_back(m_pStreammuxTilerBintr);
-            LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
-                m_pStreammuxTilerBintr->GetName() 
-                << "' to the Streammuxer output successfully");
-        }
+        // if (m_pStreammuxTilerBintr)
+        // {
+        //     m_pStreammuxTilerBintr->SetLinkMethod(m_linkMethod);
+        //     m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
+        //     // Link All Tiler Elementrs and add as the next component in the Branch
+        //     if (!m_pStreammuxTilerBintr->LinkAll() or
+        //         !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
+        //     {
+        //         return false;
+        //     }
+        //     m_linkedComponents.push_back(m_pStreammuxTilerBintr);
+        //     LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
+        //         m_pStreammuxTilerBintr->GetName() 
+        //         << "' to the Streammuxer output successfully");
+        // }
 
         // call the base class to Link all remaining components.
-        return BranchBintr::LinkAll(); 
+        return (BranchBintr::LinkAll() and 
+            m_pPipelineSourcesBintr->LinkVideoToSink(m_linkedComponents.front()));
+    }
+
+    void PipelineBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("PipelineBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        BranchBintr::UnlinkAll();
+        m_pPipelineSourcesBintr->UnlinkVideoFromSink();
+        m_pPipelineSourcesBintr->UnlinkAll();
     }
 
     bool PipelineBintr::Play()
@@ -376,7 +431,7 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pPipelineSourcesBintr->StreammuxPlayTypeIsLiveGet())
+            if (!m_pPipelineSourcesBintr->pVideomux->PlayTypeIsLiveGet())
             {
                 if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
                 {

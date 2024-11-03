@@ -152,8 +152,10 @@ namespace DSL
         LOG_FUNC();
 
         // Media type is fixed to "video/x-raw"
-        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
-        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
+        std::wstring L_mediaType(DSL_MEDIA_STRING_VIDEO_XRAW);
+        m_videoMediaString.assign(L_mediaType.begin(), L_mediaType.end());
+
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
 
         // Set the buffer-out-format to the default video format
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
@@ -758,7 +760,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        DslCaps Caps(m_mediaType.c_str(), m_bufferOutFormat.c_str(),
+        DslCaps Caps(m_videoMediaString.c_str(), m_bufferOutFormat.c_str(),
             m_bufferOutWidth, m_bufferOutHeight, 
             m_bufferOutFpsN, m_bufferOutFpsD, true);
 
@@ -988,7 +990,7 @@ namespace DSL
 
         // Set the full capabilities (format, dimensions, and framerate)
         // NVIDIA plugin = false... this is a GStreamer plugin
-        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), 
+        if (!set_full_caps(m_pSourceElement, m_videoMediaString.c_str(), 
             m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             throw;
@@ -1032,7 +1034,7 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -1268,7 +1270,7 @@ namespace DSL
 
         // Set the full capabilities (format, dimensions, and framerate)
         // NVIDIA plugin = false... this is a GStreamer plugin
-        if (!set_full_caps(m_pSourceElement, m_mediaType.c_str(), 
+        if (!set_full_caps(m_pSourceElement, m_videoMediaString.c_str(), 
             m_bufferInFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             return false;
@@ -1603,10 +1605,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Media type is fixed to "video/x-raw"
-        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
-        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
-
         // Set the buffer-out-format to the default video format
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
@@ -1637,7 +1635,7 @@ namespace DSL
         }
         // Set the full capabilities (format, dimensions, and framerate)
         // Note: nvarguscamerasrc supports NV12 and P010_10LE formats only.
-        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), "NV12",
+        if (!set_full_caps(m_pSourceCapsFilter, m_videoMediaString.c_str(), "NV12",
             m_width, m_height, m_fpsN, m_fpsD, true))
         {
             throw;
@@ -1657,7 +1655,7 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -1773,10 +1771,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Media type is fixed to "video/x-raw"
-        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
-        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
-
         // Set the buffer-out-format to the default video format
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
@@ -1799,7 +1793,7 @@ namespace DSL
         
         // Set the capabilities - do not set the format. 
         // Dimensions and framerate are set conditionally (non zero).
-        DslCaps Caps(m_mediaType.c_str(), NULL, 
+        DslCaps Caps(m_videoMediaString.c_str(), NULL, 
             m_width, m_height, m_fpsN, m_fpsD, false);
 
         m_pSourceCapsFilter->SetAttribute("caps", &Caps);
@@ -1825,7 +1819,7 @@ namespace DSL
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -1947,7 +1941,7 @@ namespace DSL
 
         // Set the capabilities - do not set the format. 
         // Dimensions and framerate are set conditionally (non zero).
-        DslCaps Caps(m_mediaType.c_str(), NULL, 
+        DslCaps Caps(m_videoMediaString.c_str(), NULL, 
             m_width, m_height, m_fpsN, m_fpsD, false);
 
         m_pSourceCapsFilter->SetAttribute("caps", &Caps);
@@ -1970,7 +1964,7 @@ namespace DSL
         
         // Set the capabilities - do not set the format. 
         // Dimensions and framerate are set conditionally (non zero).
-        DslCaps Caps(m_mediaType.c_str(), NULL, 
+        DslCaps Caps(m_videoMediaString.c_str(), NULL, 
             m_width, m_height, m_fpsN, m_fpsD, false);
 
         m_pSourceCapsFilter->SetAttribute("caps", &Caps);
@@ -2103,7 +2097,7 @@ namespace DSL
         LOG_INFO("  height              : " << m_height);
         LOG_INFO("  fps-n               : " << m_fpsN);
         LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out           : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out          : ");
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
@@ -2504,10 +2498,6 @@ namespace DSL
         // override the default source attributes
         m_isLive = False;
 
-        // Media type is fixed to "video/x-raw"
-        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
-        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
-
         // Set the buffer-out-format to the default video format
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
@@ -2585,7 +2575,7 @@ namespace DSL
         LOG_INFO("  mjpeg             : " << m_mjpeg);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -2758,7 +2748,7 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -2922,10 +2912,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // Media type is fixed to "video/x-raw"
-        std::wstring L_mediaType(DSL_MEDIA_TYPE_VIDEO_XRAW);
-        m_mediaType.assign(L_mediaType.begin(), L_mediaType.end());
-
         // Set the buffer-out-format to the default video format
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
@@ -2956,7 +2942,7 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -3033,7 +3019,7 @@ namespace DSL
 #endif        
         
         // Set the full capabilities (format and framerate)
-        if (!set_full_caps(m_pSourceCapsFilter, m_mediaType.c_str(), 
+        if (!set_full_caps(m_pSourceCapsFilter, m_videoMediaString.c_str(), 
             m_bufferOutFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             return false;
@@ -3171,7 +3157,7 @@ namespace DSL
         LOG_INFO("  height              : " << m_height);
         LOG_INFO("  fps-n               : " << m_fpsN);
         LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out           : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out          : ");
         LOG_INFO("    format            : " << m_bufferOutFormat);
         LOG_INFO("    width             : " << m_bufferOutWidth);
@@ -3391,7 +3377,7 @@ namespace DSL
         LOG_INFO("  height               : " << m_height);
         LOG_INFO("  fps-n                : " << m_fpsN);
         LOG_INFO("  fps-d                : " << m_fpsD);
-        LOG_INFO("  media-out            : " << m_mediaType << "(memory:NVMM)");
+        LOG_INFO("  media-out            : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out           : ");
         LOG_INFO("    format             : " << m_bufferOutFormat);
         LOG_INFO("    width              : " << m_bufferOutWidth);

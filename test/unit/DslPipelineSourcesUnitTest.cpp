@@ -61,16 +61,17 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
                 REQUIRE( pPipelineSourcesBintr->GetName() == pipelineSourcesName );
                 REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
                 
-                if (pPipelineSourcesBintr->UseNewStreammux())
+                if (pPipelineSourcesBintr->pVideomux->UseNewStreammux())
                 {
-                    std::string retConfigFile = pPipelineSourcesBintr->GetStreammuxConfigFile();
+                    std::string retConfigFile = 
+                        pPipelineSourcesBintr->pVideomux->GetConfigFile();
                     REQUIRE( retConfigFile == "" );
-                    REQUIRE( pPipelineSourcesBintr->GetStreammuxBatchSize() == 0 );
+                    REQUIRE( pPipelineSourcesBintr->pVideomux->GetBatchSize() == 0 );
                 } 
                 else
                 {
                     uint retWidth(0), retHeight(0);
-                    pPipelineSourcesBintr->GetStreammuxDimensions(&retWidth, &retHeight);
+                    pPipelineSourcesBintr->pVideomux->GetDimensions(&retWidth, &retHeight);
                     REQUIRE( retWidth == DSL_STREAMMUX_DEFAULT_WIDTH );
                     REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
                     
@@ -78,16 +79,16 @@ SCENARIO( "A PipelineSourcesBintr is created correctly", "[PipelineSourcesBintr]
                         ? DSL_NVBUF_MEM_TYPE_DEFAULT
                         : DSL_NVBUF_MEM_TYPE_CUDA_DEVICE;
                     
-                    REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == 
+                    REQUIRE( pPipelineSourcesBintr->pVideomux->GetNvbufMemType() == 
                         expectedType);
                     REQUIRE( retHeight == DSL_STREAMMUX_DEFAULT_HEIGHT );
-                    REQUIRE( pPipelineSourcesBintr->GetStreammuxPaddingEnabled() == 
+                    REQUIRE( pPipelineSourcesBintr->pVideomux->GetPaddingEnabled() == 
                         FALSE );
                 }
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame() == 1 );
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxAttachSysTsEnabled() == TRUE );
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxSyncInputsEnabled() == FALSE );
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxMaxLatency() == 0 );
+                REQUIRE( pPipelineSourcesBintr->pVideomux->GetNumSurfacesPerFrame() == 1 );
+                REQUIRE( pPipelineSourcesBintr->pVideomux->GetAttachSysTsEnabled() == TRUE );
+                REQUIRE( pPipelineSourcesBintr->pVideomux->GetSyncInputsEnabled() == FALSE );
+                REQUIRE( pPipelineSourcesBintr->pVideomux->GetMaxLatency() == 0 );
             }
         }
     }
@@ -125,7 +126,7 @@ SCENARIO( "Removing a single Source from a PipelineSourcesBintr is managed corre
 {
     GIVEN( "A Pipeline Sources Bintr with a Source in memory" ) 
     {
-        std::string sourceName = "csi-source";
+        std::string sourceName = "uri-source";
         std::string pipelineSourcesName = "pipeline-sources";
 
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
@@ -189,7 +190,6 @@ SCENARIO( "Linking a single Source to a Pipeline Streammux is managed correctly"
     }
 }
 
-
 SCENARIO( "Linking multiple Sources to a Streammux is managed correctly",
     "[PipelineSourcesBintr]" )
 {
@@ -200,15 +200,15 @@ SCENARIO( "Linking multiple Sources to a Streammux is managed correctly",
 
         DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
             sourceName0.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr0->GetVideoRequestPadId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr1  = DSL_URI_SOURCE_NEW(
             sourceName1.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr1->GetVideoRequestPadId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr2 = DSL_URI_SOURCE_NEW(
             sourceName2.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr2->GetVideoRequestPadId() == -1 );
 
         REQUIRE( pPipelineSourcesBintr->AddChild(
             std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
@@ -226,13 +226,13 @@ SCENARIO( "Linking multiple Sources to a Streammux is managed correctly",
             THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
             {
                 REQUIRE( pSourceBintr0->IsInUse() == true );
-                REQUIRE( pSourceBintr0->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr0->GetVideoRequestPadId() == 0 );
                 REQUIRE( pSourceBintr0->IsLinkedToSink() == true );
                 REQUIRE( pSourceBintr1->IsInUse() == true );
-                REQUIRE( pSourceBintr1->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr1->GetVideoRequestPadId() == 1 );
                 REQUIRE( pSourceBintr1->IsLinkedToSink() == true );
                 REQUIRE( pSourceBintr2->IsInUse() == true );
-                REQUIRE( pSourceBintr2->GetRequestPadId() == 2 );
+                REQUIRE( pSourceBintr2->GetVideoRequestPadId() == 2 );
                 REQUIRE( pSourceBintr2->IsLinkedToSink() == true );
             }
         }
@@ -296,32 +296,32 @@ SCENARIO( "Linking and unlinking multiple Sources to multiple Streammuxers is ma
 
         DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
             sourceName0.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr0->GetVideoRequestPadId() == -1 );
         REQUIRE( pSourceBintr0->GetUniqueId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr1  = DSL_URI_SOURCE_NEW(
             sourceName1.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr1->GetVideoRequestPadId() == -1 );
         REQUIRE( pSourceBintr1->GetUniqueId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr2 = DSL_URI_SOURCE_NEW(
             sourceName2.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr2->GetVideoRequestPadId() == -1 );
         REQUIRE( pSourceBintr2->GetUniqueId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr3 = DSL_URI_SOURCE_NEW(
             sourceName3.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr3->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr3->GetVideoRequestPadId() == -1 );
         REQUIRE( pSourceBintr3->GetUniqueId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr4  = DSL_URI_SOURCE_NEW(
             sourceName4.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr4->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr4->GetVideoRequestPadId() == -1 );
         REQUIRE( pSourceBintr4->GetUniqueId() == -1 );
 
         DSL_URI_SOURCE_PTR pSourceBintr5 = DSL_URI_SOURCE_NEW(
             sourceName5.c_str(), filePath.c_str(), false, false, 0);
-        REQUIRE( pSourceBintr5->GetRequestPadId() == -1 );
+        REQUIRE( pSourceBintr5->GetVideoRequestPadId() == -1 );
         REQUIRE( pSourceBintr5->GetUniqueId() == -1 );
 
         REQUIRE( pPipelineSourcesBintr0->AddChild(
@@ -352,32 +352,32 @@ SCENARIO( "Linking and unlinking multiple Sources to multiple Streammuxers is ma
             {
                 REQUIRE( pSourceBintr0->IsInUse() == true );
                 REQUIRE( pSourceBintr0->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr0->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr0->GetVideoRequestPadId() == 0 );
                 REQUIRE( pSourceBintr0->GetUniqueId() == 0x00000000 );
 
                 REQUIRE( pSourceBintr1->IsInUse() == true );
                 REQUIRE( pSourceBintr1->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr1->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr1->GetVideoRequestPadId() == 1 );
                 REQUIRE( pSourceBintr1->GetUniqueId() == 0x00000001 );
 
                 REQUIRE( pSourceBintr2->IsInUse() == true );
                 REQUIRE( pSourceBintr2->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr2->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr2->GetVideoRequestPadId() == 0 );
                 REQUIRE( pSourceBintr2->GetUniqueId() == 0x00010000 );
 
                 REQUIRE( pSourceBintr3->IsInUse() == true );
                 REQUIRE( pSourceBintr3->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr3->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr3->GetVideoRequestPadId() == 1 );
                 REQUIRE( pSourceBintr3->GetUniqueId() == 0x00010001 );
 
                 REQUIRE( pSourceBintr4->IsInUse() == true );
                 REQUIRE( pSourceBintr4->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr4->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr4->GetVideoRequestPadId() == 0 );
                 REQUIRE( pSourceBintr4->GetUniqueId() == 0x00020000 );
 
                 REQUIRE( pSourceBintr5->IsInUse() == true );
                 REQUIRE( pSourceBintr5->IsLinkedToSink() == true );
-                REQUIRE( pSourceBintr5->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr5->GetVideoRequestPadId() == 1 );
                 REQUIRE( pSourceBintr5->GetUniqueId() == 0x00020001 );
 
             }
@@ -469,16 +469,16 @@ SCENARIO( "The Pipeline Streammuxer's num-surfaces-per-frame can be read and upd
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
-        REQUIRE( pPipelineSourcesBintr->GetStreammuxNumSurfacesPerFrame() == 1 );
+        REQUIRE( pPipelineSourcesBintr->pVideomux->GetNumSurfacesPerFrame() == 1 );
             
         WHEN( "The Stream Muxer's num-surfaces-per-frame is set to a new value " )
         {
-            pPipelineSourcesBintr->SetStreammuxNumSurfacesPerFrame(2);
+            pPipelineSourcesBintr->pVideomux->SetNumSurfacesPerFrame(2);
              
             THEN( "The correct value is returned on get" )
             {
                 REQUIRE( pPipelineSourcesBintr->
-                    GetStreammuxNumSurfacesPerFrame() == 2 );
+                    pVideomux->GetNumSurfacesPerFrame() == 2 );
             }
         }
     }
@@ -492,16 +492,16 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
         DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
             DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
 
-        if (!pPipelineSourcesBintr->UseNewStreammux())
+        if (!pPipelineSourcesBintr->pVideomux->UseNewStreammux())
         {
             if (dsl_info_gpu_type_get(0) == DSL_GPU_TYPE_INTEGRATED)
             {
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
+                REQUIRE( pPipelineSourcesBintr->pVideomux->GetNvbufMemType() 
                     == DSL_NVBUF_MEM_TYPE_DEFAULT );
             }
             else
             {
-                REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() 
+                REQUIRE( pPipelineSourcesBintr->pVideomux->GetNvbufMemType() 
                     == DSL_NVBUF_MEM_TYPE_CUDA_DEVICE );
             }
                 
@@ -517,11 +517,11 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
                     newNvbufMemType = DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED;
                 }
             
-                pPipelineSourcesBintr->SetStreammuxNvbufMemType(newNvbufMemType);
+                pPipelineSourcesBintr->pVideomux->SetNvbufMemType(newNvbufMemType);
                  
                 THEN( "The correct value is returned on get" )
                 {
-                    REQUIRE( pPipelineSourcesBintr->GetStreammuxNvbufMemType() == newNvbufMemType );
+                    REQUIRE( pPipelineSourcesBintr->pVideomux->GetNvbufMemType() == newNvbufMemType );
                 }
             }
         }

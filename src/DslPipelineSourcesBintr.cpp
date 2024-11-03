@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,94 +35,12 @@ namespace DSL
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
         , m_areSourcesLive(false)
-        , m_batchSizeSetByClient(false)
-        , m_frameDuration(-1)   // workaround for nvidia bug
-        , m_useNewStreammux(false)
     {
         LOG_FUNC();
 
-        const char* value = getenv("USE_NEW_NVSTREAMMUX");
-        if (value and std::string(value) == "yes")
+        if (!SetStreammuxEnabled(DSL_VIDEOMUX, true))
         {
-            LOG_WARN(
-                "USE_NEW_NVSTREAMMUX is set to yes - enabling new Streammux Services");
-            m_useNewStreammux = true;
-        }
-
-        // Need to forward all children messages for this PipelineSourcesBintr,
-        // which is the parent bin for the Pipeline's Streammux, so the Pipeline
-        // can be notified of individual source EOS events. 
-        g_object_set(m_pGstObj, "message-forward", TRUE, NULL);
-  
-        // Single Stream Muxer element for all Sources 
-        m_pStreammux = DSL_ELEMENT_NEW("nvstreammux", name);
-        
-        // Get property defaults that aren't specifically set
-        m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
-        m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
-        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
-        m_pStreammux->GetAttribute("drop-pipeline-eos", &m_dropPipelineEos);
-
-        // IMPORTANT! NVIDIA bug - always returns 18446744073709.
-//        m_pStreammux->GetAttribute("frame-duration", &frameDuration);
-        m_frameDuration = GST_CLOCK_TIME_NONE;
-        
-        LOG_INFO("");
-        LOG_INFO("Initial property values for Streammux '" << name << "'");
-        LOG_INFO("  num-surfaces-per-frame : " << m_numSurfacesPerFrame);
-        LOG_INFO("  attach-sys-ts          : " << m_attachSysTs);
-        LOG_INFO("  sync-inputs            : " << m_syncInputs);
-        LOG_INFO("  max-latency            : " << m_maxLatency);
-        LOG_INFO("  frame-duration         : " << m_frameDuration);
-        LOG_INFO("  drop-pipeline-eos      : " << m_dropPipelineEos);
-
-        if (!m_useNewStreammux)
-        {
-            // Must update the default dimensions of 0x0 or the Pipeline
-            // will fail to play;
-            SetStreammuxDimensions(DSL_STREAMMUX_DEFAULT_WIDTH, 
-                DSL_STREAMMUX_DEFAULT_HEIGHT);
-                
-            m_pStreammux->GetAttribute("batched-push-timeout", &m_batchTimeout);
-            m_pStreammux->GetAttribute("enable-padding", &m_isPaddingEnabled);
-            m_pStreammux->GetAttribute("gpu-id", &m_gpuId);
-            m_pStreammux->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
-            m_pStreammux->GetAttribute("buffer-pool-size", &m_bufferPoolSize);
-            
-            LOG_INFO("  width                  : " << m_streamMuxWidth);
-            LOG_INFO("  height                 : " << m_streamMuxHeight);
-            LOG_INFO("  batched-push-timeout   : " << m_batchTimeout);
-            LOG_INFO("  enable-padding         : " << m_isPaddingEnabled);
-            LOG_INFO("  gpu-id                 : " << m_gpuId);
-            LOG_INFO("  nvbuf-memory-type      : " << m_nvbufMemType);
-            LOG_INFO("  buffer-pool-size       : " << m_bufferPoolSize);
-        }
-
-        AddChild(m_pStreammux);
-
-        // Float the Streammux as a src Ghost Pad for this PipelineSourcesBintr
-        m_pStreammux->AddGhostPadToParent("src");
-
-        // Add the Buffer and DS Event Probes to the Streammuxer - src-pad only.
-        AddSrcPadProbes(m_pStreammux->GetGstElement());
-        
-        // If the unqiue pipeline-id is greater than 0, then we need to add the
-        // SourceIdOffsetterPadProbeHandler to offset every source-id found in
-        // the frame-metadata produced by the streammux plugin. 
-        if (m_uniquePipelineId > 0)
-        {
-            LOG_INFO("Adding source-id-offsetter to PipelineSourcesBintr '"
-                << GetName() << "' with unique Pipeline-id = " << m_uniquePipelineId);
-
-            // Create the specialized pad-probe-handler to offset all source-ids'
-            std::string bufferHandlerName = GetName() + "-source-id-offsetter";
-            m_pSourceIdOffsetter = DSL_PPH_SOURCE_ID_OFFSETTER_NEW(
-                bufferHandlerName.c_str(), 
-                (m_uniquePipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS));
-
-            // Add the specialized handler to the buffer-pad-probe. 
-            m_pSrcPadBufferProbe->AddPadProbeHandler(m_pSourceIdOffsetter);
+            throw std::exception();
         }
     }
     
@@ -146,7 +64,30 @@ namespace DSL
     bool PipelineSourcesBintr::AddChild(DSL_SOURCE_PTR pChildSource)
     {
         LOG_FUNC();
-        
+
+        // Ensure that the correct Streammux is enabled for this type of Source        
+        if (!GetStreammuxEnabled(DSL_VIDEOMUX) and 
+            !GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            LOG_ERROR("Can't add Source '" << pChildSource->GetName() 
+                << "'. The Pipeline's Audiomux and Videomux are currently disabled'");
+            return false;
+        }
+        if ((pChildSource->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            !GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            LOG_ERROR("Can't add audio-only Source '" << pChildSource->GetName() 
+                << "' The Pipeline's Audiomux is currently disabled'");
+            return false;
+        }
+        if ((pChildSource->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            !GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            LOG_ERROR("Can't add video-only Source '" << pChildSource->GetName() 
+                << "' The Pipeline's Videomux is currently disabled'");
+            return false;
+        }
+
         // Ensure source uniqueness
         if (IsChild(pChildSource))
         {
@@ -154,7 +95,7 @@ namespace DSL
                 << "' is already a child of '" << GetName() << "'");
             return false;
         }
-        
+
         // Set the play type based on the first source added
         if (m_pChildSources.size() == 0)
         {
@@ -167,51 +108,27 @@ namespace DSL
                 << GetName() << "' with IsLive=" << StreammuxPlayTypeIsLiveGet());
             return false;
         }
-        // If we're adding an RTSP Source, determine if EOS consumer 
-        // should be added to Streammuxer
-        if (pChildSource->IsType(typeid(RtspSourceBintr)) 
-            and m_pEosConsumer == nullptr)
-        {
-            DSL_RTSP_SOURCE_PTR pRtspSource = 
-                std::dynamic_pointer_cast<RtspSourceBintr>(pChildSource);
-            
-            // If stream management is enabled for at least one RTSP source, 
-            // add the EOS Consumer
-            if (pRtspSource->GetBufferTimeout())
-            {
-                LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
-                
-                // Create the Pad Probe and EOS Consumer to drop the EOS event that 
-                // occurs on loss of RTSP stream, allowing the Pipeline to continue 
-                // to play. Each RTSP source will then manage their own restart 
-                // attempts and time management.
-
-                std::string eventHandlerName = GetName() + "-eos-consumer";
-                m_pEosConsumer = DSL_PPEH_EOS_CONSUMER_NEW(eventHandlerName.c_str());
-                m_pSrcPadDsEventProbe->AddPadProbeHandler(m_pEosConsumer);
-            }
-        }
         
         uint padId(0);
         
         // find the next available unused stream-id
-        auto ivec = find(m_usedRequestPadIds.begin(), 
-            m_usedRequestPadIds.end(), false);
+        auto ivec = find(pVideomux->m_usedRequestPadIds.begin(), 
+            pVideomux->m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
-        if (ivec != m_usedRequestPadIds.end())
+        if (ivec != pVideomux->m_usedRequestPadIds.end())
         {
-            padId = ivec - m_usedRequestPadIds.begin();
-            m_usedRequestPadIds[padId] = true;
+            padId = ivec - pVideomux->m_usedRequestPadIds.begin();
+            pVideomux->m_usedRequestPadIds[padId] = true;
         }
         // Else we're adding to the end of th indexed map
         else
         {
-            padId = m_usedRequestPadIds.size();
-            m_usedRequestPadIds.push_back(true);
+            padId = pVideomux->m_usedRequestPadIds.size();
+            pVideomux->m_usedRequestPadIds.push_back(true);
         }            
         // Set the source's request sink pad-id
-        pChildSource->SetRequestPadId(padId);
+        pChildSource->SetVideoRequestPadId(padId);
 
         // Set the sources unique id by shifting/or-ing the unique pipeline-id
         // with the source's pad-id -- combined, they are gauranteed to be unique.
@@ -245,14 +162,15 @@ namespace DSL
             std::string sinkPadName = "sink_" + std::to_string(padId);
             
             if (!pChildSource->LinkAll() or 
-                !pChildSource->LinkToSinkMuxer(m_pStreammux, sinkPadName.c_str()))
+                !pChildSource->LinkToSinkMuxer(pVideomux->Get(),
+                sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" 
                     << pChildSource->GetName() << "'");
                 return false;
             }
-            if (!m_batchSizeSetByClient)
+            if (!pVideomux->m_batchSizeSetByClient)
             {
                 // Increment the current batch-size
                 m_batchSize++;
@@ -293,7 +211,7 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_INFO("Unlinking " << m_pStreammux->GetName() << " from " 
+            LOG_INFO("Unlinking " << &pVideomux->GetName() << " from " 
                 << pChildSource->GetName());
                 
             // unlink the source from the Streammuxer
@@ -307,7 +225,7 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
 
-            if (!m_batchSizeSetByClient)
+            if (!pVideomux->m_batchSizeSetByClient)
             {
                 // Decrement the current batch-size
                 m_batchSize--;
@@ -317,12 +235,12 @@ namespace DSL
         Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
         
         // unreference and remove from the child source collections
-        m_pChildSources.erase(pChildSource->GetName());
-        m_pChildSourcesIndexed.erase(pChildSource->GetRequestPadId());
+        m_pChildSources.erase(pChildSource->GetName()); 
+        m_pChildSourcesIndexed.erase(pChildSource->GetVideoRequestPadId());
 
         // set the used-stream id as available for reuse
-        m_usedRequestPadIds[pChildSource->GetRequestPadId()] = false;
-        pChildSource->SetRequestPadId(-1);
+        pVideomux->m_usedRequestPadIds[pChildSource->GetVideoRequestPadId()] = false;
+        pChildSource->SetVideoRequestPadId(-1);
         pChildSource->SetUniqueId(-1);
         
         // call the base function to complete the remove
@@ -343,10 +261,10 @@ namespace DSL
         for (auto const& imap: m_pChildSourcesIndexed)
         {
             std::string sinkPadName = 
-                "sink_" + std::to_string(imap.second->GetRequestPadId());
+                "sink_" + std::to_string(imap.second->GetVideoRequestPadId());
             
             if (!imap.second->LinkAll() or 
-                !imap.second->LinkToSinkMuxer(m_pStreammux,
+                !imap.second->LinkToSinkMuxer(pVideomux->Get(),
                     sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
@@ -354,12 +272,35 @@ namespace DSL
                     << imap.second->GetName() << "'");
                 return false;
             }
+            // If we're linking an RTSP Source, determine if EOS consumer 
+            // should be added to Streammuxer
+            if (imap.second->IsType(typeid(RtspSourceBintr)) 
+                and !pVideomux->HasEosConsumer())
+            {
+                DSL_RTSP_SOURCE_PTR pRtspSource = 
+                    std::dynamic_pointer_cast<RtspSourceBintr>(imap.second);
+                
+                // If stream management is enabled for at least one RTSP source, 
+                // add the EOS Consumer
+                if (pRtspSource->GetBufferTimeout())
+                {
+                    LOG_INFO("Adding EOS Consumer to Streammuxer 'src' pad on first RTSP Source");
+                    
+                    // Create the Pad Probe and EOS Consumer to drop the EOS event that 
+                    // occurs on loss of RTSP stream, allowing the Pipeline to continue 
+                    // to play. Each RTSP source will then manage their own restart 
+                    // attempts and time management.
+
+                    pVideomux->AddEosConsumer();
+                }
+            }
+
         }
         // Set the Batch size to the nuber of sources owned if not already set
-        if (!m_batchSizeSetByClient)
+        if (!pVideomux->m_batchSizeSetByClient)
         {
             m_batchSize = m_pChildSources.size();
-            m_pStreammux->SetAttribute("batch-size", m_batchSize);
+            pVideomux->Get()->SetAttribute("batch-size", m_batchSize);
         }
         m_isLinked = true;
         
@@ -378,7 +319,7 @@ namespace DSL
         for (auto const& imap: m_pChildSources)
         {
             // unlink from the Streammuxer
-            LOG_INFO("Unlinking " << m_pStreammux->GetName() 
+            LOG_INFO("Unlinking " << &pVideomux->GetName() 
                 << " from " << imap.second->GetName());
             if (!imap.second->UnlinkFromSinkMuxer())
             {   
@@ -391,28 +332,62 @@ namespace DSL
             imap.second->UnlinkAll();
         }
         // Set the Batch size to the nuber of sources owned if not already set
-        if (!m_batchSizeSetByClient)
+        if (!pVideomux->m_batchSizeSetByClient)
         {
             m_batchSize = 0;
         }
         m_isLinked = false;
     }
-    
-    void PipelineSourcesBintr::EosAll()
+
+    boolean PipelineSourcesBintr::GetStreammuxEnabled(streammux_type streammux)
     {
         LOG_FUNC();
-        
-        // Send EOS message to each source object.
-        for (auto const& imap: m_pChildSources)
-        {
-            LOG_INFO("Sending EOS for Source "  << imap.second->GetName());
-            imap.second->NullSrcEosSinkMuxer();
-            // gst_element_send_event(imap.second->GetGstElement(), 
-            //     gst_event_new_eos());
-        }
+
+        DSL_STREAMMUX_PTR pStreammux = (streammux == DSL_VIDEOMUX)
+            ? pVideomux
+            : pAudiomux;
+    
+        return (boolean)(pStreammux != nullptr);
     }
-    
-    
+
+    bool PipelineSourcesBintr::SetStreammuxEnabled(streammux_type streammux, 
+        boolean enabled)
+    {
+        LOG_FUNC();
+
+        if (m_pChildSources.size())
+        {
+            LOG_ERROR("Can't update enabled property for StreammuxBintr '" 
+                << GetName() << "' after Sources have been added");
+            return false;
+        }
+        DSL_STREAMMUX_PTR pStreammux = (streammux == DSL_VIDEOMUX)
+            ? pVideomux
+            : pAudiomux;
+
+        if (enabled == (boolean)(pStreammux != nullptr))
+        {
+            LOG_ERROR("Can't set enabled property for StreammuxBintr '" 
+                << GetName() << "' to its current state of " << enabled);
+            return false;
+        }
+        if (streammux == DSL_VIDEOMUX)
+        {
+            pVideomux = (enabled)
+                ? DSL_STREAMMUX_NEW("video-streammux-", 
+                    GetGstObject(), m_uniquePipelineId, "video_src")
+                : nullptr;
+        }
+        else
+        {
+            pAudiomux = (enabled)
+                ? DSL_STREAMMUX_NEW("audio-streammux-", 
+                    GetGstObject(), m_uniquePipelineId, "audio_src")
+                : nullptr;
+        }
+        return true;
+    }
+
     bool PipelineSourcesBintr::StreammuxPlayTypeIsLiveGet()
     {
         LOG_FUNC();
@@ -426,309 +401,50 @@ namespace DSL
         
         if (m_isLinked)
         {
-            LOG_ERROR("Can't update live-source property for PipelineSourcesBintr '" 
+            LOG_ERROR("Can't update live-source property for StreammuxBintr '" 
                 << GetName() << "' as it's currently linked");
             return false;
         }
 
         m_areSourcesLive = isLive;
-        
-        if (!m_useNewStreammux)
+
+        if (GetStreammuxEnabled(DSL_AUDIOMUX))
         {
-            LOG_INFO("'live-source' attrubute set to '" << m_areSourcesLive 
-                << "' for Streammuxer '" << GetName() << "'");
-            
-            m_pStreammux->SetAttribute("live-source", m_areSourcesLive);
+            pAudiomux->PlayTypeIsLiveSet(isLive);    
+        }
+        if (GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            pVideomux->PlayTypeIsLiveSet(isLive);
         }
         return true;
     }
 
-    const char* PipelineSourcesBintr::GetStreammuxConfigFile()
-    {
-        return m_streammuxConfigFile.c_str();
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxConfigFile(const char* configFile)
+    void PipelineSourcesBintr::EosAll()
     {
         LOG_FUNC();
-
-        if (m_isLinked)
+        
+        // Send EOS message to each source object.
+        for (auto const& imap: m_pChildSources)
         {
-            LOG_ERROR("Can't update config-file for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
+            LOG_INFO("Sending EOS for Source "  << imap.second->GetName());
+            imap.second->NullSrcEosSinkMuxer();
+            // gst_element_send_event(imap.second->GetGstElement(), 
+            //     gst_event_new_eos());
         }
-
-        m_streammuxConfigFile = configFile;
-        m_pStreammux->SetAttribute("config-file-path", 
-            m_streammuxConfigFile.c_str());
-        
-        return true;
-    }
-    
-    uint PipelineSourcesBintr::GetStreammuxBatchSize()
-    {
-        LOG_FUNC();
-
-        return m_batchSize;
-    }
-
-    bool PipelineSourcesBintr::SetStreammuxBatchSize(uint batchSize)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update batch-size for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        // Important! once set, this flag cannot be unset.
-        m_batchSizeSetByClient = true;
-        m_batchSize = batchSize;
-        m_pStreammux->SetAttribute("batch-size", m_batchSize);
-        
-        return true;
-    }
-    
-    uint PipelineSourcesBintr::GetStreammuxNumSurfacesPerFrame()
-    {
-        LOG_FUNC();
-        
-        m_pStreammux->GetAttribute("num-surfaces-per-frame", &m_numSurfacesPerFrame);
-        return m_numSurfacesPerFrame;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxNumSurfacesPerFrame(uint num)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR(
-                "Can't update num-surfaces-per-frame for PipelineSourcesBintr '"
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_numSurfacesPerFrame = num;
-        m_pStreammux->SetAttribute("num-surfaces-per-frame", m_numSurfacesPerFrame);
-        
-        return true;
-    }
-
-    boolean PipelineSourcesBintr::GetStreammuxSyncInputsEnabled()
-    {
-        LOG_FUNC();
-        
-        m_pStreammux->GetAttribute("sync-inputs", &m_syncInputs);
-        return m_syncInputs;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxSyncInputsEnabled(boolean enabled)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update sync-input for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_syncInputs = enabled;
-        m_pStreammux->SetAttribute("sync-inputs", m_syncInputs);
-        
-        return true;
-    }
-
-    boolean PipelineSourcesBintr::GetStreammuxAttachSysTsEnabled()
-    {
-        LOG_FUNC();
-        
-        m_pStreammux->GetAttribute("attach-sys-ts", &m_attachSysTs);
-        return m_attachSysTs;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxAttachSysTsEnabled(boolean enabled)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update sync-input for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_attachSysTs = enabled;
-        m_pStreammux->SetAttribute("attach-sys-ts", m_attachSysTs);
-        
-        return true;
-    }
-
-    boolean PipelineSourcesBintr::GetStreammuxMaxLatency()
-    {
-        LOG_FUNC();
-        
-        m_pStreammux->GetAttribute("max-latency", &m_maxLatency);
-        return m_maxLatency;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxMaxLatency(uint maxLatency)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update max-latency property for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_maxLatency = maxLatency;
-        m_pStreammux->SetAttribute("max-latency", m_maxLatency);
-        
-        return true;
     }
 
     void PipelineSourcesBintr::DisableEosConsumers()
     {
+        // Call on all Sources to disable their EOS consumer if one
+        // has been added.
         for (auto const& imap: m_pChildSources)
         {
             imap.second->DisableEosConsumer();
         }
-        // If at lease one RTSP Source was added and the EOS Consumer
-        // needs to be removed. 
-        if (m_pEosConsumer)
-        {
-            m_pSrcPadDsEventProbe->RemovePadProbeHandler(m_pEosConsumer);
-        }
+        // Call on the Streammuxer to do the same.
+
+        pVideomux->RemoveEosConsumer();
     }
 
-    void PipelineSourcesBintr::GetStreammuxBatchProperties(uint* batchSize, 
-        int* batchTimeout)
-    {
-        LOG_FUNC();
-
-        *batchSize = m_batchSize;
-        *batchTimeout = m_batchTimeout;
-    }
-
-    bool PipelineSourcesBintr::SetStreammuxBatchProperties(uint batchSize, 
-        int batchTimeout)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update batch properties for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_batchSizeSetByClient = true;
-        m_batchSize = batchSize;
-        m_batchTimeout = batchTimeout;
-
-        m_pStreammux->SetAttribute("batch-size", m_batchSize);
-        m_pStreammux->SetAttribute("batched-push-timeout", m_batchTimeout);
-        
-        return true;
-    }
-    
-    uint PipelineSourcesBintr::GetStreammuxNvbufMemType()
-    {
-        LOG_FUNC();
-
-        return m_nvbufMemType;
-    }
-
-    bool PipelineSourcesBintr::SetStreammuxNvbufMemType(uint type)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update nvbuf-memory-type for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-        m_nvbufMemType = type;
-        m_pStreammux->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
-        
-        return true;
-    }
-
-    bool PipelineSourcesBintr::SetGpuId(uint gpuId)
-    {
-        LOG_FUNC();
-        
-        if (IsLinked())
-        {
-            LOG_ERROR("Unable to set GPU ID for Pipeline '" << GetName() 
-                << "' as it's currently linked");
-            return false;
-        }
-        m_gpuId = gpuId;
-        m_pStreammux->SetAttribute("gpu-id", m_gpuId);
-        
-        LOG_INFO("PipelineSourcesBintr '" << GetName() 
-            << "' - new GPU ID = " << m_gpuId );
-            
-        return true;
-    }
-
-    void PipelineSourcesBintr::GetStreammuxDimensions(uint* width, uint* height)
-    {
-        LOG_FUNC();
-        
-        *width = m_streamMuxWidth;
-        *height = m_streamMuxHeight;
-    }
-
-    bool PipelineSourcesBintr::SetStreammuxDimensions(uint width, uint height)
-    {
-        LOG_FUNC();
-
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update Streammux dimensions for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_streamMuxWidth = width;
-        m_streamMuxHeight = height;
-
-        m_pStreammux->SetAttribute("width", m_streamMuxWidth);
-        m_pStreammux->SetAttribute("height", m_streamMuxHeight);
-        
-        return true;
-    }
-    
-    boolean PipelineSourcesBintr::GetStreammuxPaddingEnabled()
-    {
-        LOG_FUNC();
-        
-        return m_isPaddingEnabled;
-    }
-    
-    bool PipelineSourcesBintr::SetStreammuxPaddingEnabled(boolean enabled)
-    {
-        LOG_FUNC();
-        
-        if (m_isLinked)
-        {
-            LOG_ERROR("Can't update enable-padding property for PipelineSourcesBintr '" 
-                << GetName() << "' as it's currently linked");
-            return false;
-        }
-
-        m_isPaddingEnabled = enabled;
-        
-        m_pStreammux->SetAttribute("enable-padding", m_isPaddingEnabled);
-        return true;
-    }
 
 }

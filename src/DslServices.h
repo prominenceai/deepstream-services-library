@@ -916,7 +916,7 @@ namespace DSL {
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
         DslReturnType SourceMediaTypeGet(const char* name, 
-            const char** mediaType);
+            uint* mediaType);
 
         DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
             const char** format);
@@ -1792,44 +1792,50 @@ namespace DSL {
         //----------------------------------------------------------------------------
 
         DslReturnType PipelineStreammuxConfigFileGet(const char* name, 
-            const char** configFile);
+            streammux_type streammux, const char** configFile);
             
         DslReturnType PipelineStreammuxConfigFileSet(const char* name, 
-            const char* configFile);
+            streammux_type streammux, const char* configFile);
             
         DslReturnType PipelineStreammuxBatchSizeGet(const char* name,
-            uint* batchSize);
+            streammux_type streammux, uint* batchSize);
 
         DslReturnType PipelineStreammuxBatchSizeSet(const char* name,
-            uint batchSize);
+            streammux_type streammux, uint batchSize);
 
         //----------------------------------------------------------------------------
-        // NEW STREAMMUX SERVICES - End
+        // COMMON STREAMMUX SERVICES - End
         //----------------------------------------------------------------------------
+
+        DslReturnType PipelineStreammuxEnabledGet(const char* name, 
+            streammux_type streammux, boolean* enabled);
+
+        DslReturnType PipelineStreammuxEnabledSet(const char* name, 
+            streammux_type streammux, boolean enabled);
 
         DslReturnType PipelineStreammuxNumSurfacesPerFrameGet(const char* name, 
-            uint* num);
+            streammux_type streammux, uint* num);
 
         DslReturnType PipelineStreammuxNumSurfacesPerFrameSet(const char* name, 
-            uint num);
+            streammux_type streammux, uint num);
         
         DslReturnType PipelineStreammuxAttachSysTsEnabledGet(const char* name, 
-            boolean* enabled);
+            streammux_type streammux, boolean* enabled);
 
         DslReturnType PipelineStreammuxAttachSysTsEnabledSet(const char* name, 
-            boolean enabled);
+            streammux_type streammux, boolean enabled);
 
         DslReturnType PipelineStreammuxSyncInputsEnabledGet(const char* name, 
-            boolean* enabled);
+            streammux_type streammux, boolean* enabled);
 
         DslReturnType PipelineStreammuxSyncInputsEnabledSet(const char* name, 
-            boolean enabled);
+            streammux_type streammux, boolean enabled);
 
         DslReturnType PipelineStreammuxMaxLatencyGet(const char* name, 
-            uint* maxLatency);
+            streammux_type streammux, uint* maxLatency);
         
         DslReturnType PipelineStreammuxMaxLatencySet(const char* name, 
-            uint maxLatency);
+            streammux_type streammux, uint maxLatency);
 
         //----------------------------------------------------------------------------
         // OLD STREAMMUX SERVICES - Start
@@ -1870,10 +1876,10 @@ namespace DSL {
         DslReturnType PipelineStreammuxTilerRemove(const char* name);
 
         DslReturnType PipelineStreammuxPphAdd(const char* name, 
-            const char* handler);
+            streammux_type streammux, const char* handler);
 
         DslReturnType PipelineStreammuxPphRemove(const char* name, 
-            const char* handler);
+            streammux_type streammux, const char* handler);
         
         DslReturnType PipelineLinkMethodGet(const char* name, uint* linkMethod);
         

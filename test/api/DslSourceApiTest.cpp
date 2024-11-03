@@ -399,12 +399,10 @@ SCENARIO( "A new App Source returns the correct attribute values",
                 // BUFFER-OUT DEFAULTS COMMON TO ALL SOURCES - ONLY TESTED HERE.
 
                 // test returned media-type
-                const wchar_t* ret_media_cstrint;
+                uint ret_media_type(DSL_MEDIA_TYPE_AUDIO_ONLY);
                 REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
-                    &ret_media_cstrint) == DSL_RESULT_SUCCESS );
-                std::wstring exp_media_string(DSL_MEDIA_TYPE_VIDEO_XRAW);
-                std::wstring ret_media_string(ret_media_cstrint);
-                REQUIRE( exp_media_string == ret_media_cstrint );
+                    &ret_media_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_media_type == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 // test returned default buffer-out-format
                 const wchar_t* ret_format_cstrint;

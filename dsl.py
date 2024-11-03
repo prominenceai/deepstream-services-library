@@ -4176,11 +4176,11 @@ def dsl_source_frame_rate_get(name):
 ##
 ## dsl_source_media_type_get()
 ##
-_dsl.dsl_source_media_type_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_media_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
 _dsl.dsl_source_media_type_get.restype = c_uint
 def dsl_source_media_type_get(name):
     global _dsl
-    media_type = c_wchar_p(0)
+    media_type = c_uint(0)
     result = _dsl.dsl_source_media_type_get(name, DSL_WCHAR_PP(media_type))
     return int(result), media_type.value 
 

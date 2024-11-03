@@ -95,7 +95,7 @@ namespace DSL
             m_usedRequestPadIds.push_back(true);
         }
         // Set the branches unique id to the available stream-id
-        pChildComponent->SetRequestPadId(padId);
+        pChildComponent->SetVideoRequestPadId(padId);
 
         // Add the branch to the Tees collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
@@ -207,7 +207,7 @@ namespace DSL
             LOG_INFO("MultiBranchesBintr '" << GetName() << "' is in the state '" 
                 << currentState << "' while removing branch '" 
                 << pChildComponent->GetName() 
-                << "' from stream-id = " << pChildComponent->GetRequestPadId());
+                << "' from stream-id = " << pChildComponent->GetVideoRequestPadId());
                 
             if (currentState == GST_STATE_PLAYING)
             {
@@ -276,12 +276,12 @@ namespace DSL
         }
         // unreference and remove from the child-branch collections
         m_pChildBranches.erase(pChildComponent->GetName());
-        m_pChildBranchesIndexed.erase(pChildComponent->GetRequestPadId());
+        m_pChildBranchesIndexed.erase(pChildComponent->GetVideoRequestPadId());
         
         // set the used-stream id as available for reuse and clear the 
         // stream-id (id property) for the child-branch
-        m_usedRequestPadIds[pChildComponent->GetRequestPadId()] = false;
-        pChildComponent->SetRequestPadId(-1);
+        m_usedRequestPadIds[pChildComponent->GetVideoRequestPadId()] = false;
+        pChildComponent->SetVideoRequestPadId(-1);
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildComponent);
@@ -588,7 +588,7 @@ namespace DSL
         LOG_FUNC();
 
         // Set the branches unique id to the available stream-id
-        pChildComponent->SetRequestPadId(streamId);
+        pChildComponent->SetVideoRequestPadId(streamId);
 
         // Add the branch to the Demuxers collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
@@ -728,7 +728,7 @@ namespace DSL
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSourceTee(m_pTee, 
-                    m_requestedSrcPads[imap.second->GetRequestPadId()]))
+                    m_requestedSrcPads[imap.second->GetVideoRequestPadId()]))
             {
                 LOG_ERROR("DemuxerBintr '" << GetName() 
                     << "' failed to Link Child Component '" 
