@@ -562,6 +562,10 @@ DSL_COMPONENT_QUEUE_OVERRUN_LISTENER = \
 DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER = \
     CFUNCTYPE(None, c_wchar_p, c_void_p)
 
+#dsl_infer_gie_model_update_listener_cb
+DSL_INFER_GIE_MODEL_UPDATE_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
+
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -5123,6 +5127,35 @@ def dsl_infer_raw_output_enabled_set(name, enabled, path):
     global _dsl
     result = _dsl.dsl_infer_raw_output_enabled_set(name, enabled, path)
     return int(result)
+
+##
+## dsl_infer_gie_model_update_listener_add()
+##
+_dsl.dsl_infer_gie_model_update_listener_add.argtypes = [c_wchar_p, 
+    DSL_INFER_GIE_MODEL_UPDATE_LISTENER, c_void_p]
+_dsl.dsl_infer_gie_model_update_listener_add.restype = c_uint
+def dsl_infer_gie_model_update_listener_add(name, listener, client_data):
+    global _dsl
+    c_listener = DSL_INFER_GIE_MODEL_UPDATE_LISTENER(listener)
+    callbacks.append(c_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_infer_gie_model_update_listener_add(name, 
+        c_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_infer_gie_model_update_listener_remove()
+##
+_dsl.dsl_infer_gie_model_update_listener_remove.argtypes = [c_wchar_p, 
+    DSL_INFER_GIE_MODEL_UPDATE_LISTENER]
+_dsl.dsl_infer_gie_model_update_listener_remove.restype = c_uint
+def dsl_infer_gie_model_update_listener_remove(name, listener):
+    global _dsl
+    c_listener = DSL_INFER_GIE_MODEL_UPDATE_LISTENER(listener)
+    result = _dsl.dsl_infer_gie_model_update_listener_remove(name, c_listener)
+    return int(result)
+
 
 ##
 ## dsl_tracker_new()

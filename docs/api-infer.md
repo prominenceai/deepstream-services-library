@@ -1,5 +1,5 @@
 # Primary and Secondary Inference API Reference
-The DeepStream Services Library (DSL) provides services for Nvidia's two Inference Plugins; the [GST Inference Engine (GIE)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#gst-nvinfer) and the [Triton Inference Server (TIS)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinferserver.html#gst-nvinferserver). 
+The DeepStream Services Library (DSL) provides services for Nvidia's two Inference Plugins; the [GST Inference Engine (GIE)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinfer.html#gst-nvinfer) and the [Triton Inference Server (TIS)](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvinferserver.html#gst-nvinferserver).
 
 Pipelines can have multiple Primary GIE or TIS -- linked in succession to operate on the full frame -- with any number of corresponding Secondary GIEs or TISs (only limited by hardware). Pipelines cannot be created with a mix of GIEs and TISs. Pipelines that have secondary GIEs/TISs but no Primary GIE/TIS will fail to Link and Play. Secondary GIEs/TISs can `infer-on` both Primary and Secondary GIEs/TISs creating multiple levels of inference. **IMPORTANT**: the current release supports up to two levels of secondary inference.
 
@@ -7,10 +7,15 @@ Pipelines can have multiple Primary GIE or TIS -- linked in succession to operat
 Primary GIEs and TISs are constructed by calling [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new) and [`dsl_infer_tis_primary_new`](#dsl_infer_tis_primary_new) respectively. Secondary GIEs and TISs are created by calling [`dsl_infer_gie_secondary_new`](#dsl_infer_gie_secondary_new) and [`dsl_infer_tis_secondary_new`](#dsl_infer_tis_secondary_new) respectively. As with all components, Primary and Secondary GIEs/TISs must be uniquely named from all other components created. All GIEs and TIEs are deleted by calling [`dsl_component_delete`](api-component.md#dsl_component_delete), [`dsl_component_delete_many`](api-component.md#dsl_component_delete_many), or [`dsl_component_delete_all`](api-component.md#dsl_component_delete_all).
 
 ## Inference Configuration
-Both GIEs and TIEs require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [`dsl_infer_config_file_get`](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [`dsl_infer_config_file_set`](#dsl_infer_config_file_set).
+Both GIEs and TIS s require a Primary or Secondary **Inference Configuration File**. Once created, clients can query both Primary and Secondary GIEs/TIEs for their Config File in-use by calling [`dsl_infer_config_file_get`](#dsl_infer_config_file_get) or change the GIE/TIS's configuration by calling [`dsl_infer_config_file_set`](#dsl_infer_config_file_set).
 
 ## Model Engine Files
-GIEs support the specification of a pre-built **Model Engine File**, or one can allow the Plugin to create the model engine based on the configuration. The file in use can be queried by calling [`dsl_infer_gie_model_engine_file_get`](#dsl_infer_gie_model_engine_file_get) or changed with [`dsl_infer_gie_model_engine_file_set`](#dsl_infer_gie_model_engine_file_set).
+With Primary and Secondary TISs, the model-engine-file must be specified in the inference-configuration-file. The model-engine-file can be updated at runtime by calling [`dsl_infer_config_file_set`](#dsl_infer_config_file_set). Refer to [Dynamic Model Updates](#dynamic-model-updates) below.
+
+With Primary and Secondary GIE, the model-engine-file, can be specified in the inference-configuration-file or by using the constructor's `model_engine_file` parameter. The file in use can be queried by calling [`dsl_infer_gie_model_engine_file_get`](#dsl_infer_gie_model_engine_file_get) or changed with [`dsl_infer_gie_model_engine_file_set`](#dsl_infer_gie_model_engine_file_set).
+
+## Dynamic Model Updates.
+Both GIEs and TISs support dynamic model updates See NVIDIA's [on-the-fly model updates](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_on_the_fly_model.html) for information on restrictions. With Primary and Secondary GIEs, clients can register a [model-update-listener](#dsl_infer_gie_model_update_listener_cb) callback function to be notified when a new model-engine is successfully loaded. See [`dsl_infer_gie_model_update_listener_add`](#dsl_infer_gie_model_update_listener_add), not applicable to TISs. 
 
 ## Unique Id
 **IMPORTANT!** DSL explicitly assigns each GIE or TISs a unique component id overriding the (optional) parameter in the inference config file. The unique component id is derived from the first available unused id starting with 1, meaning the first component will be assigned id 1, the second id 2 and so on. The id will be reused if the inference component is deleted and a new one created. The value assigned to the GIE or TIS can be queried by calling [`dsl_infer_unique_id_get`](#dsl_infer_unique_id_get). All Object metadata structures created by the named GIE/TIE will include a `unique_component_id` field assigned with this id.
@@ -34,20 +39,28 @@ Multiple sink (input) and/or source (output) [Pad-Probe Handlers](/docs/api-pph.
 ---
 
 ## Primary and Secondary Inference API
+**Client Callback Typedefs**
+* [`dsl_infer_gie_model_update_listener_cb`](#dsl_infer_gie_model_update_listener_cb)
+
 **Constructors**
 * [`dsl_infer_gie_primary_new`](#dsl_infer_gie_primary_new)
 * [`dsl_infer_gie_secondary_new`](#dsl_infer_gie_secondary_new)
 * [`dsl_infer_tis_primary_new`](#dsl_infer_tis_primary_new)
 * [`dsl_infer_tis_secondary_new`](#dsl_infer_tis_secondary_new)
 
-**Methods**
+
+**Inference Engine (PGIE & SGIE) Methods**
+* [`dsl_infer_gie_model_engine_file_get`](#dsl_infer_gie_model_engine_file_get)
+* [`dsl_infer_gie_model_engine_file_set`](#dsl_infer_gie_model_engine_file_set)
+* [`dsl_infer_gie_model_update_listener_add`](#dsl_infer_gie_model_update_listener_add)
+* [`dsl_infer_gie_model_update_listener_remove`](#dsl_infer_gie_model_update_listener_remove)
+* [`dsl_infer_gie_tensor_meta_settings_get`](#dsl_infer_gie_tensor_meta_settings_get)
+* [`dsl_infer_gie_tensor_meta_settings_set`](#dsl_infer_gie_tensor_meta_settings_set)
+
+**Common Methods**
 * [`dsl_infer_batch_size_get`](#dsl_infer_batch_size_get)
 * [`dsl_infer_batch_size_set`](#dsl_infer_batch_size_set)
 * [`dsl_infer_unique_id_get`](#dsl_infer_unique_id_get)
-* [`dsl_infer_gie_model_engine_file_get`](#dsl_infer_gie_model_engine_file_get)
-* [`dsl_infer_gie_model_engine_file_set`](#dsl_infer_gie_model_engine_file_set)
-* [`dsl_infer_gie_tensor_meta_settings_get`](#dsl_infer_gie_tensor_meta_settings_get)
-* [`dsl_infer_gie_tensor_meta_settings_set`](#dsl_infer_gie_tensor_meta_settings_set)
 * [`dsl_infer_config_file_get`](#dsl_infer_config_file_get)
 * [`dsl_infer_config_file_set`](#dsl_infer_config_file_set)
 * [`dsl_infer_interval_get`](#dsl_infer_interval_get)
@@ -75,7 +88,27 @@ The following return codes are used by the Inference API
 #define DSL_RESULT_INFER_PAD_TYPE_INVALID                           0x0006000B
 #define DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER                     0x0006000C
 #define DSL_RESULT_INFER_OUTPUT_DIR_DOES_NOT_EXIST                  0x0006000D
+#define DSL_RESULT_INFER_ID_NOT_FOUND                               0x0006000E
+#define DSL_RESULT_INFER_CALLBACK_ADD_FAILED                        0x0006000F
+#define DSL_RESULT_INFER_CALLBACK_REMOVE_FAILED                     0x00060010
 ```
+
+---
+
+## Client Callback Typedefs
+### *dsl_infer_gie_model_update_listener_cb*
+```C++
+typedef void (*dsl_infer_gie_model_update_listener_cb)(const wchar_t* name,
+   const wchar_t* model_engine_file, void* client_data);
+```
+Callback typedef for a client model-update listener. Functions of this type are added to a Primary or Secondary Inference Engine by calling [dsl_infer_gie_model_update_listener_add](#dsl_infer_gie_model_update_listener_add). Once added, the function will be called each time a new model-engine has been successfully loaded while the Pipeline is in a state of playing.
+
+**Parameters**
+* `name` - [in] name of the Primary or Secondary Inference Component that loaded the model-engine.
+* `model_engine_file` - [in] one of [DSL_PIPELINE_STATE](#DSL_PIPELINE_STATE) constants for the new pipeline state
+* `client_data` - [in] opaque pointer to the client's user data provided to the Inference Component when this function is added.
+
+<br>
 
 ## Constructors
 **Python Example**
@@ -91,20 +124,20 @@ sgie_model_file = './models/Secondary_CarColor/resnet18.caffemodel.engine'
 # New Primary GIE using the filespecs above, with interval set to 0
 retval = dsl_infer_gie_primary_new('pgie', pgie_config_file, pgie_model_file, 0)
 if retval != DSL_RETURN_SUCCESS:
-    print(retval)
-    # handle error condition
+   print(retval)
+   # handle error condition
 
 # New Secondary GIE set to Infer on the Primary GIE defined above
 retval = dsl_infer_gie_seondary_new('sgie', sgie_config_file, sgie_model_file, 0, 'pgie')
 if retval != DSL_RETURN_SUCCESS:
-    print(retval)
-    # handle error condition
+   print(retval)
+   # handle error condition
 
 # Add both Primary and Secondary GIEs to an existing Pipeline
 retval = dsl_pipeline_component_add_many('pipeline', ['pgie', 'sgie', None])
 if retval != DSL_RETURN_SUCCESS:
-    print(retval)
-    # handle error condition
+   print(retval)
+   # handle error condition
 ```
 
 <br>
@@ -112,7 +145,7 @@ if retval != DSL_RETURN_SUCCESS:
 ### *dsl_infer_gie_primary_new*
 ```C++
 DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, uint interval);
+   const wchar_t* model_engine_file, uint interval);
 ```
 This constructor creates a uniquely named Primary GST Inference Engine (GIE). Construction will fail if the name is currently in use.
 
@@ -135,7 +168,7 @@ retval = dsl_infer_gie_primary_new('my-pgie', pgie_config_file, pgie_model_file,
 ### *dsl_infer_gie_secondary_new*
 ```C++
 DslReturnType dsl_infer_gie_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
+   const wchar_t* model_engine_file, const wchar_t* infer_on_gie, uint interval);
 ```
 
 This constructor creates a uniquely named Secondary GST Inference Engine (GIE). Construction will fail if the name is currently in use.
@@ -160,7 +193,7 @@ retval = dsl_infer_gie_seondary_new('my-sgie', sgie_config_file, sgie_model_file
 ### *dsl_infer_tis_primary_new*
 ```C++
 DslReturnType dsl_infer_tis_primary_new(const wchar_t* name,
-    const wchar_t* infer_config_file, uint interval);
+   const wchar_t* infer_config_file, uint interval);
 ```
 This constructor creates a uniquely named Primary Triton Inference Server (TIS). Construction will fail if the name is currently in use.
 
@@ -182,7 +215,7 @@ retval = dsl_infer_tis_primary_new('my-ptis', ptis_config_file, 0)
 ### *dsl_infer_tis_secondary_new*
 ```C++
 DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name, const wchar_t* infer_config_file,
-    const wchar_t* infer_on_tis, uint interval);
+   const wchar_t* infer_on_tis, uint interval);
 ```
 
 This constructor creates a uniquely named Secondary Triton Inference Server (TIS). Construction will fail if the name is currently in use.
@@ -205,7 +238,160 @@ retval = dsl_infer_tis_seondary_new('my-stis', stis_config_file, 0, 'my-ptis')
 
 ---
 
-## Methods
+
+## Inference Engine (PGIE & SGIE) Methods
+
+### *dsl_infer_gie_model_engine_file_get*
+```C++
+DslReturnType dsl_infer_gie_model_engine_file_get(const wchar_t* name,
+   const wchar_t** model_engine_file);
+```
+The service returns the current Model Engine file in use by the named Primary or Secondary GIE.
+This service is not applicable for Primary or Secondary TISs
+
+**Parameters**
+* `name` - unique name of the Primary or Secondary GIE to query.
+* `model_engine_file` - [out] returns the absolute file path/name for the model engine file in use
+
+**Returns**
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval,  model_engine_file = dsl_infer_gie_model_engine_file_get('my-sgie')
+```
+
+<br>
+
+### *dsl_infer_gie_model_engine_file_set*
+```C++
+DslReturnType dsl_infer_gie_model_engine_file_set(const wchar_t* name,
+   const wchar_t* model_engine_file);
+```
+The service sets the model-engine-file for the named Primary or Secondary GIE to use.
+
+This service is not applicable for Primary or Secondary TISs.
+
+**IMPORTANT!** This service can be called in any Pipeline state. [On-the-fly](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_on_the_fly_model.html#) model updates are performed asynchronously. Clients can register a [model-update-listener](#dsl_infer_gie_model_update_listener_cb) callback function to notified when the new model-engine is successfully loaded. See [`dsl_infer_gie_model_update_listener_add`](#dsl_infer_gie_model_update_listener_add).
+
+**Parameters**
+* `name` - unique name of the Primary or Secondary GIE to update.
+* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load
+
+**Returns**
+`DSL_RESULT_SUCCESS` if the GIE exists, and the model_engine_file was found, one of the
+[Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_infer_gie_model_engine_file_set('my-sgie', 
+   './test/models/Secondary_CarColor/resnet18.caffemodel_b16_fp16.engine"')
+```
+
+<br>
+
+### *dsl_infer_gie_model_update_listener_add*
+```C++
+DslReturnType dsl_infer_gie_model_update_listener_add(const wchar_t* name,
+   dsl_infer_gie_model_update_listener_cb listener, void* client_data);
+```
+The service adds a [model-update-listener](#dsl_infer_gie_model_update_listener_cb) callback function to a named Primary or Secondary GIE. The callback will be called after a new model-engine-file has been successfully loaded while the Pipeline is in a state of playing.
+
+This service is not applicable for Primary or Secondary TISs.
+
+**Parameters**
+* `name` - unique name of the Primary or Secondary GIE to update.
+* `listener` - [in] client callback function to add.
+* `client_data` - [in] opaque pointer to client data returned to the listener callback function.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+##
+# Function to be called when a model update has been completed
+# 
+def model_update_listener(name, model_engine_file, client_data):
+   print(name, "completed loading model", model_engine_file)
+
+retval = dsl_infer_gie_model_update_listener_add('my-pgie',
+   model_update_listener, None)
+```
+
+<br>
+
+### *dsl_infer_gie_model_update_listener_remove*
+```C++
+DslReturnType dsl_infer_gie_model_update_listener_remove(const wchar_t* name,
+   dsl_infer_gie_model_update_listener_cb listener);
+```
+This service removes a [model-update-listener](#dsl_infer_gie_model_update_listener_cb) callback function from a named Primary or Secondary GIE.
+
+This service is not applicable for Primary or Secondary TISs
+
+**Parameters**
+* `name` - unique name of the Primary or Secondary GIE to update.
+* `listener` - [in] client callback function to remove.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_infer_gie_model_update_listener_remove('my-pgie',
+   model_update_listener)
+```
+
+<br>
+
+### *dsl_infer_gie_tensor_meta_settings_get*
+```C++
+DslReturnType dsl_infer_gie_tensor_meta_settings_get(const wchar_t* name,
+   boolean* input_enabled, boolean* output_enabled);
+```
+The service gets the current input and output tensor-meta settings in use by the named Primary or Secondary GIE.
+
+**Parameters**
+* `name` - unique name of the Primary or Secondary GIE to query.
+* `input_enabled` - [out] if true, the GIE will preprocess input tensors attached as metadata instead of preprocessing inside the plugin, false otherwise.
+* `output_enable` - [out] if true, the GIE will attach tensor outputs as metadata on the GstBuffer.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, input_enabled, output_enabled = dsl_infer_gie_tensor_meta_settings_get('my-pgie')
+```
+<br>
+
+### *dsl_infer_gie_tensor_meta_settings_set*
+```C++
+DslReturnType dsl_infer_gie_tensor_meta_settings_set(const wchar_t* name,
+   boolean input_enabled, boolean output_enabled);
+```
+The service sets the input amd output tensor-meta settings for the named Primary or Secondary GIE.
+
+**Parameters**
+* `name` - unique name of the Primary or Secondary GIE to query.
+* `input_enabled` - [in] set to true to have the GIE preprocess input tensors attached as metadata instead of preprocessing inside the plugin, false otherwise.
+* `output_enable` - [in] set to true to have the GIE attach tensor outputs as metadata on the GstBuffer.
+
+**Returns**
+`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_infer_gie_tensor_meta_settings_get('my-pgie', True, False)
+```
+
+<br>
+
+---
+
+## Common Methods
+
 ### *dsl_infer_batch_size_get*
 ```C++
 DslReturnType dsl_infer_batch_size_get(const wchar_t* name, uint* size);
@@ -218,6 +404,7 @@ This service gets the client defined batch-size setting for the named GIE or TIS
 
 **Returns**
 `DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
+
 
 **Python Example**
 ```Python
@@ -246,11 +433,13 @@ retval = dsl_infer_batch_size_get('my-pgie', 4)
 
 <br>
 
+
 ### *dsl_infer_unique_id_get*
 ```C++
 DslReturnType dsl_infer_unique_id_get(const wchar_t* name, uint* id);
 ```
 This service queries the named Primary or Secondary GIE or TIS for its unique id derived from its unique name.
+
 
 **Parameters**
 * `name` - [in] unique name of the Primary or Secondary GIE or TIS to query.
@@ -269,7 +458,7 @@ retval, id = dsl_infer_unique_id_get('my-pgie')
 ### *dsl_infer_config_file_get*
 ```C++
 DslReturnType dsl_infer_config_file_get(const wchar_t* name,
-    const wchar_t** infer_config_file);
+   const wchar_t** infer_config_file);
 ```
 
 This service returns the current Inference Config file in use by the named Primary or Secondary GIE or TIS.
@@ -291,10 +480,12 @@ retval, infer_config_file = dsl_infer_config_file_get('my-sgie)
 ### *dsl_infer_config_file_set*
 ```C++
 DslReturnType dsl_infer_config_file_set(const wchar_t* name,
-    const wchar_t* infer_config_file);
+   const wchar_t* infer_config_file);
 ```
 
-This service set the Inference Config file to use by the named Primary or Secondary GIE or TIS.
+This service sets the Inference Config file for named Primary or Secondary GIE or TIS to use.
+
+**IMPORTANT!** This service can be called in any Pipeline state. [On-the-fly](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_on_the_fly_model.html#) model updates are performed asynchronously. With Primary and Secondary GIEs, clients can register a [model-update-listener](#dsl_infer_gie_model_update_listener_cb) callback function to notified when a new model-engine is successfully loaded. See [`dsl_infer_gie_model_update_listener_add`](#dsl_infer_gie_model_update_listener_add), not applicable to TISs. 
 
 **Parameters**
 * `name` - unique name of the Primary or Secondary GIE of TIS to update.
@@ -306,96 +497,6 @@ This service set the Inference Config file to use by the named Primary or Second
 **Python Example**
 ```Python
 retval, dsl_infer_config_file_set('my-pgie',  './configs/config_infer_primary_nano.txt')
-```
-
-<br>
-
-### *dsl_infer_gie_model_engine_file_get*
-```C++
-DslReturnType dsl_infer_gie_model_engine_file_get(const wchar_t* name,
-    const wchar_t** model_engine_file);
-```
-The service returns the current Model Engine file in use by the named Primary or Secondary GIE.
-This serice is not applicable for Primary or Secondary TISs
-
-**Parameters**
-* `name` - unique name of the Primary or Secondary GIE to query.
-* `model_engine_file` - [out] returns the absolute file path/name for the model engine file in use
-
-**Returns**
-`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval,  model_engine_file = dsl_infer_gie_model_engine_file_get('my-sgie')
-```
-
-<br>
-
-### *dsl_infer_gie_model_engine_file_set*
-```C++
-DslReturnType dsl_infer_gie_model_engine_file_set(const wchar_t* name,
-    const wchar_t* model_engine_file);
-```
-The service sets the Model Engine file to use for the named Primary or Secondary GIE.
-This service is not applicable for Primary or Secondary TISs
-
-**Parameters**
-* `name` - unique name of the Primary or Secondary GIE to update.
-* `model_engine_file` - [in] relative or absolute file path/name for the model engine file to load
-
-**Returns**
-`DSL_RESULT_SUCCESS` if the GIE exists, and the model_engine_file was found, one of the
-[Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_infer_gie_model_engine_file_set('my-sgie',  
-    './test/models/Secondary_CarColor/resnet18.caffemodel_b16_fp16.engine"')
-```
-
-<br>
-
-### *dsl_infer_gie_tensor_meta_settings_get*
-```C++
-DslReturnType dsl_infer_gie_tensor_meta_settings_get(const wchar_t* name,
-    boolean* input_enabled, boolean* output_enabled);
-```
-The service gets the current input and output tensor-meta settings in use by the named Primary or Secondary GIE.
-
-**Parameters**
-* `name` - unique name of the Primary or Secondary GIE to query.
-* `input_enabled` - [out] if true, the GIE will preprocess input tensors attached as metadata instead of preprocessing inside the plugin, false otherwise.
-* `output_enable` - [out] if true, the GIE will attach tensor outputs as metadata on the GstBuffer.
-
-**Returns**
-`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, input_enabled, output_enabled = dsl_infer_gie_tensor_meta_settings_get('my-pgie')
-```
-
-<br>
-
-### *dsl_infer_gie_tensor_meta_settings_set*
-```C++
-DslReturnType dsl_infer_gie_tensor_meta_settings_set(const wchar_t* name,
-    boolean input_enabled, boolean output_enabled);
-```
-The service sets the input amd output tensor-meta settings for the named Primary or Secondary GIE.
-
-**Parameters**
-* `name` - unique name of the Primary or Secondary GIE to query.
-* `input_enabled` - [in] set to true to have the GIE preprocess input tensors attached as metadata instead of preprocessing inside the plugin, false otherwise.
-* `output_enable` - [in] set to true to have the GIE attach tensor outputs as metadata on the GstBuffer.
-
-**Returns**
-`DSL_RESULT_SUCCESS` on success. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_infer_gie_tensor_meta_settings_get('my-pgie', True, False)
 ```
 
 <br>

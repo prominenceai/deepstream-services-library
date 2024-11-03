@@ -4,6 +4,7 @@ This page documents the following "Basic Inference Pipelines" consiting of
 * [File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and File Sink](#file-source-primary-gie-iou-tracker-osd-egl-window-sink-and-file-sink)
 * [File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and RTSP Sink](#file-source-primary-gie-iou-tracker-osd-egl-window-sink-and-rtsp-sink)
 * [File Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink, and V4L2 Sink](#file-source-primary-gie-iou-tracker-osd-egl-window-sink-and-v4l2-sink)
+* [File Source, Primary GIE, DCF Tracker, 2 Secondary GIEs, OSD, EGL Windon Sink](#file-source-primary-gie-dcf-tracker-2-secondary-gies-osd-egl-windon-sink)
 * [RTSP Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink](#rtsp-source-primary-gie-iou-tracker-osd-egl-window-sink)
 * [HTTP Source, Primary GIE, IOU Tracker, OSD, EGL Window Sink](#http-source-primary-gie-iou-tracker-osd-egl-window-sink)
 * [File Source, Preprocessor, Primary GIE, IOU Tracker, OSD, EGL Window Sink](#file-source-preprocessor-primary-gie-iou-tracker-osd-egl-window-sink)
@@ -129,6 +130,33 @@ This page documents the following "Basic Inference Pipelines" consiting of
 #    $ gst-launch-1.0 v4l2src device=/dev/video3 ! videoconvert  ! xvimagesink
 #
 # The example registers handler callback functions for:
+#   - key-release events
+#   - delete-window events
+#   - end-of-stream EOS events
+#   - Pipeline change-of-state events
+#  
+```
+<br>
+
+---
+
+### File Source, Primary GIE, DCF Tracker, 2 Secondary GIEs, OSD, EGL Windon Sink
+* [1file_pgie_dcf_tracker_2sgie_window.py](/examples/python/1file_pgie_dcf_tracker_2sgie_window.py)
+* [1file_pgie_dcf_tracker_2sgie_window.cpp](/examples/cpp/1file_pgie_dcf_tracker_2sgie_window.cpp)
+
+```python
+#
+# The simple example demonstrates how to create a set of Pipeline components, 
+# specifically:
+#   - File Source
+#   - Primary GST Inference Engine (PGIE)
+#   - DCF Tracker
+#   - 2 Secondary GST Inference Engines (SGIEs)
+#   - On-Screen Display (OSD)
+#   - Window Sink
+# ...and how to add them to a new Pipeline and play
+# 
+# The example registers handler callback functions with the Pipeline for:
 #   - key-release events
 #   - delete-window events
 #   - end-of-stream EOS events

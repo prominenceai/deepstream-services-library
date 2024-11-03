@@ -1160,6 +1160,12 @@ namespace DSL {
             
         DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
+
+        DslReturnType InferGieModelUpdateListenerAdd(const char* name,
+            dsl_infer_gie_model_update_listener_cb listener, void* clientData);
+            
+        DslReturnType InferGieModelUpdateListenerRemove(const char* name,
+            dsl_infer_gie_model_update_listener_cb listener);
             
         DslReturnType InferGieTensorMetaSettingsGet(const char* name, 
             boolean* inputEnabled, boolean* outputEnabled);

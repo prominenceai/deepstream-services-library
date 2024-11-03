@@ -207,8 +207,30 @@ namespace DSL
          * @param batchSize batch-size set to number of sources
          */
         void HandleOnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
-        NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize);
+            NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize);
         
+        /**
+         * @brief Adds a Model Update Listener to this InferenceBintr
+         * @param listener client listener function to add
+         * @param clientData opaque pointer to client data to return on callback
+         * @return true on successful addition, false otherwise.
+         */ 
+        bool AddModelUpdateListener(dsl_infer_gie_model_update_listener_cb listener, 
+            void* clientData);
+
+        /**
+         * @brief Removes a Model Update Listener frome this InferenceBintr.
+         * @param listener client listener function to remove.
+         * @return true on successful removal, false otherwise.
+         */ 
+        bool RemoveModelUpdateListener(dsl_infer_gie_model_update_listener_cb listener);
+
+        /**
+         * @brief Handles the model-updated signal.
+         * @param modelEngineFile path to the new model engine file used.
+         */
+        void HandleOnModelUpdatedCB(gchararray modelEngineFile);    
+
         /**
          * @brief static list of unique Infer plugin IDs to be used/recycled by all
          * InferBintrs ctor/dtor
@@ -261,6 +283,11 @@ namespace DSL
          * @brief maintains the current frame number between callbacks
          */
         ulong m_rawOutputFrameNumber;
+
+        /**
+         * @brief map of all client model update listeners.
+         */
+        std::map<dsl_infer_gie_model_update_listener_cb, void*> m_modelUpdateListeners;
         
         /**
          * @brief current input-temsor-meta enabled setting for this InferBintr.
@@ -283,6 +310,9 @@ namespace DSL
 
     static void OnRawOutputGeneratedCB(GstBuffer* pBuffer, NvDsInferNetworkInfo* pNetworkInfo, 
         NvDsInferLayerInfo *pLayersInfo, guint layersCount, guint batchSize, gpointer pGie);
+
+    static void OnModelUpdatedCB(GstElement* object, gint arg0, gchararray arg1,
+        gpointer pInferBintr); 
 
     /**
      * @class PrimaryInferBintr
@@ -645,7 +675,8 @@ namespace DSL
          * @brief dtor for the SecondaryTisBintr
          */
         ~SecondaryTisBintr();
-    };
+    }; 
+
 }
 
 #endif // _DSL_GIE_BINTR_H
