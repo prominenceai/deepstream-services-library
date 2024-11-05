@@ -133,6 +133,14 @@ namespace DSL
         SourceBintr(const char* name);
 
         /**
+         * @brief default ctor required for virtual inheritance.
+         */
+        SourceBintr():QBintr("")
+        {
+            LOG_ERROR("EXCEPTION! QBintr default constructor called");
+            throw std::exception();};
+
+        /**
          * @brief dtor for the SourceBintr base class
          */
         ~SourceBintr();
@@ -254,7 +262,7 @@ namespace DSL
      * @class VideoSourceBintr
      * @brief Implements a base Video Source Bintr for all derived Video Source types.
      */
-    class VideoSourceBintr : public SourceBintr
+    class VideoSourceBintr : virtual public SourceBintr
     {
     public: 
     
@@ -1160,19 +1168,13 @@ namespace DSL
 
     //*********************************************************************************
     
-    class ResourceSourceBintr: public VideoSourceBintr
+    class ResourceSourceBintr: virtual public SourceBintr
     {
     public:
     
         ResourceSourceBintr(const char* name, const char* uri)
-            : VideoSourceBintr(name)
+            : SourceBintr(name)
             , m_uri(uri)
-        {
-            LOG_FUNC();
-        };
-            
-        ResourceSourceBintr(const char* name, const char** uris)
-            : VideoSourceBintr(name)
         {
             LOG_FUNC();
         };
@@ -1222,7 +1224,7 @@ namespace DSL
      * @class UriSourceBintr
      * @brief 
      */
-    class UriSourceBintr : public ResourceSourceBintr
+    class UriSourceBintr : public VideoSourceBintr, public ResourceSourceBintr
     {
     public: 
     
@@ -1394,7 +1396,7 @@ namespace DSL
      * @class ImageSourceBintr
      * @brief Implements a Image Decode Source  - Super class
      */
-    class ImageSourceBintr : public ResourceSourceBintr
+    class ImageSourceBintr : public VideoSourceBintr, public ResourceSourceBintr
     {
     public: 
     
@@ -1580,7 +1582,7 @@ namespace DSL
      * @class ImageStreamSourceBintr
      * @brief 
      */
-    class ImageStreamSourceBintr : public ResourceSourceBintr
+    class ImageStreamSourceBintr : public VideoSourceBintr, public ResourceSourceBintr
     {
     public: 
     
@@ -1761,7 +1763,7 @@ namespace DSL
      * @class RtspSourceBintr
      * @brief 
      */
-    class RtspSourceBintr : public ResourceSourceBintr
+    class RtspSourceBintr : public VideoSourceBintr, public ResourceSourceBintr
     {
     public: 
     

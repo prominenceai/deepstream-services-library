@@ -558,7 +558,7 @@ namespace DSL
         
         *width = m_bufferOutWidth;
         *height = m_bufferOutHeight;
-    }
+}
     
     bool VideoSourceBintr::SetBufferOutDimensions(uint width, uint height)
     {
@@ -575,7 +575,7 @@ namespace DSL
         
         return updateVidConvCaps();
     }
-    
+
     void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
@@ -963,8 +963,9 @@ namespace DSL
 
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
-            const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
-        : VideoSourceBintr(name) 
+        const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name) 
         , m_doTimestamp(TRUE)
         , m_bufferInFormat(bufferInFormat)
         , m_needDataHandler(NULL)
@@ -1427,7 +1428,8 @@ namespace DSL
 
     //*********************************************************************************
     CustomSourceBintr::CustomSourceBintr(const char* name, bool isLive)
-        : VideoSourceBintr(name) 
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name) 
         , m_nextElementIndex(0)
     {
         LOG_FUNC();
@@ -1600,7 +1602,8 @@ namespace DSL
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
         uint width, uint height, uint fpsN, uint fpsD)
-        : VideoSourceBintr(name)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
         , m_sensorId(0)
     {
         LOG_FUNC();
@@ -1766,7 +1769,8 @@ namespace DSL
     //*********************************************************************************
 
     V4l2SourceBintr::V4l2SourceBintr(const char* name, const char* deviceLocation)
-        : VideoSourceBintr(name)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
         , m_deviceLocation(deviceLocation)
     {
         LOG_FUNC();
@@ -2055,7 +2059,9 @@ namespace DSL
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint skipFrames, uint dropFrameInterval)
-        : ResourceSourceBintr(name, uri)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_isFullyLinked(false)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_skipFrames(skipFrames)
@@ -2430,7 +2436,8 @@ namespace DSL
 
     FileSourceBintr::FileSourceBintr(const char* name, 
         const char* uri, bool repeatEnabled)
-        : UriSourceBintr(name, uri, false, false, 0)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , UriSourceBintr(name, uri, false, false, 0)
     {
         LOG_FUNC();
         
@@ -2490,7 +2497,9 @@ namespace DSL
     //*********************************************************************************
 
     ImageSourceBintr::ImageSourceBintr(const char* name, const char* uri, uint type)
-        : ResourceSourceBintr(name, uri)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_mjpeg(FALSE)
     {
         LOG_FUNC();
@@ -2556,7 +2565,8 @@ namespace DSL
     //*********************************************************************************
 
     SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
-        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
     {
         LOG_FUNC();
         
@@ -2707,7 +2717,8 @@ namespace DSL
 
     MultiImageSourceBintr::MultiImageSourceBintr(const char* name, 
         const char* uri, uint fpsN, uint fpsD)
-        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_MULTI)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_MULTI)
         , m_loopEnabled(false)
         , m_startIndex(0)
         , m_stopIndex(-1)
@@ -2906,7 +2917,9 @@ namespace DSL
 
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
-        : ResourceSourceBintr(name, uri)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
@@ -3124,7 +3137,8 @@ namespace DSL
 
     InterpipeSourceBintr::InterpipeSourceBintr(const char* name, 
         const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents)
-        : VideoSourceBintr(name)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
         , m_listenTo(listenTo)
         , m_acceptEos(acceptEos)
         , m_acceptEvents(acceptEvents)
@@ -3271,7 +3285,9 @@ namespace DSL
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, 
         uint protocol, uint skipFrames, uint dropFrameInterval, 
         uint latency, uint timeout)
-        : ResourceSourceBintr(name, uri)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_isFullyLinked(false)
         , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
