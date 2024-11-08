@@ -5029,19 +5029,6 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    uint* media_type)   
-{
-    RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(media_type);
-
-    std::wstring wstrName(name);
-    std::string cstrName(wstrName.begin(), wstrName.end());
-    
-    return DSL::Services::GetServices()->SourceMediaTypeGet(
-        cstrName.c_str(), media_type);
-}
-    
 DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format)
 {
@@ -9952,6 +9939,19 @@ uint dsl_component_list_size()
     return DSL::Services::GetServices()->ComponentListSize();
 }
 
+DslReturnType dsl_component_media_type_get(const wchar_t* name,
+    uint* media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(media_type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->ComponentMediaTypeGet(
+        cstrName.c_str(), media_type);
+}
+    
 DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
     uint unit, uint64_t* current_level)
 {

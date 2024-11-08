@@ -163,7 +163,7 @@ namespace DSL
             
             if (!pChildSource->LinkAll() or 
                 !pChildSource->LinkToSinkMuxer(pVideomux->Get(),
-                sinkPadName.c_str()))
+                "video_src", sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" 
@@ -215,7 +215,7 @@ namespace DSL
                 << pChildSource->GetName());
                 
             // unlink the source from the Streammuxer
-            if (!pChildSource->UnlinkFromSinkMuxer())
+            if (!pChildSource->UnlinkFromSinkMuxer("video_src"))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" 
@@ -265,7 +265,7 @@ namespace DSL
             
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSinkMuxer(pVideomux->Get(),
-                    sinkPadName.c_str()))
+                    "video_src", sinkPadName.c_str()))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Link Child Source '" 
@@ -321,7 +321,7 @@ namespace DSL
             // unlink from the Streammuxer
             LOG_INFO("Unlinking " << &pVideomux->GetName() 
                 << " from " << imap.second->GetName());
-            if (!imap.second->UnlinkFromSinkMuxer())
+            if (!imap.second->UnlinkFromSinkMuxer("video_src"))
             {   
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");

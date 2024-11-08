@@ -273,7 +273,7 @@ namespace DSL
 
         /**
          * @brief called to determine if a Bintr is currently in use - has a Parent
-         * @return true if the Bintr has a Parent, false otherwise
+         * @return true if the Nodetr has a Parent, false otherwise
          */
         bool IsInUse()
         {
@@ -281,7 +281,7 @@ namespace DSL
             
             return (bool)GetParentGstElement();
         }
-        
+
     public:
     
         /**
@@ -835,16 +835,17 @@ namespace DSL
         /**
          * @brief links this Noder to the Sink Pad of Muxer
          * @param[in] pMuxer nodetr to link to
-         * @param[in] padName name to give the requested Sink Pad
+         * @param[in] sinkPadName name to give the requested Sink Pad
          * @return true if able to successfully link with Muxer Sink Pad
          */
-        virtual bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, const char* padName)
+        virtual bool LinkToSinkMuxer(DSL_NODETR_PTR pMuxer, 
+            const char* srcPadName, const char* sinkPadName)
         {
             LOG_FUNC();
             
             // Get a reference to this GstNodetr's source pad
             GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), 
-                "src");
+                srcPadName);
             if (!pStaticSrcPad)
             {
                 LOG_ERROR("Failed to get Static Src Pad for GstNodetr '" 
@@ -855,7 +856,7 @@ namespace DSL
             // Request a new sink pad from the Muxer to connect to this 
             // GstNodetr's source pad
             GstPad* pRequestedSinkPad = gst_element_get_request_pad(
-                pMuxer->GetGstElement(), padName);
+                pMuxer->GetGstElement(), sinkPadName);
             if (!pRequestedSinkPad)
             {
                 LOG_ERROR("Failed to get requested Tee Sink Pad for GstNodetr '" 
@@ -981,7 +982,7 @@ namespace DSL
          * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
          * @return true if able to successfully unlink from Muxer Sink Pad
          */
-        virtual bool UnlinkFromSinkMuxer()
+        virtual bool UnlinkFromSinkMuxer(const char* srcPadName)
         {
             LOG_FUNC();
             
@@ -991,7 +992,8 @@ namespace DSL
             }
             
             // Get a reference to this GstNodetr's source pad
-            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), 
+                srcPadName);
             if (!pStaticSrcPad)
             {
                 LOG_ERROR("Failed to get static source pad for GstNodetr '" 

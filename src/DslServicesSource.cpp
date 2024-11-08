@@ -2091,35 +2091,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceMediaTypeGet(const char* name, 
-        uint* mediaType)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            *mediaType = pSourceBintr->GetMediaType();
-
-            LOG_INFO("Source '" << name << "' returned media-type = " 
-                << *mediaType << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name 
-                << "' threw exception getting media-type");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
-
     DslReturnType Services::SourceVideoBufferOutFormatGet(const char* name, 
         const char** format)
     {

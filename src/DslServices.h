@@ -915,9 +915,6 @@ namespace DSL {
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
-        DslReturnType SourceMediaTypeGet(const char* name, 
-            uint* mediaType);
-
         DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
             const char** format);
 
@@ -1729,6 +1726,9 @@ namespace DSL {
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
+
+        DslReturnType ComponentMediaTypeGet(const char* name, 
+            uint* mediaType);
 
         DslReturnType ComponentQueueCurrentLevelGet(const char* name, 
             uint unit, uint64_t* currentLevel);

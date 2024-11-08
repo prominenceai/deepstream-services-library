@@ -573,9 +573,17 @@ THE SOFTWARE.
 #define DSL_MEDIA_STRING_AUDIO_XRAW                                 L"audio/x-raw"
 #define DSL_MEDIA_STRING_VIDEO_XRAW                                 L"video/x-raw"
 
-#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0
-#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   1
-#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  2
+/**
+ * @brief DSL Supported Media Types for all Pipelines and Components
+ */
+#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0x01
+#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   0x10
+#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  0x11
+
+/**
+ * @brief Default Media Support for all new Pipelines.
+ */
+#define DSL_DEFAULT_PIPELINE_MEDIA_TYPE                             DSL_MEDIA_TYPE_VIDEO_ONLY
 
 /**
  * @brief DSL Video Format Types - Used by all Video Source Components
@@ -5443,15 +5451,6 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Gets the media type for the named Source component.
- * @param name unique name of the Source Component to query.
- * @param[out] media_type one of the DSL_MEDIA_TYPE constant values. 
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
- */
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    uint* media_type);
-
-/**
  * @brief Gets the current buffer-out-format for the named Video Source.
  * @param name unique name of the Source Component to query.
  * @param[out] format current buffer-out-format. One of the DSL_VIDEO_FORMAT
@@ -8738,6 +8737,14 @@ DslReturnType dsl_component_delete_all();
  * @return size of the list of components
  */
 uint dsl_component_list_size();
+
+/**
+ * @brief Gets the media type for the named Component.
+ * @param name unique name of the Component to query.
+ * @param[out] media_type one of the DSL_MEDIA_TYPE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_component_media_type_get(const wchar_t* name, uint* media_type);
 
 /**
  * @brief Gets the queue-current-level by unit (buffers, bytes, or time) for the 

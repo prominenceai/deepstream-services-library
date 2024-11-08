@@ -206,6 +206,32 @@ namespace DSL
         return m_components.size();
     }
 
+    DslReturnType Services::ComponentMediaTypeGet(const char* name, 
+        uint* mediaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            
+            *mediaType = m_components[name]->GetMediaType();
+
+            LOG_INFO("Component '" << name << "' returned media-type = " 
+                << *mediaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception getting media-type");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }                
+
+
     DslReturnType Services::ComponentQueueCurrentLevelGet(const char* name, 
         uint unit, uint64_t* currentLevel)
     {

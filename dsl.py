@@ -4178,17 +4178,6 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
-## dsl_source_media_type_get()
-##
-_dsl.dsl_source_media_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_source_media_type_get.restype = c_uint
-def dsl_source_media_type_get(name):
-    global _dsl
-    media_type = c_uint(0)
-    result = _dsl.dsl_source_media_type_get(name, DSL_WCHAR_PP(media_type))
-    return int(result), media_type.value 
-
-##
 ## dsl_source_video_buffer_out_format_get()
 ##
 _dsl.dsl_source_video_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
@@ -7498,6 +7487,17 @@ def dsl_component_list_size():
     global _dsl
     result =_dsl.dsl_component_list_size()
     return int(result)
+
+##
+## dsl_component_media_type_get()
+##
+_dsl.dsl_component_media_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_component_media_type_get.restype = c_uint
+def dsl_component_media_type_get(name):
+    global _dsl
+    media_type = c_uint(0)
+    result = _dsl.dsl_component_media_type_get(name, DSL_WCHAR_PP(media_type))
+    return int(result), media_type.value 
 
 ##
 ## dsl_component_queue_current_level_get()

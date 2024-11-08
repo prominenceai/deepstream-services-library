@@ -53,6 +53,7 @@ namespace DSL
         Bintr(const char* name, bool isPipeline = false)
             : GstNodetr(name)
             , m_isPipeline(isPipeline)
+            , m_mediaType(DSL_MEDIA_TYPE_VIDEO_ONLY)
             , m_requestPadId(-1)
             , m_linkMethod(DSL_PIPELINE_LINK_METHOD_DEFAULT)
             , m_isLinked(false)
@@ -100,6 +101,22 @@ namespace DSL
             LOG_FUNC();
         }
 
+        /**
+         * @brief Returns the currently supported media for this Bintr
+         */
+        uint GetMediaType()
+        {
+            return m_mediaType;
+        }
+        
+        /**
+         * @brief Sets the supported media for this Bintr
+         */
+        void SetMediaType(uint mediaType)
+        {
+            m_mediaType = mediaType;
+        }
+        
         /**
          * @brief returns the current sink or src audio request pad-id -- as managed  
          * by the multi-component Parent Bintr -- for this bintr if used (i.e  
@@ -314,6 +331,12 @@ namespace DSL
          * @brief flag to specify if derived as Pipeline or other Bintr.
          */
         bool m_isPipeline;
+
+        /**
+         * @brief Supported media. One of the DSL_MEDIA_TYPE constant values.
+         * Default = DSL_MEDIA_TYPE_VIDEO_ONLY
+         */
+        uint m_mediaType;
 
         /**
          * @brief unique request pad id managed by the 

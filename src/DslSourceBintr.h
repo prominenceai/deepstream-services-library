@@ -230,12 +230,6 @@ namespace DSL
         cudaDeviceProp m_cudaDeviceProp;
 
         /**
-         * @brief video-media-string for the SourceBintr. String version of one of the
-         * DSL_MEDIA_TYPE constant values.
-         */
-        uint m_mediaType;
-
-        /**
          * @brief True if the source is live and cannot be paused without losing data, 
          * False otherwise.
          */
@@ -255,7 +249,7 @@ namespace DSL
          * @brief Soure Element for this SourceBintr
          */
         DSL_ELEMENT_PTR m_pSourceElement;
-        
+
     };
 
     /**
@@ -278,14 +272,14 @@ namespace DSL
         ~VideoSourceBintr();
 
         /**
-         * @brief Gets the current width and height settings for this SourceBintr
+         * @brief Gets the current width and height settings for this VideoSourceBintr
          * @param[out] width the current width setting in pixels
          * @param[out] height the current height setting in pixels
          */ 
         void GetDimensions(uint* width, uint* height);
 
         /**
-         * @brief Gets the current buffer-out-format for this SourceBintr.
+         * @brief Gets the current buffer-out-format for this VideoSourceBintr.
          * @return Current buffer-out-format. string version of one of the 
          * DSL_VIDEO_FORMAT constants.
          */
@@ -297,21 +291,21 @@ namespace DSL
         };
         
         /**
-         * @brief Sets the buffer-out-format for the SourceBintr.
+         * @brief Sets the buffer-out-format for the VideoSourceBintr.
          * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
          * @return true if successfully set, false otherwise.
          */
         bool SetBufferOutFormat(const char* format);
 
         /**
-         * @brief Sets the buffer-out-dimensions for the SourceBintr.
+         * @brief Sets the buffer-out-dimensions for the VideoSourceBintr.
          * @param[out] width current width value to scale the output buffer in pixels
          * @param[out] height current height value to scale the output buffer in pixels
          */
         void GetBufferOutDimensions(uint* width, uint* height);
         
         /**
-         * @brief Sets the buffer-out-dimensions for the SourceBintr.
+         * @brief Sets the buffer-out-dimensions for the VideoSourceBintr.
          * @param[in] width new width value to scale the output buffer in pixels.
          * @param[in] height new height value to scale the output buffer in pixels.
          * @return true if successfully set, false otherwise.
@@ -319,7 +313,7 @@ namespace DSL
         bool SetBufferOutDimensions(uint width, uint height);
         
         /**
-         * @brief Gets the buffer-out-frame-rate for the SourceBintr.
+         * @brief Gets the buffer-out-frame-rate for the VideoSourceBintr.
          * The default value of 0 for fps_n and fps_d indicates no scaling.
          * @param[out] fpsN current fpsN value to scale the output buffer.
          * @param[out] fpsD current fpsD value to scale the output buffer.
@@ -327,7 +321,7 @@ namespace DSL
         void GetBufferOutFrameRate(uint* fpsN, uint* fpsD);
         
         /**
-         * @brief Sets the buffer-out-frame-rate for the SourceBintr.
+         * @brief Sets the buffer-out-frame-rate for the VideoSourceBintr.
          * Set fps_n and fps_d to 0 to indicate no scaling.
          * @param[in] fpsN new fpsN value to scale the output buffer.
          * @param[in] fpsD new fpsN value to scale the output buffer.
@@ -336,7 +330,7 @@ namespace DSL
         bool SetBufferOutFrameRate(uint fpsN, uint fpsD);
         
         /**
-         * @brief Gets the buffer-out-crop values for the SourceBintr.
+         * @brief Gets the buffer-out-crop values for the VideoSourceBintr.
          * @param[in] cropAt either DSL_VIDEO_CROP_AT_SRC or 
          * DSL_VIDEO_CROP_AT_DESTINATION.
          * @param[out] left left coordinate for the crop frame in pixels.
@@ -349,7 +343,7 @@ namespace DSL
             uint* width, uint* height);
 
         /**
-         * @brief Sets the buffer-out-crop values for the SourceBintr.
+         * @brief Sets the buffer-out-crop values for the VideoSourceBintr.
          * @param[in] cropAt either DSL_VIDEO_CROP_AT_SRC or 
          * DSL_VIDEO_CROP_AT_DEST.
          * @param[in] left left coordinate for the crop frame in pixels.
@@ -393,14 +387,14 @@ namespace DSL
         bool SetNvbufMemType(uint nvbufMemType);
 
         /**
-         * @brief Adds a single Dewarper Bintr to this SourceBintr 
+         * @brief Adds a single Dewarper Bintr to this VideoSourceBintr 
          * @param[in] pDewarperBintr shared pointer to Dewarper to add
          * @returns true if the Dewarper could be added, false otherwise
          */
         bool AddDewarperBintr(DSL_BASE_PTR pDewarperBintr);
 
         /**
-         * @brief Removed a previously added DewarperBintr from this SourceBintr.
+         * @brief Removed a previously added DewarperBintr from this VideoSourceBintr.
          * @returns true if the Dewarper could be removed, false otherwise
          */
         bool RemoveDewarperBintr();
@@ -450,35 +444,43 @@ namespace DSL
     protected:
     
         /**
-         * @brief Links the derived Source's last specific element (SrcNodetr)
-         * to the common elements shared by all sources.
+         * @brief Indicates that the video Stream is fully linked, in some cases 
+         * after pads are dynamically linked. We don't want to try and unlink 
+         * unless fully linked. 
+         */
+        bool m_isVideoFullyLinked;
+
+        /**
+         * @brief Links the derived Video Source's last specific element (SrcNodetr)
+         * to the common video elements shared by all sources.
          * @param[in] pSrcNodetr source specific element to link to the common
          * elements.
          * @return True on success, false otherwise
          */
-        bool LinkToCommon(DSL_NODETR_PTR pSrcNodetr);
+        bool LinkToCommonVideo(DSL_NODETR_PTR pSrcNodetr);
         
         /**
-         * @brief Links a dynamic src-pad to the common elements shared by all sources
+         * @brief Links a dynamic src-pad to the common video elements shared by 
+         * all sources.
          * @param[in] pSrcPad dynamic src-pad to link
          * @return True on success, false otherwise
          */
-        bool LinkToCommon(GstPad* pSrcPad);
+        bool LinkToCommonVideo(GstPad* pSrcPad);
 
         /**
          * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
          */
-        void UnlinkCommon();
+        void UnlinkFromCommonVideo();
 
         /**
-         * @brief video-media-string for the SourceBintr. fixed at L"video/x-raw".
+         * @brief video-media-string for the VideoSourceBintr. fixed at L"video/x-raw".
          */
         std::string m_videoMediaString;
 
         /**
-         * @brief vector to link/unlink all common elements
+         * @brief vector to link/unlink all common video elements
          */
-        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonElements;
+        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonVideoElements;
 
         /**
          * @brief current buffer-out-format. 
@@ -496,26 +498,26 @@ namespace DSL
         uint m_height;
 
         /**
-         * @brief Current scaled width value for the SourceBintr's Output Buffer 
-         * Video Converter in units of pixels. Default = 0 for no transcode.
+         * @brief Current scaled width value for the VideoSourceBintr's Output 
+         * Buffer Video Converter in units of pixels. Default = 0 for no transcode.
          */
         uint m_bufferOutWidth;
         
         /**
-         * @brief Current scaled height setting for the SourceBintr's Output Buffer
-         * Video Converter in units of pixels. Default = 0 for no transcode
+         * @brief Current scaled height setting for the VideoSourceBintr's Output
+         * Buffer Video Converter in units of pixels. Default = 0 for no transcode
          */
         uint m_bufferOutHeight;
 
         /**
-         * @brief Current scaled fps-n value for the SourceBintr's Output Buffer 
-         * rate controler. Default = 0 for no rate change.
+         * @brief Current scaled fps-n value for the VideoSourceBintr's Output  
+         * Buffer rate controler. Default = 0 for no rate change.
          */
         uint m_bufferOutFpsN;
         
         /**
-         * @brief Current scaled height setting for the SourceBintr's Output Buffer
-         * rate controler. Default = 0 for no rate change
+         * @brief Current scaled fps-d setting for the VideoSourceBintr's Output 
+         * Buffer rate controler. Default = 0 for no rate change
          */
         uint m_bufferOutFpsD;
 
@@ -527,17 +529,17 @@ namespace DSL
         /**
          * @brief Output-buffer Video Converter element for this SourceBintr.
          */
-        DSL_ELEMENT_PTR m_pBufferOutVidConv;
+        DSL_ELEMENT_PTR m_pVideoOutConv;
 
         /**
          * @brief Output-buffer Video Rate element for this SourceBintr.
          */
-        DSL_ELEMENT_PTR m_pBufferOutVidRate;
+        DSL_ELEMENT_PTR m_pVideoOutRate;
 
         /**
          * @brief Caps Filter for the SourceBintr's output-buffe.
          */
-        DSL_ELEMENT_PTR m_pBufferOutCapsFilter;
+        DSL_ELEMENT_PTR m_pVideoOutCapsFilter;
 
         /**
          * @brief Single, optional dewarper for the DecodeSourceBintr
@@ -567,6 +569,94 @@ namespace DSL
         std::vector <GstPad*> m_requestedDuplicateSrcPads;
         
     };
+
+    // ------------------------------------------------------------------------------
+
+    /**
+     * @class AudioSourceBintr
+     * @brief Implements a base Audio Source Bintr for all derived Audio Source types.
+     */
+    class AudioSourceBintr : virtual public SourceBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the AudioSourceBintr base class
+         * @param[in] name unique name for the new AudioSourceBintr
+         */
+        AudioSourceBintr(const char* name);
+
+        /**
+         * @brief dtor for the AudioSourceBintr base class
+         */
+        ~AudioSourceBintr();
+
+    protected:
+    
+        /**
+         * @brief Indicates that the audio stream is fully linked, in some cases 
+         * after pads are dynamically linked. We don't want to try and unlink 
+         * unless fully linked. 
+         */
+        bool m_isAudioFullyLinked;
+
+        /**
+         * @brief Links the derived Audio Source's last specific element (SrcNodetr)
+         * to the common audio elements shared by all sources.
+         * @param[in] pSrcNodetr source specific element to link to the common
+         * elements.
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommonAudio(DSL_NODETR_PTR pSrcNodetr);
+        
+        /**
+         * @brief Links a dynamic src-pad to the common audio elements shared by 
+         * all sources.
+         * @param[in] pSrcPad dynamic src-pad to link
+         * @return True on success, false otherwise
+         */
+        bool LinkToCommonAudio(GstPad* pSrcPad);
+
+        /**
+         * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
+         */
+        void UnlinkFromCommonAudio();
+
+    private:
+
+        /**
+         * @brief audio-media-string for the SourceBintr. fixed at L"audio/x-raw".
+         */
+        std::string m_audioMediaString;
+
+        /**
+         * @brief vector to link/unlink all common Audio elements
+         */
+        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonAudioElements;
+
+        /**
+         * @brief Queue for the AudioSourceBintr's output-buffer.
+         */
+        DSL_ELEMENT_PTR m_pAudioOutQueue;
+
+        /**
+         * @brief Audio Converter for the AudioSourceBintr's output-buffer.
+         */
+        DSL_ELEMENT_PTR m_pAudioOutConv;
+
+        /**
+         * @brief Caps Filter for the AudioSourceBintr's output-buffer.
+         */
+        DSL_ELEMENT_PTR m_pAudioOutResample;
+
+        /**
+         * @brief Caps Filter for the AudioSourceBintr's output-buffer.
+         */
+        DSL_ELEMENT_PTR m_pAudioOutCapsFilter;
+
+    };
+
+    // ------------------------------------------------------------------------------
 
     /**
      * @class DuplicateSourceBintr
@@ -1224,7 +1314,10 @@ namespace DSL
      * @class UriSourceBintr
      * @brief 
      */
-    class UriSourceBintr : public VideoSourceBintr, public ResourceSourceBintr
+    // class UriSourceBintr : public AudioSourceBintr, 
+    //     public VideoSourceBintr, public ResourceSourceBintr
+    class UriSourceBintr :  
+        public VideoSourceBintr, public ResourceSourceBintr
     {
     public: 
     
@@ -1300,12 +1393,6 @@ namespace DSL
 
     private:
     
-        /**
-         * @brief The common elements are not linked until after the uridecodebin's
-         * pad is ready. We don't want to try and unlink unless fully linked. 
-         */
-        bool m_isFullyLinked;
-
         /**
          * @brief Additional number of surfaces in addition to min decode surfaces 
          * given by the v4l2 driver. Default = 1.
@@ -1978,13 +2065,6 @@ namespace DSL
         
     private:
     
-        /**
-         * @brief The common elements are not linked until after the rtspsrc
-         * has called the select-stream callback. We don't want to try and 
-         * unlink unless fully linked. 
-         */
-        bool m_isFullyLinked;
-        
         /**
          * @brief Amount of data to buffer in ms.
          */
