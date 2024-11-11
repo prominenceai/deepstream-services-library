@@ -8747,6 +8747,16 @@ uint dsl_component_list_size();
 DslReturnType dsl_component_media_type_get(const wchar_t* name, uint* media_type);
 
 /**
+ * @brief Sets the media type for the named Component.
+ * @param name unique name of the Component to update.
+ * @param[in] media_type one of the DSL_MEDIA_TYPE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @note See the documentation for each component type to determine which
+ * media type is supported.
+ */
+DslReturnType dsl_component_media_type_set(const wchar_t* name, uint media_type);
+
+/**
  * @brief Gets the queue-current-level by unit (buffers, bytes, or time) for the 
  * named Component.
  * @param[in] name name of the Component to query.

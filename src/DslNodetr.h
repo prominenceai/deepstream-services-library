@@ -88,7 +88,7 @@ namespace DSL
 
             if (m_pSink)
             {
-                LOG_ERROR("Nodetr '" << GetName() 
+                 LOG_ERROR("Nodetr '" << GetName() 
                     << "' is currently in a linked to Sink");
                 return false;
             }
@@ -880,7 +880,7 @@ namespace DSL
             gst_object_unref(pRequestedSinkPad);
 
             // call the parent class to complete the link-to-sink
-            return Nodetr::LinkToSink(pMuxer);
+            return true;
         }
 
         /**
@@ -892,11 +892,6 @@ namespace DSL
         {
             LOG_FUNC();
             
-            if (!IsLinkedToSink())
-            {
-                return false;
-            }
-
             GstState currState, nextState;
             GstStateChangeReturn result = gst_element_get_state(GetGstElement(), 
                 &currState, &nextState, 1);
@@ -985,11 +980,6 @@ namespace DSL
         virtual bool UnlinkFromSinkMuxer(const char* srcPadName)
         {
             LOG_FUNC();
-            
-            if (!IsLinkedToSink())
-            {
-                return false;
-            }
             
             // Get a reference to this GstNodetr's source pad
             GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), 

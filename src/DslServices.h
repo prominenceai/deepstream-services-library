@@ -1730,6 +1730,9 @@ namespace DSL {
         DslReturnType ComponentMediaTypeGet(const char* name, 
             uint* mediaType);
 
+        DslReturnType ComponentMediaTypeSet(const char* name, 
+            uint mediaType);
+
         DslReturnType ComponentQueueCurrentLevelGet(const char* name, 
             uint unit, uint64_t* currentLevel);
 

@@ -112,9 +112,11 @@ namespace DSL
         /**
          * @brief Sets the supported media for this Bintr
          */
-        void SetMediaType(uint mediaType)
+        virtual bool SetMediaType(uint mediaType)
         {
-            m_mediaType = mediaType;
+            LOG_ERROR("Can't change media-type for Bintr '" << GetName()
+                << "' as it only supports type " << m_mediaType);
+            return false;
         }
         
         /**

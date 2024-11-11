@@ -1314,9 +1314,7 @@ namespace DSL
      * @class UriSourceBintr
      * @brief 
      */
-    // class UriSourceBintr : public AudioSourceBintr, 
-    //     public VideoSourceBintr, public ResourceSourceBintr
-    class UriSourceBintr :  
+    class UriSourceBintr : public AudioSourceBintr, 
         public VideoSourceBintr, public ResourceSourceBintr
     {
     public: 
@@ -1325,6 +1323,20 @@ namespace DSL
             uint skipFrames, uint dropFrameInterval);
 
         ~UriSourceBintr();
+
+        /**
+         * @brief Sets the URL for UriSourceBintr
+         * @param Uniform Resource Identifier (URI) for the UriSourceBintr
+         * @return true if successfully set, false otherwise. 
+         */
+        bool SetUri(const char* uri);
+
+        /**
+         * @brief Sets the URL for file decode sources only
+         * @param uri relative or absolute path to the file decode source
+         * @return true if successfully set, false otherwise. 
+         */
+        bool SetFileUri(const char* uri);
 
         /**
          * @brief Links all Child Elementrs owned by this Source Bintr
@@ -1337,14 +1349,12 @@ namespace DSL
          */
         void UnlinkAll();
 
-        bool SetUri(const char* uri);
-
         /**
-         * @brief Sets the URL for file decode sources only
-         * @param uri relative or absolute path to the file decode source
+         * @brief Sets the media-type for the UriSourceBintr.
+         * @return true if succesfullu updated, false otherwise
          */
-        bool SetFileUri(const char* uri);
-        
+        bool SetMediaType(uint mediaType);
+
         /**
          * @brief 
          * @param pChildProxy

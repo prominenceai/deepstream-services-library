@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslSinkBintr.h"
 #include "DslOdeAction.h"
+#include "DslPipelineBintr.h"
 
 using namespace DSL;
 
@@ -62,6 +63,8 @@ SCENARIO( "A new AppSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -121,6 +124,8 @@ SCENARIO( "A new FrameCaptureSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -145,6 +150,8 @@ SCENARIO( "A new CustomSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == false );
                 REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == false );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -260,6 +267,8 @@ SCENARIO( "A new FakeSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -288,6 +297,75 @@ SCENARIO( "A new FakeSinkBintr can LinkAll and Unlink All Child Elementrs", "[Si
             {
                 pSinkBintr->UnlinkAll();
                 REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A FakeSinkBintr can update its media-type correctly", "[SinkBintr]" )
+{
+    GIVEN( "A new FakeSinkBintr and Pipeline" ) 
+    {
+        std::string sinkName("fake-sink");
+        std::string pipelineName("pipeline");
+
+        DSL_FAKE_SINK_PTR pSinkBintr = 
+            DSL_FAKE_SINK_NEW(sinkName.c_str());
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        // check default
+        REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
+
+        WHEN( "When the FakeSinkBintr's media-type is update" )
+        {
+            uint newMediaType = DSL_MEDIA_TYPE_AUDIO_ONLY;
+
+            REQUIRE( pSinkBintr->SetMediaType(newMediaType) == true );
+
+            THEN( "The FakeSinkBintr's media-type is returned correctly'")
+            {
+                REQUIRE( pSinkBintr->GetMediaType() 
+                    == newMediaType );
+            }
+        }
+        WHEN( "When the FakeSinkBintr is added to a Pipeline" )
+        {
+            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+            uint newMediaType = DSL_MEDIA_TYPE_AUDIO_ONLY;
+
+            THEN( "The FakeSinkBintr's media-type fails to update'")
+            {
+                REQUIRE( pSinkBintr->SetMediaType(newMediaType) == false );
+
+                // ensure media-type is unchanged
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
+            }
+        }
+        WHEN( "When an invalid media-type of 0 is used" )
+        {
+            uint newMediaType = 0;
+
+            THEN( "The FakeSinkBintr's media-type fails to update'")
+            {
+                REQUIRE( pSinkBintr->SetMediaType(newMediaType) == false );
+
+                // ensure media-type is unchanged
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
+            }
+        }
+        WHEN( "When an invalid media-type of AUDIO_VIDEO is used" )
+        {
+            uint newMediaType = DSL_MEDIA_TYPE_AUDIO_VIDEO;
+
+            THEN( "The FakeSinkBintr's media-type fails to update'")
+            {
+                REQUIRE( pSinkBintr->SetMediaType(newMediaType) == false );
+
+                // ensure media-type is unchanged
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -324,6 +402,8 @@ SCENARIO( "A new 3dSinkBintr is created correctly",  "[SinkBintr]" )
                     REQUIRE( retMaxLatness == -1 );
                     REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                     REQUIRE( retEnabled == false );
+
+                    REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 }
             }
         }
@@ -535,6 +615,8 @@ SCENARIO( "A new EglSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -953,7 +1035,7 @@ SCENARIO( "A new DSL_ENCODER_MPEG4 FileSinkBintr can LinkAll Child Elementrs", "
 }
 
 
-SCENARIO( "A new DSL_ENCODER_HW_H264 FileSinkBintr is created correctly",  "[time]" )
+SCENARIO( "A new DSL_ENCODER_HW_H264 FileSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_ENCODER_HW_H264 File Sink" ) 
     {
@@ -993,6 +1075,8 @@ SCENARIO( "A new DSL_ENCODER_HW_H264 FileSinkBintr is created correctly",  "[tim
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1094,6 +1178,8 @@ SCENARIO( "A new DSL_ENCODER_HW_H265 FileSinkBintr is created correctly",  "[tim
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1272,6 +1358,8 @@ SCENARIO( "A new DSL_ENCODER_SW_H265 FileSinkBintr is created correctly",  "[Sin
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1349,6 +1437,8 @@ SCENARIO( "A new DSL_ENCODER_SW_MPEG4 FileSinkBintr is created correctly",  "[Si
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1494,6 +1584,8 @@ SCENARIO( "A new DSL_CONTAINER_MP4 RecordSinkBintr is created correctly",  "[Sin
                 REQUIRE( pSinkBintr->GotKeyFrame() == false );
                 REQUIRE( pSinkBintr->IsOn() == false );
                 REQUIRE( pSinkBintr->ResetDone() == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1750,6 +1842,8 @@ SCENARIO( "A new RtmpSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1847,7 +1941,8 @@ SCENARIO( "A new DSL_ENCODER_HW_H264 RtspClientSinkBintr is created correctly",
                 pSinkBintr->GetConverterDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
-                
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1950,6 +2045,8 @@ SCENARIO( "A new DSL_ENCODER_HW_H264 RtspServerSinkBintr is created correctly", 
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -1991,7 +2088,7 @@ SCENARIO( "A new DSL_ENCODER_HW_H264 RtspServerSinkBintr can LinkAll and UnlinkA
     }
 }
 
-SCENARIO( "A new DSL_ENCODER_HW_H265 RtspServerSinkBintr is created correctly",  "[error]" )
+SCENARIO( "A new DSL_ENCODER_HW_H265 RtspServerSinkBintr is created correctly",  "[SinkBintr]" )
 {
     GIVEN( "Attributes for a new DSL_ENCODER_HW_H265 File Sink" ) 
     {
@@ -2253,6 +2350,8 @@ SCENARIO( "A new DSL_ENCODER_SW_MPEG4 RtspServerSinkBintr is created correctly",
                 boolean retEnabled;
                 REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == true );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -2371,6 +2470,8 @@ SCENARIO( "A new MultImageSinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -2473,6 +2574,8 @@ SCENARIO( "A new V4l2SinkBintr is created correctly",  "[SinkBintr]" )
                 REQUIRE( retMaxLatness == -1 );
                 REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
                 REQUIRE( retEnabled == false );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }

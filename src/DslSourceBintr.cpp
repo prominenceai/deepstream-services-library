@@ -2219,7 +2219,7 @@ namespace DSL
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint skipFrames, uint dropFrameInterval)
         : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
-//        , AudioSourceBintr(name)
+        , AudioSourceBintr(name)
         , VideoSourceBintr(name)
         , ResourceSourceBintr(name, uri)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
@@ -2234,7 +2234,8 @@ namespace DSL
         LOG_FUNC();
         
         m_isLive = isLive;
-        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
+        
+        SetMediaType(DSL_MEDIA_TYPE_AUDIO_VIDEO);
         
         m_pSourceElement = DSL_ELEMENT_NEW("uridecodebin", name);
         
@@ -2406,6 +2407,24 @@ namespace DSL
         m_isLinked = false;
     }
     
+    bool UriSourceBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for FakeSinkBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if (m_mediaType == mediaType)
+        {
+            LOG_ERROR("Can't update media-type for FakeSinkBintr '" 
+                << GetName() << "' as it is already of type = " << mediaType);
+            return false;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
+
     void UriSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
     {
         LOG_FUNC();
@@ -2431,13 +2450,13 @@ namespace DSL
             LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
 
         }
-        // else if (name.find("audio/x-raw") != std::string::npos)
-        // {
-        //     LinkToCommonAudio(pPad);
+        else if (name.find("audio/x-raw") != std::string::npos)
+        {
+            LinkToCommonAudio(pPad);
             
-        //     LOG_INFO("Audio decode linked for URI source '" << GetName() << "'");
+            LOG_INFO("Audio decode linked for URI source '" << GetName() << "'");
 
-        // }
+        }
     }
 
     void UriSourceBintr::HandleOnChildAdded(GstChildProxy* pChildProxy, GObject* pObject,

@@ -813,7 +813,25 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
-
+    
+    bool FakeSinkBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for FakeSinkBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if ((mediaType != DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (mediaType != DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_ERROR("Can't update media-type for FakeSinkBintr '" 
+                << GetName() << "' with invalid type = " << mediaType);
+            return false;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
     //-------------------------------------------------------------------------
 
     WindowSinkBintr::WindowSinkBintr(const char* name, 

@@ -75,8 +75,12 @@ DSL_STREAM_FORMAT_BYTE = 2
 DSL_STREAM_FORMAT_TIME = 3
 
 # DSL Media Types - Used by all Source Components
-DSL_MEDIA_TYPE_VIDEO_XRAW = "video/x-raw"
-DSL_MEDIA_TYPE_AUDIO_XRAW = "audio/x-raw"
+DSL_MEDIA_STRING_AUDIO_XRAW = "audio/x-raw"
+DSL_MEDIA_STRING_AUDIO_XRAW = "video/x-raw"
+
+DSL_MEDIA_TYPE_AUDIO_ONLY   = 0x01
+DSL_MEDIA_TYPE_VIDEO_ONLY   = 0x10
+DSL_MEDIA_TYPE_AUDIO_VIDEO  = 0x11
 
 # DSL Video Format Types - Used by all Video Source Components
 DSL_VIDEO_FORMAT_I420    = "I420"
@@ -7498,6 +7502,16 @@ def dsl_component_media_type_get(name):
     media_type = c_uint(0)
     result = _dsl.dsl_component_media_type_get(name, DSL_WCHAR_PP(media_type))
     return int(result), media_type.value 
+
+##
+## dsl_component_media_type_set()
+##
+_dsl.dsl_component_media_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_media_type_set.restype = c_uint
+def dsl_component_media_type_set(name, media_type):
+    global _dsl
+    result = _dsl.dsl_component_media_type_set(name, media_type)
+    return int(result)
 
 ##
 ## dsl_component_queue_current_level_get()

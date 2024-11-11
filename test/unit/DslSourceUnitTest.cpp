@@ -75,6 +75,8 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -169,6 +171,8 @@ SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 uint retWidth(99), retHeight(99), retFpsN(99), retFpsD(99);
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -291,6 +295,8 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( pSourceBintr->GetSensorId() == 0 );
                     REQUIRE( pSourceBintr->IsInUse() == false );
                     REQUIRE( pSourceBintr->IsLive() == true );
+
+                    REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                     
                     uint retWidth, retHeight, retFpsN, retFpsD;
                     pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -439,6 +445,8 @@ SCENARIO( "A new V4l2SourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string retDeviceLocaton = pSourceBintr->GetDeviceLocation();
                 REQUIRE( retDeviceLocaton == defDeviceLocation );
@@ -545,6 +553,8 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
@@ -816,6 +826,8 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                     DSL_TLS_CERTIFICATE_VALIDATE_ALL );
                 REQUIRE( pSourceBintr->GetUdpBufferSize() == 524288);
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 dsl_rtsp_connection_data data{0};
                 data.first_connected = 123;
@@ -1000,7 +1012,7 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
     }
 }
 
-SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[error]" )
+SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -1141,6 +1153,8 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullFillPath );
@@ -1215,6 +1229,8 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 REQUIRE( pSourceBintr->GetTimeout() == 0 );
                 
@@ -1291,6 +1307,8 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
@@ -1362,6 +1380,8 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
 
                 REQUIRE( pSourceBintr->GetLoopEnabled() == false );
                 int startIndex(99), stopIndex(99);
@@ -1440,6 +1460,8 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
                 REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string retOriginalName = pSourceBintr->GetOriginal();
                 REQUIRE( retOriginalName == originalSourceName);

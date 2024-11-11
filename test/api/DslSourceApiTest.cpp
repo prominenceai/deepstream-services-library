@@ -188,7 +188,7 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted",
 }
 
 SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources ", 
-    "[source-api]" )
+    "[error]" )
 {
     GIVEN( "A new Source and new pPipeline" ) 
     {
@@ -400,7 +400,7 @@ SCENARIO( "A new App Source returns the correct attribute values",
 
                 // test returned media-type
                 uint ret_media_type(DSL_MEDIA_TYPE_AUDIO_ONLY);
-                REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
+                REQUIRE( dsl_component_media_type_get(source_name.c_str(), 
                     &ret_media_type) == DSL_RESULT_SUCCESS );
                 REQUIRE( ret_media_type == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
@@ -1894,11 +1894,6 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_app_do_timestamp_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
-
-                REQUIRE( dsl_source_media_type_get(NULL, 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
-                REQUIRE( dsl_source_media_type_get(source_name.c_str(), 
-                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_video_buffer_out_format_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );

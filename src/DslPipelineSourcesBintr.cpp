@@ -263,14 +263,33 @@ namespace DSL
             std::string sinkPadName = 
                 "sink_" + std::to_string(imap.second->GetVideoRequestPadId());
             
-            if (!imap.second->LinkAll() or 
-                !imap.second->LinkToSinkMuxer(pVideomux->Get(),
-                    "video_src", sinkPadName.c_str()))
+            if (!imap.second->LinkAll())
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Link Child Source '" 
-                    << imap.second->GetName() << "'");
                 return false;
+            } 
+            if ((imap.second->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+                GetStreammuxEnabled(DSL_VIDEOMUX))
+            {
+                if (!imap.second->LinkToSinkMuxer(pVideomux->Get(),
+                    "video_src", sinkPadName.c_str()))
+                {
+                    LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                        << "' failed to link video for Child Source '" 
+                        << imap.second->GetName() << "'");
+                    return false;
+                }
+            }
+            if ((imap.second->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
+                GetStreammuxEnabled(DSL_AUDIOMUX))
+            {
+                if (!imap.second->LinkToSinkMuxer(pAudiomux->Get(),
+                    "audio_src", sinkPadName.c_str()))
+                {
+                    LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                        << "' failed to link audio for Child Source '" 
+                        << imap.second->GetName() << "'");
+                    return false;
+                }
             }
             // If we're linking an RTSP Source, determine if EOS consumer 
             // should be added to Streammuxer

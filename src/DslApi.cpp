@@ -9952,6 +9952,18 @@ DslReturnType dsl_component_media_type_get(const wchar_t* name,
         cstrName.c_str(), media_type);
 }
     
+DslReturnType dsl_component_media_type_set(const wchar_t* name,
+    uint media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->ComponentMediaTypeSet(
+        cstrName.c_str(), media_type);
+}
+    
 DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
     uint unit, uint64_t* current_level)
 {

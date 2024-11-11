@@ -511,6 +511,12 @@ namespace DSL
          */
         void UnlinkAll();
         
+        /**
+         * @brief Sets the media-type for the FakeSinkBintr.
+         * @return true succesfullu updated, false otherwise
+         */
+        bool SetMediaType(uint mediaType);
+
     private:
         
     };
