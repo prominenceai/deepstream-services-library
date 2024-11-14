@@ -975,9 +975,12 @@ namespace DSL
         
         /**
          * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @param[in] pMuxer sink muxer to unlink from
+         * @param[in] srcPadName name of the Src Pad to unlink
          * @return true if able to successfully unlink from Muxer Sink Pad
          */
-        virtual bool UnlinkFromSinkMuxer(const char* srcPadName)
+        virtual bool UnlinkFromSinkMuxer(DSL_NODETR_PTR pMuxer, 
+            const char* srcPadName)
         {
             LOG_FUNC();
             
@@ -1058,19 +1061,17 @@ namespace DSL
             {
                 LOG_ERROR("GstNodetr '" << GetName() 
                     << "' failed to unlink from Muxer");
-                Nodetr::UnlinkFromSink();
                 return false;
             }
             // Need to release the previously requested sink pad
-            gst_element_release_request_pad(GetSink()->GetGstElement(), 
+            gst_element_release_request_pad(pMuxer->GetGstElement(), 
                 pRequestedSinkPad);
 
             // unreference both the static source pad and requested sink
             gst_object_unref(pStaticSrcPad);
             gst_object_unref(pRequestedSinkPad);
-            
-            // Call the parent class to complete the unlink from sink
-            return Nodetr::UnlinkFromSink();
+
+            return true;
         }
         
         /**

@@ -591,6 +591,16 @@ namespace DSL
          */
         ~AudioSourceBintr();
 
+        /**
+         * @brief Initializes the AudioSourceBintr base class
+         */
+        void InitCommonAudio();
+
+        /**
+         * @brief Denitializes the AudioSourceBintr base class
+         */
+        void DeinitCommonAudio();
+
     protected:
     
         /**

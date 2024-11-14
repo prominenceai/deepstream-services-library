@@ -139,16 +139,30 @@ namespace DSL
          * @brief Video Streammuxer for this PipelineSourcesBintr, 
          * enabled by default.
          */
-        DSL_STREAMMUX_PTR pVideomux;
+        DSL_STREAMMUX_PTR m_pVideomux;
 
         /**
          * @brief Audio Streammuxer for this PipelineSourcesBintr, 
          * disabled by default.
          */
-        DSL_STREAMMUX_PTR pAudiomux;
+        DSL_STREAMMUX_PTR m_pAudiomux;
 
     private:
-    
+
+        /**
+         * @brief Links a child Source to this PipelineSourcesBintr.
+         * @param pChildSource a shared pointer to the Source to link.
+         * @return true on successful add, false otherwise.
+         */
+        bool LinkChildToSinkMuxers(DSL_SOURCE_PTR pChildSource);
+
+        /**
+         * @brief Unlinks a child Source from this PipelineSourcesBintr.
+         * @param pChildSource a shared pointer to the Source to unlink.
+         * @return true on successful add, false otherwise.
+         */
+        bool UnlinkChildFromSinkMuxers(DSL_SOURCE_PTR pChildSource);
+
         /**
          * @brief unique id for the Parent Pipeline, used to offset all source
          * Id's (if greater than 0)

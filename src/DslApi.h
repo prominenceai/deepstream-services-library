@@ -576,9 +576,9 @@ THE SOFTWARE.
 /**
  * @brief DSL Supported Media Types for all Pipelines and Components
  */
-#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0x01
-#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   0x10
-#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  0x11
+#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0x00000001
+#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   0x00000010
+#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  0x00000011
 
 /**
  * @brief Default Media Support for all new Pipelines.

@@ -513,7 +513,7 @@ namespace DSL
         
         /**
          * @brief Sets the media-type for the FakeSinkBintr.
-         * @return true succesfullu updated, false otherwise
+         * @return true if succesfullu updated, false otherwise
          */
         bool SetMediaType(uint mediaType);
 

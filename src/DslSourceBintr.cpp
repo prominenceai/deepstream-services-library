@@ -905,24 +905,34 @@ namespace DSL
         // Media type is fixed to "audio/x-raw"
         std::wstring L_mediaType(DSL_MEDIA_STRING_AUDIO_XRAW);
         m_audioMediaString.assign(L_mediaType.begin(), L_mediaType.end());
+    }
+    
+    AudioSourceBintr::~AudioSourceBintr()
+    {
+        LOG_FUNC();
+    }
 
+    void AudioSourceBintr::InitCommonAudio()
+    {
+        LOG_FUNC();
+        
         // // Set the buffer-out-format to the default video format
         // std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         // m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
         //     L_bufferOutFormat.end());
         
-        // All SourceBintrs have a Video Converter with Caps Filter used
-        // to control the buffer-out format, dimensions, crop values, etc.
+        // All AudioSourceBintrs have a Audio Converter, Audio Resampler, and
+        // Caps Filter used to control the buffer-out format and rate.
         
         // ---- Audio Queue Setup
 
         m_pAudioOutQueue = DSL_ELEMENT_EXT_NEW("queue", 
-            name, "audio-out");
+            GetCStrName(), "audio-out");
         
         // ---- Audio Converter Setup
 
         m_pAudioOutConv = DSL_ELEMENT_EXT_NEW("audioconvert", 
-            name, "audio-out");
+            GetCStrName(), "audio-out");
         
         // Get property defaults that aren't specifically set
         // m_pVideoOutConv->GetAttribute("gpu-id", &m_gpuId);
@@ -931,41 +941,43 @@ namespace DSL
         // ---- Audio Re-sampler Setup
 
         m_pAudioOutResample = DSL_ELEMENT_EXT_NEW("audioresample", 
-           name, "audio-out");
+           GetCStrName(), "audio-out");
 
         
         // ---- Caps Filter Setup
 
         m_pAudioOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
-           name, "audio-out");
+           GetCStrName(), "audio-out");
 
         // Set Audio Caps input rate to 44.1 KHz
         DslCaps AudioCaps("audio/x-raw, rate=44100");
         m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
 
-        // Update the caps with the media, format, and memory:NVMM feature
-        // if (!SetBufferOutFormat(m_bufferOutFormat.c_str()))
-        // {
-        //     throw;
-        // }
-
-        // add both elementrs as children to this Bintr
+        // add all elementrs as children to this Bintr
         AddChild(m_pAudioOutQueue);
         AddChild(m_pAudioOutConv);
         AddChild(m_pAudioOutResample);
         AddChild(m_pAudioOutCapsFilter);
 
-        // IMPORTANT! Caps Filter is ghost-pad by default - will be changed if 
-        // duplicate Source is added.
+        // Add the audio src ghost pad to the caps-filter.
         m_pAudioOutCapsFilter->AddGhostPadToParent("src", "audio_src");
 
         // Add the Buffer and DS Event Probes to the caps-filter - src-pad only.
 //        AddSrcPadProbes(m_pAudioOutCapsFilter->GetGstElement());
     }
     
-    AudioSourceBintr::~AudioSourceBintr()
+    void AudioSourceBintr::DeinitCommonAudio()
     {
         LOG_FUNC();
+        
+        // Remove the audio src ghost pad from the caps-filter.
+        m_pAudioOutCapsFilter->RemoveGhostPadFromParent("audio_src");
+
+        // remove all child elementrs from this Bintr
+        RemoveChild(m_pAudioOutQueue);
+        RemoveChild(m_pAudioOutConv);
+        RemoveChild(m_pAudioOutResample);
+        RemoveChild(m_pAudioOutCapsFilter);
     }
     
     bool AudioSourceBintr::LinkToCommonAudio(DSL_NODETR_PTR pSrcNodetr)
@@ -1047,6 +1059,7 @@ namespace DSL
     }
 
     //*********************************************************************************
+
     DuplicateSourceBintr::DuplicateSourceBintr(const char* name, 
             const char* original, bool isLive)
         : SourceBintr(name) 
@@ -2235,8 +2248,6 @@ namespace DSL
         
         m_isLive = isLive;
         
-        SetMediaType(DSL_MEDIA_TYPE_AUDIO_VIDEO);
-        
         m_pSourceElement = DSL_ELEMENT_NEW("uridecodebin", name);
         
         if (!SetUri(uri))
@@ -2411,16 +2422,30 @@ namespace DSL
     {
         if (IsInUse())
         {
-            LOG_ERROR("Cant update media-type for FakeSinkBintr '" 
+            LOG_ERROR("Cant update media-type for UriSourceBintr '" 
                 << GetName() << "' as it is currently in-use");
             return false;
         }
         if (m_mediaType == mediaType)
         {
-            LOG_ERROR("Can't update media-type for FakeSinkBintr '" 
+            LOG_ERROR("Can't update media-type for UriSourceBintr '" 
                 << GetName() << "' as it is already of type = " << mediaType);
             return false;
         }
+
+        if (!(m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY))
+        {
+            LOG_INFO("Enabling Audio for UriSourceBintr '" << GetName() << "'");
+            InitCommonAudio();
+        } 
+        if ((m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            !(mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY))
+        {
+            LOG_INFO("Disabling Audio for UriSourceBintr '" << GetName() << "'");
+            DeinitCommonAudio();
+        } 
+
         m_mediaType = mediaType;
         return true;
     }    
@@ -2438,7 +2463,8 @@ namespace DSL
         std::string name = gst_structure_get_name(structure);
         
         LOG_INFO("Caps structs name " << name);
-        if (name.find("video/x-raw") != std::string::npos)
+        if ((name.find("video/x-raw") != std::string::npos) and
+            (m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY))
         {
             LinkToCommonVideo(pPad);
             
@@ -2450,7 +2476,8 @@ namespace DSL
             LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
 
         }
-        else if (name.find("audio/x-raw") != std::string::npos)
+        else if ((name.find("audio/x-raw") != std::string::npos) and
+            (m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
             LinkToCommonAudio(pPad);
             

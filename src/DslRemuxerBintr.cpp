@@ -222,7 +222,7 @@ namespace DSL
         {
             // Unlink the Queue for the Streammuxer and remove as Child
             // of the Proxy - Bintr for the RemuxerBintr
-            m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer("src");
+            m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer(m_pStreammux, "src");
 
             RemoveChild(m_queues[m_streamIds[i]]);
         }
@@ -299,11 +299,11 @@ namespace DSL
         return m_pChildBranch->LinkToSinkMuxer(pMuxer, "src", padName);
     }
 
-    bool RemuxerBranchBintr::UnlinkFromSinkMuxer()
+    bool RemuxerBranchBintr::UnlinkFromSinkMuxer(DSL_NODETR_PTR pMuxer)
     {
         LOG_FUNC();
         
-        return m_pChildBranch->UnlinkFromSinkMuxer("src");
+        return m_pChildBranch->UnlinkFromSinkMuxer(pMuxer, "src");
     }
     
     uint RemuxerBranchBintr::GetBatchSize()
@@ -822,7 +822,7 @@ namespace DSL
         }
 
         m_pQueue->UnlinkFromSourceTee();
-        m_pQueue->UnlinkFromSinkMuxer("src");
+        m_pQueue->UnlinkFromSinkMuxer(m_pMetamuxer, "src");
         m_pDemuxerQueue->UnlinkFromSourceTee();
         m_pDemuxerQueue->UnlinkFromSink();
 
@@ -831,7 +831,7 @@ namespace DSL
             // Important to unlink from source Tees first, UnlinkAll will 
             // delete all queues.
             imap.second->UnlinkFromSourceTees();
-            imap.second->UnlinkFromSinkMuxer();
+            imap.second->UnlinkFromSinkMuxer(m_pMetamuxer);
             imap.second->UnlinkAll();
         }
 

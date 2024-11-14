@@ -208,7 +208,13 @@ namespace DSL
          * @param[in] batchSize the new batch size to use
          */
         bool SetBatchSize(uint batchSize);
-        
+
+        /**
+         * @brief Sets the media-type for the FakeSinkBintr.
+         * @return true if succesfullu updated, false otherwise
+         */
+        bool SetMediaType(uint mediaType);
+
     protected:
     
         /**

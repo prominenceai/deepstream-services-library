@@ -370,7 +370,30 @@ namespace DSL
         }
         return Bintr::SetBatchSize(batchSize);
     }
-    
+
+    bool MultiBranchesBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for BranchBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if (GetNumChildren() > 0)
+        {
+            LOG_ERROR("Cant update media-type for BranchBintr '" 
+                << GetName() << "' as it is currently has child components");
+            return false;
+        }
+        if (m_mediaType == mediaType)
+        {
+            // noting to update - can be normal case for this bintr
+            return true;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
+
     //--------------------------------------------------------------------------------
 
     MultiSinksBintr::MultiSinksBintr(const char* name)

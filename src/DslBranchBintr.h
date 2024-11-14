@@ -203,21 +203,21 @@ namespace DSL
         bool RemoveRemuxerBintr(DSL_BASE_PTR pRemuxerBintr);
 
         /**
-         * @brief adds a single SplitterBintr to this Branch 
+         * @brief adds a single SplitterBintr to this BranchBintr 
          * @param[in] pSplitterBintr shared pointer to SplitterBintr to add.
          * @return true on successful add, false otherwise.
          */
         bool AddSplitterBintr(DSL_BASE_PTR pSplitterBintr);
 
         /**
-         * @brief removes a SplitterBintr from this Branch. 
+         * @brief removes a SplitterBintr from this BranchBintr. 
          * @param[in] pSplitterBintr shared pointer to SplitterBintr to remove.
          * @return true on succesful remove, false otherwise.
          */
         bool RemoveSplitterBintr(DSL_BASE_PTR pSplitterBintr);
         
         /**
-         * @brief adds a single SinkBintr to this Branch 
+         * @brief adds a single SinkBintr to this BranchBintr 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          * @return true on successful add, false otherwise
          */
@@ -231,7 +231,7 @@ namespace DSL
         bool IsSinkBintrChild(DSL_BASE_PTR pSinkBintr);
 
         /**
-         * @brief removes a single SinkBintr from this Branch 
+         * @brief removes a single SinkBintr from this BranchBintr 
          * @param[in] pSinkBintr shared pointer to Sink Bintr to add
          * @return true on successful remove, false otherwise
          */
@@ -240,11 +240,17 @@ namespace DSL
         bool LinkAll();
         
         void UnlinkAll();
-        
+
+        /**
+         * @brief Sets the media-type for the BranchBintr.
+         * @return true if succesfullu updated, false otherwise
+         */
+        bool SetMediaType(uint mediaType);
+
     private:
     
         /**
-         * @brief adds a child GstNodetr to this Branch Bintr
+         * @brief adds a child GstNodetr to this BranchBintr
          * @param[in] pChild to add. Once added, calling InUse()
          *  on the Child Bintr will return true
          * @return true if pChild was added successfully, false otherwise
@@ -252,20 +258,20 @@ namespace DSL
         bool AddChild(DSL_BASE_PTR pChild);
         
         /**
-         * @brief removes a child from this Branch Bintr
+         * @brief removes a child from this BranchBintr
          * @param[in] pChild to remove. Once removed, calling InUse()
          *  on the Child Bintr will return false
          */
         bool RemoveChild(DSL_BASE_PTR pChild);
 
         /**
-         * @brief links all children of this Branch Bintr by add order
+         * @brief links all children of this BranchBintr by add order
          * @return true on successful link, false otherwise
          */
         bool LinkAllPositional();
 
         /**
-         * @brief links all children of this Branch Bintr by add order
+         * @brief links all children of this BranchBintr by add order
          * @return true on successful link, false otherwise
          */
         bool LinkAllOrdered();
@@ -279,7 +285,7 @@ namespace DSL
         uint m_nextComponentIndex;
         
         /**
-         * @brief Map of child components for this Branch, other than sinks,
+         * @brief Map of child components for this BranchBintr, other than sinks,
          * indexed by thier add-order for execution
          */
         std::map <uint, DSL_BINTR_PTR> m_componentsIndexed;
@@ -290,7 +296,7 @@ namespace DSL
         std::vector<DSL_BINTR_PTR> m_linkedComponents;
         
         /**
-         * @brief optional, one at most PreprocBintr for this Branch
+         * @brief optional, one at most PreprocBintr for this BranchBintr
          */
         DSL_PREPROC_PTR m_pPreprocBintr;
         
@@ -300,33 +306,33 @@ namespace DSL
         uint m_nextPrimaryInferBintrIndex;
         
         /**
-         * @brief Map of child GIE or TIS PrimaryInferBintrs for this Branch
+         * @brief Map of child GIE or TIS PrimaryInferBintrs for this BranchBintr
          */
         std::map <std::string, DSL_PRIMARY_INFER_PTR> m_pPrimaryInferBintrs;
         
         /**
-         * @brief Map of child GIE or TIS PrimaryInferBintrs for this Branch
+         * @brief Map of child GIE or TIS PrimaryInferBintrs for this BranchBintr
          * indexed by thier add-order for execution
          */
         std::map <uint, DSL_PRIMARY_INFER_PTR> m_pPrimaryInferBintrsIndexed;
         
         /**
-         * @brief optional, one or more Secondary GIEs for this Branch
+         * @brief optional, one or more Secondary GIEs for this BranchBintr
          */
         DSL_PIPELINE_SINFERS_PTR m_pSecondaryInfersBintr;
 
         /**
-         * @brief optional, one at most Segmentation Visualizater for this Branch
+         * @brief optional, one at most Segmentation Visualizater for this BranchBintr
          */
         DSL_SEGVISUAL_PTR m_pSegVisualBintr;
         
         /**
-         * @brief optional, one at most Tracker for this Branch
+         * @brief optional, one at most Tracker for this BranchBintr
          */
         DSL_TRACKER_PTR m_pTrackerBintr;
 
         /**
-         * @brief optional, one at most Optical Flow Fisualizer for this Branch
+         * @brief optional, one at most Optical Flow Fisualizer for this BranchBintr
          */
         DSL_OFV_PTR m_pOfvBintr;
 
@@ -336,24 +342,24 @@ namespace DSL
         uint m_nextCustomBintrIndex;
         
         /**
-         * @brief Map of child Custom Custom Components for this Branch
+         * @brief Map of child Custom Custom Components for this BranchBintr
          */
         std::map <std::string, DSL_CUSTOM_BINTR_PTR> m_custonBintrs;
         
         /**
-         * @brief Map of child Custom Custom Components for this Branch
+         * @brief Map of child Custom Custom Components for this BranchBintr
          * indexed by thier add-order for execution
          */
         std::map <uint, DSL_CUSTOM_BINTR_PTR> m_custonBintrsIndexed;
         
         /**
-         * @brief optional, one at most OSD for this Branch
+         * @brief optional, one at most OSD for this BranchBintr
          */
         DSL_OSD_PTR m_pOsdBintr;
                         
         /**
          * @brief optional, one at most Tiled Display mutually exclusive 
-         * with the DemuxerBintr, however, a Branch must have one or the other
+         * with the DemuxerBintr, however, a BranchBintr must have one or the other
          */
         DSL_TILER_PTR m_pTilerBintr;
                         
@@ -376,7 +382,7 @@ namespace DSL
         DSL_SPLITTER_PTR m_pSplitterBintr;
         
         /**
-         * @brief parent bin for all Sink bins in this Branch
+         * @brief parent bin for all Sink bins in this BranchBintr
          */
         DSL_MULTI_SINKS_PTR m_pMultiSinksBintr;
         

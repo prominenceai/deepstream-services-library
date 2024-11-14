@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2023-2-24, Prominence AI, Inc.
+Copyright (c) 2023-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -106,9 +106,10 @@ namespace DSL
 
         /**
          * @brief unlinks this Nodetr from a previously linked Muxer Sink Pad
+         * @param[in] pMuxer nodetr to unlink from
          * @return true if able to successfully unlink from Muxer Sink Pad
          */
-        bool UnlinkFromSinkMuxer();
+        bool UnlinkFromSinkMuxer(DSL_NODETR_PTR pMuxer);
         
         /**
          * @brief Gets the Metamuxer branch config-string with Infer Id and

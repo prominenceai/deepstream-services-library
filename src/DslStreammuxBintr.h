@@ -297,6 +297,8 @@ namespace DSL
          * Id's (if greater than 0)
          */
         uint m_uniquePipelineId; 
+
+        std::string m_ghostPadName;
         
         /**
          * @brief Pad Probe Event Handler to handle all dowstream nvstreammux

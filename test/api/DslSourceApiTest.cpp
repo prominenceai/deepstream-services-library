@@ -188,7 +188,7 @@ SCENARIO( "A Source, once removed from a Pipeline, can be deleted",
 }
 
 SCENARIO( "Unique-ids and stream-ids are managed correctly for multiple sources ", 
-    "[error]" )
+    "[source-api]" )
 {
     GIVEN( "A new Source and new pPipeline" ) 
     {

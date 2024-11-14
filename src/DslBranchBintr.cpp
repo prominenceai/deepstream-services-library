@@ -706,6 +706,10 @@ namespace DSL
         if (!m_pMultiSinksBintr)
         {
             m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
+
+            // Set MultiSinkBintr's media-type accordingly before adding
+            m_pMultiSinksBintr->SetMediaType(GetMediaType());
+
             AddChild(m_pMultiSinksBintr);
         }
         return m_pMultiSinksBintr->AddChild(
@@ -1156,5 +1160,29 @@ namespace DSL
         // Call the base class to complete the remove process
         return GstNodetr::RemoveChild(pChildBintr);
     }
+
+    bool BranchBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for BranchBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if (m_componentsIndexed.size())
+        {
+            LOG_ERROR("Cant update media-type for BranchBintr '" 
+                << GetName() << "' as it is currently has child components");
+            return false;
+        }
+        if (m_mediaType == mediaType)
+        {
+            LOG_ERROR("Can't update media-type for BranchBintr '" 
+                << GetName() << "' as it is already of type = " << mediaType);
+            return false;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
 
 } // DSL
