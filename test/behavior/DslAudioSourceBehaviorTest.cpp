@@ -47,7 +47,7 @@ static const uint offsetY(0);
 static const uint sinkW(DSL_1K_HD_WIDTH);
 static const uint sinkH(DSL_1K_HD_HEIGHT);
 
-SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink can play", "[custom_source_behavior]" )
+SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink can play", "[error]" )
 {
     GIVEN( "A Pipeline, URI Source, Window Sink, and Audio Fake Sink" ) 
     {

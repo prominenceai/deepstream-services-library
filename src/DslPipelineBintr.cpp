@@ -375,7 +375,8 @@ namespace DSL
 
         
         // Start with an empty list of linked components
-        m_linkedComponents.clear();
+        m_linkedAudioComps.clear();
+        m_linkedVideoComps.clear();
 
         // Link all Source Elementrs (required component), and all Sources to the Streammuxer
         // then add the PipelineSourcesBintr as the Source (head) component for this Pipeline
@@ -384,30 +385,48 @@ namespace DSL
             return false;
         }
         
-        LOG_INFO("Pipeline '" << GetName() << "' Linked up all Source '" << 
-            m_pPipelineSourcesBintr->GetName() << "' successfully");
+        LOG_INFO("Pipeline '" << GetName() 
+            << "' Linked up all Sources successfully");
 
-        m_batchSize = m_pPipelineSourcesBintr->GetBatchSize();
+        m_audioBatchSize = m_pPipelineSourcesBintr->GetAudioBatchSize();
+        m_videoBatchSize = m_pPipelineSourcesBintr->GetVideoBatchSize();
 
         // if (m_pStreammuxTilerBintr)
         // {
         //     m_pStreammuxTilerBintr->SetLinkMethod(m_linkMethod);
-        //     m_pStreammuxTilerBintr->SetBatchSize(m_batchSize);
+        //     m_pStreammuxTilerBintr->SetBatchSize(m_videoBatchSize);
         //     // Link All Tiler Elementrs and add as the next component in the Branch
         //     if (!m_pStreammuxTilerBintr->LinkAll() or
-        //         !m_linkedComponents.back()->LinkToSink(m_pStreammuxTilerBintr))
+        //         !m_linkedVideoComps.back()->LinkToSink(m_pStreammuxTilerBintr))
         //     {
         //         return false;
         //     }
-        //     m_linkedComponents.push_back(m_pStreammuxTilerBintr);
+        //     m_linkedVideoComps.push_back(m_pStreammuxTilerBintr);
         //     LOG_INFO("Pipeline '" << GetName() << "' Linked up Tiler '" << 
         //         m_pStreammuxTilerBintr->GetName() 
         //         << "' to the Streammuxer output successfully");
         // }
 
+        if (!BranchBintr::LinkAll())
+        {
+            return false;
+        }
         // call the base class to Link all remaining components.
-        return (BranchBintr::LinkAll() and 
-            m_pPipelineSourcesBintr->LinkVideoToSink(m_linkedComponents.front()));
+        if (m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        { 
+            if (!m_pPipelineSourcesBintr->LinkAudioToSink(m_linkedAudioComps.front()))
+            {
+                return false;
+            }
+        }
+        if (m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            if (!m_pPipelineSourcesBintr->LinkVideoToSink(m_linkedVideoComps.front()))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     void PipelineBintr::UnlinkAll()

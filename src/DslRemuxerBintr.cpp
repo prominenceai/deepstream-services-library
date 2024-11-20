@@ -197,7 +197,7 @@ namespace DSL
         m_pChildBranch->SetLinkMethod(m_linkMethod);
         m_pChildBranch->SetBatchSize(m_batchSize);
             
-        // Then link the Streammuxer to the Child Branch
+        // Then link the Streammuxer to the Child Branch    
         if (!m_pChildBranch->LinkAll() or
             !m_pStreammux->LinkToSink(m_pChildBranch))
         {

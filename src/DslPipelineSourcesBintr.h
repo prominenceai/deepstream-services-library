@@ -149,6 +149,10 @@ namespace DSL
 
     private:
 
+        void SetBatchSizes();
+
+        void ClearBatchSizes();
+        
         /**
          * @brief Links a child Source to this PipelineSourcesBintr.
          * @param pChildSource a shared pointer to the Source to link.
@@ -182,7 +186,17 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
-                
+
+        /**
+         * @brief current number of child Sources that support AUDIO 
+         */       
+        uint m_numAudioSources;
+
+        /**
+         * @brief current number of child Sources that support VIDEO 
+         */       
+        uint m_numVideoSources;
+
         /**
          * @brief container of all child sources mapped by their unique names
          */

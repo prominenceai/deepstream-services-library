@@ -30,13 +30,17 @@ THE SOFTWARE.
 
 namespace DSL
 {
-    static std::string BRANCH_COMPONENTS_KEY("branch-components");
+    // Audio and video child bintr index keys. Each child component maintains
+    // their index into the BranchBintr's order component maps.
+    static std::string BRANCH_AUDIO_COMPS_KEY("branch-audio-comps");
+    static std::string BRANCH_VIDEO_COMPS_KEY("branch-video-comps");
 
     BranchBintr::BranchBintr(const char* name, bool isPipeline)
         : Bintr(name, isPipeline)
+        , m_nextAudioCompIndex(0)
+        , m_nextVideoCompIndex(0)
         , m_nextPrimaryInferBintrIndex(0)
         , m_nextCustomBintrIndex(0)
-        , m_nextComponentIndex(0)
     {
         LOG_FUNC();
 
@@ -702,18 +706,41 @@ namespace DSL
                 << "' already has a Tee - can't add Sink after a Tee");
             return false;
         }
-        // Create the shared Sinks bintr if it doesn't exist
-        if (!m_pMultiSinksBintr)
+        
+        DSL_BINTR_PTR pChildSinkBintr = 
+            std::dynamic_pointer_cast<Bintr>(pSinkBintr);
+
+        if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
-            m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
-
-            // Set MultiSinkBintr's media-type accordingly before adding
-            m_pMultiSinksBintr->SetMediaType(GetMediaType());
-
-            AddChild(m_pMultiSinksBintr);
+            if (!AddChild(pSinkBintr))
+            {
+                return false;
+            }
         }
-        return m_pMultiSinksBintr->AddChild(
-            std::dynamic_pointer_cast<Bintr>(pSinkBintr));
+        if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            // Create the shared Sinks bintr if it doesn't exist
+            if (!m_pMultiSinksBintr)
+            {
+                m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
+
+                // Set MultiSinkBintr's media-type accordingly before adding
+                //m_pMultiSinksBintr->SetMediaType(GetMediaType());
+
+                if (!AddChild(m_pMultiSinksBintr))
+                {
+                    return false;
+                }
+            }
+            if (! m_pMultiSinksBintr->AddChild(
+                std::dynamic_pointer_cast<Bintr>(pSinkBintr)))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool BranchBintr::IsSinkBintrChild(DSL_BASE_PTR pSinkBintr)
@@ -767,17 +794,17 @@ namespace DSL
             // Elevate the first component's sink-pad as sink-ghost-pad for branch
             LOG_INFO("Adding sink-ghost-pad to BranchBintr '" <<
                 GetName() << "' for first ChildBintr '" << 
-                m_linkedComponents.front()->GetName() << "'");
-            m_linkedComponents.front()->AddGhostPadToParent("sink");
+                m_linkedVideoComps.front()->GetName() << "'");
+            m_linkedVideoComps.front()->AddGhostPadToParent("sink");
             
             if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
             {
                 LOG_INFO("Adding sink-ghost-pad to BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
-                    m_linkedComponents.back()->GetName() << "'");
+                    m_linkedVideoComps.back()->GetName() << "'");
 
                 // Elevate the last component's src-pad as src-ghost-pad for branch
-                m_linkedComponents.back()->AddGhostPadToParent("src");
+                m_linkedVideoComps.back()->AddGhostPadToParent("src");
             }
         }
         return true;
@@ -794,17 +821,17 @@ namespace DSL
             // propagate the link method an batch size to all child branches 
             // of the Remuxer
             m_pRemuxerBintr->SetLinkMethod(m_linkMethod);
-            m_pRemuxerBintr->SetBatchSize(m_batchSize);
+            m_pRemuxerBintr->SetBatchSize(m_videoBatchSize);
             
             // Link All Remuxer Elementrs and add as the next
             // component in the Pipeline
             if (!m_pRemuxerBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pRemuxerBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pRemuxerBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pRemuxerBintr);
+            m_linkedVideoComps.push_back(m_pRemuxerBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Stream Remuxer '" 
                 << m_pRemuxerBintr->GetName() << "' successfully");
         }
@@ -813,14 +840,14 @@ namespace DSL
         {
             // propagate the link method an batch size to the  Child Bintr
             m_pPreprocBintr->SetLinkMethod(m_linkMethod);
-            m_pPreprocBintr->SetBatchSize(m_batchSize);
+            m_pPreprocBintr->SetBatchSize(m_videoBatchSize);
             if (!m_pPreprocBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pPreprocBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pPreprocBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pPreprocBintr);
+            m_linkedVideoComps.push_back(m_pPreprocBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up PreprocBintr '" 
                 << m_pPreprocBintr->GetName() << "' successfully");
         }
@@ -835,21 +862,21 @@ namespace DSL
                 // Set the m_PrimaryInferBintrs batch size to the current stream muxer
                 // batch size. IMPORTANT if client has explicitely set the batch-size, 
                 // then this call will NOP. 
-                imap.second->SetBatchSize(m_batchSize);
+                imap.second->SetBatchSize(m_videoBatchSize);
                 
                 // We then update the branch batch-size to whatever the Primary's 
                 // is for all downstream components. 
-                m_batchSize = imap.second->GetBatchSize();
+                m_videoBatchSize = imap.second->GetBatchSize();
 
                 // LinkAll PrimaryInfer Elementrs and add as the next component in the 
                 // Branch.
                 if (!imap.second->LinkAll() or
-                    (m_linkedComponents.size() and 
-                    !m_linkedComponents.back()->LinkToSink(imap.second)))
+                    (m_linkedVideoComps.size() and 
+                    !m_linkedVideoComps.back()->LinkToSink(imap.second)))
                 {
                     return false;
                 }
-                m_linkedComponents.push_back(imap.second);
+                m_linkedVideoComps.push_back(imap.second);
  
                 LOG_INFO("Branch '" << GetName() << "' Linked up Primary Infer Bin '" 
                     << imap.second->GetName() << "' successfully");                    
@@ -860,16 +887,16 @@ namespace DSL
         {
             // propagate the link method an batch size to the  Child Bintr
             m_pTrackerBintr->SetLinkMethod(m_linkMethod);
-            m_pTrackerBintr->SetBatchSize(m_batchSize);
+            m_pTrackerBintr->SetBatchSize(m_videoBatchSize);
             
             // LinkAll Tracker Elementrs and add as the next component in the Branch
             if (!m_pTrackerBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pTrackerBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pTrackerBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pTrackerBintr);
+            m_linkedVideoComps.push_back(m_pTrackerBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Tracker '" 
                 << m_pTrackerBintr->GetName() << "' successfully");
         }
@@ -878,17 +905,17 @@ namespace DSL
         {
             // propagate the link method an batch size to the Child Bintr
             m_pSecondaryInfersBintr->SetLinkMethod(m_linkMethod);
-            m_pSecondaryInfersBintr->SetBatchSize(m_batchSize);
+            m_pSecondaryInfersBintr->SetBatchSize(m_videoBatchSize);
             
             // LinkAll SecondaryGie Elementrs and add the Bintr as next component 
             // in the Branch
             if (!m_pSecondaryInfersBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pSecondaryInfersBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pSecondaryInfersBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pSecondaryInfersBintr);
+            m_linkedVideoComps.push_back(m_pSecondaryInfersBintr);
             LOG_INFO("Branch '" << GetName() 
                 << "' Linked up all Secondary Inference Bins '" 
                 << m_pSecondaryInfersBintr->GetName() << "' successfully");
@@ -901,14 +928,14 @@ namespace DSL
             
             // LinkAll Segmentation Visualizer Elementrs and add as the next 
             // component in the Branch
-            m_pSegVisualBintr->SetBatchSize(m_batchSize);
+            m_pSegVisualBintr->SetBatchSize(m_videoBatchSize);
             if (!m_pSegVisualBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pSegVisualBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pSegVisualBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pSegVisualBintr);
+            m_linkedVideoComps.push_back(m_pSegVisualBintr);
             LOG_INFO("Branch '" << GetName() 
                 << "' Linked up Segmentation Visualizer '" 
                 << m_pSegVisualBintr->GetName() << "' successfully");
@@ -918,17 +945,17 @@ namespace DSL
         {
             // propagate the link method an batch size to the Child Bintr
             m_pOfvBintr->SetLinkMethod(m_linkMethod);
-            m_pOfvBintr->SetBatchSize(m_batchSize);
+            m_pOfvBintr->SetBatchSize(m_videoBatchSize);
             
             // LinkAll Optical Flow Elementrs and add as the next component 
             // in the Branch
             if (!m_pOfvBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pOfvBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pOfvBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pOfvBintr);
+            m_linkedVideoComps.push_back(m_pOfvBintr);
             LOG_INFO("Branch '" << GetName() 
                 << "' Linked up Optical Flow Detector '" 
                 << m_pOfvBintr->GetName() << "' successfully");
@@ -939,16 +966,16 @@ namespace DSL
         {
             // propagate the link method an batch size to the Child Bintr
             m_pTilerBintr->SetLinkMethod(m_linkMethod);
-            m_pTilerBintr->SetBatchSize(m_batchSize);
+            m_pTilerBintr->SetBatchSize(m_videoBatchSize);
             
             // Link All Tiler Elementrs and add as the next component in the Branch
             if (!m_pTilerBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pTilerBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pTilerBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pTilerBintr);
+            m_linkedVideoComps.push_back(m_pTilerBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Tiler '" 
                 << m_pTilerBintr->GetName() << "' successfully");
         }
@@ -962,12 +989,12 @@ namespace DSL
                 // LinkAll GST Bin Elementrs and add as the next component in 
                 // the Branch.
                 if (!imap.second->LinkAll() or
-                    (m_linkedComponents.size() and 
-                    !m_linkedComponents.back()->LinkToSink(imap.second)))
+                    (m_linkedVideoComps.size() and 
+                    !m_linkedVideoComps.back()->LinkToSink(imap.second)))
                 {
                     return false;
                 }
-                m_linkedComponents.push_back(imap.second);
+                m_linkedVideoComps.push_back(imap.second);
  
                 LOG_INFO("Branch '" << GetName() << "' Linked up GST Bin '" 
                     << imap.second->GetName() << "' successfully");                    
@@ -978,16 +1005,16 @@ namespace DSL
         {
             // propagate the link method and batch size to the Child Bintr
             m_pOsdBintr->SetLinkMethod(m_linkMethod);
-            m_pOsdBintr->SetBatchSize(m_batchSize);
+            m_pOsdBintr->SetBatchSize(m_videoBatchSize);
             
             // LinkAll Osd Elementrs and add as next component in the Branch
             if (!m_pOsdBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pOsdBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pOsdBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pOsdBintr);
+            m_linkedVideoComps.push_back(m_pOsdBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up OSD '" 
                 << m_pOsdBintr->GetName() << "' successfully");
         }
@@ -996,17 +1023,17 @@ namespace DSL
         {
             // propagate the link method and batch size to the Child Bintr
             m_pDemuxerBintr->SetLinkMethod(m_linkMethod);
-            m_pDemuxerBintr->SetBatchSize(m_batchSize);
+            m_pDemuxerBintr->SetBatchSize(m_videoBatchSize);
             
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
             // component in the Pipeline
             if (!m_pDemuxerBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pDemuxerBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pDemuxerBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pDemuxerBintr);
+            m_linkedVideoComps.push_back(m_pDemuxerBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Stream Demuxer '" 
                 << m_pDemuxerBintr->GetName() << "' successfully");
         }
@@ -1015,17 +1042,17 @@ namespace DSL
         {
             // propagate the link method and batch size to the Child Bintr
             m_pSplitterBintr->SetLinkMethod(m_linkMethod);
-            m_pSplitterBintr->SetBatchSize(m_batchSize);
+            m_pSplitterBintr->SetBatchSize(m_videoBatchSize);
             
             // Link All Splitter Elementrs and add as the next ** AND LAST ** 
             // component in the Pipeline
             if (!m_pSplitterBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pSplitterBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pSplitterBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pSplitterBintr);
+            m_linkedVideoComps.push_back(m_pSplitterBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Stream Splitter'" 
                 << m_pSplitterBintr->GetName() << "' successfully");
         }
@@ -1035,17 +1062,17 @@ namespace DSL
         {
             // propagate the link method and batch size to the Child Bintr
             m_pMultiSinksBintr->SetLinkMethod(m_linkMethod);
-            m_pMultiSinksBintr->SetBatchSize(m_batchSize);
+            m_pMultiSinksBintr->SetBatchSize(m_videoBatchSize);
             
             // Link all Sinks and their elementrs and add as finale (tail) 
             // component in the Branch
             if (!m_pMultiSinksBintr->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(m_pMultiSinksBintr)))
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(m_pMultiSinksBintr)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(m_pMultiSinksBintr);
+            m_linkedVideoComps.push_back(m_pMultiSinksBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up all Sinks '" 
                 << m_pMultiSinksBintr->GetName() << "' successfully");
         }
@@ -1060,21 +1087,38 @@ namespace DSL
         
         LOG_INFO("Linking '" << GetName() << "' by order");
         
-        for (auto const &imap: m_componentsIndexed)
+        for (auto const &imap: m_audioCompsIndexed)
         {
             // propagate the link method and batch size to the Child Bintr
             imap.second->SetLinkMethod(m_linkMethod);
-            imap.second->SetBatchSize(m_batchSize);
+            imap.second->SetBatchSize(m_audioBatchSize);
             
             // LinkAll Elementrs and add as next component in the Branch
             if (!imap.second->LinkAll() or
-                (m_linkedComponents.size() and 
-                !m_linkedComponents.back()->LinkToSink(imap.second)))
+                (m_linkedAudioComps.size() and 
+                !m_linkedAudioComps.back()->LinkToSink(imap.second)))
             {
                 return false;
             }
-            m_linkedComponents.push_back(imap.second);
-            LOG_INFO("Branch '" << GetName() << "' Linked up Component '" 
+            m_linkedAudioComps.push_back(imap.second);
+            LOG_INFO("Branch '" << GetName() << "' linked up Audio Component '" 
+                << imap.second->GetName() << "' successfully");
+        }
+        for (auto const &imap: m_videoCompsIndexed)
+        {
+            // propagate the link method and batch size to the Child Bintr
+            imap.second->SetLinkMethod(m_linkMethod);
+            imap.second->SetBatchSize(m_videoBatchSize);
+            
+            // LinkAll Elementrs and add as next component in the Branch
+            if (!imap.second->LinkAll() or
+                (m_linkedVideoComps.size() and 
+                !m_linkedVideoComps.back()->LinkToSink(imap.second)))
+            {
+                return false;
+            }
+            m_linkedVideoComps.push_back(imap.second);
+            LOG_INFO("Branch '" << GetName() << "' linked up Video Component '" 
                 << imap.second->GetName() << "' successfully");
         }
 
@@ -1096,22 +1140,22 @@ namespace DSL
         {
             LOG_INFO("Removing sink-ghost-pad from BranchBintr '" <<
                 GetName() << "' for first ChildBintr '" << 
-                m_linkedComponents.front()->GetName() << "'");
+                m_linkedVideoComps.front()->GetName() << "'");
                 
-            m_linkedComponents.front()->RemoveGhostPadFromParent("sink");
+            m_linkedVideoComps.front()->RemoveGhostPadFromParent("sink");
             
             if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
             {
                 LOG_INFO("Removing src-ghost-pad from BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
-                    m_linkedComponents.back()->GetName() << "'");
+                    m_linkedVideoComps.back()->GetName() << "'");
 
-                m_linkedComponents.back()->RemoveGhostPadFromParent("src");
+                m_linkedVideoComps.back()->RemoveGhostPadFromParent("src");
             }
         }
         
         // iterate through the list of Linked Components, unlinking each
-        for (auto const& ivector: m_linkedComponents)
+        for (auto const& ivector: m_linkedVideoComps)
         {
             // all but the tail m_pMultiSinksBintr will be Linked to Sink
             if (ivector->IsLinkedToSink())
@@ -1120,7 +1164,7 @@ namespace DSL
             }
             ivector->UnlinkAll();
         }
-        m_linkedComponents.clear();
+        m_linkedVideoComps.clear();
 
         m_isLinked = false;
     }
@@ -1132,12 +1176,22 @@ namespace DSL
         // Cast child to Bintr 
         DSL_BINTR_PTR pChildBintr = std::dynamic_pointer_cast<Bintr>(pChild);
 
-        // increment next component index, and assign to the component
-        pChildBintr->SetIndex(BRANCH_COMPONENTS_KEY, ++m_nextComponentIndex);
+        if (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            // increment next component index, and assign to the component
+            pChildBintr->SetIndex(BRANCH_AUDIO_COMPS_KEY, ++m_nextAudioCompIndex);
 
-        // Add the shared pointer to the Indexed Components map and as a child  
-        m_componentsIndexed[m_nextComponentIndex] = pChildBintr; 
-        
+            // Add the shared pointer to the Indexed Components map and as a child  
+            m_audioCompsIndexed[m_nextAudioCompIndex] = pChildBintr; 
+        }        
+        if (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            // increment next component index, and assign to the component
+            pChildBintr->SetIndex(BRANCH_VIDEO_COMPS_KEY, ++m_nextVideoCompIndex);
+
+            // Add the shared pointer to the Indexed Components map and as a child  
+            m_videoCompsIndexed[m_nextVideoCompIndex] = pChildBintr; 
+        }        
         // Call the base class to complete the add process
         return GstNodetr::AddChild(pChildBintr);
     }
@@ -1150,13 +1204,24 @@ namespace DSL
         // Cast child to Bintr 
         DSL_BINTR_PTR pChildBintr = std::dynamic_pointer_cast<Bintr>(pChild);
 
-        // Erase the Child component from this Branch's indexed
-        // map of all components.
-        m_componentsIndexed.erase(pChildBintr->GetIndex(GetName()));
+        if (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            // Erase the Child component from this Branch's indexed
+            // map of all components.
+            m_audioCompsIndexed.erase(pChildBintr->GetIndex(BRANCH_AUDIO_COMPS_KEY));
 
-        // Erase the Child's index
-        pChildBintr->EraseIndex(BRANCH_COMPONENTS_KEY);
-        
+            // Erase the Child's index
+            pChildBintr->EraseIndex(BRANCH_AUDIO_COMPS_KEY);
+        }
+        if (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            // Erase the Child component from this Branch's indexed
+            // map of all components.
+            m_videoCompsIndexed.erase(pChildBintr->GetIndex(BRANCH_VIDEO_COMPS_KEY));
+
+            // Erase the Child's index
+            pChildBintr->EraseIndex(BRANCH_VIDEO_COMPS_KEY);
+        }
         // Call the base class to complete the remove process
         return GstNodetr::RemoveChild(pChildBintr);
     }
@@ -1169,7 +1234,7 @@ namespace DSL
                 << GetName() << "' as it is currently in-use");
             return false;
         }
-        if (m_componentsIndexed.size())
+        if (m_videoCompsIndexed.size())
         {
             LOG_ERROR("Cant update media-type for BranchBintr '" 
                 << GetName() << "' as it is currently has child components");

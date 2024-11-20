@@ -247,6 +247,59 @@ namespace DSL
          */
         bool SetMediaType(uint mediaType);
 
+        /**
+         * @brief gets the current video (default) batchSize in use by this 
+         * BranchBintr
+         * @return 0 always
+         */
+        uint GetBatchSize()
+        {
+            LOG_FUNC();
+
+            return m_videoBatchSize;
+        };
+        
+        /**
+         * @brief Sets the the video (default) batchSize for this BranchBintr to use
+         * @param[in] batchSize the new batchSize to use.
+         * @return true always
+         */
+        bool SetBatchSize(uint batchSize)
+        {
+            LOG_FUNC();
+            LOG_INFO("Setting batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
+            
+            m_videoBatchSize = batchSize;
+            return true;
+        };
+
+        /**
+         * @brief gets the current video batchSize in use by this Bintr
+         * @return the current video batchSize
+         */
+        uint GetVideoBatchSize()
+        {
+            LOG_FUNC();
+            
+            return m_videoBatchSize;
+        };
+        
+        /**
+         * @brief sets the batch size for this Bintr
+         * @param[in] batchSize the new video batchSize to use.
+         */
+        virtual bool SetVideoBatchSize(uint batchSize)
+        {
+            LOG_FUNC();
+            LOG_INFO("Setting batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
+            
+            m_videoBatchSize = batchSize;
+            return true;
+        };
+
+
     private:
     
         /**
@@ -280,20 +333,37 @@ namespace DSL
     
         /**
          * @brief Index variable to incremment/assign on component add.
-         * For components other than Sinks
+         * For video components other than Sinks.
          */
-        uint m_nextComponentIndex;
+        uint m_nextVideoCompIndex;
         
         /**
-         * @brief Map of child components for this BranchBintr, other than sinks,
-         * indexed by thier add-order for execution
+         * @brief Map of child audio components for this BranchBintr, other than
+         *  sinks, indexed by thier add-order for execution.
          */
-        std::map <uint, DSL_BINTR_PTR> m_componentsIndexed;
+        std::map <uint, DSL_BINTR_PTR> m_audioCompsIndexed;
         
         /**
-         * @brief vector of linked components to simplfy the unlink process
+         * @brief vector of linked audio components to manage the unlink process.
          */
-        std::vector<DSL_BINTR_PTR> m_linkedComponents;
+        std::vector<DSL_BINTR_PTR> m_linkedAudioComps;
+        
+        /**
+         * @brief Index variable to incremment/assign on component add.
+         * For audio components other than Sinks.
+         */
+        uint m_nextAudioCompIndex;
+        
+        /**
+         * @brief Map of child video components for this BranchBintr, other than
+         *  sinks, indexed by thier add-order for execution.
+         */
+        std::map <uint, DSL_BINTR_PTR> m_videoCompsIndexed;
+        
+        /**
+         * @brief vector of linked video components to manage the unlink process.
+         */
+        std::vector<DSL_BINTR_PTR> m_linkedVideoComps;
         
         /**
          * @brief optional, one at most PreprocBintr for this BranchBintr

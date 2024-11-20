@@ -34,6 +34,8 @@ namespace DSL
         uint uniquePipelineId)
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
+        , m_numAudioSources(0)
+        , m_numVideoSources(0)
         , m_areSourcesLive(false)
     {
         LOG_FUNC();
@@ -86,6 +88,16 @@ namespace DSL
             LOG_ERROR("Can't add video-only Source '" << pChildSource->GetName() 
                 << "' The Pipeline's Videomux is currently disabled'");
             return false;
+        }
+
+        // Update the number of chile Sources based on media type.
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            m_numAudioSources++;
+        }
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            m_numVideoSources++;
         }
 
         // Ensure source uniqueness
@@ -163,11 +175,6 @@ namespace DSL
             {
                 return false;
             }
-            if (!m_pVideomux->m_batchSizeSetByClient)
-            {
-                // Increment the current batch-size
-                m_batchSize++;
-            }            
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }
@@ -214,12 +221,6 @@ namespace DSL
             }
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
-
-            if (!m_pVideomux->m_batchSizeSetByClient)
-            {
-                // Decrement the current batch-size
-                m_batchSize--;
-            }
         }
         // Erase the Source the source from the name<->unique-id database.
         Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
@@ -232,7 +233,17 @@ namespace DSL
         m_pVideomux->m_usedRequestPadIds[pChildSource->GetVideoRequestPadId()] = false;
         pChildSource->SetVideoRequestPadId(-1);
         pChildSource->SetUniqueId(-1);
-        
+
+        // Update the number of child Sources based on media type.
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            m_numAudioSources--;
+        }
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            m_numVideoSources--;
+        }
+
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildSource);
     }
@@ -277,14 +288,8 @@ namespace DSL
                     m_pVideomux->AddEosConsumer();
                 }
             }
-
         }
-        // Set the Batch size to the nuber of sources owned if not already set
-        if (!m_pVideomux->m_batchSizeSetByClient)
-        {
-            m_batchSize = m_pChildSources.size();
-            m_pVideomux->Get()->SetAttribute("batch-size", m_batchSize);
-        }
+        SetBatchSizes();
         m_isLinked = true;
         
         return true;
@@ -313,12 +318,47 @@ namespace DSL
             // unlink all of the ChildSource's Elementrs
             imap.second->UnlinkAll();
         }
-        // Set the Batch size to the nuber of sources owned if not already set
-        if (!m_pVideomux->m_batchSizeSetByClient)
-        {
-            m_batchSize = 0;
-        }
+        ClearBatchSizes();
         m_isLinked = false;
+    }
+
+    void PipelineSourcesBintr::SetBatchSizes()
+    {
+        LOG_FUNC();
+
+            // Set the Batch size to the nuber of sources owned if not already set
+        if (m_pAudiomux)
+        {
+            if (!m_pAudiomux->m_batchSizeSetByClient)
+            {
+                m_audioBatchSize = m_numAudioSources;
+                m_pAudiomux->Get()->SetAttribute("batch-size", m_audioBatchSize);
+            }
+            else
+            {
+                m_audioBatchSize = m_pAudiomux->GetBatchSize();
+            }
+        }
+        if (m_pVideomux)
+        {
+            if (!m_pVideomux->m_batchSizeSetByClient)
+            {
+                m_videoBatchSize = m_numVideoSources;
+                m_pVideomux->Get()->SetAttribute("batch-size", m_videoBatchSize);
+            }
+            else
+            {
+                m_videoBatchSize = m_pVideomux->GetBatchSize();
+            }
+        }
+    }
+
+    void PipelineSourcesBintr::ClearBatchSizes()
+    {
+        LOG_FUNC();
+
+        m_audioBatchSize = 0;
+        m_videoBatchSize = 0;
     }
 
     bool PipelineSourcesBintr::LinkChildToSinkMuxers(DSL_SOURCE_PTR pChildSource)

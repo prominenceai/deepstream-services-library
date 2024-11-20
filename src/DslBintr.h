@@ -58,6 +58,8 @@ namespace DSL
             , m_linkMethod(DSL_PIPELINE_LINK_METHOD_DEFAULT)
             , m_isLinked(false)
             , m_batchSize(0)
+            , m_videoBatchSize(0)
+            , m_audioBatchSize(0)
             , m_gpuId(0)
             , m_nvbufMemType(DSL_NVBUF_MEM_TYPE_DEFAULT)
         { 
@@ -266,6 +268,56 @@ namespace DSL
         };
 
         /**
+         * @brief gets the current audio batch size in use by this Bintr
+         * @return the current audio batch size
+         */
+        virtual uint GetAudioBatchSize()
+        {
+            LOG_FUNC();
+            
+            return m_audioBatchSize;
+        };
+        
+        /**
+         * @brief sets the audio batch size for this Bintr
+         * @param[in] batchSize the new audio batch size to use.
+         */
+        virtual bool SetAudioBatchSize(uint batchSize)
+        {
+            LOG_FUNC();
+            LOG_INFO("Setting audio batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
+            
+            m_audioBatchSize = batchSize;
+            return true;
+        };
+
+        /**
+         * @brief gets the current video batch size in use by this Bintr
+         * @return the current video batch size
+         */
+        virtual uint GetVideoBatchSize()
+        {
+            LOG_FUNC();
+            
+            return m_videoBatchSize;
+        };
+        
+        /**
+         * @brief sets the video batch size for this Bintr
+         * @param[in] batchSize the new video batch size to use.
+         */
+        virtual bool SetVideoBatchSize(uint batchSize)
+        {
+            LOG_FUNC();
+            LOG_INFO("Setting video batch size to '" << batchSize 
+                << "' for Bintr '" << GetName() << "'");
+            
+            m_videoBatchSize = batchSize;
+            return true;
+        };
+
+        /**
          * @brief Gets the current GPU ID used by this Bintr
          * @return the ID for the current GPU in use.
          */
@@ -353,17 +405,27 @@ namespace DSL
         bool m_linkMethod;
         
         /**
-         * @brief current is-linked state for this Bintr
+         * @brief Current is-linked state for this Bintr
          */
         bool m_isLinked;
         
         /**
-         * @brief current batch size for this Bintr
+         * @brief Current batch size for this Bintr
          */
         uint m_batchSize;
 
         /**
-         * @brief current GPU Id in used by this Bintr
+         * @brief Current audio batch size if this Bintr supports audio and video
+         */
+        uint m_audioBatchSize;
+
+        /**
+         * @brief Current video batch size if this Bintr supports audio and video
+         */
+        uint m_videoBatchSize;
+
+        /**
+         * @brief Current GPU Id in used by this Bintr
          */
         uint m_gpuId;
 
