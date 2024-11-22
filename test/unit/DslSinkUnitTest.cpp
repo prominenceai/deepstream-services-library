@@ -2632,3 +2632,92 @@ SCENARIO( "A new V4l2SinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
         }
     }
 }
+
+SCENARIO( "A new AlsaSinkBintr is created correctly",  "[SinkBintr]" )
+{
+    GIVEN( "Attributes for a new ALSA Sink" ) 
+    {
+        std::string sinkName("alsa-sink");
+        std::string deviceLocation("default");
+
+        WHEN( "The AlsaSinkBintr is created" )
+        {
+            DSL_ALSA_SINK_PTR pSinkBintr = DSL_ALSA_SINK_NEW(sinkName.c_str(), 
+                deviceLocation.c_str());
+            
+            THEN( "The correct attribute values are returned" )
+            {
+                std::string retDeviceLocation = pSinkBintr->GetDeviceLocation();
+                REQUIRE( retDeviceLocation == deviceLocation);
+
+                std::string retDeviceName = pSinkBintr->GetDeviceName();
+                REQUIRE( retDeviceName == "" );
+
+                REQUIRE( pSinkBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY );
+
+                boolean retEnabled(false);
+                int64_t retMaxLatness(99);
+                REQUIRE( pSinkBintr->GetSyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == true );
+                REQUIRE( pSinkBintr->GetAsyncEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+                REQUIRE( pSinkBintr->GetMaxLateness(&retMaxLatness) == true );
+                REQUIRE( retMaxLatness == -1 );
+                REQUIRE( pSinkBintr->GetQosEnabled(&retEnabled) == true );
+                REQUIRE( retEnabled == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new AlsaSinkBintr can LinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new AlsaSinkBintr in an Unlinked state" ) 
+    {
+        std::string sinkName("alsa-sink");
+        std::string deviceName("default");
+
+        DSL_ALSA_SINK_PTR pSinkBintr = DSL_ALSA_SINK_NEW(sinkName.c_str(), 
+            deviceName.c_str());
+
+        REQUIRE( pSinkBintr->IsLinked() == false );
+
+        WHEN( "A new AlsaSinkBintr is Linked" )
+        {
+            REQUIRE( pSinkBintr->LinkAll() == true );
+
+            THEN( "The AlsaSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new AlsaSinkBintr can UnlinkAll Child Elementrs", "[SinkBintr]" )
+{
+    GIVEN( "A new AlsaSinkBintr in an Linked state" ) 
+    {
+        std::string sinkName("alsa-sink");
+        std::string deviceName("default");
+
+        DSL_ALSA_SINK_PTR pSinkBintr = DSL_ALSA_SINK_NEW(sinkName.c_str(), 
+            deviceName.c_str());
+
+        REQUIRE( pSinkBintr->LinkAll() == true );
+        REQUIRE( pSinkBintr->IsLinked() == true );
+
+        // second call should fail
+        REQUIRE( pSinkBintr->LinkAll() == false );
+
+        WHEN( "A the AlsaSinkBintr is Unlinked" )
+        {
+            pSinkBintr->UnlinkAll();
+            
+            THEN( "The AlsaSinkBintr's IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSinkBintr->IsLinked() == false );
+            }
+        }
+    }
+}
