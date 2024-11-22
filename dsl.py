@@ -7225,6 +7225,50 @@ def dsl_sink_frame_capture_schedule(name, frame_number):
     return int(result)
     
 ##
+## dsl_sink_alsa_new()
+##
+_dsl.dsl_sink_alsa_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_alsa_new.restype = c_uint
+def dsl_sink_alsa_new(name, device_location):
+    global _dsl
+    result =_dsl.dsl_sink_alsa_new(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_alsa_device_location_get()
+##
+_dsl.dsl_sink_alsa_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_alsa_device_location_get.restype = c_uint
+def dsl_sink_alsa_device_location_get(name):
+    global _dsl
+    device_location = c_wchar_p(0)
+    result = _dsl.dsl_sink_alsa_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
+    return int(result), device_location.value 
+
+##
+## dsl_sink_alsa_device_location_set()
+##
+_dsl.dsl_sink_alsa_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_alsa_device_location_set.restype = c_uint
+def dsl_sink_alsa_device_location_set(name, device_location):
+    global _dsl
+    result = _dsl.dsl_sink_alsa_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_alsa_device_name_get()
+##
+_dsl.dsl_sink_alsa_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_alsa_device_name_get.restype = c_uint
+def dsl_sink_alsa_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_sink_alsa_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
 ## dsl_sink_sync_enabled_get()
 ##
 _dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
