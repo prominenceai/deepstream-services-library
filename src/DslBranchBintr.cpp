@@ -377,7 +377,7 @@ namespace DSL
                 << "' already has a Tiler - can't add Demuxer");
             return false;
         }
-        if (m_pMultiSinksBintr)
+        if (m_pMultiVideoSinksBintr)
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Sink - can't add Demuxer");
@@ -461,7 +461,7 @@ namespace DSL
                 << "' already has a Demuxer- can't add Splitter");
             return false;
         }
-        if (m_pMultiSinksBintr)
+        if (m_pMultiVideoSinksBintr)
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Sink - can't add Splitter");
@@ -713,7 +713,20 @@ namespace DSL
         if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
-            if (!AddChild(pSinkBintr))
+            // Create the shared Sinks bintr if it doesn't exist
+            if (!m_pMultiAudioSinksBintr)
+            {
+                m_pMultiAudioSinksBintr = DSL_DEMUXER_NEW("audio-sinks-bin", 1);
+
+                // Set thus MultiAudioSinkBintr's media-type accordingly before adding
+                m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
+                
+                if (!AddChild(m_pMultiAudioSinksBintr))
+                {
+                    return false;
+                }
+            }
+            if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
             {
                 return false;
             }
@@ -722,20 +735,19 @@ namespace DSL
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
         {
             // Create the shared Sinks bintr if it doesn't exist
-            if (!m_pMultiSinksBintr)
+            if (!m_pMultiVideoSinksBintr)
             {
-                m_pMultiSinksBintr = DSL_MULTI_SINKS_NEW("sinks-bin");
+                m_pMultiVideoSinksBintr = DSL_MULTI_SINKS_NEW("video-sinks-bin");
 
                 // Set MultiSinkBintr's media-type accordingly before adding
-                //m_pMultiSinksBintr->SetMediaType(GetMediaType());
+                //m_pMultiVideoSinksBintr->SetMediaType(GetMediaType());
 
-                if (!AddChild(m_pMultiSinksBintr))
+                if (!AddChild(m_pMultiVideoSinksBintr))
                 {
                     return false;
                 }
             }
-            if (! m_pMultiSinksBintr->AddChild(
-                std::dynamic_pointer_cast<Bintr>(pSinkBintr)))
+            if (! m_pMultiVideoSinksBintr->AddChild(pChildSinkBintr))
             {
                 return false;
             }
@@ -747,12 +759,12 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pMultiSinksBintr)
+        if (!m_pMultiVideoSinksBintr)
         {
             LOG_INFO("Branch '" << GetName() << "' has no Sinks");
             return false;
         }
-        return (m_pMultiSinksBintr->IsChild(
+        return (m_pMultiVideoSinksBintr->IsChild(
             std::dynamic_pointer_cast<SinkBintr>(pSinkBintr)));
     }
 
@@ -760,7 +772,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (!m_pMultiSinksBintr)
+        if (!m_pMultiVideoSinksBintr)
         {
             LOG_INFO("Branch '" << GetName() << "' has no Sinks");
             return false;
@@ -768,7 +780,7 @@ namespace DSL
 
         // Must cast to SourceBintr first so that correct Instance of 
         // RemoveChild is called
-        return m_pMultiSinksBintr->RemoveChild(
+        return m_pMultiVideoSinksBintr->RemoveChild(
             std::dynamic_pointer_cast<Bintr>(pSinkBintr));
     }
     
@@ -797,7 +809,7 @@ namespace DSL
                 m_linkedVideoComps.front()->GetName() << "'");
             m_linkedVideoComps.front()->AddGhostPadToParent("sink");
             
-            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiVideoSinksBintr)
             {
                 LOG_INFO("Adding sink-ghost-pad to BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
@@ -1058,23 +1070,23 @@ namespace DSL
         }
 
         // mutually exclusive with Demuxer
-        if (m_pMultiSinksBintr)
+        if (m_pMultiVideoSinksBintr)
         {
             // propagate the link method and batch size to the Child Bintr
-            m_pMultiSinksBintr->SetLinkMethod(m_linkMethod);
-            m_pMultiSinksBintr->SetBatchSize(m_videoBatchSize);
+            m_pMultiVideoSinksBintr->SetLinkMethod(m_linkMethod);
+            m_pMultiVideoSinksBintr->SetBatchSize(m_videoBatchSize);
             
             // Link all Sinks and their elementrs and add as finale (tail) 
             // component in the Branch
-            if (!m_pMultiSinksBintr->LinkAll() or
+            if (!m_pMultiVideoSinksBintr->LinkAll() or
                 (m_linkedVideoComps.size() and 
-                !m_linkedVideoComps.back()->LinkToSink(m_pMultiSinksBintr)))
+                !m_linkedVideoComps.back()->LinkToSink(m_pMultiVideoSinksBintr)))
             {
                 return false;
             }
-            m_linkedVideoComps.push_back(m_pMultiSinksBintr);
+            m_linkedVideoComps.push_back(m_pMultiVideoSinksBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up all Sinks '" 
-                << m_pMultiSinksBintr->GetName() << "' successfully");
+                << m_pMultiVideoSinksBintr->GetName() << "' successfully");
         }
         
         m_isLinked = true;
@@ -1144,7 +1156,7 @@ namespace DSL
                 
             m_linkedVideoComps.front()->RemoveGhostPadFromParent("sink");
             
-            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiSinksBintr)
+            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiVideoSinksBintr)
             {
                 LOG_INFO("Removing src-ghost-pad from BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
@@ -1157,7 +1169,7 @@ namespace DSL
         // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_linkedVideoComps)
         {
-            // all but the tail m_pMultiSinksBintr will be Linked to Sink
+            // all but the tail m_pMultiVideoSinksBintr will be Linked to Sink
             if (ivector->IsLinkedToSink())
             {
                 ivector->UnlinkFromSink();

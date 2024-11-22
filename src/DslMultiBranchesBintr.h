@@ -373,6 +373,12 @@ namespace DSL
          */
         bool SetMaxBranches(uint maxBranches);
 
+        /**
+         * @brief Sets the media-type for the DemuxerBintr.
+         * @return true if succesfullu updated, false otherwise
+         */
+        bool SetMediaType(uint mediaType);
+
     private:
 
         /**

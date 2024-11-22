@@ -241,7 +241,10 @@ namespace DSL
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
             
-            m_components[name]->SetMediaType(mediaType);
+            if (!m_components[name]->SetMediaType(mediaType))
+            {
+                return DSL_RESULT_COMPONENT_SET_MEDIA_TYPE_FAILED;
+            }
 
             LOG_INFO("Component '" << name << "' set media-type = " 
                 << mediaType << " successfully");

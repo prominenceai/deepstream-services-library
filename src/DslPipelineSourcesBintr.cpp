@@ -531,9 +531,21 @@ namespace DSL
         for (auto const& imap: m_pChildSources)
         {
             LOG_INFO("Sending EOS for Source "  << imap.second->GetName());
-            imap.second->NullSrcEosSinkMuxer();
+            
             // gst_element_send_event(imap.second->GetGstElement(), 
             //     gst_event_new_eos());
+            // If the Source supports Video and the Vidio Streammux is enabled 
+            if ((imap.second->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+                GetStreammuxEnabled(DSL_VIDEOMUX))
+            {
+                imap.second->NullSrcEosSinkMuxer("video_src");
+            }
+            // If the Source supports Audio and the Audio Streammux is enabled 
+            if ((imap.second->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
+                GetStreammuxEnabled(DSL_AUDIOMUX))
+            {
+                imap.second->NullSrcEosSinkMuxer("audio_src");
+            }
         }
     }
 

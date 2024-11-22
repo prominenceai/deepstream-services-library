@@ -9643,6 +9643,86 @@ DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
         cstrName.c_str(), brightness, contrast, saturation);
 }
 
+DslReturnType dsl_sink_alsa_new(const wchar_t* name, 
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDevice(device_location);
+    std::string cstrDevice(wstrDevice.begin(), wstrDevice.end());
+
+    return DSL::Services::GetServices()->SinkAlsaNew(cstrName.c_str(), 
+        cstrDevice.c_str());
+}     
+
+DslReturnType dsl_sink_alsa_device_location_get(const wchar_t* name,
+    const wchar_t** device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cDeviceLocation;
+    static std::string cstrDeviceLocation;
+    static std::wstring wcstrDeviceLocation;
+    
+    uint retval = DSL::Services::GetServices()->SinkAlsaDeviceLocationGet(
+        cstrName.c_str(), &cDeviceLocation);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceLocation.assign(cDeviceLocation);
+        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), 
+            cstrDeviceLocation.end());
+        *device_location = wcstrDeviceLocation.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_alsa_device_location_set(const wchar_t* name,
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDeviceLocation(device_location);
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
+    
+    return DSL::Services::GetServices()->SinkAlsaDeviceLocationSet(
+        cstrName.c_str(), cstrDeviceLocation.c_str());
+}
+   
+DslReturnType dsl_sink_alsa_device_name_get(const wchar_t* name,
+    const wchar_t** device_name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cDeviceName;
+    static std::string cstrDeviceName;
+    static std::wstring wcstrDeviceName;
+    
+    uint retval = DSL::Services::GetServices()->SinkAlsaDeviceNameGet(
+        cstrName.c_str(), &cDeviceName);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceName.assign(cDeviceName);
+        wcstrDeviceName.assign(cstrDeviceName.begin(), cstrDeviceName.end());
+        *device_name = wcstrDeviceName.c_str();
+    }
+    return retval;
+}
+ 
 DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);

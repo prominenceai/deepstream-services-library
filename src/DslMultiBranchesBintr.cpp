@@ -815,4 +815,23 @@ namespace DSL
         m_maxBranches = maxBranches;
         return true;
     }
+
+    bool DemuxerBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for DemuxerBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if ((mediaType != DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (mediaType != DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_ERROR("Can't update media-type for DemuxerBintr '" 
+                << GetName() << "' with invalid type = " << mediaType);
+            return false;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
 }

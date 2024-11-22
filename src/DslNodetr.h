@@ -888,7 +888,7 @@ namespace DSL
          * flush-stop, EOS events to the muxers Sink Pad connected to this GstNoder.
          * @return true if able to successfully EOS the Sink Pad
          */
-        virtual bool NullSrcEosSinkMuxer()
+        virtual bool NullSrcEosSinkMuxer(const char* srcPadName)
         {
             LOG_FUNC();
             
@@ -896,15 +896,19 @@ namespace DSL
             GstStateChangeReturn result = gst_element_get_state(GetGstElement(), 
                 &currState, &nextState, 1);
 
-            if (currState < GST_STATE_PLAYING)
-            {
-                LOG_ERROR("GstNodetr '" << GetName() 
-                    << "' is not in a PLAYING state");
-                return false;
-            }
+            // TODO - removing for now until Audio shutdown is better understood
+            // This function will be called twice if Audio and Video Sources. The
+            // current state will be null on second call. 
+            // if (currState < GST_STATE_PLAYING)
+            // {
+            //     LOG_ERROR("GstNodetr '" << GetName() 
+            //         << "' is not in a PLAYING state");
+            //     return false;
+            // }
 
             // Get a reference to this GstNodetr's source pad
-            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(), "src");
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(GetGstElement(),
+                srcPadName);
             if (!pStaticSrcPad)
             {
                 LOG_ERROR("Failed to get static source pad for GstNodetr '" 

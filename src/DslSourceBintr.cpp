@@ -950,7 +950,7 @@ namespace DSL
            GetCStrName(), "audio-out");
 
         // Set Audio Caps input rate to 44.1 KHz
-        DslCaps AudioCaps("audio/x-raw, rate=44100");
+        DslCaps AudioCaps("audio/x-raw, format=(string)S16LE, rate=44100");
         m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
 
         // add all elementrs as children to this Bintr

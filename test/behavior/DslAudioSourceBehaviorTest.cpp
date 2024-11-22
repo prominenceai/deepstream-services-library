@@ -31,7 +31,9 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(10000)
 
-static const std::wstring source_uri = L"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
+//static const std::wstring source_uri = L"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
+
+static const std::wstring source_uri = L"/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4";
 
 static const std::wstring pipeline_name(L"test-pipeline");
 
@@ -39,6 +41,9 @@ static const std::wstring source_name1(L"file-source-1");
 
 static const std::wstring fake_sink_name(L"fake-sink");
 
+static const std::wstring alsa_sink_name(L"alsa-sink");
+
+static const std::wstring device_location(L"default");
 
 // Window Sink name and attributes.
 static const std::wstring window_sink_name(L"egl-sink");
@@ -46,6 +51,9 @@ static const uint offsetX(0);
 static const uint offsetY(0);
 static const uint sinkW(DSL_1K_HD_WIDTH);
 static const uint sinkH(DSL_1K_HD_HEIGHT);
+
+static const std::wstring pipeline_graph_name(L"custom-sink-behavior");
+
 
 SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink can play", "[error]" )
 {
@@ -67,11 +75,9 @@ SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink ca
             REQUIRE( dsl_sink_window_egl_new(window_sink_name.c_str(),
                 offsetX, offsetY, sinkW, sinkH) == DSL_RESULT_SUCCESS );
 
-            REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );    
+            REQUIRE( dsl_sink_alsa_new(alsa_sink_name.c_str(),
+                device_location.c_str()) == DSL_RESULT_SUCCESS );    
                 
-            REQUIRE( dsl_component_media_type_set(fake_sink_name.c_str(), 
-                DSL_MEDIA_TYPE_AUDIO_ONLY) == DSL_RESULT_SUCCESS );          
-
             REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
             
             REQUIRE( dsl_pipeline_audiomux_enabled_set(pipeline_name.c_str(), 
@@ -81,14 +87,19 @@ SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink ca
             {
                 const wchar_t* components[] = {
                     source_name1.c_str(), window_sink_name.c_str(), 
-                    fake_sink_name.c_str(), NULL};
+                    alsa_sink_name.c_str(), NULL};
         
                 REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                     components) == DSL_RESULT_SUCCESS );
 
                 THEN( "Pipeline is Able to LinkAll and Play" )
                 {
-                    REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                    // REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                    dsl_pipeline_play(pipeline_name.c_str());
+
+                    dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                        const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
                     std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                     REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
 

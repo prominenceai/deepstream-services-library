@@ -823,14 +823,14 @@ namespace DSL {
         DslReturnType SourceV4l2DeviceLocationSet(const char* name, 
             const char* deviceLocation);
         
+        DslReturnType SourceV4l2DeviceNameGet(const char* name, 
+            const char** deviceName);
+
         DslReturnType SourceV4l2DimensionsSet(const char* name, 
             uint width, uint height);
 
         DslReturnType SourceV4l2FrameRateSet(const char* name, 
             uint fps_n, uint fps_d);
-
-        DslReturnType SourceV4l2DeviceNameGet(const char* name, 
-            const char** deviceName);
 
         DslReturnType SourceV4l2DeviceFdGet(const char* name, 
             int* deviceFd);
@@ -1642,6 +1642,17 @@ namespace DSL {
 
         DslReturnType SinkV4l2PictureSettingsSet(const char* name, 
             int brightness, int contrast, int saturation);
+
+        DslReturnType SinkAlsaNew(const char* name, const char* deviceLocation);
+
+        DslReturnType SinkAlsaDeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SinkAlsaDeviceLocationSet(const char* name, 
+            const char* deviceLocation);
+
+        DslReturnType SinkAlsaDeviceNameGet(const char* name, 
+            const char** deviceName);
 
         DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 

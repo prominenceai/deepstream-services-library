@@ -61,11 +61,12 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 #define DSL_RESULT_COMPONENT_GET_QUEUE_PROPERTY_FAILED              0x0001000B
 #define DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED              0x0001000C
-#define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000D
-#define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000E
-#define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x0001000F
-#define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010010
-#define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010011
+#define DSL_RESULT_COMPONENT_SET_MEDIA_TYPE_FAILED                  0x0001000D
+#define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000E
+#define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000F
+#define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x00010010
+#define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010011
+#define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010012
 
 /**
  * Source API Return Values
@@ -8553,6 +8554,47 @@ DslReturnType dsl_sink_v4l2_picture_settings_get(const wchar_t* name,
 DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
     int brightness, int contrast, int saturation);
    
+/**
+ * @brief Creates a new, uniquely named ALSA Sink that streams to a ALSA compatible
+ * device.
+ * @param[in] name unique component name for the new ALSA Sink
+ * @param[in] device_location device-location setting for the ALSA Sink. Set value 
+ * to "default" to use default sound device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_alsa_new(const wchar_t* name, 
+    const wchar_t* device_location);
+
+/**
+ * @brief Gets the device location setting for the named ALSA Sink.
+ * @param[in] name unique name of the ALSA Sink to query.
+ * @param[out] device_location current device location setting. Default value is 
+ * set to "default" for the default sound device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_alsa_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+    
+/**
+ * @brief Sets the device location setting for the named ALSA Sink. 
+ * @param[in] name unique name of the ALSA Sink to update.
+ * @param[in] device_location new device location setting to use. Set value 
+ * to "default" to use default sound device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_alsa_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+    
+/**
+ * @brief Gets the device name setting for the named ALSA Sink.
+ * @param[in] name unique name of the ALSA Sink to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the ALSA Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_alsa_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+
 /**
  * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
  * the Sink will synchronize on the clock.

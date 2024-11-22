@@ -452,9 +452,14 @@ namespace DSL
         DSL_SPLITTER_PTR m_pSplitterBintr;
         
         /**
-         * @brief parent bin for all Sink bins in this BranchBintr
+         * @brief parent bin for all Video Sink bins in this BranchBintr
          */
-        DSL_MULTI_SINKS_PTR m_pMultiSinksBintr;
+        DSL_MULTI_SINKS_PTR m_pMultiVideoSinksBintr;
+        
+        /**
+         * @brief parent bin for all Audio Sink bins in this BranchBintr
+         */
+        DSL_DEMUXER_PTR m_pMultiAudioSinksBintr;
         
         
     }; // Branch

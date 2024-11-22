@@ -129,6 +129,11 @@ namespace DSL
         std::shared_ptr<V4l2SinkBintr>( \
         new V4l2SinkBintr(name, deviceLocation))
 
+    #define DSL_ALSA_SINK_PTR std::shared_ptr<AlsaSinkBintr>
+    #define DSL_ALSA_SINK_NEW(name, deviceLocation) \
+        std::shared_ptr<AlsaSinkBintr>( \
+        new AlsaSinkBintr(name, deviceLocation))
+
     //-------------------------------------------------------------------------
 
     class SinkBintr : public QBintr
@@ -1895,6 +1900,62 @@ namespace DSL
          * @brief Caps Filter required for the V4l2SinkBintr.
          */
         DSL_ELEMENT_PTR m_pCapsFilter;
+    };
+
+    //-------------------------------------------------------------------------
+
+    class AlsaSinkBintr : public SinkBintr
+    {
+    public: 
+    
+        AlsaSinkBintr(const char* name, const char* deviceLocation);
+
+        ~AlsaSinkBintr();
+  
+        /**
+         * @brief Links all Child Elementrs owned by this Bintr
+         * @return true if all links were succesful, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elemntrs owned by this Bintr
+         * Calling UnlinkAll when in an unlinked state has no effect.
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current device-location setting for the AlsaSinkBintr
+         * @return current device location.
+         */
+        const char* GetDeviceLocation();
+        
+        /**
+         * @brief Sets the device-location setting for the AlsaSinkBintr.
+         * @param[in] new device location for the AlsaSinkBintr to use.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDeviceLocation(const char* deviceLocation);
+
+        /**
+         * @brief Gets the current device-name setting for the AlsaSinkBintr
+         * Default = "". Updated after negotiation with the ALSA Device.
+         * @return current device location.
+         */
+        const char* GetDeviceName();
+        
+    private:
+
+        /**
+         * @brief Device location string for this AlsaSinkBintr.
+         */
+        std::string m_deviceLocation;
+
+        /**
+         * @brief Device name string for this AlsaSinkBintr. Default size=0
+         */
+        std::string m_deviceName;
+            
     };
 
 }
