@@ -212,6 +212,13 @@ namespace DSL
          */
         bool m_areSourcesLive;
         
+        /**
+         * @brief Each source is assigned a unique pad/stream id used to define the
+         * streammuxer sink pad when linking. The vector is used on add/remove 
+         * to find the next available pad id.
+         */
+        std::vector<bool> m_usedRequestPadIds;
+        
     };
 
     

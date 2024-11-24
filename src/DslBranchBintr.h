@@ -434,10 +434,17 @@ namespace DSL
         DSL_TILER_PTR m_pTilerBintr;
                         
         /**
-         * @brief optional, one at most DemuxerBintr mutually exclusive 
-         * with the TilerBintr, however, a Pipeline must have one or the other.
+         * @brief optional, one at most AudioDemuxerBintr that is required 
+         * when using multiple sources.
          */
-        DSL_DEMUXER_PTR m_pDemuxerBintr;
+        DSL_DEMUXER_PTR m_pAudioDemuxerBintr;
+        
+        /**
+         * @brief optional, one at most VideoDemuxerBintr mutually exclusive 
+         * with the TilerBintr. A Pipeline must have one or the other when
+         * using multiple sources.
+         */
+        DSL_DEMUXER_PTR m_pVideoDemuxerBintr;
         
         /**
          * @brief optional, one at most RemuxerBintr mutually exclusive 
@@ -459,7 +466,7 @@ namespace DSL
         /**
          * @brief parent bin for all Audio Sink bins in this BranchBintr
          */
-        DSL_DEMUXER_PTR m_pMultiAudioSinksBintr;
+        DSL_DEMUXED_SINKS_PTR m_pMultiAudioSinksBintr;
         
         
     }; // Branch

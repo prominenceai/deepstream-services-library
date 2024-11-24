@@ -124,23 +124,23 @@ namespace DSL
         uint padId(0);
         
         // find the next available unused stream-id
-        auto ivec = find(m_pVideomux->m_usedRequestPadIds.begin(), 
-            m_pVideomux->m_usedRequestPadIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), 
+            m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
-        if (ivec != m_pVideomux->m_usedRequestPadIds.end())
+        if (ivec != m_usedRequestPadIds.end())
         {
-            padId = ivec - m_pVideomux->m_usedRequestPadIds.begin();
-            m_pVideomux->m_usedRequestPadIds[padId] = true;
+            padId = ivec - m_usedRequestPadIds.begin();
+            m_usedRequestPadIds[padId] = true;
         }
         // Else we're adding to the end of th indexed map
         else
         {
-            padId = m_pVideomux->m_usedRequestPadIds.size();
-            m_pVideomux->m_usedRequestPadIds.push_back(true);
+            padId = m_usedRequestPadIds.size();
+            m_usedRequestPadIds.push_back(true);
         }            
         // Set the source's request sink pad-id
-        pChildSource->SetVideoRequestPadId(padId);
+        pChildSource->SetRequestPadId(padId);
 
         // Set the sources unique id by shifting/or-ing the unique pipeline-id
         // with the source's pad-id -- combined, they are gauranteed to be unique.
@@ -227,11 +227,11 @@ namespace DSL
         
         // unreference and remove from the child source collections
         m_pChildSources.erase(pChildSource->GetName()); 
-        m_pChildSourcesIndexed.erase(pChildSource->GetVideoRequestPadId());
+        m_pChildSourcesIndexed.erase(pChildSource->GetRequestPadId());
 
         // set the used-stream id as available for reuse
-        m_pVideomux->m_usedRequestPadIds[pChildSource->GetVideoRequestPadId()] = false;
-        pChildSource->SetVideoRequestPadId(-1);
+        m_usedRequestPadIds[pChildSource->GetRequestPadId()] = false;
+        pChildSource->SetRequestPadId(-1);
         pChildSource->SetUniqueId(-1);
 
         // Update the number of child Sources based on media type.
@@ -366,7 +366,7 @@ namespace DSL
         LOG_FUNC();
         
         std::string sinkPadName = 
-            "sink_" + std::to_string(pChildSource->GetVideoRequestPadId());
+            "sink_" + std::to_string(pChildSource->GetRequestPadId());
             
         // If the Source supports Video and the Vidio Streammux is enabled 
         if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
@@ -465,14 +465,14 @@ namespace DSL
         if (streammux == DSL_VIDEOMUX)
         {
             m_pVideomux = (enabled)
-                ? DSL_STREAMMUX_NEW("video-streammux-", 
+                ? DSL_STREAMMUX_NEW("video-streammux", 
                     GetGstObject(), m_uniquePipelineId, "video_src")
                 : nullptr;
         }
         else
         {
             m_pAudiomux = (enabled)
-                ? DSL_STREAMMUX_NEW("audio-streammux-", 
+                ? DSL_STREAMMUX_NEW("audio-streammux", 
                     GetGstObject(), m_uniquePipelineId, "audio_src")
                 : nullptr;
         }

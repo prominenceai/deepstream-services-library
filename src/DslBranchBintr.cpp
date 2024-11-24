@@ -359,30 +359,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Demuxer");
-            return false;
-        }
-        if (m_pSplitterBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Splitter - can't add Demuxer");
-            return false;
-        }
-        if (m_pTilerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Tiler - can't add Demuxer");
-            return false;
-        }
-        if (m_pMultiVideoSinksBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Sink - can't add Demuxer");
-            return false;
-        }
         if (IsLinked())
         {
             LOG_ERROR("Cannot add Demuxer '" 
@@ -390,8 +366,57 @@ namespace DSL
                 <<"' as it is currently linked");
             return false;
         }
-        m_pDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
-        
+
+        DSL_BINTR_PTR pChildDemuxerBintr = 
+            std::dynamic_pointer_cast<Bintr>(pDemuxerBintr);
+
+        if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (pChildDemuxerBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
+        {
+            if (m_pAudioDemuxerBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Audio Demuxer");
+                return false;
+            }
+            if (m_pMultiAudioSinksBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Sink - can't add Video Demuxer");
+                return false;
+            }
+            m_pVideoDemuxerBintr = std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
+        }
+        if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            (pChildDemuxerBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            if (m_pVideoDemuxerBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Video Demuxer");
+                return false;
+            }
+            if (m_pSplitterBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Splitter - can't add Video Demuxer");
+                return false;
+            }
+            if (m_pTilerBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Tiler - can't add Video Demuxer");
+                return false;
+            }
+            if (m_pMultiVideoSinksBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Sink - can't add Video Demuxer");
+                return false;
+            }
+            m_pVideoDemuxerBintr = 
+                std::dynamic_pointer_cast<DemuxerBintr>(pDemuxerBintr);
+        }
         return AddChild(pDemuxerBintr);
     }
 
@@ -455,7 +480,7 @@ namespace DSL
                 << "' already has a Splitter");
             return false;
         }
-        if (m_pDemuxerBintr)
+        if (m_pVideoDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Demuxer- can't add Splitter");
@@ -517,7 +542,7 @@ namespace DSL
                 << "' already has a Tiler");
             return false;
         }
-        if (m_pDemuxerBintr)
+        if (m_pVideoDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Demuxer - can't add Tiler");
@@ -643,7 +668,7 @@ namespace DSL
                 << "' has an exisiting OSD '" << m_pOsdBintr->GetName());
             return false;
         }
-        if (m_pDemuxerBintr)
+        if (m_pVideoDemuxerBintr)
         {
             LOG_ERROR("Branch '" << GetName() 
                 << "' already has a Demuxer - can't add OSD");
@@ -694,31 +719,25 @@ namespace DSL
     {
         LOG_FUNC();
         
-        if (m_pDemuxerBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Demuxer - can't add Sink after a Demuxer");
-            return false;
-        }
-        if (m_pSplitterBintr)
-        {
-            LOG_ERROR("Branch '" << GetName() 
-                << "' already has a Tee - can't add Sink after a Tee");
-            return false;
-        }
-        
         DSL_BINTR_PTR pChildSinkBintr = 
             std::dynamic_pointer_cast<Bintr>(pSinkBintr);
 
         if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
-            // Create the shared Sinks bintr if it doesn't exist
+            if (m_pAudioDemuxerBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has an Audio Demuxer - can't add Sink after a Demuxer");
+                return false;
+            }
+            // Create the MultiAudioSinksBintr if it doesn't exist
             if (!m_pMultiAudioSinksBintr)
             {
-                m_pMultiAudioSinksBintr = DSL_DEMUXER_NEW("audio-sinks-bin", 1);
+                m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
 
-                // Set thus MultiAudioSinkBintr's media-type accordingly before adding
+                // Set the MultiAudioSinkBintr's media-type to audio before adding.
+                // Value cannot be updated once it is added as a child.
                 m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
                 
                 if (!AddChild(m_pMultiAudioSinksBintr))
@@ -734,7 +753,19 @@ namespace DSL
         if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
         {
-            // Create the shared Sinks bintr if it doesn't exist
+            if (m_pVideoDemuxerBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Video Demuxer - can't add Sink after a Demuxer");
+                return false;
+            }
+            if (m_pSplitterBintr)
+            {
+                LOG_ERROR("Branch '" << GetName() 
+                    << "' already has a Tee - can't add Sink after a Tee");
+                return false;
+            }
+            // Create the MultiVideoSinksBintr if it doesn't exist
             if (!m_pMultiVideoSinksBintr)
             {
                 m_pMultiVideoSinksBintr = DSL_MULTI_SINKS_NEW("video-sinks-bin");
@@ -809,7 +840,7 @@ namespace DSL
                 m_linkedVideoComps.front()->GetName() << "'");
             m_linkedVideoComps.front()->AddGhostPadToParent("sink");
             
-            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiVideoSinksBintr)
+            if (!m_pVideoDemuxerBintr and !m_pSplitterBintr and !m_pMultiVideoSinksBintr)
             {
                 LOG_INFO("Adding sink-ghost-pad to BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
@@ -1031,23 +1062,23 @@ namespace DSL
                 << m_pOsdBintr->GetName() << "' successfully");
         }
 
-        if (m_pDemuxerBintr)
+        if (m_pVideoDemuxerBintr)
         {
             // propagate the link method and batch size to the Child Bintr
-            m_pDemuxerBintr->SetLinkMethod(m_linkMethod);
-            m_pDemuxerBintr->SetBatchSize(m_videoBatchSize);
+            m_pVideoDemuxerBintr->SetLinkMethod(m_linkMethod);
+            m_pVideoDemuxerBintr->SetBatchSize(m_videoBatchSize);
             
             // Link All Demuxer Elementrs and add as the next ** AND LAST ** 
             // component in the Pipeline
-            if (!m_pDemuxerBintr->LinkAll() or
+            if (!m_pVideoDemuxerBintr->LinkAll() or
                 (m_linkedVideoComps.size() and 
-                !m_linkedVideoComps.back()->LinkToSink(m_pDemuxerBintr)))
+                !m_linkedVideoComps.back()->LinkToSink(m_pVideoDemuxerBintr)))
             {
                 return false;
             }
-            m_linkedVideoComps.push_back(m_pDemuxerBintr);
+            m_linkedVideoComps.push_back(m_pVideoDemuxerBintr);
             LOG_INFO("Branch '" << GetName() << "' Linked up Stream Demuxer '" 
-                << m_pDemuxerBintr->GetName() << "' successfully");
+                << m_pVideoDemuxerBintr->GetName() << "' successfully");
         }
 
         if (m_pSplitterBintr)
@@ -1156,7 +1187,7 @@ namespace DSL
                 
             m_linkedVideoComps.front()->RemoveGhostPadFromParent("sink");
             
-            if (!m_pDemuxerBintr and !m_pSplitterBintr and !m_pMultiVideoSinksBintr)
+            if (!m_pVideoDemuxerBintr and !m_pSplitterBintr and !m_pMultiVideoSinksBintr)
             {
                 LOG_INFO("Removing src-ghost-pad from BranchBintr '" <<
                     GetName() << "' for last ChildBintr '" << 
@@ -1207,7 +1238,6 @@ namespace DSL
         // Call the base class to complete the add process
         return GstNodetr::AddChild(pChildBintr);
     }
-
 
     bool BranchBintr::RemoveChild(DSL_BASE_PTR pChild)
     {

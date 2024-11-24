@@ -43,6 +43,10 @@ namespace DSL
     #define DSL_MULTI_SINKS_NEW(name) \
         std::shared_ptr<MultiSinksBintr>(new MultiSinksBintr(name))
 
+    #define DSL_DEMUXED_SINKS_PTR std::shared_ptr<DemuxedSinksBintr>
+    #define DSL_DEMUXED_SINKS_NEW(name) \
+        std::shared_ptr<DemuxedSinksBintr>(new DemuxedSinksBintr(name))
+
     #define DSL_DEMUXER_PTR std::shared_ptr<DemuxerBintr>
     #define DSL_DEMUXER_NEW(name, maxBranches) \
         std::shared_ptr<DemuxerBintr>(new DemuxerBintr(name, maxBranches))
@@ -275,6 +279,46 @@ namespace DSL
          */
         MultiSinksBintr(const char* name);
 
+    };
+
+    //-------------------------------------------------------------------------------
+
+    /**
+     * @class DemuxedSinksBintr
+     * @brief Derived from the parent class MultiBranchesBintr, implements 
+     * a Tee binter that can add, link, unlink, and remove child SinkBintrs 
+     * while in any state (NULL, PLAYING, etc.). The Bintr includes a
+     * nvstreamdemux element to convert from audio/x-raw(NVMM) to audio/x-raw
+     */
+    class DemuxedSinksBintr : public MultiBranchesBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the DemuxedSinksBintr
+         * @param[in] name name to give the new Bintr
+         */
+        DemuxedSinksBintr(const char* name);
+
+        /** 
+         * @brief links all child Component Bintrs and their elements. We need to 
+         * override the parent class to linking the demuxer used to convert the
+         * format from audio/x-raw(NVMM) to audio/x-raw.
+         */ 
+        bool LinkAll();
+
+        /**
+         * @brief unlinks all child Component Bintrs and their Elementrs.
+         */
+        void UnlinkAll();
+        
+    private:
+
+        /**
+         * @brief Batch demuxer element for the DemuxedSinksBintr.
+         */
+        DSL_ELEMENT_PTR m_pDemuxer;
+    
     };
 
     //-------------------------------------------------------------------------------

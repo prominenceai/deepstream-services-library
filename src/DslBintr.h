@@ -122,12 +122,12 @@ namespace DSL
         }
         
         /**
-         * @brief returns the current sink or src audio request pad-id -- as managed  
+         * @brief returns the current sink or src request pad-id -- as managed  
          * by the multi-component Parent Bintr -- for this bintr if used (i.e  
          * connected to a streammuxer, demuxer, or splitter).
          * @return -1 when id is not assigned, i.e. bintr is not currently in use
          */
-        int GetAudioRequestPadId()
+        int GetRequestPadId()
         {
             LOG_FUNC();
             
@@ -135,38 +135,12 @@ namespace DSL
         }
         
         /**
-         * @brief Sets the sink or src audio request pad-id -- as managed by the 
+         * @brief Sets the sink or src request pad-id -- as managed by the 
          * multi-component Parent Bintr -- for this bintr if used (i.e connected a 
          * streammuxer, demuxer, or splitter).
          * @param request pad-id value to assign. use -1 for unassigned. 
          */
-        void SetAudioRequestPadId(int id)
-        {
-            LOG_FUNC();
-
-            m_requestPadId = id;
-        }
-        
-        /**
-         * @brief returns the current sink or src video request pad-id -- as managed  
-         * by the multi-component Parent Bintr -- for this bintr if used (i.e  
-         * connected to a streammuxer, demuxer, or splitter).
-         * @return -1 when id is not assigned, i.e. bintr is not currently in use
-         */
-        int GetVideoRequestPadId()
-        {
-            LOG_FUNC();
-            
-            return m_requestPadId;
-        }
-        
-        /**
-         * @brief Sets the sink or src video request pad-id -- as managed by the 
-         * multi-component Parent Bintr -- for this bintr if used (i.e connected a 
-         * streammuxer, demuxer, or splitter).
-         * @param request pad-id value to assign. use -1 for unassigned. 
-         */
-        void SetVideoRequestPadId(int id)
+        void SetRequestPadId(int id)
         {
             LOG_FUNC();
 

@@ -72,7 +72,7 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
 
@@ -168,7 +168,7 @@ SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
 
@@ -291,7 +291,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( pSourceBintr->GetGpuId() == 0 );
                     REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                     REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                    REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                    REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                     REQUIRE( pSourceBintr->GetSensorId() == 0 );
                     REQUIRE( pSourceBintr->IsInUse() == false );
                     REQUIRE( pSourceBintr->IsLive() == true );
@@ -442,7 +442,7 @@ SCENARIO( "A new V4l2SourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
 
@@ -551,7 +551,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
 
                 REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
@@ -838,7 +838,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetNvbufMemType() == 
                     DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
                 REQUIRE( pSourceBintr->GetLatency() ==  latency );
@@ -1169,7 +1169,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1245,7 +1245,7 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1323,7 +1323,7 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1396,7 +1396,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
@@ -1479,7 +1479,7 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
 
                 REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
