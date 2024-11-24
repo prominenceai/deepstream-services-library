@@ -258,13 +258,6 @@ namespace DSL
         bool m_batchSizeSetByClient;
          
         /**
-         * @brief Each source is assigned a unique pad/stream id used to define the
-         * streammuxer sink pad when linking. The vector is used on add/remove 
-         * to find the next available pad id.
-         */
-        std::vector<bool> m_usedRequestPadIds;
-        
-        /**
          * @brief Adds the End Of Stream (EOS) Consumer PPH to the src pad of
          * this StreammuxBintr.
          */
