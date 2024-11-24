@@ -211,8 +211,12 @@ See the [On-Screen Display API](/docs/api-osd.md) reference section for more inf
 Applications using On-Screen Display components can add one or more [Pad Probe Handlers](#pad-probe-handlers) -- to either the sink-pad (input) or source-pad (output) -- to process the batched stream buffers and metadata for each frame and detected-object.
 
 ##  Sinks
-Sinks are the end components in each Pipeline or Branch. All Pipelines or Branches require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- a case where the `batch-meta-data` produced from the components in the Pipeline are the only data of interest. There are currently fifteen (15) types of Sink Components that can be added.
+Sinks are the end components in each Pipeline or Branch. All Pipelines or Branches require at least one Sink Component to Play. A Fake Sink can be created if the final stream is of no interest and can simply be consumed and dropped -- a case where the `batch-meta-data` produced from the components in the Pipeline are the only data of interest. There are currently fifteen (17) types of Sink Components that can be added.
 
+#### Audio Only Sinks
+* [ALSA Sink](#dsl_sink_alsa_new) - streams audio to an Advanced Linux Sound Architecture (ALSA) compatible sound card. 
+
+#### Video Only Sinks
 * [3D Window Sink](/docs/api-sink.md#dsl_sink_window_3d_new) - renders/overlays video on a Parent XWindow **(Jetson Platform Only)**... based on the 3D graphics rendering API.
 * [EGL Window Sink](/docs/api-sink.md#dsl_sink_window_egl_new) - renders/overlays video on a Parent XWindow... based on the EGL API.
 * [V4L2 Sink](/docs/api-sink.md#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
@@ -227,6 +231,8 @@ Sinks are the end components in each Pipeline or Branch. All Pipelines or Branch
 * [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new) -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Multi-Image Sink](/docs/api-sink.md#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
 * [Frame-Capture Sink](/docs/api-sink.md#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on demand or on schedule. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
+
+#### Audio or Video Sinks
 * [Fake Sink](/docs/api-sink.md#dsl_sink_fake_new) - consumes/drops all data.
 
 **3D** and **EGL** **Window Sinks** have settable dimensions, width and height in pixels, and X and Y directional offsets that can be updated after creation. 

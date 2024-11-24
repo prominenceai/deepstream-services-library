@@ -432,6 +432,7 @@
 
 ## Sink:
 * [Overview](/docs/api-sink.md)
+* [`dsl_sink_alsa_new`](/docs/api-sink.md#dsl_sink_alsa_new)
 * [`dsl_sink_app_new`](/docs/api-sink.md#dsl_sink_app_new)
 * [`dsl_sink_window_3d_new`](/docs/api-sink.md#dsl_sink_window_3d_new)
 * [`dsl_sink_window_egl_new`](/docs/api-sink.md#dsl_sink_window_egl_new)
@@ -460,6 +461,9 @@
 * [`dsl_sink_qos_enabled_set`](/docs/api-sink.md#dsl_sink_qos_enabled_set)
 * [`dsl_sink_pph_add`](/docs/api-sink.md#dsl_sink_pph_add)
 * [`dsl_sink_pph_remove`](/docs/api-sink.md#dsl_sink_pph_remove)
+* [`dsl_sink_alsa_device_location_get`](/docs/api-sink.md#dsl_sink_alsa_device_location_get)
+* [`dsl_sink_alsa_device_location_set`](/docs/api-sink.md#dsl_sink_alsa_device_location_set)
+* [`dsl_sink_alsa_device_name_get`](/docs/api-sink.md#dsl_sink_alsa_device_name_get)
 * [`dsl_sink_app_data_type_get`](/docs/api-sink.md#dsl_sink_app_data_type_get)
 * [`dsl_sink_app_data_type_set`](/docs/api-sink.md#dsl_sink_app_data_type_set)
 * [`dsl_sink_window_offsets_get`](/docs/api-sink.md#dsl_sink_window_offsets_get)
