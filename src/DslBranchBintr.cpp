@@ -1197,7 +1197,19 @@ namespace DSL
             }
         }
         
-        // iterate through the list of Linked Components, unlinking each
+        // iterate through the list of Linked Audio Components, unlinking each
+        for (auto const& ivector: m_linkedAudioComps)
+        {
+            // all but the tail m_pMultiAudioSinksBintr will be Linked to Sink
+            if (ivector->IsLinkedToSink())
+            {
+                ivector->UnlinkFromSink();
+            }
+            ivector->UnlinkAll();
+        }
+        m_linkedVideoComps.clear();
+
+        // iterate through the list of Linked Video Components, unlinking each
         for (auto const& ivector: m_linkedVideoComps)
         {
             // all but the tail m_pMultiVideoSinksBintr will be Linked to Sink

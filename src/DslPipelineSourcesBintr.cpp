@@ -285,7 +285,14 @@ namespace DSL
                     // to play. Each RTSP source will then manage their own restart 
                     // attempts and time management.
 
-                    m_pVideomux->AddEosConsumer();
+                    if (GetStreammuxEnabled(DSL_AUDIOMUX))
+                    {
+                        m_pAudiomux->AddEosConsumer();    
+                    }
+                    if (GetStreammuxEnabled(DSL_VIDEOMUX))
+                    {
+                        m_pVideomux->AddEosConsumer();
+                    }
                 }
             }
         }
@@ -306,10 +313,6 @@ namespace DSL
         }
         for (auto const& imap: m_pChildSources)
         {
-            // unlink from the Streammuxer
-            LOG_INFO("Unlinking " << m_pVideomux->GetName() 
-                << " from " << imap.second->GetName());
-
             if (!UnlinkChildFromSinkMuxers(imap.second))
             {
                 return;
@@ -367,20 +370,7 @@ namespace DSL
         
         std::string sinkPadName = 
             "sink_" + std::to_string(pChildSource->GetRequestPadId());
-            
-        // If the Source supports Video and the Vidio Streammux is enabled 
-        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
-            GetStreammuxEnabled(DSL_VIDEOMUX))
-        {
-            if (!pChildSource->LinkToSinkMuxer(m_pVideomux->Get(),
-                "video_src", sinkPadName.c_str()))
-            {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to link video for Child Source '" 
-                    << pChildSource->GetName() << "'");
-                return false;
-            }
-        }
+
         // If the Source supports Audio and the Audio Streammux is enabled 
         if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
             GetStreammuxEnabled(DSL_AUDIOMUX))
@@ -394,6 +384,19 @@ namespace DSL
                 return false;
             }
         }
+        // If the Source supports Video and the Vidio Streammux is enabled 
+        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+            GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            if (!pChildSource->LinkToSinkMuxer(m_pVideomux->Get(),
+                "video_src", sinkPadName.c_str()))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to link video for Child Source '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+        }
         return true;
     }
 
@@ -401,28 +404,34 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // If the Source supports Video and the Vidio Streammux is enabled 
-        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
-            GetStreammuxEnabled(DSL_VIDEOMUX))
-        {
-            if (!pChildSource->UnlinkFromSinkMuxer(m_pVideomux->Get(),
-                "video_src"))
-            {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to unlink video for Child Source '" 
-                    << pChildSource->GetName() << "'");
-                return false;
-            }
-        }
         // If the Source supports Audio and the Audio Streammux is enabled 
         if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
             GetStreammuxEnabled(DSL_AUDIOMUX))
         {
+            LOG_INFO("Unlinking child Source '" << pChildSource->GetName() 
+                << "' from AudioMuxer");
+
             if (!pChildSource->UnlinkFromSinkMuxer(m_pAudiomux->Get(),
                 "audio_src"))
             {
                 LOG_ERROR("PipelineSourcesBintr '" << GetName() 
                     << "' failed to unlink audio for Child Source '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+        }
+        // If the Source supports Video and the Vidio Streammux is enabled 
+        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+            GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            LOG_INFO("Unlinking child Source '" << pChildSource->GetName() 
+                << "' from VideoMuxer");
+                
+            if (!pChildSource->UnlinkFromSinkMuxer(m_pVideomux->Get(),
+                "video_src"))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to unlink video for Child Source '" 
                     << pChildSource->GetName() << "'");
                 return false;
             }
@@ -559,7 +568,14 @@ namespace DSL
         }
         // Call on the Streammuxer to do the same.
 
-        m_pVideomux->RemoveEosConsumer();
+        if (GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            m_pAudiomux->RemoveEosConsumer();    
+        }
+        if (GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            m_pVideomux->RemoveEosConsumer();
+        }
     }
 
 

@@ -411,7 +411,7 @@ namespace DSL
         {
             return false;
         }
-        // call the base class to Link all remaining components.
+        // If Audio is enabled, link the audio streammuxer to the first audio component.
         if (m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY)
         { 
             if (!m_pPipelineSourcesBintr->LinkAudioToSink(m_linkedAudioComps.front()))
@@ -419,6 +419,7 @@ namespace DSL
                 return false;
             }
         }
+        // If Video is enabled, link the video streammuxer to the first video component.
         if (m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY)
         {
             if (!m_pPipelineSourcesBintr->LinkVideoToSink(m_linkedVideoComps.front()))
@@ -439,7 +440,19 @@ namespace DSL
             return;
         }
         BranchBintr::UnlinkAll();
-        m_pPipelineSourcesBintr->UnlinkVideoFromSink();
+
+        // If aideo is enabled, unlink the audio streammuxer from the first 
+        // audio component.
+        if (m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        { 
+            m_pPipelineSourcesBintr->UnlinkAudioFromSink();
+        }
+        // If video is enabled, unlink the video streammuxer from the first 
+        // video component.
+        if (m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            m_pPipelineSourcesBintr->UnlinkVideoFromSink();
+        }    
         m_pPipelineSourcesBintr->UnlinkAll();
     }
 
@@ -457,7 +470,7 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pPipelineSourcesBintr->m_pVideomux->PlayTypeIsLiveGet())
+            if (!m_pPipelineSourcesBintr->StreammuxPlayTypeIsLiveGet())
             {
                 if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
                 {

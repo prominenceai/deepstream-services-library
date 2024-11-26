@@ -1386,6 +1386,19 @@ namespace DSL
         }
         
         /**
+         * @brief Removes the "buffer" and "downstream event" Pad Probes from the 
+         * src-pad of a given Element.
+         * @param the Parent Element to add the Probes to.
+         */
+        void RemoveSrcPadProbes(GstElement* parentElement)
+        {
+            LOG_FUNC();
+            
+            m_pSrcPadBufferProbe = nullptr;
+            m_pSrcPadDsEventProbe = nullptr;
+        }
+        
+        /**
          * @brief Adds a Pad Probe Buffer Handler to the Bintr
          * @param[in] pPadProbeHandler shared pointer to the PPBH to add
          * @param[in] pad pad to add the handler to; DSL_PAD_SINK | DSL_PAD SRC

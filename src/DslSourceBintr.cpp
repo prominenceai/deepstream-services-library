@@ -160,14 +160,27 @@ namespace DSL
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
             L_bufferOutFormat.end());
+
+        InitCommonVideo();
         
+    }
+    
+    VideoSourceBintr::~VideoSourceBintr()
+    {
+        LOG_FUNC();
+    }
+    
+    void VideoSourceBintr::InitCommonVideo()
+    {
+        LOG_FUNC();
+
         // All SourceBintrs have a Video Converter with Caps Filter used
         // to control the buffer-out format, dimensions, crop values, etc.
         
         // ---- Video Converter Setup
 
         m_pVideoOutConv = DSL_ELEMENT_EXT_NEW("nvvideoconvert", 
-            name, "buffer-out");
+            GetCStrName(), "buffer-out");
         
         // Get property defaults that aren't specifically set
         m_pVideoOutConv->GetAttribute("gpu-id", &m_gpuId);
@@ -176,12 +189,12 @@ namespace DSL
         // ---- Caps Filter Setup
 
         m_pVideoOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
-            name, "vidconv");
+            GetCStrName(), "vidconv");
         
         // Update the caps with the media, format, and memory:NVMM feature
         if (!SetBufferOutFormat(m_bufferOutFormat.c_str()))
         {
-            throw;
+            throw std::exception();
         }
 
         // add both elementrs as children to this Bintr
@@ -195,10 +208,20 @@ namespace DSL
         // Add the Buffer and DS Event Probes to the caps-filter - src-pad only.
         AddSrcPadProbes(m_pVideoOutCapsFilter->GetGstElement());
     }
-    
-    VideoSourceBintr::~VideoSourceBintr()
+
+    void VideoSourceBintr::DeinitCommonVideo()
     {
         LOG_FUNC();
+
+        // Remove the audio src ghost pad from the caps-filter.
+        m_pVideoOutCapsFilter->RemoveGhostPadFromParent("video_src");
+
+        // Remove the Buffer and DS Event Probes to the caps-filter - src-pad only.
+        RemoveSrcPadProbes(m_pVideoOutCapsFilter->GetGstElement());
+
+        // remove all child elementrs from this Bintr
+        RemoveChild(m_pVideoOutConv);
+        RemoveChild(m_pVideoOutCapsFilter);
     }
     
     bool VideoSourceBintr::LinkToCommonVideo(DSL_NODETR_PTR pSrcNodetr)
@@ -2444,6 +2467,19 @@ namespace DSL
         {
             LOG_INFO("Disabling Audio for UriSourceBintr '" << GetName() << "'");
             DeinitCommonAudio();
+        } 
+
+        if (!(m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            (mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_INFO("Enabling Video for UriSourceBintr '" << GetName() << "'");
+            InitCommonVideo();
+        } 
+        if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            !(mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_INFO("Disabling Video for UriSourceBintr '" << GetName() << "'");
+            DeinitCommonVideo();
         } 
 
         m_mediaType = mediaType;

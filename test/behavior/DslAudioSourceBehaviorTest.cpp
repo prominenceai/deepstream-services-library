@@ -67,8 +67,6 @@ SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink ca
     {
         if (dsl_info_use_new_nvstreammux_get())
         {
-            boolean inference_interval(4);
-            
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name_1.c_str(), source_uri_1.c_str(), 
@@ -123,14 +121,13 @@ SCENARIO( "A new Pipeline with a URI Source, Window Sink, and Audio Fake Sink ca
     }
 }
 
-SCENARIO( "A new Pipeline with 2 URI Sources, 2 Window Sinks, and 2 ALSA Sinks can play", "[error]" )
+SCENARIO( "A new Pipeline with 2 URI Sources, 2 Window Sinks, and 2 ALSA Sinks can play",
+    "[audio-behavior]" )
 {
     GIVEN( "A Pipeline, URI Source, Window Sink, and Audio Fake Sink" ) 
     {
         if (dsl_info_use_new_nvstreammux_get())
         {
-            boolean inference_interval(4);
-            
             REQUIRE( dsl_component_list_size() == 0 );
 
             REQUIRE( dsl_source_uri_new(source_name_1.c_str(), source_uri_1.c_str(), 
@@ -186,6 +183,60 @@ SCENARIO( "A new Pipeline with 2 URI Sources, 2 Window Sinks, and 2 ALSA Sinks c
                 const wchar_t* components[] = {
                     source_name_1.c_str(), source_name_2.c_str(), 
                     demuxer_name_1.c_str(), demuxer_name_2.c_str(), NULL};
+        
+                REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                    components) == DSL_RESULT_SUCCESS );
+
+                THEN( "Pipeline is Able to LinkAll and Play" )
+                {
+                    // REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                    dsl_pipeline_play(pipeline_name.c_str());
+
+                    dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                        const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
+                    std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                    REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                    dsl_delete_all();
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                    REQUIRE( dsl_component_list_size() == 0 );
+                }
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with a URI Source and ALSA Sink can play - Audio Only",
+    "[error]" )
+{
+    GIVEN( "A Pipeline, URI Source, Window Sink, and Audio Fake Sink" ) 
+    {
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_component_list_size() == 0 );
+
+            REQUIRE( dsl_source_uri_new(source_name_1.c_str(), source_uri_1.c_str(), 
+                false, false, 0) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_media_type_set(source_name_1.c_str(), 
+                DSL_MEDIA_TYPE_AUDIO_ONLY) == DSL_RESULT_SUCCESS );          
+
+            REQUIRE( dsl_sink_alsa_new(alsa_sink_name_1.c_str(),
+                device_location.c_str()) == DSL_RESULT_SUCCESS );    
+                
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_audiomux_enabled_set(pipeline_name.c_str(), 
+                true) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_videomux_enabled_set(pipeline_name.c_str(), 
+                false) == DSL_RESULT_SUCCESS );
+            
+            WHEN( "When the Pipeline is Assembled" ) 
+            {
+                const wchar_t* components[] = {
+                    source_name_1.c_str(), alsa_sink_name_1.c_str(), NULL};
         
                 REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                     components) == DSL_RESULT_SUCCESS );

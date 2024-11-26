@@ -444,6 +444,16 @@ namespace DSL
     protected:
     
         /**
+         * @brief Initializes the VideoSourceBintr base class
+         */
+        void InitCommonVideo();
+
+        /**
+         * @brief Denitializes the VideoSourceBintr base class
+         */
+        void DeinitCommonVideo();
+
+        /**
          * @brief Indicates that the video Stream is fully linked, in some cases 
          * after pads are dynamically linked. We don't want to try and unlink 
          * unless fully linked. 
@@ -591,6 +601,8 @@ namespace DSL
          */
         ~AudioSourceBintr();
 
+    protected:
+    
         /**
          * @brief Initializes the AudioSourceBintr base class
          */
@@ -601,8 +613,6 @@ namespace DSL
          */
         void DeinitCommonAudio();
 
-    protected:
-    
         /**
          * @brief Indicates that the audio stream is fully linked, in some cases 
          * after pads are dynamically linked. We don't want to try and unlink 

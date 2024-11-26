@@ -577,7 +577,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
     }
 }
 
-SCENARIO( "A UriSourceBintr can Enable and Disable Audio",  "[SourceBintr]" )
+SCENARIO( "A UriSourceBintr can Enable and Disable Audio and Video",  "[SourceBintr]" )
 {
     GIVEN( "A new UriSourceBintr in memory" ) 
     {
@@ -586,8 +586,8 @@ SCENARIO( "A UriSourceBintr can Enable and Disable Audio",  "[SourceBintr]" )
 
         WHEN( "The UriSourceBintr's media-type is changed to AUDIO_VIDEO" )
         {
-            REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_VIDEO) == true );
-            REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_VIDEO );
+            REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY) == true );
+            REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY );
 
             THEN( "The UriSourceBintr IsLinked state is updated correctly" )
             {
