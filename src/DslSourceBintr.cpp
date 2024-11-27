@@ -1629,7 +1629,8 @@ namespace DSL
         m_pSourceElement->SetAttribute("sensor-id", m_sensorId);
         
         // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-        if ((NVDS_VERSION_MAJOR < 7) and (NVDS_VERSION_MINOR < 3))
+        if ((NVDS_VERSION_MAJOR < 7) || 
+            (NVDS_VERSION_MAJOR == 7 && NVDS_VERSION_MINOR < 3))
         {
             m_pSourceElement->SetAttribute("bufapi-version", TRUE);
         }
@@ -2310,7 +2311,8 @@ namespace DSL
             if (m_cudaDeviceProp.integrated)
             {
                 // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-                if (NVDS_VERSION_MINOR < 3)
+                if ((NVDS_VERSION_MAJOR < 7) || 
+                    (NVDS_VERSION_MAJOR == 7 && NVDS_VERSION_MINOR < 3))
                 {
                     g_object_set(pObject, "bufapi-version", TRUE, NULL);
                 }
@@ -3353,8 +3355,12 @@ namespace DSL
         // aarch64 (Jetson) only
         if (m_cudaDeviceProp.integrated)
         {
-            // DS 6.2 ONLY - removed in DS 6.3 AND 6.4
-            if (NVDS_VERSION_MINOR < 3)
+            // For integrated GPUs only:
+            // DS 6.2 requires bufapi-version to be enabled. 
+            // This feature was deprecated in DS 6.3 and later.
+            // Updated logic includes major version check for NVDS_VERSION_MAJOR >= 7.
+            if ((NVDS_VERSION_MAJOR < 7) || 
+                (NVDS_VERSION_MAJOR == 7 && NVDS_VERSION_MINOR < 3))
             {
                 m_pDecoder->SetAttribute("bufapi-version", TRUE);
             }
