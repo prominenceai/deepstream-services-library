@@ -1831,8 +1831,7 @@ namespace DSL
             
             if (m_cudaDeviceProp.integrated)
             {
-                if ((NVDS_VERSION_MAJOR < 7) || 
-                    (NVDS_VERSION_MAJOR == 7 && NVDS_VERSION_MINOR < 3))
+                if (NVDS_VERSION_MAJOR < 7 && NVDS_VERSION_MINOR < 3)
                 {
                     m_pEncoder->SetAttribute("bufapi-version", TRUE);
                 }
