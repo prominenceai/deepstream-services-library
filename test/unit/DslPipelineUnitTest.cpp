@@ -1127,30 +1127,33 @@ SCENARIO( "A Pipeline is able to LinkAll with minimum Audio Components ", "[Pipe
 {
     GIVEN( "A new UriSourceBintr, AlsaSinkBintr, and a PipelineBintr" ) 
     {
-        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
-            sourceName.c_str(), filePath.c_str(), false, false, 0);
-        
-        REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_VIDEO) == true );
-
-        DSL_ALSA_SINK_PTR pSinkBintr = 
-            DSL_ALSA_SINK_NEW(sinkName.c_str(), "default");
-
-        DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
-            
-        REQUIRE( pPipelineBintr->SetStreammuxEnabled(DSL_AUDIOMUX, true) == true );
-        REQUIRE( pPipelineBintr->SetStreammuxEnabled(DSL_VIDEOMUX, false) == true );
-
-        WHEN( "All components are added to the PipelineBintr" )
+        if (dsl_info_use_new_nvstreammux_get())
         {
-            REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
-            REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+            DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+                sourceName.c_str(), filePath.c_str(), false, false, 0);
+            
+            REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_VIDEO) == true );
 
-            THEN( "The Pipeline components are Linked correctly" )
+            DSL_ALSA_SINK_PTR pSinkBintr = 
+                DSL_ALSA_SINK_NEW(sinkName.c_str(), "default");
+
+            DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+                
+            REQUIRE( pPipelineBintr->SetStreammuxEnabled(DSL_AUDIOMUX, true) == true );
+            REQUIRE( pPipelineBintr->SetStreammuxEnabled(DSL_VIDEOMUX, false) == true );
+
+            WHEN( "All components are added to the PipelineBintr" )
             {
-                REQUIRE( pPipelineBintr->LinkAll() == true );
-                REQUIRE( pPipelineBintr->IsLinked() == true );
-                pPipelineBintr->UnlinkAll();
-                REQUIRE( pPipelineBintr->IsLinked() == false );
+                REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+                REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+                THEN( "The Pipeline components are Linked correctly" )
+                {
+                    REQUIRE( pPipelineBintr->LinkAll() == true );
+                    REQUIRE( pPipelineBintr->IsLinked() == true );
+                    pPipelineBintr->UnlinkAll();
+                    REQUIRE( pPipelineBintr->IsLinked() == false );
+                }
             }
         }
     }

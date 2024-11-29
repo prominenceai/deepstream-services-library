@@ -40,6 +40,8 @@ namespace DSL
      */
     #define DSL_SOURCE_PTR std::shared_ptr<SourceBintr>
 
+    #define DSL_AUDIO_SOURCE_PTR std::shared_ptr<AudioSourceBintr>
+
     #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
 
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
@@ -283,26 +285,21 @@ namespace DSL
          * @return Current buffer-out-format. string version of one of the 
          * DSL_VIDEO_FORMAT constants.
          */
-        const char* GetBufferOutFormat()
-        {
-            LOG_FUNC();
-            
-            return m_bufferOutFormat.c_str();
-        };
+        const char* GetVideoBufferOutFormat();
         
         /**
          * @brief Sets the buffer-out-format for the VideoSourceBintr.
          * @param[in] format string version of one of the DSL_VIDEO_FORMAT constants.
          * @return true if successfully set, false otherwise.
          */
-        bool SetBufferOutFormat(const char* format);
+        bool SetVideoBufferOutFormat(const char* format);
 
         /**
          * @brief Sets the buffer-out-dimensions for the VideoSourceBintr.
          * @param[out] width current width value to scale the output buffer in pixels
          * @param[out] height current height value to scale the output buffer in pixels
          */
-        void GetBufferOutDimensions(uint* width, uint* height);
+        void GetVideoBufferOutDimensions(uint* width, uint* height);
         
         /**
          * @brief Sets the buffer-out-dimensions for the VideoSourceBintr.
@@ -310,7 +307,7 @@ namespace DSL
          * @param[in] height new height value to scale the output buffer in pixels.
          * @return true if successfully set, false otherwise.
          */
-        bool SetBufferOutDimensions(uint width, uint height);
+        bool SetVideoBufferOutDimensions(uint width, uint height);
         
         /**
          * @brief Gets the buffer-out-frame-rate for the VideoSourceBintr.
@@ -318,7 +315,7 @@ namespace DSL
          * @param[out] fpsN current fpsN value to scale the output buffer.
          * @param[out] fpsD current fpsD value to scale the output buffer.
          */
-        void GetBufferOutFrameRate(uint* fpsN, uint* fpsD);
+        void GetVideoBufferOutFrameRate(uint* fpsN, uint* fpsD);
         
         /**
          * @brief Sets the buffer-out-frame-rate for the VideoSourceBintr.
@@ -327,7 +324,7 @@ namespace DSL
          * @param[in] fpsD new fpsN value to scale the output buffer.
          * @return true if successfully set, false otherwise.
          */
-        bool SetBufferOutFrameRate(uint fpsN, uint fpsD);
+        bool SetVideoBufferOutFrameRate(uint fpsN, uint fpsD);
         
         /**
          * @brief Gets the buffer-out-crop values for the VideoSourceBintr.
@@ -339,7 +336,7 @@ namespace DSL
          * @param[out] height height of the crop frame in pixels.
          * @return true if successfully set, false otherwise.
          */
-        void GetBufferOutCropRectangle(uint cropAt, uint* left, uint* top, 
+        void GetVideoBufferOutCropRectangle(uint cropAt, uint* left, uint* top, 
             uint* width, uint* height);
 
         /**
@@ -352,7 +349,7 @@ namespace DSL
          * @param[in] height height of the crop frame in pixels.
          * @return true if successfully set, false otherwise.
          */
-        bool SetBufferOutCropRectangle(uint when, uint left, uint top, 
+        bool SetVideoBufferOutCropRectangle(uint when, uint left, uint top, 
             uint width, uint height);
         
         /**
@@ -361,7 +358,7 @@ namespace DSL
          * DSL_VIDEO_ORIENTATION constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
          * @return 
          */
-        uint GetBufferOutOrientation();
+        uint GetVideoBufferOutOrientation();
         
         /**
          * @brief Sets the buffer-out-orientation setting. 
@@ -369,7 +366,7 @@ namespace DSL
          * DSL_VIDEO_ORIENTATION constant value. Default = DSL_VIDEO_ORIENTATION_NONE.
          * @return 
          */
-        bool SetBufferOutOrientation(uint orientaion);
+        bool SetVideoBufferOutOrientation(uint orientaion);
 
         /**
          * @brief Sets the GPU ID for all Elementrs
@@ -488,16 +485,6 @@ namespace DSL
         std::string m_videoMediaString;
 
         /**
-         * @brief vector to link/unlink all common video elements
-         */
-        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonVideoElements;
-
-        /**
-         * @brief current buffer-out-format. 
-         */
-        std::string m_bufferOutFormat;
-        
-        /**
          * @brief current width of the streaming source in Pixels.
          */
         uint m_width;
@@ -507,6 +494,18 @@ namespace DSL
          */
         uint m_height;
 
+    private:
+    
+        /**
+         * @brief vector to link/unlink all common video elements
+         */
+        std::vector<DSL_GSTNODETR_PTR> m_linkedCommonVideoElements;
+
+        /**
+         * @brief current buffer-out-format for the VideoSourceBintr. 
+         */
+        std::string m_bufferOutFormat;
+        
         /**
          * @brief Current scaled width value for the VideoSourceBintr's Output 
          * Buffer Video Converter in units of pixels. Default = 0 for no transcode.
@@ -601,6 +600,33 @@ namespace DSL
          */
         ~AudioSourceBintr();
 
+        /**
+         * @brief Gets the current buffer-out-format for this AudioSourceBintr.
+         * @return Current buffer-out-format. string version of one of the 
+         * DSL_AUDIO_FORMAT constants.
+         */
+        const char* GetAudioBufferOutFormat();
+        
+        /**
+         * @brief Sets the buffer-out-format for the AudioSourceBintr.
+         * @param[in] format string version of one of the DSL_AUDIO_FORMAT constants.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetAudioBufferOutFormat(const char* format);
+
+        /**
+         * @brief Gets the buffer-out-sample-rate for the AudioSourceBintr.
+         * @return current sample rate. Default = 0 = no resampling.
+         */
+        uint GetAudioBufferOutSampleRate();
+
+        /**
+         * @brief Sets the buffer-out-sample-rate for the AudioSourceBintr.
+         * @param[in] rate new sample-rate for the AudioSourceBintr to use.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetAudioBufferOutSampleRate(uint rate);
+
     protected:
     
         /**
@@ -638,11 +664,17 @@ namespace DSL
         bool LinkToCommonAudio(GstPad* pSrcPad);
 
         /**
-         * @brief Unlinks all common Elementrs owned by this VidoSourceBintr.
+         * @brief Unlinks all common Elementrs owned by this AudioSourceBintr.
          */
         void UnlinkFromCommonAudio();
 
     private:
+
+        /**
+         * @brief Private helper function to update the Audio Converter's capability filter.
+         * @return true if successful, false otherwise.
+         */
+        bool updateAudioConvCaps();
 
         /**
          * @brief audio-media-string for the SourceBintr. fixed at L"audio/x-raw".
@@ -654,6 +686,16 @@ namespace DSL
          */
         std::vector<DSL_GSTNODETR_PTR> m_linkedCommonAudioElements;
 
+        /**
+         * @brief current buffer-out-format for the VideoSourceBintr. 
+         */
+        std::string m_bufferOutFormat;
+        
+        /**
+         * @brief current buffer-out-sample-rate for the AudioSourceBintr. 
+         */
+        uint m_bufferOutRate;
+        
         /**
          * @brief Queue for the AudioSourceBintr's output-buffer.
          */

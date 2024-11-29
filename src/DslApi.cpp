@@ -5029,6 +5029,71 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
+DslReturnType dsl_source_audio_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cFormat;
+    static std::string cstrFormat;
+    static std::wstring wcstrFormat;
+    
+    uint retval = DSL::Services::GetServices()->SourceAudioBufferOutFormatGet(
+        cstrName.c_str(), &cFormat);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFormat.assign(cFormat);
+        wcstrFormat.assign(cstrFormat.begin(), cstrFormat.end());
+        *format = wcstrFormat.c_str();
+    }
+    return retval;
+}
+    
+DslReturnType dsl_source_audio_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::wstring wstrFormat(format);
+    std::string cstrFormat(wstrFormat.begin(), wstrFormat.end());
+
+    return DSL::Services::GetServices()->SourceAudioBufferOutFormatSet(
+        cstrName.c_str(), cstrFormat.c_str());
+}
+
+DslReturnType dsl_source_audio_buffer_out_sample_rate_get(const wchar_t* name, 
+    uint* rate)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(rate);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAudioBufferOutSampleRateGet(
+        cstrName.c_str(), rate);
+}
+
+DslReturnType dsl_source_audio_buffer_out_sample_rate_set(const wchar_t* name, 
+    uint rate)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAudioBufferOutSampleRateSet(
+        cstrName.c_str(), rate);
+}
+
 DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format)
 {

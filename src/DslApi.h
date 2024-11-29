@@ -587,6 +587,18 @@ THE SOFTWARE.
 #define DSL_DEFAULT_PIPELINE_MEDIA_TYPE                             DSL_MEDIA_TYPE_VIDEO_ONLY
 
 /**
+ * @brief DSL Audio Format Types - Used by all Audio Source Components
+ */
+#define DSL_AUDIO_FORMAT_S16LE                                      L"S16LE"
+#define DSL_AUDIO_FORMAT_F32LE                                      L"F32LE"
+#define DSL_AUDIO_FORMAT_DEFAULT                                    DSL_AUDIO_FORMAT_F32LE
+
+/**
+ * @brief DSL Audio Resample Rate in Hz - Used by all Audio Source Components
+ */
+#define DSL_DEFAULT_AUDIO_RESAMPLE_RATE                             44100
+
+/**
  * @brief DSL Video Format Types - Used by all Video Source Components
  */
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
@@ -5450,6 +5462,46 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
+
+/**
+ * @brief Gets the current buffer-out-format for the named Audio Source.
+ * @param name unique name of the Source Component to query.
+ * @param[out] format current buffer-out-format. One of the DSL_AUDIO_FORMAT
+ * constant string values. Default = DSL_AUDIO_FORMAT_DEFAULT.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format);
+
+/**
+ * @brief Sets the buffer-out-format for the named Audio Source to use.
+ * @param name unique name of the Source Component to query.
+ * @param[in] format new buffer-out-format to use. One of the DSL_AUDIO_FORMAT
+ * constant string values.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format);
+
+/**
+ * @brief Returns the sample-rate for the named Audio Source.
+ * The default value of 0 indicates no resampling.
+ * @param[in] name unique name of the source to query.
+ * @param[out] rate current sample-rate in Hz.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_sample_rate_get(const wchar_t* name, 
+    uint* rate);
+
+/**
+ * @brief Sets the sample-rate for the named Video Source.
+ * Set the sample-rate to 0 indicate no resampling.
+ * @param[in] name unique name of the source to update.
+ * @param[in] rate new sample-rate in Hz.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_sample_rate_set(const wchar_t* name, 
+    uint rate);
 
 /**
  * @brief Gets the current buffer-out-format for the named Video Source.

@@ -162,7 +162,6 @@ namespace DSL
             L_bufferOutFormat.end());
 
         InitCommonVideo();
-        
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -192,10 +191,33 @@ namespace DSL
             GetCStrName(), "vidconv");
         
         // Update the caps with the media, format, and memory:NVMM feature
-        if (!SetBufferOutFormat(m_bufferOutFormat.c_str()))
+        if (!updateVidConvCaps())
         {
             throw std::exception();
         }
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
+        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // add both elementrs as children to this Bintr
         AddChild(m_pVideoOutConv);
@@ -222,6 +244,14 @@ namespace DSL
         // remove all child elementrs from this Bintr
         RemoveChild(m_pVideoOutConv);
         RemoveChild(m_pVideoOutCapsFilter);
+        m_pVideoOutConv = nullptr;
+        m_pVideoOutCapsFilter = nullptr;
+
+        if (m_pVideoOutRate)
+        {
+            RemoveChild(m_pVideoOutRate);
+            m_pVideoOutRate = nullptr;
+        }
     }
     
     bool VideoSourceBintr::LinkToCommonVideo(DSL_NODETR_PTR pSrcNodetr)
@@ -560,13 +590,28 @@ namespace DSL
         *height = m_height;
     }
 
-    bool VideoSourceBintr::SetBufferOutFormat(const char* format)
+    const char* VideoSourceBintr::GetVideoBufferOutFormat()
     {
         LOG_FUNC();
         
+        return m_bufferOutFormat.c_str();
+    }
+
+    bool VideoSourceBintr::SetVideoBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" << GetName() 
+            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" 
+                << GetName() 
                 << "' as it is currently in a linked state");
             return false;
         }
@@ -576,18 +621,25 @@ namespace DSL
         return updateVidConvCaps();
     }
     
-    void VideoSourceBintr::GetBufferOutDimensions(uint* width, uint* height)
+    void VideoSourceBintr::GetVideoBufferOutDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
         *width = m_bufferOutWidth;
         *height = m_bufferOutHeight;
-}
+    }
     
-    bool VideoSourceBintr::SetBufferOutDimensions(uint width, uint height)
+    bool VideoSourceBintr::SetVideoBufferOutDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" 
@@ -600,7 +652,7 @@ namespace DSL
         return updateVidConvCaps();
     }
 
-    void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
+    void VideoSourceBintr::GetVideoBufferOutFrameRate(uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
         
@@ -608,10 +660,17 @@ namespace DSL
         *fpsD = m_bufferOutFpsD;
     }
     
-    bool VideoSourceBintr::SetBufferOutFrameRate(uint fpsN, uint fpsD)
+    bool VideoSourceBintr::SetVideoBufferOutFrameRate(uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-frame-rate for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR("Can't set buffer-out-frame-rate for VideoSourceBintr '" 
@@ -654,7 +713,7 @@ namespace DSL
         }
     }
     
-    void VideoSourceBintr::GetBufferOutCropRectangle(uint cropAt, 
+    void VideoSourceBintr::GetVideoBufferOutCropRectangle(uint cropAt, 
         uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
@@ -687,16 +746,24 @@ namespace DSL
         *height = std::stoul(tokens[3]);
     }
     
-    bool VideoSourceBintr::SetBufferOutCropRectangle(uint cropAt, 
+    bool VideoSourceBintr::SetVideoBufferOutCropRectangle(uint cropAt, 
         uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-crop-settings for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR(
-                "Unable to set buffer-out crop settings for VideoSourceBintr '" 
-                << GetName() << "' as it's currently linked");
+                "Unable to set buffer-out-crop-settings for VideoSourceBintr '" 
+                << GetName() 
+                << "' as it's currently in a linked state");
             return false;
         }
         
@@ -718,17 +785,24 @@ namespace DSL
         return true;
     }
 
-    uint VideoSourceBintr::GetBufferOutOrientation()
+    uint VideoSourceBintr::GetVideoBufferOutOrientation()
     {
         LOG_FUNC();
         
         return m_bufferOutOrientation;
     }
     
-    bool VideoSourceBintr::SetBufferOutOrientation(uint orientation)
+    bool VideoSourceBintr::SetVideoBufferOutOrientation(uint orientation)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-orientation for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR(
@@ -778,7 +852,6 @@ namespace DSL
 
         return true;
     }
-
     
     bool VideoSourceBintr::updateVidConvCaps()
     {
@@ -793,7 +866,6 @@ namespace DSL
         
         return true;
     }
-
     
     bool VideoSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
     {
@@ -809,7 +881,7 @@ namespace DSL
         AddChild(pDewarperBintr);
         
         // Need to fix output of the video converter to RGBA for the Dewarper.
-        return SetBufferOutFormat("RGBA");
+        return SetVideoBufferOutFormat("RGBA");
     }
 
     bool VideoSourceBintr::RemoveDewarperBintr()
@@ -922,12 +994,14 @@ namespace DSL
     AudioSourceBintr::AudioSourceBintr(const char* name)
         : SourceBintr(name)
         , m_isAudioFullyLinked(false)
+        , m_bufferOutRate(DSL_DEFAULT_AUDIO_RESAMPLE_RATE)
     {
         LOG_FUNC();
 
         // Media type is fixed to "audio/x-raw"
         std::wstring L_mediaType(DSL_MEDIA_STRING_AUDIO_XRAW);
         m_audioMediaString.assign(L_mediaType.begin(), L_mediaType.end());
+
     }
     
     AudioSourceBintr::~AudioSourceBintr()
@@ -939,10 +1013,10 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // // Set the buffer-out-format to the default video format
-        // std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        // m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-        //     L_bufferOutFormat.end());
+        // Set the buffer-out-format to the default audio format
+        std::wstring L_bufferOutFormat(DSL_AUDIO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
         
         // All AudioSourceBintrs have a Audio Converter, Audio Resampler, and
         // Caps Filter used to control the buffer-out format and rate.
@@ -972,9 +1046,27 @@ namespace DSL
         m_pAudioOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
            GetCStrName(), "audio-out");
 
-        // Set Audio Caps input rate to 44.1 KHz
-        DslCaps AudioCaps("audio/x-raw, format=(string)S16LE, rate=44100");
-        m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
+        if (!updateAudioConvCaps())
+        {
+            std::exception();
+        }
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
+        LOG_INFO("  media-out         : " << m_audioMediaString << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    rate            : " << m_bufferOutRate);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // add all elementrs as children to this Bintr
         AddChild(m_pAudioOutQueue);
@@ -1001,6 +1093,10 @@ namespace DSL
         RemoveChild(m_pAudioOutConv);
         RemoveChild(m_pAudioOutResample);
         RemoveChild(m_pAudioOutCapsFilter);
+        m_pAudioOutQueue = nullptr;
+        m_pAudioOutConv = nullptr;
+        m_pAudioOutResample = nullptr;
+        m_pAudioOutCapsFilter = nullptr;
     }
     
     bool AudioSourceBintr::LinkToCommonAudio(DSL_NODETR_PTR pSrcNodetr)
@@ -1079,6 +1175,128 @@ namespace DSL
     {
         LOG_FUNC();
 
+        // Get a reference to the sink pad of the first common element
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_linkedCommonAudioElements.front()->GetGstElement(), "sink");
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad for Elementr '" 
+                << m_linkedCommonAudioElements.front()->GetName() << "'");
+            return;
+        }
+        // Check to see if it is currently linked.  This will be true for all
+        // sources that call LinkToCommonAudio(DSL_NODETR_PTR) and false for all 
+        // sources that call LinkToCommonAudio(GstPad*) from pad_added callbacks.
+        if (gst_pad_is_linked(pStaticSinkPad))
+        {                
+            GstPad* pSrcPad = gst_pad_get_peer(pStaticSinkPad);
+            if (!pSrcPad)
+            {
+                LOG_ERROR("Failed to get peer src pad for Elementr '" 
+                    << m_linkedCommonAudioElements.front()->GetName() << "'");
+                return;
+            }
+            LOG_INFO("Unlinking common front Elementr '" 
+                << m_linkedCommonAudioElements.front()->GetName() 
+                << "' from its peer src pad");
+
+            if (!gst_pad_unlink(pSrcPad, pStaticSinkPad))
+            {
+                LOG_ERROR("Failed to unlink src pad for Elementr '" 
+                    << m_linkedCommonAudioElements.front()->GetName() << "'");
+                return;
+            }
+            gst_object_unref(pSrcPad);
+        }
+        gst_object_unref(pStaticSinkPad);
+
+        // iterate through the list of linked Elements, unlinking each
+        for (auto const& ivec: m_linkedCommonAudioElements)
+        {
+            ivec->UnlinkFromSink();
+        }
+        m_linkedCommonAudioElements.clear();
+
+        m_isAudioFullyLinked = false;
+    }
+
+    const char* AudioSourceBintr::GetAudioBufferOutFormat()
+    {
+        LOG_FUNC();
+        
+        return m_bufferOutFormat.c_str();
+    }
+
+    bool AudioSourceBintr::SetAudioBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_mediaType == DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-format for AudioSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_VIDEO_ONLY");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for AudioSourceBintr '" 
+                << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+
+        m_bufferOutFormat = format;
+        
+        return updateAudioConvCaps();
+    }
+    
+    uint AudioSourceBintr::GetAudioBufferOutSampleRate()
+    {
+        LOG_FUNC();
+        
+        return m_bufferOutRate;
+    }
+    
+    bool AudioSourceBintr::SetAudioBufferOutSampleRate(uint rate)
+    {
+        LOG_FUNC();
+        
+        if (m_mediaType == DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-sample-rate for AudioSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_VIDEO_ONLY");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-sample-rate for AudioSourceBintr '" 
+                << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutRate = rate;
+        
+        // Update the Audio output-buffer's caps filter now
+        return updateAudioConvCaps();
+    }
+
+    bool AudioSourceBintr::updateAudioConvCaps()
+    {
+        LOG_FUNC();
+
+        std::stringstream audioCapsStr;
+
+        audioCapsStr << m_audioMediaString
+            << ", format=(string)" << m_bufferOutFormat
+            << ", layout=(string)interleaved"
+            << ", rate=" << m_bufferOutRate; 
+            
+        DslCaps AudioCaps(audioCapsStr.str().c_str());
+        m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
+        
+        return true;
     }
 
     //*********************************************************************************
@@ -1227,26 +1445,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // TODO support GST 1.20 properties
         // LOG_INFO("max-buffers = " << m_maxBuffers);
@@ -1636,25 +1834,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
     }
 
@@ -1801,11 +1980,6 @@ namespace DSL
     {
         LOG_FUNC();
 
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
-
         m_width = width;
         m_height = height;
         m_fpsN = fpsN;
@@ -1851,26 +2025,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1970,11 +2124,6 @@ namespace DSL
 
         m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
 
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
-
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
 
         m_pSourceElement->GetAttribute("device-fd", &m_deviceFd);
@@ -2018,26 +2167,6 @@ namespace DSL
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -2298,26 +2427,6 @@ namespace DSL
         LOG_INFO("  height              : " << m_height);
         LOG_INFO("  fps-n               : " << m_fpsN);
         LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out          : ");
-        LOG_INFO("    format            : " << m_bufferOutFormat);
-        LOG_INFO("    width             : " << m_bufferOutWidth);
-        LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
-        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2755,11 +2864,6 @@ namespace DSL
         m_isLive = False;
         m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
 
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
-
         // Other components are created conditionaly by file type. 
         if (m_uri.find("jpeg") != std::string::npos or
             m_uri.find("jpg") != std::string::npos)
@@ -2833,26 +2937,6 @@ namespace DSL
         LOG_INFO("  mjpeg             : " << m_mjpeg);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
     }
@@ -3007,26 +3091,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
         
         AddChild(m_pSourceElement);
 
@@ -3173,11 +3237,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
-
         // override default values
         m_isLive = isLive;
         m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
@@ -3204,26 +3263,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -3282,7 +3321,7 @@ namespace DSL
         
         // Set the full capabilities (format and framerate)
         if (!set_full_caps(m_pSourceCapsFilter, m_videoMediaString.c_str(), 
-            m_bufferOutFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
+            GetVideoBufferOutFormat(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             return false;
         }
@@ -3421,26 +3460,6 @@ namespace DSL
         LOG_INFO("  height              : " << m_height);
         LOG_INFO("  fps-n               : " << m_fpsN);
         LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out          : ");
-        LOG_INFO("    format            : " << m_bufferOutFormat);
-        LOG_INFO("    width             : " << m_bufferOutWidth);
-        LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
-        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
-        LOG_INFO("  queue               : " );
-        LOG_INFO("    leaky             : " << m_leaky);
-        LOG_INFO("    max-size          : ");
-        LOG_INFO("      buffers         : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes           : " << m_maxSizeBytes);
-        LOG_INFO("      time            : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold     : ");
-        LOG_INFO("      buffers         : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes           : " << m_minThresholdBytes);
-        LOG_INFO("      time            : " << m_minThresholdTime);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -3643,26 +3662,6 @@ namespace DSL
         LOG_INFO("  height               : " << m_height);
         LOG_INFO("  fps-n                : " << m_fpsN);
         LOG_INFO("  fps-d                : " << m_fpsD);
-        LOG_INFO("  media-out            : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out           : ");
-        LOG_INFO("    format             : " << m_bufferOutFormat);
-        LOG_INFO("    width              : " << m_bufferOutWidth);
-        LOG_INFO("    height             : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n              : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d              : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv     : 0:0:0:0" );
-        LOG_INFO("    orientation        : " << m_bufferOutOrientation);
-        LOG_INFO("  queue                : " );
-        LOG_INFO("    leaky              : " << m_leaky);
-        LOG_INFO("    max-size           : ");
-        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes            : " << m_maxSizeBytes);
-        LOG_INFO("      time             : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold      : ");
-        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes            : " << m_minThresholdBytes);
-        LOG_INFO("      time             : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pDepayCapsfilter);

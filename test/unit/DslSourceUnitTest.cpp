@@ -91,13 +91,13 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetCurrentLevelBytes() == 0);
                 REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
                 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
                 
-                pSourceBintr->GetBufferOutDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetVideoBufferOutDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
-                REQUIRE( pSourceBintr->GetBufferOutOrientation() == 0);
+                REQUIRE( pSourceBintr->GetVideoBufferOutOrientation() == 0);
             }
         }
     }
@@ -184,7 +184,7 @@ SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -306,7 +306,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( fps_n == retFpsN );
                     REQUIRE( fps_d == retFpsD );
 
-                    std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                    std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                     REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
                 }
             }
@@ -451,7 +451,7 @@ SCENARIO( "A new V4l2SourceBintr is created correctly",  "[SourceBintr]" )
                 std::string retDeviceLocaton = pSourceBintr->GetDeviceLocation();
                 REQUIRE( retDeviceLocaton == defDeviceLocation );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -570,7 +570,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsN == 30 );
                 REQUIRE( retFpsD == 1 );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -880,7 +880,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1180,7 +1180,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullFillPath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1258,7 +1258,7 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1334,7 +1334,7 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1414,7 +1414,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == multJpgFilePath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }

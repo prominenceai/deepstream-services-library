@@ -915,6 +915,18 @@ namespace DSL {
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
+        DslReturnType SourceAudioBufferOutFormatGet(const char* name, 
+            const char** format);
+
+        DslReturnType SourceAudioBufferOutFormatSet(const char* name, 
+            const char* format);
+            
+        DslReturnType SourceAudioBufferOutSampleRateGet(const char* name, 
+            uint* rate);
+
+        DslReturnType SourceAudioBufferOutSampleRateSet(const char* name, 
+            uint rate);
+
         DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
             const char** format);
 
