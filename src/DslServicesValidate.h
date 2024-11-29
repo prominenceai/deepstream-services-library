@@ -349,6 +349,7 @@ THE SOFTWARE.
 { \
     if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(PrimaryTisBintr)) and \
+        !components[name]->IsType(typeid(TrackerBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Branch type"); \
