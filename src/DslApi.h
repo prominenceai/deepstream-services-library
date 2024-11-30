@@ -596,7 +596,12 @@ THE SOFTWARE.
 /**
  * @brief DSL Audio Resample Rate in Hz - Used by all Audio Source Components
  */
-#define DSL_DEFAULT_AUDIO_RESAMPLE_RATE                             44100
+#define DSL_AUDIO_RESAMPLE_RATE_DEFAULT                             44100
+
+#define DSL_AUDIO_LAYOUT_INTERLEAVED                                L"interleaved"
+#define DSL_AUDIO_LAYOUT_NON_INTERLEAVED                            L"non-interleaved"
+
+#define DSL_AUDIO_LAYOUT_DEFAULT                                    DSL_AUDIO_LAYOUT_INTERLEAVED
 
 /**
  * @brief DSL Video Format Types - Used by all Video Source Components

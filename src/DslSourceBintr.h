@@ -690,11 +690,24 @@ namespace DSL
          * @brief current buffer-out-format for the VideoSourceBintr. 
          */
         std::string m_bufferOutFormat;
-        
+
+        /**
+         * @brief current buffer-out-layout for the VideoSourceBintr. 
+         * Default = DSL_DEFAULT_AUDIO_LAYOUT.
+         */
+        std::string m_bufferOutLayout;        
+
         /**
          * @brief current buffer-out-sample-rate for the AudioSourceBintr. 
+         * Default = DSL_DEFAULT_AUDIO_RESAMPLE_RATE.
          */
         uint m_bufferOutRate;
+        
+        /**
+         * @brief current buffer-out-channels for the AudioSourceBintr. 
+         * Default = 0 = no change in number of channels.
+         */
+        uint m_bufferOutChannels;
         
         /**
          * @brief Queue for the AudioSourceBintr's output-buffer.

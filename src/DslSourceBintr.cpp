@@ -994,7 +994,8 @@ namespace DSL
     AudioSourceBintr::AudioSourceBintr(const char* name)
         : SourceBintr(name)
         , m_isAudioFullyLinked(false)
-        , m_bufferOutRate(DSL_DEFAULT_AUDIO_RESAMPLE_RATE)
+        , m_bufferOutRate(DSL_AUDIO_RESAMPLE_RATE_DEFAULT)
+        , m_bufferOutChannels(0)
     {
         LOG_FUNC();
 
@@ -1002,6 +1003,16 @@ namespace DSL
         std::wstring L_mediaType(DSL_MEDIA_STRING_AUDIO_XRAW);
         m_audioMediaString.assign(L_mediaType.begin(), L_mediaType.end());
 
+        // Set the buffer-out-format to the default audio format
+        std::wstring L_bufferOutFormat(DSL_AUDIO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
+        
+        // Set the buffer-out-layout to the default audio layout
+        std::wstring L_bufferOutLayout(DSL_AUDIO_LAYOUT_DEFAULT);
+        m_bufferOutLayout.assign(L_bufferOutLayout.begin(), 
+            L_bufferOutLayout.end());
+        
     }
     
     AudioSourceBintr::~AudioSourceBintr()
@@ -1012,11 +1023,6 @@ namespace DSL
     void AudioSourceBintr::InitCommonAudio()
     {
         LOG_FUNC();
-        
-        // Set the buffer-out-format to the default audio format
-        std::wstring L_bufferOutFormat(DSL_AUDIO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
         
         // All AudioSourceBintrs have a Audio Converter, Audio Resampler, and
         // Caps Filter used to control the buffer-out format and rate.
@@ -1286,14 +1292,10 @@ namespace DSL
     {
         LOG_FUNC();
 
-        std::stringstream audioCapsStr;
+        // New Audio Caps object to set the caps filter.
+        DslCaps AudioCaps(m_audioMediaString.c_str(), m_bufferOutFormat.c_str(),
+            m_bufferOutLayout.c_str(), m_bufferOutRate, m_bufferOutChannels);
 
-        audioCapsStr << m_audioMediaString
-            << ", format=(string)" << m_bufferOutFormat
-            << ", layout=(string)interleaved"
-            << ", rate=" << m_bufferOutRate; 
-            
-        DslCaps AudioCaps(audioCapsStr.str().c_str());
         m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
         
         return true;

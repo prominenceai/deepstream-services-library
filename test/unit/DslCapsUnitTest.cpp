@@ -24,10 +24,11 @@ THE SOFTWARE.
 
 #include "catch.hpp"
 #include "DslCaps.h"
+#include "DslApi.h"
 
 using namespace DSL;
 
-SCENARIO( "A DslCaps helper is constructed correctly", "[Caps]" )
+SCENARIO( "A DslCaps for Video is constructed correctly", "[Caps]" )
 {
     GIVEN( "Possible values for new caps" )
     {
@@ -58,6 +59,43 @@ SCENARIO( "A DslCaps helper is constructed correctly", "[Caps]" )
             {
                 std::string actual_str(pCaps->c_str());
                 REQUIRE( initial_str == actual_str );
+            }
+        }
+    }
+}
+
+SCENARIO( "A DslCaps for Audio is constructed correctly", "[Caps]" )
+{
+    GIVEN( "Possible values for new caps" )
+    {
+        std::string media("audio/x-raw");
+        std::string format("S16LE");
+        std::string layout("non-interleaved");
+        uint rate(DSL_AUDIO_RESAMPLE_RATE_DEFAULT);
+        uint channels(2);
+        
+        WHEN( "A CapsFiler is created with media, format, and memory feture" )
+        {
+            DslCaps Caps(media.c_str(), format.c_str(), layout.c_str(), 0, 0);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                std::string expected_str(
+                    "audio/x-raw,format=(string)S16LE,layout=(string)non-interleaved");
+                std::string actual_str(Caps.c_str());
+                REQUIRE( expected_str == actual_str );
+            }
+        }
+        WHEN( "A CapsFiler is created from string representation" )
+        {
+            DslCaps Caps(media.c_str(), format.c_str(), layout.c_str(), rate, channels);
+            
+            THEN( "Its member variables are initialized correctly" )
+            {
+                std::string expected_str(
+                    "audio/x-raw,format=(string)S16LE,layout=(string)non-interleaved,rate=(int)44100,channels=(int)2");
+                std::string actual_str(Caps.c_str());
+                REQUIRE( expected_str == actual_str );
             }
         }
     }

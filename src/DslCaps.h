@@ -45,7 +45,7 @@ namespace DSL
     public:
     
         /**
-         * @brief ctor for DslCaps class
+         * @brief ctor for DslCaps class for Video caps
          */
         DslCaps(const char* media, const char* format, 
             uint width, uint height, uint fpsN, uint fpsD, bool addMemFeature)
@@ -76,6 +76,43 @@ namespace DSL
             if (fpsN and fpsD)
             {
                 ssCaps << "," << "framerate=(fraction)" << fpsN << "/" << fpsD;
+            }
+            m_capsString = ssCaps.str();
+            
+            LOG_INFO("Creating new cap from string = '" 
+                << m_capsString << "'");
+            m_pGstCaps = gst_caps_from_string(m_capsString.c_str());
+        }
+
+        /**
+         * @brief ctor for DslCaps class for audio caps
+         */
+        DslCaps(const char* media, const char* format, const char* layout, 
+            uint rate, uint channels)
+        {
+            LOG_FUNC();
+            
+            std::stringstream ssCaps;
+            
+            // All caps strings start with media
+            ssCaps << media;
+            
+            // Optionally add the format, layout, rate, and channels
+            if (format)
+            {
+                ssCaps << "," << "format=(string)" << format;
+            }
+            if (layout)
+            {
+                ssCaps << "," << "layout=(string)" << layout;
+            }
+            if (rate)
+            {
+                ssCaps << "," << "rate=(int)" << rate;
+            }
+            if (channels)
+            {
+                ssCaps << "," << "channels=(int)" << channels;
             }
             m_capsString = ssCaps.str();
             
