@@ -1027,7 +1027,7 @@ namespace DSL
         // All AudioSourceBintrs have a Audio Converter, Audio Resampler, and
         // Caps Filter used to control the buffer-out format and rate.
         
-        // ---- Audio Queue Setup
+        // ---- Audio Queue Setup - TODO replace with QBintr multi-queue
 
         m_pAudioOutQueue = DSL_ELEMENT_EXT_NEW("queue", 
             GetCStrName(), "audio-out");
@@ -1036,10 +1036,6 @@ namespace DSL
 
         m_pAudioOutConv = DSL_ELEMENT_EXT_NEW("audioconvert", 
             GetCStrName(), "audio-out");
-        
-        // Get property defaults that aren't specifically set
-        // m_pVideoOutConv->GetAttribute("gpu-id", &m_gpuId);
-        // m_pVideoOutConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
         
         // ---- Audio Re-sampler Setup
 

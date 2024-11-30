@@ -1713,6 +1713,66 @@ SCENARIO( "The Components container is updated correctly on new and delete Custo
     }
 }    
 
+SCENARIO( "An Audio-Only UIR Source can update its buffer-out settings correctly",
+    "[source-api]" )
+{
+    GIVEN( "A new URI Source Component" ) 
+    {
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_source_uri_new(source_name.c_str(), uri.c_str(),
+                false, skip_frames, drop_frame_interval) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_media_type_set(source_name.c_str(), 
+                DSL_MEDIA_TYPE_AUDIO_ONLY) == DSL_RESULT_SUCCESS );          
+
+            std::wstring def_format_string(DSL_AUDIO_FORMAT_DEFAULT);
+            const wchar_t* ret_format_cstring;
+            REQUIRE( dsl_source_audio_buffer_out_format_get(source_name.c_str(), 
+                &ret_format_cstring) == DSL_RESULT_SUCCESS );
+            std::wstring ret_format_string(ret_format_cstring);
+            REQUIRE( ret_format_string == def_format_string );
+
+            uint ret_sample_rate(0);
+            REQUIRE( dsl_source_audio_buffer_out_sample_rate_get(source_name.c_str(), 
+                &ret_sample_rate) == DSL_RESULT_SUCCESS );
+            REQUIRE( ret_sample_rate == DSL_AUDIO_RESAMPLE_RATE_DEFAULT );
+
+            WHEN( "The URI Source's buffer-out-format setting is set" ) 
+            {
+                std::wstring new_format_string(DSL_AUDIO_FORMAT_S16LE);
+                REQUIRE( dsl_source_audio_buffer_out_format_set(source_name.c_str(), 
+                    new_format_string.c_str()) == DSL_RESULT_SUCCESS );
+
+                THEN( "The correct value is returned on get" ) 
+                {
+                    REQUIRE( dsl_source_audio_buffer_out_format_get(source_name.c_str(), 
+                        &ret_format_cstring) == DSL_RESULT_SUCCESS );
+                    ret_format_string = ret_format_cstring;
+                    REQUIRE( ret_format_string == new_format_string );
+
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                }
+            }
+            WHEN( "The URI Source's buffer-out-sample-rate settings are set" ) 
+            {
+                uint new_rate(0);
+                REQUIRE( dsl_source_audio_buffer_out_sample_rate_set(source_name.c_str(), 
+                    new_rate) == DSL_RESULT_SUCCESS );
+
+                THEN( "The correct values are returned on get" ) 
+                {
+                    REQUIRE( dsl_source_audio_buffer_out_sample_rate_get(source_name.c_str(), 
+                        &ret_sample_rate) == DSL_RESULT_SUCCESS );
+                    REQUIRE( ret_sample_rate == new_rate );
+
+                    REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                }
+            }
+        }
+    }
+}
+
 SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -1894,6 +1954,22 @@ SCENARIO( "The Source API checks for NULL input parameters", "[source-api]" )
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_source_app_do_timestamp_set(NULL,
                     0) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_audio_buffer_out_format_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_audio_buffer_out_format_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_audio_buffer_out_format_set(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_audio_buffer_out_format_set(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_source_audio_buffer_out_sample_rate_get(NULL, 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_audio_buffer_out_sample_rate_get(source_name.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_source_audio_buffer_out_sample_rate_set(NULL, 
+                    1) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_source_video_buffer_out_format_get(NULL, 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
