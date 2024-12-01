@@ -28,7 +28,9 @@ from ctypes import *
 
 _dsl = CDLL('/usr/local/lib/libdsl.so')
 
-DSL_RETURN_SUCCESS = 0
+DSL_RETURN_SUCCESS = 0x00000000
+DSL_RESULT_SUCCESS = 0x00000000
+DSL_RESULT_FAILURE = 0x00000001
 
 DSL_4K_UHD_WIDTH  = 3840
 DSL_4K_UHD_HEIGHT = 2160
@@ -81,6 +83,14 @@ DSL_MEDIA_STRING_AUDIO_XRAW = "video/x-raw"
 DSL_MEDIA_TYPE_AUDIO_ONLY   = 0x01
 DSL_MEDIA_TYPE_VIDEO_ONLY   = 0x10
 DSL_MEDIA_TYPE_AUDIO_VIDEO  = 0x11
+
+# DSL Audio Format Types - Used by all Audio Source Components
+DSL_AUDIO_FORMAT_S16LE   = "S16LE"
+DSL_AUDIO_FORMAT_F32LE   = "F32LE"
+DSL_AUDIO_FORMAT_DEFAULT = DSL_AUDIO_FORMAT_F32LE
+
+# DSL Audio Resample Rate in Hz - Used by all Audio Source Components
+DSL_AUDIO_RESAMPLE_RATE_DEFAULT = 44100
 
 # DSL Video Format Types - Used by all Video Source Components
 DSL_VIDEO_FORMAT_I420    = "I420"
@@ -4182,6 +4192,52 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
+## dsl_source_audio_buffer_out_sample_rate_get()
+##
+_dsl.dsl_source_audio_buffer_out_sample_rate_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_audio_buffer_out_sample_rate_get.restype = c_uint
+def dsl_source_audio_buffer_out_sample_rate_get(name):
+    global _dsl
+    rate = c_uint(0)
+    result = _dsl.dsl_source_audio_buffer_out_sample_rate_get(name, 
+        DSL_UINT_P(rate))
+    return int(result), rate.value 
+
+##
+## dsl_source_audio_buffer_out_sample_rate_set()
+##
+_dsl.dsl_source_audio_buffer_out_sample_rate_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_source_audio_buffer_out_sample_rate_set.restype = c_uint
+def dsl_source_audio_buffer_out_sample_rate_set(name, rate):
+    global _dsl
+    result = _dsl.dsl_source_audio_buffer_out_sample_rate_set(name, 
+        rate)
+    return int(result)
+
+##
+## dsl_source_audio_buffer_out_format_get()
+##
+_dsl.dsl_source_audio_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_audio_buffer_out_format_get.restype = c_uint
+def dsl_source_audio_buffer_out_format_get(name):
+    global _dsl
+    format = c_wchar_p(0)
+    result = _dsl.dsl_source_audio_buffer_out_format_get(name, DSL_WCHAR_PP(format))
+    return int(result), format.value 
+
+##
+## dsl_source_audio_buffer_out_format_set()
+##
+_dsl.dsl_source_audio_buffer_out_format_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_audio_buffer_out_format_set.restype = c_uint
+def dsl_source_audio_buffer_out_format_set(name, format):
+    global _dsl
+    result = _dsl.dsl_source_audio_buffer_out_format_set(name, format)
+    return int(result)
+
+##
 ## dsl_source_video_buffer_out_format_get()
 ##
 _dsl.dsl_source_video_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
@@ -8112,6 +8168,63 @@ def dsl_pipeline_component_remove_many(pipeline, components):
     arr[:] = components
     result =_dsl.dsl_pipeline_component_remove_many(pipeline, arr)
     return int(result)
+
+## -----------------------------------------------------------------------------------
+## AUDIO STREAMMUX SERVICES - Start
+
+##
+## dsl_pipeline_audiomux_enabled_set()
+##
+_dsl.dsl_pipeline_audiomux_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_audiomux_enabled_set.restype = c_uint
+def dsl_pipeline_audiomux_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomux_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomux_enabled_get()
+##
+_dsl.dsl_pipeline_audiomux_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_audiomux_enabled_get.restype = c_uint
+def dsl_pipeline_audiomux_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_audiomux_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+## -----------------------------------------------------------------------------------
+## COMMON VIDEO STREAMMUX SERVICES - Start
+
+##
+## dsl_pipeline_videomux_enabled_set()
+##
+_dsl.dsl_pipeline_videomux_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_videomux_enabled_set.restype = c_uint
+def dsl_pipeline_videomux_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_videomux_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
+## dsl_pipeline_videomux_enabled_get()
+##
+_dsl.dsl_pipeline_videomux_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_videomux_enabled_get.restype = c_uint
+def dsl_pipeline_videomux_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_videomux_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
 
 ## -----------------------------------------------------------------------------------
 ## NEW STREAMMUX SERVICES - Start
