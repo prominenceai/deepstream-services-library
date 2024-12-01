@@ -216,7 +216,7 @@ SCENARIO( "A new Pipeline with a URI Source and ALSA Sink can play - Audio Only"
         {
             REQUIRE( dsl_component_list_size() == 0 );
 
-            REQUIRE( dsl_source_uri_new(source_name_1.c_str(), source_uri_1.c_str(), 
+            REQUIRE( dsl_source_uri_new(source_name_1.c_str(), source_uri_2.c_str(), 
                 false, false, 0) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_component_media_type_set(source_name_1.c_str(), 
