@@ -7614,6 +7614,18 @@ def dsl_component_media_type_set(name, media_type):
     return int(result)
 
 ##
+## dsl_component_media_type_set_many()
+##
+#_dsl.dsl_component_media_type_set_many.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_media_type_set_many.restype = c_uint
+def dsl_component_media_type_set_many(names, media_type):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result = _dsl.dsl_component_media_type_set_many(arr, media_type)
+    return int(result)
+
+##
 ## dsl_component_queue_current_level_get()
 ##
 _dsl.dsl_component_queue_current_level_get.argtypes = [c_wchar_p, 

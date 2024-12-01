@@ -1270,6 +1270,10 @@ SCENARIO( "The Component API checks for NULL input parameters", "[component-api]
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_component_media_type_get(component_name1.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_media_type_set(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_component_media_type_set_many(NULL, 
+                    0) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_component_queue_current_level_get(NULL, 
                     0, &current_level) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -10108,7 +10108,26 @@ DslReturnType dsl_component_media_type_set(const wchar_t* name,
     return DSL::Services::GetServices()->ComponentMediaTypeSet(
         cstrName.c_str(), media_type);
 }
-    
+
+DslReturnType dsl_component_media_type_set_many(const wchar_t** names,
+    uint media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentMediaTypeSet(cstrName.c_str(), media_type);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 
     uint unit, uint64_t* current_level)
 {
