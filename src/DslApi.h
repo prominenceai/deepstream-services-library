@@ -8857,7 +8857,7 @@ DslReturnType dsl_component_media_type_set(const wchar_t* name, uint media_type)
 
 /**
  * @brief Sets the media type for null terminated list of named Components.
- * @param names null terminated list of unique Component names to update.
+ * @param names null terminated list of named Components to update.
  * @param[in] media_type one of the DSL_MEDIA_TYPE constant values. 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  * @note See the documentation for each component type to determine which

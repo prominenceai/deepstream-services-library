@@ -1,5 +1,6 @@
 # Component API Reference
 The Pipeline Component API services support:
+* Component Media Types
 * Custom Components
 * Component Deletion
 * Component Queue Management
@@ -19,6 +20,11 @@ List of component types that are used with this API:
 * [On Screen Displays](/docs/api-osd.md)
 * [Sinks](/docs/api-sink.md)
 * [Custom Components](/docs/api-gst.md)
+
+## Component Media Types
+A component's [media-type](#component-media-type-constants) defines the component's current media capabily; `AUDIO_ONLY`, `VIDEO_ONLY`, or `AUDIO_VIDEO`. The component's media-type can be queried by calling [`dsl_component_media_type_get`](#dsl_component_media_type_get). For some components, the media-type is fixed (read-only) while others can be updated by calling [`dsl_component_media_type_set`](#dsl_component_media_type_set) or [`dsl_component_media_type_set_many`](#dsl_component_media_type_set_many). Refer to each component's API Reference for information on which media-types are supported.
+
+**IMPORTANT** The default media-type for all Components that support Audio and/or Video is [`DSL_MEDIA_TYPE_VIDEO_ONLY`](#component-media-type-constants). Each Component's media-type will need to updated to enable Audio. 
 
 ## Custom Components
 The Custom Component API is used to create custom DSL Pipeline Components -- other than Sources and Sinks -- using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or built-in GStreamer plugins. See also [Custom Sources](/docs/api-source.md#custom-video-sources) and [Custom Sinks](/docs/api-sink.md#custom-video-sinks).
@@ -110,7 +116,9 @@ The max-size and min-threshold settings can be queried by calling [`dsl_componen
 * [`dsl_component_custom_element_add_many`](#dsl_component_custom_element_add_many)
 * [`dsl_component_custom_element_remove`](#dsl_component_custom_element_remove)
 * [`dsl_component_custom_element_remove_many`](#dsl_component_custom_element_remove_many)
-* [`dsl_component_list_size`](#dsl_component_list_size)
+* [`dsl_component_media_type_get`](#dsl_component_media_type_get)
+* [`dsl_component_media_type_set`](#dsl_component_media_type_set)
+* [`dsl_component_media_type_set_many`](#dsl_component_media_type_set_many)
 * [`dsl_component_queue_current_level_get`](#dsl_component_queue_current_level_get)
 * [`dsl_component_queue_current_level_print`](#dsl_component_queue_current_level_print)
 * [`dsl_component_queue_current_level_print_many`](#dsl_component_queue_current_level_print_many)
@@ -137,6 +145,7 @@ The max-size and min-threshold settings can be queried by calling [`dsl_componen
 * [`dsl_component_nvbuf_mem_type_get`](#dsl_component_nvbuf_mem_type_get)
 * [`dsl_component_nvbuf_mem_type_set`](#dsl_component_nvbuf_mem_type_set)
 * [`dsl_component_nvbuf_mem_type_set_many`](#dsl_component_nvbuf_mem_type_set_many)
+* [`dsl_component_list_size`](#dsl_component_list_size)
 
 ## Return Values
 The following return codes are used by the Component API
@@ -161,6 +170,13 @@ The following return codes are used by the Component API
 #define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x0001000F
 #define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010010
 #define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010011
+```
+
+## Component Media Type Constants
+```C
+#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0x00000001
+#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   0x00000010
+#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  0x00000011
 ```
 
 ## Component Queue Leaky Constants
@@ -412,6 +428,7 @@ retval = dsl_component_custom_element_remove('my-component', 'my-element')
 ```C++
 DslReturnType dsl_component_custom_element_remove_many(const wchar_t* name, const wchar_t** elements);
 ```
+
 This services removes a list of named Elements from a named Custom Component.
 
 * `name` - [in] unique name for the Custom Component to update.
@@ -428,11 +445,82 @@ retval = dsl_component_custom_element_remove_many('my-component',
 
 <br>
 
+### *dsl_component_media_type_get*
+```c++
+DslReturnType dsl_component_media_type_get(const wchar_t* name, uint* media_type);
+```
+
+This service gets media-type for the named Component.
+
+**Parameters**
+* `name` - [in] unique name of the Component to query.
+* `media_type` - [out] one of the [`DSL_MEDIA_TYPE`](#component-media-type-constants) constant values. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval, media_type = dsl_component_media_type_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_component_media_type_set*
+```c++
+DslReturnType dsl_component_media_type_set(const wchar_t* name, uint media_type);
+```
+
+This service sets the media-type for the named Component. 
+
+**IMPORTANT!** Refer to each component's API Reference to determine which media-types are supported.
+
+**Parameters**
+* `name` - [in] unique name of the Component to update.
+* `media_type` - [in] one of the [`DSL_MEDIA_TYPE`](#component-media-type-constants) constant values.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_media_type_set('my-uri-source',
+    DSL_MEDIA_TYPE_AUDIO_ONLY)
+```
+
+<br>
+
+### *dsl_component_media_type_set_many*
+```c++
+DslReturnType dsl_component_media_type_set_many(const wchar_t** names, uint media_type);
+```
+
+This service sets the media-type for a null terminated list of named Components. 
+
+**IMPORTANT!** Refer to each component's API Reference to determine which media-types are supported.
+
+**Parameters**
+* `names` - [in] null terminated list of named Components to update.
+* `media_type` - [in] one of the [`DSL_MEDIA_TYPE`](#component-media-type-constants) constant values.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above otherwise.
+
+**Python Example**
+```Python
+retval = dsl_component_media_type_set_many(
+    ['my-uri-source-1', 'my-uri-source-2', None],
+    DSL_MEDIA_TYPE_AUDIO_ONLY)
+```
+
+<br>
+
 ### *dsl_component_queue_current_level_get*
 ```c++
 DslReturnType dsl_component_queue_current_level_get(const wchar_t* name,
   uint unit, uint64_t* current_level);
 ```
+
 This service gets the queue-current-level by unit (buffers, bytes, or time) for the named Component.
 
 **Parameters**
