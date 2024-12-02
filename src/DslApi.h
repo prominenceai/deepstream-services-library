@@ -594,13 +594,19 @@ THE SOFTWARE.
 #define DSL_AUDIO_FORMAT_DEFAULT                                    DSL_AUDIO_FORMAT_F32LE
 
 /**
- * @brief DSL Audio Resample Rate in Hz - Used by all Audio Source Components
+ * @brief DSL Default Audio Resample Rate in Hz - Used by all Audio Source Components
  */
 #define DSL_AUDIO_RESAMPLE_RATE_DEFAULT                             44100
 
+/**
+ * @brief DSL Audio Buffer Layout Types - Used by all Audio Source Components
+ */
 #define DSL_AUDIO_LAYOUT_INTERLEAVED                                L"interleaved"
 #define DSL_AUDIO_LAYOUT_NON_INTERLEAVED                            L"non-interleaved"
 
+/**
+ * @brief DSL Default Audio Buffer Layout - Used by all Audio Source Components
+ */
 #define DSL_AUDIO_LAYOUT_DEFAULT                                    DSL_AUDIO_LAYOUT_INTERLEAVED
 
 /**
