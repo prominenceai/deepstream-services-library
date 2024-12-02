@@ -164,7 +164,17 @@ The Custom Source API is used to create custom DSL Video Source Components using
 * [`dsl_source_unique_id_get`](#dsl_source_unique_id_get)
 * [`dsl_source_stream_id_get`](#dsl_source_stream_id_get)
 * [`dsl_source_name_get`](#dsl_source_name_get)format
+
+**Audio Source Methods:**
+* [`dsl_source_audio_buffer_out_format_get`](#dsl_source_audio_buffer_out_format_get)
+* [`dsl_source_audio_buffer_out_format_set`](#dsl_source_audio_buffer_out_format_set)
+* [`dsl_source_audio_buffer_out_sample_rate_get`](#dsl_source_audio_buffer_out_sample_rate_get)
+* [`dsl_source_audio_buffer_out_sample_rate_set`](#dsl_source_audio_buffer_out_sample_rate_set)
+
+**Video Source Methods:**
 * [`dsl_source_video_buffer_out_dimensions_set`](#dsl_source_video_buffer_out_dimensions_set)
+* [`dsl_source_video_buffer_out_format_get`](#dsl_source_video_buffer_out_format_get)
+* [`dsl_source_video_buffer_out_format_set`](#dsl_source_video_buffer_out_format_set)
 * [`dsl_source_video_buffer_out_frame_rate_get`](#dsl_source_video_buffer_out_frame_rate_get)
 * [`dsl_source_video_buffer_out_frame_rate_set`](#dsl_source_video_buffer_out_frame_rate_set)
 * [`dsl_source_video_buffer_out_crop_rectangle_get`](#dsl_source_video_buffer_out_crop_rectangle_get)
