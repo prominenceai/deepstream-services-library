@@ -198,7 +198,7 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
+        LOG_INFO("  media-type        : " << m_videoMediaString << "(memory:NVMM)");
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    width           : " << m_bufferOutWidth);
@@ -1055,7 +1055,7 @@ namespace DSL
 
         LOG_INFO("");
         LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
-        LOG_INFO("  media-out         : " << m_audioMediaString << "(memory:NVMM)");
+        LOG_INFO("  media-type        : " << m_audioMediaString);
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
         LOG_INFO("    rate            : " << m_bufferOutRate);

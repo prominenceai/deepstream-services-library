@@ -40,6 +40,10 @@ static const std::wstring window_sink_name(L"egl-sink");
 static const std::wstring file_sink_name(L"file-sink");
 static const std::wstring fake_sink_name(L"fake-sink");
 
+static const std::wstring file_source_name_1(L"file-source-1");
+static const std::wstring file_source_name_2(L"file-source-2");
+static const std::wstring file_source_name_3(L"file-source-3");
+static const std::wstring file_source_name_4(L"file-source-4");
 
 static const std::wstring filePath(L"./output.mp4");
 static const std::wstring def_device_location(L"/dev/video0");
@@ -1240,6 +1244,59 @@ SCENARIO( "Multiple new components can Set and Get their NVIDIA mem type", "[com
     }
 }    
     
+SCENARIO( "Multiple new components can Set and Get their media-type correctly", 
+    "[component-api]" )
+{
+    GIVEN( "Four new files sources" ) 
+    {
+        REQUIRE( dsl_source_file_new(file_source_name_1.c_str(), uri.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(file_source_name_2.c_str(), uri.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(file_source_name_3.c_str(), uri.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_source_file_new(file_source_name_4.c_str(), uri.c_str(), 
+            false) == DSL_RESULT_SUCCESS );
+
+        WHEN( "The new components are called to update their media-type" ) 
+        {
+            uint new_media_type(DSL_MEDIA_TYPE_AUDIO_ONLY);
+            const wchar_t* components[] = {
+                file_source_name_1.c_str(), file_source_name_2.c_str(), 
+                file_source_name_3.c_str(), file_source_name_4.c_str(), NULL};
+
+            REQUIRE( dsl_component_media_type_set_many(components, 
+                new_media_type) == DSL_RESULT_SUCCESS );
+
+            THEN( "All components return the correct NVIDIA mem type on get" ) 
+            {
+                uint ret_media_type = 99;
+                REQUIRE( dsl_component_media_type_get(file_source_name_1.c_str(), 
+                    &ret_media_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_media_type == new_media_type );
+
+                ret_media_type = 99;
+                REQUIRE( dsl_component_media_type_get(file_source_name_2.c_str(), 
+                    &ret_media_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_media_type == new_media_type );
+
+                ret_media_type = 99;
+                REQUIRE( dsl_component_media_type_get(file_source_name_3.c_str(), 
+                    &ret_media_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_media_type == new_media_type );
+
+                ret_media_type = 99;
+                REQUIRE( dsl_component_media_type_get(file_source_name_4.c_str(), 
+                    &ret_media_type) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_media_type == new_media_type );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
 SCENARIO( "The Component API checks for NULL input parameters", "[component-api]" )
 {
     GIVEN( "An empty list of Components" ) 
