@@ -6,7 +6,7 @@ Sources are the head components for all DSL [Pipelines](/docs/api-pipeline.md) a
 &emsp;╰── `source`
 
 ### Source Construction and Destruction
-Sources are created by calling one of the type-specific [source constructors](#constructors). As with all components, Sources must be uniquely named from all other Pipeline components created.
+Sources are created by calling one of the type-specific source constructors. As with all components, Sources must be uniquely named from all other Pipeline components created.
 
 Sources are added to a Pipeline by calling [`dsl_pipeline_component_add`](/docs/api-pipeline.md#dsl_pipeline_component_add) or [`dsl_pipeline_component_add_many`](/docs/api-pipeline.md#dsl_pipeline_component_add_many) and removed with [`dsl_pipeline_component_remove`](/docs/api-pipeline.md#dsl_pipeline_component_remove), [`dsl_pipeline_component_remove_many`](/docs/api-pipeline.md#dsl_pipeline_component_remove_many), or [`dsl_pipeline_component_remove_all`](/docs/api-pipeline.md#dsl_pipeline_component_remove_all).
 
@@ -40,9 +40,6 @@ A source's unique-id can be queried by calling [`dsl_source_unique_id_get`](#dsl
 
 When not added to a Pipeline, a Source's `unique-id` will be set to `-1`. 
 
-### Source Services
-A Source can be queried for it's media type -- `video/x-raw`, `audio/x-raw`, or both -- by calling [`dsl_source_media_type_get`](#dsl_source_media_type_get). A Source's framerate can be queried by calling [`dsl_source_framerate get`](#dsl_source_framerate_get). Some Sources need to transition to a state of `PLAYING` before their framerate is known.
-
 ### New Buffer Timeout
 A Source's production of new buffers can be monitored for timeout by adding a [New Buffer Timeout Pad Probe Handler (PPH)](/docs/api-pph.md#new-buffer-timeout-pad-probe-handler) to the Source's src-pad -- as shown in the image below -- by calling [`dsl_source_pph_add`](#dsl_source_pph_add). The handler will call the client provided callback function on timeout. 
 
@@ -50,17 +47,25 @@ A Source's production of new buffers can be monitored for timeout by adding a [N
 
 **Important** The [RTSP Source](#dsl_source_rtsp_new) implements its own [new-buffer-timeout and reconnection management](/docs/overview.md#rtsp-stream-connection-management) that supersedes the need for a New Buffer Timeout PPH. 
 
-## Audio Sources
-... currently under design.
 
-## Video Sources
-There are twelve (12) Video Source components supported, three of which are [Image Video Sources](image-video-sources):
+## Source Component Media Type
 
+#### Audio Only Sources
+
+
+#### Video Only Sources
+
+Video Sources are derived from the `video source` base class. 
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `video source`
+
+**Video Sources:**
 * [App Source](#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
 * [V4L2 Source](#dsl_source_v4l2_new) - Stream from any V4L2 compatable device - a USB Webcam for example.
-* [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
-* [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
 * [RTSP Source](#dsl_source_rtsp_new) - Real-time Streaming Protocol ( RTSP ) Source - supports transport over TCP or UDP in unicast or multicast mode
 * [Interpipe Source](#dsl_source_interpipe_new) - Receives pipeline buffers and events from an [Interpipe Sink](/docs/api-sink.md#dsl_sink_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Single Image Source](#dsl_source_image_single_new) - Single frame to EOS.
@@ -69,12 +74,18 @@ There are twelve (12) Video Source components supported, three of which are [Ima
 * [Duplicate Source](#dsl_source_duplicate_new) - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 * [Custom Source](#dsl_source_custom_new) - Used to create a Custom Video Source using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or released GStreamer plugins.
 
-All Video Sources are derived from the base "Source" class (as show in the hierarchy below), therefore all [source methods](#source-methods) can be called with any Video Source.
+## Audio and/or Video Sources
+The following Sources are derived from the Audio and Video base classes as shown in the hierarchy below.
 
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `audio source`
 &emsp;&emsp;&emsp;&emsp;╰── `video source`
+
+* [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
+* [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
+
 
 ### Video Buffer Conversion
 All Video Sources include a [Video Converter](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvvideoconvert.html) providing programmatic control over the **formatting**, **scaling**, **cropping**, and **orienting** of the Source's output-buffers.
@@ -126,17 +137,15 @@ The Custom Source API is used to create custom DSL Video Source Components using
 **Typedefs**
 * [`dsl_rtsp_connection_data`](#dsl_rtsp_connection_data)
 
-**Client Callback Typedefs**
+**Client Callback Typedefs:**
 * [`dsl_source_app_need_data_handler_cb`](#dsl_source_app_need_data_handler_cb)
 * [`dsl_source_app_enough_data_handler_cb`](#dsl_source_app_enough_data_handler_cb)
 * [`dsl_state_change_listener_cb`](#dsl_state_change_listener_cb)
 
-**Constructors:**
+**Video only Source Constructors:**
 * [`dsl_source_app_new`](#dsl_source_app_new)
 * [`dsl_source_csi_new`](#dsl_source_csi_new)
 * [`dsl_source_v4l2_new`](#dsl_source_v4l2_new)
-* [`dsl_source_uri_new`](#dsl_source_uri_new)
-* [`dsl_source_file_new`](#dsl_source_file_new)
 * [`dsl_source_rtsp_new`](#dsl_source_rtsp_new)
 * [`dsl_source_interpipe_new`](#dsl_source_interpipe_new)
 * [`dsl_source_image_single_new`](#dsl_source_image_single_new)
@@ -147,23 +156,14 @@ The Custom Source API is used to create custom DSL Video Source Components using
 * [`dsl_source_custom_new_element_add`](#dsl_source_custom_new_element_add)
 * [`dsl_source_custom_new_element_add_many`](#dsl_source_custom_new_element_add_many)
 
+**Video and/or Audio Source Constructors:**
+* [`dsl_source_uri_new`](#dsl_source_uri_new)
+* [`dsl_source_file_new`](#dsl_source_file_new)
+
 **Source Methods:**
 * [`dsl_source_unique_id_get`](#dsl_source_unique_id_get)
 * [`dsl_source_stream_id_get`](#dsl_source_stream_id_get)
-* [`dsl_source_name_get`](#dsl_source_name_get)
-* [`dsl_source_media_type_get`](#dsl_source_media_type_get)
-* [`dsl_source_frame_rate_get`](#dsl_source_frame_rate_get)
-* [`dsl_source_is_live`](#dsl_source_is_live)
-* [`dsl_source_pause`](#dsl_source_pause)
-* [`dsl_source_resume`](#dsl_source_resume)
-* [`dsl_source_pph_add`](#dsl_source_pph_add)
-* [`dsl_source_pph_remove`](#dsl_source_pph_remove)
-
-**Video Source Methods:**
-* [`dsl_source_video_dimensions_get`](#dsl_source_video_dimensions_get)
-* [`dsl_source_video_buffer_out_format_get`](#dsl_source_video_buffer_out_format_get)
-* [`dsl_source_video_buffer_out_format_set`](#dsl_source_video_buffer_out_format_set)
-* [`dsl_source_video_buffer_out_dimensions_get`](#dsl_source_video_buffer_out_dimensions_get)
+* [`dsl_source_name_get`](#dsl_source_name_get)format
 * [`dsl_source_video_buffer_out_dimensions_set`](#dsl_source_video_buffer_out_dimensions_set)
 * [`dsl_source_video_buffer_out_frame_rate_get`](#dsl_source_video_buffer_out_frame_rate_get)
 * [`dsl_source_video_buffer_out_frame_rate_set`](#dsl_source_video_buffer_out_frame_rate_set)
@@ -308,11 +308,26 @@ Streaming Source Methods use the following return codes, in addition to the gene
 
 ## DSL Source Media Types
 ```C
-#define DSL_MEDIA_TYPE_VIDEO_XRAW                                   L"video/x-raw"
-#define DSL_MEDIA_TYPE_AUDIO_XRAW                                   L"audio/x-raw"
+#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0x00000001
+#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   0x00000010
+#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  0x00000011
+```
+
+## DSL Audio Format Types
+Format types used by all derived Audio Source Components.
+```C
+#define DSL_AUDIO_FORMAT_S16LE                                      L"S16LE"
+#define DSL_AUDIO_FORMAT_F32LE                                      L"F32LE"
+#define DSL_AUDIO_FORMAT_DEFAULT                                    DSL_AUDIO_FORMAT_F32LE
+```
+
+## DSL Audio Resample Rate in Hz
+```C
+#define DSL_AUDIO_RESAMPLE_RATE_DEFAULT                             44100
 ```
 
 ## DSL Video Format Types
+Format types used by all derived Video Source Components.
 ```C
 #define DSL_VIDEO_FORMAT_I420                                       L"I420"
 #define DSL_VIDEO_FORMAT_NV12                                       L"NV12"
@@ -475,7 +490,7 @@ Callback typedef for a client state-change listener. Functions of this type are 
 
 <br>
 
-## Constructors
+## Video Only Source Constructors
 
 ### *dsl_source_app_new*
 ```C
@@ -522,7 +537,7 @@ Creates a new, uniquely named CSI Camera Source component.
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `csi source`
 
 **Parameters**
@@ -552,7 +567,7 @@ Creates a new, uniquely named V4L2 Source component.
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `v4l2 source`
 
 **Parameters**
@@ -568,72 +583,6 @@ retval = dsl_source_v4l2_new('my-v4l2-source', '/dev/video0')
 ```
 <br>
 
-### *dsl_source_uri_new*
-```C
-DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
-    boolean is_live, uint skip_frames, uint drop_frame_interval);
-```
-This service creates a new, uniquely named URI Source component.
-
-#### Hierarchy
-[`component`](/docs/api-component.md)<br>
-&emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `uri source`
-
-**Parameters**
-* `name` - [in] unique name for the new Source
-* `uri` - [in] fully qualified URI prefixed with `http://`, `https://`,  or `file://`
-* `is_live` [in] `true` if the URI is a live source, `false` otherwise. File URI's will use a fixed value of `false`
-* `skip_frames` - [in] the type of frames to skip during decoding.
-  -   (0): decode_all       - Decode all frames
-  -   (1): decode_non_ref   - Decode non-ref frame
-  -   (2): decode_key       - decode key frames
-* `drop_frame_interval` [in] number of frames to drop between each decoded frame. 0 = decode all frames
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_uri_new('my-uri-source', '../../test/streams/sample_1080p_h264.mp4',
-    False, 0)
-```
-
-<br>
-
-### *dsl_source_file_new*
-```C
-DslReturnType dsl_source_file_new(const wchar_t* name,
-    const wchar_t* file_path, boolean repeat_enabled);
-```
-This service creates a new, uniquely named File Source component. The Source implements a URI Source with the following set parameters.
-* `is_live = false`
-* `intra_decode = false`
-* `drop_frame_interval = 0`
-
-#### Hierarchy
-[`component`](/docs/api-component.md)<br>
-&emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`uri source`](dsl_source_uri_new)<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `file source`
-
-**Parameters**
-* `name` - [in] unique name for the new Source
-* `file_path` - [in] absolute or relative path to the file to play
-* `repeat_enabled` [in] set to `true` to repeat the file on end-of-stream (EOS), `false` otherwise
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval = dsl_source_file_new('my-uri-source', './streams/sample_1080p_h264.mp4', false)
-```
-
-<br>
-
 ### *dsl_source_rtsp_new*
 ```C
 DslReturnType dsl_source_rtsp_new(const wchar_t* name, const wchar_t* uri, uint protocol,
@@ -647,7 +596,7 @@ This service creates a new, uniquely named RTSP Source component. The RTSP Sourc
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `rtsp source`
 
 **Parameters**
@@ -688,7 +637,7 @@ Refer to the [Interpipe Services](/docs/overview.md#interpipe-services) overview
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `interpipe source`
 
 **Parameters**
@@ -719,7 +668,7 @@ This service creates a new, uniquely named Single-Image Source component. The Im
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`image source`](#image-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `single-image source`
 
@@ -750,7 +699,7 @@ The images are streamed one per frame at the specified framerate. A final EOS ev
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`image source`](#image-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `multi-image source`
 
@@ -782,7 +731,7 @@ This service creates a new, uniquely named Streaming Image Source component. The
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`image source`](#image-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `streaming-image source`
 
@@ -842,7 +791,7 @@ This service creates a new, uniquely named Custom Source component.
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`custom source`](#custom-source-methods)<br>
 
 **Parameters**
@@ -871,7 +820,7 @@ This service creates a new, uniquely named Custom Source component and adds a GS
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`custom source`](#custom-source-methods)<br>
 
 **Parameters**
@@ -902,7 +851,7 @@ This service creates a new, uniquely named Custom Source component and adds a NU
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-source-methods)<br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`custom source`](#custom-source-methods)<br>
 
 **Parameters**
@@ -917,6 +866,77 @@ This service creates a new, uniquely named Custom Source component and adds a NU
 ```Python
 retval = dsl_source_custom_new_element_add_many('my-custom-source', 
     False, ['my-element-1', 'my-element-2', 'my-element-3', None)
+```
+
+<br>
+
+##  Audio and/or Video Source Constructors 
+
+### *dsl_source_uri_new*
+```C
+DslReturnType dsl_source_uri_new(const wchar_t* name, const wchar_t* uri, 
+    boolean is_live, uint skip_frames, uint drop_frame_interval);
+```
+This service creates a new, uniquely named URI Source component.
+
+**IMPORTANT!** The URI Source's [media-type](/docs/api-component.md#component-media-types) is set to [`DSL_MEDIA_TYPE_VIDEO_ONLY`](/docs/api-component.md#component-media-type-constants) by default. See [`dsl_component_media_type_set`](/docs/api-component.md#dsl_component_media_type_set) for information on updating the URI Source to support `AUDIO_ONLY` or `AUDIO_VIDEO`.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`audio source`](#audio-source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`vidio source`](#video-source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `uri source`
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `uri` - [in] fully qualified URI prefixed with `http://`, `https://`,  or `file://`
+* `is_live` [in] `true` if the URI is a live source, `false` otherwise. File URI's will use a fixed value of `false`
+* `skip_frames` - [in] the type of frames to skip during decoding.
+  -   (0): decode_all       - Decode all frames
+  -   (1): decode_non_ref   - Decode non-ref frame
+  -   (2): decode_key       - decode key frames
+* `drop_frame_interval` [in] number of frames to drop between each decoded frame. 0 = decode all frames
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_uri_new('my-uri-source', '../../test/streams/sample_1080p_h264.mp4',
+    False, 0)
+```
+
+<br>
+
+### *dsl_source_file_new*
+```C
+DslReturnType dsl_source_file_new(const wchar_t* name,
+    const wchar_t* file_path, boolean repeat_enabled);
+```
+This service creates a new, uniquely named File Source component. The Source implements a URI Source with the following set parameters.
+* `is_live = false`
+* `intra_decode = false`
+* `drop_frame_interval = 0`
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#video-sources)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── [`uri source`](dsl_source_uri_new)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `file source`
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `file_path` - [in] absolute or relative path to the file to play
+* `repeat_enabled` [in] set to `true` to repeat the file on end-of-stream (EOS), `false` otherwise
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_file_new('my-uri-source', './streams/sample_1080p_h264.mp4', false)
 ```
 
 <br>
@@ -992,32 +1012,6 @@ This service gets the name of a Source component from a unique source-id.
 ```Python
 # get the name of the source from pipeline-id=1 with stream-id=2
 retval, name = dsl_source_name_get(0x00010002)
-```
-
-<br>
-
-### *dsl_source_media_type_get*
-```C
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    const wchar_t** media_type);
-```
-This service gets the media type for the named Source component. The media-type will be specific to the base source type as follows:
-* Video Sources will return `"video/x-raw"`
-* Audio Sources will return `"audio/x-raw"`
-* Audio/Video Source will return `"video/x-raw;audio/x-raw"`
-
-**Note:** DSL currently implements Video only. Audio is to be supported in a future release.
-
-**Parameters**
-* `name` - [in] unique name of the Source to query.
-* `media-type` - [out] one of the [DSL_MEDIA_TYPE constants](#dsl-source-media-types).
-
-**Returns**
-* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
-
-**Python Example**
-```Python
-retval, media_type = dsl_source_media_type_get('my-source')
 ```
 
 <br>
@@ -1147,6 +1141,95 @@ retval = dsl_source_pph_remove('my-csi-source-1', 'my-buffer-timeout-pph-1')
 
 ---
 
+## Audio Source Methods
+
+### *dsl_source_audio_buffer_out_format_get*
+```C
+DslReturnType dsl_source_audio_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format);
+```
+This service gets the current buffer-out-format for the named Audio Source component.
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `format` - [out] current buffer-out-format. One of the [DSL_AUDIO_FORMAT](#dsl-audio-format-types) constant string values. Default = `DSL_AUDIO_FORMAT_DEFAULT`.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, format = dsl_source_audio_buffer_out_format_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_audio_buffer_out_format_set*
+```C
+DslReturnType dsl_source_audio_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format);
+```
+This service sets the buffer-out-format for the named Audio Source component to use.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `format` - [in] new buffer-out-format. One of the [`DSL_AUDIO_FORMAT`](#dsl-audio-format-types) constant string values.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_audio_buffer_out_format_set('my-uri-source',
+    DSL_AUDIO_FORMAT_S16LE)
+```
+
+<br>
+
+### *dsl_source_audio_buffer_out_sample_rate_get*
+```C
+DslReturnType dsl_source_audio_buffer_out_sample_rate_get(const wchar_t* name,
+    const wchar_t** rate);
+```
+This service gets the current buffer-out-sample-rate for the named Audio Source component. A value of 0 indicates no re-sampling. 
+
+**Parameters**
+* `source` - [in] unique name of the Source to query.
+* `format` - [out] current buffer-out-sample-rate in Hz. Default = [`DSL_AUDIO_RESAMPLE_RATE_DEFAULT`](#dsl-audio-resample-rate-in-hz).
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, format = dsl_source_audio_buffer_out_sample_rate_get('my-uri-source')
+```
+
+<br>
+
+### *dsl_source_audio_buffer_out_sample_rate_set*
+```C
+DslReturnType dsl_source_audio_buffer_out_sample_rate_set(const wchar_t* name,
+    const wchar_t* rate);
+```
+This service sets the buffer-out-sample_rate for the named Audio Source component to use.
+
+**Parameters**
+* `source` - [in] unique name of the Source to update.
+* `format` - [in] new buffer-out-sample rate in Hz. Set to 0 to indicate no re-sampling.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_audio_buffer_out_sample_rate_set('my-uri-source', 88200)
+```
+
+<br>
+
+---
+
 ## Video Source Methods
 
 ### *dsl_source_video_dimensions_get*
@@ -1180,7 +1263,7 @@ This service gets the current buffer-out-format for the named Video Source compo
 
 **Parameters**
 * `source` - [in] unique name of the Source to query.
-* `format` - [out] current buffer-out-format. One of the [DSL_VIDEO_FORMAT](#dsl-video-format-types) constant string values. Default = `DSL_VIDEO_FORMAT_DEFAULT`.
+* `format` - [out] current buffer-out-format. One of the [`DSL_VIDEO_FORMAT`](#dsl-video-format-types) constant string values. Default = `DSL_VIDEO_FORMAT_DEFAULT`.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
@@ -1201,7 +1284,7 @@ This service sets the buffer-out-format for the named Video Source component to 
 
 **Parameters**
 * `source` - [in] unique name of the Source to update.
-* `format` - [in] new buffer-out-format. One of the [DSL_VIDEO_FORMAT](#dsl-video-format-types) constant string values.
+* `format` - [in] new buffer-out-format. One of the [`DSL_VIDEO_FORMAT`](#dsl-video-format-types) constant string values.
 
 **Returns**
 * `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
@@ -2017,6 +2100,7 @@ retval = dsl_source_uri_uri_set('my-uri-source', '../../test/streams/sample_1080
 <br>
 
 ## File Source Methods
+Then the duster
 ### *dsl_source_file_file_path_get*
 ```C
 DslReturnType dsl_source_file_file_path_get(const wchar_t* name, 

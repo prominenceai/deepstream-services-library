@@ -8,7 +8,7 @@ All Sinks are derived from the "Component" class, therefore all [component metho
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── `sink`
 
-DSL supports fifteen (17) different types of Sinks:
+DSL supports Seventeen (17) different types of Sinks:
 
 #### Audio Only Sinks
 * [ALSA Sink](#dsl_sink_alsa_new) - streams audio to an Advanced Linux Sound Architecture (ALSA) compatible sound card. 
