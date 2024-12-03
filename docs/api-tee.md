@@ -7,8 +7,11 @@ The Demuxer Tee is built-on NVIDIA's [Gst-nvstreamdemux plugin](https://docs.nvi
 ### Splitter Tee
 The Splitter Tee splits the stream -- batched or single frame -- to multiple source-pads, each connected to a unique Branch. The Tee does not copy the Gst Buffer, it simply pushes a pointer to the same buffer to each downstream Branch. 
 
+### Media-Type
+The [media-type](/docs/api-component.md#component-media-types) for Demuxer and Splitter Tees is set to [`DSL_MEDIA_TYPE_VIDEO_ONLY`](/docs/api-component.md#component-media-type-constants) by default. Use [`dsl_component_media_type_set`](/docs/api-component.md#dsl_component_media_type_set) to update the Tee to support `AUDIO_ONLY`. You must use two Demuxer of Splitter Tees, one for each media-type, when creating Audio-Video Pipelines and Branches.
+
 ### Sink Components as Branches
-[Sink components](/docs/api-sinks.md) can be added as branches to both Demuxers and Splitters -- be aware that most Sinks require a batch size of 1.
+[Sink components](/docs/api-sinks.md) can be added as branches to both Demuxers and Splitters -- be aware that most Sinks require the input stream to unbatched.
 
 ### Dynamic Branching
 With Demuxer and Splitter Tees, Branches can be added and removed at runtime while the Pipeline is playing. Refer to the [Dynamic Pipelines](/docs/overview.md#dynamic-pipelines) section under the [DSL Overview](/docs/overview.md) for more information. The Remuxer Tee does _**not**_ support dynamic branch updates at this time.
