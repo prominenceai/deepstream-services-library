@@ -8,7 +8,12 @@ All Sinks are derived from the "Component" class, therefore all [component metho
 [`component`](/docs/api-component.md)<br>
 &emsp;╰── `sink`
 
-DSL supports fifteen (15) different types of Sinks:
+DSL supports Seventeen (17) different types of Sinks:
+
+#### Audio Only Sinks
+* [ALSA Sink](#dsl_sink_alsa_new) - streams audio to an Advanced Linux Sound Architecture (ALSA) compatible sound card. 
+
+#### Video Only Sinks
 * [3D Window Sink](#dsl_sink_window_3d_new) - renders/overlays video on a Parent XWindow **(Jetson Platform Only)**... based on the 3D graphics rendering API.
 * [EGL Window Sink](#dsl_sink_window_egl_new) - renders/overlays video on a Parent XWindow... based on the EGL API.
 * [V4L2 Sink](#dsl_sink_v4l2_new) - streams video to a V4L2 device or [v4l2loopback](https://github.com/umlaeute/v4l2loopback).
@@ -23,8 +28,10 @@ DSL supports fifteen (15) different types of Sinks:
 * [Interpipe Sink](#dsl_sink_interpipe_new) -  allows pipeline buffers and events to flow to other independent pipelines, each with an [Interpipe Source](/docs/api-source.md#dsl_source_interpipe_new). Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
 * [Multi-Image Sink](#dsl_sink_image_multi_new) - encodes and saves video frames to JPEG files at specified dimensions and frame-rate.
 * [Frame-Capture Sink](#dsl_sink_frame_capture_new) - encodes and saves video frames to JPEG files on demand or on schedule. Disabled by default, requires additional [install/build steps](/docs/installing-dependencies.md).
-* [Fake Sink](#dsl_sink_fake_new) - consumes/drops all data.
 * [Custom Sink](#dsl_sink_custom_new) - Used to create a Custom Video Sink using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or released GStreamer plugins.
+
+#### Audio or Video Sinks
+* [Fake Sink](#dsl_sink_fake_new) - consumes/drops all data.
 
 ### Sink Construction and Destruction
 Sinks are created by calling one of the type-specific constructors. As with all components, Sinks must be uniquely named from all other components created.
@@ -63,6 +70,7 @@ As a general rule
 
 | Sink           	|  GST Plugin	| sync  |	async	| max-lateness | 	qos 	|
 | -------------------|----------------|-------|------------ | ------------ | ----------- |
+| ALSA Sink     	| alsasink   	| true  | true        |     -1      | false     |
 | 3D Window Sink 	| nv3dsink   	| true  | true/false  |  5000000/-1  | true/false  |
 | EGL Window Sink	| nveglglessink  | true  | true/false  |  5000000/-1  | true/false  |
 | V4L2 Sink      	| v4l2sink   	| true  | true/false  |  5000000/-1  | true/false  |
@@ -200,6 +208,7 @@ You can use the following GStreamer launch command to test the loopback device w
 * [`dsl_sink_webrtc_client_listener_cb`](#dsl_sink_webrtc_client_listener_cb)
 
 **Constructors:**
+* [`dsl_sink_alsa_new`](#dsl_sink_alsa_new)
 * [`dsl_sink_app_new`](#dsl_sink_app_new)
 * [`dsl_sink_window_3d_new`](#dsl_sink_window_3d_new)
 * [`dsl_sink_window_egl_new`](#dsl_sink_window_egl_new)
@@ -230,6 +239,11 @@ You can use the following GStreamer launch command to test the loopback device w
 * [`dsl_sink_qos_enabled_set`](#dsl_sink_qos_enabled_set)
 * [`dsl_sink_pph_add`](#dsl_sink_pph_add)
 * [`dsl_sink_pph_remove`](#dsl_sink_pph_remove)
+
+**ALSA Sink Methods**
+* [`dsl_sink_alsa_device_location_get`](#dsl_sink_alsa_device_location_get)
+* [`dsl_sink_alsa_device_location_set`](#dsl_sink_alsa_device_location_set)
+* [`dsl_sink_alsa_device_name_get`](#dsl_sink_alsa_device_name_get)
 
 **App Sink Methods**
 * [`dsl_sink_app_data_type_get`](#dsl_sink_app_data_type_get)
@@ -654,6 +668,32 @@ Callback typedef for a client to listen for WebRTC Sink connection events.
 ---
 
 ## Constructors
+### *dsl_sink_alsa_new*
+```C++
+DslReturnType dsl_sink_alsa_new(const wchar_t* name,
+	const wchar_t* device_location);
+```
+The constructor creates a uniquely named ALSA Sink that streams to any compatible ALSA Sound Card. Construction will fail if the name is currently in use.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`sink`](#sink-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── `alsa sink`
+
+**Parameters**
+* `name` - [in] unique name for the ALSA Sink to create.
+* `device_location` - [in]  device-location setting for the ALSA Sink. Set to `"default"` to use the default sound card.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_alsa_new('my-alsa-sink', 'default')
+```
+
+<br>
+
 ### *dsl_sink_app_new*
 ```C++
 DslReturnType dsl_sink_app_new(const wchar_t* name, uint data_type,
@@ -1146,7 +1186,9 @@ retVal = dsl_sink_frame_capture_new('my-frame-capture-sink',
 ```C++
 DslReturnType dsl_sink_fake_new(const wchar_t* name);
 ```
-The constructor creates a uniquely named Fake Sink. Construction will fail if the name is currently in use.
+The constructor creates a uniquely named Fake Sink. Construction will fail if the name is currently in use. 
+
+**IMPORTANT!** The default `media-type` for the Fake Sink on constructions is [`DSL_MEDIA_TYPE_VIDEO_ONLY`](/docs/api-component.md#media-types). To use the Fake Sink as an Audio Sink, call [`dsl_component_media_type_set`](/docs/api-component.md#dsl_component_media_type_set) to set the Sink's media-type to [`DSL_MEDIA_TYPE_AUDIO_ONLY`](/docs/api-component.md#media-types).
 
 #### Hierarchy
 [`component`](/docs/api-component.md)<br>
@@ -1476,6 +1518,73 @@ This service gets the current data-type setting in use by a named App Sink Compo
 **Python Example**
 ```Python
 retval, data_type = dsl_sink_app_data_type_get('my-app-sink')
+```
+
+<br>
+
+## ALSA Sink Methods
+
+### *dsl_sink_alsa_device_location_get*
+```C++
+DslReturnType dsl_sink_alsa_device_location_get(const wchar_t* name,
+	const wchar_t** device_location);
+```
+This service gets the device-location setting for the named ALSA Sink.
+
+**Parameters**
+* `name` - [in] unique name of the ALSA Sink to query.
+* `device_location` - [out] current device-location setting.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_location = dsl_sink_alsa_device_location_get('my-alsa-sink')
+```
+
+<br>
+
+### *dsl_sink_alsa_device_location_set*
+```C++
+DslReturnType dsl_sink_alsa_device_location_set(const wchar_t* name,
+	const wchar_t* device_location);
+```
+This service sets the device-location for the named ALSA Sink to use.
+
+**Parameters**
+* `name` - [in] unique name of the ALSA Sink to update.
+* `device_location` - [in] new device-location setting to use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_sink_alsa_device_location_set('my-alsa-sink', 'default')
+```
+
+<br>
+
+### *dsl_sink_alsa_device_name_get*
+```C++
+DslReturnType dsl_sink_alsa_device_name_get(const wchar_t* name,
+	const wchar_t** device_name);
+```
+This service gets the device-name setting for the named ALSA Sink.
+
+**IMPORTANT!** The default value = "" on Sink creation. The value is updated after negotiation with the ALSA device.
+
+**Parameters**
+* `name` - [in] unique name of the ALSA Sink to query.
+* `device_name` - [out] device-name of the alsa device once connected.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_name = dsl_sink_alsa_device_name_get('my-alsa-sink')
 ```
 
 <br>

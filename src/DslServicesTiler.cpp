@@ -311,7 +311,7 @@ namespace DSL
             DSL_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<SourceBintr>(m_components[source]);
                     
-            if (!pTilerBintr->SetShowSource(pSourceBintr->GetVideoRequestPadId(), 
+            if (!pTilerBintr->SetShowSource(pSourceBintr->GetRequestPadId(), 
                 timeout, hasPrecedence))
             {
                 LOG_ERROR("Tiler '" << name << "' failed to show specific source");

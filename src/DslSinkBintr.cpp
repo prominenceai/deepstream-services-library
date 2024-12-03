@@ -813,6 +813,25 @@ namespace DSL
         m_pQueue->UnlinkFromSink();
         m_isLinked = false;
     }
+    
+    bool FakeSinkBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for FakeSinkBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if ((mediaType != DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (mediaType != DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_ERROR("Can't update media-type for FakeSinkBintr '" 
+                << GetName() << "' with invalid type = " << mediaType);
+            return false;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
 
     //-------------------------------------------------------------------------
 
@@ -3764,4 +3783,141 @@ namespace DSL
         return true;
     }
 
+    //-------------------------------------------------------------------------
+
+    AlsaSinkBintr::AlsaSinkBintr(const char* name, 
+        const char* deviceLocation)
+        : SinkBintr(name)
+        , m_deviceLocation(deviceLocation)
+    {
+        LOG_FUNC();
+
+        // Override the default - ALSA Sink is audio only.
+        m_mediaType = DSL_MEDIA_TYPE_AUDIO_ONLY;
+
+        m_pSink = DSL_ELEMENT_NEW("alsasink", name);
+
+        // Get the property defaults
+        m_pSink->GetAttribute("sync", &m_sync);
+        m_pSink->GetAttribute("max-lateness", &m_maxLateness);
+
+        // Set the qos property to the common default.
+        m_pSink->SetAttribute("qos", m_qos);
+
+        // Set the async property to the common default (must be false)
+        m_pSink->SetAttribute("async", m_async);
+
+        // Disable the last-sample property for performance reasons.
+        m_pSink->SetAttribute("enable-last-sample", m_enableLastSample);
+
+        // Set the unique device location for the Sink
+        m_pSink->SetAttribute("device", deviceLocation);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for AlsaSinkBintr '" << name << "'");
+        LOG_INFO("  device-location    : " << m_deviceLocation);
+        LOG_INFO("  device-name        : " << m_deviceName);
+        LOG_INFO("  sync               : " << m_sync);
+        LOG_INFO("  async              : " << m_async);
+        LOG_INFO("  max-lateness       : " << m_maxLateness);
+        LOG_INFO("  qos                : " << m_qos);
+        LOG_INFO("  enable-last-sample : " << m_enableLastSample);
+        LOG_INFO("  queue              : " );
+        LOG_INFO("    leaky            : " << m_leaky);
+        LOG_INFO("    max-size         : ");
+        LOG_INFO("      buffers        : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes          : " << m_maxSizeBytes);
+        LOG_INFO("      time           : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold    : ");
+        LOG_INFO("      buffers        : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes          : " << m_minThresholdBytes);
+        LOG_INFO("      time           : " << m_minThresholdTime);
+        
+        AddChild(m_pSink);
+    }
+    
+    AlsaSinkBintr::~AlsaSinkBintr()
+    {
+        LOG_FUNC();
+
+        if (IsLinked())
+        {    
+            UnlinkAll();
+        }
+    }
+
+    bool AlsaSinkBintr::LinkAll()
+    {
+        LOG_FUNC();
+        
+        if (m_isLinked)
+        {
+            LOG_ERROR("AlsaSinkBintr '" << GetName() << "' is already linked");
+            return false;
+        }
+
+        if (!m_pQueue->LinkToSink(m_pSink))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        return true;
+    }
+    
+    void AlsaSinkBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("AlsaSinkBintr '" << GetName() << "' is not linked");
+            return;
+        }
+
+        m_pQueue->UnlinkFromSink();
+        m_isLinked = false;
+    }
+
+    const char* AlsaSinkBintr::GetDeviceLocation()
+    {
+        LOG_FUNC();
+
+        return m_deviceLocation.c_str();
+    }
+    
+    bool AlsaSinkBintr::SetDeviceLocation(const char* deviceLocation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set device-location for AlsaSinkBintr '" 
+                << GetName() << "' as it is currently in a linked state");
+            return false;
+        }
+        
+        m_deviceLocation = deviceLocation;
+        
+        m_pSink->SetAttribute("device", deviceLocation);
+        return true;
+    }
+
+    const char* AlsaSinkBintr::GetDeviceName()
+    {
+        LOG_FUNC();
+        
+        // default to no device-name
+        m_deviceName = "";
+
+        const char* deviceName(NULL);
+        m_pSink->GetAttribute("device-name", &deviceName);
+        
+        // Update if set
+        if (deviceName)
+        {
+            m_deviceName = deviceName;
+        }
+            
+        return m_deviceName.c_str();
+    }
 }    

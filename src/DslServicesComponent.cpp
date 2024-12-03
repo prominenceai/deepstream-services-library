@@ -206,6 +206,59 @@ namespace DSL
         return m_components.size();
     }
 
+    DslReturnType Services::ComponentMediaTypeGet(const char* name, 
+        uint* mediaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            
+            *mediaType = m_components[name]->GetMediaType();
+
+            LOG_INFO("Component '" << name << "' returned media-type = " 
+                << *mediaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception getting media-type");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::ComponentMediaTypeSet(const char* name, 
+        uint mediaType)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            
+            if (!m_components[name]->SetMediaType(mediaType))
+            {
+                return DSL_RESULT_COMPONENT_SET_MEDIA_TYPE_FAILED;
+            }
+
+            LOG_INFO("Component '" << name << "' set media-type = " 
+                << mediaType << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Component '" << name 
+                << "' threw exception setting media-type");
+            return DSL_RESULT_COMPONENT_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::ComponentQueueCurrentLevelGet(const char* name, 
         uint unit, uint64_t* currentLevel)
     {

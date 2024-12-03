@@ -591,7 +591,10 @@ namespace DSL
             return false;
         }
         
-        pResourceSource->GetDimensions(&m_width, &m_height);
+        DSL_VIDEO_SOURCE_PTR pVideoSource = 
+            std::dynamic_pointer_cast<VideoSourceBintr>(m_pSource);
+
+        pVideoSource->GetDimensions(&m_width, &m_height);
         
         // everything we need to create the SinkBintr
         if (!SetDimensions())

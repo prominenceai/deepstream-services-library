@@ -28,7 +28,9 @@ from ctypes import *
 
 _dsl = CDLL('/usr/local/lib/libdsl.so')
 
-DSL_RETURN_SUCCESS = 0
+DSL_RETURN_SUCCESS = 0x00000000
+DSL_RESULT_SUCCESS = 0x00000000
+DSL_RESULT_FAILURE = 0x00000001
 
 DSL_4K_UHD_WIDTH  = 3840
 DSL_4K_UHD_HEIGHT = 2160
@@ -75,8 +77,20 @@ DSL_STREAM_FORMAT_BYTE = 2
 DSL_STREAM_FORMAT_TIME = 3
 
 # DSL Media Types - Used by all Source Components
-DSL_MEDIA_TYPE_VIDEO_XRAW = "video/x-raw"
-DSL_MEDIA_TYPE_AUDIO_XRAW = "audio/x-raw"
+DSL_MEDIA_STRING_AUDIO_XRAW = "audio/x-raw"
+DSL_MEDIA_STRING_AUDIO_XRAW = "video/x-raw"
+
+DSL_MEDIA_TYPE_AUDIO_ONLY   = 0x01
+DSL_MEDIA_TYPE_VIDEO_ONLY   = 0x10
+DSL_MEDIA_TYPE_AUDIO_VIDEO  = 0x11
+
+# DSL Audio Format Types - Used by all Audio Source Components
+DSL_AUDIO_FORMAT_S16LE   = "S16LE"
+DSL_AUDIO_FORMAT_F32LE   = "F32LE"
+DSL_AUDIO_FORMAT_DEFAULT = DSL_AUDIO_FORMAT_F32LE
+
+# DSL Audio Resample Rate in Hz - Used by all Audio Source Components
+DSL_AUDIO_RESAMPLE_RATE_DEFAULT = 44100
 
 # DSL Video Format Types - Used by all Video Source Components
 DSL_VIDEO_FORMAT_I420    = "I420"
@@ -4178,15 +4192,50 @@ def dsl_source_frame_rate_get(name):
     return int(result), fps_n.value, fps_d.value 
 
 ##
-## dsl_source_media_type_get()
+## dsl_source_audio_buffer_out_sample_rate_get()
 ##
-_dsl.dsl_source_media_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_source_media_type_get.restype = c_uint
-def dsl_source_media_type_get(name):
+_dsl.dsl_source_audio_buffer_out_sample_rate_get.argtypes = [c_wchar_p, 
+    POINTER(c_uint)]
+_dsl.dsl_source_audio_buffer_out_sample_rate_get.restype = c_uint
+def dsl_source_audio_buffer_out_sample_rate_get(name):
     global _dsl
-    media_type = c_uint(0)
-    result = _dsl.dsl_source_media_type_get(name, DSL_WCHAR_PP(media_type))
-    return int(result), media_type.value 
+    rate = c_uint(0)
+    result = _dsl.dsl_source_audio_buffer_out_sample_rate_get(name, 
+        DSL_UINT_P(rate))
+    return int(result), rate.value 
+
+##
+## dsl_source_audio_buffer_out_sample_rate_set()
+##
+_dsl.dsl_source_audio_buffer_out_sample_rate_set.argtypes = [c_wchar_p, 
+    c_uint]
+_dsl.dsl_source_audio_buffer_out_sample_rate_set.restype = c_uint
+def dsl_source_audio_buffer_out_sample_rate_set(name, rate):
+    global _dsl
+    result = _dsl.dsl_source_audio_buffer_out_sample_rate_set(name, 
+        rate)
+    return int(result)
+
+##
+## dsl_source_audio_buffer_out_format_get()
+##
+_dsl.dsl_source_audio_buffer_out_format_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_audio_buffer_out_format_get.restype = c_uint
+def dsl_source_audio_buffer_out_format_get(name):
+    global _dsl
+    format = c_wchar_p(0)
+    result = _dsl.dsl_source_audio_buffer_out_format_get(name, DSL_WCHAR_PP(format))
+    return int(result), format.value 
+
+##
+## dsl_source_audio_buffer_out_format_set()
+##
+_dsl.dsl_source_audio_buffer_out_format_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_audio_buffer_out_format_set.restype = c_uint
+def dsl_source_audio_buffer_out_format_set(name, format):
+    global _dsl
+    result = _dsl.dsl_source_audio_buffer_out_format_set(name, format)
+    return int(result)
 
 ##
 ## dsl_source_video_buffer_out_format_get()
@@ -7232,6 +7281,50 @@ def dsl_sink_frame_capture_schedule(name, frame_number):
     return int(result)
     
 ##
+## dsl_sink_alsa_new()
+##
+_dsl.dsl_sink_alsa_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_alsa_new.restype = c_uint
+def dsl_sink_alsa_new(name, device_location):
+    global _dsl
+    result =_dsl.dsl_sink_alsa_new(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_alsa_device_location_get()
+##
+_dsl.dsl_sink_alsa_device_location_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_alsa_device_location_get.restype = c_uint
+def dsl_sink_alsa_device_location_get(name):
+    global _dsl
+    device_location = c_wchar_p(0)
+    result = _dsl.dsl_sink_alsa_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
+    return int(result), device_location.value 
+
+##
+## dsl_sink_alsa_device_location_set()
+##
+_dsl.dsl_sink_alsa_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sink_alsa_device_location_set.restype = c_uint
+def dsl_sink_alsa_device_location_set(name, device_location):
+    global _dsl
+    result = _dsl.dsl_sink_alsa_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_sink_alsa_device_name_get()
+##
+_dsl.dsl_sink_alsa_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sink_alsa_device_name_get.restype = c_uint
+def dsl_sink_alsa_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_sink_alsa_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
 ## dsl_sink_sync_enabled_get()
 ##
 _dsl.dsl_sink_sync_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
@@ -7497,6 +7590,39 @@ _dsl.dsl_component_list_size.restype = c_uint
 def dsl_component_list_size():
     global _dsl
     result =_dsl.dsl_component_list_size()
+    return int(result)
+
+##
+## dsl_component_media_type_get()
+##
+_dsl.dsl_component_media_type_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_component_media_type_get.restype = c_uint
+def dsl_component_media_type_get(name):
+    global _dsl
+    media_type = c_uint(0)
+    result = _dsl.dsl_component_media_type_get(name, DSL_WCHAR_PP(media_type))
+    return int(result), media_type.value 
+
+##
+## dsl_component_media_type_set()
+##
+_dsl.dsl_component_media_type_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_media_type_set.restype = c_uint
+def dsl_component_media_type_set(name, media_type):
+    global _dsl
+    result = _dsl.dsl_component_media_type_set(name, media_type)
+    return int(result)
+
+##
+## dsl_component_media_type_set_many()
+##
+#_dsl.dsl_component_media_type_set_many.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_component_media_type_set_many.restype = c_uint
+def dsl_component_media_type_set_many(names, media_type):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result = _dsl.dsl_component_media_type_set_many(arr, media_type)
     return int(result)
 
 ##
@@ -8054,6 +8180,63 @@ def dsl_pipeline_component_remove_many(pipeline, components):
     arr[:] = components
     result =_dsl.dsl_pipeline_component_remove_many(pipeline, arr)
     return int(result)
+
+## -----------------------------------------------------------------------------------
+## AUDIO STREAMMUX SERVICES - Start
+
+##
+## dsl_pipeline_audiomux_enabled_set()
+##
+_dsl.dsl_pipeline_audiomux_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_audiomux_enabled_set.restype = c_uint
+def dsl_pipeline_audiomux_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomux_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomux_enabled_get()
+##
+_dsl.dsl_pipeline_audiomux_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_audiomux_enabled_get.restype = c_uint
+def dsl_pipeline_audiomux_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_audiomux_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+## -----------------------------------------------------------------------------------
+## COMMON VIDEO STREAMMUX SERVICES - Start
+
+##
+## dsl_pipeline_videomux_enabled_set()
+##
+_dsl.dsl_pipeline_videomux_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_videomux_enabled_set.restype = c_uint
+def dsl_pipeline_videomux_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_videomux_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
+## dsl_pipeline_videomux_enabled_get()
+##
+_dsl.dsl_pipeline_videomux_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_videomux_enabled_get.restype = c_uint
+def dsl_pipeline_videomux_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_videomux_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
 
 ## -----------------------------------------------------------------------------------
 ## NEW STREAMMUX SERVICES - Start

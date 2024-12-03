@@ -72,9 +72,11 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 uint retWidth, retHeight, retFpsN, retFpsD;
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -89,13 +91,13 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetCurrentLevelBytes() == 0);
                 REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
                 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
                 
-                pSourceBintr->GetBufferOutDimensions(&retWidth, &retHeight);
+                pSourceBintr->GetVideoBufferOutDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == 0 );
                 REQUIRE( retHeight == 0 );
-                REQUIRE( pSourceBintr->GetBufferOutOrientation() == 0);
+                REQUIRE( pSourceBintr->GetVideoBufferOutOrientation() == 0);
             }
         }
     }
@@ -166,9 +168,11 @@ SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == isLive );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 uint retWidth(99), retHeight(99), retFpsN(99), retFpsD(99);
                 pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -180,7 +184,7 @@ SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -287,10 +291,12 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( pSourceBintr->GetGpuId() == 0 );
                     REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                     REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                    REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                    REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                     REQUIRE( pSourceBintr->GetSensorId() == 0 );
                     REQUIRE( pSourceBintr->IsInUse() == false );
                     REQUIRE( pSourceBintr->IsLive() == true );
+
+                    REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                     
                     uint retWidth, retHeight, retFpsN, retFpsD;
                     pSourceBintr->GetDimensions(&retWidth, &retHeight);
@@ -300,7 +306,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( fps_n == retFpsN );
                     REQUIRE( fps_d == retFpsD );
 
-                    std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                    std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                     REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
                 }
             }
@@ -436,14 +442,16 @@ SCENARIO( "A new V4l2SourceBintr is created correctly",  "[SourceBintr]" )
             THEN( "All memeber variables are initialized correctly" )
             {
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->IsLive() == true );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string retDeviceLocaton = pSourceBintr->GetDeviceLocation();
                 REQUIRE( retDeviceLocaton == defDeviceLocation );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -543,8 +551,10 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
@@ -560,8 +570,29 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsN == 30 );
                 REQUIRE( retFpsD == 1 );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+            }
+        }
+    }
+}
+
+SCENARIO( "A UriSourceBintr can Enable and Disable Audio and Video",  "[SourceBintr]" )
+{
+    GIVEN( "A new UriSourceBintr in memory" ) 
+    {
+        DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+            sourceName.c_str(), uri.c_str(), false, intrDecode, dropFrameInterval);
+
+        WHEN( "The UriSourceBintr's media-type is changed to AUDIO_VIDEO" )
+        {
+            REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY) == true );
+            REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY );
+
+            THEN( "The UriSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_VIDEO_ONLY) == true );
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
             }
         }
     }
@@ -807,7 +838,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetNvbufMemType() == 
                     DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 REQUIRE( pSourceBintr->GetBufferTimeout() == timeout );
                 REQUIRE( pSourceBintr->GetLatency() ==  latency );
@@ -816,6 +847,8 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                     DSL_TLS_CERTIFICATE_VALIDATE_ALL );
                 REQUIRE( pSourceBintr->GetUdpBufferSize() == 524288);
                 REQUIRE( pSourceBintr->GetCurrentState() == GST_STATE_NULL );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 dsl_rtsp_connection_data data{0};
                 data.first_connected = 123;
@@ -847,7 +880,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsN == 0 );
                 REQUIRE( retFpsD == 0 );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1000,7 +1033,7 @@ SCENARIO( "An RtspSourceBintr calls all State Change Listeners on change of stat
     }
 }
 
-SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[error]" )
+SCENARIO( "An RtspSourceBintr's Stream Management callback behaves correctly", "[SourceBintr]" )
 {
     GIVEN( "A new RtspSourceBintr with a timeout" ) 
     {
@@ -1136,16 +1169,18 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string returnedUri = pSourceBintr->GetUri();
                 REQUIRE( returnedUri == fullFillPath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1210,18 +1245,20 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 REQUIRE( pSourceBintr->GetTimeout() == 0 );
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1286,16 +1323,18 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == fullFillPath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1357,11 +1396,13 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
                 
                 // Must reflect use of file stream
                 REQUIRE( pSourceBintr->IsLive() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
 
                 REQUIRE( pSourceBintr->GetLoopEnabled() == false );
                 int startIndex(99), stopIndex(99);
@@ -1373,7 +1414,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 std::string returnedFilePath = pSourceBintr->GetUri();
                 REQUIRE( returnedFilePath == multJpgFilePath );
 
-                std::string retBufferOutFormat(pSourceBintr->GetBufferOutFormat());
+                std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
                 REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
             }
         }
@@ -1438,8 +1479,10 @@ SCENARIO( "A new DuplicateSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetGpuId() == 0 );
                 REQUIRE( pSourceBintr->GetNvbufMemType() == DSL_NVBUF_MEM_TYPE_DEFAULT );
                 REQUIRE( pSourceBintr->GetGstObject() != NULL );
-                REQUIRE( pSourceBintr->GetVideoRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
                 REQUIRE( pSourceBintr->IsInUse() == false );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
                 
                 std::string retOriginalName = pSourceBintr->GetOriginal();
                 REQUIRE( retOriginalName == originalSourceName);

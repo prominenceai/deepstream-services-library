@@ -61,11 +61,12 @@ THE SOFTWARE.
 #define DSL_RESULT_COMPONENT_SET_NVBUF_MEM_TYPE_FAILED              0x0001000A
 #define DSL_RESULT_COMPONENT_GET_QUEUE_PROPERTY_FAILED              0x0001000B
 #define DSL_RESULT_COMPONENT_SET_QUEUE_PROPERTY_FAILED              0x0001000C
-#define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000D
-#define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000E
-#define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x0001000F
-#define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010010
-#define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010011
+#define DSL_RESULT_COMPONENT_SET_MEDIA_TYPE_FAILED                  0x0001000D
+#define DSL_RESULT_COMPONENT_CALLBACK_ADD_FAILED                    0x0001000E
+#define DSL_RESULT_COMPONENT_CALLBACK_REMOVE_FAILED                 0x0001000F
+#define DSL_RESULT_COMPONENT_ELEMENT_ADD_FAILED                     0x00010010
+#define DSL_RESULT_COMPONENT_ELEMENT_REMOVE_FAILED                  0x00010011
+#define DSL_RESULT_COMPONENT_ELEMENT_NOT_IN_USE                     0x00010012
 
 /**
  * Source API Return Values
@@ -573,9 +574,40 @@ THE SOFTWARE.
 #define DSL_MEDIA_STRING_AUDIO_XRAW                                 L"audio/x-raw"
 #define DSL_MEDIA_STRING_VIDEO_XRAW                                 L"video/x-raw"
 
-#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0
-#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   1
-#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  2
+/**
+ * @brief DSL Supported Media Types for all Pipelines and Components
+ */
+#define DSL_MEDIA_TYPE_AUDIO_ONLY                                   0x00000001
+#define DSL_MEDIA_TYPE_VIDEO_ONLY                                   0x00000010
+#define DSL_MEDIA_TYPE_AUDIO_VIDEO                                  0x00000011
+
+/**
+ * @brief Default Media Support for all new Pipelines.
+ */
+#define DSL_DEFAULT_PIPELINE_MEDIA_TYPE                             DSL_MEDIA_TYPE_VIDEO_ONLY
+
+/**
+ * @brief DSL Audio Format Types - Used by all Audio Source Components
+ */
+#define DSL_AUDIO_FORMAT_S16LE                                      L"S16LE"
+#define DSL_AUDIO_FORMAT_F32LE                                      L"F32LE"
+#define DSL_AUDIO_FORMAT_DEFAULT                                    DSL_AUDIO_FORMAT_F32LE
+
+/**
+ * @brief DSL Default Audio Resample Rate in Hz - Used by all Audio Source Components
+ */
+#define DSL_AUDIO_RESAMPLE_RATE_DEFAULT                             44100
+
+/**
+ * @brief DSL Audio Buffer Layout Types - Used by all Audio Source Components
+ */
+#define DSL_AUDIO_LAYOUT_INTERLEAVED                                L"interleaved"
+#define DSL_AUDIO_LAYOUT_NON_INTERLEAVED                            L"non-interleaved"
+
+/**
+ * @brief DSL Default Audio Buffer Layout - Used by all Audio Source Components
+ */
+#define DSL_AUDIO_LAYOUT_DEFAULT                                    DSL_AUDIO_LAYOUT_INTERLEAVED
 
 /**
  * @brief DSL Video Format Types - Used by all Video Source Components
@@ -5443,13 +5475,44 @@ DslReturnType dsl_source_pph_add(const wchar_t* name, const wchar_t* handler);
 DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler);
 
 /**
- * @brief Gets the media type for the named Source component.
+ * @brief Gets the current buffer-out-format for the named Audio Source.
  * @param name unique name of the Source Component to query.
- * @param[out] media_type one of the DSL_MEDIA_TYPE constant values. 
+ * @param[out] format current buffer-out-format. One of the DSL_AUDIO_FORMAT
+ * constant string values. Default = DSL_AUDIO_FORMAT_DEFAULT.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    uint* media_type);
+DslReturnType dsl_source_audio_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format);
+
+/**
+ * @brief Sets the buffer-out-format for the named Audio Source to use.
+ * @param name unique name of the Source Component to query.
+ * @param[in] format new buffer-out-format to use. One of the DSL_AUDIO_FORMAT
+ * constant string values.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format);
+
+/**
+ * @brief Returns the sample-rate for the named Audio Source.
+ * The default value of 0 indicates no resampling.
+ * @param[in] name unique name of the source to query.
+ * @param[out] rate current sample-rate in Hz.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_sample_rate_get(const wchar_t* name, 
+    uint* rate);
+
+/**
+ * @brief Sets the sample-rate for the named Video Source.
+ * Set the sample-rate to 0 indicate no resampling.
+ * @param[in] name unique name of the source to update.
+ * @param[in] rate new sample-rate in Hz.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_audio_buffer_out_sample_rate_set(const wchar_t* name, 
+    uint rate);
 
 /**
  * @brief Gets the current buffer-out-format for the named Video Source.
@@ -8555,6 +8618,47 @@ DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
     int brightness, int contrast, int saturation);
    
 /**
+ * @brief Creates a new, uniquely named ALSA Sink that streams to a ALSA compatible
+ * device.
+ * @param[in] name unique component name for the new ALSA Sink
+ * @param[in] device_location device-location setting for the ALSA Sink. Set value 
+ * to "default" to use default sound device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ */
+DslReturnType dsl_sink_alsa_new(const wchar_t* name, 
+    const wchar_t* device_location);
+
+/**
+ * @brief Gets the device location setting for the named ALSA Sink.
+ * @param[in] name unique name of the ALSA Sink to query.
+ * @param[out] device_location current device location setting. Default value is 
+ * set to "default" for the default sound device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_alsa_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+    
+/**
+ * @brief Sets the device location setting for the named ALSA Sink. 
+ * @param[in] name unique name of the ALSA Sink to update.
+ * @param[in] device_location new device location setting to use. Set value 
+ * to "default" to use default sound device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_alsa_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+    
+/**
+ * @brief Gets the device name setting for the named ALSA Sink.
+ * @param[in] name unique name of the ALSA Sink to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the ALSA Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ */
+DslReturnType dsl_sink_alsa_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+
+/**
  * @brief Gets the current "sync" enabled setting for the named Sink. If enabled
  * the Sink will synchronize on the clock.
  * @param[in] name unique name of the Sink to query
@@ -8738,6 +8842,34 @@ DslReturnType dsl_component_delete_all();
  * @return size of the list of components
  */
 uint dsl_component_list_size();
+
+/**
+ * @brief Gets the media type for the named Component.
+ * @param name unique name of the Component to query.
+ * @param[out] media_type one of the DSL_MEDIA_TYPE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_component_media_type_get(const wchar_t* name, uint* media_type);
+
+/**
+ * @brief Sets the media type for the named Component.
+ * @param name unique name of the Component to update.
+ * @param[in] media_type one of the DSL_MEDIA_TYPE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @note See the documentation for each component type to determine which
+ * media-types is supported.
+ */
+DslReturnType dsl_component_media_type_set(const wchar_t* name, uint media_type);
+
+/**
+ * @brief Sets the media type for null terminated list of named Components.
+ * @param names null terminated list of named Components to update.
+ * @param[in] media_type one of the DSL_MEDIA_TYPE constant values. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ * @note See the documentation for each component type to determine which
+ * media-types are supported.
+ */
+DslReturnType dsl_component_media_type_set_many(const wchar_t** names, uint media_type);
 
 /**
  * @brief Gets the queue-current-level by unit (buffers, bytes, or time) for the 

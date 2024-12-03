@@ -95,7 +95,7 @@ namespace DSL
             m_usedRequestPadIds.push_back(true);
         }
         // Set the branches unique id to the available stream-id
-        pChildComponent->SetVideoRequestPadId(padId);
+        pChildComponent->SetRequestPadId(padId);
 
         // Add the branch to the Tees collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
@@ -207,7 +207,7 @@ namespace DSL
             LOG_INFO("MultiBranchesBintr '" << GetName() << "' is in the state '" 
                 << currentState << "' while removing branch '" 
                 << pChildComponent->GetName() 
-                << "' from stream-id = " << pChildComponent->GetVideoRequestPadId());
+                << "' from stream-id = " << pChildComponent->GetRequestPadId());
                 
             if (currentState == GST_STATE_PLAYING)
             {
@@ -276,12 +276,12 @@ namespace DSL
         }
         // unreference and remove from the child-branch collections
         m_pChildBranches.erase(pChildComponent->GetName());
-        m_pChildBranchesIndexed.erase(pChildComponent->GetVideoRequestPadId());
+        m_pChildBranchesIndexed.erase(pChildComponent->GetRequestPadId());
         
         // set the used-stream id as available for reuse and clear the 
         // stream-id (id property) for the child-branch
-        m_usedRequestPadIds[pChildComponent->GetVideoRequestPadId()] = false;
-        pChildComponent->SetVideoRequestPadId(-1);
+        m_usedRequestPadIds[pChildComponent->GetRequestPadId()] = false;
+        pChildComponent->SetRequestPadId(-1);
         
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildComponent);
@@ -370,7 +370,30 @@ namespace DSL
         }
         return Bintr::SetBatchSize(batchSize);
     }
-    
+
+    bool MultiBranchesBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for BranchBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if (GetNumChildren() > 0)
+        {
+            LOG_ERROR("Cant update media-type for BranchBintr '" 
+                << GetName() << "' as it is currently has child components");
+            return false;
+        }
+        if (m_mediaType == mediaType)
+        {
+            // noting to update - can be normal case for this bintr
+            return true;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
+
     //--------------------------------------------------------------------------------
 
     MultiSinksBintr::MultiSinksBintr(const char* name)
@@ -393,6 +416,98 @@ namespace DSL
         LOG_INFO("      time          : " << m_minThresholdTime);
     }
     
+    
+    //--------------------------------------------------------------------------------
+
+    DemuxedSinksBintr::DemuxedSinksBintr(const char* name)
+        : MultiBranchesBintr(name, "tee")
+    {
+        LOG_FUNC();
+
+        // Demuxer element to convert format from audio/x-raw(NVMM) to audio/x-raw 
+        m_pDemuxer = DSL_ELEMENT_NEW("nvstreamdemux", name);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for DemuxedSinksBintr '" << name << "'");
+        LOG_INFO("  blocking-timeout  : " << m_blockingTimeout);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
+
+        AddChild(m_pDemuxer);
+    }
+    
+    bool DemuxedSinksBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("DemuxedSinksBintr '" << GetName() 
+                << "' is already linked");
+            return false;
+        }
+
+        m_pQueue->LinkToSink(m_pDemuxer);
+        m_pTee->LinkToSourceTee(m_pDemuxer, "src_0");
+
+        for (auto const& imap: m_pChildBranchesIndexed)
+        {
+            // Propagate the link method and batch size to the Child Component
+            imap.second->SetLinkMethod(m_linkMethod);
+            imap.second->SetBatchSize(m_batchSize);
+            
+            // link back upstream to the Tee, the src for this Child Component 
+            if (!imap.second->LinkAll() or 
+                !imap.second->LinkToSourceTee(m_pTee, "src_%u"))
+            {
+                LOG_ERROR("DemuxedSinksBintr '" << GetName() 
+                    << "' failed to Link Child Component '" 
+                    << imap.second->GetName() << "'");
+                return false;
+            }
+        }
+        m_isLinked = true;
+        return true;
+    }
+
+    void DemuxedSinksBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+        
+        if (!m_isLinked)
+        {
+            LOG_ERROR("DemuxedSinksBintr '" << GetName() << "' is not linked");
+            return;
+        }
+        for (const auto& imap: m_pChildBranchesIndexed)
+        {
+            // unlink from the Tee Element
+            LOG_INFO("Unlinking " << m_pTee->GetName() << " from '" 
+                << imap.second->GetName() << "'");
+            if (!imap.second->UnlinkFromSourceTee())
+            {
+                LOG_ERROR("DemuxedSinksBintr '" << GetName() 
+                    << "' failed to Unlink Child Component '" 
+                    << imap.second->GetName() << "'");
+                return;
+            }
+            // unink all of the ChildComponent's Elementrs and reset the unique Id
+            imap.second->UnlinkAll();
+        }
+        m_pQueue->UnlinkFromSink();
+        m_pTee->UnlinkFromSourceTee();
+        
+        m_isLinked = false;
+    }
+
     //--------------------------------------------------------------------------------
 
     SplitterBintr::SplitterBintr(const char* name)
@@ -588,7 +703,7 @@ namespace DSL
         LOG_FUNC();
 
         // Set the branches unique id to the available stream-id
-        pChildComponent->SetVideoRequestPadId(streamId);
+        pChildComponent->SetRequestPadId(streamId);
 
         // Add the branch to the Demuxers collection of children mapped by name 
         m_pChildBranches[pChildComponent->GetName()] = pChildComponent;
@@ -728,7 +843,7 @@ namespace DSL
             // link back upstream to the Tee, the src for this Child Component 
             if (!imap.second->LinkAll() or 
                 !imap.second->LinkToSourceTee(m_pTee, 
-                    m_requestedSrcPads[imap.second->GetVideoRequestPadId()]))
+                    m_requestedSrcPads[imap.second->GetRequestPadId()]))
             {
                 LOG_ERROR("DemuxerBintr '" << GetName() 
                     << "' failed to Link Child Component '" 
@@ -792,4 +907,23 @@ namespace DSL
         m_maxBranches = maxBranches;
         return true;
     }
+
+    bool DemuxerBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for DemuxerBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if ((mediaType != DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (mediaType != DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_ERROR("Can't update media-type for DemuxerBintr '" 
+                << GetName() << "' with invalid type = " << mediaType);
+            return false;
+        }
+        m_mediaType = mediaType;
+        return true;
+    }    
 }

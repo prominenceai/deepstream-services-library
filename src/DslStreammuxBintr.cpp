@@ -34,6 +34,7 @@ namespace DSL
         GstObject* parentBin, uint uniquePipelineId, const char* ghostPadName)
         : Bintr(name, parentBin)
         , m_uniquePipelineId(uniquePipelineId)
+        , m_ghostPadName(ghostPadName)
         , m_areSourcesLive(false)
         , m_batchSizeSetByClient(false)
         , m_frameDuration(-1)   // workaround for nvidia bug
@@ -129,6 +130,16 @@ namespace DSL
     StreammuxBintr::~StreammuxBintr()
     {
         LOG_FUNC();
+
+        m_pStreammux->RemoveGhostPadFromParent(m_ghostPadName.c_str());
+
+        // If the unqiue pipeline-id is greater than 0, then we need to remove the
+        // SourceIdOffsetterPadProbeHandler
+        if (m_uniquePipelineId > 0)
+        {
+            m_pSrcPadBufferProbe->RemovePadProbeHandler(m_pSourceIdOffsetter);
+            m_pSourceIdOffsetter = nullptr;
+        }
     }
 
     bool StreammuxBintr::LinkAll()

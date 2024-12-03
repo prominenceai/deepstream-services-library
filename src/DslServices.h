@@ -823,14 +823,14 @@ namespace DSL {
         DslReturnType SourceV4l2DeviceLocationSet(const char* name, 
             const char* deviceLocation);
         
+        DslReturnType SourceV4l2DeviceNameGet(const char* name, 
+            const char** deviceName);
+
         DslReturnType SourceV4l2DimensionsSet(const char* name, 
             uint width, uint height);
 
         DslReturnType SourceV4l2FrameRateSet(const char* name, 
             uint fps_n, uint fps_d);
-
-        DslReturnType SourceV4l2DeviceNameGet(const char* name, 
-            const char** deviceName);
 
         DslReturnType SourceV4l2DeviceFdGet(const char* name, 
             int* deviceFd);
@@ -915,8 +915,17 @@ namespace DSL {
 
         DslReturnType SourcePphRemove(const char* name, const char* handler);
 
-        DslReturnType SourceMediaTypeGet(const char* name, 
-            uint* mediaType);
+        DslReturnType SourceAudioBufferOutFormatGet(const char* name, 
+            const char** format);
+
+        DslReturnType SourceAudioBufferOutFormatSet(const char* name, 
+            const char* format);
+            
+        DslReturnType SourceAudioBufferOutSampleRateGet(const char* name, 
+            uint* rate);
+
+        DslReturnType SourceAudioBufferOutSampleRateSet(const char* name, 
+            uint rate);
 
         DslReturnType SourceVideoBufferOutFormatGet(const char* name, 
             const char** format);
@@ -1646,6 +1655,17 @@ namespace DSL {
         DslReturnType SinkV4l2PictureSettingsSet(const char* name, 
             int brightness, int contrast, int saturation);
 
+        DslReturnType SinkAlsaNew(const char* name, const char* deviceLocation);
+
+        DslReturnType SinkAlsaDeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SinkAlsaDeviceLocationSet(const char* name, 
+            const char* deviceLocation);
+
+        DslReturnType SinkAlsaDeviceNameGet(const char* name, 
+            const char** deviceName);
+
         DslReturnType SinkSyncEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType SinkSyncEnabledSet(const char* name, boolean enabled);
@@ -1729,6 +1749,12 @@ namespace DSL {
         DslReturnType ComponentDeleteAll();
         
         uint ComponentListSize();
+
+        DslReturnType ComponentMediaTypeGet(const char* name, 
+            uint* mediaType);
+
+        DslReturnType ComponentMediaTypeSet(const char* name, 
+            uint mediaType);
 
         DslReturnType ComponentQueueCurrentLevelGet(const char* name, 
             uint unit, uint64_t* currentLevel);

@@ -34,6 +34,8 @@ namespace DSL
         uint uniquePipelineId)
         : Bintr(name)
         , m_uniquePipelineId(uniquePipelineId)
+        , m_numAudioSources(0)
+        , m_numVideoSources(0)
         , m_areSourcesLive(false)
     {
         LOG_FUNC();
@@ -88,6 +90,16 @@ namespace DSL
             return false;
         }
 
+        // Update the number of chile Sources based on media type.
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            m_numAudioSources++;
+        }
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            m_numVideoSources++;
+        }
+
         // Ensure source uniqueness
         if (IsChild(pChildSource))
         {
@@ -112,23 +124,23 @@ namespace DSL
         uint padId(0);
         
         // find the next available unused stream-id
-        auto ivec = find(pVideomux->m_usedRequestPadIds.begin(), 
-            pVideomux->m_usedRequestPadIds.end(), false);
+        auto ivec = find(m_usedRequestPadIds.begin(), 
+            m_usedRequestPadIds.end(), false);
         
         // If we're inserting into the location of a previously remved source
-        if (ivec != pVideomux->m_usedRequestPadIds.end())
+        if (ivec != m_usedRequestPadIds.end())
         {
-            padId = ivec - pVideomux->m_usedRequestPadIds.begin();
-            pVideomux->m_usedRequestPadIds[padId] = true;
+            padId = ivec - m_usedRequestPadIds.begin();
+            m_usedRequestPadIds[padId] = true;
         }
         // Else we're adding to the end of th indexed map
         else
         {
-            padId = pVideomux->m_usedRequestPadIds.size();
-            pVideomux->m_usedRequestPadIds.push_back(true);
+            padId = m_usedRequestPadIds.size();
+            m_usedRequestPadIds.push_back(true);
         }            
         // Set the source's request sink pad-id
-        pChildSource->SetVideoRequestPadId(padId);
+        pChildSource->SetRequestPadId(padId);
 
         // Set the sources unique id by shifting/or-ing the unique pipeline-id
         // with the source's pad-id -- combined, they are gauranteed to be unique.
@@ -154,27 +166,15 @@ namespace DSL
             return false;
         }
         
-        // If the Pipeline is currently in a linked state, Set child source 
-        // Id to the next available, linkAll Elementrs now and Link to the 
-        // Stream-muxer
+        // If the Pipeline is currently in a linked state, linkAll Elementrs now and
+        // link to the Video and/or Audio Streammuxers
         if (IsLinked())
         {
-            std::string sinkPadName = "sink_" + std::to_string(padId);
-            
-            if (!pChildSource->LinkAll() or 
-                !pChildSource->LinkToSinkMuxer(pVideomux->Get(),
-                sinkPadName.c_str()))
+            if (!pChildSource->LinkAll() or
+                !LinkChildToSinkMuxers(pChildSource))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Link Child Source '" 
-                    << pChildSource->GetName() << "'");
                 return false;
             }
-            if (!pVideomux->m_batchSizeSetByClient)
-            {
-                // Increment the current batch-size
-                m_batchSize++;
-            }            
             // Sink up with the parent state
             return gst_element_sync_state_with_parent(pChildSource->GetGstElement());
         }
@@ -211,38 +211,39 @@ namespace DSL
 
         if (IsLinked())
         {
-            LOG_INFO("Unlinking " << &pVideomux->GetName() << " from " 
+            LOG_INFO("Unlinking " << &m_pVideomux->GetName() << " from " 
                 << pChildSource->GetName());
                 
-            // unlink the source from the Streammuxer
-            if (!pChildSource->UnlinkFromSinkMuxer())
+            // unlink the source from the Streammuxers
+            if (!UnlinkChildFromSinkMuxers(pChildSource))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Unlink Child Source '" 
-                    << pChildSource->GetName() << "'");
                 return false;
             }
             // unlink all of the ChildSource's Elementrs
             pChildSource->UnlinkAll();
-
-            if (!pVideomux->m_batchSizeSetByClient)
-            {
-                // Decrement the current batch-size
-                m_batchSize--;
-            }
         }
         // Erase the Source the source from the name<->unique-id database.
         Services::GetServices()->_sourceNameErase(pChildSource->GetCStrName());
         
         // unreference and remove from the child source collections
         m_pChildSources.erase(pChildSource->GetName()); 
-        m_pChildSourcesIndexed.erase(pChildSource->GetVideoRequestPadId());
+        m_pChildSourcesIndexed.erase(pChildSource->GetRequestPadId());
 
         // set the used-stream id as available for reuse
-        pVideomux->m_usedRequestPadIds[pChildSource->GetVideoRequestPadId()] = false;
-        pChildSource->SetVideoRequestPadId(-1);
+        m_usedRequestPadIds[pChildSource->GetRequestPadId()] = false;
+        pChildSource->SetRequestPadId(-1);
         pChildSource->SetUniqueId(-1);
-        
+
+        // Update the number of child Sources based on media type.
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            m_numAudioSources--;
+        }
+        if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            m_numVideoSources--;
+        }
+
         // call the base function to complete the remove
         return Bintr::RemoveChild(pChildSource);
     }
@@ -260,22 +261,15 @@ namespace DSL
         
         for (auto const& imap: m_pChildSourcesIndexed)
         {
-            std::string sinkPadName = 
-                "sink_" + std::to_string(imap.second->GetVideoRequestPadId());
-            
-            if (!imap.second->LinkAll() or 
-                !imap.second->LinkToSinkMuxer(pVideomux->Get(),
-                    sinkPadName.c_str()))
+            if (!imap.second->LinkAll() or
+                !LinkChildToSinkMuxers(imap.second))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Link Child Source '" 
-                    << imap.second->GetName() << "'");
                 return false;
             }
             // If we're linking an RTSP Source, determine if EOS consumer 
             // should be added to Streammuxer
             if (imap.second->IsType(typeid(RtspSourceBintr)) 
-                and !pVideomux->HasEosConsumer())
+                and !m_pVideomux->HasEosConsumer())
             {
                 DSL_RTSP_SOURCE_PTR pRtspSource = 
                     std::dynamic_pointer_cast<RtspSourceBintr>(imap.second);
@@ -291,17 +285,18 @@ namespace DSL
                     // to play. Each RTSP source will then manage their own restart 
                     // attempts and time management.
 
-                    pVideomux->AddEosConsumer();
+                    if (GetStreammuxEnabled(DSL_AUDIOMUX))
+                    {
+                        m_pAudiomux->AddEosConsumer();    
+                    }
+                    if (GetStreammuxEnabled(DSL_VIDEOMUX))
+                    {
+                        m_pVideomux->AddEosConsumer();
+                    }
                 }
             }
-
         }
-        // Set the Batch size to the nuber of sources owned if not already set
-        if (!pVideomux->m_batchSizeSetByClient)
-        {
-            m_batchSize = m_pChildSources.size();
-            pVideomux->Get()->SetAttribute("batch-size", m_batchSize);
-        }
+        SetBatchSizes();
         m_isLinked = true;
         
         return true;
@@ -318,25 +313,130 @@ namespace DSL
         }
         for (auto const& imap: m_pChildSources)
         {
-            // unlink from the Streammuxer
-            LOG_INFO("Unlinking " << &pVideomux->GetName() 
-                << " from " << imap.second->GetName());
-            if (!imap.second->UnlinkFromSinkMuxer())
-            {   
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to Unlink Child Source '" << imap.second->GetName() << "'");
+            if (!UnlinkChildFromSinkMuxers(imap.second))
+            {
                 return;
             }
             
             // unlink all of the ChildSource's Elementrs
             imap.second->UnlinkAll();
         }
-        // Set the Batch size to the nuber of sources owned if not already set
-        if (!pVideomux->m_batchSizeSetByClient)
-        {
-            m_batchSize = 0;
-        }
+        ClearBatchSizes();
         m_isLinked = false;
+    }
+
+    void PipelineSourcesBintr::SetBatchSizes()
+    {
+        LOG_FUNC();
+
+            // Set the Batch size to the nuber of sources owned if not already set
+        if (m_pAudiomux)
+        {
+            if (!m_pAudiomux->m_batchSizeSetByClient)
+            {
+                m_audioBatchSize = m_numAudioSources;
+                m_pAudiomux->Get()->SetAttribute("batch-size", m_audioBatchSize);
+            }
+            else
+            {
+                m_audioBatchSize = m_pAudiomux->GetBatchSize();
+            }
+        }
+        if (m_pVideomux)
+        {
+            if (!m_pVideomux->m_batchSizeSetByClient)
+            {
+                m_videoBatchSize = m_numVideoSources;
+                m_pVideomux->Get()->SetAttribute("batch-size", m_videoBatchSize);
+            }
+            else
+            {
+                m_videoBatchSize = m_pVideomux->GetBatchSize();
+            }
+        }
+    }
+
+    void PipelineSourcesBintr::ClearBatchSizes()
+    {
+        LOG_FUNC();
+
+        m_audioBatchSize = 0;
+        m_videoBatchSize = 0;
+    }
+
+    bool PipelineSourcesBintr::LinkChildToSinkMuxers(DSL_SOURCE_PTR pChildSource)
+    {
+        LOG_FUNC();
+        
+        std::string sinkPadName = 
+            "sink_" + std::to_string(pChildSource->GetRequestPadId());
+
+        // If the Source supports Audio and the Audio Streammux is enabled 
+        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
+            GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            if (!pChildSource->LinkToSinkMuxer(m_pAudiomux->Get(),
+                "audio_src", sinkPadName.c_str()))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to link audio for Child Source '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+        }
+        // If the Source supports Video and the Vidio Streammux is enabled 
+        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+            GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            if (!pChildSource->LinkToSinkMuxer(m_pVideomux->Get(),
+                "video_src", sinkPadName.c_str()))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to link video for Child Source '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool PipelineSourcesBintr::UnlinkChildFromSinkMuxers(DSL_SOURCE_PTR pChildSource)
+    {
+        LOG_FUNC();
+        
+        // If the Source supports Audio and the Audio Streammux is enabled 
+        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
+            GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            LOG_INFO("Unlinking child Source '" << pChildSource->GetName() 
+                << "' from AudioMuxer");
+
+            if (!pChildSource->UnlinkFromSinkMuxer(m_pAudiomux->Get(),
+                "audio_src"))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to unlink audio for Child Source '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+        }
+        // If the Source supports Video and the Vidio Streammux is enabled 
+        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+            GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            LOG_INFO("Unlinking child Source '" << pChildSource->GetName() 
+                << "' from VideoMuxer");
+                
+            if (!pChildSource->UnlinkFromSinkMuxer(m_pVideomux->Get(),
+                "video_src"))
+            {
+                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                    << "' failed to unlink video for Child Source '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+        }
+        return true;
     }
 
     boolean PipelineSourcesBintr::GetStreammuxEnabled(streammux_type streammux)
@@ -344,8 +444,8 @@ namespace DSL
         LOG_FUNC();
 
         DSL_STREAMMUX_PTR pStreammux = (streammux == DSL_VIDEOMUX)
-            ? pVideomux
-            : pAudiomux;
+            ? m_pVideomux
+            : m_pAudiomux;
     
         return (boolean)(pStreammux != nullptr);
     }
@@ -362,8 +462,8 @@ namespace DSL
             return false;
         }
         DSL_STREAMMUX_PTR pStreammux = (streammux == DSL_VIDEOMUX)
-            ? pVideomux
-            : pAudiomux;
+            ? m_pVideomux
+            : m_pAudiomux;
 
         if (enabled == (boolean)(pStreammux != nullptr))
         {
@@ -373,18 +473,31 @@ namespace DSL
         }
         if (streammux == DSL_VIDEOMUX)
         {
-            pVideomux = (enabled)
-                ? DSL_STREAMMUX_NEW("video-streammux-", 
+            m_pVideomux = (enabled)
+                ? DSL_STREAMMUX_NEW("video-streammux", 
                     GetGstObject(), m_uniquePipelineId, "video_src")
                 : nullptr;
         }
         else
         {
-            pAudiomux = (enabled)
-                ? DSL_STREAMMUX_NEW("audio-streammux-", 
+            m_pAudiomux = (enabled)
+                ? DSL_STREAMMUX_NEW("audio-streammux", 
                     GetGstObject(), m_uniquePipelineId, "audio_src")
                 : nullptr;
         }
+
+        // Update the media-type based on the enabled state of both muxers.
+        uint mediaType = 0;
+        if (m_pVideomux)
+        {
+            mediaType = mediaType | DSL_MEDIA_TYPE_VIDEO_ONLY;
+        }
+        if (m_pAudiomux)
+        {
+            mediaType = mediaType | DSL_MEDIA_TYPE_AUDIO_ONLY;
+        }
+        m_mediaType = mediaType;
+        
         return true;
     }
 
@@ -410,11 +523,11 @@ namespace DSL
 
         if (GetStreammuxEnabled(DSL_AUDIOMUX))
         {
-            pAudiomux->PlayTypeIsLiveSet(isLive);    
+            m_pAudiomux->PlayTypeIsLiveSet(isLive);    
         }
         if (GetStreammuxEnabled(DSL_VIDEOMUX))
         {
-            pVideomux->PlayTypeIsLiveSet(isLive);
+            m_pVideomux->PlayTypeIsLiveSet(isLive);
         }
         return true;
     }
@@ -427,9 +540,21 @@ namespace DSL
         for (auto const& imap: m_pChildSources)
         {
             LOG_INFO("Sending EOS for Source "  << imap.second->GetName());
-            imap.second->NullSrcEosSinkMuxer();
+            
             // gst_element_send_event(imap.second->GetGstElement(), 
             //     gst_event_new_eos());
+            // If the Source supports Video and the Vidio Streammux is enabled 
+            if ((imap.second->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
+                GetStreammuxEnabled(DSL_VIDEOMUX))
+            {
+                imap.second->NullSrcEosSinkMuxer("video_src");
+            }
+            // If the Source supports Audio and the Audio Streammux is enabled 
+            if ((imap.second->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
+                GetStreammuxEnabled(DSL_AUDIOMUX))
+            {
+                imap.second->NullSrcEosSinkMuxer("audio_src");
+            }
         }
     }
 
@@ -443,7 +568,14 @@ namespace DSL
         }
         // Call on the Streammuxer to do the same.
 
-        pVideomux->RemoveEosConsumer();
+        if (GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            m_pAudiomux->RemoveEosConsumer();    
+        }
+        if (GetStreammuxEnabled(DSL_VIDEOMUX))
+        {
+            m_pVideomux->RemoveEosConsumer();
+        }
     }
 
 

@@ -213,6 +213,36 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(AppSourceBintr)) and  \
+        !components[name]->IsType(typeid(CsiSourceBintr)) and  \
+        !components[name]->IsType(typeid(V4l2SourceBintr)) and  \
+        !components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(MultiImageSourceBintr)) and  \
+        !components[name]->IsType(typeid(ImageStreamSourceBintr)) and  \
+        !components[name]->IsType(typeid(InterpipeSourceBintr)) and  \
+        !components[name]->IsType(typeid(RtspSourceBintr)) and \
+        !components[name]->IsType(typeid(DuplicateSourceBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(FileSourceBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not an Audio Source"); \
+        return DSL_RESULT_SOURCE_COMPONENT_IS_NOT_SOURCE; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_IMAGE_SOURCE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(SingleImageSourceBintr)) and  \
@@ -335,6 +365,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(AlsaSinkBintr)) and \
         !components[name]->IsType(typeid(DemuxerBintr)) and \
         !components[name]->IsType(typeid(SplitterBintr)) and \
         !components[name]->IsType(typeid(BranchBintr))) \
@@ -374,6 +405,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(AlsaSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr))) \
     { \
@@ -397,6 +429,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(AlsaSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr))) \
@@ -451,6 +484,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(AlsaSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(CustomBintr))) \
@@ -501,6 +535,7 @@ THE SOFTWARE.
         !components[name]->IsType(typeid(RtspServerSinkBintr)) and \
         !components[name]->IsType(typeid(MessageSinkBintr)) and \
         !components[name]->IsType(typeid(V4l2SinkBintr)) and \
+        !components[name]->IsType(typeid(AlsaSinkBintr)) and \
         !components[name]->IsType(typeid(InterpipeSinkBintr)) and \
         !components[name]->IsType(typeid(MultiImageSinkBintr)) and \
         !components[name]->IsType(typeid(WebRtcSinkBintr)) and \

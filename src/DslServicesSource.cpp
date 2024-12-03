@@ -2091,35 +2091,6 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::SourceMediaTypeGet(const char* name, 
-        uint* mediaType)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
-
-        try
-        {
-            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
-            
-            DSL_SOURCE_PTR pSourceBintr = 
-                std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
-         
-            *mediaType = pSourceBintr->GetMediaType();
-
-            LOG_INFO("Source '" << name << "' returned media-type = " 
-                << *mediaType << " successfully");
-
-            return DSL_RESULT_SUCCESS;
-        }
-        catch(...)
-        {
-            LOG_ERROR("Source '" << name 
-                << "' threw exception getting media-type");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
-        }
-    }                
-
     DslReturnType Services::SourceVideoBufferOutFormatGet(const char* name, 
         const char** format)
     {
@@ -2134,7 +2105,7 @@ namespace DSL
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            *format = pSourceBintr->GetBufferOutFormat();
+            *format = pSourceBintr->GetVideoBufferOutFormat();
 
             LOG_INFO("Source '" << name << "' returned buffer-out-format = " 
                 << *format << " successfully");
@@ -2163,7 +2134,7 @@ namespace DSL
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            if (!pSourceBintr->SetBufferOutFormat(format))
+            if (!pSourceBintr->SetVideoBufferOutFormat(format))
             {
                 LOG_ERROR("Failed to set buffer-out-format = " << format 
                     << " for Source '" << name << "'");
@@ -2183,6 +2154,132 @@ namespace DSL
         }
     }                
 
+    DslReturnType Services::SourceAudioBufferOutFormatGet(const char* name, 
+        const char** format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, name);
+            
+            DSL_AUDIO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[name]);
+         
+            *format = pSourceBintr->GetAudioBufferOutFormat();
+
+            LOG_INFO("Source '" << name << "' returned buffer-out-format = " 
+                << *format << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Source '" << name 
+                << "' threw exception getting buffer-out-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceAudioBufferOutFormatSet(const char* name, 
+        const char* format)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, name);
+            
+            DSL_AUDIO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[name]);
+         
+            if (!pSourceBintr->SetAudioBufferOutFormat(format))
+            {
+                LOG_ERROR("Failed to set buffer-out-format = " << format 
+                    << " for Audio Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Audio Source '" << name << "' set buffer-out-format = " 
+                << format << " successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Audio Source '" << name 
+                << "' threw exception setting buffer-out-format");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceAudioBufferOutSampleRateGet(const char* name, 
+        uint* rate)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, name);
+            
+            DSL_AUDIO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[name]);
+         
+            *rate = pSourceBintr->GetAudioBufferOutSampleRate();
+
+            LOG_INFO("Audio Source '" << name << "' returned rate = " 
+                << *rate <<  " for buffer-out-sample-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Audio Source '" << name 
+                << "' threw exception getting buffer-out-sample-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
+    DslReturnType Services::SourceAudioBufferOutSampleRateSet(const char* name, 
+        uint rate)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, name);
+            
+            DSL_AUDIO_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetAudioBufferOutSampleRate(rate))
+            {
+                LOG_ERROR("Failed to set buffer-out-sample-rate = " 
+                    << rate << " for Audio Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+
+            LOG_INFO("Audio Source '" << name << "' set rate = " 
+                << rate << " for buffer-out-sample-rate successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Audio Source '" << name 
+                << "' threw exception setting buffer-out-sample-rate");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }                
+
     DslReturnType Services::SourceVideoBufferOutDimensionsGet(const char* name, 
         uint* width, uint* height)
     {
@@ -2192,14 +2289,14 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            pSourceBintr->GetBufferOutDimensions(width, height);
+            pSourceBintr->GetVideoBufferOutDimensions(width, height);
 
-            LOG_INFO("Source '" << name << "' returned width = " 
+            LOG_INFO("Video Source '" << name << "' returned width = " 
                 << *width << " and height = " << *height 
                 << " for buffer-out-dimensions successfully");
 
@@ -2207,7 +2304,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
+            LOG_ERROR("Video Source '" << name 
                 << "' threw exception getting buffer-out-dimensions");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
@@ -2222,20 +2319,20 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            if (!pSourceBintr->SetBufferOutDimensions(width, height))
+            if (!pSourceBintr->SetVideoBufferOutDimensions(width, height))
             {
                 LOG_ERROR("Failed to set buffer-out-dimensions to width = " 
                     << width << " and height = " << height  
-                    << " for Source '" << name << "'");
+                    << " for Video Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("Source '" << name << "' set width = " 
+            LOG_INFO("Video Source '" << name << "' set width = " 
                 << width << " and height = " << height 
                 << " for buffer-out-dimensions successfully");
 
@@ -2243,8 +2340,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
-                << "' threw exception getting buffer-out-dimensions");
+            LOG_ERROR("Video Source '" << name 
+                << "' threw exception setting buffer-out-dimensions");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }                
@@ -2258,14 +2355,14 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            pSourceBintr->GetBufferOutFrameRate(fps_n, fps_d);
+            pSourceBintr->GetVideoBufferOutFrameRate(fps_n, fps_d);
 
-            LOG_INFO("Source '" << name << "' returned fps_n = " 
+            LOG_INFO("Video Source '" << name << "' returned fps_n = " 
                 << *fps_n << " and fps_d = " << *fps_d 
                 << " for buffer-out-frame-rate successfully");
 
@@ -2273,7 +2370,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
+            LOG_ERROR("Video Source '" << name 
                 << "' threw exception getting buffer-out-frame-rate");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
@@ -2288,20 +2385,20 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
 
-            if (!pSourceBintr->SetBufferOutFrameRate(fps_n, fps_d))
+            if (!pSourceBintr->SetVideoBufferOutFrameRate(fps_n, fps_d))
             {
                 LOG_ERROR("Failed to set buffer-out-frame-rate to fps_n = " 
                     << fps_n << " and fps_d = " << fps_d  
-                    << " for Source '" << name << "'");
+                    << " for Video Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("Source '" << name << "' set fps_n = " 
+            LOG_INFO("Video Source '" << name << "' set fps_n = " 
                 << fps_n << " and fps_d = " << fps_d 
                 << " for buffer-out-frame-rate successfully");
 
@@ -2309,8 +2406,8 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
-                << "' threw exception getting buffer-out-frame-rate");
+            LOG_ERROR("Video Source '" << name 
+                << "' threw exception setting buffer-out-frame-rate");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }                
@@ -2324,15 +2421,15 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            pSourceBintr->GetBufferOutCropRectangle(cropAt, 
+            pSourceBintr->GetVideoBufferOutCropRectangle(cropAt, 
                 left, top, width, height);
 
-            LOG_INFO("Source '" << name << "' returned crop_at = "
+            LOG_INFO("Video Source '" << name << "' returned crop_at = "
                 << cropAt << " left = " << *left 
                 << ", top = " << *top << ", width = "
                 << *width << ", and height = " << *height
@@ -2342,7 +2439,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
+            LOG_ERROR("Video Source '" << name 
                 << "' threw exception getting buffer-out-crop-rectangle");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
@@ -2357,7 +2454,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
@@ -2365,21 +2462,21 @@ namespace DSL
             if (cropAt > DSL_VIDEO_CROP_AT_DEST)
             {
                 LOG_ERROR("Invalid 'crop_at' = " << cropAt 
-                    << " setting buffer-out-crop rectangel for Source '"
+                    << " setting buffer-out-crop rectangel for Video Source '"
                     << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            if (!pSourceBintr->SetBufferOutCropRectangle(cropAt, 
+            if (!pSourceBintr->SetVideoBufferOutCropRectangle(cropAt, 
                 left, top, width, height))
             {
                 LOG_ERROR("Failed to set buffer-out-crop-rectangle to crop_at = " 
                     << cropAt << ", left = " << left << ", top = " 
                     << top << ", width = " << width <<", and height = "
-                    << height << " for Source '" << name << "'");
+                    << height << " for Video Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("Source '" << name << "' set crop_at = "
+            LOG_INFO("Video Source '" << name << "' set crop_at = "
                 << cropAt << ", left = " << left << ", top = " 
                 << top << ", width = " << width << ", and height = " 
                 << height << " for buffer-out-crop-rectangle successfully");
@@ -2388,7 +2485,7 @@ namespace DSL
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
+            LOG_ERROR("Video Source '" << name 
                 << "' threw exception setting buffer-out-crop-rectangle");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
@@ -2403,21 +2500,21 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
          
-            *orientation = pSourceBintr->GetBufferOutOrientation();
+            *orientation = pSourceBintr->GetVideoBufferOutOrientation();
 
-            LOG_INFO("Source '" << name << "' returned buffer-out-orientation = " 
+            LOG_INFO("Video Source '" << name << "' returned buffer-out-orientation = " 
                 << *orientation << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
+            LOG_ERROR("Video Source '" << name 
                 << "' threw exception getting buffer-out-orientation");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
@@ -2432,7 +2529,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
@@ -2440,25 +2537,25 @@ namespace DSL
             if (orientation > DSL_VIDEO_ORIENTATION_FLIP_UPPER_LEFT_TO_LOWER_RIGHT)
             {
                 LOG_ERROR("Invalid 'orientation' = " << orientation 
-                    << " setting buffer-out-orientaton for Source '"
+                    << " setting buffer-out-orientaton for Video Source '"
                     << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
-            if (!pSourceBintr->SetBufferOutOrientation(orientation))
+            if (!pSourceBintr->SetVideoBufferOutOrientation(orientation))
             {
                 LOG_ERROR("Failed to set buffer-out-orientation = " 
-                    << orientation << " for Source '" << name << "'");
+                    << orientation << " for Video Source '" << name << "'");
                 return DSL_RESULT_SOURCE_SET_FAILED;
             }
 
-            LOG_INFO("Source '" << name << "' set buffer-out-orientation = " 
+            LOG_INFO("Video Source '" << name << "' set buffer-out-orientation = " 
                 << orientation << " successfully");
 
             return DSL_RESULT_SUCCESS;
         }
         catch(...)
         {
-            LOG_ERROR("Source '" << name 
+            LOG_ERROR("Video Source '" << name 
                 << "' threw exception setting buffer-out-orientation");
             return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
@@ -2473,7 +2570,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_SOURCE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_VIDEO_SOURCE(m_components, name);
             
             DSL_VIDEO_SOURCE_PTR pSourceBintr = 
                 std::dynamic_pointer_cast<VideoSourceBintr>(m_components[name]);
@@ -3331,7 +3428,7 @@ namespace DSL
                 std::dynamic_pointer_cast<SourceBintr>(m_components[name]);
 
             // streammux source pad-id == stream-id for all sources
-            *streamId = pSourceBintr->GetVideoRequestPadId();
+            *streamId = pSourceBintr->GetRequestPadId();
             
             LOG_INFO("Source '" << name 
                 << "' returned stream-id = " << *streamId);

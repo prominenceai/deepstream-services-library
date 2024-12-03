@@ -139,16 +139,34 @@ namespace DSL
          * @brief Video Streammuxer for this PipelineSourcesBintr, 
          * enabled by default.
          */
-        DSL_STREAMMUX_PTR pVideomux;
+        DSL_STREAMMUX_PTR m_pVideomux;
 
         /**
          * @brief Audio Streammuxer for this PipelineSourcesBintr, 
          * disabled by default.
          */
-        DSL_STREAMMUX_PTR pAudiomux;
+        DSL_STREAMMUX_PTR m_pAudiomux;
 
     private:
-    
+
+        void SetBatchSizes();
+
+        void ClearBatchSizes();
+        
+        /**
+         * @brief Links a child Source to this PipelineSourcesBintr.
+         * @param pChildSource a shared pointer to the Source to link.
+         * @return true on successful add, false otherwise.
+         */
+        bool LinkChildToSinkMuxers(DSL_SOURCE_PTR pChildSource);
+
+        /**
+         * @brief Unlinks a child Source from this PipelineSourcesBintr.
+         * @param pChildSource a shared pointer to the Source to unlink.
+         * @return true on successful add, false otherwise.
+         */
+        bool UnlinkChildFromSinkMuxers(DSL_SOURCE_PTR pChildSource);
+
         /**
          * @brief unique id for the Parent Pipeline, used to offset all source
          * Id's (if greater than 0)
@@ -168,7 +186,17 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
-                
+
+        /**
+         * @brief current number of child Sources that support AUDIO 
+         */       
+        uint m_numAudioSources;
+
+        /**
+         * @brief current number of child Sources that support VIDEO 
+         */       
+        uint m_numVideoSources;
+
         /**
          * @brief container of all child sources mapped by their unique names
          */
@@ -183,6 +211,13 @@ namespace DSL
          * @brief true if all sources are live, false if all sources are non-live
          */
         bool m_areSourcesLive;
+        
+        /**
+         * @brief Each source is assigned a unique pad/stream id used to define the
+         * streammuxer sink pad when linking. The vector is used on add/remove 
+         * to find the next available pad id.
+         */
+        std::vector<bool> m_usedRequestPadIds;
         
     };
 

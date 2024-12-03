@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1062,3 +1062,100 @@ SCENARIO( "A Pipeline with an FileSourceBintr is able to Link/UnlinkAll", "[Pipe
         }
     }
 }
+
+SCENARIO( "A PipelineBintr updates its media-type correctly", "[PipelineBintr]" )
+{
+    GIVEN( "A new PipelineBintr" ) 
+    {
+        std::string pipelineName = "pipeline";
+
+        DSL_PIPELINE_PTR pPipelineBintr = 
+            DSL_PIPELINE_NEW(pipelineName.c_str());
+
+        REQUIRE( pPipelineBintr->GetMediaType() == DSL_MEDIA_TYPE_VIDEO_ONLY );
+
+        WHEN( "The Audio Streammux is enabled" )
+        {
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_AUDIOMUX, true) == true);
+
+            THEN( "All member variables are setup correctly" )
+            {
+                REQUIRE( pPipelineBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_VIDEO );
+            }
+        }
+        WHEN( "The Vido Streammux is disabled and the Audio Streammux is enabled" )
+        {
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, false) == true);
+
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_AUDIOMUX, true) == true);
+
+            THEN( "All member variables are setup correctly" )
+            {
+                REQUIRE( pPipelineBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY );
+            }
+        }
+        WHEN( "The both the Vido Streammux and Audio Streammux are disabled" )
+        {
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, false) == true);
+
+            THEN( "All member variables are setup correctly" )
+            {
+                REQUIRE( pPipelineBintr->GetMediaType() == 0 );
+            }
+        }
+        WHEN( "The both the Vido Streammux and Audio Streammux are disabled and re-enabled" )
+        {
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_AUDIOMUX, true) == true);
+
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, false) == true);
+
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_AUDIOMUX, false) == true);
+
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, true) == true);
+
+            REQUIRE (pPipelineBintr->SetStreammuxEnabled(DSL::DSL_AUDIOMUX, true) == true);
+
+            THEN( "All member variables are setup correctly" )
+            {
+                REQUIRE( pPipelineBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_VIDEO );
+            }
+        }
+    }
+}
+
+SCENARIO( "A Pipeline is able to LinkAll with minimum Audio Components ", "[PipelineBintr]" )
+{
+    GIVEN( "A new UriSourceBintr, AlsaSinkBintr, and a PipelineBintr" ) 
+    {
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            DSL_URI_SOURCE_PTR pSourceBintr = DSL_URI_SOURCE_NEW(
+                sourceName.c_str(), filePath.c_str(), false, false, 0);
+            
+            REQUIRE( pSourceBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_VIDEO) == true );
+
+            DSL_ALSA_SINK_PTR pSinkBintr = 
+                DSL_ALSA_SINK_NEW(sinkName.c_str(), "default");
+
+            DSL_PIPELINE_PTR pPipelineBintr = DSL_PIPELINE_NEW(pipelineName.c_str());
+                
+            REQUIRE( pPipelineBintr->SetStreammuxEnabled(DSL_AUDIOMUX, true) == true );
+            REQUIRE( pPipelineBintr->SetStreammuxEnabled(DSL_VIDEOMUX, false) == true );
+
+            WHEN( "All components are added to the PipelineBintr" )
+            {
+                REQUIRE( pSourceBintr->AddToParent(pPipelineBintr) == true );
+                REQUIRE( pSinkBintr->AddToParent(pPipelineBintr) == true );
+
+                THEN( "The Pipeline components are Linked correctly" )
+                {
+                    REQUIRE( pPipelineBintr->LinkAll() == true );
+                    REQUIRE( pPipelineBintr->IsLinked() == true );
+                    pPipelineBintr->UnlinkAll();
+                    REQUIRE( pPipelineBintr->IsLinked() == false );
+                }
+            }
+        }
+    }
+}
+

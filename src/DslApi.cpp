@@ -5029,19 +5029,71 @@ DslReturnType dsl_source_pph_remove(const wchar_t* name, const wchar_t* handler)
         cstrHandler.c_str());
 }
 
-DslReturnType dsl_source_media_type_get(const wchar_t* name,
-    uint* media_type)   
+DslReturnType dsl_source_audio_buffer_out_format_get(const wchar_t* name,
+    const wchar_t** format)
 {
     RETURN_IF_PARAM_IS_NULL(name);
-    RETURN_IF_PARAM_IS_NULL(media_type);
+    RETURN_IF_PARAM_IS_NULL(format);
 
     std::wstring wstrName(name);
     std::string cstrName(wstrName.begin(), wstrName.end());
     
-    return DSL::Services::GetServices()->SourceMediaTypeGet(
-        cstrName.c_str(), media_type);
+    const char* cFormat;
+    static std::string cstrFormat;
+    static std::wstring wcstrFormat;
+    
+    uint retval = DSL::Services::GetServices()->SourceAudioBufferOutFormatGet(
+        cstrName.c_str(), &cFormat);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrFormat.assign(cFormat);
+        wcstrFormat.assign(cstrFormat.begin(), cstrFormat.end());
+        *format = wcstrFormat.c_str();
+    }
+    return retval;
 }
     
+DslReturnType dsl_source_audio_buffer_out_format_set(const wchar_t* name,
+    const wchar_t* format)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(format);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::wstring wstrFormat(format);
+    std::string cstrFormat(wstrFormat.begin(), wstrFormat.end());
+
+    return DSL::Services::GetServices()->SourceAudioBufferOutFormatSet(
+        cstrName.c_str(), cstrFormat.c_str());
+}
+
+DslReturnType dsl_source_audio_buffer_out_sample_rate_get(const wchar_t* name, 
+    uint* rate)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(rate);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAudioBufferOutSampleRateGet(
+        cstrName.c_str(), rate);
+}
+
+DslReturnType dsl_source_audio_buffer_out_sample_rate_set(const wchar_t* name, 
+    uint rate)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SourceAudioBufferOutSampleRateSet(
+        cstrName.c_str(), rate);
+}
+
 DslReturnType dsl_source_video_buffer_out_format_get(const wchar_t* name,
     const wchar_t** format)
 {
@@ -9656,6 +9708,86 @@ DslReturnType dsl_sink_v4l2_picture_settings_set(const wchar_t* name,
         cstrName.c_str(), brightness, contrast, saturation);
 }
 
+DslReturnType dsl_sink_alsa_new(const wchar_t* name, 
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDevice(device_location);
+    std::string cstrDevice(wstrDevice.begin(), wstrDevice.end());
+
+    return DSL::Services::GetServices()->SinkAlsaNew(cstrName.c_str(), 
+        cstrDevice.c_str());
+}     
+
+DslReturnType dsl_sink_alsa_device_location_get(const wchar_t* name,
+    const wchar_t** device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cDeviceLocation;
+    static std::string cstrDeviceLocation;
+    static std::wstring wcstrDeviceLocation;
+    
+    uint retval = DSL::Services::GetServices()->SinkAlsaDeviceLocationGet(
+        cstrName.c_str(), &cDeviceLocation);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceLocation.assign(cDeviceLocation);
+        wcstrDeviceLocation.assign(cstrDeviceLocation.begin(), 
+            cstrDeviceLocation.end());
+        *device_location = wcstrDeviceLocation.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_sink_alsa_device_location_set(const wchar_t* name,
+    const wchar_t* device_location)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_location);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrDeviceLocation(device_location);
+    std::string cstrDeviceLocation(wstrDeviceLocation.begin(), 
+        wstrDeviceLocation.end());
+    
+    return DSL::Services::GetServices()->SinkAlsaDeviceLocationSet(
+        cstrName.c_str(), cstrDeviceLocation.c_str());
+}
+   
+DslReturnType dsl_sink_alsa_device_name_get(const wchar_t* name,
+    const wchar_t** device_name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(device_name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cDeviceName;
+    static std::string cstrDeviceName;
+    static std::wstring wcstrDeviceName;
+    
+    uint retval = DSL::Services::GetServices()->SinkAlsaDeviceNameGet(
+        cstrName.c_str(), &cDeviceName);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrDeviceName.assign(cDeviceName);
+        wcstrDeviceName.assign(cstrDeviceName.begin(), cstrDeviceName.end());
+        *device_name = wcstrDeviceName.c_str();
+    }
+    return retval;
+}
+ 
 DslReturnType dsl_sink_sync_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);
@@ -9950,6 +10082,50 @@ DslReturnType dsl_component_delete_all()
 uint dsl_component_list_size()
 {
     return DSL::Services::GetServices()->ComponentListSize();
+}
+
+DslReturnType dsl_component_media_type_get(const wchar_t* name,
+    uint* media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(media_type);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->ComponentMediaTypeGet(
+        cstrName.c_str(), media_type);
+}
+    
+DslReturnType dsl_component_media_type_set(const wchar_t* name,
+    uint media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->ComponentMediaTypeSet(
+        cstrName.c_str(), media_type);
+}
+
+DslReturnType dsl_component_media_type_set_many(const wchar_t** names,
+    uint media_type)   
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            ComponentMediaTypeSet(cstrName.c_str(), media_type);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_component_queue_current_level_get(const wchar_t* name, 

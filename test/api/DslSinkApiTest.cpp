@@ -2759,6 +2759,104 @@ SCENARIO( "A new V4L2 Sink can update its properties correctly", "[sink-api]" )
     }
 }
 
+SCENARIO( "The Components container is updated correctly on new ALSA Sink", "[sink-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        std::wstring alsa_sink_name(L"alsa-sink");
+        std::wstring device_location(L"default");
+
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new ALSA Sink is created" ) 
+        {
+            REQUIRE( dsl_sink_alsa_new(alsa_sink_name.c_str(), 
+                device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+            THEN( "The list size is updated correctly" ) 
+            {
+                const wchar_t* c_ret_device_location;
+                REQUIRE( dsl_sink_alsa_device_location_get(alsa_sink_name.c_str(), 
+                    &c_ret_device_location) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_location(c_ret_device_location);
+                REQUIRE( ret_device_location == device_location );
+
+                const wchar_t* c_ret_device_name;
+                REQUIRE( dsl_sink_alsa_device_name_get(alsa_sink_name.c_str(), 
+                    &c_ret_device_name) == DSL_RESULT_SUCCESS );
+                std::wstring ret_device_name(c_ret_device_name);
+                REQUIRE( ret_device_name == L"" );
+
+                REQUIRE( dsl_component_list_size() == 1 );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "The Components container is updated correctly on ALSA Sink delete", "[sink-api]" )
+{
+    GIVEN( "An ALSA Sink Component" ) 
+    {
+        std::wstring alsa_sink_name(L"alsa-sink");
+        std::wstring device_location(L"default");
+
+        REQUIRE( dsl_component_list_size() == 0 );
+        REQUIRE( dsl_sink_alsa_new(alsa_sink_name.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+        REQUIRE( dsl_component_list_size() == 1 );
+
+        WHEN( "A new ALSA Sink is deleted" ) 
+        {
+            REQUIRE( dsl_component_delete(alsa_sink_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The list size updated correctly" )
+            {
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
+SCENARIO( "A new ALSA Sink can update its properties correctly", "[sink-api]" )
+{
+    GIVEN( "An ALSA Sink Component" ) 
+    {
+        std::wstring alsa_sink_name(L"alsa-sink");
+        std::wstring device_location(L"default");
+
+        REQUIRE( dsl_sink_alsa_new(alsa_sink_name.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A ALSA Sink's device locaton is set" ) 
+        {
+            const wchar_t* c_ret_device_location;
+            REQUIRE( dsl_sink_alsa_device_location_get(alsa_sink_name.c_str(), 
+                &c_ret_device_location) == DSL_RESULT_SUCCESS );
+            std::wstring ret_device_location(c_ret_device_location);
+            REQUIRE( ret_device_location == device_location );
+
+            std::wstring new_device_location(L"H0");
+            REQUIRE( dsl_sink_alsa_device_location_set(alsa_sink_name.c_str(), 
+                new_device_location.c_str()) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The correct value is returned on get" )
+            {
+                REQUIRE( dsl_sink_alsa_device_location_get(alsa_sink_name.c_str(), 
+                    &c_ret_device_location) == DSL_RESULT_SUCCESS );
+                ret_device_location = c_ret_device_location;
+                REQUIRE( ret_device_location == new_device_location );
+
+                REQUIRE( dsl_component_delete(alsa_sink_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -3054,6 +3152,23 @@ SCENARIO( "The Sink API checks for NULL input parameters", "[sink-api]" )
                 REQUIRE( dsl_sink_v4l2_buffer_in_format_set(NULL, 
                     NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_sink_v4l2_buffer_in_format_set(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                
+                REQUIRE( dsl_sink_alsa_new(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_new(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_device_location_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_device_location_get(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_device_location_set(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_device_location_set(sink_name.c_str(), 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_device_name_get(NULL, 
+                    NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sink_alsa_device_name_get(sink_name.c_str(), 
                     NULL ) == DSL_RESULT_INVALID_INPUT_PARAM );
                 
                 REQUIRE( dsl_sink_sync_enabled_get(NULL, 

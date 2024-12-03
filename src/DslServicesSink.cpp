@@ -3404,6 +3404,127 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::SinkAlsaNew(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Sink name '" << name << "' is not unique");
+                return DSL_RESULT_SINK_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_ALSA_SINK_NEW(name, 
+                deviceLocation);
+            
+            LOG_INFO("New ALSA Sink '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Sink '" << name << "' threw exception on create");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAlsaDeviceLocationGet(const char* name, 
+        const char** deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AlsaSinkBintr);
+
+            DSL_ALSA_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<AlsaSinkBintr>(m_components[name]);
+
+            *deviceLocation = pSinkBintr->GetDeviceLocation();
+
+            LOG_INFO("ALSA Sink '" << name << "' returned device-location = '" 
+                << *deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ALSA Sink '" << name 
+                << "' threw exception getting device-location");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAlsaDeviceLocationSet(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AlsaSinkBintr);
+
+            DSL_ALSA_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<AlsaSinkBintr>(m_components[name]);
+
+            if (!pSinkBintr->SetDeviceLocation(deviceLocation))
+            {
+                LOG_ERROR("Failed to set device-location '" 
+                    << deviceLocation << "' for ALSA Sink '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("ALSA Sink '" << name << "' set device-location = '" 
+                << deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ALSA Sink '" << name 
+                << "' threw exception setting device-location");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SinkAlsaDeviceNameGet(const char* name, 
+        const char** deviceName)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AlsaSinkBintr);
+
+            DSL_ALSA_SINK_PTR pSinkBintr = 
+                std::dynamic_pointer_cast<AlsaSinkBintr>(m_components[name]);
+
+            *deviceName = pSinkBintr->GetDeviceName();
+
+            LOG_INFO("ALSA Sink '" << name << "' returned device-name = '" 
+                << *deviceName << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ALSA Sink '" << name 
+                << "' threw exception getting device-name");
+            return DSL_RESULT_SINK_THREW_EXCEPTION;
+        }
+    }
 
     DslReturnType Services::SinkSyncEnabledGet(const char* name, boolean* enabled)
     {

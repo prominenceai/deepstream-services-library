@@ -187,7 +187,7 @@ namespace DSL
             std::string sinkPadName = 
                 "sink_" + std::to_string(m_streamIds[i]);
             
-            if (!pQueue->LinkToSinkMuxer(m_pStreammux, sinkPadName.c_str()))
+            if (!pQueue->LinkToSinkMuxer(m_pStreammux, "src", sinkPadName.c_str()))
             {
                 return false;
             }
@@ -197,7 +197,7 @@ namespace DSL
         m_pChildBranch->SetLinkMethod(m_linkMethod);
         m_pChildBranch->SetBatchSize(m_batchSize);
             
-        // Then link the Streammuxer to the Child Branch
+        // Then link the Streammuxer to the Child Branch    
         if (!m_pChildBranch->LinkAll() or
             !m_pStreammux->LinkToSink(m_pChildBranch))
         {
@@ -222,7 +222,7 @@ namespace DSL
         {
             // Unlink the Queue for the Streammuxer and remove as Child
             // of the Proxy - Bintr for the RemuxerBintr
-            m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer();
+            m_queues[m_streamIds[i]]->UnlinkFromSinkMuxer(m_pStreammux, "src");
 
             RemoveChild(m_queues[m_streamIds[i]]);
         }
@@ -296,14 +296,14 @@ namespace DSL
     {
         LOG_FUNC();
 
-        return m_pChildBranch->LinkToSinkMuxer(pMuxer, padName);
+        return m_pChildBranch->LinkToSinkMuxer(pMuxer, "src", padName);
     }
 
-    bool RemuxerBranchBintr::UnlinkFromSinkMuxer()
+    bool RemuxerBranchBintr::UnlinkFromSinkMuxer(DSL_NODETR_PTR pMuxer)
     {
         LOG_FUNC();
         
-        return m_pChildBranch->UnlinkFromSinkMuxer();
+        return m_pChildBranch->UnlinkFromSinkMuxer(pMuxer, "src");
     }
     
     uint RemuxerBranchBintr::GetBatchSize()
@@ -710,7 +710,7 @@ namespace DSL
         RemuxerConfigFile configFile(m_configFilePath);
         
         if (!m_pQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
-            !m_pQueue->LinkToSinkMuxer(m_pMetamuxer, "sink_0") or
+            !m_pQueue->LinkToSinkMuxer(m_pMetamuxer, "src", "sink_0") or
             !m_pDemuxerQueue->LinkToSourceTee(m_pInputTee, "src_%u") or
             !m_pDemuxerQueue->LinkToSink(m_pDemuxer))
         {
@@ -822,7 +822,7 @@ namespace DSL
         }
 
         m_pQueue->UnlinkFromSourceTee();
-        m_pQueue->UnlinkFromSinkMuxer();
+        m_pQueue->UnlinkFromSinkMuxer(m_pMetamuxer, "src");
         m_pDemuxerQueue->UnlinkFromSourceTee();
         m_pDemuxerQueue->UnlinkFromSink();
 
@@ -831,7 +831,7 @@ namespace DSL
             // Important to unlink from source Tees first, UnlinkAll will 
             // delete all queues.
             imap.second->UnlinkFromSourceTees();
-            imap.second->UnlinkFromSinkMuxer();
+            imap.second->UnlinkFromSinkMuxer(m_pMetamuxer);
             imap.second->UnlinkAll();
         }
 

@@ -141,6 +141,7 @@ namespace DSL
     
     VideoSourceBintr::VideoSourceBintr(const char* name)
         : SourceBintr(name)
+        , m_isVideoFullyLinked(false)
         , m_width(0)
         , m_height(0)
         , m_bufferOutWidth(0)
@@ -155,46 +156,12 @@ namespace DSL
         std::wstring L_mediaType(DSL_MEDIA_STRING_VIDEO_XRAW);
         m_videoMediaString.assign(L_mediaType.begin(), L_mediaType.end());
 
-        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
-
         // Set the buffer-out-format to the default video format
         std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
         m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
             L_bufferOutFormat.end());
-        
-        // All SourceBintrs have a Video Converter with Caps Filter used
-        // to control the buffer-out format, dimensions, crop values, etc.
-        
-        // ---- Video Converter Setup
 
-        m_pBufferOutVidConv = DSL_ELEMENT_EXT_NEW("nvvideoconvert", 
-            name, "buffer-out");
-        
-        // Get property defaults that aren't specifically set
-        m_pBufferOutVidConv->GetAttribute("gpu-id", &m_gpuId);
-        m_pBufferOutVidConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
-        
-        // ---- Caps Filter Setup
-
-        m_pBufferOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
-            name, "vidconv");
-        
-        // Update the caps with the media, format, and memory:NVMM feature
-        if (!SetBufferOutFormat(m_bufferOutFormat.c_str()))
-        {
-            throw;
-        }
-
-        // add both elementrs as children to this Bintr
-        AddChild(m_pBufferOutVidConv);
-        AddChild(m_pBufferOutCapsFilter);
-
-        // IMPORTANT! Caps Filter is ghost-pad by default - will be changed if 
-        // duplicate Source is added.
-        m_pBufferOutCapsFilter->AddGhostPadToParent("src");
-
-        // Add the Buffer and DS Event Probes to the caps-filter - src-pad only.
-        AddSrcPadProbes(m_pBufferOutCapsFilter->GetGstElement());
+        InitCommonVideo();
     }
     
     VideoSourceBintr::~VideoSourceBintr()
@@ -202,13 +169,98 @@ namespace DSL
         LOG_FUNC();
     }
     
-    bool VideoSourceBintr::LinkToCommon(DSL_NODETR_PTR pSrcNodetr)
+    void VideoSourceBintr::InitCommonVideo()
+    {
+        LOG_FUNC();
+
+        // All SourceBintrs have a Video Converter with Caps Filter used
+        // to control the buffer-out format, dimensions, crop values, etc.
+        
+        // ---- Video Converter Setup
+
+        m_pVideoOutConv = DSL_ELEMENT_EXT_NEW("nvvideoconvert", 
+            GetCStrName(), "buffer-out");
+        
+        // Get property defaults that aren't specifically set
+        m_pVideoOutConv->GetAttribute("gpu-id", &m_gpuId);
+        m_pVideoOutConv->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
+        
+        // ---- Caps Filter Setup
+
+        m_pVideoOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
+            GetCStrName(), "vidconv");
+        
+        // Update the caps with the media, format, and memory:NVMM feature
+        if (!updateVidConvCaps())
+        {
+            throw std::exception();
+        }
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
+        LOG_INFO("  media-type        : " << m_videoMediaString << "(memory:NVMM)");
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    width           : " << m_bufferOutWidth);
+        LOG_INFO("    height          : " << m_bufferOutHeight);
+        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
+        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
+        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
+        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
+        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
+
+        // add both elementrs as children to this Bintr
+        AddChild(m_pVideoOutConv);
+        AddChild(m_pVideoOutCapsFilter);
+
+        // IMPORTANT! Caps Filter is ghost-pad by default - will be changed if 
+        // duplicate Source is added.
+        m_pVideoOutCapsFilter->AddGhostPadToParent("src", "video_src");
+
+        // Add the Buffer and DS Event Probes to the caps-filter - src-pad only.
+        AddSrcPadProbes(m_pVideoOutCapsFilter->GetGstElement());
+    }
+
+    void VideoSourceBintr::DeinitCommonVideo()
+    {
+        LOG_FUNC();
+
+        // Remove the audio src ghost pad from the caps-filter.
+        m_pVideoOutCapsFilter->RemoveGhostPadFromParent("video_src");
+
+        // Remove the Buffer and DS Event Probes to the caps-filter - src-pad only.
+        RemoveSrcPadProbes(m_pVideoOutCapsFilter->GetGstElement());
+
+        // remove all child elementrs from this Bintr
+        RemoveChild(m_pVideoOutConv);
+        RemoveChild(m_pVideoOutCapsFilter);
+        m_pVideoOutConv = nullptr;
+        m_pVideoOutCapsFilter = nullptr;
+
+        if (m_pVideoOutRate)
+        {
+            RemoveChild(m_pVideoOutRate);
+            m_pVideoOutRate = nullptr;
+        }
+    }
+    
+    bool VideoSourceBintr::LinkToCommonVideo(DSL_NODETR_PTR pSrcNodetr)
     {
         LOG_FUNC();
 
         // If linking as a Nodetr (element), get the static sink-pad for 
-        // and then call the LinkToCommon(GstPad*) function below.
-        // IMPORTANT! This Nodetr must be unlinked in the UnlinkCommon()
+        // and then call the LinkToCommonVideo(GstPad*) function below.
+        // IMPORTANT! This Nodetr must be unlinked in the UnlinkFromCommonVideo()
         GstPad* pStaticSrcPad = gst_element_get_static_pad(
                 pSrcNodetr->GetGstElement(), "src");
         if (!pStaticSrcPad)
@@ -217,14 +269,14 @@ namespace DSL
                 << GetName() << "'");
             return false;
         }
-        bool retval = LinkToCommon(pStaticSrcPad);
+        bool retval = LinkToCommonVideo(pStaticSrcPad);
 
         gst_object_unref(pStaticSrcPad);
 
         return retval;
     }
 
-    bool VideoSourceBintr::LinkToCommon(GstPad* pSrcPad)
+    bool VideoSourceBintr::LinkToCommonVideo(GstPad* pSrcPad)
     {
         LOG_FUNC();
 
@@ -238,52 +290,52 @@ namespace DSL
                     << GetName() << "'");
                 return false;
             }
-            m_linkedCommonElements.push_back(m_pDewarperBintr);
+            m_linkedCommonVideoElements.push_back(m_pDewarperBintr);
             m_pDewarperBintr->LinkToSink(m_pQueue);
         }
 
         // Add the queue as first or next element to the vector of common elements.
-        m_linkedCommonElements.push_back(m_pQueue);
+        m_linkedCommonVideoElements.push_back(m_pQueue);
 
         // We now have the first element (dewarper or queue) so we can link it
         // with the Source specific pSrcPad passed into this function.
         GstPad* pStaticSinkPad = gst_element_get_static_pad(
-                m_linkedCommonElements.front()->GetGstElement(), "sink"); 
+                m_linkedCommonVideoElements.front()->GetGstElement(), "sink"); 
         if (!pStaticSinkPad)
         {
             LOG_ERROR("Failed to get static sink pad from first common element '"
-                << m_linkedCommonElements.front()->GetName() 
+                << m_linkedCommonVideoElements.front()->GetName() 
                 << "' for VideoSourceBintr '" << GetName() << "'");
             return false;
         }
         if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
         {
             LOG_ERROR("Failed to link src pad to sink pad from first common element '"
-                << m_linkedCommonElements.front()->GetName() 
+                << m_linkedCommonVideoElements.front()->GetName() 
                 << "' for VideoSourceBintr '" << GetName() << "'");
             return false;
         }
 
         // Link and add the Video Converter next
-        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidConv))
+        if (!m_linkedCommonVideoElements.back()->LinkToSink(m_pVideoOutConv))
         {
             return false;
         }
-        m_linkedCommonElements.push_back(m_pBufferOutVidConv);
+        m_linkedCommonVideoElements.push_back(m_pVideoOutConv);
         
         // If the viderate was created, add it as the next common element
         // and link it to the Source's Video Converter.
-        if (m_pBufferOutVidRate)
+        if (m_pVideoOutRate)
         {
-            if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutVidRate))
+            if (!m_linkedCommonVideoElements.back()->LinkToSink(m_pVideoOutRate))
             {
                 return false;
             }
-            m_linkedCommonElements.push_back(m_pBufferOutVidRate);
+            m_linkedCommonVideoElements.push_back(m_pVideoOutRate);
         }            
 
         // Link to the caps-filter element.
-        if (!m_linkedCommonElements.back()->LinkToSink(m_pBufferOutCapsFilter))
+        if (!m_linkedCommonVideoElements.back()->LinkToSink(m_pVideoOutCapsFilter))
         {
             return false;
         }
@@ -292,9 +344,9 @@ namespace DSL
         {
             // Only add the Caps Filter to the list of linked components
             // if it's not the last component... i.e. there's duplicates.
-            m_linkedCommonElements.push_back(m_pBufferOutCapsFilter);
+            m_linkedCommonVideoElements.push_back(m_pVideoOutCapsFilter);
             
-            if (!m_linkedCommonElements.back()->LinkToSink(m_pDuplicateSourceTee))
+            if (!m_linkedCommonVideoElements.back()->LinkToSink(m_pDuplicateSourceTee))
             {
                 return false;
             }
@@ -311,42 +363,43 @@ namespace DSL
             }
         }
             
+        m_isVideoFullyLinked = true;
         return true;
     }
     
-    void VideoSourceBintr::UnlinkCommon()
+    void VideoSourceBintr::UnlinkFromCommonVideo()
     {
         LOG_FUNC();
 
         // Get a reference to the sink pad of the first common element
         GstPad* pStaticSinkPad = gst_element_get_static_pad(
-                m_linkedCommonElements.front()->GetGstElement(), "sink");
+                m_linkedCommonVideoElements.front()->GetGstElement(), "sink");
         if (!pStaticSinkPad)
         {
             LOG_ERROR("Failed to get static sink pad for Elementr '" 
-                << m_linkedCommonElements.front()->GetName() << "'");
+                << m_linkedCommonVideoElements.front()->GetName() << "'");
             return;
         }
         // Check to see if it is currently linked.  This will be true for all
-        // sources that call LinkToCommon(DSL_NODETR_PTR) and false for all 
-        // sources that call LinkToCommon(GstPad*) from pad_added callbacks.
+        // sources that call LinkToCommonVideo(DSL_NODETR_PTR) and false for all 
+        // sources that call LinkToCommonVideo(GstPad*) from pad_added callbacks.
         if (gst_pad_is_linked(pStaticSinkPad))
         {                
             GstPad* pSrcPad = gst_pad_get_peer(pStaticSinkPad);
             if (!pSrcPad)
             {
                 LOG_ERROR("Failed to get peer src pad for Elementr '" 
-                    << m_linkedCommonElements.front()->GetName() << "'");
+                    << m_linkedCommonVideoElements.front()->GetName() << "'");
                 return;
             }
             LOG_INFO("Unlinking common front Elementr '" 
-                << m_linkedCommonElements.front()->GetName() 
+                << m_linkedCommonVideoElements.front()->GetName() 
                 << "' from its peer src pad");
 
             if (!gst_pad_unlink(pSrcPad, pStaticSinkPad))
             {
                 LOG_ERROR("Failed to unlink src pad for Elementr '" 
-                    << m_linkedCommonElements.front()->GetName() << "'");
+                    << m_linkedCommonVideoElements.front()->GetName() << "'");
                 return;
             }
             gst_object_unref(pSrcPad);
@@ -354,11 +407,11 @@ namespace DSL
         gst_object_unref(pStaticSinkPad);
 
         // iterate through the list of linked Elements, unlinking each
-        for (auto const& ivec: m_linkedCommonElements)
+        for (auto const& ivec: m_linkedCommonVideoElements)
         {
             ivec->UnlinkFromSink();
         }
-        m_linkedCommonElements.clear();
+        m_linkedCommonVideoElements.clear();
 
         // If we're duplicating this source's stream.
         if (m_pDuplicateSourceTee)
@@ -366,6 +419,7 @@ namespace DSL
             m_pDuplicateSourceTeeQueue->UnlinkFromSourceTee();
             unlinkAllDuplicates();
         }
+        m_isVideoFullyLinked = false;
     }
 
     bool VideoSourceBintr::linkAllDuplicates()
@@ -536,13 +590,28 @@ namespace DSL
         *height = m_height;
     }
 
-    bool VideoSourceBintr::SetBufferOutFormat(const char* format)
+    const char* VideoSourceBintr::GetVideoBufferOutFormat()
     {
         LOG_FUNC();
         
+        return m_bufferOutFormat.c_str();
+    }
+
+    bool VideoSourceBintr::SetVideoBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
-            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" << GetName() 
+            LOG_ERROR("Can't set buffer-out-format for VideoSourceBintr '" 
+                << GetName() 
                 << "' as it is currently in a linked state");
             return false;
         }
@@ -552,7 +621,7 @@ namespace DSL
         return updateVidConvCaps();
     }
     
-    void VideoSourceBintr::GetBufferOutDimensions(uint* width, uint* height)
+    void VideoSourceBintr::GetVideoBufferOutDimensions(uint* width, uint* height)
     {
         LOG_FUNC();
         
@@ -560,10 +629,17 @@ namespace DSL
         *height = m_bufferOutHeight;
     }
     
-    bool VideoSourceBintr::SetBufferOutDimensions(uint width, uint height)
+    bool VideoSourceBintr::SetVideoBufferOutDimensions(uint width, uint height)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR("Can't set buffer-out-dimensions for VideoSourceBintr '" 
@@ -575,8 +651,8 @@ namespace DSL
         
         return updateVidConvCaps();
     }
-    
-    void VideoSourceBintr::GetBufferOutFrameRate(uint* fpsN, uint* fpsD)
+
+    void VideoSourceBintr::GetVideoBufferOutFrameRate(uint* fpsN, uint* fpsD)
     {
         LOG_FUNC();
         
@@ -584,10 +660,17 @@ namespace DSL
         *fpsD = m_bufferOutFpsD;
     }
     
-    bool VideoSourceBintr::SetBufferOutFrameRate(uint fpsN, uint fpsD)
+    bool VideoSourceBintr::SetVideoBufferOutFrameRate(uint fpsN, uint fpsD)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-frame-rate for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR("Can't set buffer-out-frame-rate for VideoSourceBintr '" 
@@ -598,20 +681,20 @@ namespace DSL
         m_bufferOutFpsD = fpsD;
         
         // if we're scaling the output frame-rate and there is no viderate element.
-        if (fpsN and fpsD and !m_pBufferOutVidRate)
+        if (fpsN and fpsD and !m_pVideoOutRate)
         {
             // time to create the viderate now
-            m_pBufferOutVidRate = DSL_ELEMENT_NEW("videorate", GetCStrName());
+            m_pVideoOutRate = DSL_ELEMENT_NEW("videorate", GetCStrName());
             
-            AddChild(m_pBufferOutVidRate);
+            AddChild(m_pVideoOutRate);
         }
         // if we're not scalling and the viderate element has already been created.
-        else if ((!fpsN or !fpsD) and m_pBufferOutVidRate)
+        else if ((!fpsN or !fpsD) and m_pVideoOutRate)
         {
-            RemoveChild(m_pBufferOutVidRate);
+            RemoveChild(m_pVideoOutRate);
 
             // delete the viderate element now
-            m_pBufferOutVidRate = nullptr;
+            m_pVideoOutRate = nullptr;
         }
         // Update the output-buffer's caps filter now
         return updateVidConvCaps();
@@ -630,7 +713,7 @@ namespace DSL
         }
     }
     
-    void VideoSourceBintr::GetBufferOutCropRectangle(uint cropAt, 
+    void VideoSourceBintr::GetVideoBufferOutCropRectangle(uint cropAt, 
         uint* left, uint* top, uint* width, uint* height)
     {
         LOG_FUNC();
@@ -639,11 +722,11 @@ namespace DSL
 
         if (cropAt == DSL_VIDEO_CROP_AT_SRC)
         {
-            m_pBufferOutVidConv->GetAttribute("src-crop", &cropCString);
+            m_pVideoOutConv->GetAttribute("src-crop", &cropCString);
         }
         else
         {
-            m_pBufferOutVidConv->GetAttribute("dest-crop", &cropCString);
+            m_pVideoOutConv->GetAttribute("dest-crop", &cropCString);
         }
         std::string cropString(cropCString);
 
@@ -663,16 +746,24 @@ namespace DSL
         *height = std::stoul(tokens[3]);
     }
     
-    bool VideoSourceBintr::SetBufferOutCropRectangle(uint cropAt, 
+    bool VideoSourceBintr::SetVideoBufferOutCropRectangle(uint cropAt, 
         uint left, uint top, uint width, uint height)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-crop-settings for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR(
-                "Unable to set buffer-out crop settings for VideoSourceBintr '" 
-                << GetName() << "' as it's currently linked");
+                "Unable to set buffer-out-crop-settings for VideoSourceBintr '" 
+                << GetName() 
+                << "' as it's currently in a linked state");
             return false;
         }
         
@@ -684,27 +775,34 @@ namespace DSL
         
         if (cropAt == DSL_VIDEO_CROP_AT_SRC)
         {
-            m_pBufferOutVidConv->SetAttribute("src-crop", cropSettings.c_str());
+            m_pVideoOutConv->SetAttribute("src-crop", cropSettings.c_str());
         }
         else
         {
-            m_pBufferOutVidConv->SetAttribute("dest-crop", cropSettings.c_str());
+            m_pVideoOutConv->SetAttribute("dest-crop", cropSettings.c_str());
         }
 
         return true;
     }
 
-    uint VideoSourceBintr::GetBufferOutOrientation()
+    uint VideoSourceBintr::GetVideoBufferOutOrientation()
     {
         LOG_FUNC();
         
         return m_bufferOutOrientation;
     }
     
-    bool VideoSourceBintr::SetBufferOutOrientation(uint orientation)
+    bool VideoSourceBintr::SetVideoBufferOutOrientation(uint orientation)
     {
         LOG_FUNC();
         
+        if (m_mediaType == DSL_MEDIA_TYPE_AUDIO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-orientation for VideoSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_AUDIO_ONLY");
+            return false;
+        }
         if (m_isLinked)
         {
             LOG_ERROR(
@@ -713,7 +811,7 @@ namespace DSL
             return false;
         }
         m_bufferOutOrientation = orientation;
-        m_pBufferOutVidConv->SetAttribute("flip-method", m_bufferOutOrientation);
+        m_pVideoOutConv->SetAttribute("flip-method", m_bufferOutOrientation);
 
         return true;
     }
@@ -730,7 +828,7 @@ namespace DSL
         }
 
         m_gpuId = gpuId;
-        m_pBufferOutVidConv->SetAttribute("gpu-id", m_gpuId);
+        m_pVideoOutConv->SetAttribute("gpu-id", m_gpuId);
         
         LOG_INFO("VideoSourceBintr '" << GetName() 
             << "' - new GPU ID = " << m_gpuId );
@@ -750,11 +848,10 @@ namespace DSL
             return false;
         }
         m_nvbufMemType = nvbufMemType;
-        m_pBufferOutVidConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
+        m_pVideoOutConv->SetAttribute("nvbuf-memory-type", m_nvbufMemType);
 
         return true;
     }
-
     
     bool VideoSourceBintr::updateVidConvCaps()
     {
@@ -765,11 +862,10 @@ namespace DSL
             m_bufferOutFpsN, m_bufferOutFpsD, true);
 
         // Set the Caps for the Buffer output
-        m_pBufferOutCapsFilter->SetAttribute("caps", &Caps);
+        m_pVideoOutCapsFilter->SetAttribute("caps", &Caps);
         
         return true;
     }
-
     
     bool VideoSourceBintr::AddDewarperBintr(DSL_BASE_PTR pDewarperBintr)
     {
@@ -785,7 +881,7 @@ namespace DSL
         AddChild(pDewarperBintr);
         
         // Need to fix output of the video converter to RGBA for the Dewarper.
-        return SetBufferOutFormat("RGBA");
+        return SetVideoBufferOutFormat("RGBA");
     }
 
     bool VideoSourceBintr::RemoveDewarperBintr()
@@ -843,8 +939,8 @@ namespace DSL
             AddChild(m_pDuplicateSourceTee);
             AddChild(m_pDuplicateSourceTeeQueue);
 
-            m_pBufferOutCapsFilter->RemoveGhostPadFromParent("src");
-            m_pDuplicateSourceTeeQueue->AddGhostPadToParent("src");
+            m_pVideoOutCapsFilter->RemoveGhostPadFromParent("video_src");
+            m_pDuplicateSourceTeeQueue->AddGhostPadToParent("src", "video_src");
         }
         // add the duplicate to the map of duplicates for this VideoSourceBintr
         m_duplicateSources[pDuplicateSource->GetName()] = pDuplicateSource;
@@ -882,8 +978,8 @@ namespace DSL
         // set the Caps Filter back as source ghost pad.
         if (!m_duplicateSources.size())
         {
-            m_pDuplicateSourceTeeQueue->RemoveGhostPadFromParent("src");
-            m_pBufferOutCapsFilter->AddGhostPadToParent("src");
+            m_pDuplicateSourceTeeQueue->RemoveGhostPadFromParent("video_src");
+            m_pVideoOutCapsFilter->AddGhostPadToParent("src", "video_src");
             RemoveChild(m_pDuplicateSourceTee);
             RemoveChild(m_pDuplicateSourceTeeQueue);
             m_pDuplicateSourceTee = nullptr;
@@ -892,8 +988,317 @@ namespace DSL
         
         return true;
     }
+
+    //--------------------------------------------------------------------------------
     
+    AudioSourceBintr::AudioSourceBintr(const char* name)
+        : SourceBintr(name)
+        , m_isAudioFullyLinked(false)
+        , m_bufferOutRate(DSL_AUDIO_RESAMPLE_RATE_DEFAULT)
+        , m_bufferOutChannels(0)
+    {
+        LOG_FUNC();
+
+        // Media type is fixed to "audio/x-raw"
+        std::wstring L_mediaType(DSL_MEDIA_STRING_AUDIO_XRAW);
+        m_audioMediaString.assign(L_mediaType.begin(), L_mediaType.end());
+
+        // Set the buffer-out-format to the default audio format
+        std::wstring L_bufferOutFormat(DSL_AUDIO_FORMAT_DEFAULT);
+        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
+            L_bufferOutFormat.end());
+        
+        // Set the buffer-out-layout to the default audio layout
+        std::wstring L_bufferOutLayout(DSL_AUDIO_LAYOUT_DEFAULT);
+        m_bufferOutLayout.assign(L_bufferOutLayout.begin(), 
+            L_bufferOutLayout.end());
+        
+    }
+    
+    AudioSourceBintr::~AudioSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    void AudioSourceBintr::InitCommonAudio()
+    {
+        LOG_FUNC();
+        
+        // All AudioSourceBintrs have a Audio Converter, Audio Resampler, and
+        // Caps Filter used to control the buffer-out format and rate.
+        
+        // ---- Audio Queue Setup - TODO replace with QBintr multi-queue
+
+        m_pAudioOutQueue = DSL_ELEMENT_EXT_NEW("queue", 
+            GetCStrName(), "audio-out");
+        
+        // ---- Audio Converter Setup
+
+        m_pAudioOutConv = DSL_ELEMENT_EXT_NEW("audioconvert", 
+            GetCStrName(), "audio-out");
+        
+        // ---- Audio Re-sampler Setup
+
+        m_pAudioOutResample = DSL_ELEMENT_EXT_NEW("audioresample", 
+           GetCStrName(), "audio-out");
+
+        
+        // ---- Caps Filter Setup
+
+        m_pAudioOutCapsFilter = DSL_ELEMENT_EXT_NEW("capsfilter", 
+           GetCStrName(), "audio-out");
+
+        if (!updateAudioConvCaps())
+        {
+            std::exception();
+        }
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
+        LOG_INFO("  media-type        : " << m_audioMediaString);
+        LOG_INFO("  buffer-out        : ");
+        LOG_INFO("    format          : " << m_bufferOutFormat);
+        LOG_INFO("    rate            : " << m_bufferOutRate);
+        LOG_INFO("  queue             : " );
+        LOG_INFO("    leaky           : " << m_leaky);
+        LOG_INFO("    max-size        : ");
+        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes         : " << m_maxSizeBytes);
+        LOG_INFO("      time          : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold   : ");
+        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes         : " << m_minThresholdBytes);
+        LOG_INFO("      time          : " << m_minThresholdTime);
+
+        // add all elementrs as children to this Bintr
+        AddChild(m_pAudioOutQueue);
+        AddChild(m_pAudioOutConv);
+        AddChild(m_pAudioOutResample);
+        AddChild(m_pAudioOutCapsFilter);
+
+        // Add the audio src ghost pad to the caps-filter.
+        m_pAudioOutCapsFilter->AddGhostPadToParent("src", "audio_src");
+
+        // Add the Buffer and DS Event Probes to the caps-filter - src-pad only.
+//        AddSrcPadProbes(m_pAudioOutCapsFilter->GetGstElement());
+    }
+    
+    void AudioSourceBintr::DeinitCommonAudio()
+    {
+        LOG_FUNC();
+        
+        // Remove the audio src ghost pad from the caps-filter.
+        m_pAudioOutCapsFilter->RemoveGhostPadFromParent("audio_src");
+
+        // remove all child elementrs from this Bintr
+        RemoveChild(m_pAudioOutQueue);
+        RemoveChild(m_pAudioOutConv);
+        RemoveChild(m_pAudioOutResample);
+        RemoveChild(m_pAudioOutCapsFilter);
+        m_pAudioOutQueue = nullptr;
+        m_pAudioOutConv = nullptr;
+        m_pAudioOutResample = nullptr;
+        m_pAudioOutCapsFilter = nullptr;
+    }
+    
+    bool AudioSourceBintr::LinkToCommonAudio(DSL_NODETR_PTR pSrcNodetr)
+    {
+        LOG_FUNC();
+
+        // If linking as a Nodetr (element), get the static sink-pad for 
+        // and then call the LinkToCommonAudio(GstPad*) function below.
+        // IMPORTANT! This Nodetr must be unlinked in the UnlinkFromCommonAudio()
+        GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                pSrcNodetr->GetGstElement(), "src");
+        if (!pStaticSrcPad)
+        {
+            LOG_ERROR("Failed to get static src pad for AudioSourceBintr '" 
+                << GetName() << "'");
+            return false;
+        }
+        bool retval = LinkToCommonAudio(pStaticSrcPad);
+
+        gst_object_unref(pStaticSrcPad);
+
+        return retval;
+    }
+
+    bool AudioSourceBintr::LinkToCommonAudio(GstPad* pSrcPad)
+    {
+        LOG_FUNC();
+
+        // Add the queue as first element to the vector of common elements.
+        m_linkedCommonAudioElements.push_back(m_pAudioOutQueue);
+
+        // link the Queue with the Source specific pSrcPad passed into this function.
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_linkedCommonAudioElements.front()->GetGstElement(), "sink"); 
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad from first common element '"
+                << m_linkedCommonAudioElements.front()->GetName() 
+                << "' for AudioSourceBintr '" << GetName() << "'");
+            return false;
+        }
+        if (gst_pad_link(pSrcPad, pStaticSinkPad) != GST_PAD_LINK_OK) 
+        {
+            LOG_ERROR("Failed to link src pad to sink pad from first common element '"
+                << m_linkedCommonAudioElements.front()->GetName() 
+                << "' for AudioSourceBintr '" << GetName() << "'");
+            return false;
+        }
+
+        // Link and add the Audio Converter next
+        if (!m_linkedCommonAudioElements.back()->LinkToSink(m_pAudioOutConv))
+        {
+            return false;
+        }
+        m_linkedCommonAudioElements.push_back(m_pAudioOutConv);
+            
+        // Link and add the Audio Converter next
+        if (!m_linkedCommonAudioElements.back()->LinkToSink(m_pAudioOutResample))
+        {
+            return false;
+        }
+        m_linkedCommonAudioElements.push_back(m_pAudioOutResample);
+
+        // Link and add the Audio Caps Filter next
+        if (!m_linkedCommonAudioElements.back()->LinkToSink(m_pAudioOutCapsFilter))
+        {
+            return false;
+        }
+        m_linkedCommonAudioElements.push_back(m_pAudioOutCapsFilter);
+            
+            
+        return true;
+    }
+    
+    void AudioSourceBintr::UnlinkFromCommonAudio()
+    {
+        LOG_FUNC();
+
+        // Get a reference to the sink pad of the first common element
+        GstPad* pStaticSinkPad = gst_element_get_static_pad(
+                m_linkedCommonAudioElements.front()->GetGstElement(), "sink");
+        if (!pStaticSinkPad)
+        {
+            LOG_ERROR("Failed to get static sink pad for Elementr '" 
+                << m_linkedCommonAudioElements.front()->GetName() << "'");
+            return;
+        }
+        // Check to see if it is currently linked.  This will be true for all
+        // sources that call LinkToCommonAudio(DSL_NODETR_PTR) and false for all 
+        // sources that call LinkToCommonAudio(GstPad*) from pad_added callbacks.
+        if (gst_pad_is_linked(pStaticSinkPad))
+        {                
+            GstPad* pSrcPad = gst_pad_get_peer(pStaticSinkPad);
+            if (!pSrcPad)
+            {
+                LOG_ERROR("Failed to get peer src pad for Elementr '" 
+                    << m_linkedCommonAudioElements.front()->GetName() << "'");
+                return;
+            }
+            LOG_INFO("Unlinking common front Elementr '" 
+                << m_linkedCommonAudioElements.front()->GetName() 
+                << "' from its peer src pad");
+
+            if (!gst_pad_unlink(pSrcPad, pStaticSinkPad))
+            {
+                LOG_ERROR("Failed to unlink src pad for Elementr '" 
+                    << m_linkedCommonAudioElements.front()->GetName() << "'");
+                return;
+            }
+            gst_object_unref(pSrcPad);
+        }
+        gst_object_unref(pStaticSinkPad);
+
+        // iterate through the list of linked Elements, unlinking each
+        for (auto const& ivec: m_linkedCommonAudioElements)
+        {
+            ivec->UnlinkFromSink();
+        }
+        m_linkedCommonAudioElements.clear();
+
+        m_isAudioFullyLinked = false;
+    }
+
+    const char* AudioSourceBintr::GetAudioBufferOutFormat()
+    {
+        LOG_FUNC();
+        
+        return m_bufferOutFormat.c_str();
+    }
+
+    bool AudioSourceBintr::SetAudioBufferOutFormat(const char* format)
+    {
+        LOG_FUNC();
+        
+        if (m_mediaType == DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-format for AudioSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_VIDEO_ONLY");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-format for AudioSourceBintr '" 
+                << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+
+        m_bufferOutFormat = format;
+        
+        return updateAudioConvCaps();
+    }
+    
+    uint AudioSourceBintr::GetAudioBufferOutSampleRate()
+    {
+        LOG_FUNC();
+        
+        return m_bufferOutRate;
+    }
+    
+    bool AudioSourceBintr::SetAudioBufferOutSampleRate(uint rate)
+    {
+        LOG_FUNC();
+        
+        if (m_mediaType == DSL_MEDIA_TYPE_VIDEO_ONLY)
+        {
+            LOG_ERROR("Can't set buffer-out-sample-rate for AudioSourceBintr '" 
+                << GetName() 
+                << "' as its media-type is set to DSL_MEDIA_TYPE_VIDEO_ONLY");
+            return false;
+        }
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set buffer-out-sample-rate for AudioSourceBintr '" 
+                << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        m_bufferOutRate = rate;
+        
+        // Update the Audio output-buffer's caps filter now
+        return updateAudioConvCaps();
+    }
+
+    bool AudioSourceBintr::updateAudioConvCaps()
+    {
+        LOG_FUNC();
+
+        // New Audio Caps object to set the caps filter.
+        DslCaps AudioCaps(m_audioMediaString.c_str(), m_bufferOutFormat.c_str(),
+            m_bufferOutLayout.c_str(), m_bufferOutRate, m_bufferOutChannels);
+
+        m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
+        
+        return true;
+    }
+
     //*********************************************************************************
+
     DuplicateSourceBintr::DuplicateSourceBintr(const char* name, 
             const char* original, bool isLive)
         : SourceBintr(name) 
@@ -902,13 +1307,14 @@ namespace DSL
         LOG_FUNC();
         
         m_isLive = isLive;
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
         
         LOG_INFO("");
         LOG_INFO("Initial property values for DuplicateSourceBintr '" << name << "'");
         LOG_INFO("  original-source   : " << m_original);
 
         // Source queue is both "sink" and "src" ghost-pad for the DuplicateSourceBintr
-        m_pQueue->AddGhostPadToParent("src");
+        m_pQueue->AddGhostPadToParent("src", "video_src");
         m_pQueue->AddGhostPadToParent("sink");
     }
 
@@ -963,8 +1369,9 @@ namespace DSL
 
     //*********************************************************************************
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
-            const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
-        : VideoSourceBintr(name) 
+        const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name) 
         , m_doTimestamp(TRUE)
         , m_bufferInFormat(bufferInFormat)
         , m_needDataHandler(NULL)
@@ -979,6 +1386,8 @@ namespace DSL
         LOG_FUNC();
         
         m_isLive = isLive;
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
+
         m_width = width;
         m_height = height;
         m_fpsN = fpsN;
@@ -1018,7 +1427,7 @@ namespace DSL
         
 //        if (!m_cudaDeviceProp.integrated)
 //        {
-//            m_pBufferOutVidConv->SetAttribute("nvbuf-memory-type", 
+//            m_pVideoOutConv->SetAttribute("nvbuf-memory-type", 
 //                DSL_NVBUF_MEM_TYPE_CUDA_UNIFIED);
 //        }
 
@@ -1034,26 +1443,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // TODO support GST 1.20 properties
         // LOG_INFO("max-buffers = " << m_maxBuffers);
@@ -1080,7 +1469,7 @@ namespace DSL
             return false;
         }
         
-        if (!LinkToCommon(m_pSourceElement))
+        if (!LinkToCommonVideo(m_pSourceElement))
         {
             return false;
         }
@@ -1100,7 +1489,7 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         m_isLinked = false;
     }
 
@@ -1427,12 +1816,14 @@ namespace DSL
 
     //*********************************************************************************
     CustomSourceBintr::CustomSourceBintr(const char* name, bool isLive)
-        : VideoSourceBintr(name) 
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name) 
         , m_nextElementIndex(0)
     {
         LOG_FUNC();
         
         m_isLive = isLive;
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
         
         LOG_INFO("");
         LOG_INFO("Initial property values for CustomSourceBintr '" << name << "'");
@@ -1441,25 +1832,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
     }
 
@@ -1554,7 +1926,7 @@ namespace DSL
                 imap.second->GetName() << "' successfully");                    
         }
         // Link the back element to the common VideoSource buffer out elements
-        LinkToCommon(m_elementrsLinked.back());
+        LinkToCommonVideo(m_elementrsLinked.back());
 
         m_isLinked = true;
         
@@ -1578,7 +1950,7 @@ namespace DSL
             return;
         }
         // Unlink the common elements
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         
         // iterate through the list of Linked Components, unlinking each
         for (auto const& ivector: m_elementrsLinked)
@@ -1599,16 +1971,12 @@ namespace DSL
     std::list<uint> CsiSourceBintr::s_uniqueSensorIds;
 
     CsiSourceBintr::CsiSourceBintr(const char* name, 
-        guint width, guint height, guint fpsN, guint fpsD)
-        : VideoSourceBintr(name)
+        uint width, uint height, uint fpsN, uint fpsD)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
         , m_sensorId(0)
     {
         LOG_FUNC();
-
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
 
         m_width = width;
         m_height = height;
@@ -1655,26 +2023,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1697,7 +2045,7 @@ namespace DSL
             return false;
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-            !LinkToCommon(m_pSourceCapsFilter))
+            !LinkToCommonVideo(m_pSourceCapsFilter))
         {
             return false;
         }
@@ -1716,7 +2064,7 @@ namespace DSL
             return;
         }
         m_pSourceElement->UnlinkFromSink();
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         
         m_isLinked = false;
     }
@@ -1766,15 +2114,13 @@ namespace DSL
     //*********************************************************************************
 
     V4l2SourceBintr::V4l2SourceBintr(const char* name, const char* deviceLocation)
-        : VideoSourceBintr(name)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
         , m_deviceLocation(deviceLocation)
     {
         LOG_FUNC();
 
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
 
         m_pSourceElement = DSL_ELEMENT_NEW("v4l2src", name);
 
@@ -1819,26 +2165,6 @@ namespace DSL
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
         LOG_INFO("  do-timestamp      : " << m_doTimestamp);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pSourceCapsFilter);
@@ -1864,7 +2190,7 @@ namespace DSL
         {
             if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
                 !m_pSourceCapsFilter->LinkToSink(m_pdGpuVidConv) or 
-                !LinkToCommon(m_pdGpuVidConv))
+                !LinkToCommonVideo(m_pdGpuVidConv))
             {
                 return false;
             }
@@ -1872,7 +2198,7 @@ namespace DSL
         else // aarch_64
         {
             if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
-                !LinkToCommon(m_pSourceCapsFilter))
+                !LinkToCommonVideo(m_pSourceCapsFilter))
             {
                 return false;
             }
@@ -1898,7 +2224,7 @@ namespace DSL
         {
             m_pSourceCapsFilter->UnlinkFromSink();
         }
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         m_isLinked = false;
     }
 
@@ -2055,8 +2381,10 @@ namespace DSL
 
     UriSourceBintr::UriSourceBintr(const char* name, const char* uri, bool isLive,
         uint skipFrames, uint dropFrameInterval)
-        : ResourceSourceBintr(name, uri)
-        , m_isFullyLinked(false)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , AudioSourceBintr(name)
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
         , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
@@ -2097,26 +2425,6 @@ namespace DSL
         LOG_INFO("  height              : " << m_height);
         LOG_INFO("  fps-n               : " << m_fpsN);
         LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out          : ");
-        LOG_INFO("    format            : " << m_bufferOutFormat);
-        LOG_INFO("    width             : " << m_bufferOutWidth);
-        LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
-        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -2233,14 +2541,58 @@ namespace DSL
             return;
         }
 
-        if (m_isFullyLinked)
+        if (m_isVideoFullyLinked)
         {
-            UnlinkCommon();
+            UnlinkFromCommonVideo();
         }
-        m_isFullyLinked = false;
         m_isLinked = false;
     }
     
+    bool UriSourceBintr::SetMediaType(uint mediaType)
+    {
+        if (IsInUse())
+        {
+            LOG_ERROR("Cant update media-type for UriSourceBintr '" 
+                << GetName() << "' as it is currently in-use");
+            return false;
+        }
+        if (m_mediaType == mediaType)
+        {
+            LOG_ERROR("Can't update media-type for UriSourceBintr '" 
+                << GetName() << "' as it is already of type = " << mediaType);
+            return false;
+        }
+
+        if (!(m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY))
+        {
+            LOG_INFO("Enabling Audio for UriSourceBintr '" << GetName() << "'");
+            InitCommonAudio();
+        } 
+        if ((m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            !(mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY))
+        {
+            LOG_INFO("Disabling Audio for UriSourceBintr '" << GetName() << "'");
+            DeinitCommonAudio();
+        } 
+
+        if (!(m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            (mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_INFO("Enabling Video for UriSourceBintr '" << GetName() << "'");
+            InitCommonVideo();
+        } 
+        if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            !(mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            LOG_INFO("Disabling Video for UriSourceBintr '" << GetName() << "'");
+            DeinitCommonVideo();
+        } 
+
+        m_mediaType = mediaType;
+        return true;
+    }    
+
     void UriSourceBintr::HandleSourceElementOnPadAdded(GstElement* pBin, GstPad* pPad)
     {
         LOG_FUNC();
@@ -2254,10 +2606,10 @@ namespace DSL
         std::string name = gst_structure_get_name(structure);
         
         LOG_INFO("Caps structs name " << name);
-        if (name.find("video") != std::string::npos)
+        if ((name.find("video/x-raw") != std::string::npos) and
+            (m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY))
         {
-            LinkToCommon(pPad);
-            m_isFullyLinked = true;
+            LinkToCommonVideo(pPad);
             
             // Update the cap memebers for this URI Source Bintr
             gst_structure_get_uint(structure, "width", &m_width);
@@ -2265,6 +2617,14 @@ namespace DSL
             gst_structure_get_fraction(structure, "framerate", (gint*)&m_fpsN, (gint*)&m_fpsD);
             
             LOG_INFO("Video decode linked for URI source '" << GetName() << "'");
+
+        }
+        else if ((name.find("audio/x-raw") != std::string::npos) and
+            (m_mediaType & DSL_MEDIA_TYPE_AUDIO_ONLY))
+        {
+            LinkToCommonAudio(pPad);
+            
+            LOG_INFO("Audio decode linked for URI source '" << GetName() << "'");
 
         }
     }
@@ -2430,7 +2790,8 @@ namespace DSL
 
     FileSourceBintr::FileSourceBintr(const char* name, 
         const char* uri, bool repeatEnabled)
-        : UriSourceBintr(name, uri, false, false, 0)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , UriSourceBintr(name, uri, false, false, 0)
     {
         LOG_FUNC();
         
@@ -2490,18 +2851,16 @@ namespace DSL
     //*********************************************************************************
 
     ImageSourceBintr::ImageSourceBintr(const char* name, const char* uri, uint type)
-        : ResourceSourceBintr(name, uri)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_mjpeg(FALSE)
     {
         LOG_FUNC();
         
         // override the default source attributes
         m_isLive = False;
-
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
 
         // Other components are created conditionaly by file type. 
         if (m_uri.find("jpeg") != std::string::npos or
@@ -2556,7 +2915,8 @@ namespace DSL
     //*********************************************************************************
 
     SingleImageSourceBintr::SingleImageSourceBintr(const char* name, const char* uri)
-        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_SINGLE)
     {
         LOG_FUNC();
         
@@ -2575,26 +2935,6 @@ namespace DSL
         LOG_INFO("  mjpeg             : " << m_mjpeg);
         LOG_INFO("  width             : " << m_width);
         LOG_INFO("  height            : " << m_height);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
     }
@@ -2622,7 +2962,7 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pDecoder) or
-            !LinkToCommon(m_pDecoder))
+            !LinkToCommonVideo(m_pDecoder))
         {
             LOG_ERROR("SingleImageSourceBintr '" << GetName() 
                 << "' failed to LinkAll");
@@ -2645,7 +2985,7 @@ namespace DSL
         }
         m_pSourceElement->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         m_isLinked = false;
     }
 
@@ -2707,7 +3047,8 @@ namespace DSL
 
     MultiImageSourceBintr::MultiImageSourceBintr(const char* name, 
         const char* uri, uint fpsN, uint fpsD)
-        : ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_MULTI)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , ImageSourceBintr(name, uri, DSL_IMAGE_TYPE_MULTI)
         , m_loopEnabled(false)
         , m_startIndex(0)
         , m_stopIndex(-1)
@@ -2748,26 +3089,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
         
         AddChild(m_pSourceElement);
 
@@ -2800,7 +3121,7 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pParser) or
             !m_pParser->LinkToSink(m_pDecoder) or
-            !LinkToCommon(m_pDecoder))
+            !LinkToCommonVideo(m_pDecoder))
         {
             LOG_ERROR("MultiImageSourceBintr '" << GetName() 
                 << "' failed to LinkAll");
@@ -2824,7 +3145,7 @@ namespace DSL
         
         m_pSourceElement->UnlinkFromSink();
         m_pParser->UnlinkFromSink();
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         m_isLinked = false;
     }
 
@@ -2906,19 +3227,17 @@ namespace DSL
 
     ImageStreamSourceBintr::ImageStreamSourceBintr(const char* name, 
         const char* uri, bool isLive, uint fpsN, uint fpsD, uint timeout)
-        : ResourceSourceBintr(name, uri)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_timeout(timeout)
         , m_timeoutTimerId(0)
     {
         LOG_FUNC();
         
-        // Set the buffer-out-format to the default video format
-        std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-        m_bufferOutFormat.assign(L_bufferOutFormat.begin(), 
-            L_bufferOutFormat.end());
-
         // override default values
         m_isLive = isLive;
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
         m_fpsN = fpsN;
         m_fpsD = fpsD;
 
@@ -2942,26 +3261,6 @@ namespace DSL
         LOG_INFO("  height            : " << m_height);
         LOG_INFO("  fps-n             : " << m_fpsN);
         LOG_INFO("  fps-d             : " << m_fpsD);
-        LOG_INFO("  media-out         : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out        : ");
-        LOG_INFO("    format          : " << m_bufferOutFormat);
-        LOG_INFO("    width           : " << m_bufferOutWidth);
-        LOG_INFO("    height          : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n           : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d           : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv   : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv  : 0:0:0:0" );
-        LOG_INFO("    orientation     : " << m_bufferOutOrientation);
-        LOG_INFO("  queue             : " );
-        LOG_INFO("    leaky           : " << m_leaky);
-        LOG_INFO("    max-size        : ");
-        LOG_INFO("      buffers       : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes         : " << m_maxSizeBytes);
-        LOG_INFO("      time          : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold   : ");
-        LOG_INFO("      buffers       : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes         : " << m_minThresholdBytes);
-        LOG_INFO("      time          : " << m_minThresholdTime);
 
         // Add all new Elementrs as Children to the SourceBintr
         AddChild(m_pSourceElement);
@@ -3020,7 +3319,7 @@ namespace DSL
         
         // Set the full capabilities (format and framerate)
         if (!set_full_caps(m_pSourceCapsFilter, m_videoMediaString.c_str(), 
-            m_bufferOutFormat.c_str(), m_width, m_height, m_fpsN, m_fpsD, false))
+            GetVideoBufferOutFormat(), m_width, m_height, m_fpsN, m_fpsD, false))
         {
             return false;
         }
@@ -3046,7 +3345,7 @@ namespace DSL
         }
         if (!m_pSourceElement->LinkToSink(m_pSourceCapsFilter) or
             !m_pSourceCapsFilter->LinkToSink(m_pImageOverlay) or
-            !LinkToCommon(m_pImageOverlay))
+            !LinkToCommonVideo(m_pImageOverlay))
         {
             LOG_ERROR("ImageStreamSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -3080,7 +3379,7 @@ namespace DSL
         
         m_pSourceElement->UnlinkFromSink();
         m_pSourceCapsFilter->UnlinkFromSink();
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         m_isLinked = false;
     }
     
@@ -3124,7 +3423,8 @@ namespace DSL
 
     InterpipeSourceBintr::InterpipeSourceBintr(const char* name, 
         const char* listenTo, bool isLive, bool acceptEos, bool acceptEvents)
-        : VideoSourceBintr(name)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
         , m_listenTo(listenTo)
         , m_acceptEos(acceptEos)
         , m_acceptEvents(acceptEvents)
@@ -3137,6 +3437,7 @@ namespace DSL
         
         // override the default settings.
         m_isLive = isLive;
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
         
         m_pSourceElement = DSL_ELEMENT_NEW("interpipesrc", name);
         
@@ -3157,26 +3458,6 @@ namespace DSL
         LOG_INFO("  height              : " << m_height);
         LOG_INFO("  fps-n               : " << m_fpsN);
         LOG_INFO("  fps-d               : " << m_fpsD);
-        LOG_INFO("  media-out           : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out          : ");
-        LOG_INFO("    format            : " << m_bufferOutFormat);
-        LOG_INFO("    width             : " << m_bufferOutWidth);
-        LOG_INFO("    height            : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n             : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d             : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv     : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv    : 0:0:0:0" );
-        LOG_INFO("    orientation       : " << m_bufferOutOrientation);
-        LOG_INFO("  queue               : " );
-        LOG_INFO("    leaky             : " << m_leaky);
-        LOG_INFO("    max-size          : ");
-        LOG_INFO("      buffers         : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes           : " << m_maxSizeBytes);
-        LOG_INFO("      time            : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold     : ");
-        LOG_INFO("      buffers         : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes           : " << m_minThresholdBytes);
-        LOG_INFO("      time            : " << m_minThresholdTime);
 
         // Add the new Elementr as a Child to the SourceBintr
         AddChild(m_pSourceElement);
@@ -3213,7 +3494,7 @@ namespace DSL
             return false;
         }
 
-        if (!LinkToCommon(m_pSourceElement))
+        if (!LinkToCommonVideo(m_pSourceElement))
         {
             LOG_ERROR("InterpipeSourceBintr '" << GetName() << "' failed to LinkAll");
             return false;
@@ -3232,7 +3513,7 @@ namespace DSL
                 << "' is not in a linked state");
             return;
         }
-        UnlinkCommon();
+        UnlinkFromCommonVideo();
         
         m_isLinked = false;
     }
@@ -3271,8 +3552,9 @@ namespace DSL
     RtspSourceBintr::RtspSourceBintr(const char* name, const char* uri, 
         uint protocol, uint skipFrames, uint dropFrameInterval, 
         uint latency, uint timeout)
-        : ResourceSourceBintr(name, uri)
-        , m_isFullyLinked(false)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , VideoSourceBintr(name)
+        , ResourceSourceBintr(name, uri)
         , m_skipFrames(skipFrames)
         , m_dropFrameInterval(dropFrameInterval)
         , m_numExtraSurfaces(DSL_DEFAULT_NUM_EXTRA_SURFACES)
@@ -3312,6 +3594,7 @@ namespace DSL
         
         // update the is-live variable (initiated as false)
         m_isLive = true;
+        m_mediaType = DSL_MEDIA_TYPE_VIDEO_ONLY;
 
         // New RTSP Specific Elementrs for this Source
         m_pSourceElement = DSL_ELEMENT_NEW("rtspsrc", name);
@@ -3377,26 +3660,6 @@ namespace DSL
         LOG_INFO("  height               : " << m_height);
         LOG_INFO("  fps-n                : " << m_fpsN);
         LOG_INFO("  fps-d                : " << m_fpsD);
-        LOG_INFO("  media-out            : " << m_videoMediaString << "(memory:NVMM)");
-        LOG_INFO("  buffer-out           : ");
-        LOG_INFO("    format             : " << m_bufferOutFormat);
-        LOG_INFO("    width              : " << m_bufferOutWidth);
-        LOG_INFO("    height             : " << m_bufferOutHeight);
-        LOG_INFO("    fps-n              : " << m_bufferOutFpsN);
-        LOG_INFO("    fps-d              : " << m_bufferOutFpsD);
-        LOG_INFO("    crop-pre-conv      : 0:0:0:0" );
-        LOG_INFO("    crop-post-conv     : 0:0:0:0" );
-        LOG_INFO("    orientation        : " << m_bufferOutOrientation);
-        LOG_INFO("  queue                : " );
-        LOG_INFO("    leaky              : " << m_leaky);
-        LOG_INFO("    max-size           : ");
-        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes            : " << m_maxSizeBytes);
-        LOG_INFO("      time             : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold      : ");
-        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes            : " << m_minThresholdBytes);
-        LOG_INFO("      time             : " << m_minThresholdTime);
 
         AddChild(m_pSourceElement);
         AddChild(m_pDepayCapsfilter);
@@ -3493,7 +3756,7 @@ namespace DSL
                 << GetName() << "'");
         }
         
-        if (m_isFullyLinked)
+        if (m_isVideoFullyLinked)
         {
             if (HasTapBintr())
             {
@@ -3508,10 +3771,9 @@ namespace DSL
             }
             m_pDepay->UnlinkFromSink();
             m_pParser->UnlinkFromSink();
-            UnlinkCommon();
+            UnlinkFromCommonVideo();
         }
         m_isLinked = false;
-        m_isFullyLinked = false;
     }
 
     bool RtspSourceBintr::SetUri(const char* uri)
@@ -3919,7 +4181,7 @@ namespace DSL
                 }            
             }
             
-            if (!LinkToCommon(m_pDecoder))
+            if (!LinkToCommonVideo(m_pDecoder))
             {
                 LOG_ERROR(
                     "Failed to link decoder with common elements for RtspSourceBitnr '" 
@@ -3978,9 +4240,6 @@ namespace DSL
             
             LOG_INFO("rtspsrc element linked for RtspSourceBintr '" 
                 << GetName() << "'");
-
-            // finally fully linked -- ok to unlink all elements from this point
-            m_isFullyLinked = true;
 
             // Update the cap memebers for this RtspSourceBintr
             gst_structure_get_uint(structure, "width", &m_width);
