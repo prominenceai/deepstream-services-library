@@ -1207,7 +1207,7 @@ namespace DSL
             }
             ivector->UnlinkAll();
         }
-        m_linkedVideoComps.clear();
+        m_linkedAudioComps.clear();
 
         // iterate through the list of Linked Video Components, unlinking each
         for (auto const& ivector: m_linkedVideoComps)

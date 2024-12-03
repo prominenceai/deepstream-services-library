@@ -274,32 +274,6 @@ namespace DSL
             return true;
         };
 
-        /**
-         * @brief gets the current video batchSize in use by this Bintr
-         * @return the current video batchSize
-         */
-        uint GetVideoBatchSize()
-        {
-            LOG_FUNC();
-            
-            return m_videoBatchSize;
-        };
-        
-        /**
-         * @brief sets the batch size for this Bintr
-         * @param[in] batchSize the new video batchSize to use.
-         */
-        virtual bool SetVideoBatchSize(uint batchSize)
-        {
-            LOG_FUNC();
-            LOG_INFO("Setting batch size to '" << batchSize 
-                << "' for Bintr '" << GetName() << "'");
-            
-            m_videoBatchSize = batchSize;
-            return true;
-        };
-
-
     private:
     
         /**
