@@ -46,17 +46,23 @@ uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
 primary_infer_config_file = \
-    ''
+    '/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-audio/configs/config_infer_audio_sonyc.txt'
 primary_model_engine_file = \
-    ''
+    '/opt/nvidia/deepstream/deepstream/samples/models/SONYC_Audio_Classifier/sonyc_audio_classify.onnx_b2_gpu0_fp32.engine'
 
+frame_size = 441000
+hop_size = 110250
+transform = \
+    'melsdb,fft_length=2560,hop_size=692,dsp_window=hann,num_mels=128,sample_rate=44100,p2db_ref=(float)1.0,p2db_min_power=(float)0.0,p2db_top_db=(float)80.0'
 
 ## 
 # Function to be called on every change of Pipeline state
 ## 
 def state_change_listener(old_state, new_state, client_data):
     print('previous state = ', old_state, ', new state = ', new_state)
-    if new_state == DSL_STATE_PLAYING:
+    if new_state == DSL_STATE_READY:
+        dsl_pipeline_dump_to_dot('pipeline', "state-ready")
+    elif new_state == DSL_STATE_PLAYING:
         dsl_pipeline_dump_to_dot('pipeline', "state-playing")
 
 def main(args):
@@ -71,7 +77,7 @@ def main(args):
             break
 
         ## New URI Source with HTTP URI
-        retval = dsl_source_uri_new('uri-source', uri_h265, False, False, 0)
+        retval = dsl_source_uri_new('uri-source', http_uri, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -80,6 +86,12 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
             
+        retval = dsl_infer_aie_primary_new('paie', 
+            primary_infer_config_file, primary_model_engine_file,
+            frame_size, hop_size, transform)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+                   
          # New alsa sink using default sound card and device
         retval = dsl_sink_alsa_new('alsa-sink', 'default')
         if retval != DSL_RETURN_SUCCESS:
@@ -100,7 +112,7 @@ def main(args):
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
-            ['uri-source', 'alsa-sink', None])
+            ['uri-source', 'paie', 'alsa-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

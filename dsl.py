@@ -4984,6 +4984,82 @@ def dsl_preproc_pph_remove(name, handler, pad):
     return int(result)
 
 ##
+## dsl_infer_aie_primary_new()
+##
+_dsl.dsl_infer_aie_primary_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_infer_aie_primary_new.restype = c_uint
+def dsl_infer_aie_primary_new(name, 
+    infer_config_file, model_engine_file, frame_size, hop_size, transform):
+    global _dsl
+    result = _dsl.dsl_infer_aie_primary_new(name, infer_config_file, 
+        model_engine_file, frame_size, hop_size, transform)
+    return int(result)
+
+##
+## dsl_infer_aie_frame_size_get()
+##
+_dsl.dsl_infer_aie_frame_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_aie_frame_size_get.restype = c_uint
+def dsl_infer_aie_frame_size_get(name):
+    global _dsl
+    frame_size = c_uint(0)
+    result = _dsl.dsl_gie_model_frame_size_get(name, DSL_UINT_P(frame_size))
+    return int(result), frame_size.value 
+
+##
+## dsl_infer_aie_frame_size_set()
+##
+_dsl.dsl_infer_aie_frame_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_aie_frame_size_set.restype = c_uint
+def dsl_infer_aie_frame_size_set(name, frame_size):
+    global _dsl
+    result = _dsl.dsl_infer_aie_frame_size_set(name, frame_size)
+    return int(result)
+
+##
+## dsl_infer_aie_hop_size_get()
+##
+_dsl.dsl_infer_aie_hop_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_aie_hop_size_get.restype = c_uint
+def dsl_infer_aie_hop_size_get(name):
+    global _dsl
+    hop_size = c_uint(0)
+    result = _dsl.dsl_gie_model_hop_size_get(name, DSL_UINT_P(hop_size))
+    return int(result), hop_size.value 
+
+##
+## dsl_infer_aie_frame_size_set()
+##
+_dsl.dsl_infer_aie_frame_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_aie_frame_size_set.restype = c_uint
+def dsl_infer_aie_frame_size_set(name, frame_size):
+    global _dsl
+    result = _dsl.dsl_infer_aie_frame_size_set(name, frame_size)
+    return int(result)
+
+##
+## dsl_infer_aie_transform_get()
+##
+_dsl.dsl_infer_aie_transform_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_infer_aie_transform_get.restype = c_uint
+def dsl_infer_aie_transform_get(name):
+    global _dsl
+    transform = c_wchar_p(0)
+    result = _dsl.dsl_infer_aie_transform_get(name, DSL_WCHAR_PP(transform))
+    return int(result), transform.value 
+
+##
+## dsl_infer_aie_transform_set()
+##
+_dsl.dsl_infer_aie_transform_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_aie_transform_set.restype = c_uint
+def dsl_infer_aie_transform_set(name, transform):
+    global _dsl
+    result = _dsl.dsl_infer_aie_transform_set(name, transform)
+    return int(result)
+
+##
 ## dsl_infer_gie_primary_new()
 ##
 _dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]

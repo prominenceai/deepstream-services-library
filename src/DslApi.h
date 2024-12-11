@@ -6336,12 +6336,90 @@ DslReturnType dsl_segvisual_pph_add(const wchar_t* name, const wchar_t* handler)
 DslReturnType dsl_segvisual_pph_remove(const wchar_t* name, const wchar_t* handler);
     
 /**
+ * @brief creates a new, uniquely named Primary Audio Inference Engine (AIE).
+ * @param[in] name unique name for the new Inference Engine
+ * @param[in] infer_config_file path specification of the Infer Config file to use
+ * @param[in] model_engine_file path specification of the Model Engine file to use
+ * Set to NULL or empty string "" to leave unspecified, indicating that
+ * the model in the config-file should be used.
+ * @param[in] frame_size audio frame-size in units of samples/frame. 
+ * @param[in] hop_size audio hop-size in units of samples. 
+ * @param[in] transform transform type and parameters to use. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
+ */
+DslReturnType dsl_infer_aie_primary_new(const wchar_t* name, 
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, 
+    uint frame_size, uint hop_size, const wchar_t* transform);
+
+/**
+ * @brief Gets the current audio frame-size setting for the named AIE.
+ * @param[in] name unique name of the AIE to query.
+ * @param[out] frame_size current frame-size setting for the named AIE in units
+ * of samples per frame.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_aie_frame_size_get(const wchar_t* name, uint* frame_size);
+
+/**
+ * @brief Sets the audio frame-size setting for the named AIE to use.
+ * @param[in] name unique name of the AIE to update.
+ * @param[in] size value to set the frame-size setting for the named AIE in units
+ * of samples per frame.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_aie_frame_size_set(const wchar_t* name, uint frame_size);
+
+/**
+ * @brief Gets the current audio hop-size setting for the named AIE.
+ * @param[in] name unique name of the AIE to query.
+ * @param[out] hop_size current hop-size setting for the named AIE in units
+ * of samples.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_aie_hop_size_get(const wchar_t* name, uint* frame_size);
+
+/**
+ * @brief Sets the audio hop-size setting for the named AIE to use.
+ * @param[in] name unique name of the AIE to update.
+ * @param[in] size value to set the hop-size setting for the named AIE in units
+ * of samples.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_aie_hop_size_set(const wchar_t* name, uint frame_size);
+
+/**
+ * @brief Gets the current audio transform method and parameters for the named AIE.
+ * @param[in] name unique name of the AIE to query.
+ * @param[out] transform current transform method and parameters for the named AIE. 
+ * The transform parameter is a string representation of a GstStructure.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_aie_transform_get(const wchar_t* name, 
+    const wchar_t** transform);
+
+/**
+ * @brief Sets the audio transform method and parameters for the named AIE to use.
+ * @param[in] name unique name of the AIE to update.
+ * @param[in] transform new transform method and parameters for the named AIE.
+ * The transform parameter is a string representation of a GstStructure.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_INFER_RESULT on failure. 
+ */
+DslReturnType dsl_infer_aie_transform_set(const wchar_t* name, 
+    const wchar_t* transform);
+
+/**
  * @brief creates a new, uniquely named Primary GIE object
  * @param[in] name unique name for the new GIE object
  * @param[in] infer_config_file pathspec of the Infer Config file to use
  * @param[in] model_engine_file pathspec of the Model Engine file to use
  * Set to NULL or empty string "" to leave unspecified, indicating that
- * the model should be created based on the infer_config_file settings
+ * the model  in the config-file should be used
  * @param[in] interval frame interval to infer on. 0 = every frame, 
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
@@ -6385,35 +6463,36 @@ DslReturnType dsl_infer_tis_secondary_new(const wchar_t* name,
     const wchar_t* infer_config_file, const wchar_t* infer_on_tis, uint interval);
 
 /**
- * @brief Gets the client defined batch-size setting for the named GIE or TIS. If
- * not set (0), the Pipeline will set the batch-size to the same as the Streammux 
+ * @brief Gets the client defined batch-size setting for the named Inference Component. 
+ * If not set (0), the Pipeline will set the batch-size to the same as the Streammux 
  * batch-size which - by default - is derived from the number of sources when the 
  * Pipeline is called to play. The Streammux batch-size can be set (overridden)
  * by the client as well.
- * @param[in] name unique name of the GIE or TIS to update.
- * @param[in] size value to set the batch-size setting for the named GIE or TIS
- * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * @param[in] name unique name of the Inference Component to query.
+ * @param[out] size current batch-size setting for the named Inference Component
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_INFER_RESULT on failure. 
  */
 DslReturnType dsl_infer_batch_size_get(const wchar_t* name, uint* size);
 
 /**
- * @brief Sets (overides) the batch-size setting for the named GIE or TIS. If
- * not set (0), the Pipeline will set the batch-size to the same as the Streammux 
+ * @brief Sets (overides) the batch-size setting for the named Inference Component.
+ * If not set (0), the Pipeline will set the batch-size to the same as the Streammux 
  * batch-size which - by default - is derived from the number of sources when the 
  * Pipeline is called to play. The Streammux batch-size can be set (overridden)
  * by the client as well.
- * @param[in] name unique name of the GIE or TIS to update.
- * @param[in] size value to set the batch-size setting for the named GIE or TIS
+ * @param[in] name unique name of the Inference Component to update.
+ * @param[in] size value to set the batch-size setting for the named Inference 
+ * Component.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_INFER_RESULT on failure. 
  */
 DslReturnType dsl_infer_batch_size_set(const wchar_t* name, uint size);
 
 /**
- * @brief Queries a GIE or TIS for its unique Id 
- * @param[in] name unique name of the GIE or TIS to query.
- * @param[out] id unique id for the named GIE or TIS.
+ * @brief Queries a named Inference Component for its unique Id 
+ * @param[in] name unique name of the Inference Component to query.
+ * @param[out] id unique id for the named Inference Component.
  * @return DSL_RESULT_SUCCESS on successful query, one of 
  * DSL_RESULT_INFER_RESULT on failure. 
  */

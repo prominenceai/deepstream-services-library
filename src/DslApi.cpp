@@ -6224,8 +6224,120 @@ DslReturnType dsl_segvisual_pph_remove(const wchar_t* name, const wchar_t* handl
         cstrHandler.c_str());
 }
 
+DslReturnType dsl_infer_aie_primary_new(const wchar_t* name, 
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, 
+    uint frame_size, uint hop_size, const wchar_t* transform)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(infer_config_file);
+    RETURN_IF_PARAM_IS_NULL(transform);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrConfig(infer_config_file);
+    std::string cstrConfig(wstrConfig.begin(), wstrConfig.end());
+    std::wstring wstrTransform(transform);
+    std::string cstrTransform(wstrTransform.begin(), wstrTransform.end());
+    
+    std::string cstrEngine;
+    if (model_engine_file != NULL)
+    {
+        std::wstring wstrEngine(model_engine_file);
+        cstrEngine.assign(wstrEngine.begin(), wstrEngine.end());
+    }
+    return DSL::Services::GetServices()->InferPrimaryAieNew(cstrName.c_str(), 
+        cstrConfig.c_str(), cstrEngine.c_str(), 
+        frame_size, hop_size, cstrTransform.c_str());
+}
+
+DslReturnType dsl_infer_aie_frame_size_get(const wchar_t* name, uint* frame_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(frame_size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferAieFrameSizeGet(cstrName.c_str(), 
+        frame_size);
+}
+
+DslReturnType dsl_infer_aie_frame_size_set(const wchar_t* name, uint frame_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferAieFrameSizeSet(cstrName.c_str(), 
+        frame_size);
+}
+
+DslReturnType dsl_infer_aie_hop_size_get(const wchar_t* name, uint* hop_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(hop_size);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferAieHopSizeGet(cstrName.c_str(), 
+        hop_size);
+}
+
+DslReturnType dsl_infer_aie_hop_size_set(const wchar_t* name, uint hop_size)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->InferAieHopSizeSet(cstrName.c_str(), 
+        hop_size);
+}
+
+DslReturnType dsl_infer_aie_transform_get(const wchar_t* name, 
+    const wchar_t** transform)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(transform);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    const char* cTransform;
+    static std::string cstrTransform;
+    static std::wstring wcstrTransform;
+    
+    uint retval = DSL::Services::GetServices()->InferAieTransformGet(
+        cstrName.c_str(), &cTransform);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        cstrTransform.assign(cTransform);
+        wcstrTransform.assign(cstrTransform.begin(), cstrTransform.end());
+        *transform = wcstrTransform.c_str();
+    }
+    return retval;
+}
+
+DslReturnType dsl_infer_aie_transform_set(const wchar_t* name, 
+    const wchar_t* transform)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(transform);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrTransform(transform);
+    std::string cstrTransform(wstrTransform.begin(), wstrTransform.end());
+
+    return DSL::Services::GetServices()->InferAieTransformSet(cstrName.c_str(), 
+        cstrTransform.c_str());
+}
+
 DslReturnType dsl_infer_gie_primary_new(const wchar_t* name, 
-    const wchar_t* infer_config_file, const wchar_t* model_engine_file, uint interval)
+    const wchar_t* infer_config_file, const wchar_t* model_engine_file, 
+    uint interval)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(infer_config_file);

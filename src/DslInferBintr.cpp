@@ -75,14 +75,38 @@ namespace DSL
             throw;
         }   
 
-        // create and setup unique Inference Element, GIE or TIS
-        if (m_inferType == DSL_INFER_TYPE_TIS)
+        // create and setup unique Inference Element, AIE, GIE, or TIS
+        if (m_inferType == DSL_INFER_TYPE_AIE)
+        {
+            m_pInferEngine = DSL_ELEMENT_NEW("nvinferaudio", inferBintrName.c_str());
+        }
+        else if (m_inferType == DSL_INFER_TYPE_GIE)
+        {
+            m_pInferEngine = DSL_ELEMENT_NEW("nvinfer", inferBintrName.c_str());
+        }
+        else if(m_inferType == DSL_INFER_TYPE_TIS)
         {
             m_pInferEngine = DSL_ELEMENT_NEW("nvinferserver", inferBintrName.c_str());
         }
         else
         {
-            m_pInferEngine = DSL_ELEMENT_NEW("nvinfer", inferBintrName.c_str());
+            LOG_ERROR("Invalid Inference Type for Infer Component '" << name << "'");
+            throw std::exception();
+        }
+
+        // Update common properties for all infer types
+        m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
+        m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
+
+        // If nvinfer or nvinferserver (i.e. Video Inference)
+        if (m_inferType == DSL_INFER_TYPE_GIE or m_inferType == DSL_INFER_TYPE_TIS)
+        {
+            m_pInferEngine->SetAttribute("process-mode", m_processMode);
+            m_pInferEngine->SetAttribute("interval", m_interval);
+        }
+        // If nvinfer or nvinferaudio (i.e. not an Inference Server)
+        if (m_inferType == DSL_INFER_TYPE_AIE or m_inferType == DSL_INFER_TYPE_GIE)
+        {
             m_pInferEngine->GetAttribute("gpu-id", &m_gpuId);
             
             // If a model engine file is provided (non-server only)
@@ -95,32 +119,6 @@ namespace DSL
                 G_CALLBACK(OnModelUpdatedCB), this);
         }
         
-        m_pInferEngine->SetAttribute("config-file-path", inferConfigFile);
-        m_pInferEngine->SetAttribute("process-mode", m_processMode);
-        m_pInferEngine->SetAttribute("unique-id", m_uniqueId);
-
-        LOG_INFO("");
-        LOG_INFO("Initial property values for InferBintr '" << name << "'");
-        LOG_INFO("  Inference Type       : " << m_pInferEngine->GetFactoryName());
-        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
-        LOG_INFO("  process-mode         : " << m_processMode);
-        LOG_INFO("  unique-id            : " << m_uniqueId);
-        LOG_INFO("  interval             : " << m_interval);
-        LOG_INFO("  model-engine-file    : " << m_modelEngineFile);
-        LOG_INFO("  queue                : " );
-        LOG_INFO("    leaky              : " << m_leaky);
-        LOG_INFO("    max-size           : ");
-        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
-        LOG_INFO("      bytes            : " << m_maxSizeBytes);
-        LOG_INFO("      time             : " << m_maxSizeTime);
-        LOG_INFO("    min-threshold      : ");
-        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
-        LOG_INFO("      bytes            : " << m_minThresholdBytes);
-        LOG_INFO("      time             : " << m_minThresholdTime);
-
-        // update the InferEngine interval setting
-        SetInterval(m_interval);
-
 //        g_object_set (m_pInferEngine->GetGstObject(),
 //            "raw-output-generated-callback", OnRawOutputGeneratedCB,
 //            "raw-output-generated-userdata", this,
@@ -247,6 +245,13 @@ namespace DSL
         return Bintr::SetBatchSize(batchSize);
     }
     
+    uint InferBintr::GetInterval()
+    {
+        LOG_FUNC();
+        
+        return m_interval;
+    }
+
     bool InferBintr::SetInterval(uint interval)
     {
         LOG_FUNC();
@@ -263,13 +268,6 @@ namespace DSL
         return true;
     }
     
-    uint InferBintr::GetInterval()
-    {
-        LOG_FUNC();
-        
-        return m_interval;
-    }
-
     int InferBintr::GetUniqueId()
     {
         LOG_FUNC();
@@ -552,12 +550,171 @@ namespace DSL
 
     // ***********************************************************************
 
+    PrimaryAieBintr::PrimaryAieBintr(const char* name, 
+        const char* inferConfigFile, const char* modelEngineFile,
+        uint frameSize, uint hopSize, const char* transform)
+        : PrimaryInferBintr(name, inferConfigFile, modelEngineFile, 
+            0, DSL_INFER_TYPE_AIE)
+        , m_hopSize(hopSize)
+        , m_frameSize(frameSize) 
+        , m_transform(transform)
+    {
+        LOG_FUNC();
+
+        m_mediaType = DSL_MEDIA_TYPE_AUDIO_ONLY;
+
+        // Set the frame and hop sizes
+        m_pInferEngine->SetAttribute("audio-framesize", m_frameSize);
+        m_pInferEngine->SetAttribute("audio-hopsize", m_hopSize);
+
+        // Convert the transform string to a GstStructure
+        GstStructure* pTransform = gst_structure_from_string(m_transform.c_str(), NULL);
+
+        // Set the transform property and free the structure
+        m_pInferEngine->SetAttribute("audio-transform", pTransform);
+        gst_structure_free(pTransform);
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for PrimaryAieBintr '" << name << "'");
+        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
+        LOG_INFO("  process-mode         : " << m_processMode);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  frame-size           : " << m_frameSize);
+        LOG_INFO("  hop-size             : " << m_hopSize);
+        LOG_INFO("  transfrom            : " << m_transform);
+        LOG_INFO("  model-engine-file    : " << m_modelEngineFile);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
+
+    }
+
+    PrimaryAieBintr::~PrimaryAieBintr()
+    {
+        LOG_FUNC();
+    }
+
+    uint PrimaryAieBintr::GetFrameSize()
+    {
+        LOG_FUNC();
+        
+        return m_frameSize;
+    }
+
+    bool PrimaryAieBintr::SetFrameSize(uint frameSize)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set frame-size for PrimaryAieBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_frameSize = frameSize;
+        m_pInferEngine->SetAttribute("audio-framesize", m_frameSize);
+        
+        return true;
+    }
+    
+    uint PrimaryAieBintr::GetHopSize()
+    {
+        LOG_FUNC();
+        
+        return m_hopSize;
+    }
+
+    bool PrimaryAieBintr::SetHopSize(uint hopSize)
+    {
+        LOG_FUNC();
+        
+        if (IsLinked())
+        {
+            LOG_ERROR("Unable to set hop-size for PrimaryAieBintr '" << GetName() 
+                << "' as it's currently linked");
+            return false;
+        }
+        m_hopSize = hopSize;
+        m_pInferEngine->SetAttribute("audio-hopsize", m_frameSize);
+        
+        return true;
+    }
+    
+    const char* PrimaryAieBintr::GetTransform()
+    {
+        LOG_FUNC();
+        
+        return m_transform.c_str();
+    }
+
+    bool PrimaryAieBintr::SetTransform(const char* transform)
+    {
+        LOG_FUNC();
+        
+        m_transform.assign(transform);
+        
+        // Convert the transform string to a GstStructure
+        GstStructure* pTransform = gst_structure_from_string(m_transform.c_str(), NULL);
+
+        // Set the transform property and free the structure
+        m_pInferEngine->SetAttribute("audio-transform", pTransform);
+        gst_structure_free(pTransform);
+
+        return true;
+    }
+    
+    bool PrimaryAieBintr::SetGpuId(uint gpuId)
+    {
+        LOG_FUNC();
+
+        if (IsInUse())
+        {
+            LOG_ERROR("Unable to set GPU ID for PrimaryAieBintr '" << GetName() 
+                << "' as it's currently in use");
+            return false;
+        }
+
+        m_gpuId = gpuId;
+
+        m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
+
+        return true;
+    }
+
+    // ***********************************************************************
+
     PrimaryGieBintr::PrimaryGieBintr(const char* name, 
         const char* inferConfigFile, const char* modelEngineFile, uint interval)
         : PrimaryInferBintr(name, inferConfigFile, modelEngineFile, 
             interval, DSL_INFER_TYPE_GIE) 
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for InferBintr '" << name << "'");
+        LOG_INFO("  Inference Type       : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
+        LOG_INFO("  process-mode         : " << m_processMode);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  model-engine-file    : " << m_modelEngineFile);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
     }
 
     PrimaryGieBintr::~PrimaryGieBintr()
@@ -580,9 +737,6 @@ namespace DSL
 
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
 
-        LOG_INFO("PrimaryGieBintr '" << GetName() 
-            << "' - new GPU ID = " << m_gpuId );
-        
         return true;
     }
 
@@ -595,6 +749,24 @@ namespace DSL
             interval, DSL_INFER_TYPE_TIS) 
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for PrimaryTisBintr '" << name << "'");
+        LOG_INFO("  Inference Type       : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
+        LOG_INFO("  process-mode         : " << m_processMode);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
     }
     
     PrimaryTisBintr::~PrimaryTisBintr()
@@ -802,6 +974,25 @@ namespace DSL
             interval, DSL_INFER_TYPE_GIE)
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for SecondaryGieBintr '" << name << "'");
+        LOG_INFO("  Inference Type       : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  model-engine-file    : " << m_modelEngineFile);
+        LOG_INFO("  infer-on             : " << m_inferOn);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
     }
 
     SecondaryGieBintr::~SecondaryGieBintr()
@@ -825,9 +1016,6 @@ namespace DSL
         m_gpuId = gpuId;
         m_pInferEngine->SetAttribute("gpu-id", m_gpuId);
         
-        LOG_INFO("SecondaryGieBintr '" << GetName() 
-            << "' - new GPU ID = " << m_gpuId );
-        
         return true;
     }
     
@@ -839,6 +1027,24 @@ namespace DSL
             interval, DSL_INFER_TYPE_TIS)
     {
         LOG_FUNC();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for SecondaryTisBintr '" << name << "'");
+        LOG_INFO("  Inference Type       : " << m_pInferEngine->GetFactoryName());
+        LOG_INFO("  config-file-path     : " << m_inferConfigFile);
+        LOG_INFO("  unique-id            : " << m_uniqueId);
+        LOG_INFO("  interval             : " << m_interval);
+        LOG_INFO("  infer-on             : " << m_inferOn);
+        LOG_INFO("  queue                : " );
+        LOG_INFO("    leaky              : " << m_leaky);
+        LOG_INFO("    max-size           : ");
+        LOG_INFO("      buffers          : " << m_maxSizeBuffers);
+        LOG_INFO("      bytes            : " << m_maxSizeBytes);
+        LOG_INFO("      time             : " << m_maxSizeTime);
+        LOG_INFO("    min-threshold      : ");
+        LOG_INFO("      buffers          : " << m_minThresholdBuffers);
+        LOG_INFO("      bytes            : " << m_minThresholdBytes);
+        LOG_INFO("      time             : " << m_minThresholdTime);
     }
 
     SecondaryTisBintr::~SecondaryTisBintr()

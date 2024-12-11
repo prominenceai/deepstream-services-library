@@ -30,6 +30,244 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    DslReturnType Services::InferPrimaryAieNew(const char* name, 
+        const char* inferConfigFile, const char* modelEngineFile, 
+        uint frameSize, uint hopSize, const char* transform)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Component name '" << name << "' is not unique");
+                return DSL_RESULT_INFER_NAME_NOT_UNIQUE;
+            }
+            
+            std::ifstream configFile(inferConfigFile);
+            if (!configFile.good())
+            {
+                LOG_ERROR("Infer Config File not found for Primary AIE '" 
+                        << name << "'");
+                return DSL_RESULT_INFER_CONFIG_FILE_NOT_FOUND;
+            }
+            
+            std::string testPath(modelEngineFile);
+            if (testPath.size())
+            {
+                std::ifstream modelFile(modelEngineFile);
+                if (!modelFile.good())
+                {
+                    LOG_ERROR("Model Engine File = '" << modelEngineFile 
+                        << "' not found for Primary AIE '" 
+                        << name << "'");
+                    return DSL_RESULT_INFER_MODEL_FILE_NOT_FOUND;
+                }
+            }
+            m_components[name] = DSL_PRIMARY_AIE_NEW(name, 
+                inferConfigFile, modelEngineFile, frameSize, hopSize, transform);
+                
+            LOG_INFO("New Primary AIE '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New Primary AIE '" << name << "' threw exception on create");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferAieFrameSizeGet(const char* name, uint* frameSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PrimaryAieBintr);
+            
+            DSL_PRIMARY_AIE_PTR pInferBintr = 
+                std::dynamic_pointer_cast<PrimaryAieBintr>(m_components[name]);
+
+            *frameSize = pInferBintr->GetFrameSize();
+
+            LOG_INFO("PrimaryAieBintr '" << name << "' returned frame-size = "
+                << *frameSize << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("PrimaryAieBintr '" << name 
+                << "' threw an exception getting frame-size");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferAieFrameSizeSet(const char* name, uint frameSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PrimaryAieBintr);
+            
+            DSL_PRIMARY_AIE_PTR pInferBintr = 
+                std::dynamic_pointer_cast<PrimaryAieBintr>(m_components[name]);
+
+            if (!pInferBintr->SetFrameSize(frameSize))
+            {
+                LOG_ERROR("PrimaryAieBintr '" << name << "' failed to set frame-size");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+
+            LOG_INFO("PrimaryAieBintr '" << name << "' set frame-size = "
+                << frameSize << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("PrimaryAieBintr '" << name 
+                << "' threw an exception setting frame-size");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferAieHopSizeGet(const char* name, uint* hopSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PrimaryAieBintr);
+            
+            DSL_PRIMARY_AIE_PTR pInferBintr = 
+                std::dynamic_pointer_cast<PrimaryAieBintr>(m_components[name]);
+
+            *hopSize = pInferBintr->GetHopSize();
+
+            LOG_INFO("PrimaryAieBintr '" << name << "' returned hop-size = "
+                << *hopSize << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("PrimaryAieBintr '" << name 
+                << "' threw an exception getting hop-size");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferAieHopSizeSet(const char* name, uint hopSize)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PrimaryAieBintr);
+            
+            DSL_PRIMARY_AIE_PTR pInferBintr = 
+                std::dynamic_pointer_cast<PrimaryAieBintr>(m_components[name]);
+
+            if (!pInferBintr->SetHopSize(hopSize))
+            {
+                LOG_ERROR("PrimaryAieBintr '" << name << "' failed to set hop-size");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+
+            LOG_INFO("PrimaryAieBintr '" << name << "' set hop-size = "
+                << hopSize << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("PrimaryAieBintr '" << name 
+                << "' threw an exception setting hop-size");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferAieTransformGet(const char* name, 
+        const char** transform)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PrimaryAieBintr);
+            
+            DSL_PRIMARY_AIE_PTR pInferBintr = 
+                std::dynamic_pointer_cast<PrimaryAieBintr>(m_components[name]);
+
+            *transform = pInferBintr->GetTransform();
+            
+            LOG_INFO("PrimaryAieBintr '" << name << "' returned transform = '"
+                << *transform << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("PrimaryAieBintr '" << name 
+                << "' threw exception getting transform");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::InferAieTransformSet(const char* name, 
+        const char* transform)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, 
+                name, PrimaryAieBintr);
+            
+            DSL_PRIMARY_AIE_PTR pInferBintr = 
+                std::dynamic_pointer_cast<PrimaryAieBintr>(m_components[name]);
+
+            if (!pInferBintr->SetTransform(transform))
+            {
+                LOG_ERROR("PrimaryAieBintr '" << name 
+                    << "' failed to set the transform");
+                return DSL_RESULT_INFER_SET_FAILED;
+            }
+            LOG_INFO("PrimaryAieBintr '" << name << "' set transform = '"
+                << transform << "' successfully");
+                
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("PrimaryAieBintr '" << name 
+                << "' threw exception setting transform");
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::InferPrimaryGieNew(const char* name, const char* inferConfigFile,
         const char* modelEngineFile, uint interval)
     {

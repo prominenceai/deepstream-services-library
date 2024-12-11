@@ -1133,6 +1133,22 @@ namespace DSL {
 
         DslReturnType SegVisualPphRemove(const char* name, const char* handler);
 
+        DslReturnType InferPrimaryAieNew(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, uint frameSize, uint hopSize, 
+            const char* transform);
+
+        DslReturnType InferAieFrameSizeGet(const char* name, uint* frameSize);
+
+        DslReturnType InferAieFrameSizeSet(const char* name, uint frameSize);
+
+        DslReturnType InferAieHopSizeGet(const char* name, uint* hopSize);
+
+        DslReturnType InferAieHopSizeSet(const char* name, uint hopSize);
+
+        DslReturnType InferAieTransformGet(const char* name, const char** transform);
+
+        DslReturnType InferAieTransformSet(const char* name, const char* transform);
+            
         DslReturnType InferPrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 

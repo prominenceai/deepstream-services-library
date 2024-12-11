@@ -1289,8 +1289,10 @@ namespace DSL
         LOG_FUNC();
 
         // New Audio Caps object to set the caps filter.
-        DslCaps AudioCaps(m_audioMediaString.c_str(), m_bufferOutFormat.c_str(),
-            m_bufferOutLayout.c_str(), m_bufferOutRate, m_bufferOutChannels);
+        // DslCaps AudioCaps(m_audioMediaString.c_str(), m_bufferOutFormat.c_str(),
+        //     m_bufferOutLayout.c_str(), m_bufferOutRate, m_bufferOutChannels);
+        DslCaps AudioCaps(m_audioMediaString.c_str(), NULL,
+            NULL, m_bufferOutRate, 0);
 
         m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
         
