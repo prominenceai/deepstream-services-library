@@ -1370,6 +1370,118 @@ namespace DSL
     }
 
     //*********************************************************************************
+
+    AlsaSourceBintr::AlsaSourceBintr(const char* name, const char* deviceLocation)
+        : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.
+        , AudioSourceBintr(name)
+        , m_deviceLocation(deviceLocation)
+    {
+        LOG_FUNC();
+
+        m_mediaType = DSL_MEDIA_TYPE_AUDIO_ONLY;
+
+        m_pSourceElement = DSL_ELEMENT_NEW("alsasrc", name);
+
+        m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
+
+        // Get property defaults that aren't specifically set
+        m_pSourceElement->GetAttribute("do-timestamp", &m_doTimestamp);
+
+        InitCommonAudio();
+
+        LOG_INFO("");
+        LOG_INFO("Initial property values for AlsaSourceBintr '" << name << "'");
+        LOG_INFO("  is-live           : " << m_isLive);
+        LOG_INFO("  device            : " << m_deviceLocation.c_str());
+        LOG_INFO("  device-name       : " << m_deviceName);
+        LOG_INFO("  do-timestamp      : " << m_doTimestamp);
+
+        AddChild(m_pSourceElement);
+    }
+
+    AlsaSourceBintr::~AlsaSourceBintr()
+    {
+        LOG_FUNC();
+    }
+
+    bool AlsaSourceBintr::LinkAll()
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("AlsaSourceBintr '" << GetName() << "' is already in a linked state");
+            return false;
+        }
+        
+        if (!LinkToCommonAudio(m_pSourceElement))
+        {
+            return false;
+        }
+        m_isLinked = true;
+        
+        return true;
+    }
+
+    void AlsaSourceBintr::UnlinkAll()
+    {
+        LOG_FUNC();
+
+        if (!m_isLinked)
+        {
+            LOG_ERROR("AlsaSourceBintr '" << GetName() << "' is not in a linked state");
+            return;
+        }
+        
+        UnlinkFromCommonAudio();
+        m_isLinked = false;
+    }
+
+    const char* AlsaSourceBintr::GetDeviceLocation()
+    {
+        LOG_FUNC();
+
+        return m_deviceLocation.c_str();
+    }
+    
+    bool AlsaSourceBintr::SetDeviceLocation(const char* deviceLocation)
+    {
+        LOG_FUNC();
+
+        if (m_isLinked)
+        {
+            LOG_ERROR("Can't set device-location for AlsaSourceBintr '" << GetName() 
+                << "' as it is currently in a linked state");
+            return false;
+        }
+        
+        m_deviceLocation = deviceLocation;
+        
+        m_pSourceElement->SetAttribute("device", m_deviceLocation.c_str());
+        return true;
+    }
+
+    const char* AlsaSourceBintr::GetDeviceName()
+    {
+        LOG_FUNC();
+        
+        // default to no device-name
+        m_deviceName = "";
+
+        const char* deviceName(NULL);
+        m_pSourceElement->GetAttribute("device-name", &deviceName);
+        
+        // Update if set
+        if (deviceName)
+        {
+            m_deviceName = deviceName;
+        }
+            
+        return m_deviceName.c_str();
+    }
+    
+    //*********************************************************************************
+
     AppSourceBintr::AppSourceBintr(const char* name, bool isLive, 
         const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
         : SourceBintr(name)   // IMPORTANT! must call first because of virtual inheritance.

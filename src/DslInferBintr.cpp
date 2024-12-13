@@ -233,15 +233,7 @@ namespace DSL
         {
             LOG_ERROR("Unable to set Batch size for InferBintr '" << GetName() 
                 << "' as it's currently linked");
-            return false;
         }
-        if (m_batchSizeSetByClient)
-        {
-            LOG_INFO("Batch size for InferBintr '" << GetName() 
-                << "' explicitely set by client will not be updated.");
-            return true;
-        }
-        m_pInferEngine->SetAttribute("batch-size", batchSize);
         return Bintr::SetBatchSize(batchSize);
     }
     

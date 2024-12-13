@@ -762,11 +762,18 @@ namespace DSL
 
     bool BranchBintr::AddSinkBintr(DSL_BASE_PTR pSinkBintr)
     {
-        LOG_FUNC();
+        LOG_FUNC(); 
         
         DSL_BINTR_PTR pChildSinkBintr = 
             std::dynamic_pointer_cast<Bintr>(pSinkBintr);
 
+        if (!(GetMediaType() & pChildSinkBintr->GetMediaType()))
+        {
+            LOG_ERROR("Cannot add Sink '" << pSinkBintr->GetName() 
+                << "' as media-type of " << pChildSinkBintr->GetMediaType() 
+                << " is not supported/enabled by Branch '" << GetName() << "'");
+            return false;
+        }
         if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
@@ -776,24 +783,28 @@ namespace DSL
                     << "' already has an Audio Demuxer - can't add Sink after a Demuxer");
                 return false;
             }
-            // Create the MultiAudioSinksBintr if it doesn't exist
-            if (!m_pMultiAudioSinksBintr)
-            {
-                m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
-
-                // Set the MultiAudioSinkBintr's media-type to audio before adding.
-                // Value cannot be updated once it is added as a child.
-                m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
-                
-                if (!AddChild(m_pMultiAudioSinksBintr))
-                {
-                    return false;
-                }
-            }
-            if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
+            if (!AddChild(pChildSinkBintr))
             {
                 return false;
             }
+        //     // Create the MultiAudioSinksBintr if it doesn't exist
+        //     if (!m_pMultiAudioSinksBintr)
+        //     {
+        //         m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
+
+        //         // Set the MultiAudioSinkBintr's media-type to audio before adding.
+        //         // Value cannot be updated once it is added as a child.
+        //         m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
+                
+        //         if (!AddChild(m_pMultiAudioSinksBintr))
+        //         {
+        //             return false;
+        //         }
+        //     }
+        //     if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
+        //     {
+        //         return false;
+        //     }
         }
         if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
@@ -828,6 +839,7 @@ namespace DSL
                 return false;
             }
         }
+
         return true;
     }
 

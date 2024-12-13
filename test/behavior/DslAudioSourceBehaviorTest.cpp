@@ -37,6 +37,8 @@ static const std::wstring source_uri_2 = L"/opt/nvidia/deepstream/deepstream/sam
 
 static const std::wstring pipeline_name(L"test-pipeline");
 
+static const std::wstring alsa_source_name(L"alsa-source");
+
 static const std::wstring source_name_1(L"file-source-1");
 static const std::wstring source_name_2(L"file-source-2");
 
@@ -45,7 +47,7 @@ static const uint frame_size(441000);
 static const uint hop_size(110250);
 static const std::wstring transform(L"melsdb,fft_length=2560,hop_size=692,dsp_window=hann,num_mels=128,sample_rate=44100,p2db_ref=(float)1.0,p2db_min_power=(float)0.0,p2db_top_db=(float)80.0");
 static const std::wstring infer_config_file(
-    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-audio/configs/config_infer_audio_sonyc.txt");
+    L"./test/config/config_infer_audio_sonyc.txt");
 static const std::wstring model_engine_file(
     L"/opt/nvidia/deepstream/deepstream/samples/models/SONYC_Audio_Classifier/sonyc_audio_classify.onnx_b2_gpu0_fp32.engine");
 
@@ -221,7 +223,7 @@ SCENARIO( "A new Pipeline with 2 URI Sources, 2 Window Sinks, and 2 ALSA Sinks c
 }
 
 SCENARIO( "A new Pipeline with a URI Source and ALSA Sink can play - Audio Only",
-    "[error]" )
+    "[audio-behaviour]" )
 {
     GIVEN( "A Pipeline, URI Source, Window Sink, and Audio Fake Sink" ) 
     {
@@ -256,6 +258,67 @@ SCENARIO( "A new Pipeline with a URI Source and ALSA Sink can play - Audio Only"
             {
                 const wchar_t* components[] = {
                     source_name_1.c_str(), paie_name.c_str(), fake_sink_name.c_str(), NULL};
+        
+                REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                    components) == DSL_RESULT_SUCCESS );
+
+                THEN( "Pipeline is Able to LinkAll and Play" )
+                {
+                    // REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                    dsl_pipeline_play(pipeline_name.c_str());
+
+                    dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                        const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
+                    std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                    REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                    dsl_delete_all();
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                    REQUIRE( dsl_component_list_size() == 0 );
+                }
+            }
+        }
+    }
+}
+
+SCENARIO( "A new Pipeline with an ALSA Source and ALSA Sink can play",
+    "[error]" )
+{
+    GIVEN( "A Pipeline, ALSA Source, and ALSA Sink" ) 
+    {
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_component_list_size() == 0 );
+
+            REQUIRE( dsl_source_alsa_new(alsa_source_name.c_str(), 
+                device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_infer_aie_primary_new(paie_name.c_str(), 
+                infer_config_file.c_str(), NULL,
+                frame_size, hop_size, transform.c_str()) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_sink_alsa_new(alsa_sink_name_1.c_str(),
+                device_location.c_str()) == DSL_RESULT_SUCCESS );    
+                
+            // REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );    
+
+            // REQUIRE( dsl_component_media_type_set(fake_sink_name.c_str(), 
+            //     DSL_MEDIA_TYPE_AUDIO_ONLY) == DSL_RESULT_SUCCESS );          
+
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_audiomux_enabled_set(pipeline_name.c_str(), 
+                true) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_videomux_enabled_set(pipeline_name.c_str(), 
+                false) == DSL_RESULT_SUCCESS );
+            
+            WHEN( "When the Pipeline is Assembled" ) 
+            {
+                const wchar_t* components[] = {
+                    alsa_source_name.c_str(), paie_name.c_str(), 
+                    alsa_sink_name_1.c_str(), NULL};
         
                 REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
                     components) == DSL_RESULT_SUCCESS );

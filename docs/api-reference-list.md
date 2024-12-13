@@ -154,6 +154,7 @@
 
 ## Source API:
 * [Overview](/docs/api-source.md)
+* [`dsl_source_alsa_new`](/docs/api-source.md#dsl_source_alsa_new)
 * [`dsl_source_app_new`](/docs/api-source.md#dsl_source_app_new)
 * [`dsl_source_csi_new`](/docs/api-source.md#dsl_source_csi_new)
 * [`dsl_source_v4l2_new`](/docs/api-source.md#dsl_source_v4l2_new)
@@ -182,6 +183,9 @@
 * [`dsl_source_audio_buffer_out_format_set`](/docs/api-source.md#dsl_source_audio_buffer_out_format_set)
 * [`dsl_source_audio_buffer_out_sample_rate_get`](/docs/api-source.md#dsl_source_audio_buffer_out_sample_rate_get)
 * [`dsl_source_audio_buffer_out_sample_rate_set`](/docs/api-source.md#dsl_source_audio_buffer_out_sample_rate_set)
+* [`dsl_source_alsa_device_location_get`](/docs/api-source.md#dsl_source_alsa_device_location_get)
+* [`dsl_source_alsa_device_location_set`](/docs/api-source.md#dsl_source_alsa_device_location_set)
+* [`dsl_source_alsa_device_name_get`](/docs/api-source.md#dsl_source_alsa_device_name_get)
 * [`dsl_source_video_dimensions_get`](/docs/api-source.md#dsl_source_video_dimensions_get)
 * [`dsl_source_video_buffer_out_format_get`](/docs/api-source.md#dsl_source_video_buffer_out_format_get)
 * [`dsl_source_video_buffer_out_format_set`](/docs/api-source.md#dsl_source_video_buffer_out_format_set)

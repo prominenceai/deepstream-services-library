@@ -4797,6 +4797,47 @@ DslReturnType dsl_gst_element_pph_remove(const wchar_t* name,
     const wchar_t* handler, uint pad);
 
 /**
+ * @brief Creates a new, uniquely named ALSA Source that reads data from an 
+ * audio card using the ALSA API.
+ * @param[in] name unique component name for the new ALSA Source
+ * @param[in] device_location device-location setting for the ALSA Source. Set value 
+ * to "default" to use default audio card.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise
+ */
+DslReturnType dsl_source_alsa_new(const wchar_t* name, 
+    const wchar_t* device_location);
+
+/**
+ * @brief Gets the device location setting for the named ALSA Source.
+ * @param[in] name unique name of the ALSA Source to query.
+ * @param[out] device_location current device location setting. Default value is 
+ * set to "default" for the default audio card.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_alsa_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+    
+/**
+ * @brief Sets the device location setting for the named ALSA Source. 
+ * @param[in] name unique name of the ALSA Source to update.
+ * @param[in] device_location new device location setting to use. Set value 
+ * to "default" to use default audio card.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_alsa_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+    
+/**
+ * @brief Gets the device name setting for the named ALSA Source.
+ * @param[in] name unique name of the ALSA Source to query.
+ * @param[out] device_name current device name setting. 
+ * Default = "". Updated after negotiation with the ALSA Device.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_source_alsa_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+
+/**
  * @brief Creates a new, uniquely named App Source component to insert data 
  * into a DSL pipeline.
  * @param[in] name unique name for the new Source.
@@ -5136,7 +5177,7 @@ DslReturnType dsl_source_v4l2_frame_rate_set(const wchar_t* name,
  * @param[in] name unique name of the V4L2 Source to query.
  * @param[out] device_name current device name setting. 
  * Default = "". Updated after negotiation with the V4L2 Device.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
     const wchar_t** device_name);
@@ -5146,7 +5187,7 @@ DslReturnType dsl_source_v4l2_device_name_get(const wchar_t* name,
  * @param[in] name unique name of the V4L2 Source to query.
  * @param[out] device_fd current device file-descriptor setting. 
  * Default = -1. Updated after negotiation with the V4L2 Device.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
     int* device_fd);
@@ -5157,7 +5198,7 @@ DslReturnType dsl_source_v4l2_device_fd_get(const wchar_t* name,
  * @param[out] device_flags device flags setting. One or more of the
  * DSL_V4L2_DEVICE_TYPE flags. Default = DSL_V4L2_DEVICE_TYPE_NONE. The
  * value is updated at runtime after negotiation with the V4L2 device.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
     uint* device_flags);
@@ -5172,7 +5213,7 @@ DslReturnType dsl_source_v4l2_device_flags_get(const wchar_t* name,
  * Default = 0.
  * @param[out] hue current picture color hue setting or color balence.
  * Default = 0.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise
  */
 DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
     int* brightness, int* contrast, int* hue);
@@ -5187,7 +5228,7 @@ DslReturnType dsl_source_v4l2_picture_settings_get(const wchar_t* name,
  * Default = 0.
  * @param[in] hue new picture color hue setting or color balence.
  * Default = 0.
- * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SINK_RESULT otherwise
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise
  */
 DslReturnType dsl_source_v4l2_picture_settings_set(const wchar_t* name,
     int brightness, int contrast, int hue);

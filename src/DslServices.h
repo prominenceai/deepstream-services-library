@@ -751,6 +751,18 @@ namespace DSL {
         DslReturnType GstElementPphRemove(const char* name, 
             const char* handler, uint pad);
             
+        DslReturnType SourceAlsaNew(const char* name, 
+            const char* deviceLocation);
+
+        DslReturnType SourceAlsaDeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SourceAlsaDeviceLocationSet(const char* name, 
+            const char* deviceLocation);
+        
+        DslReturnType SourceAlsaDeviceNameGet(const char* name, 
+            const char** deviceName);
+
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
             const char* bufferInFormat, uint width, uint height, 
             uint fpsN, uint fpsD);

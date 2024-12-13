@@ -44,6 +44,10 @@ namespace DSL
 
     #define DSL_VIDEO_SOURCE_PTR std::shared_ptr<VideoSourceBintr>
 
+    #define DSL_ALSA_SOURCE_PTR std::shared_ptr<AlsaSourceBintr>
+    #define DSL_ALSA_SOURCE_NEW(name, deviceLocation) \
+        std::shared_ptr<AlsaSourceBintr>(new AlsaSourceBintr(name, deviceLocation))
+
     #define DSL_APP_SOURCE_PTR std::shared_ptr<AppSourceBintr>
     #define DSL_APP_SOURCE_NEW(name, isLive, bufferInFormat, width, height, fpsN, fpsD) \
         std::shared_ptr<AppSourceBintr>(new AppSourceBintr(name, isLive, \
@@ -787,6 +791,70 @@ namespace DSL
         std::string m_original;
         
     };
+
+    //*********************************************************************************
+    /**
+     * @class AlsaSourceBintr
+     * @brief 
+     */
+    class AlsaSourceBintr : public AudioSourceBintr
+    {
+    public: 
+    
+        AlsaSourceBintr(const char* name, const char* deviceLocation);
+
+        ~AlsaSourceBintr();
+
+        /**
+         * @brief Links all Child Elementrs owned by this Source Bintr
+         * @return True success, false otherwise
+         */
+        bool LinkAll();
+        
+        /**
+         * @brief Unlinks all Child Elementrs owned by this Source Bintr
+         */
+        void UnlinkAll();
+
+        /**
+         * @brief Gets the current device location setting for the Source Bintr
+         * @return current device location. Default = "default"
+         */
+        const char* GetDeviceLocation();
+        
+        /**
+         * @brief Sets the device location setting for the AlsaSourceBintr.
+         * @param[in] new device location for the Source Bintr to use.
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetDeviceLocation(const char* deviceLocation);
+
+        /**
+         * @brief Gets the current device-name setting for the AlsaSourceBintr
+         * Default = "". Updated after negotiation with the ALSA Device.
+         * @return current device location.
+         */
+        const char* GetDeviceName();
+        
+    private:
+
+        /**
+         * @brief current device location for the ALSA Source
+         */
+        std::string m_deviceLocation;
+
+        /**
+         * @brief Device name string for this AlsaSourceBintr. Default = ""
+         */
+        std::string m_deviceName;
+        
+        /**
+         * @brief If TRUE, the base class will automatically timestamp outgoing buffers
+         * based on the current running_time..
+         */
+        boolean m_doTimestamp;
+
+    }; 
 
     //*********************************************************************************
     /**

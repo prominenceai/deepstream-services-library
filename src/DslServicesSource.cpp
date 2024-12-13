@@ -31,6 +31,129 @@ THE SOFTWARE.
 
 namespace DSL
 {
+    DslReturnType Services::SourceAlsaNew(const char* name, 
+        const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure component name uniqueness 
+            if (m_components.find(name) != m_components.end())
+            {   
+                LOG_ERROR("Source name '" << name << "' is not unique");
+                return DSL_RESULT_SOURCE_NAME_NOT_UNIQUE;
+            }
+            m_components[name] = DSL_ALSA_SOURCE_NEW(name, deviceLocation);
+
+            LOG_INFO("New ALSA Source '" << name << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New ALSA Source '" << name << "' threw exception on create");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::SourceAlsaDeviceLocationGet(const char* name, 
+            const char** deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AlsaSourceBintr);
+
+
+            DSL_ALSA_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AlsaSourceBintr>(m_components[name]);
+
+            *deviceLocation = pSourceBintr->GetDeviceLocation();
+
+            LOG_INFO("ALSA Source '" << name << "' returned device-location = '" 
+                << *deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ALSA Source '" << name 
+                << "' threw exception getting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+            
+
+    DslReturnType Services::SourceAlsaDeviceLocationSet(const char* name, 
+            const char* deviceLocation)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                AlsaSourceBintr);
+
+            DSL_ALSA_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AlsaSourceBintr>(m_components[name]);
+
+            if (!pSourceBintr->SetDeviceLocation(deviceLocation))
+            {
+                LOG_ERROR("Failed to set device-location '" 
+                    << deviceLocation << "' for ALSA Source '" << name << "'");
+                return DSL_RESULT_SOURCE_SET_FAILED;
+            }
+            LOG_INFO("ALSA Source '" << name << "' set device-location = '" 
+                << deviceLocation << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ALSA Source '" << name 
+                << "' threw exception setting device-location");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::SourceAlsaDeviceNameGet(const char* name, 
+        const char** deviceName)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name,
+                AlsaSourceBintr);
+            
+            DSL_ALSA_SOURCE_PTR pSourceBintr = 
+                std::dynamic_pointer_cast<AlsaSourceBintr>(m_components[name]);
+
+            *deviceName = pSourceBintr->GetDeviceName();
+
+            LOG_INFO("ALSA Source '" << name << "' returned device-name = '" 
+                << *deviceName << "' successfully");
+            
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("ALSA Source '" << name 
+                << "' threw exception getting device-name");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::SourceAppNew(const char* name, boolean isLive, 
         const char* bufferInFormat, uint width, uint height, uint fpsN, uint fpsD)
     {

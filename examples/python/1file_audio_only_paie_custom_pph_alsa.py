@@ -38,8 +38,12 @@
 
 import sys
 import time
+import pyds
 
 from dsl import *
+
+##
+## CAUTION: THIS SCRIPT IS A WORK IN PROGRESS!!!!!!!!!11
 
 http_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
@@ -54,6 +58,7 @@ frame_size = 441000
 hop_size = 110250
 transform = \
     'melsdb,fft_length=2560,hop_size=692,dsp_window=hann,num_mels=128,sample_rate=44100,p2db_ref=(float)1.0,p2db_min_power=(float)0.0,p2db_top_db=(float)80.0'
+
 
 ## 
 # Function to be called on every change of Pipeline state
@@ -77,23 +82,49 @@ def main(args):
             break
 
         ## New URI Source with HTTP URI
-        retval = dsl_source_uri_new('uri-source', http_uri, False, False, 0)
+        retval = dsl_source_uri_new('uri-source', uri_h265, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
         retval = dsl_component_media_type_set('uri-source', 
-            DSL_MEDIA_TYPE_AUDIO_ONLY)
+            DSL_MEDIA_TYPE_AUDIO_VIDEO)
         if retval != DSL_RETURN_SUCCESS:
             break
-            
+
+        # retval = dsl_source_alsa_new('alsa-source', 'default')
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
+
         retval = dsl_infer_aie_primary_new('paie', 
             primary_infer_config_file, primary_model_engine_file,
             frame_size, hop_size, transform)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # retval = dsl_infer_pph_add('paie', 'custom-pph', DSL_PAD_SRC)
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
                    
          # New alsa sink using default sound card and device
-        retval = dsl_sink_alsa_new('alsa-sink', 'default')
+        # retval = dsl_sink_alsa_new('alsa-sink', 'default')
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
+
+        retval = dsl_sink_fake_new('fake-sink')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_component_media_type_set('fake-sink', 
+            DSL_MEDIA_TYPE_AUDIO_ONLY)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_sink_sync_enabled_set('fake-sink', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        # New Window Sink, 0 x/y offsets with reduced dimensions
+        retval = dsl_sink_window_egl_new('egl-sink', 0, 0, 1280, 720)
         if retval != DSL_RETURN_SUCCESS:
             break
 
@@ -106,13 +137,13 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_pipeline_videomux_enabled_set('pipeline', False)
-        if retval != DSL_RETURN_SUCCESS:
-            break
+        # retval = dsl_pipeline_videomux_enabled_set('pipeline', False)
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
-            ['uri-source', 'paie', 'alsa-sink', None])
+            ['uri-source', 'paie', 'fake-sink', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 
