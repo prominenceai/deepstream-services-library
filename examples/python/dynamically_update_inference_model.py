@@ -175,7 +175,7 @@ def main(args):
             break
 
         # Add the model-update-listener callback to the Secodary GIE
-        retval = dsl_infer_gie_model_update_listener_add('secondary-gie',
+        retval = dsl_infer_engine_model_update_listener_add('secondary-gie',
             model_update_listener, None)
         if retval != DSL_RETURN_SUCCESS:
             break

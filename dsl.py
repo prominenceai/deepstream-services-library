@@ -576,8 +576,8 @@ DSL_COMPONENT_QUEUE_OVERRUN_LISTENER = \
 DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER = \
     CFUNCTYPE(None, c_wchar_p, c_void_p)
 
-#dsl_infer_gie_model_update_listener_cb
-DSL_INFER_GIE_MODEL_UPDATE_LISTENER = \
+#dsl_infer_engine_model_update_listener_cb
+DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER = \
     CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 
 ##
@@ -3471,6 +3471,51 @@ def dsl_gst_element_pph_remove(name, handler, pad):
     return int(result)
 
 ##
+## dsl_source_alsa_new()
+##
+_dsl.dsl_source_alsa_new.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_alsa_new.restype = c_uint
+def dsl_source_alsa_new(name, device_location):
+    global _dsl
+    result =_dsl.dsl_source_alsa_new(name, device_location)
+    return int(result)
+
+##
+## dsl_source_alsa_device_location_get()
+##
+_dsl.dsl_source_alsa_device_location_get.argtypes = [c_wchar_p, 
+    POINTER(c_wchar_p)]
+_dsl.dsl_source_alsa_device_location_get.restype = c_uint
+def dsl_source_alsa_device_location_get(name):
+    global _dsl
+    device_location = c_wchar_p(0)
+    result = _dsl.dsl_source_alsa_device_location_get(name, 
+        DSL_WCHAR_PP(device_location))
+    return int(result), device_location.value 
+
+##
+## dsl_source_alsa_device_location_set()
+##
+_dsl.dsl_source_alsa_device_location_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_source_alsa_device_location_set.restype = c_uint
+def dsl_source_alsa_device_location_set(name, device_location):
+    global _dsl
+    result = _dsl.dsl_source_alsa_device_location_set(name, device_location)
+    return int(result)
+
+##
+## dsl_source_alsa_device_name_get()
+##
+_dsl.dsl_source_alsa_device_name_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_source_alsa_device_name_get.restype = c_uint
+def dsl_source_alsa_device_name_get(name):
+    global _dsl
+    device_name = c_wchar_p(0)
+    result = _dsl.dsl_source_alsa_device_name_get(name, 
+        DSL_WCHAR_PP(device_name))
+    return int(result), device_name.value 
+
+##
 ## dsl_source_app_new()
 ##
 _dsl.dsl_source_app_new.argtypes = [c_wchar_p, 
@@ -4984,6 +5029,82 @@ def dsl_preproc_pph_remove(name, handler, pad):
     return int(result)
 
 ##
+## dsl_infer_aie_primary_new()
+##
+_dsl.dsl_infer_aie_primary_new.argtypes = [c_wchar_p, 
+    c_wchar_p, c_wchar_p, c_uint, c_uint, c_wchar_p]
+_dsl.dsl_infer_aie_primary_new.restype = c_uint
+def dsl_infer_aie_primary_new(name, 
+    infer_config_file, model_engine_file, frame_size, hop_size, transform):
+    global _dsl
+    result = _dsl.dsl_infer_aie_primary_new(name, infer_config_file, 
+        model_engine_file, frame_size, hop_size, transform)
+    return int(result)
+
+##
+## dsl_infer_aie_frame_size_get()
+##
+_dsl.dsl_infer_aie_frame_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_aie_frame_size_get.restype = c_uint
+def dsl_infer_aie_frame_size_get(name):
+    global _dsl
+    frame_size = c_uint(0)
+    result = _dsl.dsl_gie_model_frame_size_get(name, DSL_UINT_P(frame_size))
+    return int(result), frame_size.value 
+
+##
+## dsl_infer_aie_frame_size_set()
+##
+_dsl.dsl_infer_aie_frame_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_aie_frame_size_set.restype = c_uint
+def dsl_infer_aie_frame_size_set(name, frame_size):
+    global _dsl
+    result = _dsl.dsl_infer_aie_frame_size_set(name, frame_size)
+    return int(result)
+
+##
+## dsl_infer_aie_hop_size_get()
+##
+_dsl.dsl_infer_aie_hop_size_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_aie_hop_size_get.restype = c_uint
+def dsl_infer_aie_hop_size_get(name):
+    global _dsl
+    hop_size = c_uint(0)
+    result = _dsl.dsl_gie_model_hop_size_get(name, DSL_UINT_P(hop_size))
+    return int(result), hop_size.value 
+
+##
+## dsl_infer_aie_frame_size_set()
+##
+_dsl.dsl_infer_aie_frame_size_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_aie_frame_size_set.restype = c_uint
+def dsl_infer_aie_frame_size_set(name, frame_size):
+    global _dsl
+    result = _dsl.dsl_infer_aie_frame_size_set(name, frame_size)
+    return int(result)
+
+##
+## dsl_infer_aie_transform_get()
+##
+_dsl.dsl_infer_aie_transform_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_infer_aie_transform_get.restype = c_uint
+def dsl_infer_aie_transform_get(name):
+    global _dsl
+    transform = c_wchar_p(0)
+    result = _dsl.dsl_infer_aie_transform_get(name, DSL_WCHAR_PP(transform))
+    return int(result), transform.value 
+
+##
+## dsl_infer_aie_transform_set()
+##
+_dsl.dsl_infer_aie_transform_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_aie_transform_set.restype = c_uint
+def dsl_infer_aie_transform_set(name, transform):
+    global _dsl
+    result = _dsl.dsl_infer_aie_transform_set(name, transform)
+    return int(result)
+
+##
 ## dsl_infer_gie_primary_new()
 ##
 _dsl.dsl_infer_gie_primary_new.argtypes = [c_wchar_p, c_wchar_p, c_wchar_p, c_uint]
@@ -5080,48 +5201,48 @@ def dsl_infer_config_file_set(name, infer_config_file):
     return int(result)
 
 ##
-## dsl_infer_gie_model_engine_file_get()
+## dsl_infer_engine_model_engine_file_get()
 ##
-_dsl.dsl_infer_gie_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
-_dsl.dsl_infer_gie_model_engine_file_get.restype = c_uint
-def dsl_infer_gie_model_engine_file_get(name):
+_dsl.dsl_infer_engine_model_engine_file_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_infer_engine_model_engine_file_get.restype = c_uint
+def dsl_infer_engine_model_engine_file_get(name):
     global _dsl
     file = c_wchar_p(0)
-    result = _dsl.dsl_infer_gie_model_engine_file_get(name, DSL_WCHAR_PP(file))
+    result = _dsl.dsl_infer_engine_model_engine_file_get(name, DSL_WCHAR_PP(file))
     return int(result), file.value 
 
 ##
-## dsl_infer_gie_model_engine_file_set()
+## dsl_infer_engine_model_engine_file_set()
 ##
-_dsl.dsl_infer_gie_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
-_dsl.dsl_infer_gie_model_engine_file_set.restype = c_uint
-def dsl_infer_gie_model_engine_file_set(name, model_engine_file):
+_dsl.dsl_infer_engine_model_engine_file_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_infer_engine_model_engine_file_set.restype = c_uint
+def dsl_infer_engine_model_engine_file_set(name, model_engine_file):
     global _dsl
-    result = _dsl.dsl_infer_gie_model_engine_file_set(name, model_engine_file)
+    result = _dsl.dsl_infer_engine_model_engine_file_set(name, model_engine_file)
     return int(result)
 
 ##
-## dsl_infer_gie_tensor_meta_settings_get()
+## dsl_infer_engine_tensor_meta_settings_get()
 ##
-_dsl.dsl_infer_gie_tensor_meta_settings_get.argtypes = [c_wchar_p, 
+_dsl.dsl_infer_engine_tensor_meta_settings_get.argtypes = [c_wchar_p, 
     POINTER(c_bool), POINTER(c_bool)]
-_dsl.dsl_infer_gie_tensor_meta_settings_get.restype = c_uint
-def dsl_infer_gie_tensor_meta_settings_get(name):
+_dsl.dsl_infer_engine_tensor_meta_settings_get.restype = c_uint
+def dsl_infer_engine_tensor_meta_settings_get(name):
     global _dsl
     input_enabled = c_bool(0)
     output_enabled = c_bool(0)
-    result = _dsl.dsl_infer_gie_tensor_meta_settings_get(name, 
+    result = _dsl.dsl_infer_engine_tensor_meta_settings_get(name, 
         DSL_BOOL_P(input_enabled), DSL_BOOL_P(output_enabled))
     return int(result), input_enabled.value, output_enabled.value
 
 ##
-## dsl_infer_gie_tensor_meta_settings_set()
+## dsl_infer_engine_tensor_meta_settings_set()
 ##
-_dsl.dsl_infer_gie_tensor_meta_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
-_dsl.dsl_infer_gie_tensor_meta_settings_set.restype = c_uint
-def dsl_infer_gie_tensor_meta_settings_set(name, input_enabled, output_enabled):
+_dsl.dsl_infer_engine_tensor_meta_settings_set.argtypes = [c_wchar_p, c_bool, c_bool]
+_dsl.dsl_infer_engine_tensor_meta_settings_set.restype = c_uint
+def dsl_infer_engine_tensor_meta_settings_set(name, input_enabled, output_enabled):
     global _dsl
-    result = _dsl.dsl_infer_gie_tensor_meta_settings_set(name, 
+    result = _dsl.dsl_infer_engine_tensor_meta_settings_set(name, 
         input_enabled, output_enabled)
     return int(result)
 
@@ -5147,24 +5268,24 @@ def dsl_infer_batch_size_set(name, batch_size):
     return int(result)
 
 ##
-## dsl_infer_interval_get()
+## dsl_infer_video_interval_get()
 ##
-_dsl.dsl_infer_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
-_dsl.dsl_infer_interval_get.restype = c_uint
-def dsl_infer_interval_get(name):
+_dsl.dsl_infer_video_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_infer_video_interval_get.restype = c_uint
+def dsl_infer_video_interval_get(name):
     global _dsl
     interval = c_uint(0)
     result = _dsl.dsl_gie_model_interval_get(name, DSL_UINT_P(interval))
     return int(result), interval.value 
 
 ##
-## dsl_infer_interval_set()
+## dsl_infer_video_interval_set()
 ##
-_dsl.dsl_infer_interval_set.argtypes = [c_wchar_p, c_uint]
-_dsl.dsl_infer_interval_set.restype = c_uint
-def dsl_infer_interval_set(name, interval):
+_dsl.dsl_infer_video_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_infer_video_interval_set.restype = c_uint
+def dsl_infer_video_interval_set(name, interval):
     global _dsl
-    result = _dsl.dsl_infer_interval_set(name, interval)
+    result = _dsl.dsl_infer_video_interval_set(name, interval)
     return int(result)
 
 ##
@@ -5178,31 +5299,31 @@ def dsl_infer_raw_output_enabled_set(name, enabled, path):
     return int(result)
 
 ##
-## dsl_infer_gie_model_update_listener_add()
+## dsl_infer_engine_model_update_listener_add()
 ##
-_dsl.dsl_infer_gie_model_update_listener_add.argtypes = [c_wchar_p, 
-    DSL_INFER_GIE_MODEL_UPDATE_LISTENER, c_void_p]
-_dsl.dsl_infer_gie_model_update_listener_add.restype = c_uint
-def dsl_infer_gie_model_update_listener_add(name, listener, client_data):
+_dsl.dsl_infer_engine_model_update_listener_add.argtypes = [c_wchar_p, 
+    DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER, c_void_p]
+_dsl.dsl_infer_engine_model_update_listener_add.restype = c_uint
+def dsl_infer_engine_model_update_listener_add(name, listener, client_data):
     global _dsl
-    c_listener = DSL_INFER_GIE_MODEL_UPDATE_LISTENER(listener)
+    c_listener = DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER(listener)
     callbacks.append(c_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
-    result = _dsl.dsl_infer_gie_model_update_listener_add(name, 
+    result = _dsl.dsl_infer_engine_model_update_listener_add(name, 
         c_listener, c_client_data)
     return int(result)
     
 ##
-## dsl_infer_gie_model_update_listener_remove()
+## dsl_infer_engine_model_update_listener_remove()
 ##
-_dsl.dsl_infer_gie_model_update_listener_remove.argtypes = [c_wchar_p, 
-    DSL_INFER_GIE_MODEL_UPDATE_LISTENER]
-_dsl.dsl_infer_gie_model_update_listener_remove.restype = c_uint
-def dsl_infer_gie_model_update_listener_remove(name, listener):
+_dsl.dsl_infer_engine_model_update_listener_remove.argtypes = [c_wchar_p, 
+    DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER]
+_dsl.dsl_infer_engine_model_update_listener_remove.restype = c_uint
+def dsl_infer_engine_model_update_listener_remove(name, listener):
     global _dsl
-    c_listener = DSL_INFER_GIE_MODEL_UPDATE_LISTENER(listener)
-    result = _dsl.dsl_infer_gie_model_update_listener_remove(name, c_listener)
+    c_listener = DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER(listener)
+    result = _dsl.dsl_infer_engine_model_update_listener_remove(name, c_listener)
     return int(result)
 
 

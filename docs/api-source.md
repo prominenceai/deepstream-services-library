@@ -47,22 +47,13 @@ A Source's production of new buffers can be monitored for timeout by adding a [N
 
 **Important** The [RTSP Source](#dsl_source_rtsp_new) implements its own [new-buffer-timeout and reconnection management](/docs/overview.md#rtsp-stream-connection-management) that supersedes the need for a New Buffer Timeout PPH. 
 
+---
 
-## Source Component Media Type
+## DSL Source Components
+**Audio Only Sources:**
+* [ALSA Source](#dsl_source_alsa_new) - reads data from an audio card using the ALSA API.
 
-#### Audio Only Sources
-
-
-#### Video Only Sources
-
-Video Sources are derived from the `video source` base class. 
-
-#### Hierarchy
-[`component`](/docs/api-component.md)<br>
-&emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── `video source`
-
-**Video Sources:**
+**Video Only Sources:**
 * [App Source](#dsl_source_app_new) - Allows the application to insert raw samples or buffers into a DSL Pipeline.
 * [CSI Source](#dsl_source_csi_new) - Camera Serial Interface (CSI) Source - Jetson platform only.
 * [V4L2 Source](#dsl_source_v4l2_new) - Stream from any V4L2 compatable device - a USB Webcam for example.
@@ -74,15 +65,7 @@ Video Sources are derived from the `video source` base class.
 * [Duplicate Source](#dsl_source_duplicate_new) - Used to duplicate another Video Source so the stream can be processed differently and in parallel with the original.
 * [Custom Source](#dsl_source_custom_new) - Used to create a Custom Video Source using [GStreamer (GST) Elements](/docs/api-gst.md) created from proprietary or released GStreamer plugins.
 
-## Audio and/or Video Sources
-The following Sources are derived from the Audio and Video base classes as shown in the hierarchy below.
-
-#### Hierarchy
-[`component`](/docs/api-component.md)<br>
-&emsp;╰── [`source`](#source-methods)<br>
-&emsp;&emsp;&emsp;&emsp;╰── `audio source`
-&emsp;&emsp;&emsp;&emsp;╰── `video source`
-
+**Audio and/or Video Sources**
 * [URI Source](#dsl_source_uri_new) - Uniform Resource Identifier ( URI ) Source.
 * [File Source](#dsl_source_file_new) - Derived from URI Source with fixed inputs.
 
@@ -142,6 +125,9 @@ The Custom Source API is used to create custom DSL Video Source Components using
 * [`dsl_source_app_enough_data_handler_cb`](#dsl_source_app_enough_data_handler_cb)
 * [`dsl_state_change_listener_cb`](#dsl_state_change_listener_cb)
 
+**Audo only Source Constructors:**
+* [`dsl_source_alsa_new`](#dsl_source_alsa_new)
+
 **Video only Source Constructors:**
 * [`dsl_source_app_new`](#dsl_source_app_new)
 * [`dsl_source_csi_new`](#dsl_source_csi_new)
@@ -170,6 +156,11 @@ The Custom Source API is used to create custom DSL Video Source Components using
 * [`dsl_source_audio_buffer_out_format_set`](#dsl_source_audio_buffer_out_format_set)
 * [`dsl_source_audio_buffer_out_sample_rate_get`](#dsl_source_audio_buffer_out_sample_rate_get)
 * [`dsl_source_audio_buffer_out_sample_rate_set`](#dsl_source_audio_buffer_out_sample_rate_set)
+
+**ALSA Source Methods:**
+* [`dsl_source_alsa_device_location_get`](#dsl_source_alsa_device_location_get)
+* [`dsl_source_alsa_device_location_set`](#dsl_source_alsa_device_location_set)
+* [`dsl_source_alsa_device_name_get`](#dsl_source_alsa_device_name_get)
 
 **Video Source Methods:**
 * [`dsl_source_video_buffer_out_dimensions_set`](#dsl_source_video_buffer_out_dimensions_set)
@@ -499,6 +490,34 @@ Callback typedef for a client state-change listener. Functions of this type are 
 * `client_data` - [in] opaque pointer to client's user data, passed into the pipeline on callback add.
 
 <br>
+
+## Audio Only Source Constructors
+### *dsl_source_alsa_new*
+```C
+DslReturnType dsl_source_alsa_new(const wchar_t* name,
+    const wchar_t* device_location);
+```
+Creates a new, uniquely named ALSA Source component that reads data from an audio card using the ALSA API.
+
+#### Hierarchy
+[`component`](/docs/api-component.md)<br>
+&emsp;╰── [`source`](#source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;╰── [`video source`](#audio-source-methods)<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;╰── `alsa source`
+
+**Parameters**
+* `name` - [in] unique name for the new Source
+* `device_location` - [in] device location for the new Source. set to `"default"` to use the default audio card.  
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful creation. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_source_alsa_new('my-alsa-source', 'default')
+```
+<br>
+
 
 ## Video Only Source Constructors
 
@@ -1051,7 +1070,7 @@ retval, fps_n, fps_d = dsl_source_frame_rate_get('my-uri-source')
 ```C
 DslReturnType dsl_source_is_live(const wchar_t* name, boolean* is_live);
 ```
-Returns `true` if the Source component's stream is live. CSI, USB, and RTSP Camera sources will always return `True`.
+Returns `true` if the Source component's stream is live. 
 
 **Parameters**
 * `name` - [in] unique name of the Source to query
@@ -1234,6 +1253,75 @@ This service sets the buffer-out-sample_rate for the named Audio Source componen
 **Python Example**
 ```Python
 retval = dsl_source_audio_buffer_out_sample_rate_set('my-uri-source', 88200)
+```
+
+<br>
+
+---
+
+## ALSA Source Methods
+
+### *dsl_source_alsa_device_location_get*
+
+```C
+DslReturnType dsl_source_alsa_device_location_get(const wchar_t* name,
+    const wchar_t** device_location);
+```
+This service gets the device-location setting for the named ALSA Source. 
+
+**Parameters**
+* `name` - [in] unique name of the Source to query.
+* `device_location` - [out] current device location string in use.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_location = dsl_source_alsa_device_location_get('my-alsa-source')
+```
+<br>
+
+### *dsl_source_alsa_device_location_set*
+```C
+DslReturnType dsl_source_alsa_device_location_set(const wchar_t* name,
+    const wchar_t* device_location);
+```
+This service sets the device_location setting for the named ALSA Source to use.
+
+**Parameters**
+* `name` - [in] unique name of the Source to update.
+* `device_location` - [in] device-location for the Source to use. Set to `"default"` to use default audio card.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_source_alsa_device_location_set('my-alsa-source', 'hd:0,1')
+```
+
+<br>
+
+### *dsl_source_alsa_device_name_get*
+```C++
+DslReturnType dsl_source_alsa_device_name_get(const wchar_t* name,
+    const wchar_t** device_name);
+```
+This service gets the device-name setting for the named ALSA Source.
+
+**IMPORTANT!** The default value = "" on Source creation. The value is updated after negotiation with the ALSA device.
+
+**Parameters**
+* `name` - [in] unique name of the ALSA Source to query.
+* `device_name` - [out] device-name of the alsa device once connected. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval, device_name = dsl_source_alsa_device_name_get('my-alsa-source')
 ```
 
 <br>
@@ -1918,7 +2006,7 @@ retval = dsl_source_v4l2_frame_rate_set('my-v4l2-source', 10, 1)
 DslReturnType dsl_source_v4l2_device_location_get(const wchar_t* name,
     const wchar_t** device_location);
 ```
-This service gets the device-location setting for the named USB Source. 
+This service gets the device-location setting for the named V4L2 Source. 
 
 **Parameters**
 * `name` - [in] unique name of the Source to query.
@@ -2912,7 +3000,7 @@ This service assigns the Original Source (by unique name) for the named Duplicat
 
 **Python Example**
 ```Python
-retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-usb-source')
+retval = dsl_source_duplicate_original_set('my-duplicate-source', 'my-f4l2-source')
 ```
 
 <br>

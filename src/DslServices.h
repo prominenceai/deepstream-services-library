@@ -751,6 +751,18 @@ namespace DSL {
         DslReturnType GstElementPphRemove(const char* name, 
             const char* handler, uint pad);
             
+        DslReturnType SourceAlsaNew(const char* name, 
+            const char* deviceLocation);
+
+        DslReturnType SourceAlsaDeviceLocationGet(const char* name, 
+            const char** deviceLocation);
+        
+        DslReturnType SourceAlsaDeviceLocationSet(const char* name, 
+            const char* deviceLocation);
+        
+        DslReturnType SourceAlsaDeviceNameGet(const char* name, 
+            const char** deviceName);
+
         DslReturnType SourceAppNew(const char* name, boolean isLive, 
             const char* bufferInFormat, uint width, uint height, 
             uint fpsN, uint fpsD);
@@ -1133,6 +1145,22 @@ namespace DSL {
 
         DslReturnType SegVisualPphRemove(const char* name, const char* handler);
 
+        DslReturnType InferPrimaryAieNew(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, uint frameSize, uint hopSize, 
+            const char* transform);
+
+        DslReturnType InferAieFrameSizeGet(const char* name, uint* frameSize);
+
+        DslReturnType InferAieFrameSizeSet(const char* name, uint frameSize);
+
+        DslReturnType InferAieHopSizeGet(const char* name, uint* hopSize);
+
+        DslReturnType InferAieHopSizeSet(const char* name, uint hopSize);
+
+        DslReturnType InferAieTransformGet(const char* name, const char** transform);
+
+        DslReturnType InferAieTransformSet(const char* name, const char* transform);
+            
         DslReturnType InferPrimaryGieNew(const char* name, const char* inferConfigFile,
             const char* modelEngineFile, uint interval);
 
@@ -1157,10 +1185,10 @@ namespace DSL {
         DslReturnType InferPphRemove(const char* name, 
             const char* handler, uint pad);
 
-        DslReturnType InferGieModelEngineFileGet(const char* name, 
+        DslReturnType InferEngineModelEngineFileGet(const char* name, 
             const char** modelEngineFile);
 
-        DslReturnType InferGieModelEngineFileSet(const char* name, 
+        DslReturnType InferEngineModelEngineFileSet(const char* name, 
             const char* modelEngineFile);
 
         DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
@@ -1170,21 +1198,21 @@ namespace DSL {
         DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
 
-        DslReturnType InferGieModelUpdateListenerAdd(const char* name,
-            dsl_infer_gie_model_update_listener_cb listener, void* clientData);
+        DslReturnType InferEngineModelUpdateListenerAdd(const char* name,
+            dsl_infer_engine_model_update_listener_cb listener, void* clientData);
             
-        DslReturnType InferGieModelUpdateListenerRemove(const char* name,
-            dsl_infer_gie_model_update_listener_cb listener);
+        DslReturnType InferEngineModelUpdateListenerRemove(const char* name,
+            dsl_infer_engine_model_update_listener_cb listener);
             
-        DslReturnType InferGieTensorMetaSettingsGet(const char* name, 
+        DslReturnType InferEngineTensorMetaSettingsGet(const char* name, 
             boolean* inputEnabled, boolean* outputEnabled);
             
-        DslReturnType InferGieTensorMetaSettingsSet(const char* name, 
+        DslReturnType InferEngineTensorMetaSettingsSet(const char* name, 
             boolean inputEnabled, boolean outputEnabled);
             
-        DslReturnType InferIntervalGet(const char* name, uint* interval);
+        DslReturnType InferVideoIntervalGet(const char* name, uint* interval);
 
-        DslReturnType InferIntervalSet(const char* name, uint interval);
+        DslReturnType InferVideoIntervalSet(const char* name, uint interval);
         
         DslReturnType InferNameGet(int inferId, const char** name);
 

@@ -346,6 +346,22 @@ namespace DSL
         }
         
         /**
+         * @brief Sets a GST Element's attribute, owned by this Elementr to a 
+         * value of type GstCaps, created with one of gst_caps_new_* 
+         * @param[in] name name of the attribute to set
+         * @param[in] value char* string value to set the attribute
+         */
+        void SetAttribute(const char* name, const GstStructure* pStructure)
+        {
+            LOG_FUNC();
+            
+            LOG_DEBUG("Setting attribute '" << name 
+                << "' to GstStructure");
+            
+            g_object_set(GetGObject(), name, pStructure, NULL);
+        }
+        
+        /**
          * @brief Checks if the Elementr has a specific factor name.
          * @param factorName factor name to check.
          * @return true if the Elementr's factory name == factorName,

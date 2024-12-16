@@ -39,7 +39,8 @@ namespace DSL
         : Bintr(name, isPipeline)
         , m_nextAudioCompIndex(0)
         , m_nextVideoCompIndex(0)
-        , m_nextPrimaryInferBintrIndex(0)
+        , m_nextPrimaryAudioInferBintrIndex(0)
+        , m_nextPrimaryVideoInferBintrIndex(0)
         , m_nextCustomBintrIndex(0)
     {
         LOG_FUNC();
@@ -111,30 +112,54 @@ namespace DSL
                 <<"' as it is currently linked");
             return false;
         }
-        if (m_pPrimaryInferBintrs.find(pChildBintr->GetName()) 
-            != m_pPrimaryInferBintrs.end())
+        if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
-            LOG_ERROR("PrimaryInferBintr '" << pPrimaryInferBintr->GetName() 
-                << "' is already a child of Pipeline/Branch '" << GetName() << "'");
-            return false;
-        }
-        LOG_INFO("Adding PrimaryInferBintr '"<< pChildBintr->GetName() 
-            << "' to Pipeline/Branch '" << GetName() << "'");
-        
-        // increment next index, assign to the Action, and update parent releationship.
-        pChildBintr->SetIndex(++m_nextPrimaryInferBintrIndex);
+            if (m_pPrimaryAudioInferBintrs.find(pChildBintr->GetName()) 
+                != m_pPrimaryAudioInferBintrs.end())
+            {
+                LOG_ERROR("PrimaryInferBintr '" << pPrimaryInferBintr->GetName() 
+                    << "' is already a child of Pipeline/Branch '" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Adding PrimaryInferBintr '"<< pChildBintr->GetName() 
+                << "' to Pipeline/Branch '" << GetName() << "'");
+            
+            // increment next index, assign to the Action, and update parent releationship.
+            pChildBintr->SetIndex(++m_nextPrimaryAudioInferBintrIndex);
 
-        // Add the shared pointer to InferBintr to both Maps, by name and index
-        m_pPrimaryInferBintrs[pChildBintr->GetName()] = pChildBintr;
-        m_pPrimaryInferBintrsIndexed[m_nextPrimaryInferBintrIndex] = pChildBintr;
-        
-        // If this is the first Pirmary Inference Bintr
-        if (m_pPrimaryInferBintrs.size() == 1)
-        {
-            // Set the Branch's unique-id to the same.
-            SetUniqueId(pChildBintr->GetUniqueId());
+            // Add the shared pointer to InferBintr to both Maps, by name and index
+            m_pPrimaryAudioInferBintrs[pChildBintr->GetName()] = pChildBintr;
+            m_pPrimaryAudioInferBintrsIndexed[m_nextPrimaryAudioInferBintrIndex] = pChildBintr;
+            
         }
-        
+        if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
+        {
+            if (m_pPrimaryVideoInferBintrs.find(pChildBintr->GetName()) 
+                != m_pPrimaryVideoInferBintrs.end())
+            {
+                LOG_ERROR("PrimaryInferBintr '" << pPrimaryInferBintr->GetName() 
+                    << "' is already a child of Pipeline/Branch '" << GetName() << "'");
+                return false;
+            }
+            LOG_INFO("Adding PrimaryInferBintr '"<< pChildBintr->GetName() 
+                << "' to Pipeline/Branch '" << GetName() << "'");
+            
+            // increment next index, assign to the Action, and update parent releationship.
+            pChildBintr->SetIndex(++m_nextPrimaryVideoInferBintrIndex);
+
+            // Add the shared pointer to InferBintr to both Maps, by name and index
+            m_pPrimaryVideoInferBintrs[pChildBintr->GetName()] = pChildBintr;
+            m_pPrimaryVideoInferBintrsIndexed[m_nextPrimaryVideoInferBintrIndex] = pChildBintr;
+            
+            // If this is the first Pirmary Inference Bintr
+            if (m_pPrimaryVideoInferBintrs.size() == 1)
+            {
+                // Set the Branch's unique-id to the same.
+                SetUniqueId(pChildBintr->GetUniqueId());
+            }
+        }        
         return AddChild(pChildBintr);
     }
 
@@ -142,38 +167,58 @@ namespace DSL
     {
         LOG_FUNC();
         
+        if (IsLinked())
+        {
+            LOG_ERROR("Cannot remove PrimaryInferBintr '" 
+                << pPrimaryInferBintr->GetName() << "' as it is currently linked");
+            return false;
+        }
         // Need to cast to PrimaryInferBintr from Base class
         DSL_PRIMARY_INFER_PTR pChildBintr = 
             std::dynamic_pointer_cast<PrimaryInferBintr>(pPrimaryInferBintr);
 
-        if (m_pPrimaryInferBintrs.find(pChildBintr->GetName()) 
-            == m_pPrimaryInferBintrs.end())
+        if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
+            (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
-            LOG_ERROR("PrimaryInferBintr '" << pChildBintr->GetName() 
-                << "' is not a child of Pipeline/Branch '" << GetName() << "'");
-            return false;
+            if (m_pPrimaryVideoInferBintrs.find(pChildBintr->GetName()) 
+                == m_pPrimaryVideoInferBintrs.end())
+            {
+                LOG_ERROR("PrimaryInferBintr '" << pChildBintr->GetName() 
+                    << "' is not a child of Pipeline/Branch '" << GetName() << "'");
+                return false;
+            }
+            // Erase the child from both maps
+            m_pPrimaryVideoInferBintrs.erase(pChildBintr->GetName());
+            m_pPrimaryVideoInferBintrsIndexed.erase(pChildBintr->GetIndex());
+            pChildBintr->SetIndex(0);
         }
-        
-        if (IsLinked())
+        if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
+            (pChildBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
         {
-            LOG_ERROR("Cannot remove PrimaryInferBintr '" 
-                << pChildBintr->GetName() << "' as it is currently linked");
-            return false;
+            if (m_pPrimaryVideoInferBintrs.find(pChildBintr->GetName()) 
+                == m_pPrimaryVideoInferBintrs.end())
+            {
+                LOG_ERROR("PrimaryInferBintr '" << pChildBintr->GetName() 
+                    << "' is not a child of Pipeline/Branch '" << GetName() << "'");
+                return false;
+            }
+            
+            // Erase the child from both maps
+            m_pPrimaryVideoInferBintrs.erase(pChildBintr->GetName());
+            m_pPrimaryVideoInferBintrsIndexed.erase(pChildBintr->GetIndex());
+            pChildBintr->SetIndex(0);
+    
+            // If removing the last Pirmary Inference Bintr
+            if (!m_pPrimaryVideoInferBintrs.size())
+            {
+                // Reset the Branch's unique-id.
+                SetUniqueId(-1);
+            }
         }
+            
         LOG_INFO("Removing PrimaryInferBintr '"<< pChildBintr->GetName() 
             << "' from Pipeline/Branch '" << GetName() << "'");
             
-        // Erase the child from both maps
-        m_pPrimaryInferBintrs.erase(pChildBintr->GetName());
-        m_pPrimaryInferBintrsIndexed.erase(pChildBintr->GetIndex());
-        pChildBintr->SetIndex(0);
- 
-        // If removing the last Pirmary Inference Bintr
-        if (!m_pPrimaryInferBintrs.size())
-        {
-            // Reset the Branch's unique-id.
-            SetUniqueId(-1);
-        }
         return RemoveChild(pChildBintr);
     }
 
@@ -717,11 +762,18 @@ namespace DSL
 
     bool BranchBintr::AddSinkBintr(DSL_BASE_PTR pSinkBintr)
     {
-        LOG_FUNC();
+        LOG_FUNC(); 
         
         DSL_BINTR_PTR pChildSinkBintr = 
             std::dynamic_pointer_cast<Bintr>(pSinkBintr);
 
+        if (!(GetMediaType() & pChildSinkBintr->GetMediaType()))
+        {
+            LOG_ERROR("Cannot add Sink '" << pSinkBintr->GetName() 
+                << "' as media-type of " << pChildSinkBintr->GetMediaType() 
+                << " is not supported/enabled by Branch '" << GetName() << "'");
+            return false;
+        }
         if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
@@ -731,24 +783,28 @@ namespace DSL
                     << "' already has an Audio Demuxer - can't add Sink after a Demuxer");
                 return false;
             }
-            // Create the MultiAudioSinksBintr if it doesn't exist
-            if (!m_pMultiAudioSinksBintr)
-            {
-                m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
-
-                // Set the MultiAudioSinkBintr's media-type to audio before adding.
-                // Value cannot be updated once it is added as a child.
-                m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
-                
-                if (!AddChild(m_pMultiAudioSinksBintr))
-                {
-                    return false;
-                }
-            }
-            if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
+            if (!AddChild(pChildSinkBintr))
             {
                 return false;
             }
+        //     // Create the MultiAudioSinksBintr if it doesn't exist
+        //     if (!m_pMultiAudioSinksBintr)
+        //     {
+        //         m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
+
+        //         // Set the MultiAudioSinkBintr's media-type to audio before adding.
+        //         // Value cannot be updated once it is added as a child.
+        //         m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
+                
+        //         if (!AddChild(m_pMultiAudioSinksBintr))
+        //         {
+        //             return false;
+        //         }
+        //     }
+        //     if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
+        //     {
+        //         return false;
+        //     }
         }
         if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))
@@ -783,6 +839,7 @@ namespace DSL
                 return false;
             }
         }
+
         return true;
     }
 
@@ -895,9 +952,9 @@ namespace DSL
                 << m_pPreprocBintr->GetName() << "' successfully");
         }
         
-        if (m_pPrimaryInferBintrs.size())
+        if (m_pPrimaryVideoInferBintrs.size())
         {
-            for (auto const &imap: m_pPrimaryInferBintrsIndexed)
+            for (auto const &imap: m_pPrimaryVideoInferBintrsIndexed)
             {
                 // propagate the link method an batch size to the  Child Bintr
                 imap.second->SetLinkMethod(m_linkMethod);

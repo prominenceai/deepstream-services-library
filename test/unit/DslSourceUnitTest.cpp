@@ -29,6 +29,13 @@ THE SOFTWARE.
 #include "DslPipelineSourcesBintr.h"
 
 static std::string sourceName("test-source");
+
+static std::wstring L_audioBufferOutFormat(DSL_AUDIO_FORMAT_DEFAULT);
+static std::string defaultAudioBufferOutFormat(L_audioBufferOutFormat.begin(), 
+    L_audioBufferOutFormat.end());
+
+    static std::string defAudioDeviceLocation("default");
+
 static std::string uri("/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
 static std::string uri2("/opt/nvidia/deepstream/deepstream/samples/streams/yoga.mp4");
 static std::string filePath("/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4");
@@ -50,11 +57,87 @@ static std::string multJpgFilePath("./test/streams/sample_720p.%04d.mjpeg");
 
 static uint width(1920), height(1080), fps_n(30), fps_d(1);
 
-static std::wstring L_bufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
-static std::string defaultBufferOutFormat(L_bufferOutFormat.begin(), 
-    L_bufferOutFormat.end());
+static std::wstring L_videoBufferOutFormat(DSL_VIDEO_FORMAT_DEFAULT);
+static std::string defaultVideoBufferOutFormat(L_videoBufferOutFormat.begin(), 
+    L_videoBufferOutFormat.end());
 
 using namespace DSL;
+
+SCENARIO( "A new AlsaSourceBintr is created correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A name for a new AlsaSourceBintr" ) 
+    {
+
+        WHEN( "The AlsaSourceBintr is created " )
+        {
+        
+            DSL_ALSA_SOURCE_PTR pSourceBintr = DSL_ALSA_SOURCE_NEW(
+                sourceName.c_str(), defAudioDeviceLocation.c_str());
+
+            THEN( "All memeber variables are initialized correctly" )
+            {
+                REQUIRE( pSourceBintr->GetGstObject() != NULL );
+                REQUIRE( pSourceBintr->GetRequestPadId() == -1 );
+                REQUIRE( pSourceBintr->IsInUse() == false );
+                REQUIRE( pSourceBintr->IsLive() == true );
+
+                REQUIRE( pSourceBintr->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY );
+                
+                std::string retDeviceLocaton = pSourceBintr->GetDeviceLocation();
+                REQUIRE( retDeviceLocaton == defAudioDeviceLocation );
+
+                std::string retBufferOutFormat(pSourceBintr->GetAudioBufferOutFormat());
+                REQUIRE( retBufferOutFormat == defaultAudioBufferOutFormat);
+            }
+        }
+    }
+}
+
+
+SCENARIO( "A AlsaSourceBintr can LinkAll child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new AlsaSourceBintr in memory" ) 
+    {
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr = DSL_ALSA_SOURCE_NEW(
+            sourceName.c_str(), defAudioDeviceLocation.c_str());
+
+        WHEN( "The AlsaSourceBintr is called to LinkAll" )
+        {
+            REQUIRE( pSourceBintr->LinkAll() == true );
+
+            THEN( "The AlsaSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "A AlsaSourceBintr can UnlinkAll all child Elementrs correctly",  "[SourceBintr]" )
+{
+    GIVEN( "A new, linked AlsaSourceBintr " ) 
+    {
+        std::string sourceName("alsa-source");
+        static std::string defDeviceLocation("/dev/video0");
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr = DSL_ALSA_SOURCE_NEW(
+            sourceName.c_str(), defAudioDeviceLocation.c_str());
+
+        pSourceBintr->LinkAll();
+        REQUIRE( pSourceBintr->IsLinked() == true );
+
+        WHEN( "The AlsaSourceBintr is called to UnlinkAll" )
+        {
+            pSourceBintr->UnlinkAll();
+
+            THEN( "The AlsaSourceBintr IsLinked state is updated correctly" )
+            {
+                REQUIRE( pSourceBintr->IsLinked() == false );
+            }
+        }
+    }
+}
 
 SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
 {
@@ -92,7 +175,7 @@ SCENARIO( "A new AppSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( pSourceBintr->GetMaxLevelBytes() == 200000);
                 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
                 
                 pSourceBintr->GetVideoBufferOutDimensions(&retWidth, &retHeight);
                 REQUIRE( retWidth == 0 );
@@ -185,7 +268,7 @@ SCENARIO( "A new CustomSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsD == 0 );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -307,7 +390,7 @@ SCENARIO( "A new CsiSourceBintr is created correctly",  "[SourceBintr]" )
                     REQUIRE( fps_d == retFpsD );
 
                     std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                    REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                    REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
                 }
             }
         }
@@ -452,7 +535,7 @@ SCENARIO( "A new V4l2SourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retDeviceLocaton == defDeviceLocation );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -571,7 +654,7 @@ SCENARIO( "A new UriSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsD == 1 );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -881,7 +964,7 @@ SCENARIO( "A new RtspSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( retFpsD == 0 );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -1181,7 +1264,7 @@ SCENARIO( "A new FileSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( returnedUri == fullFillPath );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -1259,7 +1342,7 @@ SCENARIO( "A new ImageStreamSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( returnedFilePath == fullFillPath );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -1335,7 +1418,7 @@ SCENARIO( "A new SingleImageSourceBintr is created correctly",  "[SourceBintr]" 
                 REQUIRE( returnedFilePath == fullFillPath );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }
@@ -1415,7 +1498,7 @@ SCENARIO( "A new MultiImageSourceBintr is created correctly",  "[SourceBintr]" )
                 REQUIRE( returnedFilePath == multJpgFilePath );
 
                 std::string retBufferOutFormat(pSourceBintr->GetVideoBufferOutFormat());
-                REQUIRE( retBufferOutFormat == defaultBufferOutFormat);
+                REQUIRE( retBufferOutFormat == defaultVideoBufferOutFormat);
             }
         }
     }

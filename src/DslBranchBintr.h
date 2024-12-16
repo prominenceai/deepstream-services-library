@@ -345,20 +345,36 @@ namespace DSL
         DSL_PREPROC_PTR m_pPreprocBintr;
         
         /**
-         * @brief Index variable to incremment/assign on Primary InferBintr add.
+         * @brief Index variable to incremment/assign on Primary Audio InferBintr add.
          */
-        uint m_nextPrimaryInferBintrIndex;
+        uint m_nextPrimaryAudioInferBintrIndex;
+        
+        /**
+         * @brief Map of child AIE PrimaryInferBintrs for this BranchBintr
+         */
+        std::map <std::string, DSL_PRIMARY_INFER_PTR> m_pPrimaryAudioInferBintrs;
+        
+        /**
+         * @brief Map of child AIE PrimaryInferBintrs for this BranchBintr
+         * indexed by thier add-order for execution
+         */
+        std::map <uint, DSL_PRIMARY_INFER_PTR> m_pPrimaryAudioInferBintrsIndexed;
+        
+        /**
+         * @brief Index variable to incremment/assign on Primary Video InferBintr add.
+         */
+        uint m_nextPrimaryVideoInferBintrIndex;
         
         /**
          * @brief Map of child GIE or TIS PrimaryInferBintrs for this BranchBintr
          */
-        std::map <std::string, DSL_PRIMARY_INFER_PTR> m_pPrimaryInferBintrs;
+        std::map <std::string, DSL_PRIMARY_INFER_PTR> m_pPrimaryVideoInferBintrs;
         
         /**
          * @brief Map of child GIE or TIS PrimaryInferBintrs for this BranchBintr
          * indexed by thier add-order for execution
          */
-        std::map <uint, DSL_PRIMARY_INFER_PTR> m_pPrimaryInferBintrsIndexed;
+        std::map <uint, DSL_PRIMARY_INFER_PTR> m_pPrimaryVideoInferBintrsIndexed;
         
         /**
          * @brief optional, one or more Secondary GIEs for this BranchBintr

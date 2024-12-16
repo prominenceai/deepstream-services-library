@@ -470,14 +470,14 @@ namespace DSL
                 return false;
             }
             // For non-live sources we Pause to preroll before we play
-            if (!m_pPipelineSourcesBintr->StreammuxPlayTypeIsLiveGet())
-            {
-                if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
-                {
-                    LOG_ERROR("Failed to Pause non-live soures before playing Pipeline '" << GetName() << "'");
-                    return false;
-                }
-            }
+            // if (!m_pPipelineSourcesBintr->StreammuxPlayTypeIsLiveGet())
+            // {
+            //     if (!SetState(GST_STATE_PAUSED, DSL_DEFAULT_STATE_CHANGE_TIMEOUT_IN_SEC * GST_SECOND))
+            //     {
+            //         LOG_ERROR("Failed to Pause non-live soures before playing Pipeline '" << GetName() << "'");
+            //         return false;
+            //     }
+            // }
         }
                 
         // Call the base class to complete the Play process

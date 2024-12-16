@@ -45,6 +45,12 @@ namespace DSL
         std::shared_ptr<PrimaryInferBintr>(new PrimaryInferBintr( \
             name, inferConfigFile, modelEngineFile, interval, inferType))
 
+    #define DSL_PRIMARY_AIE_PTR std::shared_ptr<PrimaryAieBintr>
+    #define DSL_PRIMARY_AIE_NEW(name, inferConfigFile, \
+        modelEngineFile, frameSize, hopSize, transform) \
+        std::shared_ptr<PrimaryAieBintr>(new PrimaryAieBintr( \
+            name, inferConfigFile, modelEngineFile, frameSize, hopSize, transform))
+
     #define DSL_PRIMARY_GIE_PTR std::shared_ptr<PrimaryGieBintr>
     #define DSL_PRIMARY_GIE_NEW(name, inferConfigFile, \
         modelEngineFile, interval) \
@@ -73,8 +79,9 @@ namespace DSL
         std::shared_ptr<SecondaryTisBintr>(new SecondaryTisBintr( \
             name, inferConfigFile, inferOn, interval))
             
-    #define DSL_INFER_TYPE_GIE          0
-    #define DSL_INFER_TYPE_TIS          1
+    #define DSL_INFER_TYPE_AIE          0
+    #define DSL_INFER_TYPE_GIE          1
+    #define DSL_INFER_TYPE_TIS          2
     
     #define DSL_INFER_MODE_PRIMARY      1
     #define DSL_INFER_MODE_SECONDARY    2
@@ -152,17 +159,17 @@ namespace DSL
         bool SetBatchSize(uint batchSize);
         
         /**
-         * @brief sets the interval for this Bintr
-         * @param the new interval to use
-         */
-        bool SetInterval(uint interval);
-        
-        /**
          * @brief gets the current interval in use by this InferBintr
          * @return the current interval setting
          */
         uint GetInterval();
 
+        /**
+         * @brief sets the interval for this Bintr
+         * @param the new interval to use
+         */
+        bool SetInterval(uint interval);
+        
         /**
          * @brief gets the current unique Id in use by this InferBintr
          * @return the current unique Id
@@ -215,7 +222,7 @@ namespace DSL
          * @param clientData opaque pointer to client data to return on callback
          * @return true on successful addition, false otherwise.
          */ 
-        bool AddModelUpdateListener(dsl_infer_gie_model_update_listener_cb listener, 
+        bool AddModelUpdateListener(dsl_infer_engine_model_update_listener_cb listener, 
             void* clientData);
 
         /**
@@ -223,7 +230,7 @@ namespace DSL
          * @param listener client listener function to remove.
          * @return true on successful removal, false otherwise.
          */ 
-        bool RemoveModelUpdateListener(dsl_infer_gie_model_update_listener_cb listener);
+        bool RemoveModelUpdateListener(dsl_infer_engine_model_update_listener_cb listener);
 
         /**
          * @brief Handles the model-updated signal.
@@ -287,7 +294,7 @@ namespace DSL
         /**
          * @brief map of all client model update listeners.
          */
-        std::map<dsl_infer_gie_model_update_listener_cb, void*> m_modelUpdateListeners;
+        std::map<dsl_infer_engine_model_update_listener_cb, void*> m_modelUpdateListeners;
         
         /**
          * @brief current input-temsor-meta enabled setting for this InferBintr.
@@ -376,6 +383,101 @@ namespace DSL
     // ***********************************************************************
 
     /**
+     * @class PrimaryAieBintr
+     * @brief Implements a container for a Primary AIE
+     */
+    class PrimaryAieBintr : public PrimaryInferBintr
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the PrimaryAieBintr
+         * @param[in] name name to give the new Bintr.
+         * @param[in] inferConfigFile fully qualified pathspec for the infer 
+         * config file to use.
+         * @param[in] modelEnginFile fully qualified pathspec for the 
+         * model engine file to use. Empty string = use config file setting.
+         * @param[in] frameSize frame-size to use for transform.
+         * @param[in] hopSize hop-size to use for transform.
+         * @param[in] tranform transform name and prameters.
+         */
+        PrimaryAieBintr(const char* name, const char* inferConfigFile,
+            const char* modelEngineFile, uint frameSize, uint hopSize, 
+            const char* transform);
+
+        /**
+         * @brief dtor for the PrimaryAieBintr.
+         */
+        ~PrimaryAieBintr();
+
+        /**
+         * @brief Gets the frame-size property in use by this PrimaryAieBintr
+         * @return Current frame-size in units of samples/frame.
+         */
+        uint GetFrameSize();
+
+        /**
+         * @brief Sets the frame-size property for this PrimaryAieBintr to use.
+         * @brief frameSize new frame size in units of samples/frame.
+         * @return True if successfully set, false otherwise.
+         */
+        bool SetFrameSize(uint frameSize);
+
+        /**
+         * @brief Gets the hop-size property in use by this PrimaryAieBintr
+         * @return Current hop-size in units of samples.
+         */
+        uint GetHopSize();
+
+        /**
+         * @brief Sets the hop-size property for this PrimaryAieBintr to use.
+         * @brief hopSize new hop-size in units of samples.
+         * @return True if successfully set, false otherwise.
+         */
+        bool SetHopSize(uint hopSize);
+
+        /**
+         * @brief Gets the transform and parameters in use by this PrimaryAieBintr
+         * @return Current transform string
+         */
+        const char* GetTransform();
+
+        /**
+         * @brief Sets the transform property for this PrimaryAieBintr to use.
+         * @brief transform new transform and parameters to use.
+         * @return True if successfully set, false otherwise.
+         */
+        bool SetTransform(const char* transform);
+
+        /**
+         * @brief Sets the GPU ID for all Elementrs owned by this PrimaryAieBintr
+         * @return true if successfully set, false otherwise.
+         */
+        bool SetGpuId(uint gpuId);
+
+    private:
+
+        /**
+         * @brief Current frame-size to use for transform in units of samples/frame.
+         */
+        uint m_frameSize;
+
+        /**
+         * @brief Current hop-size to use for transform.
+         */
+        uint m_hopSize;
+
+        /**
+         * @brief Current transform and parameters.
+         */
+        
+        std::string m_transform;
+        
+    };
+
+    // ***********************************************************************
+
+    /**
      * @class PrimaryGieBintr
      * @brief Implements a container for a Primary GIE
      */
@@ -404,8 +506,7 @@ namespace DSL
          * @brief Sets the GPU ID for all Elementrs owned by this PrimaryGieBintr
          * @return true if successfully set, false otherwise.
          */
-        bool SetGpuId(uint gpuId);
-        
+        bool SetGpuId(uint gpuId);        
     };
 
     // ***********************************************************************
@@ -579,12 +680,14 @@ namespace DSL
             return m_pFakeSink;
         }
 
-    private:
+    protected:
         
         /**
          @brief Unique name of the InferBintr to infer on, primary or secondary
          */
         std::string m_inferOn;
+        
+    private:
         
         /**
          @brief Unique Id of the InferBintr to infer on, primary or secondary

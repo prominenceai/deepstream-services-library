@@ -27,8 +27,19 @@ THE SOFTWARE.
 
 static std::wstring pipeline_name(L"test-pipeline");
 
+static std::wstring primary_aie_name(L"primary-aie");
+
 static std::wstring primary_gie_name(L"primary-gie");
 static std::wstring primary_gie_name2(L"primary-gie-2");
+
+static const uint frame_size(441000);
+static const uint hop_size(110250);
+static const std::wstring transform(L"melsdb,fft_length=2560,hop_size=692,dsp_window=hann,num_mels=128,sample_rate=44100,p2db_ref=(float)1.0,p2db_min_power=(float)0.0,p2db_top_db=(float)80.0");
+static const std::wstring audio_infer_config_file(
+    L"/opt/nvidia/deepstream/deepstream/sources/apps/sample_apps/deepstream-audio/configs/config_infer_audio_sonyc.txt");
+static const std::wstring audio_model_engine_file(
+    L"/opt/nvidia/deepstream/deepstream/samples/models/SONYC_Audio_Classifier/sonyc_audio_classify.onnx_b2_gpu0_fp32.engine");
+
 static std::wstring infer_config_file(
     L"/opt/nvidia/deepstream/deepstream/samples/configs/deepstream-app/config_infer_primary.txt");
 static std::wstring model_engine_file(
@@ -43,6 +54,89 @@ static uint interval(1);
 
 static std::wstring secondary_gie_name(L"secondary-gie");
 static std::wstring custom_ppm_name(L"custom-ppm");
+
+SCENARIO( "The Components container is updated correctly on new and delete Primary AIE", "[infer-api]" )
+{
+    GIVEN( "An empty list of Components" ) 
+    {
+        REQUIRE( dsl_component_list_size() == 0 );
+
+        WHEN( "A new Primary AIE is created" ) 
+        {
+            REQUIRE( dsl_infer_aie_primary_new(primary_aie_name.c_str(), 
+                audio_infer_config_file.c_str(), 
+                audio_model_engine_file.c_str(), 
+                frame_size, hop_size, transform.c_str()) == DSL_RESULT_SUCCESS );
+            REQUIRE( dsl_component_list_size() == 1 );
+
+            THEN( "The same Primary AIE can be deleted correctly" ) 
+            {
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_list_size() == 0 );
+            }
+        }
+    }
+}    
+
+SCENARIO( "A Primary AIE can Set and Get its property settings correctly",  "[infer-api]" )
+{
+    GIVEN( "A new Primary AIE in memory" ) 
+    {
+        REQUIRE( dsl_infer_aie_primary_new(primary_aie_name.c_str(), 
+            audio_infer_config_file.c_str(), 
+            audio_model_engine_file.c_str(), 
+            frame_size, hop_size, transform.c_str()) == DSL_RESULT_SUCCESS );
+
+        uint ret_frame_size(99);
+        REQUIRE( dsl_infer_aie_frame_size_get(primary_aie_name.c_str(), 
+            &ret_frame_size) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_frame_size == frame_size );
+        
+        uint ret_hop_size(99);
+        REQUIRE( dsl_infer_aie_hop_size_get(primary_aie_name.c_str(), 
+            &ret_hop_size) == DSL_RESULT_SUCCESS );
+        REQUIRE( ret_hop_size == hop_size );
+
+        const wchar_t* c_ret_transform;
+        REQUIRE( dsl_infer_aie_transform_get(primary_aie_name.c_str(), 
+            &c_ret_transform) == DSL_RESULT_SUCCESS );
+        std::wstring ret_transform(c_ret_transform );
+        REQUIRE( ret_transform == transform );
+        
+        WHEN( "The PrimaryGieBintr's batch-size is set" )
+        {
+            uint new_frame_size(99);
+            REQUIRE( dsl_infer_aie_frame_size_set(primary_aie_name.c_str(), 
+                new_frame_size) == DSL_RESULT_SUCCESS );
+
+            uint new_hop_size(99);
+            REQUIRE( dsl_infer_aie_hop_size_set(primary_aie_name.c_str(), 
+                new_hop_size) == DSL_RESULT_SUCCESS );
+
+            static const std::wstring new_transform(L"melsdb,fft_length=2560,hop_size=692");
+            REQUIRE( dsl_infer_aie_transform_set(primary_aie_name.c_str(), 
+                new_transform.c_str()) == DSL_RESULT_SUCCESS );
+                
+            THEN( "The correct Files are returned on get" )
+            {
+                REQUIRE( dsl_infer_aie_frame_size_get(primary_aie_name.c_str(), 
+                    &ret_frame_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_frame_size == new_frame_size );
+                
+                REQUIRE( dsl_infer_aie_hop_size_get(primary_aie_name.c_str(), 
+                    &ret_hop_size) == DSL_RESULT_SUCCESS );
+                REQUIRE( ret_hop_size == new_hop_size );
+
+                REQUIRE( dsl_infer_aie_transform_get(primary_aie_name.c_str(), 
+                    &c_ret_transform) == DSL_RESULT_SUCCESS );
+                ret_transform = c_ret_transform;
+                REQUIRE( ret_transform == new_transform );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}
 
 SCENARIO( "The Components container is updated correctly on new Primary GIE", "[infer-api]" )
 {
@@ -436,7 +530,7 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
         REQUIRE( retInferConfigFile == secondary_infer_config_file );
         
         const wchar_t* pRetModelEngineFile;
-        REQUIRE( dsl_infer_gie_model_engine_file_get(secondary_gie_name.c_str(), 
+        REQUIRE( dsl_infer_engine_model_engine_file_get(secondary_gie_name.c_str(), 
             &pRetModelEngineFile) == DSL_RESULT_SUCCESS );
         std::wstring retModelEngineFile(pRetModelEngineFile);
         REQUIRE( retModelEngineFile == secondary_model_engine_file );
@@ -450,7 +544,7 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
 
             std::wstring newModelEngineFile = 
                 L"/opt/nvidia/deepstream/deepstream/samples/models/Secondary_VehicleMake/resnet18_vehiclemakenet.etlt_b8_gpu0_int8.engine";
-            REQUIRE( dsl_infer_gie_model_engine_file_set(secondary_gie_name.c_str(), 
+            REQUIRE( dsl_infer_engine_model_engine_file_set(secondary_gie_name.c_str(), 
                 newModelEngineFile.c_str()) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct Files are returned on get" )
@@ -459,7 +553,7 @@ SCENARIO( "A Secondary GIE can Set and Get its Infer Config and Model Engine Fil
                     &pRetInferConfigFile) == DSL_RESULT_SUCCESS);
                 retInferConfigFile.assign(pRetInferConfigFile);
                 REQUIRE( retInferConfigFile == newInferConfigFile );
-                REQUIRE( dsl_infer_gie_model_engine_file_get(secondary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_model_engine_file_get(secondary_gie_name.c_str(), 
                     &pRetModelEngineFile) == DSL_RESULT_SUCCESS);
                 retModelEngineFile.assign(pRetModelEngineFile);
                 REQUIRE( retModelEngineFile == newModelEngineFile );
@@ -478,7 +572,7 @@ SCENARIO( "A Primary GIE can Set and Get its tensor-meta settings correctly",  "
             model_engine_file.c_str(), interval) == DSL_RESULT_SUCCESS );
 
         boolean input_enabled(true), output_enabled(false);
-        REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+        REQUIRE( dsl_infer_engine_tensor_meta_settings_get(primary_gie_name.c_str(), 
             &input_enabled, &output_enabled) == DSL_RESULT_SUCCESS );
         REQUIRE( input_enabled == false );
         REQUIRE( output_enabled == false );
@@ -486,12 +580,12 @@ SCENARIO( "A Primary GIE can Set and Get its tensor-meta settings correctly",  "
         WHEN( "The PrimaryGieBintr's tensor-meta settings are set" )
         {
             
-            REQUIRE( dsl_infer_gie_tensor_meta_settings_set(primary_gie_name.c_str(), 
+            REQUIRE( dsl_infer_engine_tensor_meta_settings_set(primary_gie_name.c_str(), 
                 true, true) == DSL_RESULT_SUCCESS );
 
             THEN( "The correct Files are returned on get" )
             {
-                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_tensor_meta_settings_get(primary_gie_name.c_str(), 
                     &input_enabled, &output_enabled) == DSL_RESULT_SUCCESS );
                 REQUIRE( input_enabled == true );
                 REQUIRE( output_enabled == true );
@@ -572,22 +666,22 @@ SCENARIO( "A model-update-listener can be added and removed", "[infer-api]" )
 
         WHEN( "A model-update-listener is added" )
         {
-            REQUIRE( dsl_infer_gie_model_update_listener_add(primary_gie_name.c_str(),
+            REQUIRE( dsl_infer_engine_model_update_listener_add(primary_gie_name.c_str(),
                 model_update_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
 
             // second call must fail
-            REQUIRE( dsl_infer_gie_model_update_listener_add(primary_gie_name.c_str(),
+            REQUIRE( dsl_infer_engine_model_update_listener_add(primary_gie_name.c_str(),
                 model_update_listener_cb, (void*)0x12345678) == 
                     DSL_RESULT_INFER_CALLBACK_ADD_FAILED );
 
             THEN( "The same listener can be removed again" ) 
             {
-                REQUIRE( dsl_infer_gie_model_update_listener_remove(
+                REQUIRE( dsl_infer_engine_model_update_listener_remove(
                     primary_gie_name.c_str(), model_update_listener_cb) == 
                         DSL_RESULT_SUCCESS );
 
                 // second call must fail
-                REQUIRE( dsl_infer_gie_model_update_listener_remove(
+                REQUIRE( dsl_infer_engine_model_update_listener_remove(
                     primary_gie_name.c_str(),model_update_listener_cb) == 
                         DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED );
 
@@ -604,6 +698,10 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
     {
         uint retId(0);
         uint batch_size(1);
+        uint frame_size(1);
+        uint hop_size(1);
+        const wchar_t* ret_transform;
+
         boolean input(false), output(false);
         
         REQUIRE( dsl_component_list_size() == 0 );
@@ -612,6 +710,35 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
         {
             THEN( "The API returns DSL_RESULT_INVALID_INPUT_PARAM in all cases" ) 
             {
+                REQUIRE( dsl_infer_aie_primary_new(NULL, audio_infer_config_file.c_str(), 
+                    audio_model_engine_file.c_str(), 
+                    0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_infer_aie_primary_new(primary_gie_name.c_str(), 
+                    NULL, audio_model_engine_file.c_str(), 
+                    0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_infer_aie_primary_new(primary_gie_name.c_str(), 
+                    audio_infer_config_file.c_str(), audio_model_engine_file.c_str(), 
+                    0, 0, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                    
+                REQUIRE( dsl_infer_aie_frame_size_get(NULL, &frame_size) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_aie_frame_size_get(primary_gie_name.c_str(), NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_aie_frame_size_set(NULL, frame_size) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );    
+                REQUIRE( dsl_infer_aie_hop_size_get(NULL, &hop_size) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_aie_hop_size_get(primary_gie_name.c_str(), NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_aie_hop_size_set(NULL, hop_size) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );    
+                REQUIRE( dsl_infer_aie_transform_get(NULL, &ret_transform) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_aie_transform_get(primary_gie_name.c_str(), NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_infer_aie_transform_set(NULL, transform.c_str()) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );    
+
                 REQUIRE( dsl_infer_gie_primary_new(NULL, infer_config_file.c_str(), 
                     model_engine_file.c_str(), 1) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_infer_gie_primary_new(primary_gie_name.c_str(), 
@@ -643,19 +770,19 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
                     DSL_RESULT_INVALID_INPUT_PARAM );                
                 REQUIRE( dsl_infer_config_file_set(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_get(NULL, NULL) == 
+                REQUIRE( dsl_infer_engine_model_engine_file_get(NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_get(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_model_engine_file_get(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_set(NULL, NULL) == 
+                REQUIRE( dsl_infer_engine_model_engine_file_set(NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_engine_file_set(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_model_engine_file_set(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_interval_get(NULL, &interval) == 
+                REQUIRE( dsl_infer_video_interval_get(NULL, &interval) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_interval_get(primary_gie_name.c_str(), NULL) == 
+                REQUIRE( dsl_infer_video_interval_get(primary_gie_name.c_str(), NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_interval_set(NULL, interval) == 
+                REQUIRE( dsl_infer_video_interval_set(NULL, interval) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );    
 
                 REQUIRE( dsl_infer_batch_size_get(NULL, &batch_size) == 
@@ -665,25 +792,25 @@ SCENARIO( "The GIE API checks for NULL input parameters", "[infer-api]" )
                 REQUIRE( dsl_infer_batch_size_set(NULL, batch_size) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );    
 
-                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(NULL, &input, &output) == 
+                REQUIRE( dsl_infer_engine_tensor_meta_settings_get(NULL, &input, &output) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_tensor_meta_settings_get(primary_gie_name.c_str(), 
                     NULL, &output) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_tensor_meta_settings_get(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_tensor_meta_settings_get(primary_gie_name.c_str(), 
                     &input, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_tensor_meta_settings_set(NULL, input, output) == 
+                REQUIRE( dsl_infer_engine_tensor_meta_settings_set(NULL, input, output) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
 
                 REQUIRE( dsl_infer_unique_id_get(NULL, &retId) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
 
-                REQUIRE( dsl_infer_gie_model_update_listener_add(NULL, NULL, NULL) == 
+                REQUIRE( dsl_infer_engine_model_update_listener_add(NULL, NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_update_listener_add(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_model_update_listener_add(primary_gie_name.c_str(), 
                     NULL, NULL) ==  DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_update_listener_remove(NULL, NULL) == 
+                REQUIRE( dsl_infer_engine_model_update_listener_remove(NULL, NULL) == 
                     DSL_RESULT_INVALID_INPUT_PARAM );                
-                REQUIRE( dsl_infer_gie_model_update_listener_remove(primary_gie_name.c_str(), 
+                REQUIRE( dsl_infer_engine_model_update_listener_remove(primary_gie_name.c_str(), 
                     NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
 
 

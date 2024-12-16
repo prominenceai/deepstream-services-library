@@ -295,9 +295,10 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(components, name) do \
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(components, name) do \
 { \
-    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+    if (!components[name]->IsType(typeid(PrimaryAieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(SecondaryGieBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not a Primary or Secondary GIE"); \
@@ -306,6 +307,19 @@ THE SOFTWARE.
 }while(0); 
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(components, name) do \
+{ \
+    if (!components[name]->IsType(typeid(PrimaryAieBintr)) and  \
+        !components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+        !components[name]->IsType(typeid(SecondaryGieBintr)) and \
+        !components[name]->IsType(typeid(PrimaryTisBintr)) and \
+        !components[name]->IsType(typeid(SecondaryTisBintr))) \
+    { \
+        LOG_ERROR("Component '" << name << "' is not a GIE or TIS"); \
+        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_VIDEO(components, name) do \
 { \
     if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
         !components[name]->IsType(typeid(SecondaryGieBintr)) and \
@@ -317,15 +331,15 @@ THE SOFTWARE.
     } \
 }while(0); 
 
-#define DSL_RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(components, name) do \
-{ \
-    if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
-        !components[name]->IsType(typeid(PrimaryTisBintr))) \
-    { \
-        LOG_ERROR("Component '" << name << "' is not a Primary GIE or TIS"); \
-        return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
-    } \
-}while(0); 
+// #define DSL_RETURN_IF_COMPONENT_IS_NOT_PRIMARY_INFER_TYPE(components, name) do \
+// { \
+//     if (!components[name]->IsType(typeid(PrimaryGieBintr)) and  \
+//         !components[name]->IsType(typeid(PrimaryTisBintr))) \
+//     { \
+//         LOG_ERROR("Component '" << name << "' is not a Primary GIE or TIS"); \
+//         return DSL_RESULT_INFER_COMPONENT_IS_NOT_INFER; \
+//     } \
+// }while(0); 
 
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_TEE(components, name) do \
 { \
