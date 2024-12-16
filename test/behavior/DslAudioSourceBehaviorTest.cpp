@@ -283,7 +283,7 @@ SCENARIO( "A new Pipeline with a URI Source and ALSA Sink can play - Audio Only"
 }
 
 SCENARIO( "A new Pipeline with an ALSA Source and ALSA Sink can play",
-    "[error]" )
+    "[audio-behaviour]" )
 {
     GIVEN( "A Pipeline, ALSA Source, and ALSA Sink" ) 
     {

@@ -1971,13 +1971,13 @@ typedef void (*dsl_component_queue_underrun_listener_cb)(const wchar_t* name,
     void* client_data);
 
 /**
- * @brief Callback typedef for Primary or Secondary GIE to notify clients when a 
- * model engine has been successfully updated.
- * @param name name of the Primary or Secondary GIE calling this function.
+ * @brief Callback typedef for an Inference Engine Component (PAIE, PGIE, SGIE) to 
+ * notify clients when a model engine has been successfully updated.
+ * @param name name of the PAIE, PGIE, or SGIE calling this function.
  * @param model_engine_file path to the new model engine file in use.
  * @param[in] client_data opaque pointer to client's user data.
  */
-typedef void (*dsl_infer_gie_model_update_listener_cb)(const wchar_t* name,
+typedef void (*dsl_infer_engine_model_update_listener_cb)(const wchar_t* name,
     const wchar_t* model_engine_file, void* client_data);
 
 // -----------------------------------------------------------------------------------
@@ -6405,7 +6405,7 @@ DslReturnType dsl_infer_aie_frame_size_get(const wchar_t* name, uint* frame_size
 /**
  * @brief Sets the audio frame-size setting for the named AIE to use.
  * @param[in] name unique name of the AIE to update.
- * @param[in] size value to set the frame-size setting for the named AIE in units
+ * @param[in] frame_size value to set the frame-size setting for the named AIE in units
  * of samples per frame.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_INFER_RESULT on failure. 
@@ -6425,7 +6425,7 @@ DslReturnType dsl_infer_aie_hop_size_get(const wchar_t* name, uint* frame_size);
 /**
  * @brief Sets the audio hop-size setting for the named AIE to use.
  * @param[in] name unique name of the AIE to update.
- * @param[in] size value to set the hop-size setting for the named AIE in units
+ * @param[in] hop_size value to set the hop-size setting for the named AIE in units
  * of samples.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
  * DSL_RESULT_INFER_RESULT on failure. 
@@ -6579,39 +6579,44 @@ DslReturnType dsl_infer_config_file_set(const wchar_t* name,
     const wchar_t* infer_config_file);
 
 /**
- * @brief Gets the current Model Engine File in use by the named Primary or Secondary GIE
- * @param[in] name unique name of Primary or Secondary GIE to query
- * @param[out] model_engi_file Model Engine file currently in use
+ * @brief Gets the current Model Engine File in use by the named PAIE, PGIE, 
+ * or SGIE.
+ * @param[in] name unique name of PAIE, PGIE, or SGIE to query.
+ * @param[out] model_engine_file model engine file currently in use.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_model_engine_file_get(const wchar_t* name, 
+DslReturnType dsl_infer_engine_model_engine_file_get(const wchar_t* name, 
     const wchar_t** model_engine_file);
 
 /**
- * @brief Sets the Model Engine File to use by the named Primary or Secondary GIE
- * @param[in] name unique name of Primary or Secondary GIE to update
- * @param[in] model_engine_file new Model Engine file to use
+ * @brief Sets the Model Engine File for the named PAIE, PGIE, or SGIE to use.
+ * @param[in] name unique name of PAIE, PGIE, or SGIE to update
+ * @param[in] model_engine_file new model engine file to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_model_engine_file_set(const wchar_t* name, 
+DslReturnType dsl_infer_engine_model_engine_file_set(const wchar_t* name, 
     const wchar_t* model_engine_file);
 
 /**
  * @brief Gets the current input amd output tensor-meta settings in use by the 
- * named Primary or Secondary GIE.
- * @param[in] name unique name of Primary or Secondary GIE to query.
+ * named PAIE, PGIE, or SGIE.
+ * @note The PAIE only (currently) supports output tensor meta. The input_enabled
+ * parameter will be ignored.
+ * @param[in] name unique name of PAIE, PGIE, or SGIE to query.
  * @param[out] input_enabled if true preprocessing input tensors attached as 
  * metadata instead of preprocessing inside the plugin, false otherwise.
  * @param[out] output_enabled if true tensor outputs will be attached as 
  * meta on GstBuffer.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_tensor_meta_settings_get(const wchar_t* name, 
+DslReturnType dsl_infer_engine_tensor_meta_settings_get(const wchar_t* name, 
     boolean* input_enabled, boolean* output_enabled);
 
 /**
  * @brief Sets the current input amd output tensor-meta settings for the 
- * named Primary or Secondary GIE to use.
+ * named PAIE, PGIE, or SGIE to use.
+ * @note The PAIE only (currently) supports output tensor meta. The input_enabled 
+ * parameter will be ignored.
  * @param[in] name unique name of Primary or Secondary GIE to query
  * @param[in] input_enabled set to true preprocess input tensors attached as 
  * metadata instead of preprocessing inside the plugin, false otherwise.
@@ -6619,24 +6624,26 @@ DslReturnType dsl_infer_gie_tensor_meta_settings_get(const wchar_t* name,
  * meta on GstBuffer.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_tensor_meta_settings_set(const wchar_t* name, 
+DslReturnType dsl_infer_engine_tensor_meta_settings_set(const wchar_t* name, 
     boolean input_enabled, boolean output_enabled);
 
 /**
- * @brief Gets the current Infer Interval in use by the named Inference Component
+ * @brief Gets the current Infer Interval in use by the named Video Inference 
+ * Component (PGIE, SGIE, PTISs, STISs).
  * @param[in] name of Inference Component to query
  * @param[out] interval Infer interval value currently in use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_interval_get(const wchar_t* name, uint* interval);
+DslReturnType dsl_infer_video_interval_get(const wchar_t* name, uint* interval);
 
 /**
- * @brief Sets the Model Engine File to use by the named Inference Component
+ * @brief Sets the Model Engine File for the named Video Inference Component 
+ * (PGIE, SGIE, PTISs, STISs) to use.
  * @param[in] name of Inference Component to update
  * @param[in] interval new Infer Interval value to use
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_interval_set(const wchar_t* name, uint interval);
+DslReturnType dsl_infer_video_interval_set(const wchar_t* name, uint interval);
 
 /**
  * @brief Enbles/disables the raw layer-info output to binary file for the named the GIE
@@ -6655,8 +6662,8 @@ DslReturnType dsl_infer_raw_output_enabled_set(const wchar_t* name,
  * @param client_data opaque pointer to client data passed to the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_model_update_listener_add(const wchar_t* name,
-    dsl_infer_gie_model_update_listener_cb listener, void* client_data);
+DslReturnType dsl_infer_engine_model_update_listener_add(const wchar_t* name,
+    dsl_infer_engine_model_update_listener_cb listener, void* client_data);
 
 /**
  * @brief Removes a model update listener callback to a named Primary or Secondary GIE.
@@ -6665,8 +6672,8 @@ DslReturnType dsl_infer_gie_model_update_listener_add(const wchar_t* name,
  * @param client_data opaque pointer to client data passed to the listener function.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_INFER_RESULT otherwise.
  */
-DslReturnType dsl_infer_gie_model_update_listener_remove(const wchar_t* name,
-    dsl_infer_gie_model_update_listener_cb listener);
+DslReturnType dsl_infer_engine_model_update_listener_remove(const wchar_t* name,
+    dsl_infer_engine_model_update_listener_cb listener);
 
 /**
  * @brief creates a new, uniquely named Multi-Object Tracker (MOT) object. The

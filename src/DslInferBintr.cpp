@@ -234,6 +234,13 @@ namespace DSL
             LOG_ERROR("Unable to set Batch size for InferBintr '" << GetName() 
                 << "' as it's currently linked");
         }
+        if (m_batchSizeSetByClient)
+        {
+            LOG_INFO("Batch size for InferBintr '" << GetName() 
+                << "' explicitely set by client will not be updated.");
+            return true;
+        }
+        m_pInferEngine->SetAttribute("batch-size", batchSize);
         return Bintr::SetBatchSize(batchSize);
     }
     
@@ -376,7 +383,7 @@ namespace DSL
     }
 
     bool InferBintr::AddModelUpdateListener(
-            dsl_infer_gie_model_update_listener_cb listener, void* clientData)
+            dsl_infer_engine_model_update_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
 
@@ -391,7 +398,7 @@ namespace DSL
     }
 
     bool InferBintr::RemoveModelUpdateListener(
-            dsl_infer_gie_model_update_listener_cb listener)
+            dsl_infer_engine_model_update_listener_cb listener)
     {
         LOG_FUNC();
         

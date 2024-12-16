@@ -640,8 +640,8 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferGieModelUpdateListenerAdd(const char* name,
-        dsl_infer_gie_model_update_listener_cb listener, void* clientData)
+    DslReturnType Services::InferEngineModelUpdateListenerAdd(const char* name,
+        dsl_infer_engine_model_update_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -649,7 +649,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(m_components, name);
 
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -673,15 +673,15 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::InferGieModelUpdateListenerRemove(const char* name,
-        dsl_infer_gie_model_update_listener_cb listener)
+    DslReturnType Services::InferEngineModelUpdateListenerRemove(const char* name,
+        dsl_infer_engine_model_update_listener_cb listener)
     {
         LOG_FUNC();
     
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(m_components, name);
 
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -765,7 +765,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferGieModelEngineFileGet(const char* name, const char** modelEngineFile)
+    DslReturnType Services::InferEngineModelEngineFileGet(const char* name, const char** modelEngineFile)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -773,7 +773,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(m_components, name);
             
             DSL_INFER_PTR pGieBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -793,7 +793,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferGieModelEngineFileSet(const char* name, 
+    DslReturnType Services::InferEngineModelEngineFileSet(const char* name, 
         const char* modelEngineFile)
     {
         LOG_FUNC();
@@ -802,7 +802,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(m_components, name);
             
             DSL_INFER_PTR pGieBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -826,7 +826,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferGieTensorMetaSettingsGet(const char* name, 
+    DslReturnType Services::InferEngineTensorMetaSettingsGet(const char* name, 
         boolean* inputEnabled, boolean* outputEnabled)
     {
         LOG_FUNC();
@@ -835,7 +835,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -863,7 +863,7 @@ namespace DSL
         }
     }
         
-    DslReturnType Services::InferGieTensorMetaSettingsSet(const char* name, 
+    DslReturnType Services::InferEngineTensorMetaSettingsSet(const char* name, 
         boolean inputEnabled, boolean outputEnabled)
     {
         LOG_FUNC();
@@ -872,7 +872,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_GIE(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_ENGINE(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -896,7 +896,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferIntervalGet(const char* name, uint* interval)
+    DslReturnType Services::InferVideoIntervalGet(const char* name, uint* interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -904,7 +904,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_VIDEO(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);
@@ -924,7 +924,7 @@ namespace DSL
         }
     }
 
-    DslReturnType Services::InferIntervalSet(const char* name, uint interval)
+    DslReturnType Services::InferVideoIntervalSet(const char* name, uint interval)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -932,7 +932,7 @@ namespace DSL
         try
         {
             DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
-            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_INFER_VIDEO(m_components, name);
             
             DSL_INFER_PTR pInferBintr = 
                 std::dynamic_pointer_cast<InferBintr>(m_components[name]);

@@ -1185,10 +1185,10 @@ namespace DSL {
         DslReturnType InferPphRemove(const char* name, 
             const char* handler, uint pad);
 
-        DslReturnType InferGieModelEngineFileGet(const char* name, 
+        DslReturnType InferEngineModelEngineFileGet(const char* name, 
             const char** modelEngineFile);
 
-        DslReturnType InferGieModelEngineFileSet(const char* name, 
+        DslReturnType InferEngineModelEngineFileSet(const char* name, 
             const char* modelEngineFile);
 
         DslReturnType InferConfigFileGet(const char* name, const char** inferConfigFile);
@@ -1198,21 +1198,21 @@ namespace DSL {
         DslReturnType InferRawOutputEnabledSet(const char* name, boolean enabled,
             const char* path);
 
-        DslReturnType InferGieModelUpdateListenerAdd(const char* name,
-            dsl_infer_gie_model_update_listener_cb listener, void* clientData);
+        DslReturnType InferEngineModelUpdateListenerAdd(const char* name,
+            dsl_infer_engine_model_update_listener_cb listener, void* clientData);
             
-        DslReturnType InferGieModelUpdateListenerRemove(const char* name,
-            dsl_infer_gie_model_update_listener_cb listener);
+        DslReturnType InferEngineModelUpdateListenerRemove(const char* name,
+            dsl_infer_engine_model_update_listener_cb listener);
             
-        DslReturnType InferGieTensorMetaSettingsGet(const char* name, 
+        DslReturnType InferEngineTensorMetaSettingsGet(const char* name, 
             boolean* inputEnabled, boolean* outputEnabled);
             
-        DslReturnType InferGieTensorMetaSettingsSet(const char* name, 
+        DslReturnType InferEngineTensorMetaSettingsSet(const char* name, 
             boolean inputEnabled, boolean outputEnabled);
             
-        DslReturnType InferIntervalGet(const char* name, uint* interval);
+        DslReturnType InferVideoIntervalGet(const char* name, uint* interval);
 
-        DslReturnType InferIntervalSet(const char* name, uint interval);
+        DslReturnType InferVideoIntervalSet(const char* name, uint interval);
         
         DslReturnType InferNameGet(int inferId, const char** name);
 

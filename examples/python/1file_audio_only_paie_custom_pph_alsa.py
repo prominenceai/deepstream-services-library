@@ -43,7 +43,7 @@ import pyds
 from dsl import *
 
 ##
-## CAUTION: THIS SCRIPT IS A WORK IN PROGRESS!!!!!!!!!11
+## CAUTION: THIS SCRIPT IS A WORK IN PROGRESS!
 
 http_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
