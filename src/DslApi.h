@@ -4385,10 +4385,11 @@ uint dsl_ode_heat_mapper_list_size();
  * @param[in] name unique name for the Print SDE Action 
  * @param[in] force_flush  if true, the action will schedule a flush to be performed 
  * by the idle thread. NOTE: although the flush event occurs in a background thread,
- * flushing is still a CPU intensive operation and should be used sparingly, when tailing
- * the console ouput for runtime debugging as an example. Set to 0 to disable forced flushing, 
- * and to allow the operating system to more effectively handle the process.
- * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ * flushing is still a CPU intensive operation and should be used sparingly, when 
+ * tailing the console ouput for runtime debugging as an example. Set to 0 to disable
+ * forced flushing, and to allow the operating system to more effectively handle the 
+ * process.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_print_new(const wchar_t* name, boolean force_flush);
     
@@ -4396,7 +4397,7 @@ DslReturnType dsl_sde_action_print_new(const wchar_t* name, boolean force_flush)
  * @brief Gets the current enabled setting for the SDE Action
  * @param[in] name unique name of the SDE Action to query
  * @param[out] enabled true if the SDE Action is currently enabled, false otherwise
- * @return DSL_RESULT_SUCCESS on successful query, DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_enabled_get(const wchar_t* name, boolean* enabled);
 
@@ -4413,7 +4414,8 @@ DslReturnType dsl_sde_action_enabled_set(const wchar_t* name, boolean enabled);
  * SDE Action. 
  * @param[in] name name of the SDE Action to update.
  * @param[in] listener pointer to the client's function to call on state change
- * @param[in] client_data opaque pointer to client data passed into the listener function.
+ * @param[in] client_data opaque pointer to client data passed into the listener 
+ * function.
  * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_enabled_state_change_listener_add(const wchar_t* name,
@@ -4431,10 +4433,10 @@ DslReturnType dsl_sde_action_enabled_state_change_listener_remove(const wchar_t*
     
 /**
  * @brief Deletes an SDE Action of any type
- * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if the Action is currently
- * owned by a SDE Trigger.
+ * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if the Action is 
+ * currently owned by a SDE Trigger.
  * @param[in] name unique name of the SDE Action to delete
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_delete(const wchar_t* name);
 
@@ -4443,7 +4445,7 @@ DslReturnType dsl_sde_action_delete(const wchar_t* name);
  * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if any of the Actions 
  * are currently owned by a SDE Trigger.
  * @param[in] names Null ternimated array of unique names to delete
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_delete_many(const wchar_t** names);
 
@@ -4451,7 +4453,7 @@ DslReturnType dsl_sde_action_delete_many(const wchar_t** names);
  * @brief Deletes all SDE Actions of all types
  * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if any of the Actions 
  * are currently owned by a SDE Trigger.
- * @return DSL_RESULT_SUCCESS on success, on of DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_delete_all();
 
