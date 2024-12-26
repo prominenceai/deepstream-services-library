@@ -45,7 +45,7 @@ from dsl import *
 ##
 ## CAUTION: THIS SCRIPT IS A WORK IN PROGRESS!
 
-http_uri = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+uri_http = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
 uri_h265 = "/opt/nvidia/deepstream/deepstream/samples/streams/sample_1080p_h265.mp4"
 
 # Filespecs (Jetson and dGPU) for the Primary GIE
@@ -59,6 +59,37 @@ hop_size = 110250
 transform = \
     'melsdb,fft_length=2560,hop_size=692,dsp_window=hann,num_mels=128,sample_rate=44100,p2db_ref=(float)1.0,p2db_min_power=(float)0.0,p2db_top_db=(float)80.0'
 
+ENGINE                              = 0
+MACHINERY_IMPACT                    = 1
+NON_MACHINERY_IMPACT                = 2
+POWERED_SAW                         = 3
+ALERT_SIGNAL                        = 4
+MUSIC                               = 5
+HUMAN_VOICE                         = 6
+DOG                                 = 7
+SMALL_SOUNDING_ENGINE               = 8
+MEDIUM_SOUNDING_ENGINE              = 9
+LARGE_SOUNDING_ENGINE               = 10
+ROCK_DRILL                          = 11
+JACKHAMMER                          = 12
+HOE_RAM                             = 13
+PILE_DRIVER                         = 14
+NON_MACHINERY_IMPACT                = 15
+CHAINSAW                            = 16
+SMALL_MEDIUM_ROTATING_SAW           = 17
+LARGE_ROTATING_SAW                  = 18
+CAR_HORN                            = 19
+CAR_ALARM                           = 20
+SIREN                               = 21
+REVERSE_BEEPER                      = 22
+STATIONARY_MUSIC                    = 23
+MOBILE_MUSIC                        = 24
+ICE_CREAM_TRUCK                     = 25
+PERSON_OR_SMALL_GROUP_TALKING       = 26
+PERSON_OR_SMALL_GROUP_SHOUTING      = 27
+LARGE_CROUD                         = 28
+AMPLIFIED_SPEECH                    = 29
+DOG_BARKING_WHINING                 = 30
 
 ## 
 # Function to be called on every change of Pipeline state
@@ -82,7 +113,7 @@ def main(args):
             break
 
         ## New URI Source with HTTP URI
-        retval = dsl_source_uri_new('uri-source', uri_h265, False, False, 0)
+        retval = dsl_source_uri_new('uri-source', uri_http, False, False, 0)
         if retval != DSL_RETURN_SUCCESS:
             break
             
@@ -101,9 +132,31 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # retval = dsl_infer_pph_add('paie', 'custom-pph', DSL_PAD_SRC)
-        # if retval != DSL_RETURN_SUCCESS:
-        #     break
+        retval = dsl_sde_action_print_new('sde-print-action', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_sde_trigger_occurrence_new('sde-occurrence-trigger', 
+            DSL_SDE_ANY_SOURCE, HUMAN_VOICE, DSL_SDE_TRIGGER_LIMIT_NONE)
+        if retval != DSL_RETURN_SUCCESS:
+            break
+
+        retval = dsl_sde_trigger_action_add('sde-occurrence-trigger',
+            'sde-print-action')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+                   
+        retval = dsl_pph_sde_new('sde-pph')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+                   
+        retval = dsl_pph_sde_trigger_add('sde-pph', 'sde-occurrence-trigger')
+        if retval != DSL_RETURN_SUCCESS:
+            break
+                   
+        retval = dsl_infer_pph_add('paie', 'sde-pph', DSL_PAD_SRC)
+        if retval != DSL_RETURN_SUCCESS:
+            break
                    
          # New alsa sink using default sound card and device
         # retval = dsl_sink_alsa_new('alsa-sink', 'default')

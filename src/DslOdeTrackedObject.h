@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2022, Prominence AI, Inc.
+Copyright (c) 2022-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include "Dsl.h"
 #include "DslApi.h"
-#include "DslOdeBase.h"
+#include "DslDeBase.h"
 #include "DslDisplayTypes.h"
 
 namespace DSL

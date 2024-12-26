@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2022, Prominence AI, Inc.
+Copyright (c) 2022-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,19 +34,19 @@ namespace DSL
     /**
      * @brief convenience macros for shared pointer abstraction
      */
-    #define DSL_ODE_BASE_PTR std::shared_ptr<OdeBase>
+    #define DSL_ODE_BASE_PTR std::shared_ptr<DeBase>
     
     // ********************************************************************
 
-    class OdeBase : public Base
+    class DeBase : public Base
     {
     public: 
     
         /**
-         * @brief ctor for the ODE base class
-         * @param[in] name unique name for the ODE Action
+         * @brief ctor for the Detection Event (DE) base class
+         * @param[in] name unique name for the DE Action
          */
-        OdeBase(const char* name)
+        DeBase(const char* name)
             : Base(name)
             , m_enabled(true)
         {
@@ -54,9 +54,9 @@ namespace DSL
         };
 
         /**
-         * @brief ctor for the ODE base class
+         * @brief ctor for the Detection Event (DE) base class
          */
-        ~OdeBase()
+        ~DeBase()
         {
             LOG_FUNC();
         };
@@ -74,7 +74,7 @@ namespace DSL
         };
         
         /**
-         * @brief Sets the Enabled setting for ODE Action
+         * @brief Sets the Enabled setting for Detection Event (DE) Action
          * @param[in] the new value to use
          */
         void SetEnabled(bool enabled)
@@ -104,7 +104,7 @@ namespace DSL
          * @return ture if the listener function was successfully added, false otherwise.
          */
         bool AddEnabledStateChangeListener(
-            dsl_ode_enabled_state_change_listener_cb listener, void* clientData)
+            dsl_enabled_state_change_listener_cb listener, void* clientData)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -126,7 +126,7 @@ namespace DSL
          * @return ture if the listener function was successfully removed, false otherwise.
          */
         bool RemoveEnabledStateChangeListener(
-            dsl_ode_enabled_state_change_listener_cb listener)
+            dsl_enabled_state_change_listener_cb listener)
         {
             LOG_FUNC();
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
@@ -160,7 +160,7 @@ namespace DSL
          * @brief map of all currently registered enabled-state-change-listeners
          * callback functions mapped with the user provided data
          */
-        std::map<dsl_ode_enabled_state_change_listener_cb, 
+        std::map<dsl_enabled_state_change_listener_cb, 
             void*>m_enabledStateChangeListeners;
         
     };            

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2022, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,36 +37,14 @@ namespace DSL
 
     OdeTrigger::OdeTrigger(const char* name, const char* source, 
         uint classId, uint limit)
-        : OdeBase(name)
-        , m_wName(m_name.begin(), m_name.end())
-        , m_source(source)
-        , m_sourceId(-1)
-        , m_inferId(-1)
-        , m_classId(classId)
-        , m_triggered(0)
-        , m_eventLimit(limit)
-        , m_frameCount(0)
-        , m_frameLimit(0)
-        , m_occurrences(0)
-        , m_occurrencesAccumulated(0)
-        , m_minConfidence(0)
-        , m_maxConfidence(0)
+        : DeTriggerBase(name, source, classId, limit)
         , m_minTrackerConfidence(0)
         , m_maxTrackerConfidence(0)
         , m_minWidth(0)
         , m_minHeight(0)
         , m_maxWidth(0)
         , m_maxHeight(0)
-        , m_minFrameCountN(1)
-        , m_minFrameCountD(1)
-        , m_inferDoneOnly(false)
-        , m_resetTimeout(0)
-        , m_resetTimerId(0)
-        , m_interval(0)
-        , m_intervalCounter(0)
-        , m_skipFrame(false)
         , m_nextAreaIndex(0)
-        , m_nextActionIndex(0)
     {
         LOG_FUNC();
     }
@@ -75,80 +53,17 @@ namespace DSL
     {
         LOG_FUNC();
         
-        RemoveAllActions();
         RemoveAllAreas();
         if (m_pAccumulator)
         {
             RemoveAccumulator();
         }
-        
-        if (m_resetTimerId)
+        if (m_pHeatMapper)
         {
-            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
-            g_source_remove(m_resetTimerId);
+            RemoveHeatMapper();
         }
     }
 
-    bool OdeTrigger::AddAction(DSL_BASE_PTR pChild)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        if (m_pOdeActions.find(pChild->GetName()) != m_pOdeActions.end())
-        {
-            LOG_ERROR("ODE Area '" << pChild->GetName() 
-                << "' is already a child of ODE Trigger '" << GetName() << "'");
-            return false;
-        }
-        
-        // increment next index, assign to the Action, and update parent releationship.
-        pChild->SetIndex(++m_nextActionIndex);
-        pChild->AssignParentName(GetName());
-
-        // Add the shared pointer to child to both Maps, by name and index
-        m_pOdeActions[pChild->GetName()] = pChild;
-        m_pOdeActionsIndexed[m_nextActionIndex] = pChild;
-        
-        return true;
-    }
-
-    bool OdeTrigger::RemoveAction(DSL_BASE_PTR pChild)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        if (m_pOdeActions.find(pChild->GetName()) == m_pOdeActions.end())
-        {
-            LOG_WARN("'" << pChild->GetName() 
-                <<"' is not a child of ODE Trigger '" << GetName() << "'");
-            return false;
-        }
-        
-        // Erase the child from both maps
-        m_pOdeActions.erase(pChild->GetName());
-        m_pOdeActionsIndexed.erase(pChild->GetIndex());
-        
-        // Clear the parent relationship and index
-        pChild->ClearParentName();
-        pChild->SetIndex(0);
-        return true;
-    }
-    
-    void OdeTrigger::RemoveAllActions()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        for (auto &imap: m_pOdeActions)
-        {
-            LOG_DEBUG("Removing Action '" << imap.second->GetName() 
-                <<"' from Parent '" << GetName() << "'");
-            imap.second->ClearParentName();
-        }
-        m_pOdeActions.clear();
-        m_pOdeActionsIndexed.clear();
-    }
-    
     bool OdeTrigger::AddArea(DSL_BASE_PTR pChild)
     {
         LOG_FUNC();
@@ -269,324 +184,6 @@ namespace DSL
         return true;
     }
         
-    void OdeTrigger::Reset()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_triggered = 0;
-        m_occurrencesAccumulated = 0;
-        
-        m_frameCount = 0;
-        
-        // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitStateChangeListeners)
-        {
-            try
-            {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET, 
-                    m_eventLimit, imap.second);
-            }
-            catch(...)
-            {
-                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
-            }
-        }
-    }
-    
-    void OdeTrigger::IncrementAndCheckTriggerCount()
-    {
-        LOG_FUNC();
-        // internal do not lock m_propertyMutex
-        
-        m_triggered++;
-        
-        if (m_triggered >= m_eventLimit)
-        {
-            // iterate through the map of limit-event-listeners calling each
-            for(auto const& imap: m_limitStateChangeListeners)
-            {
-                try
-                {
-                    imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED, 
-                        m_eventLimit, imap.second);
-                }
-                catch(...)
-                {
-                    LOG_ERROR("Exception calling Client Limit State-Change Lister");
-                }
-            }
-            if (m_resetTimeout)
-            {
-                m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
-                    TriggerResetTimeoutHandler, this);            
-            }
-        }
-    }
-
-    static int TriggerResetTimeoutHandler(gpointer pTrigger)
-    {
-        return static_cast<OdeTrigger*>(pTrigger)->
-            HandleResetTimeout();
-    }
-
-    int OdeTrigger::HandleResetTimeout()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
-        
-        m_resetTimerId = 0;
-        Reset();
-        
-        // One shot - return false.
-        return false;
-    }
-    
-    uint OdeTrigger::GetResetTimeout()
-    {
-        LOG_FUNC();
-        
-        return m_resetTimeout;
-    }
-        
-    void OdeTrigger::SetResetTimeout(uint timeout)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_resetTimerMutex);
-        
-        // If the timer is currently running and the new 
-        // timeout value is zero (disabled), then kill the timer.
-        if (m_resetTimerId and !timeout)
-        {
-            g_source_remove(m_resetTimerId);
-            m_resetTimerId = 0;
-        }
-        
-        // Else, if the Timer is currently running and the new
-        // timeout value is non-zero, stop and restart the timer.
-        else if (m_resetTimerId and timeout)
-        {
-            g_source_remove(m_resetTimerId);
-            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
-                TriggerResetTimeoutHandler, this);            
-        }
-        
-        // Else, if the Trigger has reached its limit and the 
-        // client is setting a Timeout value, start the timer.
-        else if (m_eventLimit and (m_triggered >= m_eventLimit) and timeout)
-        {
-            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
-                TriggerResetTimeoutHandler, this);            
-        } 
-        // Else, if the Trigger has reached its frame limit and the 
-        // client is setting a Timeout value, start the timer.
-        else if (m_frameLimit and (m_frameCount >= m_frameLimit) and timeout)
-        {
-            m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
-                TriggerResetTimeoutHandler, this);            
-        } 
-        
-        m_resetTimeout = timeout;
-    }
-    
-    bool OdeTrigger::IsResetTimerRunning()
-    {
-        LOG_FUNC();
-
-        return m_resetTimerId;
-    }
-    
-    bool OdeTrigger::AddLimitStateChangeListener(
-        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_limitStateChangeListeners.find(listener) != 
-            m_limitStateChangeListeners.end())
-        {   
-            LOG_ERROR("Limit state change listener is not unique");
-            return false;
-        }
-        m_limitStateChangeListeners[listener] = clientData;
-
-        return true;
-    }
-    
-    bool OdeTrigger::RemoveLimitStateChangeListener(
-        dsl_ode_trigger_limit_state_change_listener_cb listener)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-
-        if (m_limitStateChangeListeners.find(listener) == 
-            m_limitStateChangeListeners.end())
-        {   
-            LOG_ERROR("Limit state change listener was not found");
-            return false;
-        }
-        m_limitStateChangeListeners.erase(listener);
-
-        return true;
-    }        
-        
-    uint OdeTrigger::GetClassId()
-    {
-        LOG_FUNC();
-        
-        return m_classId;
-    }
-    
-    void OdeTrigger::SetClassId(uint classId)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_classId = classId;
-    }
-
-    uint OdeTrigger::GetEventLimit()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        return m_eventLimit;
-    }
-    
-    void OdeTrigger::SetEventLimit(uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_eventLimit = limit;
-        
-        // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitStateChangeListeners)
-        {
-            try
-            {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED, 
-                    m_eventLimit, imap.second);
-            }
-            catch(...)
-            {
-                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
-            }
-        }
-    }
-
-    uint OdeTrigger::GetFrameLimit()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        return m_frameLimit;
-    }
-    
-    void OdeTrigger::SetFrameLimit(uint limit)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_frameLimit = limit;
-        
-        // iterate through the map of limit-event-listeners calling each
-        for(auto const& imap: m_limitStateChangeListeners)
-        {
-            try
-            {
-                imap.first(DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED, 
-                    m_frameLimit, imap.second);
-            }
-            catch(...)
-            {
-                LOG_ERROR("Exception calling Client Limit-State-Change-Lister");
-            }
-        }
-    }
-
-    const char* OdeTrigger::GetSource()
-    {
-        LOG_FUNC();
-        
-        if (m_source.size())
-        {
-            return m_source.c_str();
-        }
-        return NULL;
-    }
-    
-    void OdeTrigger::SetSource(const char* source)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_source.assign(source);
-    }
-
-    void OdeTrigger::_setSourceId(int id)
-    {
-        LOG_FUNC();
-        
-        m_sourceId = id;
-    }
-    
-    const char* OdeTrigger::GetInfer()
-    {
-        LOG_FUNC();
-        
-        if (m_infer.size())
-        {
-            return m_infer.c_str();
-        }
-        return NULL;
-    }
-    
-    void OdeTrigger::SetInfer(const char* infer)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_infer.assign(infer);
-    }
-
-    void OdeTrigger::_setInferId(int id)
-    {
-        LOG_FUNC();
-        
-        m_inferId = id;
-    }
-    
-    float OdeTrigger::GetMinConfidence()
-    {
-        LOG_FUNC();
-        
-        return m_minConfidence;
-    }
-    
-    void OdeTrigger::SetMinConfidence(float minConfidence)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_minConfidence = minConfidence;
-    }
-    
-    float OdeTrigger::GetMaxConfidence()
-    {
-        LOG_FUNC();
-        
-        return m_maxConfidence;
-    }
-    
-    void OdeTrigger::SetMaxConfidence(float maxConfidence)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_maxConfidence = maxConfidence;
-    }
-    
     float OdeTrigger::GetMinTrackerConfidence()
     {
         LOG_FUNC();
@@ -651,96 +248,6 @@ namespace DSL
         m_maxHeight = maxHeight;
     }
     
-    bool OdeTrigger::GetInferDoneOnlySetting()
-    {
-        LOG_FUNC();
-        
-        return m_inferDoneOnly;
-    }
-    
-    void OdeTrigger::SetInferDoneOnlySetting(bool inferDoneOnly)
-    {
-        LOG_FUNC();
-        
-        m_inferDoneOnly = inferDoneOnly;
-    }
-    
-    void OdeTrigger::GetMinFrameCount(uint* minFrameCountN, uint* minFrameCountD)
-    {
-        LOG_FUNC();
-        
-        *minFrameCountN = m_minFrameCountN;
-        *minFrameCountD = m_minFrameCountD;
-    }
-
-    void OdeTrigger::SetMinFrameCount(uint minFrameCountN, uint minFrameCountD)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_minFrameCountN = minFrameCountN;
-        m_minFrameCountD = minFrameCountD;
-    }
-
-    uint OdeTrigger::GetInterval()
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        return m_interval;
-    }
-    
-    void OdeTrigger::SetInterval(uint interval)
-    {
-        LOG_FUNC();
-        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
-        
-        m_interval = interval;
-        m_intervalCounter = 0;
-    }
-    
-    bool OdeTrigger::CheckForSourceId(int sourceId)
-    {
-        LOG_FUNC();
-
-        // Filter on Source id if set
-        if (m_source.size())
-        {
-            // a "one-time-get" of the source Id from the source name
-            if (m_sourceId == -1)
-            {
-                
-                Services::GetServices()->SourceUniqueIdGet(m_source.c_str(), 
-                    &m_sourceId);
-            }
-            if (m_sourceId != sourceId)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool OdeTrigger::CheckForInferId(int inferId)
-    {
-        LOG_FUNC();
-
-        // Filter on Source id if set
-        if (m_infer.size())
-        {
-            // a "one-time-get" of the inference component Id from the name
-            if (m_inferId == -1)
-            {
-                Services::GetServices()->InferIdGet(m_infer.c_str(), &m_inferId);
-            }
-            if (m_inferId != inferId)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
     void OdeTrigger::PreProcessFrame(GstBuffer* pBuffer, 
         std::vector<NvDsDisplayMeta*>& displayMetaData,
         NvDsFrameMeta* pFrameMeta)
@@ -812,7 +319,7 @@ namespace DSL
             {
                 try
                 {
-                    imap.first(DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED, 
+                    imap.first(DSL_TRIGGER_LIMIT_FRAME_REACHED, 
                         m_frameLimit, imap.second);
                 }
                 catch(...)
@@ -988,7 +495,7 @@ namespace DSL
                 return;
             }
         }
-        for (const auto &imap: m_pOdeActionsIndexed)
+        for (const auto &imap: m_pActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1018,7 +525,7 @@ namespace DSL
                 return 0;
             }
         }
-        for (const auto &imap: m_pOdeActionsIndexed)
+        for (const auto &imap: m_pActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1074,7 +581,7 @@ namespace DSL
                 pFrameMeta, pObjectMeta);
         }
 
-        for (const auto &imap: m_pOdeActionsIndexed)
+        for (const auto &imap: m_pActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1157,7 +664,7 @@ namespace DSL
             // update the total event count static variable
             s_eventCount++;
 
-            for (const auto &imap: m_pOdeActionsIndexed)
+            for (const auto &imap: m_pActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1275,7 +782,7 @@ namespace DSL
             // set the primary metric as the current occurrence for this frame
             pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = m_occurrences;
                 
-            for (const auto &imap: m_pOdeActionsIndexed)
+            for (const auto &imap: m_pActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1377,7 +884,7 @@ namespace DSL
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_ACTIVE_INDEX] = 
                 DSL_FRAME_INFO_OCCURRENCES;
             pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = m_occurrences;
-            for (const auto &imap: m_pOdeActionsIndexed)
+            for (const auto &imap: m_pActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1451,7 +958,7 @@ namespace DSL
                 pFrameMeta, pObjectMeta);
         }
 
-        for (const auto &imap: m_pOdeActionsIndexed)
+        for (const auto &imap: m_pActionsIndexed)
         {
             DSL_ODE_ACTION_PTR pOdeAction = 
                 std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1496,7 +1003,7 @@ namespace DSL
              // update the total event count static variable
             s_eventCount++;
 
-            for (const auto &imap: m_pOdeActionsIndexed)
+            for (const auto &imap: m_pActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1588,7 +1095,7 @@ namespace DSL
              // update the total event count static variable
             s_eventCount++;
 
-            for (const auto &imap: m_pOdeActionsIndexed)
+            for (const auto &imap: m_pActionsIndexed)
             {
                 DSL_ODE_ACTION_PTR pOdeAction = 
                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1678,7 +1185,7 @@ namespace DSL
                 // set the primary metric as the smallest bounding box by area
                 pSmallestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                     = smallestArea;
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1776,7 +1283,7 @@ namespace DSL
                 pLargestObject->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                     = largestArea;
                 
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1876,7 +1383,7 @@ namespace DSL
                 pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
                     m_occurrences;
 
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -1979,7 +1486,7 @@ namespace DSL
                 pFrameMeta->misc_frame_info[DSL_FRAME_INFO_OCCURRENCES] = 
                     m_occurrences;
 
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -2208,7 +1715,7 @@ namespace DSL
                 pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PERSISTENCE] = 
                     (uint64_t)(pTrackedObject->GetDurationMs());
                     
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -2434,7 +1941,7 @@ namespace DSL
                 pObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
                     (uint64_t)(trackedTimeMs/1000);
                     
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -2564,7 +2071,7 @@ namespace DSL
                 m_pLatestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
                     (uint64_t)(m_latestTrackedTimeMs/1000);
 
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -2682,7 +2189,7 @@ namespace DSL
                 m_pEarliestObjectMeta->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] = 
                     (uint64_t)(m_earliestTrackedTimeMs/1000);
 
-                for (const auto &imap: m_pOdeActionsIndexed)
+                for (const auto &imap: m_pActionsIndexed)
                 {
                     DSL_ODE_ACTION_PTR pOdeAction = 
                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -2877,7 +2384,7 @@ namespace DSL
                             m_occurrenceMetaListA[j]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                 = m_occurrences;
 
-                            for (const auto &imap: m_pOdeActionsIndexed)
+                            for (const auto &imap: m_pActionsIndexed)
                             {
                                 DSL_ODE_ACTION_PTR pOdeAction = 
                                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -2947,7 +2454,7 @@ namespace DSL
                                 iterB->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                     = m_occurrences;
 
-                                for (const auto &imap: m_pOdeActionsIndexed)
+                                for (const auto &imap: m_pActionsIndexed)
                                 {
                                     DSL_ODE_ACTION_PTR pOdeAction = 
                                         std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -3147,7 +2654,7 @@ namespace DSL
                             m_occurrenceMetaListA[j]->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                 = m_occurrences;
 
-                            for (const auto &imap: m_pOdeActionsIndexed)
+                            for (const auto &imap: m_pActionsIndexed)
                             {
                                 DSL_ODE_ACTION_PTR pOdeAction = 
                                     std::dynamic_pointer_cast<OdeAction>(imap.second);
@@ -3219,7 +2726,7 @@ namespace DSL
                                 iterB->misc_obj_info[DSL_OBJECT_INFO_PRIMARY_METRIC] 
                                     = m_occurrences;
                                 
-                                for (const auto &imap: m_pOdeActionsIndexed)
+                                for (const auto &imap: m_pActionsIndexed)
                                 {
                                     DSL_ODE_ACTION_PTR pOdeAction = 
                                         std::dynamic_pointer_cast<OdeAction>(imap.second);

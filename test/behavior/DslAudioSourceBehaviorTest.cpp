@@ -70,6 +70,8 @@ static const uint offsetY(0);
 static const uint sinkW(DSL_1K_HD_WIDTH/2);
 static const uint sinkH(DSL_1K_HD_HEIGHT/2);
 
+static const std::wstring sde_pph_name(L"sde-pph");
+
 static const std::wstring pipeline_graph_name(L"audio-behavior");
 
 
@@ -342,3 +344,69 @@ SCENARIO( "A new Pipeline with an ALSA Source and ALSA Sink can play",
         }
     }
 }
+
+SCENARIO( "A new Pipeline with a URI Source, PAIE with SDE PPH, and Fake Sink,  can play - Audio Only",
+    "[error]" )
+{
+    GIVEN( "A Pipeline, URI Source, Window Sink, and Audio Fake Sink" ) 
+    {
+        if (dsl_info_use_new_nvstreammux_get())
+        {
+            REQUIRE( dsl_component_list_size() == 0 );
+
+            REQUIRE( dsl_source_uri_new(source_name_1.c_str(), source_uri_2.c_str(), 
+                false, false, 0) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_component_media_type_set(source_name_1.c_str(), 
+                DSL_MEDIA_TYPE_AUDIO_ONLY) == DSL_RESULT_SUCCESS );          
+
+            REQUIRE( dsl_infer_aie_primary_new(paie_name.c_str(), 
+                infer_config_file.c_str(), NULL,
+                frame_size, hop_size, transform.c_str()) == DSL_RESULT_SUCCESS );
+
+            REQUIRE( dsl_pph_sde_new(sde_pph_name.c_str()) == DSL_RESULT_SUCCESS );    
+                
+            REQUIRE( dsl_infer_pph_add(paie_name.c_str(), sde_pph_name.c_str(),
+                DSL_PAD_SRC) == DSL_RESULT_SUCCESS );    
+                
+            REQUIRE( dsl_sink_fake_new(fake_sink_name.c_str()) == DSL_RESULT_SUCCESS );    
+
+            REQUIRE( dsl_component_media_type_set(fake_sink_name.c_str(), 
+                DSL_MEDIA_TYPE_AUDIO_ONLY) == DSL_RESULT_SUCCESS );          
+
+            REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_audiomux_enabled_set(pipeline_name.c_str(), 
+                true) == DSL_RESULT_SUCCESS );
+            
+            REQUIRE( dsl_pipeline_videomux_enabled_set(pipeline_name.c_str(), 
+                false) == DSL_RESULT_SUCCESS );
+            
+            WHEN( "When the Pipeline is Assembled" ) 
+            {
+                const wchar_t* components[] = {
+                    source_name_1.c_str(), paie_name.c_str(), fake_sink_name.c_str(), NULL};
+        
+                REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+                    components) == DSL_RESULT_SUCCESS );
+
+                THEN( "Pipeline is Able to LinkAll and Play" )
+                {
+                    // REQUIRE( dsl_pipeline_play(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+                    dsl_pipeline_play(pipeline_name.c_str());
+
+                    dsl_pipeline_dump_to_dot(pipeline_name.c_str(), 
+                        const_cast<wchar_t*>(pipeline_graph_name.c_str()));
+
+                    std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
+                    REQUIRE( dsl_pipeline_stop(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+
+                    dsl_delete_all();
+                    REQUIRE( dsl_pipeline_list_size() == 0 );
+                    REQUIRE( dsl_component_list_size() == 0 );
+                }
+            }
+        }
+    }
+}
+
