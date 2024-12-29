@@ -640,6 +640,9 @@ namespace DSL {
 
         DslReturnType SdeActionPrintNew(const char* name, boolean forceFlush);
         
+        DslReturnType SdeActionMonitorNew(const char* name,
+            dsl_sde_monitor_occurrence_cb clientMonitor, void* clientData);
+            
         DslReturnType SdeActionEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType SdeActionEnabledSet(const char* name, boolean enabled);

@@ -2965,10 +2965,13 @@ namespace DSL
         }
 
         std::cout << "  Criteria          : ------------------------" << "\n";
+        std::cout << "    Source Id       : " << int_to_hex(pTrigger->m_sourceId) << "\n";
         std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
         std::cout << "    Infer Id        : " << pTrigger->m_inferId << "\n";
         std::cout << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Max Infer Conf  : " << pTrigger->m_maxConfidence << "\n";
         std::cout << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+        std::cout << "    Max Track Conf  : " << pTrigger->m_maxTrackerConfidence << "\n";
         std::cout << "    Min Frame Count : " << pTrigger->m_minFrameCountN
             << " out of " << pTrigger->m_minFrameCountD << "\n";
         std::cout << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";

@@ -559,7 +559,9 @@ namespace DSL
                         std::dynamic_pointer_cast<SdeTrigger>(imap.second);
                     try
                     {
+                        pSdeTrigger->PreProcessFrame(pBuffer, pFrameMeta);
                         pSdeTrigger->CheckForOccurrence(pBuffer, pFrameMeta);
+                        pSdeTrigger->PostProcessFrame(pBuffer, pFrameMeta);
                     }
                     catch(...)
                     {

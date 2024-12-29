@@ -108,8 +108,8 @@ namespace DSL
         std::cout << "    Batch Id        : " << pFrameMeta->batch_id << "\n";
         std::cout << "    Pad Index       : " << pFrameMeta->pad_index << "\n";
         std::cout << "    Frame           : " << pFrameMeta->frame_num << "\n";
-        std::cout << "    Samples/Frame   : " << pFrameMeta->num_samples_per_frame << "\n";
         std::cout << "    Sample Rate     : " << pFrameMeta->sample_rate << "\n";
+        std::cout << "    Samples/Frame   : " << pFrameMeta->num_samples_per_frame << "\n";
         std::cout << "    Channels        : " << pFrameMeta->num_channels << "\n";
 
         std::cout << "  Sound Data        : ------------------------" << "\n";
@@ -118,8 +118,11 @@ namespace DSL
         std::cout << "    Confidence      : " << pFrameMeta->confidence << "\n";
 
         std::cout << "  Criteria          : ------------------------" << "\n";
+        std::cout << "    Source Id       : " << int_to_hex(pTrigger->m_sourceId) << "\n";
         std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
         std::cout << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Max Infer Conf  : " << pTrigger->m_maxConfidence << "\n";
+        std::cout << "    Interval        : " << pTrigger->m_interval << "\n";
 
         // If we're force flushing the stream and the flush
         // handler is not currently added to the idle thread
@@ -143,6 +146,119 @@ namespace DSL
     static gboolean PrintActionFlush(gpointer pAction)
     {
         return static_cast<PrintSdeAction*>(pAction)->Flush();
+    }
+
+// ********************************************************************
+
+    MonitorSdeAction::MonitorSdeAction(const char* name, 
+        dsl_sde_monitor_occurrence_cb clientMonitor, void* clientData)
+        : SdeAction(name)
+        , m_clientMonitor(clientMonitor)
+        , m_clientData(clientData)
+    {
+        LOG_FUNC();
+    }
+
+    MonitorSdeAction::~MonitorSdeAction()
+    {
+        LOG_FUNC();
+    }
+    
+    void MonitorSdeAction::HandleOccurrence(DSL_BASE_PTR pBase, 
+        GstBuffer* pBuffer, NvDsAudioFrameMeta* pFrameMeta)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        if (!m_enabled)
+        {
+            return;
+        }
+        try
+        {
+            DSL_SDE_TRIGGER_PTR pTrigger 
+                = std::dynamic_pointer_cast<SdeTrigger>(pBase);
+                
+            dsl_sde_occurrence_info info{0};
+            
+            // convert the Trigger Name to wchar string type (client format)
+            std::wstring wstrTriggerName(pTrigger->GetName().begin(), 
+                pTrigger->GetName().end());
+            info.trigger_name = wstrTriggerName.c_str();
+            info.unique_sde_id = pTrigger->s_eventCount;
+            info.ntp_timestamp = pFrameMeta->ntp_timestamp;
+            info.source_info.inference_done = pFrameMeta->bInferDone;
+            info.source_info.source_id = pFrameMeta->source_id;
+            info.source_info.batch_id = pFrameMeta->batch_id;
+            info.source_info.pad_index = pFrameMeta->pad_index;
+            info.source_info.frame_num = pFrameMeta->frame_num;
+            info.source_info.sample_rate = pFrameMeta->sample_rate;
+            info.source_info.num_samples_per_frame = pFrameMeta->num_samples_per_frame;
+            info.source_info.num_channels = pFrameMeta->num_channels;
+            
+            // Automatic varaibles needs to be valid for call to the client callback
+            // Create here at higher scope - in case it is used for Object metadata.
+            std::wstring wstrLabel;
+            std::wstring wstrClassifierLabels;
+            
+            info.sound_info.class_id = pFrameMeta->class_id;
+
+            std::string strLabel(pFrameMeta->class_label);
+            wstrLabel.assign(strLabel.begin(), strLabel.end());
+            info.sound_info.label = wstrLabel.c_str();
+
+            info.sound_info.inference_confidence =  pFrameMeta->confidence;
+
+                // look for classifier meta to find labels like licence plate numbers
+            // if (pObjectMeta->classifier_meta_list)
+            // {
+            //     std::ostringstream labelStream;
+                
+            //     for (NvDsClassifierMetaList* pClassifierMetaList = 
+            //             pObjectMeta->classifier_meta_list; pClassifierMetaList; 
+            //                 pClassifierMetaList = pClassifierMetaList->next)
+            //     {
+            //         NvDsClassifierMeta* pClassifierMeta = 
+            //             (NvDsClassifierMeta*)(pClassifierMetaList->data);
+            //         if (pClassifierMeta != NULL)
+            //         {
+            //             for (NvDsLabelInfoList* pLabelInfoList = 
+            //                     pClassifierMeta->label_info_list; pLabelInfoList; 
+            //                         pLabelInfoList = pLabelInfoList->next)
+            //             {
+            //                 NvDsLabelInfo* pLabelInfo = 
+            //                     (NvDsLabelInfo*)(pLabelInfoList->data);
+            //                 if(pLabelInfo != NULL)
+            //                 {
+            //                     if (labelStream.str().size())
+            //                     {
+            //                         labelStream << " ";
+            //                     }
+            //                     labelStream << pLabelInfo->result_label;
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     std::string classifierlabels(labelStream.str());
+            //     wstrClassifierLabels.assign(classifierlabels.begin(), 
+            //         classifierlabels.end());
+            //     info.object_info.classiferLabels = wstrClassifierLabels.c_str();
+            // }
+            
+            // Trigger criteria set for this SDE occurrence.
+            info.criteria_info.source_id = pTrigger->m_sourceId;
+            info.criteria_info.class_id = pTrigger->m_classId;
+            info.criteria_info.min_inference_confidence = pTrigger->m_minConfidence;
+            info.criteria_info.max_inference_confidence = pTrigger->m_maxConfidence;
+            info.criteria_info.interval = pTrigger->m_interval;
+            
+            // Call the Client's monitor callback with the info and client-data
+            m_clientMonitor(&info, m_clientData);
+        }
+        catch(...)
+        {
+            LOG_ERROR("Monitor SDE Action '" << GetName() 
+                << "' threw exception calling client callback");
+        }
     }
 
 }

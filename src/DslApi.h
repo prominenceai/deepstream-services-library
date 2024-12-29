@@ -1532,7 +1532,6 @@ typedef struct _dsl_ode_occurrence_accumulative_info
 
 } dsl_ode_occurrence_accumulative_info;
 
-
 /**
  * @struct dsl_ode_occurrence_criteria_info
  * @brief ODE Trigger Criteria used for the ODE Occurrence.
@@ -1644,6 +1643,155 @@ typedef struct _dsl_ode_occurrence_info
 } dsl_ode_occurrence_info;
 
 /**
+ * @struct dsl_sde_occurrence_source_info
+ * @brief Audio Source information for the SDE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_sde_occurrence_source_info
+{
+    /**
+     * @brief unique source id for this SDE occurrence.
+     */
+    uint source_id;
+    
+    /**
+     * @brief the location of the frame in the batch for this SDE occurrence 
+     */
+    uint batch_id;
+    
+    /**
+     * @brief pad or port index of the Gst-streammux plugin for this SDE occurrence
+     */
+    uint pad_index;
+    
+    /**
+     * @brief current frame number of the source for this SDE occurrence.
+     */
+    uint frame_num;
+    
+    /**
+     * @brief number of samples per frame.
+     */
+    uint num_samples_per_frame;
+    
+    /**
+     * @brief sample rate in units of hz.
+     */
+    uint sample_rate;
+    
+    /**
+     * @brief number of audio channels in the frame.
+     */
+    uint num_channels;
+    
+    /**
+     * @brief true if inference was done on the frame for this SDE occurrence.
+     */
+    boolean inference_done;
+    
+} dsl_sde_occurrence_source_info;
+
+/**
+ * @struct dsl_sde_occurrence_sound_info
+ * @brief Detected Sound information for the SDE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_sde_occurrence_sound_info
+{
+    /**
+     * @brief class id for the detected object
+     */
+    uint class_id;
+    
+    /**
+     * @brief unique label for the detected object
+     */
+    const wchar_t* label;
+    
+    /**
+     * @brief labels from all classifiers concatenated with space seperator
+     */
+    const wchar_t* classiferLabels;
+   
+    /**
+     * @brief inference confidence as calculated by the last detector.
+     */
+    float inference_confidence;
+    
+} dsl_sde_occurrence_sound_info;
+
+/**
+ * @struct dsl_sde_occurrence_criteria_info
+ * @brief SDE Trigger Criteria used for the SDE Occurrence.
+ */
+typedef struct _dsl_sde_occurrence_criteria_info
+{
+    /**
+     * @brief source id filter for SDE occurrence
+     */
+    uint source_id;
+    
+    /**
+     * @brief class id filter for SDE occurrence
+     */
+    uint class_id;
+    
+    /**
+     * @brief the minimum inference confidence to trigger an SDE occurrence.
+     */
+    float min_inference_confidence;
+    
+    /**
+     * @brief the maximum inference confidence to trigger an SDE occurrence.
+     */
+    float max_inference_confidence;
+    
+    /**
+     * @brief the interval for checking for an SDE occurrence.
+     */
+    uint interval;
+    
+} dsl_sde_occurrence_criteria_info;
+
+/**
+ * @struct dsl_sde_occurrence_info
+ * @brief SDE Occurrence information provided to the client on callback
+ */
+typedef struct _dsl_sde_occurrence_info
+{
+    /**
+     * @brief the unique name of the SDE Trigger that triggered the occurrence
+     */
+    const wchar_t* trigger_name;
+    
+    /**
+     * @brief unique occurrence Id for this occurrence.
+     */
+    uint64_t unique_sde_id;
+    
+    /**
+     * @brief Network Time for this event.
+     */
+    uint64_t ntp_timestamp;
+    
+    /**
+     * @brief Audo Source information this SDE Occurrence
+     */
+    dsl_sde_occurrence_source_info source_info;
+
+    /**
+     * @brief Object information if object_occurrence == true
+     */
+    dsl_sde_occurrence_sound_info sound_info;
+    
+    /**
+     * @brief Trigger Criteria information for this SDE occurrence.
+     */
+    dsl_sde_occurrence_criteria_info criteria_info;
+       
+} dsl_sde_occurrence_info;
+
+/**
  * @struct _dsl_threshold_value
  * @brief defines an abstract class that contains two data points; a
  * minimum threshold and a value to use if the threshold is met.
@@ -1720,6 +1868,17 @@ typedef boolean (*dsl_ode_check_for_occurrence_cb)(void* buffer,
 typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
     void* frame_meta, void* client_data);
     
+/**
+ * @brief Callback typedef for a client SDE occurrence monitor function. 
+ * Once registered by calling dsl_sde_action_monitor_new, the function will be called 
+ * on SDE occurrence with all occurrence information using the dsl_sde_occurrence_info
+ * structure. 
+ * @param[in] occurrence_info occurrence information on SDE occurrence.
+ * @param[in] client_data opaque pointer to client's user data
+ */    
+typedef void (*dsl_sde_monitor_occurrence_cb)(dsl_sde_occurrence_info* occurrence_info,
+    void* client_data);    
+
 /**
  * @brief Callback typedef for a client listener function. Once added to an
  * ODE/SDE Trigger or ODE/SDE Action, this function will be called on change 
@@ -4384,15 +4543,25 @@ uint dsl_ode_heat_mapper_list_size();
  * @brief Creates a uniquely named Print SDE Action
  * @param[in] name unique name for the Print SDE Action 
  * @param[in] force_flush  if true, the action will schedule a flush to be performed 
- * by the idle thread. NOTE: although the flush event occurs in a background thread,
- * flushing is still a CPU intensive operation and should be used sparingly, when 
- * tailing the console ouput for runtime debugging as an example. Set to 0 to disable
- * forced flushing, and to allow the operating system to more effectively handle the 
- * process.
+ * by the idle thread. 
+ * @note: although the flush event occurs in a background thread, flushing is still 
+ * a CPU intensive operation and should be used sparingly, when tailing the console 
+ * output for runtime debugging as an example. Set to 0 to disable forced flushing, 
+ * and to allow the operating system to handle the process more efficiently.
  * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
  */
 DslReturnType dsl_sde_action_print_new(const wchar_t* name, boolean force_flush);
     
+/**
+ * @brief Creates a uniquely named Monitor SDE Action.
+ * @param[in] name unique name for the Monitor SDE Action. 
+ * @param[in] client_monitor function to call on SDE occurrence. 
+ * @param[in] client_data opaue pointer to client's user data, returned on callback.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_sde_action_monitor_new(const wchar_t* name, 
+    dsl_sde_monitor_occurrence_cb client_monitor, void* client_data);
+
 /**
  * @brief Gets the current enabled setting for the SDE Action
  * @param[in] name unique name of the SDE Action to query

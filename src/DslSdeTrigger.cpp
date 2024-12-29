@@ -45,6 +45,85 @@ namespace DSL
         LOG_FUNC();        
     }
 
+    void SdeTrigger::PreProcessFrame(GstBuffer* pBuffer, 
+        NvDsAudioFrameMeta* pFrameMeta)
+    {
+        LOG_FUNC();
+
+        // Reset the occurrences from the last frame, even if disabled  
+        m_occurrences = 0;
+
+        if (!m_enabled or !CheckForSourceId(pFrameMeta->source_id))
+        {
+            return;
+        }
+
+        if (m_interval)
+        {
+            m_intervalCounter = (m_intervalCounter + 1) % m_interval; 
+            if (m_intervalCounter != 0)
+            {
+                m_skipFrame = true;
+                return;
+            }
+        }
+        m_skipFrame = false;
+    }
+
+    uint SdeTrigger::PostProcessFrame(GstBuffer* pBuffer, 
+        NvDsAudioFrameMeta* pFrameMeta)
+    {
+        LOG_FUNC();
+        
+        // Note: function is called from the system (callback) context
+        // Gaurd against property updates from the client API
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_propertyMutex);
+        
+        // Filter on skip-frame interval
+        if (!m_enabled or m_skipFrame)
+        {
+            return 0;
+        }
+
+        // Don't start incrementing the frame-count until after the
+        // first ODE occurrence. 
+        if (m_triggered)
+        {
+            m_frameCount++;
+        }
+
+        // Check to see if frame limit is enabled and exceeded
+        if (m_frameLimit and (m_frameCount > m_frameLimit))
+        {
+            return 0;
+        }
+
+        // Else, if frame limit is enabled and reached in this frame
+        if (m_frameLimit and (m_frameCount == m_frameLimit))
+        {
+            // iterate through the map of limit-event-listeners calling each
+            for(auto const& imap: m_limitStateChangeListeners)
+            {
+                try
+                {
+                    imap.first(DSL_TRIGGER_LIMIT_FRAME_REACHED, 
+                        m_frameLimit, imap.second);
+                }
+                catch(...)
+                {
+                    LOG_ERROR("Exception calling Client Limit State-Change Lister");
+                }
+            }
+            if (m_resetTimeout)
+            {
+                m_resetTimerId = g_timeout_add(1000*m_resetTimeout, 
+                    TriggerResetTimeoutHandler, this);            
+            }
+        }
+       
+        return m_occurrences;
+    }        
+    
     bool SdeTrigger::CheckForMinCriteria(NvDsAudioFrameMeta* pFrameMeta)
     {
         LOG_FUNC();

@@ -41,6 +41,11 @@ namespace DSL
     #define DSL_SDE_ACTION_PRINT_NEW(name, forceFlush) \
         std::shared_ptr<PrintSdeAction>(new PrintSdeAction(name, forceFlush))
 
+    #define DSL_SDE_ACTION_MONITOR_PTR std::shared_ptr<MonitorSdeAction>
+    #define DSL_SDE_ACTION_MONITOR_NEW(name, clientMonitor, clientData) \
+        std::shared_ptr<MonitorSdeAction>(new MonitorSdeAction(name, \
+            clientMonitor, clientData))
+
 // ********************************************************************
 
     class SdeAction : public DeBase
@@ -84,6 +89,8 @@ namespace DSL
         /**
          * @brief ctor for the SDE Print Action class
          * @param[in] name unique name for the SDE Action
+         * @param[in] forceFlush set to true to force a std::flush on exit 
+         * from HandleOccurrence. 
          */
         PrintSdeAction(const char* name, bool forceFlush);
         
@@ -126,6 +133,54 @@ namespace DSL
         DslMutex m_ostreamMutex;
     };
 
+    // ********************************************************************
+
+    /**
+     * @class MonitorSdeAction
+     * @brief Monitor SDE Action class
+     */
+    class MonitorSdeAction : public SdeAction
+    {
+    public:
+    
+        /**
+         * @brief ctor for the Monitor SDE Action class
+         * @param[in] name unique name for the SDE Action
+         * @param[in] clientMonitor client callback function to call on SDE
+         * @param[in] clientData opaque pointer to client data t return on callback
+         */
+        MonitorSdeAction(const char* name, 
+            dsl_sde_monitor_occurrence_cb clientMonitor, void* clientData);
+        
+        /**
+         * @brief dtor for the SDE Monitor Action class
+         */
+        ~MonitorSdeAction();
+
+        /**
+         * @brief Handles the SDE occurrence by printing the  
+         * the occurrence data to the console
+         * @param[in] pSdeTrigger shared pointer to SDE Trigger that triggered the event
+         * @param[in] pBuffer pointer to the batched stream buffer that triggered the event
+         * @param[in] pFrameMeta pointer to the Frame Meta data that triggered the event
+         */
+        void HandleOccurrence(DSL_BASE_PTR pSdeTrigger, 
+            GstBuffer* pBuffer, NvDsAudioFrameMeta* pFrameMeta);
+        
+    private:
+    
+        /**
+         * @brief Client Callback function to call on SDE occurrence
+         */
+        dsl_sde_monitor_occurrence_cb m_clientMonitor;
+        
+        /**
+         * @brief pointer to client's data returned on callback
+         */ 
+        void* m_clientData;
+
+    };
+        
 }
 
 #endif // _DSL_SDE_ACTION_H

@@ -430,6 +430,41 @@ class dsl_ode_occurrence_info(Structure):
         ('accumulative_info', dsl_ode_occurrence_accumulative_info),
         ('criteria_info', dsl_ode_occurrence_criteria_info)]
 
+class dsl_sde_occurrence_source_info(Structure):
+    _fields_ = [
+        ('source_id', c_uint),
+        ('batch_id', c_uint),
+        ('pad_index', c_uint),
+        ('frame_num', c_uint),
+        ('num_samples_per_frame', c_uint),
+        ('sample_rate', c_uint),
+        ('num_channels', c_uint),
+        ('inference_done', c_bool)]
+        
+class dsl_sde_occurrence_sound_info(Structure):
+    _fields_ = [
+        ('class_id', c_uint),
+        ('label', c_wchar_p),
+        ('classifierLabels', c_wchar_p),
+        ('inference_confidence', c_float)]
+        
+class dsl_sde_occurrence_criteria_info(Structure):
+    _fields_ = [
+        ('source_id', c_uint),
+        ('class_id', c_uint),
+        ('min_inference_confidence', c_float),
+        ('max_inference_confidence', c_float),
+        ('interval', c_uint)]
+
+class dsl_sde_occurrence_info(Structure):
+    _fields_ = [
+        ('trigger_name', c_wchar_p),
+        ('unique_sde_id', c_uint64),
+        ('ntp_timestamp', c_uint64),
+        ('source_info', dsl_sde_occurrence_source_info),
+        ('sound_info', dsl_sde_occurrence_sound_info),
+        ('criteria_info', dsl_sde_occurrence_criteria_info)]
+
 class dsl_threshold_value(Structure):
     _fields_ = [
         ('threshold', c_uint),
@@ -470,6 +505,10 @@ DSL_ODE_CHECK_FOR_OCCURRENCE = \
 # dsl_ode_post_process_frame_cb
 DSL_ODE_POST_PROCESS_FRAME = \
     CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
+
+# dsl_sde_monitor_occurrence_cb    
+DSL_SDE_MONITOR_OCCURRENCE = \
+    CFUNCTYPE(None, POINTER(dsl_sde_occurrence_info), c_void_p)
 
 # dsl_enabled_state_change_listener_cb
 DSL_ENABLED_STATE_CHANGE_LISTENER = \
@@ -2941,6 +2980,20 @@ _dsl.dsl_sde_action_print_new.restype = c_uint
 def dsl_sde_action_print_new(name, force_flush):
     global _dsl
     result =_dsl.dsl_sde_action_print_new(name, force_flush)
+    return int(result)
+
+##
+## dsl_sde_action_monitor_new()
+##
+_dsl.dsl_sde_action_monitor_new.argtypes = [c_wchar_p, DSL_SDE_MONITOR_OCCURRENCE, c_void_p]
+_dsl.dsl_sde_action_monitor_new.restype = c_uint
+def dsl_sde_action_monitor_new(name, client_monitor, client_data):
+    global _dsl
+    c_client_monitor= DSL_SDE_MONITOR_OCCURRENCE(client_monitor)
+    callbacks.append(c_client_monitor)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sde_action_monitor_new(name, c_client_monitor, c_client_data)
     return int(result)
 
 ##

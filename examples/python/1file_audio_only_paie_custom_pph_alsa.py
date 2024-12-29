@@ -92,6 +92,42 @@ AMPLIFIED_SPEECH                    = 29
 DOG_BARKING_WHINING                 = 30
 
 ## 
+# Callback function for the SDE Monitor Action - illustrates how to
+# dereference the SDE 'info_ptr' and access the data fields.
+# Note: you would normally use the SDE Print Action to print the info
+# to the console window if that is the only purpose of the Action.
+## 
+def sde_occurrence_monitor(info_ptr, client_data):
+    info = info_ptr.contents
+    print('Trigger Name        :', info.trigger_name)
+    print('  Unique Id         :', info.unique_sde_id)
+    print('  NTP Timestamp     :', info.ntp_timestamp)
+    print('  Source Data       : ------------------------')
+    print('    Source Id       :', hex(info.source_info.source_id))
+    print('    Batch Id        :', info.source_info.batch_id)
+    print('    Pad Index       :', info.source_info.pad_index)
+    print('    Frame Num       :', info.source_info.frame_num)
+    print('    Samples/Frame   :', info.source_info.num_samples_per_frame)
+    print('    Sample Rate     :', info.source_info.sample_rate)
+    print('    Channels        :', info.source_info.num_channels)
+    print('    Infer Done      :', info.source_info.inference_done)
+
+    print('  Sound Data       : ------------------------')
+    print('    Class Id        :', info.sound_info.class_id)
+    print('    Label           :', info.sound_info.label)
+    print('    Classifiers     :', info.sound_info.classifierLabels)
+    print('    Infer Conf      :', info.sound_info.inference_confidence)
+        
+    print('  Trigger Criteria  : ------------------------')
+    print('    Source Id       :', hex(info.criteria_info.source_id))
+    print('    Class Id        :', info.criteria_info.class_id)
+    print('    Min Infer Conf  :', info.criteria_info.min_inference_confidence)
+    print('    Max Infer Conf  :', info.criteria_info.max_inference_confidence)
+    print('    Interval        :', info.criteria_info.interval)
+    print('')
+    
+
+## 
 # Function to be called on every change of Pipeline state
 ## 
 def state_change_listener(old_state, new_state, client_data):
@@ -132,17 +168,23 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        retval = dsl_sde_action_print_new('sde-print-action', False)
+        # retval = dsl_sde_action_print_new('sde-print-action', False)
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
+
+        retval = dsl_sde_action_monitor_new('occurrence-monitor',
+            client_monitor = sde_occurrence_monitor,
+            client_data = None)
         if retval != DSL_RETURN_SUCCESS:
             break
-
+            
         retval = dsl_sde_trigger_occurrence_new('sde-occurrence-trigger', 
-            DSL_SDE_ANY_SOURCE, HUMAN_VOICE, DSL_SDE_TRIGGER_LIMIT_NONE)
+            DSL_SDE_ANY_SOURCE, DSL_SDE_ANY_CLASS, DSL_SDE_TRIGGER_LIMIT_NONE)
         if retval != DSL_RETURN_SUCCESS:
             break
 
         retval = dsl_sde_trigger_action_add('sde-occurrence-trigger',
-            'sde-print-action')
+            'occurrence-monitor')
         if retval != DSL_RETURN_SUCCESS:
             break
                    

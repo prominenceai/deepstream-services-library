@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -108,6 +108,49 @@ SCENARIO( "An SDE Action can add/remove an enabled-state-change-listener",
     }
 }    
 
+static void sde_occurrence_monitor_cb(dsl_sde_occurrence_info* pInfo, 
+    void* client_data)
+{
+}
+
+SCENARIO( "A new Monitor SDE Action can be created and deleted", "[sde-action-api]" )
+{
+    GIVEN( "Attributes for a new Monitor SDE Action" ) 
+    {
+        std::wstring action_name(L"monitor-action");
+
+        WHEN( "A new Monitor Action is created" ) 
+        {
+            REQUIRE( dsl_sde_action_monitor_new(action_name.c_str(), 
+                sde_occurrence_monitor_cb, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "The Monitor Action can be deleted" ) 
+            {
+                REQUIRE( dsl_sde_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sde_action_list_size() == 0 );
+            }
+        }
+        WHEN( "A new Monitor Action is created" ) 
+        {
+            REQUIRE( dsl_sde_action_monitor_new(action_name.c_str(), 
+                sde_occurrence_monitor_cb, NULL) == DSL_RESULT_SUCCESS );
+            
+            THEN( "A second Monitor Action of the same name fails to create" ) 
+            {
+                REQUIRE( dsl_sde_action_monitor_new(action_name.c_str(), 
+                    sde_occurrence_monitor_cb, NULL) 
+                        == DSL_RESULT_SDE_ACTION_NAME_NOT_UNIQUE );
+                    
+                REQUIRE( dsl_sde_action_delete(action_name.c_str()) 
+                    == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_sde_action_list_size() == 0 );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "The SDE Action API checks for NULL input parameters", 
     "[sde-action-api]" )
 {
@@ -124,6 +167,11 @@ SCENARIO( "The SDE Action API checks for NULL input parameters",
             {
                 REQUIRE( dsl_sde_action_print_new(NULL, 
                     false) == DSL_RESULT_INVALID_INPUT_PARAM );
+
+                REQUIRE( dsl_sde_action_monitor_new(NULL, 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_sde_action_monitor_new(action_name.c_str(), 
+                    NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
 
                 REQUIRE( dsl_sde_action_enabled_get(NULL, 
                     &enabled) == DSL_RESULT_INVALID_INPUT_PARAM );

@@ -3324,6 +3324,19 @@ DslReturnType dsl_sde_action_print_new(const wchar_t* name,
         force_flush);
 }
 
+DslReturnType dsl_sde_action_monitor_new(const wchar_t* name, 
+    dsl_sde_monitor_occurrence_cb client_monitor, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(client_monitor);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionMonitorNew(cstrName.c_str(),
+        client_monitor, client_data);
+}
+
 DslReturnType dsl_sde_action_enabled_get(const wchar_t* name, boolean* enabled)
 {
     RETURN_IF_PARAM_IS_NULL(name);

@@ -66,6 +66,24 @@ namespace DSL
         static uint64_t s_eventCount;
         
         /**
+         * @brief Function called to pre process the current frame data prior to 
+         * checking for Occurrences
+         * @param[in] pBuffer pointer to the GST Buffer containing all meta
+         * @param[in] pFrameMeta pointer to NvDsFrameMeta data for pre processing
+         */
+        virtual void PreProcessFrame(GstBuffer* pBuffer, 
+            NvDsAudioFrameMeta* pFrameMeta);
+        
+        /**
+         * @brief Function called to process all Occurrence/Absence data for the current frame
+         * @param[in] pBuffer pointer to the GST Buffer containing all meta
+         * @param[in] pFrameMeta pointer to NvDsFrameMeta data for post processing
+         * @return the number of ODE Occurrences triggered on post process
+         */
+        virtual uint PostProcessFrame(GstBuffer* pBuffer, 
+            NvDsAudioFrameMeta* pFrameMeta);
+
+        /**
          * @brief Function to check a Audio Frame's Meta data structure for the 
          * occurence of an event and to invoke all Event Actions owned by the Trigger
          * @param[in] pBuffer pointer to the GST Buffer containing all meta

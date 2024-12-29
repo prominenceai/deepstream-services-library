@@ -58,6 +58,36 @@ namespace DSL
         }
     }
     
+    DslReturnType Services::SdeActionMonitorNew(const char* name,
+        dsl_sde_monitor_occurrence_cb clientMonitor, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            // ensure action name uniqueness 
+            if (m_sdeActions.find(name) != m_sdeActions.end())
+            {   
+                LOG_ERROR("SDE Action name '" << name << "' is not unique");
+                return DSL_RESULT_SDE_ACTION_NAME_NOT_UNIQUE;
+            }
+            m_sdeActions[name] = DSL_SDE_ACTION_MONITOR_NEW(name, 
+                clientMonitor, clientData);
+
+            LOG_INFO("New SDE Monitor Action '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New SDE Monitor Action '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_SDE_ACTION_THREW_EXCEPTION;
+        }
+    }
+    
     DslReturnType Services::SdeActionEnabledGet(const char* name, boolean* enabled)
     {
         LOG_FUNC();
