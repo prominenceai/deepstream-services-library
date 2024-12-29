@@ -372,6 +372,145 @@ namespace DSL
         }
     }
 
+    DslReturnType Services::PphSdeNew(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {   
+            // ensure handler name uniqueness 
+            if (m_padProbeHandlers.find(name) != m_padProbeHandlers.end())
+            {   
+                LOG_ERROR("SDE Pad Probe Handler name '" << name 
+                    << "' is not unique");
+                return DSL_RESULT_PPH_NAME_NOT_UNIQUE;
+            }
+            m_padProbeHandlers[name] = DSL_PPH_SDE_NEW(name);
+            
+            LOG_INFO("New SDE Pad Probe Handler '" << name 
+                << "' created successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("New SDE Pad Probe Handler '" << name 
+                << "' threw exception on create");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphSdeTriggerAdd(const char* name, const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                SdePadProbeHandler);
+            DSL_RETURN_IF_SDE_TRIGGER_NAME_NOT_FOUND(m_sdeTriggers, trigger);
+
+            // Can't add Events if they're In use by another Handler
+            if (m_sdeTriggers[trigger]->IsInUse())
+            {
+                LOG_ERROR("Unable to add SDE Trigger '" << trigger 
+                    << "' as it is currently in use");
+                return DSL_RESULT_SDE_TRIGGER_IN_USE;
+            }
+
+            DSL_PPH_SDE_PTR pSde = 
+                std::dynamic_pointer_cast<SdePadProbeHandler>(
+                    m_padProbeHandlers[name]);
+
+            if (!pSde->AddChild(m_sdeTriggers[trigger]))
+            {
+                LOG_ERROR("SDE Pad Probe Handler '" << name
+                    << "' failed to add SDE Trigger '" << trigger << "'");
+                return DSL_RESULT_PPH_SDE_TRIGGER_ADD_FAILED;
+            }
+            LOG_INFO("SDE Trigger '" << trigger 
+                << "' was added to SDE Pad Probe Handler '" << name 
+                << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("SDE Pad Probe Handler '" << name
+                << "' threw exception adding SDE Trigger '" << trigger << "'");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PphSdeTriggerRemove(const char* name, 
+        const char* trigger)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                SdePadProbeHandler);
+            DSL_RETURN_IF_SDE_TRIGGER_NAME_NOT_FOUND(m_sdeTriggers, trigger);
+
+            if (!m_sdeTriggers[trigger]->IsParent(m_padProbeHandlers[name]))
+            {
+                LOG_ERROR("SDE Trigger '" << trigger << 
+                    "' is not in use by SDE Pad Probe Handler '" << name << "'");
+                return DSL_RESULT_PPH_SDE_TRIGGER_NOT_IN_USE;
+            }
+            
+            if (!m_padProbeHandlers[name]->RemoveChild(m_sdeTriggers[trigger]))
+            {
+                LOG_ERROR("SDE Pad Probe Handler '" << name
+                    << "' failed to remove SDE Trigger '" << trigger << "'");
+                return DSL_RESULT_PPH_SDE_TRIGGER_REMOVE_FAILED;
+            }
+            LOG_INFO("SDE Trigger '" << trigger 
+                << "' was removed from SDE Pad Probe Handler '" 
+                << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("SDE Pad Probe Handler '" << name 
+                << "' threw an exception removing SDE Trigger");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::PphSdeTriggerRemoveAll(const char* name)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PPH_NAME_NOT_FOUND(m_padProbeHandlers, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_padProbeHandlers, name, 
+                SdePadProbeHandler);
+            
+            m_padProbeHandlers[name]->RemoveAllChildren();
+
+            LOG_INFO("All SDE Triggers removed from SDE Pad Probe Handler '" 
+                << name << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("SDE Pad Probe Handler '" << name 
+                << "' threw an exception removing All SDE Triggers");
+            return DSL_RESULT_PPH_THREW_EXCEPTION;
+        }
+    }
+
     DslReturnType Services::PphBufferTimeoutNew(const char* name,
         uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData)
     {

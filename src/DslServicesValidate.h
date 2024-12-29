@@ -101,6 +101,24 @@ THE SOFTWARE.
     } \
 }while(0); 
 
+#define DSL_RETURN_IF_SDE_ACTION_NAME_NOT_FOUND(actions, name) do \
+{ \
+    if (actions.find(name) == actions.end()) \
+    { \
+        LOG_ERROR("SDE Action name '" << name << "' was not found"); \
+        return DSL_RESULT_SDE_ACTION_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
+#define DSL_RETURN_IF_SDE_TRIGGER_NAME_NOT_FOUND(events, name) do \
+{ \
+    if (events.find(name) == events.end()) \
+    { \
+        LOG_ERROR("SDE Trigger name '" << name << "' was not found"); \
+        return DSL_RESULT_SDE_TRIGGER_NAME_NOT_FOUND; \
+    } \
+}while(0); 
+
 #define DSL_RETURN_IF_BRANCH_NAME_NOT_FOUND(branches, name) do \
 { \
     if (branches.find(name) == branches.end()) \

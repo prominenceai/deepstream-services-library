@@ -34,6 +34,8 @@ THE SOFTWARE.
 #include "DslOdeAccumulator.h"
 #include "DslOdeHeatMapper.h"
 #include "DslOdeTrigger.h"
+#include "DslSdeAction.h"
+#include "DslSdeTrigger.h"
 #include "DslPipelineBintr.h"
 #include "DslMessageBroker.h"
 #if !defined(BUILD_WEBRTC)
@@ -336,10 +338,10 @@ namespace DSL {
         DslReturnType OdeActionEnabledSet(const char* name, boolean enabled);
 
         DslReturnType OdeActionEnabledStateChangeListenerAdd(const char* name,
-            dsl_ode_enabled_state_change_listener_cb listener, void* clientData);
+            dsl_enabled_state_change_listener_cb listener, void* clientData);
 
         DslReturnType OdeActionEnabledStateChangeListenerRemove(const char* name,
-            dsl_ode_enabled_state_change_listener_cb listener);
+            dsl_enabled_state_change_listener_cb listener);
 
         DslReturnType OdeActionDelete(const char* name);
         
@@ -468,20 +470,20 @@ namespace DSL {
         DslReturnType OdeTriggerResetTimeoutSet(const char* name, uint timeout);
         
         DslReturnType OdeTriggerLimitStateChangeListenerAdd(const char* name,
-            dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData);
+            dsl_trigger_limit_state_change_listener_cb listener, void* clientData);
 
         DslReturnType OdeTriggerLimitStateChangeListenerRemove(const char* name,
-            dsl_ode_trigger_limit_state_change_listener_cb listener);
+            dsl_trigger_limit_state_change_listener_cb listener);
 
         DslReturnType OdeTriggerEnabledGet(const char* name, boolean* enabled);
 
         DslReturnType OdeTriggerEnabledSet(const char* name, boolean enabled);
 
         DslReturnType OdeTriggerEnabledStateChangeListenerAdd(const char* name,
-            dsl_ode_enabled_state_change_listener_cb listener, void* clientData);
+            dsl_enabled_state_change_listener_cb listener, void* clientData);
 
         DslReturnType OdeTriggerEnabledStateChangeListenerRemove(const char* name,
-            dsl_ode_enabled_state_change_listener_cb listener);
+            dsl_enabled_state_change_listener_cb listener);
 
         DslReturnType OdeTriggerSourceGet(const char* name, const char** source);
         
@@ -636,6 +638,100 @@ namespace DSL {
         
         uint OdeHeatMapperListSize();
 
+        DslReturnType SdeActionPrintNew(const char* name, boolean forceFlush);
+        
+        DslReturnType SdeActionMonitorNew(const char* name,
+            dsl_sde_monitor_occurrence_cb clientMonitor, void* clientData);
+            
+        DslReturnType SdeActionEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SdeActionEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SdeActionEnabledStateChangeListenerAdd(const char* name,
+            dsl_enabled_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType SdeActionEnabledStateChangeListenerRemove(const char* name,
+            dsl_enabled_state_change_listener_cb listener);
+
+        DslReturnType SdeActionDelete(const char* name);
+        
+        DslReturnType SdeActionDeleteAll();
+        
+        uint SdeActionListSize();
+
+        DslReturnType SdeTriggerOccurrenceNew(const char* name, 
+            const char* source, uint classId, uint limit);
+        
+        DslReturnType SdeTriggerReset(const char* name);
+
+        DslReturnType SdeTriggerResetTimeoutGet(const char* name, uint* timeout);
+
+        DslReturnType SdeTriggerResetTimeoutSet(const char* name, uint timeout);
+        
+        DslReturnType SdeTriggerLimitStateChangeListenerAdd(const char* name,
+            dsl_trigger_limit_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType SdeTriggerLimitStateChangeListenerRemove(const char* name,
+            dsl_trigger_limit_state_change_listener_cb listener);
+
+        DslReturnType SdeTriggerEnabledGet(const char* name, boolean* enabled);
+
+        DslReturnType SdeTriggerEnabledSet(const char* name, boolean enabled);
+
+        DslReturnType SdeTriggerEnabledStateChangeListenerAdd(const char* name,
+            dsl_enabled_state_change_listener_cb listener, void* clientData);
+
+        DslReturnType SdeTriggerEnabledStateChangeListenerRemove(const char* name,
+            dsl_enabled_state_change_listener_cb listener);
+
+        DslReturnType SdeTriggerSourceGet(const char* name, const char** source);
+        
+        DslReturnType SdeTriggerSourceSet(const char* name, const char* source);
+        
+        DslReturnType SdeTriggerInferGet(const char* name, const char** infer);
+        
+        DslReturnType SdeTriggerInferSet(const char* name, const char* infer);
+        
+        DslReturnType SdeTriggerClassIdGet(const char* name, uint* classId);
+        
+        DslReturnType SdeTriggerClassIdSet(const char* name, uint classId);
+        
+        DslReturnType SdeTriggerLimitEventGet(const char* name, uint* limit);
+        
+        DslReturnType SdeTriggerLimitEventSet(const char* name, uint limit);
+        
+        DslReturnType SdeTriggerLimitFrameGet(const char* name, uint* limit);
+        
+        DslReturnType SdeTriggerLimitFrameSet(const char* name, uint limit);
+        
+        DslReturnType SdeTriggerConfidenceMinGet(const char* name, 
+            float* minConfidence);
+        
+        DslReturnType SdeTriggerConfidenceMinSet(const char* name, 
+            float minConfidence);
+        
+        DslReturnType SdeTriggerConfidenceMaxGet(const char* name, 
+            float* maxConfidence);
+        
+        DslReturnType SdeTriggerConfidenceMaxSet(const char* name, 
+            float maxConfidence);
+
+        DslReturnType SdeTriggerIntervalGet(const char* name, uint* interval);
+        
+        DslReturnType SdeTriggerIntervalSet(const char* name, uint interval);
+        
+        DslReturnType SdeTriggerActionAdd(const char* name, const char* action);
+
+        DslReturnType SdeTriggerActionRemove(const char* name, const char* action);
+
+        DslReturnType SdeTriggerActionRemoveAll(const char* name);
+
+        DslReturnType SdeTriggerDelete(const char* name);
+        
+        DslReturnType SdeTriggerDeleteAll();
+        
+        uint SdeTriggerListSize();
+
         DslReturnType PphCustomNew(const char* name,
             dsl_pph_custom_client_handler_cb clientHandler, void* clientData);
 
@@ -658,6 +754,14 @@ namespace DSL {
 
         DslReturnType PphOdeDisplayMetaAllocSizeSet(const char* name, uint size);
 
+        DslReturnType PphSdeNew(const char* name);
+
+        DslReturnType PphSdeTriggerAdd(const char* name, const char* trigger);
+
+        DslReturnType PphSdeTriggerRemove(const char* name, const char* trigger);
+
+        DslReturnType PphSdeTriggerRemoveAll(const char* name);
+        
         DslReturnType PphBufferTimeoutNew(const char* name,
             uint timeout, dsl_pph_buffer_timeout_handler_cb handler, void* clientData);
     
@@ -2291,7 +2395,17 @@ namespace DSL {
         std::map <std::string, DSL_ODE_TRIGGER_PTR> m_odeTriggers;
         
         /**
-         * @brief map of all ODE Handlers created by the client, key=name
+         * @brief map of all SDE Actions created by the client, key=name
+         */
+        std::map <std::string, DSL_SDE_ACTION_PTR> m_sdeActions;
+        
+        /**
+         * @brief map of all SDE Triggers created by the client, key=name
+         */
+        std::map <std::string, DSL_SDE_TRIGGER_PTR> m_sdeTriggers;
+        
+        /**
+         * @brief map of all Pad Probe Handlers created by the client, key=name
          */
         std::map <std::string, DSL_PPH_PTR> m_padProbeHandlers;
         

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021-2022, Prominence AI, Inc.
+Copyright (c)   2021-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1088,7 +1088,7 @@ namespace DSL
     }                
 
     DslReturnType Services::OdeTriggerLimitStateChangeListenerAdd(const char* name,
-        dsl_ode_trigger_limit_state_change_listener_cb listener, void* clientData)
+        dsl_trigger_limit_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1120,7 +1120,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeTriggerLimitStateChangeListenerRemove(const char* name,
-        dsl_ode_trigger_limit_state_change_listener_cb listener)
+        dsl_trigger_limit_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1200,7 +1200,7 @@ namespace DSL
     }                
 
     DslReturnType Services::OdeTriggerEnabledStateChangeListenerAdd(const char* name,
-        dsl_ode_enabled_state_change_listener_cb listener, void* clientData)
+        dsl_enabled_state_change_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
@@ -1232,7 +1232,7 @@ namespace DSL
     }
 
     DslReturnType Services::OdeTriggerEnabledStateChangeListenerRemove(const char* name,
-        dsl_ode_enabled_state_change_listener_cb listener)
+        dsl_enabled_state_change_listener_cb listener)
     {
         LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);

@@ -58,6 +58,10 @@ namespace DSL
     #define DSL_PPH_ODE_NEW(name) \
         std::shared_ptr<OdePadProbeHandler>(new OdePadProbeHandler(name))
 
+    #define DSL_PPH_SDE_PTR std::shared_ptr<SdePadProbeHandler>
+    #define DSL_PPH_SDE_NEW(name) \
+        std::shared_ptr<SdePadProbeHandler>(new SdePadProbeHandler(name))
+
     #define DSL_PPH_TIMESTAMP_PTR std::shared_ptr<TimestampPadProbeHandler>
     #define DSL_PPH_TIMESTAMP_NEW(name) \
         std::shared_ptr<TimestampPadProbeHandler>(new TimestampPadProbeHandler(name))
@@ -585,6 +589,67 @@ namespace DSL
         
     };
     
+    //--------------------------------------------------------------------------------
+
+    /**
+     * @class SdePadProbeHandler
+     * @brief Pad Probe Handler to Handle a collection SDE triggers
+     * Note: SDE Triggers are added using the base AddChild function
+     */
+    class SdePadProbeHandler : public PadProbeBufferHandler
+    {
+    public: 
+    
+        /**
+         * @brief ctor for the SDE Pad Probe Handler
+         */
+        SdePadProbeHandler(const char* name);
+
+        /**
+         * @brief dtor for the SDE Pad Probe Handler
+         */
+        ~SdePadProbeHandler();
+
+        /**
+         * @brief adds an SDE Trigger to this SDE Pad Probe Handler.
+         * @param[in] pChild child Object to add to this parent Obejct. 
+         */
+        bool AddChild(DSL_BASE_PTR pChild);
+
+        /**
+         * @brief removes a child SDE Trigger from this SDE Pad Probe Handler.
+         * @param[in] pChild to remove
+         */
+        bool RemoveChild(DSL_BASE_PTR pChild);
+
+        /**
+         * @brief removes all childred SDE Triggers from this SDE Pad Probe Handler.
+         */
+        void RemoveAllChildren();
+        
+        /**
+         * @brief SDE Pad Probe Handler
+         * @param[in] pBuffer Pad buffer
+         * @return GstPadProbeReturn see GST reference, one of 
+         * [GST_PAD_PROBE_DROP, GST_PAD_PROBE_OK, GST_PAD_PROBE_REMOVE, 
+         * GST_PAD_PROBE_PASS, GST_PAD_PROBE_HANDLED]
+         */
+        GstPadProbeReturn HandlePadData(GstPadProbeInfo* pInfo);
+        
+    private:
+    
+        /**
+         * @brief Index variable to incremment/assign on SDE Trigger add.
+         */
+        uint m_nextTriggerIndex;
+        
+        /**
+         * @brief Map of child SDE Triggers indexed by their add-order for execution
+         */
+        std::map <uint, DSL_BASE_PTR> m_pChildrenIndexed; 
+        
+    };
+
     //--------------------------------------------------------------------------------
     
     /**

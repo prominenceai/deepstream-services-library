@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ namespace DSL
 {
     OdeHeatMapper::OdeHeatMapper(const char* name, uint cols, uint rows,
         uint bboxTestPoint, DSL_RGBA_COLOR_PALETTE_PTR pColorPalette)
-        : OdeBase(name)
+        : DeBase(name)
         , m_cols(cols)
         , m_rows(rows)
         , m_gridRectWidth(0)

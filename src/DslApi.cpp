@@ -1592,7 +1592,7 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled)
 }
 
 DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener, void* client_data)
+    dsl_enabled_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -1605,7 +1605,7 @@ DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* na
 }
 
 DslReturnType dsl_ode_action_enabled_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener)
+    dsl_enabled_state_change_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -2292,7 +2292,7 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
 }
 
 DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
-    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data)
+    dsl_trigger_limit_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -2304,7 +2304,7 @@ DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* nam
 }
 
 DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_trigger_limit_state_change_listener_cb listener)
+    dsl_trigger_limit_state_change_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
 
@@ -2336,7 +2336,7 @@ DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled)
 }
 
 DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener, void* client_data)
+    dsl_enabled_state_change_listener_cb listener, void* client_data)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -2349,7 +2349,7 @@ DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* n
 }
 
 DslReturnType dsl_ode_trigger_enabled_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener)
+    dsl_enabled_state_change_listener_cb listener)
 {
     RETURN_IF_PARAM_IS_NULL(name);
     RETURN_IF_PARAM_IS_NULL(listener);
@@ -3312,6 +3312,595 @@ uint dsl_ode_heat_mapper_list_size()
     return DSL::Services::GetServices()->OdeHeatMapperListSize();
 }
 
+DslReturnType dsl_sde_action_print_new(const wchar_t* name, 
+    boolean force_flush)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionPrintNew(cstrName.c_str(),
+        force_flush);
+}
+
+DslReturnType dsl_sde_action_monitor_new(const wchar_t* name, 
+    dsl_sde_monitor_occurrence_cb client_monitor, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(client_monitor);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionMonitorNew(cstrName.c_str(),
+        client_monitor, client_data);
+}
+
+DslReturnType dsl_sde_action_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_sde_action_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_sde_action_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionEnabledStateChangeListenerAdd(
+        cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_sde_action_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionEnabledStateChangeListenerRemove(
+        cstrName.c_str(), listener);
+}
+    
+DslReturnType dsl_sde_action_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeActionDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_sde_action_delete_many(const wchar_t** names)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+
+        DslReturnType retval = DSL::Services::GetServices()->SdeActionDelete(
+            cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_sde_action_delete_all()
+{
+    return DSL::Services::GetServices()->SdeActionDeleteAll();
+}
+
+uint dsl_sde_action_list_size()
+{
+    return DSL::Services::GetServices()->SdeActionListSize();
+}
+
+DslReturnType dsl_sde_trigger_occurrence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->SdeTriggerOccurrenceNew(cstrName.c_str(), 
+        cstrSource.c_str(), class_id, limit);
+}
+
+DslReturnType dsl_sde_trigger_action_add(const wchar_t* name, const wchar_t* action)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(action);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAction(action);
+    std::string cstrAction(wstrAction.begin(), wstrAction.end());
+
+    return DSL::Services::GetServices()->SdeTriggerActionAdd(cstrName.c_str(), 
+        cstrAction.c_str());
+}
+
+DslReturnType dsl_sde_trigger_action_add_many(const wchar_t* name, 
+    const wchar_t** actions)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(actions);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** action = actions; *action; action++)
+    {
+        std::wstring wstrAction(*action);
+        std::string cstrAction(wstrAction.begin(), wstrAction.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            SdeTriggerActionAdd(cstrName.c_str(), cstrAction.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_sde_trigger_action_remove(const wchar_t* name, 
+    const wchar_t* action)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(action);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrAction(action);
+    std::string cstrAction(wstrAction.begin(), wstrAction.end());
+
+    return DSL::Services::GetServices()->SdeTriggerActionRemove(cstrName.c_str(), 
+        cstrAction.c_str());
+}
+
+DslReturnType dsl_sde_trigger_action_remove_many(const wchar_t* name, 
+    const wchar_t** actions)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(actions);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** action = actions; *action; action++)
+    {
+        std::wstring wstrAction(*action);
+        std::string cstrAction(wstrAction.begin(), wstrAction.end());
+        
+        DslReturnType retval = DSL::Services::GetServices()->
+            SdeTriggerActionRemove(cstrName.c_str(), cstrAction.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_sde_trigger_action_remove_all(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    
+    return DSL::Services::GetServices()->SdeTriggerActionRemoveAll(cstrName.c_str());
+}
+
+DslReturnType dsl_sde_trigger_reset(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerReset(cstrName.c_str());
+}
+
+DslReturnType dsl_sde_trigger_reset_timeout_get(const wchar_t* name, uint *timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerResetTimeoutGet(
+        cstrName.c_str(), timeout);
+}
+
+DslReturnType dsl_sde_trigger_reset_timeout_set(const wchar_t* name, uint timeout)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerResetTimeoutSet(
+        cstrName.c_str(), timeout);
+}
+
+DslReturnType dsl_sde_trigger_limit_state_change_listener_add(const wchar_t* name,
+    dsl_trigger_limit_state_change_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerLimitStateChangeListenerAdd(
+        cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_sde_trigger_limit_state_change_listener_remove(const wchar_t* name,
+    dsl_trigger_limit_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerLimitStateChangeListenerRemove(
+        cstrName.c_str(), listener);
+}
+    
+DslReturnType dsl_sde_trigger_enabled_get(const wchar_t* name, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerEnabledGet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_sde_trigger_enabled_set(const wchar_t* name, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerEnabledSet(cstrName.c_str(), 
+        enabled);
+}
+
+DslReturnType dsl_sde_trigger_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerEnabledStateChangeListenerAdd(
+        cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_sde_trigger_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerEnabledStateChangeListenerRemove(
+        cstrName.c_str(), listener);
+}
+    
+DslReturnType dsl_sde_trigger_source_get(const wchar_t* name, const wchar_t** source)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(source);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cSource(NULL);
+    static std::string cstrSource;
+    static std::wstring wcstrSource;
+    
+    uint retval = DSL::Services::GetServices()->SdeTriggerSourceGet(cstrName.c_str(), 
+        &cSource);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        *source = NULL;
+        if (cSource)
+        {
+            cstrSource.assign(cSource);
+            wcstrSource.assign(cstrSource.begin(), cstrSource.end());
+            *source = wcstrSource.c_str();
+        }
+    }
+    return retval;
+
+}
+
+DslReturnType dsl_sde_trigger_source_set(const wchar_t* name, const wchar_t* source)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrSource;
+    if (source)
+    {
+        std::wstring wstrSource(source);
+        cstrSource.assign(wstrSource.begin(), wstrSource.end());
+    }
+    return DSL::Services::GetServices()->SdeTriggerSourceSet(cstrName.c_str(), 
+        cstrSource.c_str());
+}
+
+DslReturnType dsl_sde_trigger_infer_get(const wchar_t* name, const wchar_t** infer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(infer);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    const char* cInfer(NULL);
+    static std::string cstrInfer;
+    static std::wstring wcstrInfer;
+    
+    uint retval = DSL::Services::GetServices()->SdeTriggerInferGet(cstrName.c_str(), 
+        &cInfer);
+    if (retval ==  DSL_RESULT_SUCCESS)
+    {
+        *infer = NULL;
+        if (cInfer)
+        {
+            cstrInfer.assign(cInfer);
+            wcstrInfer.assign(cstrInfer.begin(), cstrInfer.end());
+            *infer = wcstrInfer.c_str();
+        }
+    }
+    return retval;
+
+}
+
+DslReturnType dsl_sde_trigger_infer_set(const wchar_t* name, 
+    const wchar_t* infer)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    std::string cstrInfer;
+    if (infer)
+    {
+        std::wstring wstrInfer(infer);
+        cstrInfer.assign(wstrInfer.begin(), wstrInfer.end());
+    }
+    return DSL::Services::GetServices()->SdeTriggerInferSet(
+        cstrName.c_str(), cstrInfer.c_str());
+}
+
+DslReturnType dsl_sde_trigger_infer_confidence_min_get(const wchar_t* name, 
+    float* min_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerConfidenceMinGet(
+        cstrName.c_str(), min_confidence);
+}
+
+DslReturnType dsl_sde_trigger_infer_confidence_min_set(const wchar_t* name, 
+    float min_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerConfidenceMinSet(
+        cstrName.c_str(), min_confidence);
+}
+
+DslReturnType dsl_sde_trigger_infer_confidence_max_get(const wchar_t* name, 
+    float* max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerConfidenceMaxGet(
+        cstrName.c_str(), max_confidence);
+}
+
+DslReturnType dsl_sde_trigger_infer_confidence_max_set(const wchar_t* name, 
+    float max_confidence)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerConfidenceMaxSet(
+        cstrName.c_str(), max_confidence);
+}
+
+DslReturnType dsl_sde_trigger_interval_get(const wchar_t* name, uint* interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerIntervalGet(cstrName.c_str(), 
+        interval);
+}
+
+DslReturnType dsl_sde_trigger_interval_set(const wchar_t* name, uint interval)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerIntervalSet(cstrName.c_str(), 
+        interval);
+}
+
+DslReturnType dsl_sde_trigger_class_id_get(const wchar_t* name, uint* class_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerClassIdGet(cstrName.c_str(), 
+        class_id);
+}
+
+DslReturnType dsl_sde_trigger_class_id_set(const wchar_t* name, uint class_id)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerClassIdSet(cstrName.c_str(), 
+        class_id);
+}
+
+DslReturnType dsl_sde_trigger_limit_event_get(const wchar_t* name, uint* limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(limit);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerLimitEventGet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_sde_trigger_limit_event_set(const wchar_t* name, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerLimitEventSet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_sde_trigger_limit_frame_get(const wchar_t* name, uint* limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(limit);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerLimitFrameGet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_sde_trigger_limit_frame_set(const wchar_t* name, uint limit)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerLimitFrameSet(cstrName.c_str(),
+        limit);
+}
+
+DslReturnType dsl_sde_trigger_delete(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->SdeTriggerDelete(cstrName.c_str());
+}
+
+DslReturnType dsl_sde_trigger_delete_many(const wchar_t** names)
+{
+    RETURN_IF_PARAM_IS_NULL(names);
+
+    for (const wchar_t** name = names; *name; name++)
+    {
+        std::wstring wstrName(*name);
+        std::string cstrName(wstrName.begin(), wstrName.end());
+        DslReturnType retval = DSL::Services::GetServices()->SdeTriggerDelete(
+            cstrName.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_sde_trigger_delete_all()
+{
+    return DSL::Services::GetServices()->SdeTriggerDeleteAll();
+}
+
+uint dsl_sde_trigger_list_size()
+{
+    return DSL::Services::GetServices()->SdeTriggerListSize();
+}
+
 DslReturnType dsl_pph_custom_new(const wchar_t* name,
      dsl_pph_custom_client_handler_cb client_handler, void* client_data)
 {
@@ -3467,6 +4056,100 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint 
 
     return DSL::Services::GetServices()->PphOdeDisplayMetaAllocSizeSet(
         cstrName.c_str(), size);
+}
+
+DslReturnType dsl_pph_sde_new(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphSdeNew(cstrName.c_str());
+}
+
+DslReturnType dsl_pph_sde_trigger_add(const wchar_t* name, const wchar_t* trigger)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(trigger);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSdeTrigger(trigger);
+    std::string cstrSdeTrigger(wstrSdeTrigger.begin(), wstrSdeTrigger.end());
+
+    return DSL::Services::GetServices()->PphSdeTriggerAdd(cstrName.c_str(), 
+        cstrSdeTrigger.c_str());
+}
+
+DslReturnType dsl_pph_sde_trigger_add_many(const wchar_t* name, 
+    const wchar_t** triggers)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(triggers);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** trigger = triggers; *trigger; trigger++)
+    {
+        std::wstring wstrSdeTrigger(*trigger);
+        std::string cstrSdeTrigger(wstrSdeTrigger.begin(), wstrSdeTrigger.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            PphSdeTriggerAdd(cstrName.c_str(), cstrSdeTrigger.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_pph_sde_trigger_remove(const wchar_t* name, const wchar_t* trigger)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(trigger);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSdeTrigger(trigger);
+    std::string cstrSdeTrigger(wstrSdeTrigger.begin(), wstrSdeTrigger.end());
+
+    return DSL::Services::GetServices()->PphSdeTriggerRemove(cstrName.c_str(), 
+        cstrSdeTrigger.c_str());
+}
+
+DslReturnType dsl_pph_sde_trigger_remove_many(const wchar_t* name, 
+    const wchar_t** triggers)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(triggers);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    for (const wchar_t** trigger = triggers; *trigger; trigger++)
+    {
+        std::wstring wstrSdeTrigger(*trigger);
+        std::string cstrSdeTrigger(wstrSdeTrigger.begin(), wstrSdeTrigger.end());
+        DslReturnType retval = DSL::Services::GetServices()->PphSdeTriggerRemove(
+            cstrName.c_str(), cstrSdeTrigger.c_str());
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
+DslReturnType dsl_pph_sde_trigger_remove_all(const wchar_t* name)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PphSdeTriggerRemoveAll(cstrName.c_str());
 }
 
 DslReturnType dsl_pph_buffer_timeout_new(const wchar_t* name,

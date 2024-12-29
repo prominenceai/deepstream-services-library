@@ -296,6 +296,9 @@ THE SOFTWARE.
 #define DSL_RESULT_PPH_ODE_TRIGGER_ADD_FAILED                       0x000D0007
 #define DSL_RESULT_PPH_ODE_TRIGGER_REMOVE_FAILED                    0x000D0008
 #define DSL_RESULT_PPH_ODE_TRIGGER_NOT_IN_USE                       0x000D0009
+#define DSL_RESULT_PPH_SDE_TRIGGER_ADD_FAILED                       0x000D0007
+#define DSL_RESULT_PPH_SDE_TRIGGER_REMOVE_FAILED                    0x000D0008
+#define DSL_RESULT_PPH_SDE_TRIGGER_NOT_IN_USE                       0x000D0009
 #define DSL_RESULT_PPH_METER_INVALID_INTERVAL                       0x000D000A
 #define DSL_RESULT_PPH_PAD_TYPE_INVALID                             0x000D000B
 
@@ -315,8 +318,8 @@ THE SOFTWARE.
 #define DSL_RESULT_ODE_TRIGGER_AREA_ADD_FAILED                      0x000E000A
 #define DSL_RESULT_ODE_TRIGGER_AREA_REMOVE_FAILED                   0x000E000B
 #define DSL_RESULT_ODE_TRIGGER_AREA_NOT_IN_USE                      0x000E000C
-#define DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED                  0x000F000D
-#define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000F000E
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_ADD_FAILED                  0x000E000D
+#define DSL_RESULT_ODE_TRIGGER_CALLBACK_REMOVE_FAILED               0x000E000E
 #define DSL_RESULT_ODE_TRIGGER_PARAMETER_INVALID                    0x000E000F
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_AB_TYPE                       0x000E0010
 #define DSL_RESULT_ODE_TRIGGER_IS_NOT_TRACK_TRIGGER                 0x000E0011
@@ -537,6 +540,39 @@ THE SOFTWARE.
 #define DSL_RESULT_GST_ELEMENT_HANDLER_ADD_FAILED                   0x00E00006
 #define DSL_RESULT_GST_ELEMENT_HANDLER_REMOVE_FAILED                0x00E00007
 #define DSL_RESULT_GST_ELEMENT_PAD_TYPE_INVALID                     0x00E00008
+
+/**
+ * SDE Trigger API Return Values
+ */
+#define DSL_RESULT_SDE_TRIGGER_RESULT                               0x00F00000
+#define DSL_RESULT_SDE_TRIGGER_NAME_NOT_UNIQUE                      0x00F00001
+#define DSL_RESULT_SDE_TRIGGER_NAME_NOT_FOUND                       0x00F00002
+#define DSL_RESULT_SDE_TRIGGER_THREW_EXCEPTION                      0x00F00003
+#define DSL_RESULT_SDE_TRIGGER_IN_USE                               0x00F00004
+#define DSL_RESULT_SDE_TRIGGER_SET_FAILED                           0x00F00005
+#define DSL_RESULT_SDE_TRIGGER_IS_NOT_SDE_TRIGGER                   0x00F00006
+#define DSL_RESULT_SDE_TRIGGER_ACTION_ADD_FAILED                    0x00F00007
+#define DSL_RESULT_SDE_TRIGGER_ACTION_REMOVE_FAILED                 0x00F00008
+#define DSL_RESULT_SDE_TRIGGER_ACTION_NOT_IN_USE                    0x00F00009
+#define DSL_RESULT_SDE_TRIGGER_CALLBACK_ADD_FAILED                  0x00F0000A
+#define DSL_RESULT_SDE_TRIGGER_CALLBACK_REMOVE_FAILED               0x00F0000B
+#define DSL_RESULT_SDE_TRIGGER_PARAMETER_INVALID                    0x00F0000C
+
+/**
+ * SDE Action API Return Values
+ */
+#define DSL_RESULT_SDE_ACTION_RESULT                                0x00A00000
+#define DSL_RESULT_SDE_ACTION_NAME_NOT_UNIQUE                       0x00A00001
+#define DSL_RESULT_SDE_ACTION_NAME_NOT_FOUND                        0x00A00002
+#define DSL_RESULT_SDE_ACTION_THREW_EXCEPTION                       0x00A00004
+#define DSL_RESULT_SDE_ACTION_IN_USE                                0x00A00005
+#define DSL_RESULT_SDE_ACTION_SET_FAILED                            0x00A00006
+#define DSL_RESULT_SDE_ACTION_IS_NOT_ACTION                         0x00A00007
+#define DSL_RESULT_SDE_ACTION_FILE_PATH_NOT_FOUND                   0x00A00008
+#define DSL_RESULT_SDE_ACTION_NOT_THE_CORRECT_TYPE                  0x00A00009
+#define DSL_RESULT_SDE_ACTION_CALLBACK_ADD_FAILED                   0x00A0000A
+#define DSL_RESULT_SDE_ACTION_CALLBACK_REMOVE_FAILED                0x00A0000B
+#define DSL_RESULT_SDE_ACTION_PARAMETER_INVALID                     0x00A00010
 
 /**
  * GPU Types
@@ -892,26 +928,36 @@ THE SOFTWARE.
 #define DSL_CAPTURE_TYPE_OBJECT                                     0
 #define DSL_CAPTURE_TYPE_FRAME                                      1
 
-// Trigger-Always 'when' constants, pre/post check-for-occurrence
-#define DSL_ODE_PRE_OCCURRENCE_CHECK                                0
-#define DSL_ODE_POST_OCCURRENCE_CHECK                               1
+/**
+ * @brief ODE and SDE Trigger limit state values - for Triggers with limits
+ */
+#define DSL_TRIGGER_LIMIT_EVENT_REACHED                          0
+#define DSL_TRIGGER_LIMIT_EVENT_CHANGED                          1
+#define DSL_TRIGGER_LIMIT_FRAME_REACHED                          2
+#define DSL_TRIGGER_LIMIT_FRAME_CHANGED                          3
+#define DSL_TRIGGER_LIMIT_COUNTS_RESET                           4
 
 /**
- * @brief Source and Class Trigger filter constants for no-filter
+ * @brief Source and Class Sound Detection Event (SDE) Trigger filter 
+ * constants for no-filter
+ */
+#define DSL_SDE_ANY_SOURCE                                          NULL
+#define DSL_SDE_ANY_CLASS                                           INT32_MAX
+#define DSL_SDE_TRIGGER_LIMIT_NONE                                  0
+#define DSL_SDE_TRIGGER_LIMIT_ONE                                   1
+
+/**
+ * @brief Source and Class Object Detection Event (ODE) Trigger filter 
+ * constants for no-filter
  */
 #define DSL_ODE_ANY_SOURCE                                          NULL
 #define DSL_ODE_ANY_CLASS                                           INT32_MAX
 #define DSL_ODE_TRIGGER_LIMIT_NONE                                  0
 #define DSL_ODE_TRIGGER_LIMIT_ONE                                   1
 
-/**
- * @brief ODE Trigger limit state values - for Triggers with limits
- */
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_REACHED                         0
-#define DSL_ODE_TRIGGER_LIMIT_EVENT_CHANGED                         1
-#define DSL_ODE_TRIGGER_LIMIT_FRAME_REACHED                         2
-#define DSL_ODE_TRIGGER_LIMIT_FRAME_CHANGED                         3
-#define DSL_ODE_TRIGGER_LIMIT_COUNTS_RESET                          4
+// Trigger-Always 'when' constants, pre/post check-for-occurrence
+#define DSL_ODE_PRE_OCCURRENCE_CHECK                                0
+#define DSL_ODE_POST_OCCURRENCE_CHECK                               1
 
 /**
  * @brief The maximum number of consecutive frames a tracked object
@@ -1486,7 +1532,6 @@ typedef struct _dsl_ode_occurrence_accumulative_info
 
 } dsl_ode_occurrence_accumulative_info;
 
-
 /**
  * @struct dsl_ode_occurrence_criteria_info
  * @brief ODE Trigger Criteria used for the ODE Occurrence.
@@ -1598,6 +1643,155 @@ typedef struct _dsl_ode_occurrence_info
 } dsl_ode_occurrence_info;
 
 /**
+ * @struct dsl_sde_occurrence_source_info
+ * @brief Audio Source information for the SDE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_sde_occurrence_source_info
+{
+    /**
+     * @brief unique source id for this SDE occurrence.
+     */
+    uint source_id;
+    
+    /**
+     * @brief the location of the frame in the batch for this SDE occurrence 
+     */
+    uint batch_id;
+    
+    /**
+     * @brief pad or port index of the Gst-streammux plugin for this SDE occurrence
+     */
+    uint pad_index;
+    
+    /**
+     * @brief current frame number of the source for this SDE occurrence.
+     */
+    uint frame_num;
+    
+    /**
+     * @brief number of samples per frame.
+     */
+    uint num_samples_per_frame;
+    
+    /**
+     * @brief sample rate in units of hz.
+     */
+    uint sample_rate;
+    
+    /**
+     * @brief number of audio channels in the frame.
+     */
+    uint num_channels;
+    
+    /**
+     * @brief true if inference was done on the frame for this SDE occurrence.
+     */
+    boolean inference_done;
+    
+} dsl_sde_occurrence_source_info;
+
+/**
+ * @struct dsl_sde_occurrence_sound_info
+ * @brief Detected Sound information for the SDE Occurrence provided to the 
+ * client on callback.
+ */
+typedef struct _dsl_sde_occurrence_sound_info
+{
+    /**
+     * @brief class id for the detected object
+     */
+    uint class_id;
+    
+    /**
+     * @brief unique label for the detected object
+     */
+    const wchar_t* label;
+    
+    /**
+     * @brief labels from all classifiers concatenated with space seperator
+     */
+    const wchar_t* classiferLabels;
+   
+    /**
+     * @brief inference confidence as calculated by the last detector.
+     */
+    float inference_confidence;
+    
+} dsl_sde_occurrence_sound_info;
+
+/**
+ * @struct dsl_sde_occurrence_criteria_info
+ * @brief SDE Trigger Criteria used for the SDE Occurrence.
+ */
+typedef struct _dsl_sde_occurrence_criteria_info
+{
+    /**
+     * @brief source id filter for SDE occurrence
+     */
+    uint source_id;
+    
+    /**
+     * @brief class id filter for SDE occurrence
+     */
+    uint class_id;
+    
+    /**
+     * @brief the minimum inference confidence to trigger an SDE occurrence.
+     */
+    float min_inference_confidence;
+    
+    /**
+     * @brief the maximum inference confidence to trigger an SDE occurrence.
+     */
+    float max_inference_confidence;
+    
+    /**
+     * @brief the interval for checking for an SDE occurrence.
+     */
+    uint interval;
+    
+} dsl_sde_occurrence_criteria_info;
+
+/**
+ * @struct dsl_sde_occurrence_info
+ * @brief SDE Occurrence information provided to the client on callback
+ */
+typedef struct _dsl_sde_occurrence_info
+{
+    /**
+     * @brief the unique name of the SDE Trigger that triggered the occurrence
+     */
+    const wchar_t* trigger_name;
+    
+    /**
+     * @brief unique occurrence Id for this occurrence.
+     */
+    uint64_t unique_sde_id;
+    
+    /**
+     * @brief Network Time for this event.
+     */
+    uint64_t ntp_timestamp;
+    
+    /**
+     * @brief Audo Source information this SDE Occurrence
+     */
+    dsl_sde_occurrence_source_info source_info;
+
+    /**
+     * @brief Object information if object_occurrence == true
+     */
+    dsl_sde_occurrence_sound_info sound_info;
+    
+    /**
+     * @brief Trigger Criteria information for this SDE occurrence.
+     */
+    dsl_sde_occurrence_criteria_info criteria_info;
+       
+} dsl_sde_occurrence_info;
+
+/**
  * @struct _dsl_threshold_value
  * @brief defines an abstract class that contains two data points; a
  * minimum threshold and a value to use if the threshold is met.
@@ -1675,24 +1869,36 @@ typedef boolean (*dsl_ode_post_process_frame_cb)(void* buffer,
     void* frame_meta, void* client_data);
     
 /**
+ * @brief Callback typedef for a client SDE occurrence monitor function. 
+ * Once registered by calling dsl_sde_action_monitor_new, the function will be called 
+ * on SDE occurrence with all occurrence information using the dsl_sde_occurrence_info
+ * structure. 
+ * @param[in] occurrence_info occurrence information on SDE occurrence.
+ * @param[in] client_data opaque pointer to client's user data
+ */    
+typedef void (*dsl_sde_monitor_occurrence_cb)(dsl_sde_occurrence_info* occurrence_info,
+    void* client_data);    
+
+/**
  * @brief Callback typedef for a client listener function. Once added to an
- * ODE Trigger or ODE Action, this function will be called on change 
+ * ODE/SDE Trigger or ODE/SDE Action, this function will be called on change 
  * of the enabled state.
- * @param[in] enabled true if the ODE Object was enabled, false if disalbed.
+ * @param[in] enabled true if the ODE or SDE Object was enabled, false if 
+ * disalbed.
  * @param[in] client_data opaque pointer to client's user data.
  */
- typedef void (*dsl_ode_enabled_state_change_listener_cb)
+ typedef void (*dsl_enabled_state_change_listener_cb)
     (boolean enabled, void* client_data);
 
 /**
  * @brief Callback typedef for a client listener function. Once added to an
- * ODE Trigger, this function will be called on every Trigger Limit event;
+ * ODE or SDE Trigger, this function will be called on every Trigger Limit event;
  * LIMIT_REACHED, LIMIT_CHANGED, and COUNTS_RESET
  * @param[in] event one of the DSL_ODE_TRIGGER_LIMIT_EVENT constants.
  * @param[in] limit the current, or new limit for the Trigger.
  * @param[in] client_data opaque pointer to client's user data.
  */
- typedef void (*dsl_ode_trigger_limit_state_change_listener_cb)
+ typedef void (*dsl_trigger_limit_state_change_listener_cb)
     (uint event, uint limit, void* client_data);
 
 /**
@@ -2822,7 +3028,7 @@ DslReturnType dsl_ode_action_sink_remove_new(const wchar_t* name,
 
 /**
  * @brief Creates a uniquely named Start Record Sink ODE Action
- * @param[in] name unique name for the Print ODE Action 
+ * @param[in] name unique name for the ODE Action 
  * @param[in] record_sink unique name of the Record Sink to start recording
  * @param[in] start start time before current time in seconds
  * should be less the Record Sink's cache size
@@ -2835,7 +3041,7 @@ DslReturnType dsl_ode_action_sink_record_start_new(const wchar_t* name,
 
 /**
  * @brief Creates a uniquely named Stop Record Sink ODE Action
- * @param[in] name unique name for the Print ODE Action 
+ * @param[in] name unique name for the ODE Action 
  * @param[in] record_sink unique name of the Record Sink to stop recording
  * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_ODE_ACTION_RESULT otherwise.
  */
@@ -3036,7 +3242,7 @@ DslReturnType dsl_ode_action_enabled_set(const wchar_t* name, boolean enabled);
  * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_ODE_ACTION otherwise.
  */
 DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+    dsl_enabled_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief Removes a callback previously added with a call to
@@ -3046,7 +3252,7 @@ DslReturnType dsl_ode_action_enabled_state_change_listener_add(const wchar_t* na
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_action_enabled_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener);
+    dsl_enabled_state_change_listener_cb listener);
     
 /**
  * @brief Deletes an ODE Action of any type
@@ -3572,7 +3778,6 @@ DslReturnType dsl_ode_trigger_cross_view_settings_get(const wchar_t* name,
  */
 DslReturnType dsl_ode_trigger_cross_view_settings_set(const wchar_t* name, 
     boolean enabled, const wchar_t* color, uint line_width);
-    
 
 /**
  * @brief Resets the a named ODE Trigger, setting it's triggered count to 0
@@ -3609,7 +3814,7 @@ DslReturnType dsl_ode_trigger_reset_timeout_set(const wchar_t* name, uint timeou
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* name,
-    dsl_ode_trigger_limit_state_change_listener_cb listener, void* client_data);
+    dsl_trigger_limit_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief Removes a callback previously added with a call to
@@ -3619,7 +3824,7 @@ DslReturnType dsl_ode_trigger_limit_state_change_listener_add(const wchar_t* nam
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_limit_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_trigger_limit_state_change_listener_cb listener);
+    dsl_trigger_limit_state_change_listener_cb listener);
 
 /**
  * @brief Gets the current enabled setting for the ODE Trigger.
@@ -3646,7 +3851,7 @@ DslReturnType dsl_ode_trigger_enabled_set(const wchar_t* name, boolean enabled);
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener, void* client_data);
+    dsl_enabled_state_change_listener_cb listener, void* client_data);
 
 /**
  * @brief Removes a callback previously added with a call to
@@ -3656,7 +3861,7 @@ DslReturnType dsl_ode_trigger_enabled_state_change_listener_add(const wchar_t* n
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
  */
 DslReturnType dsl_ode_trigger_enabled_state_change_listener_remove(const wchar_t* name,
-    dsl_ode_enabled_state_change_listener_cb listener);
+    dsl_enabled_state_change_listener_cb listener);
 
 /**
  * @brief Gets the current source name filter for the ODE Trigger
@@ -4335,6 +4540,432 @@ DslReturnType dsl_ode_heat_mapper_delete_all();
 uint dsl_ode_heat_mapper_list_size();
 
 /**
+ * @brief Creates a uniquely named Print SDE Action
+ * @param[in] name unique name for the Print SDE Action 
+ * @param[in] force_flush  if true, the action will schedule a flush to be performed 
+ * by the idle thread. 
+ * @note: although the flush event occurs in a background thread, flushing is still 
+ * a CPU intensive operation and should be used sparingly, when tailing the console 
+ * output for runtime debugging as an example. Set to 0 to disable forced flushing, 
+ * and to allow the operating system to handle the process more efficiently.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_print_new(const wchar_t* name, boolean force_flush);
+    
+/**
+ * @brief Creates a uniquely named Monitor SDE Action.
+ * @param[in] name unique name for the Monitor SDE Action. 
+ * @param[in] client_monitor function to call on SDE occurrence. 
+ * @param[in] client_data opaue pointer to client's user data, returned on callback.
+ * @return DSL_RESULT_SUCCESS on success, one of DSL_RESULT_SDE_ACTION_RESULT otherwise.
+ */
+DslReturnType dsl_sde_action_monitor_new(const wchar_t* name, 
+    dsl_sde_monitor_occurrence_cb client_monitor, void* client_data);
+
+/**
+ * @brief Gets the current enabled setting for the SDE Action
+ * @param[in] name unique name of the SDE Action to query
+ * @param[out] enabled true if the SDE Action is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the enabled setting for the SDE Action
+ * @param[in] name unique name of the SDE Action to update
+ * @param[in] enabled true if the SDE Action is currently enabled, false otherwise
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Adds a callback to be notified on change of enabled state for a named
+ * SDE Action. 
+ * @param[in] name name of the SDE Action to update.
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener 
+ * function.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_sde_action_enabled_state_change_listener_add.
+ * @param[in] name name of the SDE Action to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_action_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener);
+    
+/**
+ * @brief Deletes an SDE Action of any type
+ * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if the Action is 
+ * currently owned by a SDE Trigger.
+ * @param[in] name unique name of the SDE Action to delete
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated array of SDE Actions of any type
+ * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if any of the Actions 
+ * are currently owned by a SDE Trigger.
+ * @param[in] names Null ternimated array of unique names to delete
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all SDE Actions of all types
+ * This service will fail with DSL_RESULT_SDE_ACTION_IN_USE if any of the Actions 
+ * are currently owned by a SDE Trigger.
+ * @return DSL_RESULT_SUCCESS on successful set, DSL_RESULT_SDE_ACTION otherwise.
+ */
+DslReturnType dsl_sde_action_delete_all();
+
+/**
+ * @brief Returns the size of the list of SDE Actions
+ * @return the number of SDE Actions in the list
+ */
+uint dsl_sde_action_list_size();
+
+/**
+ * @brief Occurence trigger that checks for the occurrence of a Sound within a 
+ * frame for a specified source and object class_id.
+ * @param[in] name unique name for the SDE Trigger
+ * @param[in] source unique source name filter for the SDE Trigger, NULL = ANY_SOURCE
+ * @param[in] class_id class id filter for this SDE Trigger
+ * @param[in] limit limits the number of SDE occurrences, a value of 0 = NO limit
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_occurrence_new(const wchar_t* name, 
+    const wchar_t* source, uint class_id, uint limit);
+
+/**
+ * @brief Adds a named SDE Action to a named SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] action unique name of the SDE Action to Add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_action_add(const wchar_t* name, 
+    const wchar_t* action);
+
+/**
+ * @brief Adds a Null terminated list of named SDE Actions to a named 
+ * SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] actions Null terminated list of unique names of the SDE Actions 
+ * to add
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_action_add_many(const wchar_t* name, 
+    const wchar_t** actions);
+
+/**
+ * @brief Removes a named SDE Action from a named SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] action unique name of the SDE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_action_remove(const wchar_t* name, 
+    const wchar_t* action);
+
+/**
+ * @brief Removes a Null terminated list of named SDE Actions from a named 
+ * SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] actions Null terminated list of unique names of the SDE Actions 
+ * to remove.
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_action_remove_many(const wchar_t* name, 
+    const wchar_t** actions);
+
+/**
+ * @brief Removes a named SDE Action from a named SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] action unique name of the SDE Action to Remove
+ * @return DSL_RESULT_SUCCESS on successful update, 
+ * DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_action_remove_all(const wchar_t* name);
+
+/**
+ * @brief Resets the a named SDE Trigger, setting it's triggered count to 0
+ * This affects Triggers with fixed limits, whether they have reached their 
+ * limit or not.
+ * @param[in] name unique name of the SDE Trigger to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_reset(const wchar_t* name);
+
+/**
+ * @brief Gets the current auto-reset timer setting for the named SDE Trigger. 
+ * If set, the Trigger, upon reaching its limit, will start a timer to then 
+ * auto-reset on expiration.
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[out] time in seconds after reaching trigger limit before auto reset. 
+ * 0 = disabled (default)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_reset_timeout_get(const wchar_t* name, uint *timeout);
+
+/**
+ * @brief Sets the auto-reset timer setting for the named SDE Trigger. If set, 
+ * the Trigger, upon reaching its limit, will start a timer to then auto-reset 
+ * on expiration.
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] time in seconds after reaching trigger limit before auto reset. 
+ * Set to 0 to disable (default)
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_reset_timeout_set(const wchar_t* name, uint timeout);
+
+/**
+ * @brief Adds a callback to be notified on every SDE Trigger limit event;
+ * LIMIT_REACED, LIMIT_CHANGED, and COUNT_REST
+ * @param[in] name name of the SDE Trigger to update
+ * @param[in] listener pointer to the client's function to call on trigger 
+ * limit event
+ * @param[in] client_data opaque pointer to client data passed into the listener 
+ * function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_limit_state_change_listener_add(const wchar_t* name,
+    dsl_trigger_limit_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_sde_trigger_limit_state_change_listener_add.
+ * @param[in] name name of the SDE Trigger to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_limit_state_change_listener_remove(const wchar_t* name,
+    dsl_trigger_limit_state_change_listener_cb listener);
+
+/**
+ * @brief Gets the current enabled setting for the SDE Trigger.
+ * @param[in] name unique name of the SDE Trigger to query.
+ * @param[out] enabled true if the SDE Trigger is currently enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_enabled_get(const wchar_t* name, boolean* enabled);
+
+/**
+ * @brief Sets the enabled setting for the SDE Trigger.
+ * @param[in] name unique name of the SDE Trigger to update.
+ * @param[in] enabled true if the SDE Trigger is currently enabled, false otherwise.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_enabled_set(const wchar_t* name, boolean enabled);
+
+/**
+ * @brief Adds a callback to be notified on change of enabled state for a named
+ * SDE Trigger. 
+ * @param[in] name name of the SDE Trigger to update.
+ * @param[in] listener pointer to the client's function to call on state change
+ * @param[in] client_data opaque pointer to client data passed into the listener 
+ * function.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_enabled_state_change_listener_add(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a callback previously added with a call to
+ * dsl_sde_trigger_enabled_state_change_listener_add.
+ * @param[in] name name of the SDE Trigger to update.
+ * @param[in] listener pointer to the client's function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_enabled_state_change_listener_remove(const wchar_t* name,
+    dsl_enabled_state_change_listener_cb listener);
+
+/**
+ * @brief Gets the current source name filter for the SDE Trigger
+ * A value of NULL indicates filter disabled.
+ * @param[in] name unique name of the SDE Trigger to query.
+ * @param[out] source returns the current source name in use.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_source_get(const wchar_t* name, const wchar_t** source);
+
+/**
+ * @brief Sets the source name for the SDE Trigger to filter on
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] source new source name to filter on. Set to NULL to disaple filter.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_source_set(const wchar_t* name, const wchar_t* source);
+
+/**
+ * @brief Gets the current infer component name filter for the SDE Trigger
+ * A value of NULL indicates filter disabled (default)
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] infer returns the current infer component name in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_infer_get(const wchar_t* name, const wchar_t** infer);
+
+/**
+ * @brief Sets the infer component name for the SDE Trigger to filter on
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] infer new infer component name to filter on. Set to NULL to disaple filter.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_infer_set(const wchar_t* name, const wchar_t* infer);
+
+/**
+ * @brief Gets the current class_id filter for the SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] class_id returns the current class_id in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_class_id_get(const wchar_t* name, uint* class_id);
+
+/**
+ * @brief Sets the class_id for the SDE Trigger to filter on
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] class_id new class_id to use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_class_id_set(const wchar_t* name, uint class_id);
+
+/**
+ * @brief Gets the current event limit setting for the named SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] limit returns the current trigger event limit in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_limit_event_get(const wchar_t* name, uint* limit);
+
+/**
+ * @brief Sets the event limit for the named SDE Trigger to use.
+ * @param[in] name unique name of the SDE Trigger to update.
+ * @param[in] limit new event limit to use. Setting the limit to a 
+ * value less that the current trigger event count will effectively 
+ * disable the trigger until reset.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_limit_event_set(const wchar_t* name, uint limit);
+
+/**
+ * @brief Gets the current frame limit setting for the named SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] limit returns the current trigger frame limit in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_limit_frame_get(const wchar_t* name, uint* limit);
+
+/**
+ * @brief Sets the frame limit for the named SDE Trigger to use.
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] limit new frame limit to use. Setting the limit to a 
+ * value less that the current trigger frame count will effectively 
+ * disable the trigger until reset.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_limit_frame_set(const wchar_t* name, uint limit);
+
+/**
+ * @brief Gets the current minimum confidence setting for the SDE Trigger
+ * A value of 0.0 (default) indicates the minimum confidence criteria is disabled
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] min_confidence current minimum confidence criteria
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_infer_confidence_min_get(const wchar_t* name, 
+    float* min_confidence);
+
+/**
+ * @brief Sets the minimum confidence setting for the SDE Trigger.
+ * Setting the value of 0.0 indicates the minimum confidence criteria is disabled
+ * Note: the confidence level is only checked with the reported value is > 0.0
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] min_confidence minimum confidence to trigger an SDE occurrence
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_infer_confidence_min_set(const wchar_t* name, 
+    float min_confidence);
+
+/**
+ * @brief Gets the current maximum confidence setting for the SDE Trigger
+ * A value of 0.0 (default) indicates the maximum confidence criteria is disabled
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] max_confidence current maximum confidence criteria
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_infer_confidence_max_get(const wchar_t* name, 
+    float* max_confidence);
+
+/**
+ * @brief Sets the maximum confidence setting for the SDE Trigger.
+ * Setting the value of 0.0 indicates the maximum confidence criteria is disabled
+ * Note: the confidence level is only checked with the reported value is > 0.0
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] max_confidence maximum confidence to trigger an SDE occurrence
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_infer_confidence_max_set(const wchar_t* name, 
+    float max_confidence);
+
+/**
+ * @brief Gets the current process interval setting for the named SDE Trigger
+ * If set, the Trigger will only process every  
+ * @param[in] name unique name of the SDE Trigger to query
+ * @param[out] interval the current interval to use, Default = 0
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_interval_get(const wchar_t* name, uint* interval);
+
+/**
+ * @brief Sets the process interval for the named SDE Trigger
+ * @param[in] name unique name of the SDE Trigger to update
+ * @param[in] interval new interval to use. Setting the interval will reset the
+ * frame counter to zero, meaning a new value of n will skip the next n-1 frames
+ * from the current frame at the time this service is called.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SOURCE_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_interval_set(const wchar_t* name, uint interval);
+
+/**
+ * @brief Deletes a uniquely named Trigger. The call will fail if the Triggers is 
+ * currently in use
+ * @brief[in] name unique name of the event to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_delete(const wchar_t* name);
+
+/**
+ * @brief Deletes a Null terminated list of Triggers. The call will fail if any of 
+ * the Triggers are currently in use
+ * @brief[in] names Null terminaed list of event names to delte
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_delete_many(const wchar_t** names);
+
+/**
+ * @brief Deletes all Triggers. The call will fail if any of the Triggers are 
+ * currently in use
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_SDE_TRIGGER_RESULT otherwise.
+ */
+DslReturnType dsl_sde_trigger_delete_all();
+
+/**
+ * @brief Returns the size of the list of Triggers
+ * @return the number of Triggers in the list
+ */
+uint dsl_sde_trigger_list_size();
+
+/**
  * @brief creates a new, uniquely named Object Detection Event (ODE) PPH component
  * @param[in] name unique name for the new Handler
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
@@ -4401,6 +5032,57 @@ DslReturnType dsl_pph_ode_display_meta_alloc_size_get(const wchar_t* name, uint*
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
  */
 DslReturnType dsl_pph_ode_display_meta_alloc_size_set(const wchar_t* name, uint size);
+
+/**
+ * @brief creates a new, uniquely named Sound Detection Event (SDE) PPH component
+ * @param[in] name unique name for the new Handler
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_sde_new(const wchar_t* name);
+
+/**
+ * @brief Adds a named SDE Trigger to a named SDE Handler Component
+ * @param[in] name unique name of the SDE Handler to update
+ * @param[in] trigger unique name of the Trigger to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_sde_trigger_add(const wchar_t* name, const wchar_t* trigger);
+
+/**
+ * @brief Adds a Null terminated listed of named SDE Triggers to a named 
+ * SDE Handler Component
+ * @param[in] name unique name of the SDE Handler to update
+ * @param[in] triggers Null terminated list of Trigger names to add
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_sde_trigger_add_many(const wchar_t* name, 
+    const wchar_t** triggers);
+
+/**
+ * @brief Removes a named SDE Trigger from a named SDE Handler Component
+ * @param[in] name unique name of the SDE Handler to update
+ * @param[in] trigger unique name of the Trigger to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_sde_trigger_remove(const wchar_t* name, 
+    const wchar_t* trigger);
+
+/**
+ * @brief Removes a Null terminated listed of named SDE Triggers from a named 
+ * SDE Handler Component
+ * @param[in] name unique name of the SDE Handler to update
+ * @param[in] triggers Null terminated list of Trigger names to remove
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_sde_trigger_remove_many(const wchar_t* name, 
+    const wchar_t** triggers);
+
+/**
+ * @brief Removes all SDE Triggers from a named SDE Handler Component
+ * @param[in] name unique name of the SDE Handler to update
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_PPH_RESULT otherwise
+ */
+DslReturnType dsl_pph_sde_trigger_remove_all(const wchar_t* name);
 
 /**
  * @brief creates a new, uniquely named Custom pad-probe-handler to process a buffer

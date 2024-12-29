@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslPadProbeHandler.h"
 #include "DslOdeTrigger.h"
+#include "DslSdeTrigger.h"
 #include "DslBintr.h"
 #include <gst-nvevent.h>
 
@@ -454,6 +455,119 @@ namespace DSL
                 {
                     // Add the updated display data to the frame
                     nvds_add_display_meta_to_frame(pFrameMeta, ivec);
+                }
+            }
+        }
+        return GST_PAD_PROBE_OK;
+    }
+
+    //--------------------------------------------------------------------------------
+
+    SdePadProbeHandler::SdePadProbeHandler(const char* name)
+        : PadProbeBufferHandler(name)
+        , m_nextTriggerIndex(0)
+    {
+        LOG_FUNC();
+        
+        // Enable now
+        if (!SetEnabled(true))
+        {
+            throw;
+        }
+    }
+
+    SdePadProbeHandler::~SdePadProbeHandler()
+    {
+        LOG_FUNC();
+    }
+
+    bool SdePadProbeHandler::AddChild(DSL_BASE_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (!Base::AddChild(pChild))
+        {
+            return false;
+        }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        // increment next index, assign to the Trigger
+        pChild->SetIndex(++m_nextTriggerIndex);
+
+        // Add the child to the Indexed map 
+        m_pChildrenIndexed[m_nextTriggerIndex] = pChild;
+        
+        return true;
+    }
+
+    bool SdePadProbeHandler::RemoveChild(DSL_BASE_PTR pChild)
+    {
+        LOG_FUNC();
+        
+        if (!Base::RemoveChild(pChild))
+        {
+            return false;
+        }
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        // Remove the the child from Indexed map
+        m_pChildrenIndexed.erase(pChild->GetIndex());
+        
+        return true;
+    }
+
+    void SdePadProbeHandler::RemoveAllChildren()
+    {
+        LOG_FUNC();
+        
+        Base::RemoveAllChildren();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        // Remove all children from Indexed map
+        m_pChildrenIndexed.clear();
+    }
+
+    GstPadProbeReturn SdePadProbeHandler::HandlePadData(GstPadProbeInfo* pInfo)
+    {
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_padHandlerMutex);
+        
+        if (!m_isEnabled)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+        GstBuffer* pBuffer = (GstBuffer*)pInfo->data;
+        
+        NvDsBatchMeta* pBatchMeta = gst_buffer_get_nvds_batch_meta(pBuffer);
+        
+        if (!pBatchMeta)
+        {
+            return GST_PAD_PROBE_OK;
+        }
+
+        // For each frame in the batched meta data
+        for (NvDsMetaList* pFrameMetaList = pBatchMeta->frame_meta_list; 
+            pFrameMetaList; pFrameMetaList = pFrameMetaList->next)
+        {
+            // Check for valid frame data
+            NvDsAudioFrameMeta* pFrameMeta = (NvDsAudioFrameMeta*) (pFrameMetaList->data);
+            if (pFrameMeta != NULL)
+            {
+                // For each SDE Trigger owned by this SDE Manager, check for SDE
+                for (const auto &imap: m_pChildrenIndexed)
+                {
+                    DSL_SDE_TRIGGER_PTR pSdeTrigger = 
+                        std::dynamic_pointer_cast<SdeTrigger>(imap.second);
+                    try
+                    {
+                        pSdeTrigger->PreProcessFrame(pBuffer, pFrameMeta);
+                        pSdeTrigger->CheckForOccurrence(pBuffer, pFrameMeta);
+                        pSdeTrigger->PostProcessFrame(pBuffer, pFrameMeta);
+                    }
+                    catch(...)
+                    {
+                        LOG_ERROR("Trigger '" << pSdeTrigger->GetName() 
+                            << "' threw exception");
+                    }
                 }
             }
         }

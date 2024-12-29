@@ -238,15 +238,22 @@ DSL_HEAT_MAP_LEGEND_LOCATION_LEFT = 3
 DSL_CAPTURE_TYPE_OBJECT = 0
 DSL_CAPTURE_TYPE_FRAME = 1
 
+DSL_SDE_TRIGGER_LIMIT_NONE = 0
+DSL_SDE_TRIGGER_LIMIT_ONE = 1
+
+# Any Source/Class == INT32_MAX
+DSL_SDE_ANY_SOURCE = None
+DSL_SDE_ANY_CLASS = int('7FFFFFFF',16)
+
 DSL_ODE_TRIGGER_LIMIT_NONE = 0
 DSL_ODE_TRIGGER_LIMIT_ONE = 1
-
-DSL_ODE_PRE_OCCURRENCE_CHECK = 0
-DSL_ODE_POST_OCCURRENCE_CHECK = 1
 
 # Any Source/Class == INT32_MAX
 DSL_ODE_ANY_SOURCE = None
 DSL_ODE_ANY_CLASS = int('7FFFFFFF',16)
+
+DSL_ODE_PRE_OCCURRENCE_CHECK = 0
+DSL_ODE_POST_OCCURRENCE_CHECK = 1
 
 DSL_TILER_SHOW_ALL_SOURCES = None
 
@@ -423,6 +430,41 @@ class dsl_ode_occurrence_info(Structure):
         ('accumulative_info', dsl_ode_occurrence_accumulative_info),
         ('criteria_info', dsl_ode_occurrence_criteria_info)]
 
+class dsl_sde_occurrence_source_info(Structure):
+    _fields_ = [
+        ('source_id', c_uint),
+        ('batch_id', c_uint),
+        ('pad_index', c_uint),
+        ('frame_num', c_uint),
+        ('num_samples_per_frame', c_uint),
+        ('sample_rate', c_uint),
+        ('num_channels', c_uint),
+        ('inference_done', c_bool)]
+        
+class dsl_sde_occurrence_sound_info(Structure):
+    _fields_ = [
+        ('class_id', c_uint),
+        ('label', c_wchar_p),
+        ('classifierLabels', c_wchar_p),
+        ('inference_confidence', c_float)]
+        
+class dsl_sde_occurrence_criteria_info(Structure):
+    _fields_ = [
+        ('source_id', c_uint),
+        ('class_id', c_uint),
+        ('min_inference_confidence', c_float),
+        ('max_inference_confidence', c_float),
+        ('interval', c_uint)]
+
+class dsl_sde_occurrence_info(Structure):
+    _fields_ = [
+        ('trigger_name', c_wchar_p),
+        ('unique_sde_id', c_uint64),
+        ('ntp_timestamp', c_uint64),
+        ('source_info', dsl_sde_occurrence_source_info),
+        ('sound_info', dsl_sde_occurrence_sound_info),
+        ('criteria_info', dsl_sde_occurrence_criteria_info)]
+
 class dsl_threshold_value(Structure):
     _fields_ = [
         ('threshold', c_uint),
@@ -464,12 +506,16 @@ DSL_ODE_CHECK_FOR_OCCURRENCE = \
 DSL_ODE_POST_PROCESS_FRAME = \
     CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p)
 
-# dsl_ode_enabled_state_change_listener_cb
-DSL_ODE_ENABLED_STATE_CHANGE_LISTENER = \
+# dsl_sde_monitor_occurrence_cb    
+DSL_SDE_MONITOR_OCCURRENCE = \
+    CFUNCTYPE(None, POINTER(dsl_sde_occurrence_info), c_void_p)
+
+# dsl_enabled_state_change_listener_cb
+DSL_ENABLED_STATE_CHANGE_LISTENER = \
     CFUNCTYPE(None, c_bool, c_void_p)
 
-# dsl_ode_trigger_limit_state_change_listener_cb
-DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER = \
+# dsl_trigger_limit_state_change_listener_cb
+DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER = \
     CFUNCTYPE(None, c_uint, c_uint, c_void_p)
 
 # dsl_pph_meter_client_handler_cb
@@ -1592,11 +1638,11 @@ def dsl_ode_action_enabled_set(name, enabled):
 ## dsl_ode_action_enabled_state_change_listener_add()
 ##
 _dsl.dsl_ode_action_enabled_state_change_listener_add.argtypes = [ 
-    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
+    DSL_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
 _dsl.dsl_ode_action_enabled_state_change_listener_add.restype = c_uint
 def dsl_ode_action_enabled_state_change_listener_add(client_listener, client_data):
     global _dsl
-    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
@@ -1608,11 +1654,11 @@ def dsl_ode_action_enabled_state_change_listener_add(client_listener, client_dat
 ## dsl_ode_action_enabled_state_change_listener_remove()
 ##
 _dsl.dsl_ode_action_enabled_state_change_listener_remove.argtypes = [
-    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER]
+    DSL_ENABLED_STATE_CHANGE_LISTENER]
 _dsl.dsl_ode_action_enabled_state_change_listener_remove.restype = c_uint
 def dsl_ode_action_enabled_state_change_listener_remove(client_listener):
     global _dsl
-    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
     result = _dsl.dsl_ode_action_enabled_state_change_listener_remove(c_client_listener)
     return int(result)
 
@@ -2147,11 +2193,11 @@ def dsl_ode_trigger_reset_timeout_set(name, timeout):
 ## dsl_ode_trigger_limit_state_change_listener_add()
 ##
 _dsl.dsl_ode_trigger_limit_state_change_listener_add.argtypes = [ 
-    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER, c_void_p]
+    DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER, c_void_p]
 _dsl.dsl_ode_trigger_limit_state_change_listener_add.restype = c_uint
 def dsl_ode_trigger_limit_state_change_listener_add(client_listener, client_data):
     global _dsl
-    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
@@ -2163,11 +2209,11 @@ def dsl_ode_trigger_limit_state_change_listener_add(client_listener, client_data
 ## dsl_ode_trigger_limit_state_change_listener_remove()
 ##
 _dsl.dsl_ode_trigger_limit_state_change_listener_remove.argtypes = [
-    DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER]
+    DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER]
 _dsl.dsl_ode_trigger_limit_state_change_listener_remove.restype = c_uint
 def dsl_ode_trigger_limit_state_change_listener_remove(client_listener):
     global _dsl
-    c_client_listener = DSL_ODE_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
     result = _dsl.dsl_ode_trigger_limit_state_change_listener_remove(c_client_listener)
     return int(result)
 
@@ -2196,11 +2242,11 @@ def dsl_ode_trigger_enabled_set(name, enabled):
 ## dsl_ode_trigger_enabled_state_change_listener_add()
 ##
 _dsl.dsl_ode_trigger_enabled_state_change_listener_add.argtypes = [ 
-    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
+    DSL_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
 _dsl.dsl_ode_trigger_enabled_state_change_listener_add.restype = c_uint
 def dsl_ode_trigger_enabled_state_change_listener_add(client_listener, client_data):
     global _dsl
-    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
     callbacks.append(c_client_listener)
     c_client_data=cast(pointer(py_object(client_data)), c_void_p)
     clientdata.append(c_client_data)
@@ -2212,11 +2258,11 @@ def dsl_ode_trigger_enabled_state_change_listener_add(client_listener, client_da
 ## dsl_ode_trigger_enabled_state_change_listener_remove()
 ##
 _dsl.dsl_ode_trigger_enabled_state_change_listener_remove.argtypes = [
-    DSL_ODE_ENABLED_STATE_CHANGE_LISTENER]
+    DSL_ENABLED_STATE_CHANGE_LISTENER]
 _dsl.dsl_ode_trigger_enabled_state_change_listener_remove.restype = c_uint
 def dsl_ode_trigger_enabled_state_change_listener_remove(client_listener):
     global _dsl
-    c_client_listener = DSL_ODE_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
     result = _dsl.dsl_ode_trigger_enabled_state_change_listener_remove(c_client_listener)
     return int(result)
 
@@ -2927,6 +2973,463 @@ def dsl_ode_heat_mapper_list_size():
     return int(result)
 
 ##
+## dsl_sde_action_print_new()
+##
+_dsl.dsl_sde_action_print_new.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sde_action_print_new.restype = c_uint
+def dsl_sde_action_print_new(name, force_flush):
+    global _dsl
+    result =_dsl.dsl_sde_action_print_new(name, force_flush)
+    return int(result)
+
+##
+## dsl_sde_action_monitor_new()
+##
+_dsl.dsl_sde_action_monitor_new.argtypes = [c_wchar_p, DSL_SDE_MONITOR_OCCURRENCE, c_void_p]
+_dsl.dsl_sde_action_monitor_new.restype = c_uint
+def dsl_sde_action_monitor_new(name, client_monitor, client_data):
+    global _dsl
+    c_client_monitor= DSL_SDE_MONITOR_OCCURRENCE(client_monitor)
+    callbacks.append(c_client_monitor)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sde_action_monitor_new(name, c_client_monitor, c_client_data)
+    return int(result)
+
+##
+## dsl_sde_action_enabled_get()
+##
+_dsl.dsl_sde_action_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sde_action_enabled_get.restype = c_uint
+def dsl_sde_action_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result =_dsl.dsl_sde_action_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_sde_action_enabled_set()
+##
+_dsl.dsl_sde_action_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sde_action_enabled_set.restype = c_uint
+def dsl_sde_action_enabled_set(name, enabled):
+    global _dsl
+    result =_dsl.dsl_sde_action_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sde_action_enabled_state_change_listener_add()
+##
+_dsl.dsl_sde_action_enabled_state_change_listener_add.argtypes = [ 
+    DSL_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_sde_action_enabled_state_change_listener_add.restype = c_uint
+def dsl_sde_action_enabled_state_change_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sde_action_enabled_state_change_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_sde_action_enabled_state_change_listener_remove()
+##
+_dsl.dsl_sde_action_enabled_state_change_listener_remove.argtypes = [
+    DSL_ENABLED_STATE_CHANGE_LISTENER]
+_dsl.dsl_sde_action_enabled_state_change_listener_remove.restype = c_uint
+def dsl_sde_action_enabled_state_change_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_sde_action_enabled_state_change_listener_remove(c_client_listener)
+    return int(result)
+
+
+##
+## dsl_sde_action_delete()
+##
+_dsl.dsl_sde_action_delete.argtypes = [c_wchar_p]
+_dsl.dsl_sde_action_delete.restype = c_uint
+def dsl_sde_action_delete(name):
+    global _dsl
+    result =_dsl.dsl_sde_action_delete(name)
+    return int(result)
+
+##
+## dsl_sde_action_delete_many()
+##
+#_dsl.dsl_sde_action_delete_many.argtypes = [??]
+_dsl.dsl_sde_action_delete_many.restype = c_uint
+def dsl_sde_action_delete_many(names):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_sde_action_delete_many(arr)
+    return int(result)
+
+##
+## dsl_sde_action_delete_all()
+##
+_dsl.dsl_sde_action_delete_all.argtypes = []
+_dsl.dsl_sde_action_delete_all.restype = c_uint
+def dsl_sde_action_delete_all():
+    global _dsl
+    result =_dsl.dsl_sde_action_delete_all()
+    return int(result)
+
+##
+## dsl_sde_action_list_size()
+##
+_dsl.dsl_sde_action_list_size.restype = c_uint
+def dsl_sde_action_list_size():
+    global _dsl
+    result =_dsl.dsl_sde_action_list_size()
+    return int(result)
+
+##
+## dsl_sde_trigger_occurrence_new()
+##
+_dsl.dsl_sde_trigger_occurrence_new.argtypes = [c_wchar_p, c_wchar_p, c_uint, c_uint]
+_dsl.dsl_sde_trigger_occurrence_new.restype = c_uint
+def dsl_sde_trigger_occurrence_new(name, source, class_id, limit):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_occurrence_new(name, source, class_id, limit)
+    return int(result)
+
+##
+## dsl_sde_trigger_action_add()
+##
+_dsl.dsl_sde_trigger_action_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sde_trigger_action_add.restype = c_uint
+def dsl_sde_trigger_action_add(name, action):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_action_add(name, action)
+    return int(result)
+
+##
+## dsl_sde_trigger_action_add_many()
+##
+#_dsl.dsl_sde_trigger_action_add_many.argtypes = [??]
+_dsl.dsl_sde_trigger_action_add_many.restype = c_uint
+def dsl_sde_trigger_action_add_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_sde_trigger_action_add_many(name, arr)
+    return int(result)
+
+##
+## dsl_sde_trigger_action_remove()
+##
+_dsl.dsl_sde_trigger_action_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sde_trigger_action_remove.restype = c_uint
+def dsl_sde_trigger_action_remove(name, action):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_action_remove(name, action)
+    return int(result)
+
+##
+## dsl_sde_trigger_action_remove_many()
+##
+#_dsl.dsl_sde_trigger_action_remove_many.argtypes = [??]
+_dsl.dsl_sde_trigger_action_remove_many.restype = c_uint
+def dsl_sde_trigger_action_remove_many(name, actions):
+    global _dsl
+    arr = (c_wchar_p * len(actions))()
+    arr[:] = actions
+    result =_dsl.dsl_sde_trigger_action_remove_many(name, arr)
+    return int(result)
+
+##
+## dsl_sde_trigger_action_remove_all()
+##
+_dsl.dsl_sde_trigger_action_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_sde_trigger_action_remove_all.restype = c_uint
+def dsl_sde_trigger_action_remove_all(name):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_action_remove_all(name)
+    return int(result)
+
+##
+## dsl_sde_trigger_reset()
+##
+_dsl.dsl_sde_trigger_reset.argtypes = [c_wchar_p]
+_dsl.dsl_sde_trigger_reset.restype = c_uint
+def dsl_sde_trigger_reset(name):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_reset(name)
+    return int(result)
+
+##
+## dsl_sde_trigger_reset_timeout_get()
+##
+_dsl.dsl_sde_trigger_reset_timeout_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sde_trigger_reset_timeout_get.restype = c_uint
+def dsl_sde_trigger_reset_timeout_get(name):
+    global _dsl
+    timeout = c_uint(0)
+    result =_dsl.dsl_sde_trigger_reset_timeout_get(name, DSL_UINT_P(c_uint))
+    return int(result), timeout.value
+
+##
+## dsl_sde_trigger_reset_timeout_set()
+##
+_dsl.dsl_sde_trigger_reset_timeout_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sde_trigger_reset_timeout_set.restype = c_uint
+def dsl_sde_trigger_reset_timeout_set(name, timeout):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_reset_timeout_set(name, timeout)
+    return int(result)
+
+##
+## dsl_sde_trigger_limit_state_change_listener_add()
+##
+_dsl.dsl_sde_trigger_limit_state_change_listener_add.argtypes = [ 
+    DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_sde_trigger_limit_state_change_listener_add.restype = c_uint
+def dsl_sde_trigger_limit_state_change_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sde_trigger_limit_state_change_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_sde_trigger_limit_state_change_listener_remove()
+##
+_dsl.dsl_sde_trigger_limit_state_change_listener_remove.argtypes = [
+    DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER]
+_dsl.dsl_sde_trigger_limit_state_change_listener_remove.restype = c_uint
+def dsl_sde_trigger_limit_state_change_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_TRIGGER_LIMIT_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_sde_trigger_limit_state_change_listener_remove(c_client_listener)
+    return int(result)
+
+##
+## dsl_sde_trigger_enabled_get()
+##
+_dsl.dsl_sde_trigger_enabled_get.argtypes = [c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_sde_trigger_enabled_get.restype = c_uint
+def dsl_sde_trigger_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result =_dsl.dsl_sde_trigger_enabled_get(name, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_sde_trigger_enabled_set()
+##
+_dsl.dsl_sde_trigger_enabled_set.argtypes = [c_wchar_p, c_bool]
+_dsl.dsl_sde_trigger_enabled_set.restype = c_uint
+def dsl_sde_trigger_enabled_set(name, enabled):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_enabled_set(name, enabled)
+    return int(result)
+
+##
+## dsl_sde_trigger_enabled_state_change_listener_add()
+##
+_dsl.dsl_sde_trigger_enabled_state_change_listener_add.argtypes = [ 
+    DSL_ENABLED_STATE_CHANGE_LISTENER, c_void_p]
+_dsl.dsl_sde_trigger_enabled_state_change_listener_add.restype = c_uint
+def dsl_sde_trigger_enabled_state_change_listener_add(client_listener, client_data):
+    global _dsl
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    callbacks.append(c_client_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_sde_trigger_enabled_state_change_listener_add(
+        c_client_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_sde_trigger_enabled_state_change_listener_remove()
+##
+_dsl.dsl_sde_trigger_enabled_state_change_listener_remove.argtypes = [
+    DSL_ENABLED_STATE_CHANGE_LISTENER]
+_dsl.dsl_sde_trigger_enabled_state_change_listener_remove.restype = c_uint
+def dsl_sde_trigger_enabled_state_change_listener_remove(client_listener):
+    global _dsl
+    c_client_listener = DSL_ENABLED_STATE_CHANGE_LISTENER(client_listener)
+    result = _dsl.dsl_sde_trigger_enabled_state_change_listener_remove(c_client_listener)
+    return int(result)
+
+##
+## dsl_sde_trigger_source_get()
+##
+_dsl.dsl_sde_trigger_source_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sde_trigger_source_get.restype = c_uint
+def dsl_sde_trigger_source_get(name):
+    global _dsl
+    source = c_wchar_p(0)
+    result =_dsl.dsl_sde_trigger_source_get(name, DSL_WCHAR_P(source))
+    return int(result), source.value
+
+##
+## dsl_sde_trigger_source_set()
+##
+_dsl.dsl_sde_trigger_source_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sde_trigger_source_set.restype = c_uint
+def dsl_sde_trigger_source_set(name, source):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_source_set(name, source)
+    return int(result)
+
+##
+## dsl_sde_trigger_infer_get()
+##
+_dsl.dsl_sde_trigger_infer_get.argtypes = [c_wchar_p, POINTER(c_wchar_p)]
+_dsl.dsl_sde_trigger_infer_get.restype = c_uint
+def dsl_sde_trigger_infer_get(name):
+    global _dsl
+    infer = c_wchar_p(0)
+    result =_dsl.dsl_sde_trigger_infer_get(name, DSL_WCHAR_P(infer))
+    return int(result), infer.value
+
+##
+## dsl_sde_trigger_infer_set()
+##
+_dsl.dsl_sde_trigger_infer_set.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_sde_trigger_infer_set.restype = c_uint
+def dsl_sde_trigger_infer_set(name, infer):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_infer_set(name, infer)
+    return int(result)
+
+##
+## dsl_sde_trigger_class_id_get()
+##
+_dsl.dsl_sde_trigger_class_id_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sde_trigger_class_id_get.restype = c_uint
+def dsl_sde_trigger_class_id_get(name):
+    global _dsl
+    class_id = c_uint(0)
+    result =_dsl.dsl_sde_trigger_class_id_get(name, DSL_UINT_P(class_id))
+    return int(result), class_id.value
+
+##
+## dsl_sde_trigger_class_id_set()
+##
+_dsl.dsl_sde_trigger_class_id_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sde_trigger_class_id_set.restype = c_uint
+def dsl_sde_trigger_class_id_set(name, class_id):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_class_id_set(name, class_id)
+    return int(result)
+
+##
+## dsl_sde_trigger_limit_event_get()
+##
+_dsl.dsl_sde_trigger_limit_event_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sde_trigger_limit_event_get.restype = c_uint
+def dsl_sde_trigger_limit_event_get(name):
+    global _dsl
+    limit = c_uint(0)
+    result =_dsl.dsl_sde_trigger_limit_event_get(name, DSL_UINT_P(limit))
+    return int(result), limit.value
+
+##
+## dsl_sde_trigger_limit_event_set()
+##
+_dsl.dsl_sde_trigger_limit_event_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sde_trigger_limit_event_set.restype = c_uint
+def dsl_sde_trigger_limit_event_set(name, limit):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_limit_event_set(name, limit)
+    return int(result)
+
+##
+## dsl_sde_trigger_limit_frame_get()
+##
+_dsl.dsl_sde_trigger_limit_frame_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sde_trigger_limit_frame_get.restype = c_uint
+def dsl_sde_trigger_limit_frame_get(name):
+    global _dsl
+    limit = c_uint(0)
+    result =_dsl.dsl_sde_trigger_limit_frame_get(name, DSL_UINT_P(limit))
+    return int(result), limit.value
+
+##
+## dsl_sde_trigger_limit_frame_set()
+##
+_dsl.dsl_sde_trigger_limit_frame_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sde_trigger_limit_frame_set.restype = c_uint
+def dsl_sde_trigger_limit_frame_set(name, limit):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_limit_frame_set(name, limit)
+    return int(result)
+
+##
+## dsl_sde_trigger_infer_confidence_min_get()
+##
+_dsl.dsl_sde_trigger_infer_confidence_min_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_sde_trigger_infer_confidence_min_get.restype = c_uint
+def dsl_sde_trigger_infer_confidence_min_get(name):
+    global _dsl
+    min_confidence = c_float(0)
+    result =_dsl.dsl_sde_trigger_infer_confidence_min_get(name, 
+        DSL_FLOAT_P(min_confidence))
+    return int(result), min_confidence.value
+
+##
+## dsl_sde_trigger_infer_confidence_min_set()
+##
+_dsl.dsl_sde_trigger_infer_confidence_min_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_sde_trigger_infer_confidence_min_set.restype = c_uint
+def dsl_sde_trigger_infer_confidence_min_set(name, min_confidence):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_infer_confidence_min_set(name, min_confidence)
+    return int(result)
+
+##
+## dsl_sde_trigger_infer_confidence_max_get()
+##
+_dsl.dsl_sde_trigger_infer_confidence_max_get.argtypes = [c_wchar_p, POINTER(c_float)]
+_dsl.dsl_sde_trigger_infer_confidence_max_get.restype = c_uint
+def dsl_sde_trigger_infer_confidence_max_get(name):
+    global _dsl
+    max_confidence = c_float(0)
+    result =_dsl.dsl_sde_trigger_infer_confidence_max_get(name, 
+        DSL_FLOAT_P(max_confidence))
+    return int(result), max_confidence.value
+
+##
+## dsl_sde_trigger_infer_confidence_max_set()
+##
+_dsl.dsl_sde_trigger_infer_confidence_max_set.argtypes = [c_wchar_p, c_float]
+_dsl.dsl_sde_trigger_infer_confidence_max_set.restype = c_uint
+def dsl_sde_trigger_infer_confidence_max_set(name, max_confidence):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_infer_confidence_max_set(name, max_confidence)
+    return int(result)
+
+##
+## dsl_sde_trigger_interval_get()
+##
+_dsl.dsl_sde_trigger_interval_get.argtypes = [c_wchar_p, POINTER(c_uint)]
+_dsl.dsl_sde_trigger_interval_get.restype = c_uint
+def dsl_sde_trigger_interval_get(name):
+    global _dsl
+    interval = c_uint(0)
+    result =_dsl.dsl_sde_trigger_interval_get(name, DSL_UINT_P(interval))
+    return int(result), interval.value
+
+##
+## dsl_sde_trigger_interval_set()
+##
+_dsl.dsl_sde_trigger_interval_set.argtypes = [c_wchar_p, c_uint]
+_dsl.dsl_sde_trigger_interval_set.restype = c_uint
+def dsl_sde_trigger_interval_set(name, interval):
+    global _dsl
+    result =_dsl.dsl_sde_trigger_interval_set(name, interval)
+    return int(result)
+
+##
 ## dsl_pph_ode_new()
 ##
 _dsl.dsl_pph_ode_new.argtypes = [c_wchar_p]
@@ -3009,6 +3512,70 @@ _dsl.dsl_pph_ode_display_meta_alloc_size_set.restype = c_uint
 def dsl_pph_ode_display_meta_alloc_size_set(name, size):
     global _dsl
     result =_dsl.dsl_pph_ode_display_meta_alloc_size_set(name, size)
+    return int(result)
+
+##
+## dsl_pph_sde_new()
+##
+_dsl.dsl_pph_sde_new.argtypes = [c_wchar_p]
+_dsl.dsl_pph_sde_new.restype = c_uint
+def dsl_pph_sde_new(name):
+    global _dsl
+    result =_dsl.dsl_pph_sde_new(name)
+    return int(result)
+
+##
+## dsl_pph_sde_trigger_add()
+##
+_dsl.dsl_pph_sde_trigger_add.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pph_sde_trigger_add.restype = c_uint
+def dsl_pph_sde_trigger_add(name, trigger):
+    global _dsl
+    result =_dsl.dsl_pph_sde_trigger_add(name, trigger)
+    return int(result)
+
+##
+## dsl_pph_sde_trigger_add_many()
+##
+#_dsl.dsl_pph_sde_trigger_add_many.argtypes = [??]
+_dsl.dsl_pph_sde_trigger_add_many.restype = c_uint
+def dsl_pph_sde_trigger_add_many(name, triggers):
+    global _dsl
+    arr = (c_wchar_p * len(triggers))()
+    arr[:] = triggers
+    result =_dsl.dsl_pph_sde_trigger_add_many(name, arr)
+    return int(result)
+    
+##
+## dsl_pph_sde_trigger_remove()
+##
+_dsl.dsl_pph_sde_trigger_remove.argtypes = [c_wchar_p, c_wchar_p]
+_dsl.dsl_pph_sde_trigger_remove.restype = c_uint
+def dsl_pph_sde_trigger_remove(name, trigger):
+    global _dsl
+    result =_dsl.dsl_pph_sde_trigger_remove(name, trigger)
+    return int(result)
+
+##
+## dsl_pph_sde_trigger_remove_many()
+##
+#_dsl.dsl_pph_sde_trigger_remove_many.argtypes = [??]
+_dsl.dsl_pph_sde_trigger_remove_many.restype = c_uint
+def dsl_pph_sde_trigger_remove_many(name, triggers):
+    global _dsl
+    arr = (c_wchar_p * len(triggers))()
+    arr[:] = triggers
+    result =_dsl.dsl_pph_sde_trigger_remove_many(name, arr)
+    return int(result)
+
+##
+## dsl_pph_sde_trigger_remove_all()
+##
+_dsl.dsl_pph_sde_trigger_remove_all.argtypes = [c_wchar_p]
+_dsl.dsl_pph_sde_trigger_remove_all.restype = c_uint
+def dsl_pph_sde_trigger_remove_all(name):
+    global _dsl
+    result =_dsl.dsl_pph_sde_trigger_remove_all(name)
     return int(result)
 
 ##

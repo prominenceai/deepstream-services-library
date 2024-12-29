@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2024, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ THE SOFTWARE.
 namespace DSL
 {
     OdeAction::OdeAction(const char* name)
-        : OdeBase(name)
+        : DeBase(name)
     {
         LOG_FUNC();
     }
@@ -2965,10 +2965,13 @@ namespace DSL
         }
 
         std::cout << "  Criteria          : ------------------------" << "\n";
+        std::cout << "    Source Id       : " << int_to_hex(pTrigger->m_sourceId) << "\n";
         std::cout << "    Class Id        : " << pTrigger->m_classId << "\n";
         std::cout << "    Infer Id        : " << pTrigger->m_inferId << "\n";
         std::cout << "    Min Infer Conf  : " << pTrigger->m_minConfidence << "\n";
+        std::cout << "    Max Infer Conf  : " << pTrigger->m_maxConfidence << "\n";
         std::cout << "    Min Track Conf  : " << pTrigger->m_minTrackerConfidence << "\n";
+        std::cout << "    Max Track Conf  : " << pTrigger->m_maxTrackerConfidence << "\n";
         std::cout << "    Min Frame Count : " << pTrigger->m_minFrameCountN
             << " out of " << pTrigger->m_minFrameCountD << "\n";
         std::cout << "    Min Width       : " << lrint(pTrigger->m_minWidth) << "\n";

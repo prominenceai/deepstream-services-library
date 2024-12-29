@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2021-2023, Prominence AI, Inc.
+# Copyright (c) 2021-2024, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 # "Monitor Action" to be called with the ODE Occurrence event data for
 # each detected object that meets the above criteria.
 #  
-# The application can process the event data as needed. This examples simply
+# The application can process the event data as needed. This example simply
 # prints all of the event data to console.
 #  
 # The example uses a basic inference Pipeline consisting of:
